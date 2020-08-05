@@ -16,8 +16,8 @@
     </properties>
 
     <scm>
-        <connection>scm:git:https://github.com/andbi/org.evrete.git</connection>
-        <developerConnection>scm:git:https://github.com/andbi/org.evrete.git</developerConnection>
+        <connection>scm:git:https://github.com/andbi/evrete.git</connection>
+        <developerConnection>scm:git:https://github.com/andbi/evrete.git</developerConnection>
         <url>https://github.com/andbi/evrete.org</url>
         <tag>HEAD</tag>
     </scm>
@@ -34,7 +34,7 @@
         <repository>
             <id>github</id>
             <name>GitHub OWNER Apache Maven Packages</name>
-            <url>https://maven.pkg.github.com/andbi/org.evrete</url>
+            <url>https://maven.pkg.github.com/andbi/evrete</url>
         </repository>
     </distributionManagement>
 
