@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>evrete-code-samples</artifactId>
+    <parent>
+        <artifactId>evrete</artifactId>
+        <groupId>org.evrete</groupId>
+        <version>1.0.13-SNAPSHOT</version>
+    </parent>
+
+    <packaging>pom</packaging>
+    <name>evrete-code-samples</name>
+    <version>1.0.13-SNAPSHOT</version>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <groupId>org.evrete</groupId>
+            <artifactId>evrete-core</artifactId>
+            <version>1.0.13-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+</project>

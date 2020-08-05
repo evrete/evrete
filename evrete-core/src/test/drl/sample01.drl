@@ -1,0 +1,10 @@
+import org.evrete.classes.TypeA;
+import org.evrete.classes.TypeB;
+rule "sample01"
+  when
+      $a : TypeA()
+      $b : TypeB( $a.i == $b.i )
+  then
+      $a.waitNs($a.getL());
+end
+
