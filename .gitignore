@@ -1,0 +1,25 @@
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+
+# OS & IDE generated files
+######################
+.DS_Store
+.DS_Store?
+.idea
+*.iml
+
+# Benchmark files
+######################
+benchmark*.numbers
+benchmark*.xls
+benchmark*.csv
+
+# Local dev/test files
+######################
+XLocalDev*.java
