@@ -5,7 +5,7 @@
     <artifactId>evrete</artifactId>
     <packaging>pom</packaging>
     <name>evrete</name>
-    <version>1.0.13-SNAPSHOT</version>
+    <version>1.0.15-SNAPSHOT</version>
 
     <properties>
         <timestamp>${maven.build.timestamp}</timestamp>
@@ -18,7 +18,7 @@
     <scm>
         <connection>scm:git:https://github.com/andbi/evrete.git</connection>
         <developerConnection>scm:git:https://github.com/andbi/evrete.git</developerConnection>
-        <url>https://github.com/andbi/evrete.org</url>
+        <url>https://github.com/andbi/evrete</url>
         <tag>HEAD</tag>
     </scm>
 
