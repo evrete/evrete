@@ -21,6 +21,8 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
     private final Type type;
     private final IdentityMap map;
     private final ArrayOf<TypeMemoryBucket> alphaBuckets;
+    private final List<RuntimeObject> insertBuffer = new LinkedList<>();
+    private final List<RuntimeFact> deleteBuffer = new LinkedList<>();
 
     private ActiveField[] activeFields;
 
@@ -112,34 +114,41 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
         }
     }
 
-    final void insert(Collection<RuntimeObject> facts) {
+    final void commitInsert() {
+        if (insertBuffer.isEmpty()) return;
         //Save to non-beta memory
         for (TypeMemoryBucket bucket : alphaBuckets.data) {
-            bucket.insert(facts);
+            bucket.insert(insertBuffer);
         }
         //Save to beta memory
         for (FieldsMemory fm : fieldsMemories()) {
-            fm.insert(facts);
+            fm.insert(insertBuffer);
         }
+        this.insertBuffer.clear();
     }
 
-    final void retract(Collection<RuntimeFact> facts) {
+    final void commitDelete() {
+        if (deleteBuffer.isEmpty()) return;
         //Delete from non-beta memory
         for (TypeMemoryBucket bucket : alphaBuckets.data) {
-            bucket.retract(facts);
+            bucket.retract(deleteBuffer);
         }
         //Delete from beta memory
         for (FieldsMemory fm : fieldsMemories()) {
-            fm.retract(facts);
+            fm.retract(deleteBuffer);
         }
+        this.deleteBuffer.clear();
     }
 
     Collection<FieldsMemory> fieldsMemories() {
         return betaMemories.values();
     }
 
-    protected RuntimeFact removeFromIdentityMap(Object fact) {
-        return map.remove(fact);
+    void deleteSingle(Object fact) {
+        RuntimeFact rtf = map.remove(fact);
+        if (rtf != null) {
+            deleteBuffer.add(rtf);
+        }
     }
 
     @Override
@@ -167,7 +176,12 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
         map.forEachKey(consumer);
     }
 
-    final RuntimeObject register(Object o) {
+    final void insertSingle(Object o) {
+        RuntimeObject rto = register(o);
+        insertBuffer.add(rto);
+    }
+
+    private RuntimeObject register(Object o) {
         final RuntimeObject rto;
 
         // Read values

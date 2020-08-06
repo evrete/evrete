@@ -468,7 +468,7 @@ class SessionBaseTests {
     }
 
 
-    //@Test TODO !!! uncomment
+    @Test
     void randomExpressionsTest() {
         for (int objectCount = 1; objectCount < 10; objectCount++) {
             for (int conditions = 1; conditions < 10; conditions++) {

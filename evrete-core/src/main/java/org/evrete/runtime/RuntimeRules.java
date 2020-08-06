@@ -9,8 +9,7 @@ import java.util.*;
 
 public class RuntimeRules implements Iterable<RuntimeRule>, MemoryChangeListener {
     private final List<RuntimeRule> list = new ArrayList<>();
-    //TODO rename var and getter
-    private final Collection<RuntimeAggregateLhsJoined> aggregateNodes = new ArrayList<>();
+    private final Collection<RuntimeAggregateLhsJoined> aggregateLhsGroups = new ArrayList<>();
     private final Map<FieldsKey, RuntimeFactType[][]> byFieldsAndAlphaBucket = new HashMap<>();
     private final SessionMemory runtime;
 
@@ -26,7 +25,7 @@ public class RuntimeRules implements Iterable<RuntimeRule>, MemoryChangeListener
                 byFieldsAndAlphaBucket.put(fields, rebuildTypes(fields, type));
             }
         }
-        this.aggregateNodes.addAll(rule.getAggregateNodes());
+        this.aggregateLhsGroups.addAll(rule.getAggregateLhsGroups());
     }
 
     private RuntimeFactType[][] rebuildTypes(FieldsKey fields, RuntimeFactType type) {
@@ -64,8 +63,8 @@ public class RuntimeRules implements Iterable<RuntimeRule>, MemoryChangeListener
         return arr;
     }
 
-    public Collection<RuntimeAggregateLhsJoined> getAggregateNodes() {
-        return aggregateNodes;
+    public Collection<RuntimeAggregateLhsJoined> getAggregateLhsGroups() {
+        return aggregateLhsGroups;
     }
 
     @Override

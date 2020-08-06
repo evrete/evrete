@@ -161,14 +161,11 @@ public class SessionMemory extends AbstractRuntime<StatefulSession, RuntimeRule>
         buffer.takeAll(
                 Action.RETRACT,
                 (type, iterator) -> {
-                    TypeMemory typeMemory = getCreateTypeMemory(type);
-                    List<RuntimeFact> deleteBuffer = new LinkedList<>();
+                    TypeMemory tm = getCreateTypeMemory(type);
                     while (iterator.hasNext()) {
-                        deleteBuffer.add(typeMemory.removeFromIdentityMap(iterator.next()));
+                        tm.deleteSingle(iterator.next());
                     }
-                    if (!deleteBuffer.isEmpty()) {
-                        typeMemory.retract(deleteBuffer);
-                    }
+                    tm.commitDelete();
                 }
         );
 
@@ -188,15 +185,10 @@ public class SessionMemory extends AbstractRuntime<StatefulSession, RuntimeRule>
                 Action.INSERT,
                 (type, iterator) -> {
                     TypeMemory tm = get(type);
-                    //TODO make the converted as a buffer in TypeMemory
-                    List<RuntimeObject> insertBuffer = new LinkedList<>();
                     while (iterator.hasNext()) {
-                        insertBuffer.add(tm.register(iterator.next()));
+                        tm.insertSingle(iterator.next());
                     }
-                    if (!insertBuffer.isEmpty()) {
-                        //TODO see the above, call a new commit() method instead
-                        tm.insert(insertBuffer);
-                    }
+                    tm.commitInsert();
                 }
         );
 
@@ -216,7 +208,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession, RuntimeRule>
 
 
         // Ordered task 2 - update aggregate nodes
-        Collection<RuntimeAggregateLhsJoined> aggregateGroups = ruleStorage.getAggregateNodes();
+        Collection<RuntimeAggregateLhsJoined> aggregateGroups = ruleStorage.getAggregateLhsGroups();
         if (!aggregateGroups.isEmpty()) {
             tasksQueue.add(new AggregateComputeTask(aggregateGroups));
         }

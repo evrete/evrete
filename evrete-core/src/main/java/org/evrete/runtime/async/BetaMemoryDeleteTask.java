@@ -48,7 +48,7 @@ public class BetaMemoryDeleteTask extends Completer {
 
     @Override
     public void onCompletion(CountedCompleter<?> caller) {
-        Collection<RuntimeAggregateLhsJoined> aggregateNodes = rule.getAggregateNodes();
+        Collection<RuntimeAggregateLhsJoined> aggregateNodes = rule.getAggregateLhsGroups();
         if (aggregateNodes.isEmpty()) return;
 
 

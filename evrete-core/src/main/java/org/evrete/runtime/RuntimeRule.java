@@ -74,8 +74,7 @@ public class RuntimeRule extends RuntimeRuleBase implements Named, MemoryChangeL
         return root.getAllBetaEndNodes();
     }
 
-    //TODO rename method
-    public Collection<RuntimeAggregateLhsJoined> getAggregateNodes() {
+    public Collection<RuntimeAggregateLhsJoined> getAggregateLhsGroups() {
         return root.getAggregateConditionedGroups();
     }
 
