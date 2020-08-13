@@ -1,4 +1,4 @@
-package org.evrete.samples;
+package org.evrete.samples.advanced;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;

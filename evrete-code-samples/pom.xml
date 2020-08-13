@@ -12,6 +12,14 @@
     <name>evrete-code-samples</name>
     <version>1.0.16-SNAPSHOT</version>
 
+    <repositories>
+        <repository>
+            <id>github</id>
+            <name>Evrete GitHub repository</name>
+            <url>https://maven.pkg.github.com/andbi/evrete</url>
+        </repository>
+    </repositories>
+
     <build>
         <plugins>
             <plugin>
@@ -35,7 +43,7 @@
         <dependency>
             <groupId>org.evrete</groupId>
             <artifactId>evrete-core</artifactId>
-            <version>1.0.16-SNAPSHOT</version>
+            <version>1.0.15</version>
         </dependency>
     </dependencies>
 </project>

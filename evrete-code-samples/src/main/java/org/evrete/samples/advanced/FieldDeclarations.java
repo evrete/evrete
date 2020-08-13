@@ -1,4 +1,4 @@
-package org.evrete.samples;
+package org.evrete.samples.advanced;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
@@ -6,7 +6,6 @@ import org.evrete.api.*;
 import java.util.function.Function;
 
 public class FieldDeclarations {
-    private static final String HELLO_WORLD_CONST = "Hello World";
 
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
