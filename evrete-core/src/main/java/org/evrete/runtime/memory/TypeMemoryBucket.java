@@ -4,16 +4,16 @@ import org.evrete.api.ReIterable;
 import org.evrete.api.ReIterator;
 import org.evrete.api.RuntimeFact;
 import org.evrete.api.spi.SharedPlainFactStorage;
-import org.evrete.runtime.AlphaMask;
+import org.evrete.runtime.AlphaBucketData;
 import org.evrete.runtime.RuntimeObject;
 
 import java.util.Collection;
 
 class TypeMemoryBucket implements ReIterable<RuntimeFact> {
     private final SharedPlainFactStorage data;
-    private final AlphaMask alphaMask;
+    private final AlphaBucketData alphaMask;
 
-    TypeMemoryBucket(SessionMemory runtime, AlphaMask alphaMask) {
+    TypeMemoryBucket(SessionMemory runtime, AlphaBucketData alphaMask) {
         assert !alphaMask.isEmpty();
         this.data = runtime.getConfiguration().getCollectionsService().newPlainStorage();
         this.alphaMask = alphaMask;

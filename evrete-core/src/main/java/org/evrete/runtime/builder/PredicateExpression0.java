@@ -1,7 +1,6 @@
 package org.evrete.runtime.builder;
 
-import org.evrete.api.Evaluator;
-import org.evrete.api.NamedType;
+import org.evrete.api.*;
 import org.evrete.runtime.AbstractRuntime;
 
 import java.util.Objects;
@@ -41,6 +40,37 @@ class PredicateExpression0 extends AbstractExpression {
 
     @Override
     Evaluator build(AbstractRuntime<?> runtime, Function<String, NamedType> typeMapper) {
-        return runtime.compile(source, typeMapper).withComplexity(getComplexity());
+        Evaluator e = runtime.compile(source, typeMapper);
+        double complexity = getComplexity();
+        if (complexity == ComplexityObject.DEFAULT_COMPLEXITY) {
+            return e;
+        } else {
+            return new Evaluator() {
+                @Override
+                public FieldReference[] descriptor() {
+                    return e.descriptor();
+                }
+
+                @Override
+                public boolean test(IntToValue intToValue) {
+                    return e.test(intToValue);
+                }
+
+                @Override
+                public int compare(LogicallyComparable other) {
+                    return e.compare(other);
+                }
+
+                @Override
+                public String toString() {
+                    return e.toString();
+                }
+
+                @Override
+                public double getComplexity() {
+                    return complexity;
+                }
+            };
+        }
     }
 }

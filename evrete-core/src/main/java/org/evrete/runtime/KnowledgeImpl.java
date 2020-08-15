@@ -1,6 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.Configuration;
+import org.evrete.api.ActiveField;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
 import org.evrete.runtime.async.ForkJoinExecutor;
@@ -13,6 +14,12 @@ public class KnowledgeImpl extends AbstractRuntime<Knowledge> implements Knowled
 
     public KnowledgeImpl(Configuration conf, ForkJoinExecutor executor) {
         super(conf, executor);
+    }
+
+
+    @Override
+    protected void onNewActiveField(ActiveField newField) {
+        // Do nothing
     }
 
     @Override

@@ -25,6 +25,9 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     private final ForkJoinExecutor executor;
     private final ActiveFields activeFields;
 
+
+    protected abstract void onNewActiveField(ActiveField newField);
+
     /**
      * Constructor for a Knowledge object
      *
@@ -81,14 +84,14 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     }
 
     public ActiveField getCreateActiveField(TypeField field) {
-        return activeFields.getCreate(field);
+        return activeFields.getCreate(field, this::onNewActiveField);
     }
 
     public ActiveField[] getActiveFields(Type type) {
         return activeFields.getActiveFields(type);
     }
 
-    public AlphaMask getCreateAlphaMask(FieldsKey fields, boolean beta, Set<Evaluator> typePredicates) {
+    public AlphaBucketData getCreateAlphaMask(FieldsKey fields, boolean beta, Set<Evaluator> typePredicates) {
         return alphaConditions.register(this, fields, beta, typePredicates);
     }
 

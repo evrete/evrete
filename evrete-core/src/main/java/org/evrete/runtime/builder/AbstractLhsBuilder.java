@@ -15,9 +15,11 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
     private final RuleBuilderImpl<C> ruleBuilder;
     private final Map<String, FactTypeBuilder> declaredLhsTypes;
     private final int level;
-    private final Set<AbstractExpression> rawExpressions = new HashSet<>();
+    private final Set<AbstractExpression> conditions = new HashSet<>();
     private Compiled compiledData;
     private final Function<String, FactTypeBuilder> factTypeMapper;
+
+    protected abstract G self();
 
     private AbstractLhsBuilder(RuleBuilderImpl<C> ruleBuilder, int level, AbstractLhsBuilder<C, ?> parent) {
         this.ruleBuilder = ruleBuilder;
@@ -35,16 +37,16 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         };
     }
 
-    protected TypeResolver getTypeResolver() {
-        return ruleBuilder.getRuntimeContext().getTypeResolver();
-    }
-
     protected AbstractLhsBuilder(RuleBuilderImpl<C> ruleBuilder) {
         this(ruleBuilder, 0, null);
     }
 
     protected AbstractLhsBuilder(AbstractLhsBuilder<C, ?> parent) {
         this(parent.ruleBuilder, parent.level + 1, parent);
+    }
+
+    protected TypeResolver getTypeResolver() {
+        return ruleBuilder.getRuntimeContext().getTypeResolver();
     }
 
     public Compiled getCompiledData() {
@@ -65,9 +67,6 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
             this.compiledData = new Compiled(runtime, this);
         }
     }
-
-
-    protected abstract G self();
 
     AbstractLhsBuilder<?, ?> locateLhsGroup(NamedType type) {
         FactTypeBuilder builder = factTypeMapper.apply(type.getVar());
@@ -123,68 +122,64 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         return self();
     }
 
-    //TODO !!! create tests and describe in advanced usage
     public G where(Predicate<Object[]> predicate, double complexity, FieldReference... references) {
         addExpression(predicate, complexity, references);
         return self();
     }
 
-    //TODO !!! create tests and describe in advanced usage
     public G where(Predicate<Object[]> predicate, FieldReference... references) {
         addExpression(predicate, references);
         return self();
     }
 
-    //TODO !!! create tests and describe in advanced usage
     public G where(ValuesPredicate predicate, double complexity, FieldReference... references) {
         addExpression(predicate, complexity, references);
         return self();
     }
 
-    //TODO !!! create tests and describe in advanced usage
     public G where(ValuesPredicate predicate, FieldReference... references) {
         addExpression(predicate, references);
         return self();
     }
 
     private void addExpression(String expression, double complexity) {
-        this.rawExpressions.add(new PredicateExpression0(expression, complexity));
+        this.conditions.add(new PredicateExpression0(expression, complexity));
     }
 
     private void addExpression(Predicate<Object[]> predicate, double complexity, String[] references) {
-        this.rawExpressions.add(new PredicateExpression2(predicate, complexity, references));
+        this.conditions.add(new PredicateExpression2(predicate, complexity, references));
     }
 
     private void addExpression(Predicate<Object[]> predicate, String[] references) {
-        this.rawExpressions.add(new PredicateExpression2(predicate, references));
+        this.conditions.add(new PredicateExpression2(predicate, references));
     }
 
     private void addExpression(ValuesPredicate predicate, double complexity, String[] references) {
-        this.rawExpressions.add(new PredicateExpression1(predicate, complexity, references));
+        this.conditions.add(new PredicateExpression1(predicate, complexity, references));
     }
 
     private void addExpression(ValuesPredicate predicate, String[] references) {
-        this.rawExpressions.add(new PredicateExpression1(predicate, references));
+        this.conditions.add(new PredicateExpression1(predicate, references));
     }
 
     private void addExpression(Predicate<Object[]> predicate, double complexity, FieldReference[] references) {
-        this.rawExpressions.add(new PredicateExpression3(predicate, complexity, references));
+        this.conditions.add(new PredicateExpression3(predicate, complexity, references));
     }
 
     private void addExpression(Predicate<Object[]> predicate, FieldReference[] references) {
-        this.rawExpressions.add(new PredicateExpression3(predicate, references));
+        this.conditions.add(new PredicateExpression3(predicate, references));
     }
 
     private void addExpression(ValuesPredicate predicate, double complexity, FieldReference[] references) {
-        this.rawExpressions.add(new PredicateExpression4(predicate, complexity, references));
+        this.conditions.add(new PredicateExpression4(predicate, complexity, references));
     }
 
     private void addExpression(ValuesPredicate predicate, FieldReference[] references) {
-        this.rawExpressions.add(new PredicateExpression4(predicate, references));
+        this.conditions.add(new PredicateExpression4(predicate, references));
     }
 
     private void addExpression(String expression) {
-        this.rawExpressions.add(new PredicateExpression0(expression));
+        this.conditions.add(new PredicateExpression0(expression));
     }
 
     public synchronized FactTypeBuilder buildLhs(String name, Type type) {
@@ -227,9 +222,9 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         private final Set<Evaluator> aggregateConditions = new HashSet<>();
         private final AbstractLhsBuilder<?, ?> lhsBuilder;
 
-        public Compiled(AbstractRuntime<?> runtime, AbstractLhsBuilder<?, ?> lhsBuilder) {
+        Compiled(AbstractRuntime<?> runtime, AbstractLhsBuilder<?, ?> lhsBuilder) {
             this.lhsBuilder = lhsBuilder;
-            for (AbstractExpression condition : lhsBuilder.rawExpressions) {
+            for (AbstractExpression condition : lhsBuilder.conditions) {
                 Evaluator evaluator = condition.build(runtime, lhsBuilder.getFactTypeMapper());
                 this.addCondition(evaluator);
             }

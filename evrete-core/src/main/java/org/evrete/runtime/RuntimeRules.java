@@ -1,6 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.FieldsKey;
+import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.memory.SessionMemory;
 import org.evrete.runtime.structure.RuleDescriptor;
 import org.evrete.util.CollectionUtils;
@@ -29,7 +30,7 @@ public class RuntimeRules implements Iterable<RuntimeRule>, MemoryChangeListener
     }
 
     private RuntimeFactType[][] rebuildTypes(FieldsKey fields, RuntimeFactType type) {
-        int maxAlphaBucket = runtime.getAlphaConditions().computeMaxAlphaBucket(fields, true);
+        int maxAlphaBucket = computeMaxAlphaBucket(fields);
         int alphaBucket = type.getBucketIndex();
         RuntimeFactType[][] types = byFieldsAndAlphaBucket.get(fields);
         RuntimeFactType[] bucketArr;
@@ -82,4 +83,16 @@ public class RuntimeRules implements Iterable<RuntimeRule>, MemoryChangeListener
             rule.onAfterChange();
         }
     }
+
+    private int computeMaxAlphaBucket(FieldsKey fields) {
+        ArrayOf<AlphaBucketData> maskCollection = runtime.getAlphaConditions().getAlphaMasks(fields, true);
+        int ret = Integer.MIN_VALUE;
+
+        for (AlphaBucketData mask : maskCollection.data) {
+            ret = Math.max(ret, mask.getBucketIndex());
+        }
+
+        return ret;
+    }
+
 }

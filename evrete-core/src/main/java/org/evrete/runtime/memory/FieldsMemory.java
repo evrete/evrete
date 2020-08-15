@@ -19,7 +19,7 @@ public class FieldsMemory implements MemoryChangeListener {
         this.alphaBuckets = new ArrayOf<>(FieldsMemoryBucket.class);
     }
 
-    public SharedBetaFactStorage get(AlphaMask mask) {
+    public SharedBetaFactStorage get(AlphaBucketData mask) {
         int bucketIndex = mask.getBucketIndex();
         if (bucketIndex >= alphaBuckets.data.length) {
             throw new IllegalArgumentException("No alpha bucket created for " + mask);
@@ -33,7 +33,7 @@ public class FieldsMemory implements MemoryChangeListener {
         }
     }
 
-    public FieldsMemoryBucket init(AlphaMask mask) {
+    public FieldsMemoryBucket init(AlphaBucketData mask) {
         int bucketIndex = mask.getBucketIndex();
         if (bucketIndex >= alphaBuckets.data.length) {
             FieldsMemoryBucket bucket = new FieldsMemoryBucket(runtime, typeFields, mask);

@@ -1,9 +1,6 @@
 package org.evrete.runtime.memory;
 
-import org.evrete.api.FieldsKey;
-import org.evrete.api.StatefulSession;
-import org.evrete.api.Type;
-import org.evrete.api.WorkingMemory;
+import org.evrete.api.*;
 import org.evrete.api.spi.SharedBetaFactStorage;
 import org.evrete.collections.FastHashMap;
 import org.evrete.runtime.*;
@@ -57,6 +54,18 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         this.buffer.add(getTypeResolver(), Action.INSERT, objects);
     }
 
+    @Override
+    protected synchronized void onNewActiveField(ActiveField newField) {
+        Type t = newField.getDeclaringType();
+        TypeMemory tm = typedMemories.get(t);
+        if (tm == null) {
+            tm = new TypeMemory(this, t);
+            typedMemories.put(t, tm);
+        } else {
+            tm.onNewActiveField(newField);
+        }
+    }
+
     RuntimeRules getRuleStorage() {
         return ruleStorage;
     }
@@ -68,7 +77,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
     public SharedBetaFactStorage getBetaFactStorage(FactType factType) {
         Type t = factType.getType();
         FieldsKey fields = factType.getFields();
-        AlphaMask mask = factType.getAlphaMask();
+        AlphaBucketData mask = factType.getAlphaMask();
 
         return get(t).get(fields).get(mask);
     }
@@ -87,16 +96,15 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
 
     protected void destroy() {
         buffer.clear();
-        //factMap.clear();
         typedMemories.clear();
     }
 
     @Override
     public <T> void forEachMemoryObject(String type, Consumer<T> consumer) {
         Type t = getTypeResolver().getType(type);
-        TypeMemory s = typedMemories.get(t);
-        if (s != null) {
-            s.forEachMemoryObject(consumer);
+        TypeMemory tm = typedMemories.get(t);
+        if (tm != null) {
+            tm.forEachMemoryObject(consumer);
         }
     }
 
@@ -206,7 +214,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
             tm = new TypeMemory(this, t);
             typedMemories.put(t, tm);
         }
-        AlphaMask mask = factType.getAlphaMask();
+        AlphaBucketData mask = factType.getAlphaMask();
         FieldsKey key = factType.getFields();
         tm.init(key, mask);
     }

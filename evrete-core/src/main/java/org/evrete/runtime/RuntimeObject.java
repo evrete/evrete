@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 public final class RuntimeObject implements RuntimeFact {
     private static final boolean[] EMPTY_ALPHA_TESTS = new boolean[0];
-    private final Object[] values;
+    private Object[] values;
     private final Object delegate;
     private boolean[] alphaTests;
 
@@ -52,10 +52,10 @@ public final class RuntimeObject implements RuntimeFact {
         return new RuntimeObject(o, values);
     }
 
-    public final void appendAlphaTest(boolean b) {
-        int size = this.alphaTests.length;
-        this.alphaTests = Arrays.copyOf(this.alphaTests, size + 1);
-        this.alphaTests[size] = b;
+    public final void appendValue(ActiveField field, Object value) {
+        assert values.length == field.getValueIndex();
+        this.values = Arrays.copyOf(this.values, values.length + 1);
+        this.values[field.getValueIndex()] = value;
     }
 
     public final RuntimeObject appendAlphaTest(AlphaEvaluator newEvaluator) {

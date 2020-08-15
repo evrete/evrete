@@ -83,7 +83,7 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
         return this.facts.factIterator();
     }
 
-    public ReIterable<RuntimeFact> get(AlphaMask alphaMask) {
+    public ReIterable<RuntimeFact> get(AlphaBucketData alphaMask) {
         if (alphaMask.isEmpty()) {
             return this;
         }
@@ -107,7 +107,7 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
      * @param key  beta/alpha key
      * @param mask alpha mask
      */
-    public void init(FieldsKey key, AlphaMask mask) {
+    public void init(FieldsKey key, AlphaBucketData mask) {
         assert this.type == key.getType();
         ReIterator<AbstractFastHashMap.Entry<Object, RuntimeObject>> factIterator = facts.iterator();
         if (key.size() == 0) {
@@ -120,9 +120,9 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
                 if (factIterator.reset() > 0) {
                     // Existing memory is not empty
                     if (mask.isEmpty()) {
-
+                        System.out.println("Mask empty");
                     } else {
-
+                        System.out.println("Mask non-empty");
                     }
                     while (factIterator.hasNext()) {
                         RuntimeObject rto = factIterator.next().getValue();
@@ -148,7 +148,7 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
     }
 
 
-    public TypeMemoryBucket init(AlphaMask alphaMask) {
+    public TypeMemoryBucket init(AlphaBucketData alphaMask) {
         if (alphaMask.isEmpty()) {
             return null;
         } else {
@@ -180,6 +180,23 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
             fm.insert(insertBuffer);
         }
         this.insertBuffer.clear();
+    }
+
+    /**
+     * <p>
+     * Modifies existing facts by appending value of the newly
+     * created field
+     * </p>
+     *
+     * @param newField newly created field
+     */
+    void onNewActiveField(ActiveField newField) {
+        ReIterator<AbstractFastHashMap.Entry<Object, RuntimeObject>> it = facts.iterator();
+        while (it.hasNext()) {
+            RuntimeObject rto = it.next().getValue();
+            Object fieldValue = newField.readValue(rto.getDelegate());
+            rto.appendValue(newField, fieldValue);
+        }
     }
 
     final void commitDelete() {

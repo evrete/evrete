@@ -8,6 +8,7 @@ import org.evrete.api.TypeField;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class ActiveFields implements Copyable<ActiveFields> {
     private final Map<Type, TypeData> typeData = new HashMap<>();
@@ -21,8 +22,8 @@ public class ActiveFields implements Copyable<ActiveFields> {
         }
     }
 
-    public synchronized ActiveField getCreate(TypeField field) {
-        return typeData.computeIfAbsent(field.getDeclaringType(), v -> new TypeData()).getCreate(field);
+    public synchronized ActiveField getCreate(TypeField field, Consumer<ActiveField> listener) {
+        return typeData.computeIfAbsent(field.getDeclaringType(), v -> new TypeData()).getCreate(field, listener);
     }
 
     public ActiveField[] getActiveFields(Type t) {
@@ -45,7 +46,7 @@ public class ActiveFields implements Copyable<ActiveFields> {
             this.fieldsInUse = Arrays.copyOf(other.fieldsInUse, other.fieldsInUse.length);
         }
 
-        ActiveField getCreate(TypeField field) {
+        ActiveField getCreate(TypeField field, Consumer<ActiveField> listener) {
             for (ActiveField af : fieldsInUse) {
                 if (af.getDelegate().equals(field)) {
                     return af;
@@ -55,6 +56,7 @@ public class ActiveFields implements Copyable<ActiveFields> {
             ActiveField af = new ActiveField(field, fieldsInUse.length);
             this.fieldsInUse = Arrays.copyOf(this.fieldsInUse, this.fieldsInUse.length + 1);
             this.fieldsInUse[af.getValueIndex()] = af;
+            listener.accept(af);
             return af;
         }
 

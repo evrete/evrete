@@ -9,7 +9,7 @@ import static org.evrete.api.LogicallyComparable.*;
 
 public class AlphaConditions implements Copyable<AlphaConditions> {
     private static final ArrayOf<AlphaEvaluator> EMPTY = new ArrayOf<>(new AlphaEvaluator[0]);
-    private static final ArrayOf<AlphaMask> EMPTY_MASKS = new ArrayOf<>(new AlphaMask[0]);
+    private static final ArrayOf<AlphaBucketData> EMPTY_MASKS = new ArrayOf<>(new AlphaBucketData[0]);
     private final Map<Type, ArrayOf<AlphaEvaluator>> alphaPredicates;
     private final Map<Type, TypeAlphas> typeAlphas;
 
@@ -37,9 +37,9 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
         return alphaPredicates.getOrDefault(type, EMPTY).data.length;
     }
 
-    public synchronized AlphaMask register(AbstractRuntime<?> runtime, FieldsKey betaFields, boolean beta, Set<Evaluator> typePredicates) {
+    public synchronized AlphaBucketData register(AbstractRuntime<?> runtime, FieldsKey betaFields, boolean beta, Set<Evaluator> typePredicates) {
         if (typePredicates.isEmpty() && betaFields.size() == 0) {
-            return AlphaMask.NO_FIELDS_NO_CONDITIONS;
+            return AlphaBucketData.NO_FIELDS_NO_CONDITIONS;
         }
 
         Type type = betaFields.getType();
@@ -47,7 +47,7 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
         return typeAlphas.computeIfAbsent(type, TypeAlphas::new).getCreate(betaFields, beta, candidate);
     }
 
-    public ArrayOf<AlphaMask> getAlphaMasks(FieldsKey fields, boolean beta) {
+    public ArrayOf<AlphaBucketData> getAlphaMasks(FieldsKey fields, boolean beta) {
         Type type = fields.getType();
         TypeAlphas typeData = typeAlphas.get(type);
         if (typeData == null) {
@@ -55,17 +55,6 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
         } else {
             return typeData.getAlphaMasks(fields, beta);
         }
-    }
-
-    public int computeMaxAlphaBucket(FieldsKey fields, boolean beta) {
-        ArrayOf<AlphaMask> maskCollection = getAlphaMasks(fields, beta);
-        int ret = Integer.MIN_VALUE;
-
-        for (AlphaMask mask : maskCollection.data) {
-            ret = Math.max(ret, mask.getBucketIndex());
-        }
-
-        return ret;
     }
 
     public ArrayOf<AlphaEvaluator> getPredicates(Type t) {
@@ -79,10 +68,8 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
                 '}';
     }
 
-
     private AlphaMeta createAlphaMask(AbstractRuntime<?> runtime, Type t, Set<Evaluator> typePredicates) {
         ArrayOf<AlphaEvaluator> existing = alphaPredicates.computeIfAbsent(t, k -> new ArrayOf<>(new AlphaEvaluator[0]));
-
         List<EvaluationSide> mapping = new LinkedList<>();
 
         for (Evaluator alphaPredicate : typePredicates) {
@@ -143,12 +130,12 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
     }
 
     private static class FieldAlphas implements Copyable<FieldAlphas> {
-        private final Set<AlphaMask> dataOld;
-        private final ArrayOf<AlphaMask> data;
+        private final Set<AlphaBucketData> dataOld;
+        private final ArrayOf<AlphaBucketData> data;
 
         FieldAlphas(FieldsKey fields) {
             this.dataOld = new HashSet<>();
-            this.data = new ArrayOf<>(new AlphaMask[0]);
+            this.data = new ArrayOf<>(new AlphaBucketData[0]);
         }
 
         FieldAlphas(FieldAlphas other) {
@@ -156,16 +143,16 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
             this.data = new ArrayOf<>(other.data);
         }
 
-        AlphaMask getCreate(AlphaMeta candidate) {
-            AlphaMask found = null;
-            for (AlphaMask mask : data.data) {
+        AlphaBucketData getCreate(AlphaMeta candidate) {
+            AlphaBucketData found = null;
+            for (AlphaBucketData mask : data.data) {
                 if (mask.sameData(candidate.alphaEvaluators, candidate.requiredValues)) {
                     found = mask;
                     break;
                 }
             }
             if (found == null) {
-                found = AlphaMask.factory(data.data.length, candidate.alphaEvaluators, candidate.requiredValues);
+                found = AlphaBucketData.factory(data.data.length, candidate.alphaEvaluators, candidate.requiredValues);
                 data.append(found);
             }
 
@@ -194,7 +181,7 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
             this.dataBeta.putAll(other.dataBeta);
         }
 
-        public ArrayOf<AlphaMask> getAlphaMasks(FieldsKey fields, boolean beta) {
+        public ArrayOf<AlphaBucketData> getAlphaMasks(FieldsKey fields, boolean beta) {
             Map<FieldsKey, FieldAlphas> map = beta ?
                     dataBeta
                     :
@@ -207,7 +194,7 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
             }
         }
 
-        private AlphaMask getCreate(FieldsKey betaFields, boolean beta, AlphaMeta candidate) {
+        private AlphaBucketData getCreate(FieldsKey betaFields, boolean beta, AlphaMeta candidate) {
             Map<FieldsKey, FieldAlphas> map = beta ?
                     dataBeta
                     :

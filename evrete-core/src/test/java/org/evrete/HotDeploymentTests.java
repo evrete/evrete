@@ -79,7 +79,6 @@ class HotDeploymentTests {
                 });
 
 
-
         int ai = new Random().nextInt(20) + 1;
         int bi = new Random().nextInt(20) + 1;
         int ci = new Random().nextInt(20) + 1;
@@ -822,9 +821,65 @@ class HotDeploymentTests {
         session.insertAndFire(c);
         assert ruleCounter1.get() == 6 * 5;
         assert ruleCounter2.get() == 7 * 6;
-
-
     }
 
 
+    @Test
+    void testAlpha5() {
+        AtomicInteger ruleCounter1 = new AtomicInteger();
+
+        session.newRule("rule 1")
+                .forEach("$i", Integer.class)
+                .where("$i.intValue > 2")
+                .execute(
+                        ctx -> ruleCounter1.incrementAndGet()
+                );
+
+        for (int i = 0; i < 10; i++) {
+            session.insert(i);
+        }
+        session.fire();
+        assert ruleCounter1.get() == 7; //3,4,5,6,7,8,9
+
+        // Another rule w/o alpha
+        AtomicInteger ruleCounter2 = new AtomicInteger();
+        session.newRule("rule 2")
+                .forEach("$i", Integer.class)
+                .execute(
+                        ctx -> ruleCounter2.incrementAndGet()
+                );
+        session.fire();
+        assert ruleCounter2.get() == 10;
+
+    }
+
+    @Test
+        // An "inverse" version of the previous test
+    void testAlpha6() {
+        AtomicInteger ruleCounter1 = new AtomicInteger();
+
+        session.newRule("rule 1")
+                .forEach("$i", Integer.class)
+                .execute(
+                        ctx -> ruleCounter1.incrementAndGet()
+                );
+
+        for (int i = 0; i < 10; i++) {
+            session.insert(i);
+        }
+        session.fire();
+        assert ruleCounter1.get() == 10;
+
+        // Another rule w/o alpha
+        AtomicInteger ruleCounter2 = new AtomicInteger();
+        session.newRule("rule 2")
+                .forEach("$i", Integer.class)
+                .where("$i.intValue > 2")
+                .execute(
+                        ctx -> ruleCounter2.incrementAndGet()
+                );
+        session.fire();
+        assert ruleCounter2.get() == 7; //3,4,5,6,7,8,9
+
+    }
 }
