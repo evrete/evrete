@@ -42,9 +42,7 @@ public class NodeDeltaTask extends Completer {
     @Override
     // Compute this node's delta
     public void onCompletion(CountedCompleter<?> caller) {
-
         node.computeDelta(ctx);
-
 
         // Once this node's delta is computed, it's safe
         // to merge parent nodes' deltas

@@ -33,18 +33,18 @@ public class FieldsMemory implements MemoryChangeListener {
         }
     }
 
-    public boolean init(AlphaMask mask) {
+    public FieldsMemoryBucket init(AlphaMask mask) {
         int bucketIndex = mask.getBucketIndex();
         if (bucketIndex >= alphaBuckets.data.length) {
             FieldsMemoryBucket bucket = new FieldsMemoryBucket(runtime, typeFields, mask);
             this.alphaBuckets.append(bucket);
-            return true;
+            return bucket;
         } else {
             SharedBetaFactStorage storage = alphaBuckets.data[bucketIndex].getFieldData();
             if (storage == null) {
                 throw new IllegalArgumentException("No alpha bucket created for " + mask);
             } else {
-                return false;
+                return null;
             }
         }
     }

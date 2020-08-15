@@ -3,8 +3,8 @@ package org.evrete.runtime.structure;
 import org.evrete.api.Evaluator;
 import org.evrete.api.NamedType;
 import org.evrete.runtime.AbstractRuntime;
+import org.evrete.runtime.builder.AbstractLhsBuilder;
 import org.evrete.runtime.builder.FactTypeBuilder;
-import org.evrete.runtime.builder.LhsBuilder;
 import org.evrete.util.CollectionUtils;
 import org.evrete.util.MapFunction;
 import org.evrete.util.NextIntSupplier;
@@ -23,11 +23,11 @@ public abstract class LhsDescriptor {
     private final RhsFactGroupDescriptor[] allFactGroups;
     private final int betaFactGroupCount;
 
-    LhsDescriptor(AbstractRuntime<?, ?> runtime, LhsDescriptor parent, LhsBuilder<?, ?> group, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
+    LhsDescriptor(AbstractRuntime<?> runtime, LhsDescriptor parent, AbstractLhsBuilder<?, ?> group, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
         this.level = parent == null ? 0 : parent.level + 1;
 
         Set<FactTypeBuilder> declaredTypes = group.getDeclaredFactTypes();
-        LhsBuilder.Compiled compiledConditions = group.getCompiledData();
+        AbstractLhsBuilder.Compiled compiledConditions = group.getCompiledData();
 
         Set<FactType> keyedFactTypes = new HashSet<>();
         Collection<FactType> alphaFactTypes = new ArrayList<>();
@@ -105,7 +105,7 @@ public abstract class LhsDescriptor {
         return allFactGroups;
     }
 
-    private static ConditionNodeDescriptor[] findBestAllocation(AbstractRuntime<?, ?> runtime, LhsBuilder.Compiled lhsBuilder, MapFunction<NamedType, FactType> mapping) {
+    private static ConditionNodeDescriptor[] findBestAllocation(AbstractRuntime<?> runtime, AbstractLhsBuilder.Compiled lhsBuilder, MapFunction<NamedType, FactType> mapping) {
         // Compiling conditions
         Set<Evaluator> betaConditions = new HashSet<>(lhsBuilder.getBetaConditions());
         if (betaConditions.isEmpty()) return ConditionNodeDescriptor.ZERO_ARRAY;

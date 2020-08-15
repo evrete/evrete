@@ -5,13 +5,21 @@ import org.evrete.api.RuntimeFact;
 
 import java.util.Arrays;
 
-public abstract class RuntimeObject implements RuntimeFact {
+public final class RuntimeObject implements RuntimeFact {
+    private static final boolean[] EMPTY_ALPHA_TESTS = new boolean[0];
     private final Object[] values;
     private final Object delegate;
+    private boolean[] alphaTests;
 
-    protected RuntimeObject(Object o, Object[] values) {
+
+    private RuntimeObject(Object o, Object[] values) {
+        this(o, values, EMPTY_ALPHA_TESTS);
+    }
+
+    private RuntimeObject(Object o, Object[] values, boolean[] alphaTests) {
         this.values = values;
         this.delegate = o;
+        this.alphaTests = alphaTests;
     }
 
     @Override
@@ -19,9 +27,16 @@ public abstract class RuntimeObject implements RuntimeFact {
         return values[field.getValueIndex()];
     }
 
+
     @Override
-    public Object getDelegate() {
-        return delegate;
+    public boolean[] getAlphaTests() {
+        return alphaTests;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T getDelegate() {
+        return (T) delegate;
     }
 
     @Override
@@ -30,54 +45,31 @@ public abstract class RuntimeObject implements RuntimeFact {
     }
 
     public static RuntimeObject factory(Object o, Object[] values, boolean[] alphaTests) {
-        return new WithAlpha(o, values, alphaTests);
+        return new RuntimeObject(o, values, alphaTests);
     }
 
     public static RuntimeObject factory(Object o, Object[] values) {
-        return new NoAlpha(o, values);
+        return new RuntimeObject(o, values);
     }
 
-    static class NoAlpha extends RuntimeObject {
-        private static final boolean[] NO_TESTS = new boolean[0];
-
-        public NoAlpha(Object o, Object[] values) {
-            super(o, values);
-        }
-
-        @Override
-        public boolean[] getAlphaTests() {
-            return NO_TESTS;
-        }
-
-        @Override
-        public String toString() {
-            return "{delegate=" + getDelegate() +
-                    ", values=" + Arrays.toString(getValues()) +
-                    '}';
-        }
-
+    public final void appendAlphaTest(boolean b) {
+        int size = this.alphaTests.length;
+        this.alphaTests = Arrays.copyOf(this.alphaTests, size + 1);
+        this.alphaTests[size] = b;
     }
 
-    static class WithAlpha extends RuntimeObject {
-        private final boolean[] alphaTests;
-
-        public WithAlpha(Object o, Object[] values, boolean[] alphaTests) {
-            super(o, values);
-            this.alphaTests = alphaTests;
-        }
-
-        @Override
-        public boolean[] getAlphaTests() {
-            return alphaTests;
-        }
-
-        @Override
-        public String toString() {
-            return "{delegate=" + getDelegate() +
-                    ", values=" + Arrays.toString(getValues()) +
-                    ", tests=" + Arrays.toString(alphaTests) +
-                    '}';
-        }
+    public final RuntimeObject appendAlphaTest(AlphaEvaluator newEvaluator) {
+        int size = this.alphaTests.length;
+        this.alphaTests = Arrays.copyOf(this.alphaTests, size + 1);
+        Object fieldValue = values[newEvaluator.getValueIndex()];
+        this.alphaTests[size] = newEvaluator.test(fieldValue);
+        return this;
     }
 
+    public String toString() {
+        return "{delegate=" + getDelegate() +
+                ", values=" + Arrays.toString(values) +
+                ", tests=" + Arrays.toString(alphaTests) +
+                '}';
+    }
 }

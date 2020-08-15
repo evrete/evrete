@@ -7,11 +7,11 @@ import org.evrete.runtime.aggregate.AggregateEvaluatorFactory;
 import org.evrete.runtime.aggregate.ExistsEvaluatorFactory;
 import org.evrete.runtime.aggregate.NotExistsEvaluatorFactory;
 
-public class AggregateLhsBuilder<C extends RuntimeContext<C, ?>> extends LhsBuilder<C, AggregateLhsBuilder<C>> implements FactSelector<AggregateLhsBuilder<C>> {
-    private final RootLhsBuilder<C> parent;
+public class AggregateLhsBuilder<C extends RuntimeContext<C>> extends AbstractLhsBuilder<C, AggregateLhsBuilder<C>> implements FactSelector<AggregateLhsBuilder<C>> {
+    private final LhsBuilder<C> parent;
     private AggregateEvaluatorFactory aggregateEvaluatorFactory;
 
-    AggregateLhsBuilder(RootLhsBuilder<C> parent) {
+    AggregateLhsBuilder(LhsBuilder<C> parent) {
         super(parent);
         this.parent = parent;
     }
@@ -21,13 +21,13 @@ public class AggregateLhsBuilder<C extends RuntimeContext<C, ?>> extends LhsBuil
         return buildLhs(facts);
     }
 
-    public RootLhsBuilder<C> exists() {
+    public LhsBuilder<C> exists() {
         this.aggregateEvaluatorFactory = ExistsEvaluatorFactory.INSTANCE;
         parent.saveAggregate(this);
         return parent;
     }
 
-    public RootLhsBuilder<C> notExists() {
+    public LhsBuilder<C> notExists() {
         this.aggregateEvaluatorFactory = NotExistsEvaluatorFactory.INSTANCE;
         parent.saveAggregate(this);
         return parent;

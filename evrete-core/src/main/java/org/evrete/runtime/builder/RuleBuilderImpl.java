@@ -9,38 +9,41 @@ import org.evrete.runtime.AbstractRuntime;
 
 import java.util.function.Consumer;
 
-public class RuleBuilderImpl<C extends RuntimeContext<C, ?>> extends AbstractRule implements RuleBuilder<C> {
-    private final AbstractRuntime<C, ?> runtime;
-    private final RootLhsBuilder<C> outputGroup;
 
-    public RuleBuilderImpl(AbstractRuntime<C, ?> ctx, String name) {
+public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule implements RuleBuilder<C> {
+    private final AbstractRuntime<C> runtime;
+    private final LhsBuilder<C> lhsBuilder;
+
+    public RuleBuilderImpl(AbstractRuntime<C> ctx, String name) {
         super(name);
-        //this.rhs = new RuleRhs(name);
         if (ctx.ruleExists(name)) {
             throw new IllegalStateException("Rule '" + name + "' already exists");
         } else {
             this.runtime = ctx;
         }
-
-        this.outputGroup = new RootLhsBuilder<>(this);
+        this.lhsBuilder = new LhsBuilder<>(this);
     }
 
-    public RuleBuilderImpl<C> compileConditions(AbstractRuntime<?, ?> runtime) {
-        outputGroup.compileConditions(runtime);
-        for (AggregateLhsBuilder<C> agg : outputGroup.getAggregateGroups()) {
+    public RuleBuilderImpl<C> compileConditions(AbstractRuntime<?> runtime) {
+        lhsBuilder.compileConditions(runtime);
+        for (AggregateLhsBuilder<C> agg : lhsBuilder.getAggregateGroups()) {
             agg.compileConditions(runtime);
         }
         return this;
     }
 
     @Override
-    public RootLhsBuilder<C> getOutputGroup() {
-        return outputGroup;
+    @SuppressWarnings("unchecked")
+    public C getRuntime() {
+        return (C) runtime;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public C deploy() {
+    public LhsBuilder<C> getLhs() {
+        return lhsBuilder;
+    }
+
+    private C build() {
         switch (runtime.getKind()) {
             case SESSION:
                 runtime.deployRule(runtime.compileRule(this));
@@ -51,22 +54,21 @@ public class RuleBuilderImpl<C extends RuntimeContext<C, ?>> extends AbstractRul
             default:
                 throw new IllegalStateException();
         }
-        return (C) runtime;
+        return getRuntime();
+    }
 
+
+    protected C build(Consumer<RhsContext> rhs) {
+        setRhs(rhs);
+        return build();
     }
 
     @Override
-    public C execute(Consumer<RhsContext> consumer) {
-        this.initRhs(consumer);
-        return deploy();
+    public LhsBuilder<C> forEach(FactBuilder... facts) {
+        return lhsBuilder.buildLhs(facts);
     }
 
-    @Override
-    public RootLhsBuilder<C> forEach(FactBuilder... facts) {
-        return outputGroup.buildLhs(facts);
-    }
-
-    public AbstractRuntime<?, ?> getRuntimeContext() {
+    public AbstractRuntime<?> getRuntimeContext() {
         return runtime;
     }
 

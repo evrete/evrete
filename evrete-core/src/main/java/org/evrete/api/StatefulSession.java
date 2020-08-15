@@ -4,7 +4,7 @@ import org.evrete.runtime.RuntimeRule;
 
 import java.util.Collection;
 
-public interface StatefulSession extends WorkingMemory, RuntimeContext<StatefulSession, RuntimeRule> {
+public interface StatefulSession extends WorkingMemory, RuntimeContext<StatefulSession> {
 
     void fire();
 

@@ -73,7 +73,7 @@ class AggregateBaseTests {
                 .where("$c.i == $a.i", "$b.i == $c.i")
                 .exists();
 
-        assert builder.getOutputGroup().getAggregateGroups().size() == 2;
+        assert builder.getLhs().getAggregateGroups().size() == 2;
         RuleDescriptor desc = knowledge.compileRule(builder);
         assert desc.getRootLhsDescriptor().getAggregateDescriptors().size() == 2;
     }
@@ -111,7 +111,7 @@ class AggregateBaseTests {
         ).where("$c.i == $a.i", "$b.i == $c.i")
                 .exists();
 
-        assert builder.getOutputGroup().getAggregateGroups().size() == 2;
+        assert builder.getLhs().getAggregateGroups().size() == 2;
         RuleDescriptor desc = knowledge.compileRule(builder);
         assert desc.getRootLhsDescriptor().getAggregateDescriptors().size() == 2;
     }
@@ -130,7 +130,7 @@ class AggregateBaseTests {
 
 
         RuleDescriptor desc = knowledge.compileRule(builder);
-        assert builder.getOutputGroup().getAggregateGroups().size() == 1;
+        assert builder.getLhs().getAggregateGroups().size() == 1;
         assert desc.getRootLhsDescriptor().getAggregateDescriptors().size() == 1;
     }
 
@@ -147,7 +147,7 @@ class AggregateBaseTests {
                 .exists()
         ;
 
-        assert builder.getOutputGroup().getAggregateGroups().size() == 1;
+        assert builder.getLhs().getAggregateGroups().size() == 1;
         RuleDescriptor desc = knowledge.compileRule(builder);
         assert desc.getRootLhsDescriptor().getAggregateDescriptors().size() == 1;
     }
@@ -178,7 +178,7 @@ class AggregateBaseTests {
         ).where("$c.i == $a2.i", "$b.i == $c.i").exists()
         ;
 
-        assert builder.getOutputGroup().getAggregateGroups().size() == 3;
+        assert builder.getLhs().getAggregateGroups().size() == 3;
         RuleDescriptor desc = knowledge.compileRule(builder);
         assert desc.getRootLhsDescriptor().getAggregateDescriptors().size() == 3;
     }

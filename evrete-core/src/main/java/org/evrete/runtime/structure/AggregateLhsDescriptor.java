@@ -4,8 +4,8 @@ import org.evrete.api.Evaluator;
 import org.evrete.api.NamedType;
 import org.evrete.runtime.AbstractRuntime;
 import org.evrete.runtime.aggregate.AggregateEvaluatorFactory;
+import org.evrete.runtime.builder.AbstractLhsBuilder;
 import org.evrete.runtime.builder.AggregateLhsBuilder;
-import org.evrete.runtime.builder.LhsBuilder;
 import org.evrete.util.MapFunction;
 import org.evrete.util.NextIntSupplier;
 
@@ -17,11 +17,11 @@ public class AggregateLhsDescriptor extends LhsDescriptor {
     private final AggregateEvaluator joinCondition;
 
 
-    public AggregateLhsDescriptor(AbstractRuntime<?, ?> runtime, RootLhsDescriptor parent, AggregateLhsBuilder<?> group, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
+    public AggregateLhsDescriptor(AbstractRuntime<?> runtime, RootLhsDescriptor parent, AggregateLhsBuilder<?> group, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
         super(runtime, parent, group, factIdGenerator, typeMapping);
         this.aggregateEvaluatorFactory = group.getAggregateEvaluatorFactory();
 
-        LhsBuilder.Compiled compiled = group.getCompiledData();
+        AbstractLhsBuilder.Compiled compiled = group.getCompiledData();
         Set<Evaluator> conditions = compiled.getAggregateConditions();
         if (conditions.isEmpty()) {
             //this.aggregateConditionNode = null;

@@ -37,7 +37,7 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
         return alphaPredicates.getOrDefault(type, EMPTY).data.length;
     }
 
-    public synchronized AlphaMask register(AbstractRuntime<?, ?> runtime, FieldsKey betaFields, boolean beta, Set<Evaluator> typePredicates) {
+    public synchronized AlphaMask register(AbstractRuntime<?> runtime, FieldsKey betaFields, boolean beta, Set<Evaluator> typePredicates) {
         if (typePredicates.isEmpty() && betaFields.size() == 0) {
             return AlphaMask.NO_FIELDS_NO_CONDITIONS;
         }
@@ -80,10 +80,10 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
     }
 
 
-    private AlphaMeta createAlphaMask(AbstractRuntime<?, ?> runtime, Type t, Set<Evaluator> typePredicates) {
+    private AlphaMeta createAlphaMask(AbstractRuntime<?> runtime, Type t, Set<Evaluator> typePredicates) {
         ArrayOf<AlphaEvaluator> existing = alphaPredicates.computeIfAbsent(t, k -> new ArrayOf<>(new AlphaEvaluator[0]));
 
-        List<EvaluationSide> mapping = new ArrayList<>(typePredicates.size());
+        List<EvaluationSide> mapping = new LinkedList<>();
 
         for (Evaluator alphaPredicate : typePredicates) {
             AlphaEvaluator found = null;
@@ -108,6 +108,7 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
             }
 
             if (found == null) {
+                //Unknown condition
                 TypeField field = alphaPredicate.descriptor()[0].field();
                 found = new AlphaEvaluator(existing.data.length, alphaPredicate, runtime.getCreateActiveField(field));
                 existing.append(found);
@@ -117,17 +118,18 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
         }
 
         boolean[] validValues = new boolean[existing.data.length];
-        int[] mappedIndices = new int[mapping.size()];
+        AlphaEvaluator[] alphaEvaluators = new AlphaEvaluator[mapping.size()];
 
         int mappingIdx = 0;
         for (EvaluationSide h : mapping) {
-            int alphaId = h.condition.getIndex();
-            mappedIndices[mappingIdx++] = alphaId;
+            int alphaId = h.condition.getUniqueId();
+            alphaEvaluators[mappingIdx] = h.condition;
             validValues[alphaId] = h.direct;
+            mappingIdx++;
         }
 
-        Arrays.sort(mappedIndices); // Required for further compare operations
-        return new AlphaMeta(mappedIndices, validValues);
+        Arrays.sort(alphaEvaluators, Comparator.comparingInt(AlphaEvaluator::getUniqueId));
+        return new AlphaMeta(validValues, alphaEvaluators);
     }
 
     private static class EvaluationSide {
@@ -157,13 +159,13 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
         AlphaMask getCreate(AlphaMeta candidate) {
             AlphaMask found = null;
             for (AlphaMask mask : data.data) {
-                if (mask.sameData(candidate.alphaIndices, candidate.requiredValues)) {
+                if (mask.sameData(candidate.alphaEvaluators, candidate.requiredValues)) {
                     found = mask;
                     break;
                 }
             }
             if (found == null) {
-                found = AlphaMask.factory(data.data.length, candidate.alphaIndices, candidate.requiredValues);
+                found = AlphaMask.factory(data.data.length, candidate.alphaEvaluators, candidate.requiredValues);
                 data.append(found);
             }
 
@@ -221,12 +223,12 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
     }
 
     private static class AlphaMeta {
-        private final int[] alphaIndices;
+        private final AlphaEvaluator[] alphaEvaluators;
         private final boolean[] requiredValues;
 
-        AlphaMeta(int[] alphaIndices, boolean[] requiredValues) {
-            this.alphaIndices = alphaIndices;
+        AlphaMeta(boolean[] requiredValues, AlphaEvaluator[] alphaEvaluators) {
             this.requiredValues = requiredValues;
+            this.alphaEvaluators = alphaEvaluators;
         }
     }
 }

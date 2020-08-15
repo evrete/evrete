@@ -9,12 +9,12 @@ import java.util.Objects;
 import java.util.Set;
 
 public final class FactTypeBuilder implements NamedType {
-    private final LhsBuilder<?, ?> group;
+    private final AbstractLhsBuilder<?, ?> group;
     private final String var;
     private final Type type;
     private final Set<TypeField> betaFields = new HashSet<>();
 
-    FactTypeBuilder(LhsBuilder<?, ?> group, String var, Type type) {
+    FactTypeBuilder(AbstractLhsBuilder<?, ?> group, String var, Type type) {
         Objects.requireNonNull(var);
         Objects.requireNonNull(type);
         this.group = group;
@@ -42,7 +42,7 @@ public final class FactTypeBuilder implements NamedType {
         return var;
     }
 
-    public LhsBuilder<?, ?> getGroup() {
+    public AbstractLhsBuilder<?, ?> getGroup() {
         return group;
     }
 

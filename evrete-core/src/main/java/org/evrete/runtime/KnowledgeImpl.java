@@ -2,14 +2,12 @@ package org.evrete.runtime;
 
 import org.evrete.Configuration;
 import org.evrete.api.Knowledge;
-import org.evrete.api.RuleBuilder;
 import org.evrete.api.StatefulSession;
 import org.evrete.runtime.async.ForkJoinExecutor;
-import org.evrete.runtime.structure.RuleDescriptor;
 
 import java.util.WeakHashMap;
 
-public class KnowledgeImpl extends AbstractRuntime<Knowledge, RuleDescriptor> implements Knowledge {
+public class KnowledgeImpl extends AbstractRuntime<Knowledge> implements Knowledge {
     private final WeakHashMap<StatefulSession, Object> sessions = new WeakHashMap<>();
     private final Object VALUE = new Object();
 
@@ -20,11 +18,6 @@ public class KnowledgeImpl extends AbstractRuntime<Knowledge, RuleDescriptor> im
     @Override
     public final Kind getKind() {
         return Kind.KNOWLEDGE;
-    }
-
-    @Override
-    public RuleDescriptor compileRule(RuleBuilder<Knowledge> builder) {
-        return buildDescriptor(builder);
     }
 
     void close(StatefulSession session) {

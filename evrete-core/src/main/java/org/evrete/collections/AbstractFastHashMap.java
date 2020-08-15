@@ -65,7 +65,7 @@ public abstract class AbstractFastHashMap<K, V> extends AbstractFastHashMapBase<
         return super.computeEntryIfAbsent(key, k -> new Entry<>(k, function.apply(k))).value;
     }
 
-    protected static class Entry<K1, V1> extends HashEntry<K1> implements MapEntry<K1, V1> {
+    public static class Entry<K1, V1> extends HashEntry<K1> implements MapEntry<K1, V1> {
         V1 value;
 
         public Entry(K1 key, V1 value) {

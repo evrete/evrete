@@ -7,7 +7,7 @@ import org.evrete.runtime.KnowledgeImpl;
 import org.evrete.runtime.StatefulSessionImpl;
 import org.evrete.runtime.builder.FactTypeBuilder;
 import org.evrete.runtime.builder.FieldReference;
-import org.evrete.runtime.builder.RootLhsBuilder;
+import org.evrete.runtime.builder.LhsBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -99,7 +99,7 @@ class SessionBaseTests {
 
         RuleBuilder<Knowledge> builder = kn.newRule("random");
 
-        RootLhsBuilder<Knowledge> rootGroup = builder.getOutputGroup();
+        LhsBuilder<Knowledge> rootGroup = builder.getLhs();
 
         for (int t = 0; t < allTypes.length; t++) {
             Type type = allTypes[t];
@@ -139,7 +139,7 @@ class SessionBaseTests {
         }
 
         AtomicInteger callCount = new AtomicInteger(0);
-        builder.execute(ctx -> {
+        rootGroup.execute(ctx -> {
             assert ctx.get("$TypeA").getClass().equals(TypeA.class);
             assert ctx.get("$TypeB").getClass().equals(TypeB.class);
             assert ctx.get("$TypeC").getClass().equals(TypeC.class);

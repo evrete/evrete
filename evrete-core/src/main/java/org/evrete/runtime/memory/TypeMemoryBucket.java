@@ -26,9 +26,13 @@ class TypeMemoryBucket implements ReIterable<RuntimeFact> {
     void insert(Collection<RuntimeObject> facts) {
         data.ensureExtraCapacity(facts.size());
         for (RuntimeObject rto : facts) {
-            if (alphaMask.test(rto)) {
-                data.insert(rto);
-            }
+            insertSingle(rto);
+        }
+    }
+
+    void insertSingle(RuntimeObject rto) {
+        if (alphaMask.test(rto)) {
+            data.insert(rto);
         }
     }
 

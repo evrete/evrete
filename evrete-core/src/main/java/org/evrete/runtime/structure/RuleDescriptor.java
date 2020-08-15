@@ -9,10 +9,10 @@ import org.evrete.util.NextIntSupplier;
 public class RuleDescriptor extends AbstractRule {
     private final RootLhsDescriptor rootLhsDescriptor;
 
-    public RuleDescriptor(AbstractRuntime<?, ?> runtime, RuleBuilderImpl<?> rule) {
+    public RuleDescriptor(AbstractRuntime<?> runtime, RuleBuilderImpl<?> rule) {
         super(rule);
         RuleBuilderImpl<?> compiled = rule.compileConditions(runtime);
-        this.rootLhsDescriptor = new RootLhsDescriptor(runtime, compiled.getOutputGroup(), new NextIntSupplier(), new MapFunction<>());
+        this.rootLhsDescriptor = new RootLhsDescriptor(runtime, compiled.getLhs(), new NextIntSupplier(), new MapFunction<>());
     }
 
     public RootLhsDescriptor getRootLhsDescriptor() {

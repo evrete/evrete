@@ -20,10 +20,10 @@ public abstract class AbstractExpression implements ComplexityObject {
         return complexity;
     }
 
-    abstract Evaluator build(AbstractRuntime<?, ?> runtime, Function<String, NamedType> typeMapper);
+    abstract Evaluator build(AbstractRuntime<?> runtime, Function<String, NamedType> typeMapper);
 
 
-    static FieldReference[] resolveReferences(AbstractRuntime<?, ?> runtime, Function<String, NamedType> typeMapper, String[] references) {
+    static FieldReference[] resolveReferences(AbstractRuntime<?> runtime, Function<String, NamedType> typeMapper, String[] references) {
         FieldReference[] descriptor = new FieldReference[references.length];
         ExpressionResolver expressionResolver = runtime.getConfiguration().getExpressionsService();
         for (int i = 0; i < descriptor.length; i++) {

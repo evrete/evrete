@@ -12,7 +12,7 @@ public interface BetaMemoryNode<D extends NodeDescriptor> {
 
     KeysStore getDeltaStore();
 
-    RuntimeContext<?, ?> getRuntime();
+    RuntimeContext<?> getRuntime();
 
     default void mergeDelta() {
         getMainStore().append(getDeltaStore());

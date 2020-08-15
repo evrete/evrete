@@ -35,7 +35,7 @@ public class RuntimeRule extends RuntimeRuleBase implements Named, MemoryChangeL
         return ruleName;
     }
 
-    final void doRhs() {
+    public final void fire() {
         this.root.forEach(rhs);
         // Merge memory changes
         getMemory().getBuffer().takeAllFrom(buffer);

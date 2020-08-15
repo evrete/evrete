@@ -3,7 +3,7 @@ package org.evrete.runtime.structure;
 import org.evrete.api.NamedType;
 import org.evrete.runtime.AbstractRuntime;
 import org.evrete.runtime.builder.AggregateLhsBuilder;
-import org.evrete.runtime.builder.RootLhsBuilder;
+import org.evrete.runtime.builder.LhsBuilder;
 import org.evrete.util.MapFunction;
 import org.evrete.util.NextIntSupplier;
 
@@ -17,7 +17,7 @@ public class RootLhsDescriptor extends LhsDescriptor {
     private final FactType[] allFactTypes;
 
 
-    public RootLhsDescriptor(AbstractRuntime<?, ?> runtime, RootLhsBuilder<?> root, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> rootMapping) {
+    public RootLhsDescriptor(AbstractRuntime<?> runtime, LhsBuilder<?> root, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> rootMapping) {
         super(runtime, null, root, factIdGenerator, rootMapping);
         Collection<FactType> allFacts = new HashSet<>(getGroupFactTypes());
         this.rootMapping = rootMapping;

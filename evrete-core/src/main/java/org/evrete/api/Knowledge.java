@@ -5,7 +5,7 @@ import org.evrete.runtime.structure.RuleDescriptor;
 
 import java.util.List;
 
-public interface Knowledge extends RuntimeContext<Knowledge, RuleDescriptor> {
+public interface Knowledge extends RuntimeContext<Knowledge> {
     StatefulSession createSession();
 
     List<RuleDescriptor> getRuleDescriptors();

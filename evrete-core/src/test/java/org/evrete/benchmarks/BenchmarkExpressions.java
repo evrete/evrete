@@ -67,7 +67,7 @@ public class BenchmarkExpressions {
             rule.forEach().buildLhs("$a", TypeA.class);
             rule.forEach().buildLhs("$b", TypeB.class.getName());
             rule.forEach().buildLhs("$c", TypeC.class.getName());
-            evaluator = knowledge.compile("$a.i + $b.i + $c.i > 10_000", rule.getOutputGroup().getFactTypeMapper());
+            evaluator = knowledge.compile("$a.i + $b.i + $c.i > 10_000", rule.getLhs().getFactTypeMapper());
 
             Random random = new Random();
             Object[] vars = new Object[8192 * 256];

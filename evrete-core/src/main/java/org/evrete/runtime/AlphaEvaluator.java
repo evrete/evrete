@@ -9,11 +9,11 @@ import java.util.function.Predicate;
 
 public class AlphaEvaluator implements LogicallyComparable, Predicate<Object> {
     private final Evaluator delegate;
-    private final int index;
+    private final int uniqueId;
     private final int valueIndex;
 
-    AlphaEvaluator(int index, Evaluator e, ActiveField field) {
-        this.index = index;
+    AlphaEvaluator(int uniqueId, Evaluator e, ActiveField field) {
+        this.uniqueId = uniqueId;
         this.delegate = e;
         this.valueIndex = field.getValueIndex();
         FieldReference[] descriptor = e.descriptor();
@@ -43,8 +43,8 @@ public class AlphaEvaluator implements LogicallyComparable, Predicate<Object> {
         return delegate.test(value -> o);
     }
 
-    public int getIndex() {
-        return index;
+    public int getUniqueId() {
+        return uniqueId;
     }
 
     Evaluator getDelegate() {
@@ -53,7 +53,7 @@ public class AlphaEvaluator implements LogicallyComparable, Predicate<Object> {
 
     @Override
     public String toString() {
-        return "{id=" + index +
+        return "{id=" + uniqueId +
                 ", delegate=" + delegate +
                 '}';
     }

@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 public final class EvaluatorFactory {
 
-    public static List<EvaluatorGroup> flattenEvaluators(AbstractRuntime<?, ?> runtime, Collection<Evaluator> rawEvaluators, Function<NamedType, FactType> typeFunction) {
+    public static List<EvaluatorGroup> flattenEvaluators(AbstractRuntime<?> runtime, Collection<Evaluator> rawEvaluators, Function<NamedType, FactType> typeFunction) {
         Collection<EvaluatorInternal> evaluators = convert(runtime, rawEvaluators, typeFunction);
 
         MapOfSet<Set<FactType>, EvaluatorInternal> groupedConditions = new MapOfSet<>();
@@ -33,7 +33,7 @@ public final class EvaluatorFactory {
         return result;
     }
 
-    public static Collection<EvaluatorInternal> convert(AbstractRuntime<?, ?> runtime, Collection<Evaluator> rawEvaluators, Function<NamedType, FactType> typeFunction) {
+    public static Collection<EvaluatorInternal> convert(AbstractRuntime<?> runtime, Collection<Evaluator> rawEvaluators, Function<NamedType, FactType> typeFunction) {
         Collection<EvaluatorInternal> evaluators = new ArrayList<>(rawEvaluators.size());
         for (Evaluator e : rawEvaluators) {
             validateExpression(e);
@@ -48,7 +48,7 @@ public final class EvaluatorFactory {
     }
 
 
-    public static EvaluatorGroup unionEvaluators(AbstractRuntime<?, ?> runtime, Collection<Evaluator> raw, Function<NamedType, FactType> typeFunction) {
+    public static EvaluatorGroup unionEvaluators(AbstractRuntime<?> runtime, Collection<Evaluator> raw, Function<NamedType, FactType> typeFunction) {
         Collection<EvaluatorInternal> collection = convert(runtime, raw, typeFunction);
         return new EvaluatorGroup(collection);
     }

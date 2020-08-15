@@ -1,12 +1,12 @@
 package org.evrete;
 
-import org.evrete.api.Named;
 import org.evrete.api.RhsContext;
+import org.evrete.api.Rule;
 
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
-public abstract class AbstractRule implements Named {
+public abstract class AbstractRule implements Rule {
     private static final Logger LOGGER = Logger.getLogger(AbstractRule.class.getName());
     private final String name;
     private final Consumer<RhsContext> NULL_RHS = arg -> LOGGER.warning("No RHS is set for rule '" + AbstractRule.this.name + '\'');
@@ -21,6 +21,7 @@ public abstract class AbstractRule implements Named {
         this.rhs = other.rhs;
     }
 
+    @Override
     public Consumer<RhsContext> getRhs() {
         return rhs;
     }
@@ -30,8 +31,10 @@ public abstract class AbstractRule implements Named {
         return name;
     }
 
-    protected final void initRhs(Consumer<RhsContext> rhs) {
+    @Override
+    public final void setRhs(Consumer<RhsContext> rhs) {
         this.rhs = rhs == null ? NULL_RHS : rhs;
     }
+
 
 }

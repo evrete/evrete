@@ -5,7 +5,7 @@ import org.evrete.api.RuntimeFact;
 import java.util.Arrays;
 
 public abstract class AlphaMask {
-    private static final int[] EMPTY_INDICES = new int[0];
+    private static final AlphaEvaluator[] EMPTY_INDICES = new AlphaEvaluator[0];
     private static final boolean[] EMPTY_VALUES = new boolean[0];
     static final AlphaMask NO_FIELDS_NO_CONDITIONS = new AlphaMask(-777, EMPTY_INDICES, EMPTY_VALUES) {
         @Override
@@ -15,39 +15,46 @@ public abstract class AlphaMask {
     };
 
     private final int bucketIndex;
-    private final int[] alphaIndices;
+    private final AlphaEvaluator[] alphaEvaluators;
     private final boolean[] requiredValues;
     private final int hash;
 
-    private AlphaMask(int bucketIndex, int[] alphaIndices, boolean[] requiredValues) {
+    private AlphaMask(int bucketIndex, AlphaEvaluator[] alphaEvaluators, boolean[] requiredValues) {
         this.bucketIndex = bucketIndex;
-        this.alphaIndices = alphaIndices;
+        this.alphaEvaluators = alphaEvaluators;
         this.requiredValues = requiredValues;
-        this.hash = hash(alphaIndices, requiredValues);
+        this.hash = hash(alphaEvaluators, requiredValues);
     }
 
     public boolean test(RuntimeFact fact) {
         boolean[] tests = fact.getAlphaTests();
-        for (int i : alphaIndices) {
+        for (AlphaEvaluator e : alphaEvaluators) {
+            int i = e.getUniqueId();
             if (tests[i] != requiredValues[i]) return false;
         }
         return true;
     }
 
     public boolean isEmpty() {
-        return alphaIndices.length == 0;
+        return alphaEvaluators.length == 0;
     }
 
-    static AlphaMask factory(int bucketIndex, int[] alphaIndices, boolean[] requiredValues) {
-        if (alphaIndices.length == 0) {
+    static AlphaMask factory(int bucketIndex, AlphaEvaluator[] alphaConditions, boolean[] requiredValues) {
+        if (alphaConditions.length == 0) {
             return new Empty(bucketIndex);
         } else {
-            return new Default(bucketIndex, alphaIndices, requiredValues);
+            return new Default(bucketIndex, alphaConditions, requiredValues);
         }
     }
 
+/*
     boolean sameData(int[] alphaIndices, boolean[] requiredValues) {
         return sameData(this.alphaIndices, this.requiredValues, alphaIndices, requiredValues);
+    }
+*/
+
+    boolean sameData(AlphaEvaluator[] alphaEvaluators, boolean[] requiredValues) {
+        return sameData(this.alphaEvaluators, this.requiredValues, alphaEvaluators, requiredValues);
     }
 
     public final int getBucketIndex() {
@@ -70,11 +77,12 @@ public abstract class AlphaMask {
     @Override
     public String toString() {
         return "{bucket=" + bucketIndex +
-                ", indices=" + Arrays.toString(alphaIndices) +
+                ", indices=" + Arrays.toString(alphaEvaluators) +
                 ", values=" + Arrays.toString(requiredValues) +
                 '}';
     }
 
+/*
     static boolean sameData(int[] indices1, boolean[] values1, int[] indices2, boolean[] values2) {
         if (!Arrays.equals(indices1, indices2)) return false;
         for (int i = 0; i < indices1.length; i++) {
@@ -86,14 +94,28 @@ public abstract class AlphaMask {
         }
         return true;
     }
+*/
 
-    static boolean sameData(AlphaMask ai1, AlphaMask ai2) {
-        return sameData(ai1.alphaIndices, ai1.requiredValues, ai2.alphaIndices, ai2.requiredValues);
+    static boolean sameData(AlphaEvaluator[] alphaEvaluators1, boolean[] values1, AlphaEvaluator[] alphaEvaluators2, boolean[] values2) {
+        if (!Arrays.equals(alphaEvaluators1, alphaEvaluators2)) return false;
+        for (int i = 0; i < alphaEvaluators1.length; i++) {
+            int alphaIdx1 = alphaEvaluators1[i].getUniqueId();
+            int alphaIdx2 = alphaEvaluators2[i].getUniqueId();
+            boolean b1 = values1[alphaIdx1];
+            boolean b2 = values2[alphaIdx2];
+            if (b1 != b2) return false;
+        }
+        return true;
     }
 
-    static int hash(int[] alphaIndices, boolean[] requiredValues) {
+    static boolean sameData(AlphaMask ai1, AlphaMask ai2) {
+        return sameData(ai1.alphaEvaluators, ai1.requiredValues, ai2.alphaEvaluators, ai2.requiredValues);
+    }
+
+    static int hash(AlphaEvaluator[] alphaIndices, boolean[] requiredValues) {
         int h = 0;
-        for (int i : alphaIndices) {
+        for (AlphaEvaluator e : alphaIndices) {
+            int i = e.getUniqueId();
             h += Integer.hashCode(i) + Boolean.hashCode(requiredValues[i]);
         }
         return h;
@@ -117,8 +139,8 @@ public abstract class AlphaMask {
     }
 
     private static final class Default extends AlphaMask {
-        public Default(int bucketIndex, int[] alphaIndices, boolean[] requiredValues) {
-            super(bucketIndex, alphaIndices, requiredValues);
+        public Default(int bucketIndex, AlphaEvaluator[] alphaEvaluators, boolean[] requiredValues) {
+            super(bucketIndex, alphaEvaluators, requiredValues);
         }
     }
 

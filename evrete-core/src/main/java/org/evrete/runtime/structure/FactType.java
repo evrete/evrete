@@ -24,7 +24,7 @@ public class FactType implements Masked {
     private RhsFactGroupDescriptor factGroup;
     private int inGroupIndex = -1;
 
-    private FactType(AbstractRuntime<?, ?> runtime, FactTypeBuilder builder, Set<Evaluator> alphaConditions, NextIntSupplier factIdGenerator) {
+    private FactType(AbstractRuntime<?> runtime, FactTypeBuilder builder, Set<Evaluator> alphaConditions, NextIntSupplier factIdGenerator) {
         this.type = builder.getType();
         this.var = builder.getVar();
         this.inRuleIndex = factIdGenerator.next();
@@ -61,7 +61,7 @@ public class FactType implements Masked {
         return arr;
     }
 
-    static FactType factory(AbstractRuntime<?, ?> runtime, FactTypeBuilder builder, Set<Evaluator> alphaConditions, NextIntSupplier factIdGenerator) {
+    static FactType factory(AbstractRuntime<?> runtime, FactTypeBuilder builder, Set<Evaluator> alphaConditions, NextIntSupplier factIdGenerator) {
         return new FactType(
                 runtime,
                 builder,

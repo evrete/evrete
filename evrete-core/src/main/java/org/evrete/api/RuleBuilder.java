@@ -1,14 +1,11 @@
 package org.evrete.api;
 
-import org.evrete.runtime.builder.RootLhsBuilder;
+import org.evrete.runtime.builder.LhsBuilder;
 
-import java.util.function.Consumer;
+public interface RuleBuilder<C extends RuntimeContext<C>> extends Rule, FactSelector<LhsBuilder<C>> {
 
-public interface RuleBuilder<C extends RuntimeContext<C, ?>> extends Named, FactSelector<RootLhsBuilder<C>> {
+    LhsBuilder<C> getLhs();
 
-    RootLhsBuilder<C> getOutputGroup();
+    C getRuntime();
 
-    C deploy();
-
-    C execute(Consumer<RhsContext> consumer);
 }

@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Function;
 
-public class PredicateExpression1 extends AbstractExpression {
+class PredicateExpression1 extends AbstractExpression {
     private final ValuesPredicate predicate;
     private final String[] references;
 
@@ -23,7 +23,7 @@ public class PredicateExpression1 extends AbstractExpression {
     }
 
     @Override
-    Evaluator build(AbstractRuntime<?, ?> runtime, Function<String, NamedType> typeMapper) {
+    Evaluator build(AbstractRuntime<?> runtime, Function<String, NamedType> typeMapper) {
         FieldReference[] descriptor = resolveReferences(runtime, typeMapper, references);
         return new PredicateEvaluator(descriptor, predicate, getComplexity());
     }

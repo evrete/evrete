@@ -7,7 +7,7 @@ import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.runtime.KnowledgeImpl;
-import org.evrete.runtime.builder.RootLhsBuilder;
+import org.evrete.runtime.builder.LhsBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,7 +39,7 @@ class ExpressionsTest {
 
     @Test
     void test1() {
-        RootLhsBuilder<Knowledge> root = rule.forEach();
+        LhsBuilder<Knowledge> root = rule.forEach();
         assert root.buildLhs("$a", TypeA.class).getVar().equals("$a");
         root.buildLhs("$b", TypeB.class.getName());
         root.buildLhs("$c", TypeC.class.getName());
@@ -63,7 +63,7 @@ class ExpressionsTest {
 
     @Test
     void test2() {
-        RootLhsBuilder<Knowledge> root = rule.forEach();
+        LhsBuilder<Knowledge> root = rule.forEach();
         assert root.buildLhs("$a", TypeA.class).getVar().equals("$a");
         //Evaluator ev1 = rule.getOutputGroup().compile("$a.i == 1");
         Evaluator ev1 = knowledge.compile("$a.i == 1", root.getFactTypeMapper());

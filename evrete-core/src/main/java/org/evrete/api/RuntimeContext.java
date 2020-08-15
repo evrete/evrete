@@ -5,25 +5,23 @@ import org.evrete.runtime.RuntimeListeners;
 import org.evrete.runtime.RuntimeRule;
 import org.evrete.runtime.structure.RuleDescriptor;
 
-public interface RuntimeContext<C extends RuntimeContext<C, R>, R> extends Listeners {
+public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners {
 
     boolean ruleExists(String name);
 
     Kind getKind();
 
-    RuleDescriptor compileRule(RuleBuilder<C> builder);
+    RuleDescriptor compileRule(RuleBuilder<?> builder);
 
     RuntimeRule deployRule(RuleDescriptor descriptor);
 
     RuleBuilder<C> newRule(String name);
 
+    RuleBuilder<C> newRule();
+
     void wrapTypeResolver(TypeResolverWrapper wrapper);
 
     RuntimeListeners getListeners();
-
-    RuleBuilder<C> newRule();
-
-    RuleBuilder<C> getRuleBuilder(String name);
 
     TypeResolver getTypeResolver();
 

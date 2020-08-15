@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
-public abstract class AbstractRuntime<C extends RuntimeContext<C, R>, R> implements RuntimeContext<C, R> {
+public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements RuntimeContext<C> {
     private final List<RuleBuilder<C>> ruleBuilders = new ArrayList<>();
     private final List<RuleDescriptor> ruleDescriptors;
     private final AtomicInteger ruleCounter;
@@ -46,7 +46,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C, R>, R> impleme
      *
      * @param parent parent context
      */
-    protected AbstractRuntime(AbstractRuntime<?, ?> parent) {
+    protected AbstractRuntime(AbstractRuntime<?> parent) {
         this.configuration = parent.configuration;
         this.typeResolver = parent.typeResolver.copyOf();
         this.ruleCounter = new AtomicInteger(parent.ruleCounter.intValue());
@@ -55,6 +55,10 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C, R>, R> impleme
         this.executor = parent.executor;
         this.listeners = parent.listeners.copyOf();
         this.activeFields = parent.activeFields.copyOf();
+    }
+
+    public boolean getRuleBuilders(RuleBuilder<?> builder) {
+        return ruleBuilders.remove(builder);
     }
 
     public ForkJoinExecutor getExecutor() {
@@ -118,11 +122,6 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C, R>, R> impleme
     }
 
     @Override
-    public RuleBuilder<C> getRuleBuilder(String name) {
-        return Named.find(ruleBuilders, name);
-    }
-
-    @Override
     public RuleDescriptor getRuleDescriptor(String name) {
         return Named.find(ruleDescriptors, name);
     }
@@ -140,14 +139,15 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C, R>, R> impleme
         return configuration.getCollectionsService().newKeyStore(factTypeCounts);
     }
 
-    protected synchronized RuleDescriptor buildDescriptor(RuleBuilder<C> ruleBuilder) {
+    @Override
+    public final synchronized RuleDescriptor compileRule(RuleBuilder<?> ruleBuilder) {
         if (!this.ruleBuilders.remove(ruleBuilder)) {
             throw new IllegalArgumentException("No such rule builder");
         } else {
             if (ruleExists(ruleBuilder.getName())) {
                 throw new IllegalArgumentException("Rule '" + ruleBuilder.getName() + "' already exists");
             } else {
-                RuleBuilderImpl<C> rb = (RuleBuilderImpl<C>) ruleBuilder;
+                RuleBuilderImpl<?> rb = (RuleBuilderImpl<?>) ruleBuilder;
                 RuleDescriptor rd = new RuleDescriptor(this, rb);
                 this.ruleDescriptors.add(rd);
                 return rd;

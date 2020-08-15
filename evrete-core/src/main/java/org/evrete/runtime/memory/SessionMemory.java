@@ -1,6 +1,9 @@
 package org.evrete.runtime.memory;
 
-import org.evrete.api.*;
+import org.evrete.api.FieldsKey;
+import org.evrete.api.StatefulSession;
+import org.evrete.api.Type;
+import org.evrete.api.WorkingMemory;
 import org.evrete.api.spi.SharedBetaFactStorage;
 import org.evrete.collections.FastHashMap;
 import org.evrete.runtime.*;
@@ -13,7 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class SessionMemory extends AbstractRuntime<StatefulSession, RuntimeRule> implements WorkingMemory, MemoryChangeListener {
+public class SessionMemory extends AbstractRuntime<StatefulSession> implements WorkingMemory, MemoryChangeListener {
     private final BufferSafe buffer;
     private final RuntimeRules ruleStorage;
     private final FastHashMap<Type, TypeMemory> typedMemories;
@@ -34,28 +37,11 @@ public class SessionMemory extends AbstractRuntime<StatefulSession, RuntimeRule>
         return Kind.SESSION;
     }
 
-
-    @Override
-    public RuleDescriptor compileRule(RuleBuilder<StatefulSession> builder) {
-        return buildDescriptor(builder);
-    }
-
     @Override
     public synchronized RuntimeRule deployRule(RuleDescriptor descriptor) {
-        // Initializing missing memory structures if any
         for (FactType factType : descriptor.getRootLhsDescriptor().getAllFactTypes()) {
-            Type t = factType.getType();
-            FieldsKey key = factType.getFields();
-            AlphaMask mask = factType.getAlphaMask();
-            TypeMemory tm = getCreateTypeMemory(t);
-            if (key.size() > 0) {
-                tm.getCreate(key).init(mask);
-            } else {
-                tm.init(mask);
-            }
+            init(factType);
         }
-
-
         return ruleStorage.addRule(descriptor);
     }
 
@@ -138,7 +124,6 @@ public class SessionMemory extends AbstractRuntime<StatefulSession, RuntimeRule>
         ForkJoinExecutor executor = getExecutor();
         for (Completer task : tasksQueue) {
             executor.invoke(task);
-            //task.invokeDirect();
         }
 
         onAfterChange();
@@ -161,7 +146,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession, RuntimeRule>
         buffer.takeAll(
                 Action.RETRACT,
                 (type, iterator) -> {
-                    TypeMemory tm = getCreateTypeMemory(type);
+                    TypeMemory tm = get(type);
                     while (iterator.hasNext()) {
                         tm.deleteSingle(iterator.next());
                     }
@@ -192,7 +177,6 @@ public class SessionMemory extends AbstractRuntime<StatefulSession, RuntimeRule>
                 }
         );
 
-
         // Ordered task 1 - update end nodes
         Collection<RuntimeRule> ruleInsertChanges = new LinkedList<>();
 
@@ -215,8 +199,16 @@ public class SessionMemory extends AbstractRuntime<StatefulSession, RuntimeRule>
 
     }
 
-    public TypeMemory getCreateTypeMemory(Type t) {
-        return typedMemories.computeIfAbsent(t, k -> new TypeMemory(this, t));
+    public void init(FactType factType) {
+        Type t = factType.getType();
+        TypeMemory tm = typedMemories.get(t);
+        if (tm == null) {
+            tm = new TypeMemory(this, t);
+            typedMemories.put(t, tm);
+        }
+        AlphaMask mask = factType.getAlphaMask();
+        FieldsKey key = factType.getFields();
+        tm.init(key, mask);
     }
 
     public TypeMemory get(Type t) {

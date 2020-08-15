@@ -7,17 +7,17 @@ import org.evrete.runtime.AbstractRuntime;
 import java.util.Objects;
 import java.util.function.Function;
 
-public class StringExpression extends AbstractExpression {
+class PredicateExpression0 extends AbstractExpression {
     private final String source;
 
-    StringExpression(String source, double complexity) {
+    PredicateExpression0(String source, double complexity) {
         super(complexity);
         Objects.requireNonNull(source);
         if (complexity <= 0.0) throw new IllegalArgumentException("Complexity must be positive");
         this.source = source;
     }
 
-    public StringExpression(String source) {
+    public PredicateExpression0(String source) {
         this(source, DEFAULT_COMPLEXITY);
     }
 
@@ -29,7 +29,7 @@ public class StringExpression extends AbstractExpression {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        StringExpression that = (StringExpression) o;
+        PredicateExpression0 that = (PredicateExpression0) o;
         return source.equals(that.source);
     }
 
@@ -40,7 +40,7 @@ public class StringExpression extends AbstractExpression {
 
 
     @Override
-    Evaluator build(AbstractRuntime<?, ?> runtime, Function<String, NamedType> typeMapper) {
+    Evaluator build(AbstractRuntime<?> runtime, Function<String, NamedType> typeMapper) {
         return runtime.compile(source, typeMapper).withComplexity(getComplexity());
     }
 }

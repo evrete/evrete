@@ -320,6 +320,78 @@ class HotDeploymentTests {
         session.close();
     }
 
+    @Test
+    void testMixed1() {
+        AtomicInteger fireCounter = new AtomicInteger();
+
+        Predicate<Object[]> beta = arr -> {
+            int a1i = (int) arr[0];
+            int b1i = (int) arr[1];
+            return a1i != b1i;
+        };
+
+        Predicate<Object[]> alpha = arr -> {
+            int i = (int) arr[0];
+            return i > 0;
+        };
+
+        session.newRule("test alpha 1")
+                .forEach(
+                        "$a1", TypeA.class,
+                        "$b1", TypeB.class,
+                        "$a2", TypeA.class,
+                        "$b2", TypeB.class,
+                        "$c", TypeC.class,
+                        "$d", TypeD.class
+                )
+                .where(beta, "$a1.i", "$b1.i")
+                .where(beta, "$a2.i", "$b2.i")
+                .where(alpha, "$c.i")
+                .execute(
+                        ctx -> fireCounter.incrementAndGet()
+                );
+
+
+        TypeA a1 = new TypeA("A1");
+        a1.setI(1);
+
+        TypeA a2 = new TypeA("A2");
+        a2.setI(1);
+
+        TypeB b1 = new TypeB("B1");
+        b1.setI(10);
+
+        TypeB b2 = new TypeB("B2");
+        b2.setI(10);
+
+        TypeC c1 = new TypeC("C1");
+        c1.setI(-1);
+
+        TypeD d1 = new TypeD("D1");
+
+        session.insertAndFire(a1, b1, a2, b2, c1, d1);
+        assert fireCounter.get() == 0 : "Actual: " + fireCounter.get();
+
+        TypeC c2 = new TypeC("C2");
+        c2.setI(1);
+        session.insertAndFire(c2);
+
+        assert fireCounter.get() == 4 * 4 : "Actual: " + fireCounter.get();
+
+        TypeC c3 = new TypeC("C3");
+        c3.setI(100);
+        fireCounter.set(0);
+        session.insertAndFire(c3);
+
+        assert fireCounter.get() == 2 * 4 * 4 : "Actual: " + fireCounter.get();
+
+        TypeD d2 = new TypeD("D2");
+        fireCounter.set(0);
+        session.insertAndFire(d2);
+
+        assert fireCounter.get() == 2 * 2 * 4 * 4 : "Actual: " + fireCounter.get();
+    }
+
 
     @Test
     void testAlphaBeta1() {
@@ -425,7 +497,6 @@ class HotDeploymentTests {
         assert setA2.size() == 2 && setA2.contains(a) && setA2.contains(aa);
     }
 
-
     @Test
     void testUniType2() {
         AtomicInteger fireCounter = new AtomicInteger();
@@ -501,7 +572,6 @@ class HotDeploymentTests {
         assert collectedJoinedIds.contains("A11A7A77");
 
     }
-
 
     @Test
     void testAlpha1() {
@@ -610,9 +680,8 @@ class HotDeploymentTests {
         assert setC.size() == 3;
     }
 
-
     @Test
-    void testAlpha5() {
+    void testAlpha3() {
         Configuration conf = session.getConfiguration();
         conf.setWarnUnknownTypes(false);
         assert !session.getConfiguration().isWarnUnknownTypes();
@@ -669,125 +738,93 @@ class HotDeploymentTests {
     }
 
     @Test
-    void primeNumbers() {
+    void testAlpha4() {
 
-        ValuesPredicate predicate = v -> {
+        // Rule 1
+        AtomicInteger ruleCounter1 = new AtomicInteger();
+
+        ValuesPredicate p1_1 = v -> {
             int i1 = (int) v.apply(0);
-            int i2 = (int) v.apply(1);
-            int i3 = (int) v.apply(2);
-            return i1 * i2 == i3;
+            return i1 > 4;
         };
 
-        session.newRule("prime numbers")
+        ValuesPredicate p1_2 = v -> {
+            int i1 = (int) v.apply(0);
+            return i1 > 3;
+        };
+
+        session.newRule("rule 1")
                 .forEach(
-                        "$n1", Num.class,
-                        "$n2", Num.class,
-                        "$n3", Num.class
+                        fact("$a", TypeA.class),
+                        fact("$b", TypeB.class),
+                        fact("$c", TypeC.class)
                 )
-                .where(predicate, 100, "$n1.value", "$n2.value", "$n3.value")
+                .where(p1_1, "$a.i")
+                .where(p1_2, "$b.i")
                 .execute(
-                        ctx -> {
-                            Num n3 = ctx.get("$n3");
-                            ctx.delete(n3);
-                        }
+                        ctx -> ruleCounter1.incrementAndGet()
                 );
 
-
-        for (int i = 2; i < 100; i++) {
-            session.insert(new Num(i));
+        // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
+        for (int i = 0; i < 10; i++) {
+            TypeA a = new TypeA("A" + i);
+            a.setI(i);
+            TypeB b = new TypeB("B" + i);
+            b.setI(i);
+            session.insert(a, b);
         }
+        session.fire();
+        assert ruleCounter1.get() == 0;
+
+        TypeC c = new TypeC();
+
+        session.insert(c);
+        session.fire();
+        assert ruleCounter1.get() == 30 : "Actual:" + ruleCounter1.get();
+
+
+        // Adding another rule
+        AtomicInteger ruleCounter2 = new AtomicInteger();
+
+        ValuesPredicate p2_1 = v -> {
+            int i1 = (int) v.apply(0);
+            return i1 > 3;
+        };
+
+        ValuesPredicate p2_2 = v -> {
+            int i1 = (int) v.apply(0);
+            return i1 > 2;
+        };
+
+        session.newRule("rule 2")
+                .forEach(
+                        fact("$a", TypeA.class),
+                        fact("$b", TypeB.class),
+                        fact("$c", TypeC.class)
+                )
+                .where(p2_1, "$a.i")
+                .where(p2_2, "$b.i")
+                .execute(
+                        ctx -> ruleCounter2.incrementAndGet()
+                );
 
         session.fire();
+        assert ruleCounter2.get() == 7 * 6;
 
-        AtomicInteger primeCounter = new AtomicInteger();
-        session.forEachMemoryObject(o -> primeCounter.incrementAndGet());
+        ruleCounter1.set(0);
+        ruleCounter2.set(0);
+        session.deleteAndFire(c);
+        assert ruleCounter1.get() == 0;
+        assert ruleCounter2.get() == 0;
 
-        assert primeCounter.get() == 25; // There are 25 prime numbers in the range [2...100]
+        ruleCounter1.set(0);
+        ruleCounter2.set(0);
+        session.insertAndFire(c);
+        assert ruleCounter1.get() == 6 * 5;
+        assert ruleCounter2.get() == 7 * 6;
+
+
     }
 
-    @Test
-    void testMixed1() {
-        AtomicInteger fireCounter = new AtomicInteger();
-
-        Predicate<Object[]> beta = arr -> {
-            int a1i = (int) arr[0];
-            int b1i = (int) arr[1];
-            return a1i != b1i;
-        };
-
-        Predicate<Object[]> alpha = arr -> {
-            int i = (int) arr[0];
-            return i > 0;
-        };
-
-        session.newRule("test alpha 1")
-                .forEach(
-                        "$a1", TypeA.class,
-                        "$b1", TypeB.class,
-                        "$a2", TypeA.class,
-                        "$b2", TypeB.class,
-                        "$c", TypeC.class,
-                        "$d", TypeD.class
-                )
-                .where(beta, "$a1.i", "$b1.i")
-                .where(beta, "$a2.i", "$b2.i")
-                .where(alpha, "$c.i")
-                .execute(
-                        ctx -> fireCounter.incrementAndGet()
-                );
-
-
-        TypeA a1 = new TypeA("A1");
-        a1.setI(1);
-
-        TypeA a2 = new TypeA("A2");
-        a2.setI(1);
-
-        TypeB b1 = new TypeB("B1");
-        b1.setI(10);
-
-        TypeB b2 = new TypeB("B2");
-        b2.setI(10);
-
-        TypeC c1 = new TypeC("C1");
-        c1.setI(-1);
-
-        TypeD d1 = new TypeD("D1");
-
-        session.insertAndFire(a1, b1, a2, b2, c1, d1);
-        assert fireCounter.get() == 0 : "Actual: " + fireCounter.get();
-
-        TypeC c2 = new TypeC("C2");
-        c2.setI(1);
-        session.insertAndFire(c2);
-
-        assert fireCounter.get() == 4 * 4 : "Actual: " + fireCounter.get();
-
-        TypeC c3 = new TypeC("C3");
-        c3.setI(100);
-        fireCounter.set(0);
-        session.insertAndFire(c3);
-
-        assert fireCounter.get() == 2 * 4 * 4 : "Actual: " + fireCounter.get();
-
-        TypeD d2 = new TypeD("D2");
-        fireCounter.set(0);
-        session.insertAndFire(d2);
-
-        assert fireCounter.get() == 2 * 2 * 4 * 4 : "Actual: " + fireCounter.get();
-    }
-
-    public static class Num {
-        final int value;
-
-        public Num(int i) {
-            this.value = i;
-        }
-
-        @SuppressWarnings("unused")
-        public int getValue() {
-            return value;
-        }
-    }
 
 }
