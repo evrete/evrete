@@ -24,6 +24,7 @@ public class BetaEndNode extends BetaConditionNode {
         return result;
     }
 
+    //TODO !!! optimize
     public boolean isInsertAvailable() {
         for (RuntimeFactType entryNode : getEntryNodes()) {
             if (entryNode.isInsertDeltaAvailable()) {

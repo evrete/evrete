@@ -2,11 +2,9 @@ package org.evrete.runtime.memory;
 
 import org.evrete.api.FieldsKey;
 import org.evrete.api.RuntimeFact;
-import org.evrete.api.ValueRow;
 import org.evrete.api.spi.CollectionsService;
 import org.evrete.api.spi.SharedBetaFactStorage;
 import org.evrete.runtime.AlphaBucketMeta;
-import org.evrete.runtime.RuntimeFactType;
 import org.evrete.runtime.RuntimeObject;
 
 import java.util.Collection;
@@ -16,8 +14,8 @@ class FieldsMemoryBucket {
     private final AlphaBucketMeta alphaMask;
     private final int bucketIndex;
 
-    private RuntimeFactType[] factTypesByAlpha;
-    private boolean deltaAvailable = false;
+    private boolean insertDeltaAvailable = false;
+    private boolean deleteDeltaAvailable = false;
 
     FieldsMemoryBucket(SessionMemory runtime, FieldsKey typeFields, AlphaBucketMeta alphaMask) {
         CollectionsService collectionsService = runtime.getConfiguration().getCollectionsService();
@@ -37,41 +35,40 @@ class FieldsMemoryBucket {
     void insert(Collection<RuntimeObject> facts) {
         fieldData.ensureExtraCapacity(facts.size());
         for (RuntimeObject fact : facts) {
-            if (alphaMask.test(fact)) {
-                if (fieldData.insert(fact)) {
-                    deltaAvailable = true;
-                    for (RuntimeFactType type : this.factTypesByAlpha) {
-                        type.markInsertDeltaAvailable();
-                    }
-                }
-            }
+            insertSingle(fact);
         }
     }
 
     void insertSingle(RuntimeObject rto) {
         if (alphaMask.test(rto)) {
-            fieldData.insert(rto);
+            if (fieldData.insert(rto)) {
+                insertDeltaAvailable = true;
+            }
         }
     }
 
 
     void retract(Collection<RuntimeFact> facts) {
         for (RuntimeFact fact : facts) {
-            ValueRow lastObjectKey;
             if (alphaMask.test(fact)) {
-                if ((lastObjectKey = fieldData.delete(fact)) != null) {
-                    for (RuntimeFactType type : this.factTypesByAlpha) {
-                        type.addToDeleteKey(lastObjectKey);
-                    }
+                if (fieldData.delete(fact)) {
+                    deleteDeltaAvailable = true;
                 }
             }
         }
     }
 
-    void mergeDelta() {
-        if (deltaAvailable) {
+    void mergeInsertDelta() {
+        if (insertDeltaAvailable) {
             fieldData.mergeDelta();
-            deltaAvailable = false;
+            insertDeltaAvailable = false;
+        }
+    }
+
+    void mergeDeleteDelta() {
+        if (deleteDeltaAvailable) {
+            fieldData.clearDeletedKeys();
+            deleteDeltaAvailable = false;
         }
     }
 
@@ -79,7 +76,4 @@ class FieldsMemoryBucket {
         return bucketIndex;
     }
 
-    void setFactTypesByAlpha(RuntimeFactType[] factTypesByAlpha) {
-        this.factTypesByAlpha = factTypesByAlpha;
-    }
 }

@@ -15,6 +15,21 @@ public final class RuntimeFactTypePlain extends RuntimeFactType {
     }
 
     @Override
+    boolean isBetaNode() {
+        return false;
+    }
+
+    @Override
+    public boolean isDeleteDeltaAvailable() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isInsertDeltaAvailable() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public ReIterator<RuntimeFact> iterator() {
         return iterable.iterator();
     }

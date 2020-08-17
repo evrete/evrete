@@ -5,7 +5,9 @@ import org.evrete.api.ReIterator;
 import org.evrete.api.RuntimeFact;
 import org.evrete.api.spi.SharedBetaFactStorage;
 import org.evrete.collections.ArrayOf;
-import org.evrete.runtime.*;
+import org.evrete.runtime.AlphaBucketMeta;
+import org.evrete.runtime.MemoryChangeListener;
+import org.evrete.runtime.RuntimeObject;
 
 import java.util.Collection;
 
@@ -62,12 +64,6 @@ public class FieldsMemory implements MemoryChangeListener {
 
     @Override
     public void onBeforeChange() {
-        RuntimeRules rules = runtime.getRuleStorage();
-        RuntimeFactType[][] typesByAlphaBucket = rules.getTypesByAlphaBucket(typeFields);
-
-        for (FieldsMemoryBucket bucket : this.alphaBuckets.data) {
-            bucket.setFactTypesByAlpha(typesByAlphaBucket[bucket.getBucketIndex()]);
-        }
     }
 
     void insert(Collection<RuntimeObject> facts) {
@@ -85,7 +81,8 @@ public class FieldsMemory implements MemoryChangeListener {
     @Override
     public void onAfterChange() {
         for (FieldsMemoryBucket bucket : alphaBuckets.data) {
-            bucket.mergeDelta();
+            bucket.mergeInsertDelta();
+            bucket.mergeDeleteDelta();
         }
     }
 }

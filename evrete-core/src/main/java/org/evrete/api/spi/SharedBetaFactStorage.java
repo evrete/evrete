@@ -8,11 +8,17 @@ public interface SharedBetaFactStorage {
 
     void ensureExtraCapacity(int insertCount);
 
-    ValueRow delete(RuntimeFact fact);
+    boolean delete(RuntimeFact fact);
 
     boolean insert(RuntimeFact fact);
 
     void mergeDelta();
+
+    void clearDeletedKeys();
+
+    boolean hasDeletedKeys();
+
+    boolean isKeyDeleted(ValueRow row);
 
     Scope delta();
 

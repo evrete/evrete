@@ -20,6 +20,11 @@ public class RuntimeFactTypeKeyed extends RuntimeFactType {
         this.keyStorage = other.keyStorage;
     }
 
+    @Override
+    boolean isBetaNode() {
+        return true;
+    }
+
     public ReIterator<ValueRow[]> mainIterator() {
         return keyStorage.main().keyIterator();
     }
@@ -30,6 +35,17 @@ public class RuntimeFactTypeKeyed extends RuntimeFactType {
 
     public SharedBetaFactStorage getKeyStorage() {
         return keyStorage;
+    }
+
+
+    @Override
+    public boolean isInsertDeltaAvailable() {
+        return keyStorage.delta().keyCount() > 0;
+    }
+
+    @Override
+    public boolean isDeleteDeltaAvailable() {
+        return keyStorage.hasDeletedKeys();
     }
 
     //@Override

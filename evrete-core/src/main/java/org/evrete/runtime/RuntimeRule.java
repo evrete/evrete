@@ -46,16 +46,16 @@ public class RuntimeRule extends RuntimeRuleBase implements Named, MemoryChangeL
         return this;
     }
 
+/*
     public boolean hasChanges() {
         return isDeleteDeltaAvailable() || isInsertDeltaAvailable();
     }
+*/
 
     @Override
     public void onAfterChange() {
         // Merge deltas if available
-        if (hasChanges()) {
-            resetState();
-        }
+        resetState();
 
         // Prepare nodes for RHS call
         for (RuntimeFactType type : getAllFactTypes()) {
@@ -63,6 +63,7 @@ public class RuntimeRule extends RuntimeRuleBase implements Named, MemoryChangeL
         }
     }
 
+    //TODO optimize, this method is currently called unconditionally
     private void resetState() {
         this.resetDeltaState();
         for (BetaEndNode endNode : root.getAllBetaEndNodes()) {

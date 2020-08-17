@@ -2,6 +2,7 @@ package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
 import org.evrete.api.spi.SharedBetaFactStorage;
+import org.evrete.collections.FastHashSet;
 
 import java.util.Arrays;
 import java.util.function.BiPredicate;
@@ -9,6 +10,9 @@ import java.util.function.BiPredicate;
 class SharedBetaDataTuple implements SharedBetaFactStorage {
     protected final Object[] reusableValueArr;
     private final FieldsFactMap delta;
+
+    private final FastHashSet<ValueRow> deleteTasks = new FastHashSet<>();
+
     protected final BiPredicate<ValueRowImpl, Object[]> SHARED_ARRAY_EQ = new BiPredicate<ValueRowImpl, Object[]>() {
         @Override
         public boolean test(ValueRowImpl entry, Object[] values) {
@@ -26,12 +30,27 @@ class SharedBetaDataTuple implements SharedBetaFactStorage {
     }
 
     @Override
+    public boolean hasDeletedKeys() {
+        return deleteTasks.size() > 0;
+    }
+
+    @Override
+    public boolean isKeyDeleted(ValueRow row) {
+        return deleteTasks.contains(row);
+    }
+
+    @Override
     public void clear() {
         delta.clear();
         main.clear();
+        deleteTasks.clear();
     }
 
-/*
+    @Override
+    public void clearDeletedKeys() {
+        deleteTasks.clear();
+    }
+
     @ThreadUnsafe
     int hash(FieldToValue key) {
         int hash = 0;
@@ -40,17 +59,6 @@ class SharedBetaDataTuple implements SharedBetaFactStorage {
         }
         return hash;
     }
-*/
-
-    @ThreadUnsafe
-    int hash(FieldToValue key) {
-        int hash = 0;
-        for (int i = 0; i < fields.length; i++) {
-            hash ^= (reusableValueArr[i] = key.apply(fields[i])).hashCode();
-        }
-        return hash;
-    }
-
 
     @Override
     public void ensureExtraCapacity(int insertCount) {
@@ -58,10 +66,16 @@ class SharedBetaDataTuple implements SharedBetaFactStorage {
     }
 
     @Override
-    public ValueRow delete(RuntimeFact fact) {
+    public boolean delete(RuntimeFact fact) {
         int hash = hash(fact);
         int addr = main.findBinIndex(reusableValueArr, hash, SHARED_ARRAY_EQ);
-        return main.deleteAndTestExisting(fact, addr);
+        ValueRow deleted = main.deleteAndTestExisting(fact, addr);
+        if (deleted != null) {
+            deleteTasks.add(deleted);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override

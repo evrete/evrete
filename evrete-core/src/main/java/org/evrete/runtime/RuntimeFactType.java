@@ -2,23 +2,19 @@ package org.evrete.runtime;
 
 import org.evrete.api.ReIterable;
 import org.evrete.api.RuntimeFact;
-import org.evrete.api.ValueRow;
-import org.evrete.collections.FastHashSet;
 import org.evrete.runtime.memory.SessionMemory;
 import org.evrete.runtime.structure.FactType;
 
 public abstract class RuntimeFactType extends FactType implements MemoryChangeListener, ReIterable<RuntimeFact> {
     public static final RuntimeFactType[] ZERO_ARRAY = new RuntimeFactType[0];
-    private boolean insertDeltaAvailable;
-    private boolean deleteDeltaAvailable;
     private final SessionMemory runtime;
     private RuntimeRule rule;
-    private final FastHashSet<ValueRow> deleteTasks;
+
+    abstract boolean isBetaNode();
 
     RuntimeFactType(SessionMemory runtime, FactType other) {
         super(other);
         this.runtime = runtime;
-        this.deleteTasks = new FastHashSet<>();
     }
 
     public static RuntimeFactType factory(FactType type, SessionMemory runtime) {
@@ -37,52 +33,11 @@ public abstract class RuntimeFactType extends FactType implements MemoryChangeLi
         return rule;
     }
 
-    public void addToDeleteKey(ValueRow key) {
-        deleteTasks.add(key);
-        markDeleteDeltaAvailable();
-    }
-
     public void setRule(RuntimeRule rule) {
         this.rule = rule;
     }
 
-    /*
-    public SessionMemory getMemory() {
-        return rule.getMemory();
-    }
-*/
+    public abstract boolean isInsertDeltaAvailable();
 
-    FastHashSet<ValueRow> getDeleteTasks() {
-        return deleteTasks;
-    }
-
-    public boolean isInsertDeltaAvailable() {
-        return insertDeltaAvailable;
-    }
-
-    public void markInsertDeltaAvailable() {
-        if (!this.insertDeltaAvailable) {
-            this.insertDeltaAvailable = true;
-            rule.markInsertDeltaAvailable();
-        }
-    }
-
-    public void markDeleteDeltaAvailable() {
-        if (!this.deleteDeltaAvailable) {
-            this.deleteDeltaAvailable = true;
-            rule.markDeleteDeltaAvailable();
-        }
-    }
-
-    public void resetInsertDeltaAvailable() {
-        this.insertDeltaAvailable = false;
-    }
-
-    public void resetDeleteDeltaAvailable() {
-        this.deleteDeltaAvailable = false;
-    }
-
-    public boolean isDeleteDeltaAvailable() {
-        return deleteDeltaAvailable;
-    }
+    public abstract boolean isDeleteDeltaAvailable();
 }
