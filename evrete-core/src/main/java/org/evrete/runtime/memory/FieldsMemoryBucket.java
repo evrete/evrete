@@ -5,7 +5,7 @@ import org.evrete.api.RuntimeFact;
 import org.evrete.api.ValueRow;
 import org.evrete.api.spi.CollectionsService;
 import org.evrete.api.spi.SharedBetaFactStorage;
-import org.evrete.runtime.AlphaBucketData;
+import org.evrete.runtime.AlphaBucketMeta;
 import org.evrete.runtime.RuntimeFactType;
 import org.evrete.runtime.RuntimeObject;
 
@@ -13,13 +13,13 @@ import java.util.Collection;
 
 class FieldsMemoryBucket {
     private final SharedBetaFactStorage fieldData;
-    private final AlphaBucketData alphaMask;
+    private final AlphaBucketMeta alphaMask;
     private final int bucketIndex;
 
     private RuntimeFactType[] factTypesByAlpha;
     private boolean deltaAvailable = false;
 
-    FieldsMemoryBucket(SessionMemory runtime, FieldsKey typeFields, AlphaBucketData alphaMask) {
+    FieldsMemoryBucket(SessionMemory runtime, FieldsKey typeFields, AlphaBucketMeta alphaMask) {
         CollectionsService collectionsService = runtime.getConfiguration().getCollectionsService();
         this.alphaMask = alphaMask;
         this.fieldData = collectionsService.newBetaStorage(typeFields);
@@ -45,6 +45,12 @@ class FieldsMemoryBucket {
                     }
                 }
             }
+        }
+    }
+
+    void insertSingle(RuntimeObject rto) {
+        if (alphaMask.test(rto)) {
+            fieldData.insert(rto);
         }
     }
 

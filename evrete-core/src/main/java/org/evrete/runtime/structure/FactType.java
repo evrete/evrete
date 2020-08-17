@@ -2,7 +2,7 @@ package org.evrete.runtime.structure;
 
 import org.evrete.api.*;
 import org.evrete.runtime.AbstractRuntime;
-import org.evrete.runtime.AlphaBucketData;
+import org.evrete.runtime.AlphaBucketMeta;
 import org.evrete.runtime.builder.FactTypeBuilder;
 import org.evrete.util.Bits;
 import org.evrete.util.NextIntSupplier;
@@ -16,7 +16,7 @@ public class FactType implements Masked {
     public static final BiPredicate<FactType, FactType> EQUALITY_BY_INDEX = (t1, t2) -> t1.getInRuleIndex() == t2.getInRuleIndex();
     private final String var;
     private final Type type;
-    private final AlphaBucketData alphaMask;
+    private final AlphaBucketMeta alphaMask;
     private final FieldsKey fields;
     private final int inRuleIndex;
     private final Bits mask;
@@ -109,7 +109,7 @@ public class FactType implements Masked {
         return fields;
     }
 
-    public AlphaBucketData getAlphaMask() {
+    public AlphaBucketMeta getAlphaMask() {
         return alphaMask;
     }
 

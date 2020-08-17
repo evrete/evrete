@@ -28,6 +28,8 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
 
     protected abstract void onNewActiveField(ActiveField newField);
 
+    protected abstract void onNewAlphaBucket(AlphaDelta alphaDelta);
+
     /**
      * Constructor for a Knowledge object
      *
@@ -91,8 +93,8 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         return activeFields.getActiveFields(type);
     }
 
-    public AlphaBucketData getCreateAlphaMask(FieldsKey fields, boolean beta, Set<Evaluator> typePredicates) {
-        return alphaConditions.register(this, fields, beta, typePredicates);
+    public AlphaBucketMeta getCreateAlphaMask(FieldsKey fields, boolean beta, Set<Evaluator> typePredicates) {
+        return alphaConditions.register(this, fields, beta, typePredicates, this::onNewAlphaBucket);
     }
 
     @Override

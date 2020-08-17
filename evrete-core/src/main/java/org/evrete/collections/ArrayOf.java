@@ -32,6 +32,18 @@ public class ArrayOf<T> {
         return ret;
     }
 
+    public void set(int index, T element) {
+        if (index >= data.length) {
+            this.data = Arrays.copyOf(this.data, index + 1);
+        }
+        this.data[index] = element;
+    }
+
+    public boolean isEmptyAt(int index) {
+        if (index >= this.data.length) return true;// No such index
+        return this.data[index] == null;
+    }
+
     @Override
     public String toString() {
         return Arrays.toString(data);

@@ -4,10 +4,10 @@ import org.evrete.api.RuntimeFact;
 
 import java.util.Arrays;
 
-public abstract class AlphaBucketData {
+public abstract class AlphaBucketMeta {
     private static final AlphaEvaluator[] EMPTY_INDICES = new AlphaEvaluator[0];
     private static final boolean[] EMPTY_VALUES = new boolean[0];
-    static final AlphaBucketData NO_FIELDS_NO_CONDITIONS = new AlphaBucketData(-777, EMPTY_INDICES, EMPTY_VALUES) {
+    static final AlphaBucketMeta NO_FIELDS_NO_CONDITIONS = new AlphaBucketMeta(-777, EMPTY_INDICES, EMPTY_VALUES) {
         @Override
         public boolean test(RuntimeFact fact) {
             throw new UnsupportedOperationException();
@@ -19,7 +19,7 @@ public abstract class AlphaBucketData {
     private final boolean[] requiredValues;
     private final int hash;
 
-    private AlphaBucketData(int bucketIndex, AlphaEvaluator[] alphaEvaluators, boolean[] requiredValues) {
+    private AlphaBucketMeta(int bucketIndex, AlphaEvaluator[] alphaEvaluators, boolean[] requiredValues) {
         this.bucketIndex = bucketIndex;
         this.alphaEvaluators = alphaEvaluators;
         this.requiredValues = requiredValues;
@@ -39,7 +39,7 @@ public abstract class AlphaBucketData {
         return alphaEvaluators.length == 0;
     }
 
-    static AlphaBucketData factory(int bucketIndex, AlphaEvaluator[] alphaConditions, boolean[] requiredValues) {
+    static AlphaBucketMeta factory(int bucketIndex, AlphaEvaluator[] alphaConditions, boolean[] requiredValues) {
         if (alphaConditions.length == 0) {
             return new Empty(bucketIndex);
         } else {
@@ -59,7 +59,7 @@ public abstract class AlphaBucketData {
     public final boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        AlphaBucketData that = (AlphaBucketData) o;
+        AlphaBucketMeta that = (AlphaBucketMeta) o;
         return hash == that.hash && sameData(this, that);
     }
 
@@ -76,20 +76,6 @@ public abstract class AlphaBucketData {
                 '}';
     }
 
-/*
-    static boolean sameData(int[] indices1, boolean[] values1, int[] indices2, boolean[] values2) {
-        if (!Arrays.equals(indices1, indices2)) return false;
-        for (int i = 0; i < indices1.length; i++) {
-            int alphaIdx1 = indices1[i];
-            int alphaIdx2 = indices2[i];
-            boolean b1 = values1[alphaIdx1];
-            boolean b2 = values2[alphaIdx2];
-            if (b1 != b2) return false;
-        }
-        return true;
-    }
-*/
-
     static boolean sameData(AlphaEvaluator[] alphaEvaluators1, boolean[] values1, AlphaEvaluator[] alphaEvaluators2, boolean[] values2) {
         if (!Arrays.equals(alphaEvaluators1, alphaEvaluators2)) return false;
         for (int i = 0; i < alphaEvaluators1.length; i++) {
@@ -102,7 +88,7 @@ public abstract class AlphaBucketData {
         return true;
     }
 
-    static boolean sameData(AlphaBucketData ai1, AlphaBucketData ai2) {
+    static boolean sameData(AlphaBucketMeta ai1, AlphaBucketMeta ai2) {
         return sameData(ai1.alphaEvaluators, ai1.requiredValues, ai2.alphaEvaluators, ai2.requiredValues);
     }
 
@@ -115,7 +101,7 @@ public abstract class AlphaBucketData {
         return h;
     }
 
-    private static final class Empty extends AlphaBucketData {
+    private static final class Empty extends AlphaBucketMeta {
 
         public Empty(int bucketIndex) {
             super(bucketIndex, EMPTY_INDICES, EMPTY_VALUES);
@@ -132,7 +118,7 @@ public abstract class AlphaBucketData {
         }
     }
 
-    private static final class Default extends AlphaBucketData {
+    private static final class Default extends AlphaBucketMeta {
         public Default(int bucketIndex, AlphaEvaluator[] alphaEvaluators, boolean[] requiredValues) {
             super(bucketIndex, alphaEvaluators, requiredValues);
         }

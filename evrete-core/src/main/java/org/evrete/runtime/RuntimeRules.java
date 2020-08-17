@@ -85,10 +85,10 @@ public class RuntimeRules implements Iterable<RuntimeRule>, MemoryChangeListener
     }
 
     private int computeMaxAlphaBucket(FieldsKey fields) {
-        ArrayOf<AlphaBucketData> maskCollection = runtime.getAlphaConditions().getAlphaMasks(fields, true);
+        ArrayOf<AlphaBucketMeta> maskCollection = runtime.getAlphaConditions().getAlphaMasks(fields, true);
         int ret = Integer.MIN_VALUE;
 
-        for (AlphaBucketData mask : maskCollection.data) {
+        for (AlphaBucketMeta mask : maskCollection.data) {
             ret = Math.max(ret, mask.getBucketIndex());
         }
 

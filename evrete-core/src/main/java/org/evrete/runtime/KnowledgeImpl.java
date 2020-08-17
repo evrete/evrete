@@ -23,6 +23,11 @@ public class KnowledgeImpl extends AbstractRuntime<Knowledge> implements Knowled
     }
 
     @Override
+    protected void onNewAlphaBucket(AlphaDelta delta) {
+        // Do nothing
+    }
+
+    @Override
     public final Kind getKind() {
         return Kind.KNOWLEDGE;
     }

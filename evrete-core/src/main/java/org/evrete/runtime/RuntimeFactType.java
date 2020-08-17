@@ -3,6 +3,7 @@ package org.evrete.runtime;
 import org.evrete.api.ReIterable;
 import org.evrete.api.RuntimeFact;
 import org.evrete.api.ValueRow;
+import org.evrete.collections.FastHashSet;
 import org.evrete.runtime.memory.SessionMemory;
 import org.evrete.runtime.structure.FactType;
 
@@ -12,12 +13,12 @@ public abstract class RuntimeFactType extends FactType implements MemoryChangeLi
     private boolean deleteDeltaAvailable;
     private final SessionMemory runtime;
     private RuntimeRule rule;
-    private final RuntimeRuleBase.ValuesRowSet deleteTasks;
+    private final FastHashSet<ValueRow> deleteTasks;
 
     RuntimeFactType(SessionMemory runtime, FactType other) {
         super(other);
         this.runtime = runtime;
-        this.deleteTasks = new RuntimeRuleBase.ValuesRowSet();
+        this.deleteTasks = new FastHashSet<>();
     }
 
     public static RuntimeFactType factory(FactType type, SessionMemory runtime) {
@@ -51,7 +52,7 @@ public abstract class RuntimeFactType extends FactType implements MemoryChangeLi
     }
 */
 
-    RuntimeRuleBase.ValuesRowSet getDeleteTasks() {
+    FastHashSet<ValueRow> getDeleteTasks() {
         return deleteTasks;
     }
 

@@ -76,7 +76,7 @@ public abstract class RuntimeRuleBase {
         for (RuntimeFactType factType : factSources) {
             factType.resetDeleteDeltaAvailable();
             factType.resetInsertDeltaAvailable();
-            ValuesRowSet delTasks = factType.getDeleteTasks();
+            FastHashSet<ValueRow> delTasks = factType.getDeleteTasks();
             if (delTasks != null) {
                 delTasks.clear();
             }
@@ -85,8 +85,5 @@ public abstract class RuntimeRuleBase {
 
     public SessionMemory getMemory() {
         return memory;
-    }
-
-    static class ValuesRowSet extends FastHashSet<ValueRow> {
     }
 }

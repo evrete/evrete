@@ -11,7 +11,6 @@ public final class RuntimeObject implements RuntimeFact {
     private final Object delegate;
     private boolean[] alphaTests;
 
-
     private RuntimeObject(Object o, Object[] values) {
         this(o, values, EMPTY_ALPHA_TESTS);
     }
@@ -58,12 +57,16 @@ public final class RuntimeObject implements RuntimeFact {
         this.values[field.getValueIndex()] = value;
     }
 
-    public final RuntimeObject appendAlphaTest(AlphaEvaluator newEvaluator) {
-        int size = this.alphaTests.length;
-        this.alphaTests = Arrays.copyOf(this.alphaTests, size + 1);
-        Object fieldValue = values[newEvaluator.getValueIndex()];
-        this.alphaTests[size] = newEvaluator.test(fieldValue);
-        return this;
+    public final void appendAlphaTest(AlphaEvaluator[] newEvaluators) {
+        int currentSize = this.alphaTests.length;
+        this.alphaTests = Arrays.copyOf(this.alphaTests, currentSize + newEvaluators.length);
+        for (int i = 0; i < newEvaluators.length; i++) {
+            int newIndex = currentSize + i;
+            AlphaEvaluator newEvaluator = newEvaluators[i];
+            assert newIndex == newEvaluator.getUniqueId();
+            Object fieldValue = values[newEvaluator.getValueIndex()];
+            this.alphaTests[newIndex] = newEvaluator.test(fieldValue);
+        }
     }
 
     public String toString() {

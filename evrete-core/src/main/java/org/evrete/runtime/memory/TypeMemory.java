@@ -2,7 +2,6 @@ package org.evrete.runtime.memory;
 
 import org.evrete.Configuration;
 import org.evrete.api.*;
-import org.evrete.collections.AbstractFastHashMap;
 import org.evrete.collections.ArrayOf;
 import org.evrete.collections.FastIdentityHashMap;
 import org.evrete.runtime.*;
@@ -53,17 +52,6 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
         }
     }
 
-/*
-    public boolean hasFieldsMemory(FieldsKey fields) {
-        return betaMemories.containsKey(fields);
-    }
-
-    public final FieldsMemory getCreate(FieldsKey fields) {
-        return betaMemories
-                .computeIfAbsent(fields, k -> new FieldsMemory(runtime, fields));
-    }
-*/
-
     public final FieldsMemory get(FieldsKey fields) {
         FieldsMemory fm = betaMemories.get(fields);
         if (fm == null) {
@@ -77,13 +65,12 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
         facts.forEachValue(consumer::accept);
     }
 
-
     @Override
     public ReIterator<RuntimeFact> iterator() {
         return this.facts.factIterator();
     }
 
-    public ReIterable<RuntimeFact> get(AlphaBucketData alphaMask) {
+    public ReIterable<RuntimeFact> get(AlphaBucketMeta alphaMask) {
         if (alphaMask.isEmpty()) {
             return this;
         }
@@ -96,75 +83,6 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
                 throw new IllegalStateException("No alpha memory initialized for " + alphaMask + ", type: " + type);
             } else {
                 return bucket;
-            }
-        }
-    }
-
-    /**
-     * If not exists, this method initializes memory structures and
-     * fills them with existing facts (if any)
-     *
-     * @param key  beta/alpha key
-     * @param mask alpha mask
-     */
-    public void init(FieldsKey key, AlphaBucketData mask) {
-        assert this.type == key.getType();
-        ReIterator<AbstractFastHashMap.Entry<Object, RuntimeObject>> factIterator = facts.iterator();
-        if (key.size() == 0) {
-            // Plain alpha storage
-            TypeMemoryBucket bucket = init(mask);
-            if (bucket != null) {
-                // This alpha mask is new and requires data fill
-                ArrayOf<AlphaEvaluator> alphas = alphaConditions.getPredicates(type);
-                AlphaEvaluator newEvaluator = alphas.data[mask.getBucketIndex()];
-                if (factIterator.reset() > 0) {
-                    // Existing memory is not empty
-                    if (mask.isEmpty()) {
-                        System.out.println("Mask empty");
-                    } else {
-                        System.out.println("Mask non-empty");
-                    }
-                    while (factIterator.hasNext()) {
-                        RuntimeObject rto = factIterator.next().getValue();
-                        bucket.insertSingle(rto.appendAlphaTest(newEvaluator));
-                    }
-                }
-            }
-        } else {
-            // Beta memory
-            FieldsMemory fm = betaMemories.get(key);
-            if (fm == null) {
-                fm = new FieldsMemory(runtime, key);
-                betaMemories.put(key, fm);
-            }
-            FieldsMemoryBucket betaBucket = fm.init(mask);
-            if (betaBucket != null) {
-                if (factIterator.reset() > 0) {
-                    throw new UnsupportedOperationException();
-                }
-            }
-
-        }
-    }
-
-
-    public TypeMemoryBucket init(AlphaBucketData alphaMask) {
-        if (alphaMask.isEmpty()) {
-            return null;
-        } else {
-            int bucketIndex = alphaMask.getBucketIndex();
-            TypeMemoryBucket bucket;
-            if (bucketIndex >= this.alphaBuckets.data.length) {
-                bucket = new TypeMemoryBucket(runtime, alphaMask);
-                this.alphaBuckets.append(bucket);
-                return bucket;
-            } else {
-                bucket = this.alphaBuckets.data[bucketIndex];
-                if (bucket == null) {
-                    throw new IllegalStateException();
-                } else {
-                    return null;
-                }
             }
         }
     }
@@ -191,11 +109,67 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
      * @param newField newly created field
      */
     void onNewActiveField(ActiveField newField) {
-        ReIterator<AbstractFastHashMap.Entry<Object, RuntimeObject>> it = facts.iterator();
+        ReIterator<RuntimeObject> it = facts.factImplIterator();
         while (it.hasNext()) {
-            RuntimeObject rto = it.next().getValue();
+            RuntimeObject rto = it.next();
             Object fieldValue = newField.readValue(rto.getDelegate());
             rto.appendValue(newField, fieldValue);
+        }
+    }
+
+    void touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
+        if (key.size() == 0) {
+            touchAlphaMemory(alphaMeta);
+        } else {
+            betaMemories
+                    .computeIfAbsent(key, k -> new FieldsMemory(runtime, key))
+                    .touchMemory(alphaMeta);
+        }
+    }
+
+    TypeMemoryBucket touchAlphaMemory(AlphaBucketMeta alphaMeta) {
+        // Alpha storage
+        if (!alphaMeta.isEmpty()) {
+            int bucketIndex = alphaMeta.getBucketIndex();
+            if (alphaBuckets.isEmptyAt(bucketIndex)) {
+                TypeMemoryBucket newBucket = new TypeMemoryBucket(runtime, alphaMeta);
+                alphaBuckets.set(bucketIndex, newBucket);
+                return newBucket;
+            }
+        }
+        return null;
+    }
+
+
+    void onNewAlphaBucket(AlphaDelta delta) {
+        ReIterator<RuntimeObject> existingFacts = facts.factImplIterator();
+        // 1. Update all the facts by applying new alpha flags
+        AlphaEvaluator[] newEvaluators = delta.getNewEvaluators();
+        if (newEvaluators.length > 0 && existingFacts.reset() > 0) {
+            while (existingFacts.hasNext()) {
+                existingFacts.next().appendAlphaTest(newEvaluators);
+            }
+        }
+
+
+        // 2. Create and fill buckets
+        FieldsKey key = delta.getKey();
+        AlphaBucketMeta alphaMeta = delta.getNewAlphaMeta();
+        if (key.size() == 0) {
+            // 3. Create new alpha data bucket
+            TypeMemoryBucket newBucket = touchAlphaMemory(alphaMeta);
+            assert newBucket != null;
+            // Fill data
+            if (existingFacts.reset() > 0) {
+                while (existingFacts.hasNext()) {
+                    newBucket.insertSingle(existingFacts.next());
+                }
+            }
+        } else {
+            // 3. Process keyed/beta-memory
+            betaMemories
+                    .computeIfAbsent(key, k -> new FieldsMemory(runtime, key))
+                    .onNewAlphaBucket(alphaMeta, existingFacts);
         }
     }
 
@@ -285,6 +259,7 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
     private static class IdentityMap extends FastIdentityHashMap<Object, RuntimeObject> {
         private static final ToIntFunction<Object> HASH = System::identityHashCode;
         private static final Function<Entry<Object, RuntimeObject>, RuntimeFact> MAPPER = Entry::getValue;
+        private static final Function<Entry<Object, RuntimeObject>, RuntimeObject> MAPPER_IMPL = Entry::getValue;
 
         private static final BiPredicate<Object, Object> EQ = (fact1, fact2) -> fact1 == fact2;
 
@@ -292,9 +267,12 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
             super(conf.getExpectedObjectCount());
         }
 
-
         ReIterator<RuntimeFact> factIterator() {
             return iterator(MAPPER);
+        }
+
+        ReIterator<RuntimeObject> factImplIterator() {
+            return iterator(MAPPER_IMPL);
         }
 
         @Override

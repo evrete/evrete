@@ -4,12 +4,13 @@ import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 import static org.evrete.api.LogicallyComparable.*;
 
 public class AlphaConditions implements Copyable<AlphaConditions> {
     private static final ArrayOf<AlphaEvaluator> EMPTY = new ArrayOf<>(new AlphaEvaluator[0]);
-    private static final ArrayOf<AlphaBucketData> EMPTY_MASKS = new ArrayOf<>(new AlphaBucketData[0]);
+    private static final ArrayOf<AlphaBucketMeta> EMPTY_MASKS = new ArrayOf<>(new AlphaBucketMeta[0]);
     private final Map<Type, ArrayOf<AlphaEvaluator>> alphaPredicates;
     private final Map<Type, TypeAlphas> typeAlphas;
 
@@ -37,17 +38,26 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
         return alphaPredicates.getOrDefault(type, EMPTY).data.length;
     }
 
-    public synchronized AlphaBucketData register(AbstractRuntime<?> runtime, FieldsKey betaFields, boolean beta, Set<Evaluator> typePredicates) {
+    public synchronized AlphaBucketMeta register(AbstractRuntime<?> runtime, FieldsKey betaFields, boolean beta, Set<Evaluator> typePredicates, Consumer<AlphaDelta> listener) {
         if (typePredicates.isEmpty() && betaFields.size() == 0) {
-            return AlphaBucketData.NO_FIELDS_NO_CONDITIONS;
+            return AlphaBucketMeta.NO_FIELDS_NO_CONDITIONS;
         }
 
+        Collection<AlphaEvaluator> newEvaluators = new LinkedList<>();
+
         Type type = betaFields.getType();
-        AlphaMeta candidate = createAlphaMask(runtime, type, typePredicates);
-        return typeAlphas.computeIfAbsent(type, TypeAlphas::new).getCreate(betaFields, beta, candidate);
+        AlphaMeta candidate = createAlphaMask(runtime, type, typePredicates, newEvaluators::add);
+        return typeAlphas
+                .computeIfAbsent(type, TypeAlphas::new)
+                .getCreate(
+                        betaFields,
+                        beta,
+                        candidate,
+                        alphaBucketMeta -> listener.accept(new AlphaDelta(betaFields, alphaBucketMeta, newEvaluators))
+                );
     }
 
-    public ArrayOf<AlphaBucketData> getAlphaMasks(FieldsKey fields, boolean beta) {
+    public ArrayOf<AlphaBucketMeta> getAlphaMasks(FieldsKey fields, boolean beta) {
         Type type = fields.getType();
         TypeAlphas typeData = typeAlphas.get(type);
         if (typeData == null) {
@@ -68,7 +78,7 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
                 '}';
     }
 
-    private AlphaMeta createAlphaMask(AbstractRuntime<?> runtime, Type t, Set<Evaluator> typePredicates) {
+    private AlphaMeta createAlphaMask(AbstractRuntime<?> runtime, Type t, Set<Evaluator> typePredicates, Consumer<AlphaEvaluator> listener) {
         ArrayOf<AlphaEvaluator> existing = alphaPredicates.computeIfAbsent(t, k -> new ArrayOf<>(new AlphaEvaluator[0]));
         List<EvaluationSide> mapping = new LinkedList<>();
 
@@ -99,6 +109,7 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
                 TypeField field = alphaPredicate.descriptor()[0].field();
                 found = new AlphaEvaluator(existing.data.length, alphaPredicate, runtime.getCreateActiveField(field));
                 existing.append(found);
+                listener.accept(found);
             }
 
             mapping.add(new EvaluationSide(found, foundDirect));
@@ -130,12 +141,12 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
     }
 
     private static class FieldAlphas implements Copyable<FieldAlphas> {
-        private final Set<AlphaBucketData> dataOld;
-        private final ArrayOf<AlphaBucketData> data;
+        private final Set<AlphaBucketMeta> dataOld;
+        private final ArrayOf<AlphaBucketMeta> data;
 
         FieldAlphas(FieldsKey fields) {
             this.dataOld = new HashSet<>();
-            this.data = new ArrayOf<>(new AlphaBucketData[0]);
+            this.data = new ArrayOf<>(new AlphaBucketMeta[0]);
         }
 
         FieldAlphas(FieldAlphas other) {
@@ -143,17 +154,18 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
             this.data = new ArrayOf<>(other.data);
         }
 
-        AlphaBucketData getCreate(AlphaMeta candidate) {
-            AlphaBucketData found = null;
-            for (AlphaBucketData mask : data.data) {
+        AlphaBucketMeta getCreate(AlphaMeta candidate, Consumer<AlphaBucketMeta> listener) {
+            AlphaBucketMeta found = null;
+            for (AlphaBucketMeta mask : data.data) {
                 if (mask.sameData(candidate.alphaEvaluators, candidate.requiredValues)) {
                     found = mask;
                     break;
                 }
             }
             if (found == null) {
-                found = AlphaBucketData.factory(data.data.length, candidate.alphaEvaluators, candidate.requiredValues);
+                found = AlphaBucketMeta.factory(data.data.length, candidate.alphaEvaluators, candidate.requiredValues);
                 data.append(found);
+                listener.accept(found);
             }
 
             return found;
@@ -181,7 +193,7 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
             this.dataBeta.putAll(other.dataBeta);
         }
 
-        public ArrayOf<AlphaBucketData> getAlphaMasks(FieldsKey fields, boolean beta) {
+        public ArrayOf<AlphaBucketMeta> getAlphaMasks(FieldsKey fields, boolean beta) {
             Map<FieldsKey, FieldAlphas> map = beta ?
                     dataBeta
                     :
@@ -194,13 +206,13 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
             }
         }
 
-        private AlphaBucketData getCreate(FieldsKey betaFields, boolean beta, AlphaMeta candidate) {
+        private AlphaBucketMeta getCreate(FieldsKey betaFields, boolean beta, AlphaMeta candidate, Consumer<AlphaBucketMeta> listener) {
             Map<FieldsKey, FieldAlphas> map = beta ?
                     dataBeta
                     :
                     dataAlpha;
 
-            return map.computeIfAbsent(betaFields, FieldAlphas::new).getCreate(candidate);
+            return map.computeIfAbsent(betaFields, FieldAlphas::new).getCreate(candidate, listener);
         }
 
         @Override

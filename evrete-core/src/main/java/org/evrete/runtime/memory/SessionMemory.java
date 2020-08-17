@@ -37,9 +37,16 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
     @Override
     public synchronized RuntimeRule deployRule(RuleDescriptor descriptor) {
         for (FactType factType : descriptor.getRootLhsDescriptor().getAllFactTypes()) {
-            init(factType);
+            touchMemory(factType.getFields(), factType.getAlphaMask());
         }
         return ruleStorage.addRule(descriptor);
+    }
+
+    private void touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
+        Type t = key.getType();
+        typedMemories
+                .computeIfAbsent(t, k -> new TypeMemory(this, t))
+                .touchMemory(key, alphaMeta);
     }
 
     @Override
@@ -66,6 +73,19 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         }
     }
 
+    @Override
+    protected void onNewAlphaBucket(AlphaDelta delta) {
+        Type t = delta.getKey().getType();
+        TypeMemory tm = typedMemories.get(t);
+        if (tm == null) {
+            tm = new TypeMemory(this, t);
+            typedMemories.put(t, tm);
+        } else {
+            tm.onNewAlphaBucket(delta);
+        }
+    }
+
+
     RuntimeRules getRuleStorage() {
         return ruleStorage;
     }
@@ -77,7 +97,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
     public SharedBetaFactStorage getBetaFactStorage(FactType factType) {
         Type t = factType.getType();
         FieldsKey fields = factType.getFields();
-        AlphaBucketData mask = factType.getAlphaMask();
+        AlphaBucketMeta mask = factType.getAlphaMask();
 
         return get(t).get(fields).get(mask);
     }
@@ -207,17 +227,19 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
 
     }
 
-    public void init(FactType factType) {
+/*
+    public void init1(FactType factType) {
         Type t = factType.getType();
         TypeMemory tm = typedMemories.get(t);
         if (tm == null) {
             tm = new TypeMemory(this, t);
             typedMemories.put(t, tm);
         }
-        AlphaBucketData mask = factType.getAlphaMask();
+        AlphaBucketMeta mask = factType.getAlphaMask();
         FieldsKey key = factType.getFields();
-        tm.init(key, mask);
+        tm.init111(key, mask);
     }
+*/
 
     public TypeMemory get(Type t) {
         TypeMemory m = typedMemories.get(t);
