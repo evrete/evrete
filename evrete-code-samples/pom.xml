@@ -5,12 +5,12 @@
     <parent>
         <artifactId>evrete</artifactId>
         <groupId>org.evrete</groupId>
-        <version>1.0.16</version>
+        <version>1.0.17-SNAPSHOT</version>
     </parent>
 
     <packaging>pom</packaging>
     <name>evrete-code-samples</name>
-    <version>1.0.16</version>
+    <version>1.0.17-SNAPSHOT</version>
 
     <repositories>
         <repository>
