@@ -3,7 +3,6 @@ package org.evrete.runtime.memory;
 import org.evrete.api.KeysStore;
 import org.evrete.api.ReIterator;
 import org.evrete.api.ThreadUnsafe;
-import org.evrete.runtime.BetaEvaluationContext;
 
 public interface NodeIterationStateFactory<S extends NodeIterationStateFactory.State, E> {
     /**
@@ -17,7 +16,7 @@ public interface NodeIterationStateFactory<S extends NodeIterationStateFactory.S
     interface State {
         void saveTo(KeysStore destination);
 
-        boolean evaluate(BetaEvaluationContext ctx);
+        boolean evaluate();
 
         void setEvaluationEntry(KeysStore.Entry entry, int sourceId);
 

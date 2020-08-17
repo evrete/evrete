@@ -6,11 +6,35 @@ import org.evrete.api.ValueRow;
 
 public interface SharedBetaFactStorage {
 
-    void ensureExtraCapacity(int insertCount);
+    void ensureDeltaCapacity(int insertCount);
 
     boolean delete(RuntimeFact fact);
 
+    /**
+     * <p>
+     * The method first reads the fact's key (values of specific fields) and
+     * checks if any of main and delta repositories contain such a key. If
+     * they don't, a new key will be created in the delta repository, the fact
+     * will be stored there under this key, and the method will return true.
+     * If the key is already known, the fact will be appended to the corresponding
+     * repository, and the method will return false.
+     * </p>
+     *
+     * @param fact fact to process
+     * @return true if the fact's field values (the storage key) are unknown to either
+     * delta and main scopes
+     */
     boolean insert(RuntimeFact fact);
+
+    /**
+     * <p>
+     * This method reads fact's key (values of specific fields) and saves
+     * the object under this key directly in the main repository.
+     * </p>
+     *
+     * @param fact fact to insert
+     */
+    void insertDirect(RuntimeFact fact);
 
     void mergeDelta();
 
@@ -27,6 +51,8 @@ public interface SharedBetaFactStorage {
     void clear();
 
     interface Scope extends KeyIterable {
+        void add(ValueRow save);
+
         long keyCount();
     }
 }

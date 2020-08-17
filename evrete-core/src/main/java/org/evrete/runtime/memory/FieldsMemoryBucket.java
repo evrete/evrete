@@ -33,20 +33,15 @@ class FieldsMemoryBucket {
     }
 
     void insert(Collection<RuntimeObject> facts) {
-        fieldData.ensureExtraCapacity(facts.size());
+        fieldData.ensureDeltaCapacity(facts.size());
         for (RuntimeObject fact : facts) {
-            insertSingle(fact);
-        }
-    }
-
-    void insertSingle(RuntimeObject rto) {
-        if (alphaMask.test(rto)) {
-            if (fieldData.insert(rto)) {
-                insertDeltaAvailable = true;
+            if (alphaMask.test(fact)) {
+                if (fieldData.insert(fact)) {
+                    insertDeltaAvailable = true;
+                }
             }
         }
     }
-
 
     void retract(Collection<RuntimeFact> facts) {
         for (RuntimeFact fact : facts) {

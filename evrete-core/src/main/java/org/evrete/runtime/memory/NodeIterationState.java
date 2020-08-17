@@ -1,7 +1,6 @@
 package org.evrete.runtime.memory;
 
 import org.evrete.api.*;
-import org.evrete.runtime.BetaEvaluationContext;
 import org.evrete.runtime.RuntimeListeners;
 import org.evrete.runtime.structure.*;
 
@@ -62,9 +61,9 @@ public class NodeIterationState implements NodeIterationStateFactory.State {
     }
 
     @Override
-    public boolean evaluate(BetaEvaluationContext ctx) {
+    public boolean evaluate() {
         for (EvaluatorDelegate ed : evaluators) {
-            if (!ed.test(ctx)) return false;
+            if (!ed.test()) return false;
         }
         return true;
     }
@@ -148,7 +147,7 @@ public class NodeIterationState implements NodeIterationStateFactory.State {
             this.mappedValues = refId -> values[refId].get();
         }
 
-        abstract boolean test(BetaEvaluationContext ctx);
+        abstract boolean test();
 
     }
 
@@ -159,7 +158,7 @@ public class NodeIterationState implements NodeIterationStateFactory.State {
         }
 
         @Override
-        boolean test(BetaEvaluationContext ctx) {
+        boolean test() {
             return evaluator.test(mappedValues);
         }
 
@@ -174,9 +173,9 @@ public class NodeIterationState implements NodeIterationStateFactory.State {
         }
 
         @Override
-        boolean test(BetaEvaluationContext ctx) {
+        boolean test() {
             boolean b = evaluator.test(mappedValues);
-            listeners.fireConditionTestResult(ctx, node, evaluator.getDelegate(), mappedValues, b);
+            listeners.fireConditionTestResult(node, evaluator.getDelegate(), mappedValues, b);
             return b;
         }
     }

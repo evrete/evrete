@@ -6,7 +6,7 @@ public class FireContext {
     private final AtomicInteger fireCount = new AtomicInteger(0);
     private final StatefulSessionImpl session;
 
-    FireContext(StatefulSessionImpl session) {
+    public FireContext(StatefulSessionImpl session) {
         this.session = session;
     }
 

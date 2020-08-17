@@ -14,10 +14,14 @@ class ValueRowImpl implements ValueRow {
     private final ReIterator<RuntimeFact> delegate;
 
     ValueRowImpl(Object[] data, int hash, RuntimeFact fact) {
+        this(data, hash);
+        this.facts.add(fact);
+    }
+
+    ValueRowImpl(Object[] data, int hash) {
         this.data = data;
         this.hash = hash;
         this.delegate = facts.iterator();
-        this.facts.add(fact);
     }
 
     void mergeDataFrom(ValueRowImpl other) {

@@ -110,11 +110,11 @@ public class RuntimeAggregateLhsJoined extends RuntimeAggregateLhs {
         return descriptor;
     }
 
-    public void evaluate() {
-        evaluate(0, false);
+    public void evaluate(boolean deltaOnly) {
+        evaluate(0, false, deltaOnly);
     }
 
-    private void evaluate(int index, boolean hasDelta) {
+    private void evaluate(int index, boolean hasDelta, boolean deltaOnly) {
         SourceIterator iterator = iterators[index];
         ReIterator<ValueRow[]> it;
         if (index == iterators.length - 1) {
@@ -122,7 +122,7 @@ public class RuntimeAggregateLhsJoined extends RuntimeAggregateLhs {
             // 1. Main
             it = iterator.main();
             it.reset();
-            while (it.hasNext() && hasDelta) {
+            while (it.hasNext() && (!deltaOnly || hasDelta)) {
                 state[index] = it.next();
                 testAndSave();
             }
@@ -141,7 +141,7 @@ public class RuntimeAggregateLhsJoined extends RuntimeAggregateLhs {
             it.reset();
             while (it.hasNext()) {
                 state[index] = it.next();
-                evaluate(index + 1, hasDelta);
+                evaluate(index + 1, hasDelta, deltaOnly);
             }
 
             // 2. Delta
@@ -149,7 +149,7 @@ public class RuntimeAggregateLhsJoined extends RuntimeAggregateLhs {
             it.reset();
             while (it.hasNext()) {
                 state[index] = it.next();
-                evaluate(index + 1, true);
+                evaluate(index + 1, true, deltaOnly);
             }
         }
     }

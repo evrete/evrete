@@ -1,6 +1,5 @@
 package org.evrete.runtime.async;
 
-import org.evrete.runtime.FireContext;
 import org.evrete.runtime.RuntimeRule;
 import org.evrete.runtime.memory.BetaEndNode;
 
@@ -9,11 +8,12 @@ import java.util.LinkedList;
 
 public class RuleMemoryInsertTask extends Completer {
     private final Collection<RuntimeRule> rules;
-    private final FireContext ctx;
+    private final boolean deltaOnly;
 
-    public RuleMemoryInsertTask(FireContext ctx, Collection<RuntimeRule> rules) {
-        this.ctx = ctx;
+
+    public RuleMemoryInsertTask(Collection<RuntimeRule> rules, boolean deltaOnly) {
         this.rules = rules;
+        this.deltaOnly = deltaOnly;
     }
 
     @Override
@@ -30,7 +30,7 @@ public class RuleMemoryInsertTask extends Completer {
 
         tailCall(
                 changedBetaEndNodes,
-                n -> new NodeDeltaTask(RuleMemoryInsertTask.this, n, ctx)
+                n -> new NodeDeltaTask(RuleMemoryInsertTask.this, n, deltaOnly)
         );
     }
 }

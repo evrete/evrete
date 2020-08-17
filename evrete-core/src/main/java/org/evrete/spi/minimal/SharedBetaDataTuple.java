@@ -61,7 +61,7 @@ class SharedBetaDataTuple implements SharedBetaFactStorage {
     }
 
     @Override
-    public void ensureExtraCapacity(int insertCount) {
+    public void ensureDeltaCapacity(int insertCount) {
         delta.resize((int) (delta.size() + insertCount));
     }
 
@@ -90,6 +90,7 @@ class SharedBetaDataTuple implements SharedBetaFactStorage {
 
     @Override
     public boolean insert(RuntimeFact fact) {
+        main.resize();
         int hash = hash(fact);
         int addr = main.findBinIndex(reusableValueArr, hash, SHARED_ARRAY_EQ);
         ValueRowImpl found = main.get(addr);
@@ -107,6 +108,19 @@ class SharedBetaDataTuple implements SharedBetaFactStorage {
 
         found.addFact(fact);
         return false;
+    }
+
+    @Override
+    public void insertDirect(RuntimeFact fact) {
+        main.resize();
+        int hash = hash(fact);
+        int addr = main.findBinIndex(reusableValueArr, hash, SHARED_ARRAY_EQ);
+        ValueRowImpl found = main.get(addr);
+        if (found == null) {
+            found = new ValueRowImpl(Arrays.copyOf(reusableValueArr, reusableValueArr.length), hash);
+            main.saveDirect(found, addr);
+        }
+        found.addFact(fact);
     }
 
     @Override

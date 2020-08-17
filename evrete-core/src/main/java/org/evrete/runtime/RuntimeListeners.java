@@ -26,9 +26,9 @@ public class RuntimeListeners implements Copyable<RuntimeListeners>, Listeners {
         return evaluationListeners.size() > 0;
     }
 
-    public void fireConditionTestResult(BetaEvaluationContext ctx, BetaConditionNode node, Evaluator evaluator, IntToValue values, boolean result) {
+    public void fireConditionTestResult(BetaConditionNode node, Evaluator evaluator, IntToValue values, boolean result) {
         for (EvaluationListener listener : evaluationListeners) {
-            listener.apply(ctx, node, evaluator, values, result);
+            listener.apply(node, evaluator, values, result);
         }
     }
 }

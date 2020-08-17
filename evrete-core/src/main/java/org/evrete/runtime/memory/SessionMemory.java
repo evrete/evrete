@@ -25,7 +25,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         this.typedMemories = new FastHashMap<>(getTypeResolver().getKnownTypes().size());
         // Deploy existing rules
         for (RuleDescriptor descriptor : getRuleDescriptors()) {
-            deployRule(descriptor);
+            deployRule(descriptor, false);
         }
     }
 
@@ -35,11 +35,19 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
     }
 
     @Override
-    public synchronized RuntimeRule deployRule(RuleDescriptor descriptor) {
+    public RuntimeRule deployRule(RuleDescriptor descriptor) {
+        return deployRule(descriptor, true);
+    }
+
+    private synchronized RuntimeRule deployRule(RuleDescriptor descriptor, boolean hotDeployment) {
         for (FactType factType : descriptor.getRootLhsDescriptor().getAllFactTypes()) {
             touchMemory(factType.getFields(), factType.getAlphaMask());
         }
-        return ruleStorage.addRule(descriptor);
+        RuntimeRule rule = ruleStorage.addRule(descriptor);
+        if (hotDeployment) {
+            getExecutor().invoke(new RuleHotDeploymentTask(rule));
+        }
+        return rule;
     }
 
     private void touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
@@ -83,11 +91,6 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         } else {
             tm.onNewAlphaBucket(delta);
         }
-    }
-
-
-    RuntimeRules getRuleStorage() {
-        return ruleStorage;
     }
 
     public BufferSafe getBuffer() {
@@ -138,7 +141,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         return ruleStorage.asList();
     }
 
-    protected void handleBuffer(FireContext ctx) {
+    protected void handleBuffer() {
         onBeforeChange();
         List<Completer> tasksQueue = new LinkedList<>();
 
@@ -146,7 +149,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         handleDeletes(tasksQueue);
 
         // 2. Do inserts
-        handleInserts(ctx, tasksQueue);
+        handleInserts(tasksQueue);
 
         // 3. Execute all tasks orderly
         ForkJoinExecutor executor = getExecutor();
@@ -193,7 +196,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         }
     }
 
-    private void handleInserts(FireContext ctx, List<Completer> tasksQueue) {
+    private void handleInserts(List<Completer> tasksQueue) {
         buffer.takeAll(
                 Action.INSERT,
                 (type, iterator) -> {
@@ -215,14 +218,14 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         }
 
         if (!ruleInsertChanges.isEmpty()) {
-            tasksQueue.add(new RuleMemoryInsertTask(ctx, ruleInsertChanges));
+            tasksQueue.add(new RuleMemoryInsertTask(ruleInsertChanges, true));
         }
 
 
         // Ordered task 2 - update aggregate nodes
         Collection<RuntimeAggregateLhsJoined> aggregateGroups = ruleStorage.getAggregateLhsGroups();
         if (!aggregateGroups.isEmpty()) {
-            tasksQueue.add(new AggregateComputeTask(aggregateGroups));
+            tasksQueue.add(new AggregateComputeTask(aggregateGroups, true));
         }
 
     }

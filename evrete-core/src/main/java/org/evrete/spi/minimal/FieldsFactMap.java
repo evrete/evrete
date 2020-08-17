@@ -23,6 +23,11 @@ class FieldsFactMap extends org.evrete.collections.AbstractHashData<ValueRowImpl
     }
 
     @Override
+    public void add(ValueRow save) {
+        super.add((ValueRowImpl) save);
+    }
+
+    @Override
     public final long keyCount() {
         return size();
     }

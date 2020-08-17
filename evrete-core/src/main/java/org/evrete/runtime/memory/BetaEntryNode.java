@@ -25,13 +25,6 @@ public class BetaEntryNode extends RuntimeFactTypeKeyed implements BetaMemoryNod
         this.grouping[0][0] = this;
     }
 
-/*
-    @Override
-    public RuntimeContext<?, ?> getRuntime() {
-        return getMemory();
-    }
-*/
-
     @Override
     public RuntimeFactType[][] getGrouping() {
         return grouping;

@@ -49,9 +49,13 @@ public class FieldsMemory implements MemoryChangeListener {
     void onNewAlphaBucket(AlphaBucketMeta alphaMeta, ReIterator<RuntimeObject> existingFacts) {
         FieldsMemoryBucket newBucket = touchMemory(alphaMeta);
         assert newBucket != null;
+        SharedBetaFactStorage betaFactStorage = newBucket.getFieldData();
         if (existingFacts.reset() > 0) {
             while (existingFacts.hasNext()) {
-                newBucket.insertSingle(existingFacts.next());
+                RuntimeObject rto = existingFacts.next();
+                if (alphaMeta.test(rto)) {
+                    betaFactStorage.insertDirect(rto);
+                }
             }
         }
     }
@@ -60,10 +64,6 @@ public class FieldsMemory implements MemoryChangeListener {
         for (FieldsMemoryBucket bucket : alphaBuckets.data) {
             bucket.clear();
         }
-    }
-
-    @Override
-    public void onBeforeChange() {
     }
 
     void insert(Collection<RuntimeObject> facts) {

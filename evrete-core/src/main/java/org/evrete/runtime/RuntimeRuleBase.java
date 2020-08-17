@@ -17,21 +17,13 @@ public abstract class RuntimeRuleBase {
     private final RuntimeFactTypeKeyed[] betaFactSources;
     private final SessionMemory memory;
     private final Function<FactType, Predicate<ValueRow>> deletedKeys;
-    //private final Bits insertMask = new Bits();
-
-    //private boolean insertDeltaAvailable = false;
-    //private boolean deleteDeltaAvailable = false;
 
     protected RuntimeRuleBase(FactType[] allFactTypes, SessionMemory memory) {
         this.memory = memory;
         this.factSources = buildTypes(memory, allFactTypes);
-        //this.deletedKeys = factType -> factSources[factType.getInRuleIndex()].getDeleteTasks();
-        this.deletedKeys = new Function<FactType, Predicate<ValueRow>>() {
-            @Override
-            public Predicate<ValueRow> apply(FactType factType) {
-                RuntimeFactTypeKeyed t = (RuntimeFactTypeKeyed) factSources[factType.getInRuleIndex()];
-                return valueRow -> t.getKeyStorage().isKeyDeleted(valueRow);
-            }
+        this.deletedKeys = factType -> {
+            RuntimeFactTypeKeyed t = (RuntimeFactTypeKeyed) factSources[factType.getInRuleIndex()];
+            return valueRow -> t.getKeyStorage().isKeyDeleted(valueRow);
         };
 
         List<RuntimeFactTypeKeyed> betaNodes = new ArrayList<>(factSources.length);
@@ -89,12 +81,10 @@ public abstract class RuntimeRuleBase {
 
     //TODO !!! optimize
     public boolean isInsertDeltaAvailable() {
-        //this.insertMask.clear();
         boolean delta = false;
         for (RuntimeFactTypeKeyed ft : this.betaFactSources) {
             if (ft.isInsertDeltaAvailable()) {
                 delta = true;
-                //this.insertMask.set(ft.getInRuleIndex());
             }
         }
         return delta;
@@ -109,35 +99,6 @@ public abstract class RuntimeRuleBase {
             }
         }
         return delta;
-    }
-
-
-
-/*
-    public void markDeleteDeltaAvailable() {
-        this.deleteDeltaAvailable = true;
-    }
-
-    public boolean isDeleteDeltaAvailable() {
-        return deleteDeltaAvailable;
-    }
-*/
-
-    //TODO !!!! fix
-    public void resetDeltaState() {
-        //this.deleteDeltaAvailable = false;
-        //this.insertMask.clear();
-        //this.insertDeltaAvailable = false;
-//        for (RuntimeFactType factType : factSources) {
-        //factType.resetDeleteDeltaAvailable();
-        //factType.resetInsertDeltaAvailable();
-/*
-            FastHashSet<ValueRow> delTasks = factType.getDeleteTasks();
-            if (delTasks != null) {
-                delTasks.clear();
-            }
-*/
-//        }
     }
 
     public SessionMemory getMemory() {

@@ -48,7 +48,7 @@ public class RuntimeFactTypeKeyed extends RuntimeFactType {
         return keyStorage.hasDeletedKeys();
     }
 
-    //@Override
+    @Override
     public ReIterator<RuntimeFact> iterator() {
         throw new UnsupportedOperationException();
     }

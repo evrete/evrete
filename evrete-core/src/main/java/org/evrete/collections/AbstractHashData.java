@@ -291,7 +291,7 @@ public abstract class AbstractHashData<E> extends UnsignedIntArray implements Re
     }
 
 
-    protected void resize() {
+    public void resize() {
         assert currentInsertIndex() == this.size + this.deletes : "indices: " + currentInsertIndex() + " size: " + this.size + ", deletes: " + this.deletes;
         resize(this.size);
     }

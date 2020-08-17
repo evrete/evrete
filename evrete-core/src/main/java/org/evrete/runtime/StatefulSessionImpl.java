@@ -69,7 +69,7 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
         if (cycle > cycleLimit) {
             throw new IllegalStateException("Cycling limit of [" + cycleLimit + "] is reached. You might want to check the rules or increase the limit in configuration.");
         }
-        handleBuffer(ctx);
+        handleBuffer();
     }
 
 

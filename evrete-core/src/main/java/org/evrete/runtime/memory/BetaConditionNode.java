@@ -2,7 +2,6 @@ package org.evrete.runtime.memory;
 
 import org.evrete.api.KeysStore;
 import org.evrete.api.ReIterator;
-import org.evrete.runtime.BetaEvaluationContext;
 import org.evrete.runtime.RuntimeRule;
 import org.evrete.runtime.structure.ConditionNodeDescriptor;
 
@@ -33,73 +32,74 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         }
     }
 
-    public void computeDelta(BetaEvaluationContext ctx) {
-        evaluateSources(ctx, false, 0);
+    public void computeDelta(boolean deltaOnly) {
+        evaluateSources(deltaOnly, false, 0);
     }
 
-    private void evaluateSources(BetaEvaluationContext ctx, boolean hasDelta, int sourceId) {
+    private void evaluateSources(boolean deltaOnly, boolean hasDelta, int sourceId) {
         ReIterator<KeysStore.Entry> iterator;
 
         if (sourceId == entryData.length - 1) {
             // Last iteration
             // 1. Main
             iterator = mainIterators[sourceId];
-            if (hasDelta && iterator.reset() > 0) {
+
+            if ((hasDelta || (!deltaOnly)) && iterator.reset() > 0) {
                 this.entryData[sourceId] = iterator;
-                evaluate(ctx);
+                evaluate();
             }
 
             // 2. Delta
             iterator = deltaIterators[sourceId];
             if (iterator.reset() > 0) {
                 this.entryData[sourceId] = iterator;
-                evaluate(ctx);
+                evaluate();
             }
         } else {
             //1. Main
             iterator = mainIterators[sourceId];
             if (iterator.reset() > 0) {
                 this.entryData[sourceId] = iterator;
-                evaluateSources(ctx, hasDelta, sourceId + 1);
+                evaluateSources(deltaOnly, hasDelta, sourceId + 1);
             }
 
             //2. Delta
             iterator = deltaIterators[sourceId];
             if (iterator.reset() > 0) {
                 this.entryData[sourceId] = iterator;
-                evaluateSources(ctx, true, sourceId + 1);
+                evaluateSources(deltaOnly, true, sourceId + 1);
             }
         }
     }
 
-    private void evaluate(BetaEvaluationContext ctx) {
+    private void evaluate() {
         KeysStore destination = getDeltaStore();
         if (nonPlainSources) {
-            processInputsNonPlain(ctx, destination);
+            processInputsNonPlain(destination);
         } else {
-            processInputsPlain(ctx, destination);
+            processInputsPlain(destination);
         }
     }
 
-    private void processInputsPlain(BetaEvaluationContext ctx, KeysStore destination) {
+    private void processInputsPlain(KeysStore destination) {
         recursiveIteration(
                 0,
                 entryData,
                 state::setEvaluationEntry,
                 () -> {
-                    if (state.evaluate(ctx)) {
+                    if (state.evaluate()) {
                         state.saveTo(destination);
                     }
                 });
     }
 
-    private void processInputsNonPlain(BetaEvaluationContext ctx, KeysStore destination) {
+    private void processInputsNonPlain(KeysStore destination) {
         recursiveIteration(
                 0,
                 entryData,
                 state::setEvaluationEntry,
                 () -> {
-                    if (state.evaluate(ctx)) {
+                    if (state.evaluate()) {
                         processSecondary(state, state.buildSecondary(), destination);
                     }
                 });
