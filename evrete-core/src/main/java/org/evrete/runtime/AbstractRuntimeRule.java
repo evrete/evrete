@@ -92,4 +92,11 @@ public abstract class AbstractRuntimeRule extends AbstractRule {
     public SessionMemory getMemory() {
         return memory;
     }
+
+    @Override
+    public final void setSalience(int salience) {
+        super.setSalience(salience);
+        memory.reSortRules();
+    }
+
 }

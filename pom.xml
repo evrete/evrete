@@ -26,9 +26,16 @@
         <license>
             <name>MIT License</name>
             <url>http://www.opensource.org/licenses/mit-license</url>
-            <distribution>repo</distribution>
+            <distribution>may be downloaded from the Maven repository</distribution>
         </license>
     </licenses>
+
+    <developers>
+        <developer>
+            <name>Andrey Bichkevski</name>
+            <email>andrey.bichkevskiy@gmail.com</email>
+        </developer>
+    </developers>
 
     <distributionManagement>
         <repository>
@@ -116,6 +123,26 @@
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>3.2.0</version>
                 </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>1.6</version>
+                    <executions>
+                        <execution>
+                            <id>sign-artifacts</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>sign</goal>
+                            </goals>
+                            <configuration>
+                                <keyname>not ready yet</keyname>
+                                <passphraseServerId>not ready yet</passphraseServerId>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+
             </plugins>
         </pluginManagement>
     </build>

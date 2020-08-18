@@ -9,6 +9,7 @@ import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaDelta;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -27,6 +28,16 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         for (RuleDescriptor descriptor : getRuleDescriptors()) {
             deployRule(descriptor, false);
         }
+    }
+
+    public void reSortRules() {
+        ruleStorage.sort(getRuleComparator());
+    }
+
+    @Override
+    public void setRuleComparator(Comparator<Rule> ruleComparator) {
+        super.setRuleComparator(ruleComparator);
+        reSortRules();
     }
 
     @Override

@@ -14,8 +14,8 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
     private final AbstractRuntime<C> runtime;
     private final LhsBuilder<C> lhsBuilder;
 
-    public RuleBuilderImpl(AbstractRuntime<C> ctx, String name) {
-        super(name);
+    public RuleBuilderImpl(AbstractRuntime<C> ctx, String name, int defaultSalience) {
+        super(name, defaultSalience);
         if (ctx.ruleExists(name)) {
             throw new IllegalStateException("Rule '" + name + "' already exists");
         } else {

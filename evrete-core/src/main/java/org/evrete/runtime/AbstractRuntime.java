@@ -8,10 +8,7 @@ import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaConditions;
 import org.evrete.runtime.evaluation.AlphaDelta;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
@@ -27,6 +24,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     private final ForkJoinExecutor executor;
     private final ActiveFields activeFields;
 
+    private Comparator<Rule> ruleComparator = SALIENCE_COMPARATOR;
 
     protected abstract void onNewActiveField(ActiveField newField);
 
@@ -62,6 +60,17 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         this.executor = parent.executor;
         this.listeners = parent.listeners.copyOf();
         this.activeFields = parent.activeFields.copyOf();
+        this.ruleComparator = parent.ruleComparator;
+    }
+
+    @Override
+    public Comparator<Rule> getRuleComparator() {
+        return ruleComparator;
+    }
+
+    @Override
+    public void setRuleComparator(Comparator<Rule> ruleComparator) {
+        this.ruleComparator = ruleComparator;
     }
 
     protected ForkJoinExecutor getExecutor() {
@@ -70,12 +79,6 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
 
     public Evaluator compile(String expression, Function<String, NamedType> resolver) {
         return configuration.getExpressionsService().buildExpression(expression, resolver);
-    }
-
-    private RuleBuilderImpl<C> reportNewRuleCreated(RuleBuilderImpl<C> rule) {
-        this.ruleCounter.incrementAndGet();
-        this.ruleBuilders.add(rule);
-        return rule;
     }
 
     @Override
@@ -91,7 +94,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         return activeFields.getActiveFields(type);
     }
 
-    public AlphaBucketMeta getCreateAlphaMask(FieldsKey fields, boolean beta, Set<Evaluator> typePredicates) {
+    AlphaBucketMeta getCreateAlphaMask(FieldsKey fields, boolean beta, Set<Evaluator> typePredicates) {
         return alphaConditions.register(this, fields, beta, typePredicates, this::onNewAlphaBucket);
     }
 
@@ -115,7 +118,9 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
 
     @Override
     public RuleBuilderImpl<C> newRule(String name) {
-        return reportNewRuleCreated(new RuleBuilderImpl<>(this, name));
+        RuleBuilderImpl<C> rb = new RuleBuilderImpl<>(this, name, -1 * ruleCounter.getAndIncrement());
+        this.ruleBuilders.add(rb);
+        return rb;
     }
 
     @Override

@@ -8,7 +8,7 @@ import org.evrete.util.NextIntSupplier;
 public class RuleDescriptor extends AbstractRule {
     private final LhsDescriptor lhsDescriptor;
 
-    public RuleDescriptor(AbstractRuntime<?> runtime, RuleBuilderImpl<?> rule) {
+    RuleDescriptor(AbstractRuntime<?> runtime, RuleBuilderImpl<?> rule) {
         super(rule);
         RuleBuilderImpl<?> compiled = rule.compileConditions(runtime);
         this.lhsDescriptor = new LhsDescriptor(runtime, compiled.getLhs(), new NextIntSupplier(), new MapFunction<>());

@@ -1,5 +1,6 @@
 package org.evrete.runtime;
 
+import org.evrete.api.Rule;
 import org.evrete.api.RuntimeRule;
 import org.evrete.runtime.memory.SessionMemory;
 
@@ -23,6 +24,10 @@ public class RuntimeRules implements Iterable<RuntimeRuleImpl>, MemoryChangeList
         RuntimeRuleImpl r = new RuntimeRuleImpl(ruleDescriptor, runtime);
         this.add(r);
         return r;
+    }
+
+    public void sort(Comparator<Rule> comparator) {
+        this.list.sort(comparator);
     }
 
     public Collection<RuntimeAggregateLhsJoined> getAggregateLhsGroups() {

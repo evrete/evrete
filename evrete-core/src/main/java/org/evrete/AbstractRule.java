@@ -13,13 +13,15 @@ public abstract class AbstractRule implements Rule {
     private final String name;
     private final Consumer<RhsContext> NULL_RHS = arg -> LOGGER.warning("No RHS is set for rule '" + AbstractRule.this.name + '\'');
     protected Consumer<RhsContext> rhs = NULL_RHS;
+    private int salience;
 
     private final Map<String, Object> properties;
 
 
-    protected AbstractRule(String name) {
+    protected AbstractRule(String name, int defaultSalience) {
         this.name = name;
         this.properties = new ConcurrentHashMap<>();
+        this.salience = defaultSalience;
     }
 
     protected AbstractRule(AbstractRule other) {
@@ -27,6 +29,17 @@ public abstract class AbstractRule implements Rule {
         this.rhs = other.rhs;
         this.properties = new ConcurrentHashMap<>();
         this.properties.putAll(other.properties);
+        this.salience = other.salience;
+    }
+
+    @Override
+    public final int getSalience() {
+        return salience;
+    }
+
+    @Override
+    public void setSalience(int salience) {
+        this.salience = salience;
     }
 
     @Override

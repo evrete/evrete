@@ -47,7 +47,7 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
     private void fireOrdered(FireContext ctx) {
         doEvaluationTasks(ctx);
         for (RuntimeRule r : getRules()) {
-            r.fire();
+            r.executeRhs();
             if (hasMemoryTasks()) {
                 fireOrdered(ctx);
             }
@@ -57,7 +57,7 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
     private void fireUnOrdered(FireContext ctx) {
         doEvaluationTasks(ctx);
         for (RuntimeRule r : getRules()) {
-            r.fire();
+            r.executeRhs();
         }
 
         if (hasMemoryTasks()) {

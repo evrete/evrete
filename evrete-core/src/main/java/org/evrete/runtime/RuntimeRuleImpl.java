@@ -12,19 +12,21 @@ import java.util.function.Consumer;
 
 public class RuntimeRuleImpl extends AbstractRuntimeRule implements MemoryChangeListener, RuntimeRule {
     private final RuntimeLhs lhs;
-    private final Buffer buffer;
+    private final Buffer ruleBuffer;
+    private final Buffer memoryBuffer;
 
     public RuntimeRuleImpl(RuleDescriptor rd, SessionMemory memory) {
         super(rd, memory);
-        this.buffer = new Buffer();
-        this.lhs = RuntimeLhs.factory(this, rd.getLhs(), buffer);
+        this.ruleBuffer = new Buffer();
+        this.memoryBuffer = memory.getBuffer();
+        this.lhs = RuntimeLhs.factory(this, rd.getLhs(), ruleBuffer);
     }
 
     @Override
-    public final void fire() {
+    public final void executeRhs() {
         this.lhs.forEach(rhs);
         // Merge memory changes
-        getMemory().getBuffer().takeAllFrom(buffer);
+        memoryBuffer.takeAllFrom(ruleBuffer);
     }
 
     public final RuntimeRuleImpl setRhs(Consumer<RhsContext> consumer) {
