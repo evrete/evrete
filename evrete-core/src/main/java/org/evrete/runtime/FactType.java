@@ -1,9 +1,8 @@
-package org.evrete.runtime.structure;
+package org.evrete.runtime;
 
 import org.evrete.api.*;
-import org.evrete.runtime.AbstractRuntime;
-import org.evrete.runtime.AlphaBucketMeta;
 import org.evrete.runtime.builder.FactTypeBuilder;
+import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.util.Bits;
 import org.evrete.util.NextIntSupplier;
 
@@ -40,7 +39,7 @@ public class FactType implements Masked {
         this.alphaMask = runtime.getCreateAlphaMask(fields, builder.isBetaTypeBuilder(), alphaConditions);
     }
 
-    protected FactType(FactType other) {
+    FactType(FactType other) {
         assert other.factGroup != null;
         assert other.inGroupIndex >= 0;
         this.inGroupIndex = other.inGroupIndex;

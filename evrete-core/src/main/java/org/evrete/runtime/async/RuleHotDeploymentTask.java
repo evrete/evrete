@@ -1,7 +1,7 @@
 package org.evrete.runtime.async;
 
 import org.evrete.runtime.RuntimeAggregateLhsJoined;
-import org.evrete.runtime.RuntimeRule;
+import org.evrete.runtime.RuntimeRuleImpl;
 import org.evrete.runtime.memory.BetaEndNode;
 
 import java.util.Iterator;
@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.concurrent.CountedCompleter;
 
 public class RuleHotDeploymentTask extends Completer {
-    private final RuntimeRule rule;
+    private final RuntimeRuleImpl rule;
 
-    public RuleHotDeploymentTask(RuntimeRule rule) {
+    public RuleHotDeploymentTask(RuntimeRuleImpl rule) {
         this.rule = rule;
     }
 
@@ -38,14 +38,13 @@ public class RuleHotDeploymentTask extends Completer {
     }
 
     @Override
-    // Compute this node's delta
     public void onCompletion(CountedCompleter<?> caller) {
         //Merge terminal nodes' data
         for (BetaEndNode endNode : rule.getAllBetaEndNodes()) {
             endNode.mergeDelta();
         }
 
-        // Evaluate aggregate nodes if any
+        // Evaluate aggregate nodes, if any
         for (RuntimeAggregateLhsJoined agg : rule.getAggregateLhsGroups()) {
             agg.evaluate(false);
         }

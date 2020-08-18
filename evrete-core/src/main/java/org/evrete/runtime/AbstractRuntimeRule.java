@@ -1,8 +1,8 @@
 package org.evrete.runtime;
 
+import org.evrete.AbstractRule;
 import org.evrete.api.ValueRow;
 import org.evrete.runtime.memory.SessionMemory;
-import org.evrete.runtime.structure.FactType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,14 +12,16 @@ import java.util.function.Predicate;
 /**
  * A rule-wide data structure
  */
-public abstract class RuntimeRuleBase {
+public abstract class AbstractRuntimeRule extends AbstractRule {
     private final RuntimeFactType[] factSources;
     private final RuntimeFactTypeKeyed[] betaFactSources;
     private final SessionMemory memory;
     private final Function<FactType, Predicate<ValueRow>> deletedKeys;
 
-    protected RuntimeRuleBase(FactType[] allFactTypes, SessionMemory memory) {
+    AbstractRuntimeRule(RuleDescriptor descriptor, SessionMemory memory) {
+        super(descriptor);
         this.memory = memory;
+        FactType[] allFactTypes = descriptor.getLhs().getAllFactTypes();
         this.factSources = buildTypes(memory, allFactTypes);
         this.deletedKeys = factType -> {
             RuntimeFactTypeKeyed t = (RuntimeFactTypeKeyed) factSources[factType.getInRuleIndex()];
@@ -33,10 +35,6 @@ public abstract class RuntimeRuleBase {
             }
         }
         this.betaFactSources = betaNodes.toArray(new RuntimeFactTypeKeyed[0]);
-    }
-
-    public RuntimeFactTypeKeyed[] getBetaFactSources() {
-        return betaFactSources;
     }
 
     public Function<FactType, Predicate<ValueRow>> getDeletedKeys() {
@@ -68,16 +66,6 @@ public abstract class RuntimeRuleBase {
     public RuntimeFactType[] getAllFactTypes() {
         return this.factSources;
     }
-
-/*
-    public void markInsertDeltaAvailable() {
-        this.insertDeltaAvailable = true;
-    }
-
-    public boolean isInsertDeltaAvailable() {
-        return insertDeltaAvailable;
-    }
-*/
 
     //TODO !!! optimize
     public boolean isInsertDeltaAvailable() {

@@ -27,7 +27,7 @@ public class Configuration {
     private boolean warnUnknownTypes = DEFAULT_WARN_UNKNOWN_TYPES;
     private boolean entryNodeCachingEnabled = true;
 
-    public Configuration(ClassLoader classLoader, Properties properties) {
+    private Configuration(ClassLoader classLoader, Properties properties) {
         this.classLoader = classLoader;
         this.collectionsService = loadService(CollectionsServiceProvider.class).instance(properties);
         this.expressionResolver = loadService(ExpressionResolverProvider.class).instance(properties, classLoader);
@@ -35,7 +35,7 @@ public class Configuration {
     }
 
 
-    public Configuration(Properties properties) {
+    private Configuration(Properties properties) {
         this(Thread.currentThread().getContextClassLoader(), properties);
     }
 

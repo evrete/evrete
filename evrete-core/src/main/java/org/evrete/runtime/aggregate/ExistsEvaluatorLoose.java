@@ -4,7 +4,7 @@ import org.evrete.api.ReIterator;
 import org.evrete.api.ValueRow;
 import org.evrete.runtime.RuntimeAggregateLhsLoose;
 
-public class ExistsEvaluatorLoose extends AbstractEvaluatorLoose {
+class ExistsEvaluatorLoose extends AbstractEvaluatorLoose {
 
     public ExistsEvaluatorLoose(RuntimeAggregateLhsLoose aggregateLhs) {
         super(aggregateLhs);

@@ -4,7 +4,7 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.RhsContext;
 import org.evrete.api.StatefulSession;
 
-public class PrimeNumbersJava8 {
+class PrimeNumbersJava8 {
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
         StatefulSession session = service

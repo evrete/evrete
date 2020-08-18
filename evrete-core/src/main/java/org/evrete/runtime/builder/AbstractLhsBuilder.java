@@ -14,16 +14,16 @@ import java.util.function.Predicate;
 public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends AbstractLhsBuilder<C, ?>> {
     private final RuleBuilderImpl<C> ruleBuilder;
     private final Map<String, FactTypeBuilder> declaredLhsTypes;
-    private final int level;
+    //private final int level;
     private final Set<AbstractExpression> conditions = new HashSet<>();
     private Compiled compiledData;
     private final Function<String, FactTypeBuilder> factTypeMapper;
 
     protected abstract G self();
 
-    private AbstractLhsBuilder(RuleBuilderImpl<C> ruleBuilder, int level, AbstractLhsBuilder<C, ?> parent) {
+    private AbstractLhsBuilder(RuleBuilderImpl<C> ruleBuilder, AbstractLhsBuilder<C, ?> parent) {
         this.ruleBuilder = ruleBuilder;
-        this.level = level;
+        //this.level = level;
         this.declaredLhsTypes = new HashMap<>();
         this.factTypeMapper = new Function<String, FactTypeBuilder>() {
             @Override
@@ -37,15 +37,15 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         };
     }
 
-    protected AbstractLhsBuilder(RuleBuilderImpl<C> ruleBuilder) {
-        this(ruleBuilder, 0, null);
+    AbstractLhsBuilder(RuleBuilderImpl<C> ruleBuilder) {
+        this(ruleBuilder, null);
     }
 
-    protected AbstractLhsBuilder(AbstractLhsBuilder<C, ?> parent) {
-        this(parent.ruleBuilder, parent.level + 1, parent);
+    AbstractLhsBuilder(AbstractLhsBuilder<C, ?> parent) {
+        this(parent.ruleBuilder, parent);
     }
 
-    protected TypeResolver getTypeResolver() {
+    private TypeResolver getTypeResolver() {
         return ruleBuilder.getRuntimeContext().getTypeResolver();
     }
 
@@ -68,7 +68,7 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         }
     }
 
-    AbstractLhsBuilder<?, ?> locateLhsGroup(NamedType type) {
+    private AbstractLhsBuilder<?, ?> locateLhsGroup(NamedType type) {
         FactTypeBuilder builder = factTypeMapper.apply(type.getVar());
         if (builder == null) {
             throw new IllegalStateException();
@@ -77,15 +77,11 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         }
     }
 
-    public int getLevel() {
-        return level;
-    }
-
     public Set<FactTypeBuilder> getDeclaredFactTypes() {
         return new HashSet<>(declaredLhsTypes.values());
     }
 
-    public RuleBuilderImpl<C> getRuleBuilder() {
+    RuleBuilderImpl<C> getRuleBuilder() {
         return ruleBuilder;
     }
 

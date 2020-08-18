@@ -4,8 +4,8 @@ import org.evrete.api.ReIterable;
 import org.evrete.api.ReIterator;
 import org.evrete.api.RuntimeFact;
 import org.evrete.api.spi.SharedPlainFactStorage;
-import org.evrete.runtime.AlphaBucketMeta;
 import org.evrete.runtime.RuntimeObject;
+import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
 import java.util.Collection;
 

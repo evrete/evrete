@@ -4,7 +4,9 @@ import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.runtime.async.ForkJoinExecutor;
 import org.evrete.runtime.builder.RuleBuilderImpl;
-import org.evrete.runtime.structure.RuleDescriptor;
+import org.evrete.runtime.evaluation.AlphaBucketMeta;
+import org.evrete.runtime.evaluation.AlphaConditions;
+import org.evrete.runtime.evaluation.AlphaDelta;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,11 +64,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         this.activeFields = parent.activeFields.copyOf();
     }
 
-    public boolean getRuleBuilders(RuleBuilder<?> builder) {
-        return ruleBuilders.remove(builder);
-    }
-
-    public ForkJoinExecutor getExecutor() {
+    protected ForkJoinExecutor getExecutor() {
         return executor;
     }
 

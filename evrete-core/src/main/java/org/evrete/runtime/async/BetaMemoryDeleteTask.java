@@ -1,11 +1,11 @@
 package org.evrete.runtime.async;
 
 import org.evrete.api.KeysStore;
+import org.evrete.runtime.FactType;
 import org.evrete.runtime.RuntimeAggregateLhsJoined;
 import org.evrete.runtime.RuntimeFactType;
-import org.evrete.runtime.RuntimeRule;
+import org.evrete.runtime.RuntimeRuleImpl;
 import org.evrete.runtime.memory.BetaEndNode;
-import org.evrete.runtime.structure.FactType;
 import org.evrete.util.Bits;
 
 import java.util.ArrayList;
@@ -17,9 +17,9 @@ import java.util.concurrent.CountedCompleter;
 
 public class BetaMemoryDeleteTask extends Completer {
     //private final Collection<BetaEndNode> betaEndNodes;
-    private final RuntimeRule rule;
+    private final RuntimeRuleImpl rule;
 
-    public BetaMemoryDeleteTask(Completer parent, RuntimeRule rule) {
+    public BetaMemoryDeleteTask(Completer parent, RuntimeRuleImpl rule) {
         super(parent);
         //this.betaEndNodes = rule.getNodesToDelete();
         this.rule = rule;

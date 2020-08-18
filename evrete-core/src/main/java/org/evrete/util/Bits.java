@@ -31,7 +31,7 @@ public class Bits implements Copyable<Bits>, Masked {
         return or(collection, Masked::getMask);
     }
 
-    public static <T> Bits or(Collection<T> collection, Function<T, Bits> mapping) {
+    private static <T> Bits or(Collection<T> collection, Function<T, Bits> mapping) {
         Bits b = new Bits();
         for (T o : collection) {
             b.or(mapping.apply(o));

@@ -5,9 +5,9 @@ import org.evrete.api.ReIterator;
 import org.evrete.api.RuntimeFact;
 import org.evrete.api.spi.SharedBetaFactStorage;
 import org.evrete.collections.ArrayOf;
-import org.evrete.runtime.AlphaBucketMeta;
 import org.evrete.runtime.MemoryChangeListener;
 import org.evrete.runtime.RuntimeObject;
+import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
 import java.util.Collection;
 

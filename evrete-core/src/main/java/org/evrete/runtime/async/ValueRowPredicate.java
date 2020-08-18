@@ -2,16 +2,16 @@ package org.evrete.runtime.async;
 
 import org.evrete.api.IntToValueRow;
 import org.evrete.api.ValueRow;
-import org.evrete.runtime.structure.FactType;
+import org.evrete.runtime.FactType;
 
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public class ValueRowPredicate implements Predicate<IntToValueRow> {
+class ValueRowPredicate implements Predicate<IntToValueRow> {
     private final FactType[] types;
     private final Function<FactType, Predicate<ValueRow>> function;
 
-    public ValueRowPredicate(FactType[] types, Function<FactType, Predicate<ValueRow>> function) {
+    private ValueRowPredicate(FactType[] types, Function<FactType, Predicate<ValueRow>> function) {
         this.types = types;
         this.function = function;
     }

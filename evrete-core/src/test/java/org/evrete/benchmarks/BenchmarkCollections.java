@@ -69,7 +69,7 @@ public class BenchmarkCollections {
         final EnumMap<SetImplementation, IterableSet<TypeA>> addData = new EnumMap<>(SetImplementation.class);
         final ArrayList<TypeA> objects = new ArrayList<>(objectCount);
         @Param
-        public SetImplementation set;
+        SetImplementation set;
 
         public BenchState() {
             scanData.put(SetImplementation.HashSet, TestUtils.setOf(new HashSet<>(initialSize)));

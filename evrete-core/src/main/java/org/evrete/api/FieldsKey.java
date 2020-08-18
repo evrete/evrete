@@ -14,10 +14,6 @@ public final class FieldsKey {
         this(type, collection.toArray(ActiveField.ZERO_ARRAY), DEFAULT_COMPARATOR);
     }
 
-    public FieldsKey(Type type) {
-        this(type, ActiveField.ZERO_ARRAY, ZERO_ARR_COMPARATOR);
-    }
-
     private FieldsKey(Type type, ActiveField[] arr, Comparator<ActiveField> comparator) {
         this.fields = arr;
         Arrays.sort(this.fields, comparator);

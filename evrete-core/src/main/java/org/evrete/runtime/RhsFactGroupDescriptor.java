@@ -1,4 +1,4 @@
-package org.evrete.runtime.structure;
+package org.evrete.runtime;
 
 import org.evrete.api.Masked;
 import org.evrete.util.Bits;
@@ -15,9 +15,9 @@ public class RhsFactGroupDescriptor implements Masked {
     private final ConditionNodeDescriptor finalNode;
     private final boolean allUniqueKeysAndAlpha;
     private final Bits mask = new Bits();
-    private final LhsDescriptor lhsDescriptor;
+    private final AbstractLhsDescriptor lhsDescriptor;
 
-    private RhsFactGroupDescriptor(LhsDescriptor lhsDescriptor, int factGroupIndex, int keyGroupIndex, ConditionNodeDescriptor finalNode, FactType[] types, boolean looseGroup) {
+    private RhsFactGroupDescriptor(AbstractLhsDescriptor lhsDescriptor, int factGroupIndex, int keyGroupIndex, ConditionNodeDescriptor finalNode, FactType[] types, boolean looseGroup) {
         this.lhsDescriptor = lhsDescriptor;
         this.factGroupIndex = factGroupIndex;
         this.keyGroupIndex = keyGroupIndex;
@@ -35,7 +35,7 @@ public class RhsFactGroupDescriptor implements Masked {
         this.allUniqueKeysAndAlpha = au;
     }
 
-    public RhsFactGroupDescriptor(LhsDescriptor lhsDescriptor, int factGroupIndex, int keyGroupIndex, ConditionNodeDescriptor finalNode) {
+    public RhsFactGroupDescriptor(AbstractLhsDescriptor lhsDescriptor, int factGroupIndex, int keyGroupIndex, ConditionNodeDescriptor finalNode) {
         this(lhsDescriptor, factGroupIndex, keyGroupIndex, finalNode, finalNode.getEvalGrouping()[0], false);
     }
 
@@ -53,14 +53,14 @@ public class RhsFactGroupDescriptor implements Masked {
         return mask;
     }
 
-    public RhsFactGroupDescriptor(LhsDescriptor lhsDescriptor, int factGroupIndex, int keyGroupIndex, FactType keyedType) {
+    public RhsFactGroupDescriptor(AbstractLhsDescriptor lhsDescriptor, int factGroupIndex, int keyGroupIndex, FactType keyedType) {
         this(lhsDescriptor, factGroupIndex, keyGroupIndex, null, new FactType[]{keyedType}, false);
         if (keyedType.getFields().size() == 0) {
             throw new IllegalStateException();
         }
     }
 
-    public RhsFactGroupDescriptor(LhsDescriptor lhsDescriptor, int factGroupIndex, Collection<FactType> looseTypes) {
+    public RhsFactGroupDescriptor(AbstractLhsDescriptor lhsDescriptor, int factGroupIndex, Collection<FactType> looseTypes) {
         this(lhsDescriptor, factGroupIndex, -1, null, looseTypes.toArray(FactType.ZERO_ARRAY), true);
         for (FactType t : looseTypes) {
             if (t.getFields().size() > 0) {
@@ -69,7 +69,7 @@ public class RhsFactGroupDescriptor implements Masked {
         }
     }
 
-    public LhsDescriptor getLhsDescriptor() {
+    public AbstractLhsDescriptor getLhsDescriptor() {
         return lhsDescriptor;
     }
 

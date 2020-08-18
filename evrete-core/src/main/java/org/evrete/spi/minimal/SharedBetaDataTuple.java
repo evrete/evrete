@@ -8,12 +8,12 @@ import java.util.Arrays;
 import java.util.function.BiPredicate;
 
 class SharedBetaDataTuple implements SharedBetaFactStorage {
-    protected final Object[] reusableValueArr;
+    private final Object[] reusableValueArr;
     private final FieldsFactMap delta;
 
     private final FastHashSet<ValueRow> deleteTasks = new FastHashSet<>();
 
-    protected final BiPredicate<ValueRowImpl, Object[]> SHARED_ARRAY_EQ = new BiPredicate<ValueRowImpl, Object[]>() {
+    private final BiPredicate<ValueRowImpl, Object[]> SHARED_ARRAY_EQ = new BiPredicate<ValueRowImpl, Object[]>() {
         @Override
         public boolean test(ValueRowImpl entry, Object[] values) {
             return MiscUtils.sameData(entry.data, reusableValueArr);
@@ -52,7 +52,7 @@ class SharedBetaDataTuple implements SharedBetaFactStorage {
     }
 
     @ThreadUnsafe
-    int hash(FieldToValue key) {
+    private int hash(FieldToValue key) {
         int hash = 0;
         for (int i = 0; i < fields.length; i++) {
             hash ^= (reusableValueArr[i] = key.apply(fields[i])).hashCode();

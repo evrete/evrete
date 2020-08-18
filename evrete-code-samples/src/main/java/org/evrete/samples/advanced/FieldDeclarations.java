@@ -5,7 +5,7 @@ import org.evrete.api.*;
 
 import java.util.function.Function;
 
-public class FieldDeclarations {
+class FieldDeclarations {
 
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();

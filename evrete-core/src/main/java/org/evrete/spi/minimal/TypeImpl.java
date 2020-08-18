@@ -77,7 +77,7 @@ class TypeImpl implements Copyable<TypeImpl>, Type {
         return name.hashCode();
     }
 
-    static ValueReader resolve(MethodHandles.Lookup lookup, Class<?> clazz, String prop) {
+    private static ValueReader resolve(MethodHandles.Lookup lookup, Class<?> clazz, String prop) {
         MethodHandle handle = null;
 
         // Scanning fields first
@@ -170,7 +170,7 @@ class TypeImpl implements Copyable<TypeImpl>, Type {
         return field;
     }
 
-    public static String capitalizeFirst(String str) {
+    private static String capitalizeFirst(String str) {
         return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 

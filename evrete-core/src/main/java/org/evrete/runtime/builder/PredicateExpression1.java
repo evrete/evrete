@@ -11,14 +11,14 @@ class PredicateExpression1 extends AbstractExpression {
     private final ValuesPredicate predicate;
     private final String[] references;
 
-    public PredicateExpression1(ValuesPredicate predicate, double complexity, String[] references) {
+    PredicateExpression1(ValuesPredicate predicate, double complexity, String[] references) {
         super(complexity);
         if (complexity <= 0.0) throw new IllegalArgumentException("Complexity must be positive");
         this.predicate = predicate;
         this.references = references;
     }
 
-    public PredicateExpression1(ValuesPredicate predicate, String[] references) {
+    PredicateExpression1(ValuesPredicate predicate, String[] references) {
         this(predicate, DEFAULT_COMPLEXITY, references);
     }
 

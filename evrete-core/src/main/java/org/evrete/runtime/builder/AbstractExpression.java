@@ -11,7 +11,7 @@ import java.util.function.Function;
 public abstract class AbstractExpression implements ComplexityObject {
     private final double complexity;
 
-    protected AbstractExpression(double complexity) {
+    AbstractExpression(double complexity) {
         this.complexity = complexity;
     }
 

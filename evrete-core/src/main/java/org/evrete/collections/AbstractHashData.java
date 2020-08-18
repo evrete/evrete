@@ -21,16 +21,16 @@ import java.util.stream.Stream;
  */
 public abstract class AbstractHashData<E> extends UnsignedIntArray implements ReIterable<E>, BufferedInsert {
     private static final int DEFAULT_INITIAL_CAPACITY = 4;
-    protected static final ToIntFunction<Object> DEFAULT_HASH = Object::hashCode;
-    protected static final ToIntFunction<Object> IDENTITY_HASH = System::identityHashCode;
-    protected static final BiPredicate<Object, Object> DEFAULT_EQUALS = Object::equals;
+    static final ToIntFunction<Object> DEFAULT_HASH = Object::hashCode;
+    static final ToIntFunction<Object> IDENTITY_HASH = System::identityHashCode;
+    static final BiPredicate<Object, Object> DEFAULT_EQUALS = Object::equals;
     protected static final BiPredicate<Object, Object> IDENTITY_EQUALS = (o1, o2) -> o1 == o2;
-    static final int MAXIMUM_CAPACITY = 1 << 30;
+    private static final int MAXIMUM_CAPACITY = 1 << 30;
     private static final int MINIMUM_CAPACITY = 2;
-    protected Object[] data;
-    protected boolean[] deletedIndices;
-    protected int size = 0;
-    protected int deletes = 0;
+    Object[] data;
+    boolean[] deletedIndices;
+    int size = 0;
+    int deletes = 0;
 
     protected AbstractHashData(int initialCapacity) {
         super(initialCapacity);
@@ -98,7 +98,7 @@ public abstract class AbstractHashData<E> extends UnsignedIntArray implements Re
     /**
      * Returns a power of two size for the given target capacity.
      */
-    static int tableSizeFor(int capacity) {
+    private static int tableSizeFor(int capacity) {
         int cap = Math.max(capacity, MINIMUM_CAPACITY);
         int n = -1 >>> Integer.numberOfLeadingZeros(cap - 1);
         return (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
@@ -117,7 +117,7 @@ public abstract class AbstractHashData<E> extends UnsignedIntArray implements Re
         return findBinIndex(key, hash, data, eqTest);
     }
 
-    protected int findBinIndexFor(int hash, Predicate<Object> eqTest) {
+    int findBinIndexFor(int hash, Predicate<Object> eqTest) {
         return findBinIndexFor(hash, data, eqTest);
     }
 
@@ -189,7 +189,7 @@ public abstract class AbstractHashData<E> extends UnsignedIntArray implements Re
         return size;
     }
 
-    public final boolean deleteEntries(Predicate<E> predicate) {
+    final boolean deleteEntries(Predicate<E> predicate) {
         int initialDeletes = this.deletes;
         forEachDataEntry((e, i) -> {
             if (predicate.test(e)) {
@@ -246,17 +246,17 @@ public abstract class AbstractHashData<E> extends UnsignedIntArray implements Re
         this.deletes = 0;
     }
 
-    protected boolean containsEntry(E e) {
+    boolean containsEntry(E e) {
         int addr = findBinIndexFor(e, getHashFunction().applyAsInt(e), getEqualsPredicate());
         return data[addr] != null && !deletedIndices[addr];
     }
 
-    protected boolean removeEntry(Object e) {
+    boolean removeEntry(Object e) {
         int addr = findBinIndexFor(e, getHashFunction().applyAsInt(e), getEqualsPredicate());
         return removeEntry(addr);
     }
 
-    protected boolean removeEntry(int addr) {
+    private boolean removeEntry(int addr) {
         if (data[addr] == null) {
             // Nothing to delete
             return false;
@@ -271,7 +271,7 @@ public abstract class AbstractHashData<E> extends UnsignedIntArray implements Re
         }
     }
 
-    protected void removeNonEmpty(int addr) {
+    private void removeNonEmpty(int addr) {
         markDeleted(addr);
         resize();
     }
@@ -281,7 +281,7 @@ public abstract class AbstractHashData<E> extends UnsignedIntArray implements Re
         return new It();
     }
 
-    public <T> ReIterator<T> iterator(Function<E, T> mapper) {
+    protected <T> ReIterator<T> iterator(Function<E, T> mapper) {
         return new It1<>(mapper);
     }
 
@@ -334,7 +334,7 @@ public abstract class AbstractHashData<E> extends UnsignedIntArray implements Re
         private int pos;
         private Object next;
 
-        protected AbstractIterator() {
+        AbstractIterator() {
             reset();
         }
 
@@ -354,7 +354,7 @@ public abstract class AbstractHashData<E> extends UnsignedIntArray implements Re
             return size;
         }
 
-        protected Object nextObject() {
+        Object nextObject() {
             Object ret = next;
             findNext();
             return ret;

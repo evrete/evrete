@@ -7,7 +7,7 @@ import java.util.Objects;
  * by the runtime. Unused fields will not get wrapped, thus avoiding unnecessary reads.
  */
 public final class ActiveField implements TypeField {
-    public static ActiveField[] ZERO_ARRAY = new ActiveField[0];
+    public static final ActiveField[] ZERO_ARRAY = new ActiveField[0];
     private final TypeField delegate;
     private final int valueIndex;
 

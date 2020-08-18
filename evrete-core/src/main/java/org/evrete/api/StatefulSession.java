@@ -1,8 +1,7 @@
 package org.evrete.api;
 
-import org.evrete.runtime.RuntimeRule;
-
 import java.util.Collection;
+import java.util.List;
 
 public interface StatefulSession extends WorkingMemory, RuntimeContext<StatefulSession> {
 
@@ -11,6 +10,8 @@ public interface StatefulSession extends WorkingMemory, RuntimeContext<StatefulS
     void close();
 
     RuntimeRule getRule(String name);
+
+    List<RuntimeRule> getRules();
 
     default RuntimeRule getRule(Named named) {
         return getRule(named.getName());

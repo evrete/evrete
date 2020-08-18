@@ -5,8 +5,8 @@ import org.evrete.api.spi.SharedBetaFactStorage;
 import org.evrete.collections.FastHashMap;
 import org.evrete.runtime.*;
 import org.evrete.runtime.async.*;
-import org.evrete.runtime.structure.FactType;
-import org.evrete.runtime.structure.RuleDescriptor;
+import org.evrete.runtime.evaluation.AlphaBucketMeta;
+import org.evrete.runtime.evaluation.AlphaDelta;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -39,11 +39,11 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         return deployRule(descriptor, true);
     }
 
-    private synchronized RuntimeRule deployRule(RuleDescriptor descriptor, boolean hotDeployment) {
-        for (FactType factType : descriptor.getRootLhsDescriptor().getAllFactTypes()) {
+    private synchronized RuntimeRuleImpl deployRule(RuleDescriptor descriptor, boolean hotDeployment) {
+        for (FactType factType : descriptor.getLhs().getAllFactTypes()) {
             touchMemory(factType.getFields(), factType.getAlphaMask());
         }
-        RuntimeRule rule = ruleStorage.addRule(descriptor);
+        RuntimeRuleImpl rule = ruleStorage.addRule(descriptor);
         if (hotDeployment) {
             getExecutor().invoke(new RuleHotDeploymentTask(rule));
         }
@@ -136,7 +136,6 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         typedMemories.forEachValue(mem -> mem.forEachObjectUnchecked(consumer));
     }
 
-    @Override
     public List<RuntimeRule> getRules() {
         return ruleStorage.asList();
     }
@@ -185,8 +184,8 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
                 }
         );
 
-        Collection<RuntimeRule> ruleDeleteChanges = new LinkedList<>();
-        for (RuntimeRule rule : ruleStorage) {
+        Collection<RuntimeRuleImpl> ruleDeleteChanges = new LinkedList<>();
+        for (RuntimeRuleImpl rule : ruleStorage) {
             if (rule.isDeleteDeltaAvailable()) {
                 ruleDeleteChanges.add(rule);
             }
@@ -209,9 +208,9 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         );
 
         // Ordered task 1 - update end nodes
-        Collection<RuntimeRule> ruleInsertChanges = new LinkedList<>();
+        Collection<RuntimeRuleImpl> ruleInsertChanges = new LinkedList<>();
 
-        for (RuntimeRule rule : ruleStorage) {
+        for (RuntimeRuleImpl rule : ruleStorage) {
             if (rule.isInsertDeltaAvailable()) {
                 ruleInsertChanges.add(rule);
             }

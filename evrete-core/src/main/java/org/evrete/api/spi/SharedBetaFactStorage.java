@@ -51,7 +51,6 @@ public interface SharedBetaFactStorage {
     void clear();
 
     interface Scope extends KeyIterable {
-        void add(ValueRow save);
 
         long keyCount();
     }

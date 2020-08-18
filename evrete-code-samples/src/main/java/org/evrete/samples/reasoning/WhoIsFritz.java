@@ -7,7 +7,7 @@ import org.evrete.api.StatefulSession;
  * A classical forward chaining example from
  * https://en.wikipedia.org/wiki/Forward_chaining
  */
-public class WhoIsFritz {
+class WhoIsFritz {
     public static void main(String[] args) {
 
         KnowledgeService service = new KnowledgeService();

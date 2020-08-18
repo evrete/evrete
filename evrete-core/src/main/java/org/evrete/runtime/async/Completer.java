@@ -8,11 +8,11 @@ import java.util.function.Function;
 public abstract class Completer extends CountedCompleter<Void> {
     private boolean directInvoke = false;
 
-    public Completer(Completer completer) {
+    Completer(Completer completer) {
         super(completer);
     }
 
-    public Completer() {
+    Completer() {
         super();
     }
 
@@ -20,7 +20,7 @@ public abstract class Completer extends CountedCompleter<Void> {
         return of(null, collection);
     }
 
-    public static Completer of(Completer parent, Collection<? extends Runnable> collection) {
+    private static Completer of(Completer parent, Collection<? extends Runnable> collection) {
         switch (collection.size()) {
             case 0:
                 throw new UnsupportedOperationException();
@@ -33,11 +33,11 @@ public abstract class Completer extends CountedCompleter<Void> {
 
     protected abstract void execute();
 
-    protected boolean isDirectInvoke() {
+    boolean isDirectInvoke() {
         return directInvoke;
     }
 
-    public final void invokeDirect() {
+    private void invokeDirect() {
         directInvoke = true;
         execute();
         onCompletion(this);
@@ -49,7 +49,7 @@ public abstract class Completer extends CountedCompleter<Void> {
         tryComplete();
     }
 
-    protected void forkNew(Completer completer) {
+    void forkNew(Completer completer) {
         if (directInvoke) {
             completer.invokeDirect();
         } else {
@@ -58,7 +58,7 @@ public abstract class Completer extends CountedCompleter<Void> {
         }
     }
 
-    protected <Z> void tailCall(Collection<Z> collection, Function<Z, Completer> mapper) {
+    <Z> void tailCall(Collection<Z> collection, Function<Z, Completer> mapper) {
         if (directInvoke) {
             for (Z o : collection) {
                 mapper.apply(o).invokeDirect();
@@ -79,7 +79,7 @@ public abstract class Completer extends CountedCompleter<Void> {
         }
     }
 
-    protected <Z> void tailCall(Z[] collection, Function<Z, Completer> mapper) {
+    <Z> void tailCall(Z[] collection, Function<Z, Completer> mapper) {
         if (directInvoke) {
             for (Z o : collection) {
                 mapper.apply(o).invokeDirect();
@@ -126,7 +126,7 @@ public abstract class Completer extends CountedCompleter<Void> {
     static class RunnableCompleter extends Completer {
         private final Runnable runnable;
 
-        public RunnableCompleter(Completer completer, Runnable runnable) {
+        RunnableCompleter(Completer completer, Runnable runnable) {
             super(completer);
             this.runnable = runnable;
         }

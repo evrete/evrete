@@ -16,12 +16,8 @@ class PredicateExpression0 extends AbstractExpression {
         this.source = source;
     }
 
-    public PredicateExpression0(String source) {
+    PredicateExpression0(String source) {
         this(source, DEFAULT_COMPLEXITY);
-    }
-
-    public String getSource() {
-        return source;
     }
 
     @Override

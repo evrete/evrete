@@ -41,7 +41,7 @@ class CompleterTest {
         private final long wait;
         private final Consumer<Thread> threadConsumer;
 
-        public R(long wait, Consumer<Thread> threadConsumer) {
+        R(long wait, Consumer<Thread> threadConsumer) {
             this.wait = wait;
             this.threadConsumer = threadConsumer;
         }

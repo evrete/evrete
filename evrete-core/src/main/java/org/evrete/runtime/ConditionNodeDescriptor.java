@@ -1,5 +1,6 @@
-package org.evrete.runtime.structure;
+package org.evrete.runtime;
 
+import org.evrete.runtime.evaluation.EvaluatorGroup;
 import org.evrete.util.Bits;
 import org.evrete.util.CollectionUtils;
 import org.evrete.util.NextIntSupplier;
@@ -12,7 +13,7 @@ public class ConditionNodeDescriptor extends NodeDescriptor {
     private final int[] nonPlainSourceIndices;
     private final Map<Integer, TypeLocator> typeLocators = new HashMap<>();
 
-    ConditionNodeDescriptor(NextIntSupplier idSupplier, EvaluatorGroup expression, Set<NodeDescriptor> sourceNodes) {
+    private ConditionNodeDescriptor(NextIntSupplier idSupplier, EvaluatorGroup expression, Set<NodeDescriptor> sourceNodes) {
         super(idSupplier, sourceNodes);
         this.expression = expression;
 

@@ -7,7 +7,7 @@ import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.classes.TypeD;
-import org.evrete.runtime.structure.RuleDescriptor;
+import org.evrete.runtime.RuleDescriptor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +52,7 @@ class AggregateBaseTests {
                 .exists();
 
         RuleDescriptor desc = knowledge.compileRule(builder);
-        assert desc.getRootLhsDescriptor().getAggregateDescriptors().size() == 1;
+        assert desc.getLhs().getAggregateDescriptors().size() == 1;
     }
 
     @Test
@@ -75,7 +75,7 @@ class AggregateBaseTests {
 
         assert builder.getLhs().getAggregateGroups().size() == 2;
         RuleDescriptor desc = knowledge.compileRule(builder);
-        assert desc.getRootLhsDescriptor().getAggregateDescriptors().size() == 2;
+        assert desc.getLhs().getAggregateDescriptors().size() == 2;
     }
 
     @Test
@@ -113,7 +113,7 @@ class AggregateBaseTests {
 
         assert builder.getLhs().getAggregateGroups().size() == 2;
         RuleDescriptor desc = knowledge.compileRule(builder);
-        assert desc.getRootLhsDescriptor().getAggregateDescriptors().size() == 2;
+        assert desc.getLhs().getAggregateDescriptors().size() == 2;
     }
 
     @Test
@@ -131,7 +131,7 @@ class AggregateBaseTests {
 
         RuleDescriptor desc = knowledge.compileRule(builder);
         assert builder.getLhs().getAggregateGroups().size() == 1;
-        assert desc.getRootLhsDescriptor().getAggregateDescriptors().size() == 1;
+        assert desc.getLhs().getAggregateDescriptors().size() == 1;
     }
 
     @Test
@@ -149,7 +149,7 @@ class AggregateBaseTests {
 
         assert builder.getLhs().getAggregateGroups().size() == 1;
         RuleDescriptor desc = knowledge.compileRule(builder);
-        assert desc.getRootLhsDescriptor().getAggregateDescriptors().size() == 1;
+        assert desc.getLhs().getAggregateDescriptors().size() == 1;
     }
 
     @Test
@@ -180,7 +180,7 @@ class AggregateBaseTests {
 
         assert builder.getLhs().getAggregateGroups().size() == 3;
         RuleDescriptor desc = knowledge.compileRule(builder);
-        assert desc.getRootLhsDescriptor().getAggregateDescriptors().size() == 3;
+        assert desc.getLhs().getAggregateDescriptors().size() == 3;
     }
 
     @Test
@@ -210,7 +210,7 @@ class AggregateBaseTests {
 
 
         RuleDescriptor desc = knowledge.getRuleDescriptor(builder);
-        assert desc.getRootLhsDescriptor().getAggregateDescriptors().size() == 2;
+        assert desc.getLhs().getAggregateDescriptors().size() == 2;
         StatefulSession session = knowledge.createSession();
 
         for (int i = 1; i <= 4; i++) {
@@ -255,8 +255,8 @@ class AggregateBaseTests {
 
 
         RuleDescriptor desc = knowledge.getRuleDescriptor(builder);
-        assert desc.getRootLhsDescriptor().getAggregateDescriptors().size() == 1;
-        assert desc.getRootLhsDescriptor().getAllFactTypes().length == 4;
+        assert desc.getLhs().getAggregateDescriptors().size() == 1;
+        assert desc.getLhs().getAllFactTypes().length == 4;
         StatefulSession session = knowledge.createSession();
 
 

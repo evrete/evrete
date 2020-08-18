@@ -15,7 +15,7 @@ class FieldReferenceImpl implements FieldReference {
         this.field = field;
     }
 
-    protected FieldReferenceImpl(FieldReference other) {
+    FieldReferenceImpl(FieldReference other) {
         this.type = other.type();
         this.field = other.field();
     }

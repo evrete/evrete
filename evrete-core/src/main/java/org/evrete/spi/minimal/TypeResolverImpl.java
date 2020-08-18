@@ -28,7 +28,7 @@ class TypeResolverImpl implements TypeResolver {
     }
 
     //TODO scan interfaces as well
-    static List<Class<?>> superClasses(Class<?> subject) {
+    private static List<Class<?>> superClasses(Class<?> subject) {
         if (subject.isArray() || subject.isPrimitive() || subject.equals(Object.class)) return EMPTY_CLASS_LIST;
 
         List<Class<?>> l = new ArrayList<>();

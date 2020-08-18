@@ -4,11 +4,11 @@ import org.evrete.api.KeysStore;
 import org.evrete.api.ReIterator;
 import org.evrete.api.ValueRow;
 import org.evrete.collections.MappedReIterator;
+import org.evrete.runtime.ConditionNodeDescriptor;
+import org.evrete.runtime.FactType;
 import org.evrete.runtime.RuntimeFactType;
-import org.evrete.runtime.RuntimeRule;
-import org.evrete.runtime.structure.ConditionNodeDescriptor;
-import org.evrete.runtime.structure.EvaluatorGroup;
-import org.evrete.runtime.structure.FactType;
+import org.evrete.runtime.RuntimeRuleImpl;
+import org.evrete.runtime.evaluation.EvaluatorGroup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,11 +22,11 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
     private final BetaMemoryNode<?>[] sources;
     private final BetaConditionNode[] conditionSources;
     private final RuntimeFactType[][] grouping;
-    private final RuntimeRule rule;
+    private final RuntimeRuleImpl rule;
     private final ReIterator<ValueRow[]> mainIterator;
     private final ReIterator<ValueRow[]> deltaIterator;
 
-    AbstractBetaConditionNode(RuntimeRule rule, ConditionNodeDescriptor descriptor, BetaMemoryNode<?>[] sources) {
+    AbstractBetaConditionNode(RuntimeRuleImpl rule, ConditionNodeDescriptor descriptor, BetaMemoryNode<?>[] sources) {
         this.sources = sources;
         List<BetaConditionNode> conditionNodeList = new ArrayList<>(sources.length);
         for (BetaMemoryNode<?> source : sources) {

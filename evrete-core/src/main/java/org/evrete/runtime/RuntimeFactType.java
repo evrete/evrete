@@ -3,12 +3,9 @@ package org.evrete.runtime;
 import org.evrete.api.ReIterable;
 import org.evrete.api.RuntimeFact;
 import org.evrete.runtime.memory.SessionMemory;
-import org.evrete.runtime.structure.FactType;
 
 public abstract class RuntimeFactType extends FactType implements ReIterable<RuntimeFact> {
-    public static final RuntimeFactType[] ZERO_ARRAY = new RuntimeFactType[0];
     private final SessionMemory runtime;
-    private RuntimeRule rule;
 
     abstract boolean isBetaNode();
 
@@ -27,14 +24,6 @@ public abstract class RuntimeFactType extends FactType implements ReIterable<Run
 
     public SessionMemory getRuntime() {
         return runtime;
-    }
-
-    public RuntimeRule getRule() {
-        return rule;
-    }
-
-    public void setRule(RuntimeRule rule) {
-        this.rule = rule;
     }
 
     public abstract boolean isInsertDeltaAvailable();

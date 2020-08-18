@@ -1,8 +1,8 @@
 package org.evrete.runtime.aggregate;
 
+import org.evrete.runtime.AbstractRuntimeLhs;
 import org.evrete.runtime.RuntimeAggregateLhsJoined;
 import org.evrete.runtime.RuntimeAggregateLhsLoose;
-import org.evrete.runtime.RuntimeLhs;
 
 import java.util.function.BooleanSupplier;
 
@@ -18,7 +18,7 @@ public class NotExistsEvaluatorFactory implements AggregateEvaluatorFactory {
     }
 
     @Override
-    public BooleanSupplier joinedGroupEvaluator(RuntimeLhs root, RuntimeAggregateLhsJoined aggregate) {
+    public BooleanSupplier joinedGroupEvaluator(AbstractRuntimeLhs root, RuntimeAggregateLhsJoined aggregate) {
         return new NotExistsEvaluatorJoined(root, aggregate);
     }
 }

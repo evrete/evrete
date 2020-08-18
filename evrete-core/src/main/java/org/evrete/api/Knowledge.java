@@ -1,7 +1,6 @@
 package org.evrete.api;
 
-import org.evrete.runtime.RuntimeRule;
-import org.evrete.runtime.structure.RuleDescriptor;
+import org.evrete.runtime.RuleDescriptor;
 
 import java.util.List;
 

@@ -8,7 +8,7 @@ import java.util.concurrent.CountedCompleter;
 
 //TODO input mask
 public class NodeDeltaTask extends Completer {
-    protected final BetaConditionNode node;
+    private final BetaConditionNode node;
     private final BetaConditionNode[] sources;
     private final boolean deltaOnly;
 

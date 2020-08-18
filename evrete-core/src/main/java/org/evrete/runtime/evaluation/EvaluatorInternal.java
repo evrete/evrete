@@ -1,6 +1,8 @@
-package org.evrete.runtime.structure;
+package org.evrete.runtime.evaluation;
 
 import org.evrete.api.*;
+import org.evrete.runtime.FactType;
+import org.evrete.runtime.FactTypeField;
 import org.evrete.runtime.builder.FieldReference;
 
 import java.util.function.Function;

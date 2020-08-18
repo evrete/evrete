@@ -6,9 +6,9 @@ import org.evrete.api.ThreadUnsafe;
 import org.evrete.api.ValueRow;
 import org.evrete.api.spi.SharedBetaFactStorage;
 import org.evrete.collections.MappedReIterator;
+import org.evrete.runtime.EntryNodeDescriptor;
 import org.evrete.runtime.RuntimeFactType;
 import org.evrete.runtime.RuntimeFactTypeKeyed;
-import org.evrete.runtime.structure.EntryNodeDescriptor;
 
 public class BetaEntryNode extends RuntimeFactTypeKeyed implements BetaMemoryNode<EntryNodeDescriptor> {
     private final KeysStore mainStore;

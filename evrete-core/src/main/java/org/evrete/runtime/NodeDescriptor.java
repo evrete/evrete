@@ -1,9 +1,10 @@
-package org.evrete.runtime.structure;
+package org.evrete.runtime;
 
 import org.evrete.api.Masked;
 import org.evrete.util.Bits;
 import org.evrete.util.CollectionUtils;
 import org.evrete.util.NextIntSupplier;
+import org.evrete.util.Node;
 
 import java.util.Arrays;
 import java.util.HashSet;

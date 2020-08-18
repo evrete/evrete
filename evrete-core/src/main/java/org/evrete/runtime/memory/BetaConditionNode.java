@@ -2,8 +2,8 @@ package org.evrete.runtime.memory;
 
 import org.evrete.api.KeysStore;
 import org.evrete.api.ReIterator;
-import org.evrete.runtime.RuntimeRule;
-import org.evrete.runtime.structure.ConditionNodeDescriptor;
+import org.evrete.runtime.ConditionNodeDescriptor;
+import org.evrete.runtime.RuntimeRuleImpl;
 
 import java.util.function.ObjIntConsumer;
 
@@ -17,7 +17,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
 
 
     @SuppressWarnings("unchecked")
-    BetaConditionNode(RuntimeRule rule, ConditionNodeDescriptor descriptor, BetaMemoryNode<?>[] sources) {
+    BetaConditionNode(RuntimeRuleImpl rule, ConditionNodeDescriptor descriptor, BetaMemoryNode<?>[] sources) {
         super(rule, descriptor, sources);
         DefaultStateFactory stateFactory = new DefaultStateFactory(this);
         this.state = stateFactory.newIterationState();

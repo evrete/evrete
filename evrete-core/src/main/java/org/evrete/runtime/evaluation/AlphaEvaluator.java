@@ -1,4 +1,4 @@
-package org.evrete.runtime;
+package org.evrete.runtime.evaluation;
 
 import org.evrete.api.ActiveField;
 import org.evrete.api.Evaluator;

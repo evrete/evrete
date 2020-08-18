@@ -33,7 +33,7 @@ public class ForkJoinExecutor {
         private final AtomicInteger threadCounter = new AtomicInteger();
         private final int poolId;
 
-        public EvreteForkJoinWorkerThreadFactory() {
+        EvreteForkJoinWorkerThreadFactory() {
             this.poolId = poolCounter.getAndIncrement();
         }
 
@@ -46,7 +46,7 @@ public class ForkJoinExecutor {
     private static class EvreteWorkerThread extends ForkJoinWorkerThread {
         private static final String THREAD_NAME_FORMAT = "evrete-pool-%d-thread-%d";
 
-        public EvreteWorkerThread(ForkJoinPool pool, int poolId, AtomicInteger threadCounter) {
+        EvreteWorkerThread(ForkJoinPool pool, int poolId, AtomicInteger threadCounter) {
             super(pool);
             setName(String.format(THREAD_NAME_FORMAT, poolId, threadCounter.incrementAndGet()));
         }

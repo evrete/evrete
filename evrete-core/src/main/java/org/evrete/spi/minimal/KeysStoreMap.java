@@ -18,13 +18,13 @@ class KeysStoreMap extends AbstractHashData<KeysStoreMap.MapEntry> implements Ke
         return e1.eq(e2);
     };
     private static final ToIntFunction<Object> HASH_FUNCTION = value -> ((MapEntry) value).hash;
-    protected final int level;
-    protected final Supplier<KeysStore> storeSupplier;
+    private final int level;
+    private final Supplier<KeysStore> storeSupplier;
     private final int arrSize;
 
     private static final Function<MapEntry, Entry> KEY_MAPPER = entry -> entry;
 
-    protected KeysStoreMap(int level, int arrSize, Supplier<KeysStore> storeSupplier) {
+    KeysStoreMap(int level, int arrSize, Supplier<KeysStore> storeSupplier) {
         super(16);
         this.level = level;
         this.arrSize = arrSize;

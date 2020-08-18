@@ -1,6 +1,4 @@
-package org.evrete.runtime.structure;
-
-import org.evrete.util.NextIntSupplier;
+package org.evrete.util;
 
 import java.util.Set;
 
@@ -23,8 +21,7 @@ public class Node<T extends Node<?>> {
         this.index = idSupplier.next();
     }
 
-
-    public final int getIndex() {
+    protected final int getIndex() {
         return index;
     }
 

@@ -1,7 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.*;
-import org.evrete.runtime.structure.*;
+import org.evrete.runtime.evaluation.EvaluatorInternal;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.IntFunction;
@@ -18,7 +18,7 @@ public class RuntimeAggregateLhsJoined extends RuntimeAggregateLhs {
     private final AggregateLhsDescriptor descriptor;
 
 
-    public RuntimeAggregateLhsJoined(RuntimeRule rule, RuntimeLhs parent, AggregateLhsDescriptor descriptor) {
+    public RuntimeAggregateLhsJoined(RuntimeRuleImpl rule, AbstractRuntimeLhs parent, AggregateLhsDescriptor descriptor) {
         super(rule, parent, descriptor);
         int allFactTypes = rule.getAllFactTypes().length;
         this.descriptor = descriptor;
@@ -29,7 +29,7 @@ public class RuntimeAggregateLhsJoined extends RuntimeAggregateLhs {
         this.evaluatorValues = new IntToValue[evaluators.length];
 
 
-        RuntimeLhs[] allLhs = new RuntimeLhs[]{parent, this};
+        AbstractRuntimeLhs[] allLhs = new AbstractRuntimeLhs[]{parent, this};
         this.saveMapping = new int[allLhs.length][][];
 
 
@@ -154,7 +154,7 @@ public class RuntimeAggregateLhsJoined extends RuntimeAggregateLhs {
         }
     }
 
-    void testAndSave() {
+    private void testAndSave() {
         for (int i = 0; i < evaluators.length; i++) {
             if (!evaluators[i].test(evaluatorValues[i])) {
                 return;

@@ -1,4 +1,4 @@
-package org.evrete.runtime;
+package org.evrete.runtime.evaluation;
 
 import org.evrete.api.RuntimeFact;
 
@@ -76,7 +76,7 @@ public abstract class AlphaBucketMeta {
                 '}';
     }
 
-    static boolean sameData(AlphaEvaluator[] alphaEvaluators1, boolean[] values1, AlphaEvaluator[] alphaEvaluators2, boolean[] values2) {
+    private static boolean sameData(AlphaEvaluator[] alphaEvaluators1, boolean[] values1, AlphaEvaluator[] alphaEvaluators2, boolean[] values2) {
         if (!Arrays.equals(alphaEvaluators1, alphaEvaluators2)) return false;
         for (int i = 0; i < alphaEvaluators1.length; i++) {
             int alphaIdx1 = alphaEvaluators1[i].getUniqueId();
@@ -88,11 +88,11 @@ public abstract class AlphaBucketMeta {
         return true;
     }
 
-    static boolean sameData(AlphaBucketMeta ai1, AlphaBucketMeta ai2) {
+    private static boolean sameData(AlphaBucketMeta ai1, AlphaBucketMeta ai2) {
         return sameData(ai1.alphaEvaluators, ai1.requiredValues, ai2.alphaEvaluators, ai2.requiredValues);
     }
 
-    static int hash(AlphaEvaluator[] alphaIndices, boolean[] requiredValues) {
+    private static int hash(AlphaEvaluator[] alphaIndices, boolean[] requiredValues) {
         int h = 0;
         for (AlphaEvaluator e : alphaIndices) {
             int i = e.getUniqueId();
@@ -103,7 +103,7 @@ public abstract class AlphaBucketMeta {
 
     private static final class Empty extends AlphaBucketMeta {
 
-        public Empty(int bucketIndex) {
+        Empty(int bucketIndex) {
             super(bucketIndex, EMPTY_INDICES, EMPTY_VALUES);
         }
 
@@ -119,7 +119,7 @@ public abstract class AlphaBucketMeta {
     }
 
     private static final class Default extends AlphaBucketMeta {
-        public Default(int bucketIndex, AlphaEvaluator[] alphaEvaluators, boolean[] requiredValues) {
+        Default(int bucketIndex, AlphaEvaluator[] alphaEvaluators, boolean[] requiredValues) {
             super(bucketIndex, alphaEvaluators, requiredValues);
         }
     }

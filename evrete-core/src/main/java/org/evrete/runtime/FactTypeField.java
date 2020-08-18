@@ -1,4 +1,4 @@
-package org.evrete.runtime.structure;
+package org.evrete.runtime;
 
 import org.evrete.api.TypeField;
 

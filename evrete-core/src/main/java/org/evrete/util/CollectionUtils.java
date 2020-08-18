@@ -161,7 +161,7 @@ public final class CollectionUtils {
      * @param value     value to be stored
      * @param <T>       type parameter
      */
-    public static <T> void systemFill(T[] array, int fromIndex, int toIndex, T value) {
+    private static <T> void systemFill(T[] array, int fromIndex, int toIndex, T value) {
         int len;
         if ((len = toIndex - fromIndex) < 64) {
             fillObjects(array, fromIndex, toIndex, value);
@@ -203,7 +203,7 @@ public final class CollectionUtils {
      * @param toIndex   toIndex the index of the last element (exclusive)
      * @param value     value to be stored
      */
-    public static void systemFill(boolean[] array, int fromIndex, int toIndex, boolean value) {
+    private static void systemFill(boolean[] array, int fromIndex, int toIndex, boolean value) {
         int len;
         if ((len = toIndex - fromIndex) < 64) {
             fillBooleans(array, fromIndex, toIndex, value);

@@ -2,6 +2,7 @@ package org.evrete.runtime;
 
 import org.evrete.api.ActiveField;
 import org.evrete.api.RuntimeFact;
+import org.evrete.runtime.evaluation.AlphaEvaluator;
 
 import java.util.Arrays;
 

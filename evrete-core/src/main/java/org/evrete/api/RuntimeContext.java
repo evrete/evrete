@@ -1,9 +1,8 @@
 package org.evrete.api;
 
 import org.evrete.Configuration;
+import org.evrete.runtime.RuleDescriptor;
 import org.evrete.runtime.RuntimeListeners;
-import org.evrete.runtime.RuntimeRule;
-import org.evrete.runtime.structure.RuleDescriptor;
 
 public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners {
 

@@ -1,8 +1,12 @@
 package org.evrete.runtime.memory;
 
 import org.evrete.api.*;
+import org.evrete.runtime.ConditionNodeDescriptor;
+import org.evrete.runtime.FactType;
+import org.evrete.runtime.FactTypeField;
 import org.evrete.runtime.RuntimeListeners;
-import org.evrete.runtime.structure.*;
+import org.evrete.runtime.evaluation.EvaluatorGroup;
+import org.evrete.runtime.evaluation.EvaluatorInternal;
 
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
@@ -127,7 +131,7 @@ public class NodeIterationState implements NodeIterationStateFactory.State {
         final ValueSupplier[] values;
         final BetaConditionNode node;
 
-        public EvaluatorDelegate(EvaluatorInternal evaluator, KeysStore.Entry[] state, BetaConditionNode node) {
+        EvaluatorDelegate(EvaluatorInternal evaluator, KeysStore.Entry[] state, BetaConditionNode node) {
             this.evaluator = evaluator;
             this.node = node;
             this.values = new ValueSupplier[evaluator.descriptor().length];
@@ -153,7 +157,7 @@ public class NodeIterationState implements NodeIterationStateFactory.State {
 
 
     private static class Muted extends EvaluatorDelegate {
-        public Muted(EvaluatorInternal evaluator, KeysStore.Entry[] state, BetaConditionNode node) {
+        Muted(EvaluatorInternal evaluator, KeysStore.Entry[] state, BetaConditionNode node) {
             super(evaluator, state, node);
         }
 
@@ -167,7 +171,7 @@ public class NodeIterationState implements NodeIterationStateFactory.State {
     private static class Verbose extends EvaluatorDelegate {
         private final RuntimeListeners listeners;
 
-        public Verbose(EvaluatorInternal evaluator, KeysStore.Entry[] state, BetaConditionNode node, RuntimeListeners listeners) {
+        Verbose(EvaluatorInternal evaluator, KeysStore.Entry[] state, BetaConditionNode node, RuntimeListeners listeners) {
             super(evaluator, state, node);
             this.listeners = listeners;
         }
@@ -186,7 +190,7 @@ public class NodeIterationState implements NodeIterationStateFactory.State {
         private final int typeId;
         private final int fieldId;
 
-        public ValueSupplier(KeysStore.Entry[] state, int sourceId, int typeId, int fieldId) {
+        ValueSupplier(KeysStore.Entry[] state, int sourceId, int typeId, int fieldId) {
             this.state = state;
             this.sourceId = sourceId;
             this.typeId = typeId;

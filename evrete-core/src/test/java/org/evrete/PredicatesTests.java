@@ -794,7 +794,7 @@ class PredicatesTests {
     public static class Num {
         final int value;
 
-        public Num(int i) {
+        Num(int i) {
             this.value = i;
         }
 

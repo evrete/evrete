@@ -1,7 +1,7 @@
 package org.evrete.runtime.memory;
 
-import org.evrete.runtime.structure.EvaluatorGroup;
-import org.evrete.runtime.structure.FactType;
+import org.evrete.runtime.FactType;
+import org.evrete.runtime.evaluation.EvaluatorGroup;
 import org.evrete.util.CollectionUtils;
 
 public class DefaultStateFactory implements NodeIterationStateFactory<NodeIterationState, EvaluatorGroup> {

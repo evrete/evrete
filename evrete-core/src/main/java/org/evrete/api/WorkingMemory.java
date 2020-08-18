@@ -1,10 +1,8 @@
 package org.evrete.api;
 
-import org.evrete.runtime.RuntimeRule;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.function.Consumer;
 
 public interface WorkingMemory {
@@ -37,6 +35,4 @@ public interface WorkingMemory {
     default void update(Object... objects) {
         update(Arrays.asList(objects));
     }
-
-    List<RuntimeRule> getRules();
 }

@@ -15,14 +15,14 @@ class PredicateExpression3 extends AbstractExpression {
     private final Predicate<Object[]> predicate;
     private final FieldReference[] references;
 
-    public PredicateExpression3(Predicate<Object[]> predicate, double complexity, FieldReference[] references) {
+    PredicateExpression3(Predicate<Object[]> predicate, double complexity, FieldReference[] references) {
         super(complexity);
         if (complexity <= 0.0) throw new IllegalArgumentException("Complexity must be positive");
         this.predicate = predicate;
         this.references = references;
     }
 
-    public PredicateExpression3(Predicate<Object[]> predicate, FieldReference[] references) {
+    PredicateExpression3(Predicate<Object[]> predicate, FieldReference[] references) {
         this(predicate, DEFAULT_COMPLEXITY, references);
     }
 

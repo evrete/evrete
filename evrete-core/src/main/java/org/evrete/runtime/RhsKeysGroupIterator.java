@@ -3,7 +3,6 @@ package org.evrete.runtime;
 import org.evrete.api.EachRunnable;
 import org.evrete.api.ReIterator;
 import org.evrete.api.ValueRow;
-import org.evrete.runtime.structure.RhsFactGroupDescriptor;
 
 import java.util.function.BooleanSupplier;
 
@@ -83,7 +82,7 @@ public abstract class RhsKeysGroupIterator implements EachRunnable, Runnable {
     abstract void initFactIterators(ValueRow[] next);
 
     private static class WithIterators extends RhsKeysGroupIterator {
-        public WithIterators(int keyGroupId, RhsFactGroupIterator groupIterator, ReIterator<ValueRow[]> mainIterator, ReIterator<ValueRow[]> deltaIterator, ValueRow[][] state) {
+        WithIterators(int keyGroupId, RhsFactGroupIterator groupIterator, ReIterator<ValueRow[]> mainIterator, ReIterator<ValueRow[]> deltaIterator, ValueRow[][] state) {
             super(keyGroupId, groupIterator, mainIterator, deltaIterator, state);
         }
 
@@ -94,7 +93,7 @@ public abstract class RhsKeysGroupIterator implements EachRunnable, Runnable {
     }
 
     private static class WithIterables extends RhsKeysGroupIterator {
-        public WithIterables(int keyGroupId, RhsFactGroupIterator groupIterator, ReIterator<ValueRow[]> mainIterator, ReIterator<ValueRow[]> deltaIterator, ValueRow[][] state) {
+        WithIterables(int keyGroupId, RhsFactGroupIterator groupIterator, ReIterator<ValueRow[]> mainIterator, ReIterator<ValueRow[]> deltaIterator, ValueRow[][] state) {
             super(keyGroupId, groupIterator, mainIterator, deltaIterator, state);
         }
 

@@ -2,11 +2,11 @@ package org.evrete.runtime;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class FireContext {
+class FireContext {
     private final AtomicInteger fireCount = new AtomicInteger(0);
     private final StatefulSessionImpl session;
 
-    public FireContext(StatefulSessionImpl session) {
+    FireContext(StatefulSessionImpl session) {
         this.session = session;
     }
 

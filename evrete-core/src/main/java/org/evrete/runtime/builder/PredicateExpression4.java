@@ -11,14 +11,14 @@ class PredicateExpression4 extends AbstractExpression {
     private final ValuesPredicate predicate;
     private final FieldReference[] references;
 
-    public PredicateExpression4(ValuesPredicate predicate, double complexity, FieldReference[] references) {
+    PredicateExpression4(ValuesPredicate predicate, double complexity, FieldReference[] references) {
         super(complexity);
         if (complexity <= 0.0) throw new IllegalArgumentException("Complexity must be positive");
         this.predicate = predicate;
         this.references = references;
     }
 
-    public PredicateExpression4(ValuesPredicate predicate, FieldReference[] references) {
+    PredicateExpression4(ValuesPredicate predicate, FieldReference[] references) {
         this(predicate, DEFAULT_COMPLEXITY, references);
     }
 

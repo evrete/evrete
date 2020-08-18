@@ -5,7 +5,6 @@ import org.evrete.api.ReIterable;
 import org.evrete.api.ReIterator;
 
 public class NestedReIterator<T> implements EachRunnable {
-    //private I[] data;
     private final ReIterator<T>[] iterators;
     private final T[] state;
     private final int lastIndex;
@@ -37,11 +36,7 @@ public class NestedReIterator<T> implements EachRunnable {
         }
     }
 
-    public ReIterator<T>[] getIterators() {
-        return iterators;
-    }
-
-    public void set(int index, ReIterator<T> iterator) {
+    private void set(int index, ReIterator<T> iterator) {
         this.iterators[index] = iterator;
     }
 

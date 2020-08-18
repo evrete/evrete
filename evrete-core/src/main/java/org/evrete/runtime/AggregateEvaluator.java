@@ -1,4 +1,6 @@
-package org.evrete.runtime.structure;
+package org.evrete.runtime;
+
+import org.evrete.runtime.evaluation.EvaluatorGroup;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,7 +62,7 @@ public class AggregateEvaluator extends EvaluatorGroup {
             List<RhsFactGroupDescriptor> keySeq = new ArrayList<>();
             List<FactType> typeSeq = new ArrayList<>();
 
-            LhsDescriptor lhs = lastDescriptor.getLhsDescriptor();
+            AbstractLhsDescriptor lhs = lastDescriptor.getLhsDescriptor();
             RhsFactGroupDescriptor[] allGroups = lhs.getAllFactGroups();
             for (RhsFactGroupDescriptor g : allGroups) {
                 if (!g.isLooseGroup()) {

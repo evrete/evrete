@@ -3,9 +3,9 @@ package org.evrete.runtime.aggregate;
 import org.evrete.api.IntToValueRow;
 import org.evrete.api.KeysStore;
 import org.evrete.api.ValueRow;
+import org.evrete.runtime.AbstractRuntimeLhs;
+import org.evrete.runtime.FactType;
 import org.evrete.runtime.RuntimeAggregateLhsJoined;
-import org.evrete.runtime.RuntimeLhs;
-import org.evrete.runtime.structure.FactType;
 
 import java.util.function.BooleanSupplier;
 
@@ -13,7 +13,7 @@ abstract class AbstractEvaluatorJoined implements BooleanSupplier {
     private final IntToValueRow parentValues;
     private final KeysStore aggregateData;
 
-    AbstractEvaluatorJoined(RuntimeLhs root, RuntimeAggregateLhsJoined aggregate) {
+    AbstractEvaluatorJoined(AbstractRuntimeLhs root, RuntimeAggregateLhsJoined aggregate) {
         this.aggregateData = aggregate.getSuccessData();
 
         ValueRow[][] rootKeyState = root.getKeyState();

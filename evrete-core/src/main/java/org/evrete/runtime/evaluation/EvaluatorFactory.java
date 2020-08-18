@@ -1,8 +1,9 @@
-package org.evrete.runtime.structure;
+package org.evrete.runtime.evaluation;
 
 import org.evrete.api.Evaluator;
 import org.evrete.api.NamedType;
-import org.evrete.runtime.AbstractRuntime;
+import org.evrete.runtime.FactType;
+import org.evrete.runtime.FactTypeField;
 import org.evrete.runtime.builder.FieldReference;
 import org.evrete.util.MapOfSet;
 
@@ -12,8 +13,8 @@ import java.util.stream.Collectors;
 
 public final class EvaluatorFactory {
 
-    public static List<EvaluatorGroup> flattenEvaluators(AbstractRuntime<?> runtime, Collection<Evaluator> rawEvaluators, Function<NamedType, FactType> typeFunction) {
-        Collection<EvaluatorInternal> evaluators = convert(runtime, rawEvaluators, typeFunction);
+    public static List<EvaluatorGroup> flattenEvaluators(Collection<Evaluator> rawEvaluators, Function<NamedType, FactType> typeFunction) {
+        Collection<EvaluatorInternal> evaluators = convert(rawEvaluators, typeFunction);
 
         MapOfSet<Set<FactType>, EvaluatorInternal> groupedConditions = new MapOfSet<>();
 
@@ -33,7 +34,7 @@ public final class EvaluatorFactory {
         return result;
     }
 
-    public static Collection<EvaluatorInternal> convert(AbstractRuntime<?> runtime, Collection<Evaluator> rawEvaluators, Function<NamedType, FactType> typeFunction) {
+    private static Collection<EvaluatorInternal> convert(Collection<Evaluator> rawEvaluators, Function<NamedType, FactType> typeFunction) {
         Collection<EvaluatorInternal> evaluators = new ArrayList<>(rawEvaluators.size());
         for (Evaluator e : rawEvaluators) {
             validateExpression(e);
@@ -42,14 +43,14 @@ public final class EvaluatorFactory {
         return evaluators;
     }
 
-    public static EvaluatorGroup flattenEvaluators(Collection<EvaluatorInternal> collection) {
+    private static EvaluatorGroup flattenEvaluators(Collection<EvaluatorInternal> collection) {
         assert collection.size() > 0;
         return new EvaluatorGroup(collection);
     }
 
 
-    public static EvaluatorGroup unionEvaluators(AbstractRuntime<?> runtime, Collection<Evaluator> raw, Function<NamedType, FactType> typeFunction) {
-        Collection<EvaluatorInternal> collection = convert(runtime, raw, typeFunction);
+    public static EvaluatorGroup unionEvaluators(Collection<Evaluator> raw, Function<NamedType, FactType> typeFunction) {
+        Collection<EvaluatorInternal> collection = convert(raw, typeFunction);
         return new EvaluatorGroup(collection);
     }
 

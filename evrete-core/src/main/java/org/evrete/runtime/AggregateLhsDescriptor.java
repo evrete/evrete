@@ -1,23 +1,23 @@
-package org.evrete.runtime.structure;
+package org.evrete.runtime;
 
 import org.evrete.api.Evaluator;
 import org.evrete.api.NamedType;
-import org.evrete.runtime.AbstractRuntime;
 import org.evrete.runtime.aggregate.AggregateEvaluatorFactory;
 import org.evrete.runtime.builder.AbstractLhsBuilder;
 import org.evrete.runtime.builder.AggregateLhsBuilder;
+import org.evrete.runtime.evaluation.EvaluatorFactory;
 import org.evrete.util.MapFunction;
 import org.evrete.util.NextIntSupplier;
 
 import java.util.Set;
 import java.util.function.Function;
 
-public class AggregateLhsDescriptor extends LhsDescriptor {
+public class AggregateLhsDescriptor extends AbstractLhsDescriptor {
     private final AggregateEvaluatorFactory aggregateEvaluatorFactory;
     private final AggregateEvaluator joinCondition;
 
 
-    public AggregateLhsDescriptor(AbstractRuntime<?> runtime, RootLhsDescriptor parent, AggregateLhsBuilder<?> group, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
+    public AggregateLhsDescriptor(AbstractRuntime<?> runtime, LhsDescriptor parent, AggregateLhsBuilder<?> group, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
         super(runtime, parent, group, factIdGenerator, typeMapping);
         this.aggregateEvaluatorFactory = group.getAggregateEvaluatorFactory();
 
@@ -28,16 +28,15 @@ public class AggregateLhsDescriptor extends LhsDescriptor {
             this.joinCondition = null;
         } else {
             Function<NamedType, FactType> unionMapping = MapFunction.union(typeMapping, parent.getRootMapping());
-            this.joinCondition = new AggregateEvaluator(EvaluatorFactory.unionEvaluators(runtime, conditions, unionMapping));
+            this.joinCondition = new AggregateEvaluator(EvaluatorFactory.unionEvaluators(conditions, unionMapping));
         }
     }
 
-    public AggregateEvaluatorFactory getAggregateEvaluatorFactory() {
+    AggregateEvaluatorFactory getAggregateEvaluatorFactory() {
         return aggregateEvaluatorFactory;
     }
 
-
-    public boolean isLoose() {
+    boolean isLoose() {
         return this.joinCondition == null;
     }
 

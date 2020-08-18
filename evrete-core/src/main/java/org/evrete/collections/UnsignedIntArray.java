@@ -44,7 +44,7 @@ public class UnsignedIntArray {
         return unsignedIndices[pos];
     }
 
-    public void clear() {
+    void clear() {
         this.currentInsertIndex = 0;
     }
 
@@ -56,7 +56,7 @@ public class UnsignedIntArray {
         return unsignedIndices.length;
     }
 
-    protected void copyFrom(UnsignedIntArray other) {
+    void copyFrom(UnsignedIntArray other) {
         this.unsignedIndices = other.unsignedIndices;
         this.currentInsertIndex = other.currentInsertIndex;
     }
@@ -69,7 +69,7 @@ public class UnsignedIntArray {
         }
     }
 
-    public IntStream intStream() {
+    IntStream intStream() {
         return Arrays.stream(unsignedIndices, 0, currentInsertIndex);
     }
 

@@ -5,7 +5,6 @@ import org.evrete.api.RuntimeFact;
 import org.evrete.api.ValueRow;
 import org.evrete.api.spi.SharedBetaFactStorage;
 import org.evrete.runtime.memory.SessionMemory;
-import org.evrete.runtime.structure.FactType;
 
 public class RuntimeFactTypeKeyed extends RuntimeFactType {
     private final SharedBetaFactStorage keyStorage;

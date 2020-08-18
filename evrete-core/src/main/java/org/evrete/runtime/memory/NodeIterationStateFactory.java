@@ -4,7 +4,7 @@ import org.evrete.api.KeysStore;
 import org.evrete.api.ReIterator;
 import org.evrete.api.ThreadUnsafe;
 
-public interface NodeIterationStateFactory<S extends NodeIterationStateFactory.State, E> {
+interface NodeIterationStateFactory<S extends NodeIterationStateFactory.State, E> {
     /**
      * This method will be called for each batch of evaluation tasks regardless of
      * its size

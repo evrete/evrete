@@ -1,10 +1,11 @@
-package org.evrete.runtime.structure;
+package org.evrete.runtime;
 
 import org.evrete.api.Evaluator;
 import org.evrete.api.NamedType;
-import org.evrete.runtime.AbstractRuntime;
 import org.evrete.runtime.builder.AbstractLhsBuilder;
 import org.evrete.runtime.builder.FactTypeBuilder;
+import org.evrete.runtime.evaluation.EvaluatorFactory;
+import org.evrete.runtime.evaluation.EvaluatorGroup;
 import org.evrete.util.CollectionUtils;
 import org.evrete.util.MapFunction;
 import org.evrete.util.NextIntSupplier;
@@ -16,14 +17,14 @@ import java.util.*;
  * (fact types and conditions they participate in) and alpha fact types,
  * not involved in any join conditions.
  */
-public abstract class LhsDescriptor {
+public abstract class AbstractLhsDescriptor {
     private final MapFunction<String, int[]> nameIndices = new MapFunction<>();
     private final int level;
     private final Set<FactType> groupFactTypes = new HashSet<>();
     private final RhsFactGroupDescriptor[] allFactGroups;
     private final int betaFactGroupCount;
 
-    LhsDescriptor(AbstractRuntime<?> runtime, LhsDescriptor parent, AbstractLhsBuilder<?, ?> group, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
+    AbstractLhsDescriptor(AbstractRuntime<?> runtime, AbstractLhsDescriptor parent, AbstractLhsBuilder<?, ?> group, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
         this.level = parent == null ? 0 : parent.level + 1;
 
         Set<FactTypeBuilder> declaredTypes = group.getDeclaredFactTypes();
@@ -54,7 +55,7 @@ public abstract class LhsDescriptor {
             groupFactTypes.add(factType);
         }
 
-        ConditionNodeDescriptor[] finalNodes = findBestAllocation(runtime, compiledConditions, typeMapping);
+        ConditionNodeDescriptor[] finalNodes = findBestAllocation(compiledConditions, typeMapping);
 
         //this.rhsKeyedFactGroups = new ArrayList<>();
         List<RhsFactGroupDescriptor> allFactGroups = new ArrayList<>();
@@ -93,24 +94,24 @@ public abstract class LhsDescriptor {
         this.allFactGroups = allFactGroups.toArray(RhsFactGroupDescriptor.ZERO_ARRAY);
     }
 
-    public int getBetaFactGroupCount() {
+    int getBetaFactGroupCount() {
         return betaFactGroupCount;
     }
 
-    public MapFunction<String, int[]> getNameIndices() {
+    MapFunction<String, int[]> getNameIndices() {
         return nameIndices;
     }
 
-    public RhsFactGroupDescriptor[] getAllFactGroups() {
+    RhsFactGroupDescriptor[] getAllFactGroups() {
         return allFactGroups;
     }
 
-    private static ConditionNodeDescriptor[] findBestAllocation(AbstractRuntime<?> runtime, AbstractLhsBuilder.Compiled lhsBuilder, MapFunction<NamedType, FactType> mapping) {
+    private static ConditionNodeDescriptor[] findBestAllocation(AbstractLhsBuilder.Compiled lhsBuilder, MapFunction<NamedType, FactType> mapping) {
         // Compiling conditions
         Set<Evaluator> betaConditions = new HashSet<>(lhsBuilder.getBetaConditions());
         if (betaConditions.isEmpty()) return ConditionNodeDescriptor.ZERO_ARRAY;
 
-        final List<EvaluatorGroup> evaluators = EvaluatorFactory.flattenEvaluators(runtime, betaConditions, mapping);
+        final List<EvaluatorGroup> evaluators = EvaluatorFactory.flattenEvaluators(betaConditions, mapping);
 
         Set<FactType> betaTypes = new HashSet<>();
 
@@ -201,7 +202,7 @@ public abstract class LhsDescriptor {
         return level;
     }
 
-    public Set<FactType> getGroupFactTypes() {
+    Set<FactType> getGroupFactTypes() {
         return groupFactTypes;
     }
 

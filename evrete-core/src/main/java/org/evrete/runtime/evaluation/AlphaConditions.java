@@ -1,7 +1,8 @@
-package org.evrete.runtime;
+package org.evrete.runtime.evaluation;
 
 import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
+import org.evrete.runtime.AbstractRuntime;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -10,7 +11,6 @@ import static org.evrete.api.LogicallyComparable.*;
 
 public class AlphaConditions implements Copyable<AlphaConditions> {
     private static final ArrayOf<AlphaEvaluator> EMPTY = new ArrayOf<>(new AlphaEvaluator[0]);
-    private static final ArrayOf<AlphaBucketMeta> EMPTY_MASKS = new ArrayOf<>(new AlphaBucketMeta[0]);
     private final Map<Type, ArrayOf<AlphaEvaluator>> alphaPredicates;
     private final Map<Type, TypeAlphas> typeAlphas;
 
@@ -55,16 +55,6 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
                         candidate,
                         alphaBucketMeta -> listener.accept(new AlphaDelta(betaFields, alphaBucketMeta, newEvaluators))
                 );
-    }
-
-    public ArrayOf<AlphaBucketMeta> getAlphaMasks(FieldsKey fields, boolean beta) {
-        Type type = fields.getType();
-        TypeAlphas typeData = typeAlphas.get(type);
-        if (typeData == null) {
-            return EMPTY_MASKS;
-        } else {
-            return typeData.getAlphaMasks(fields, beta);
-        }
     }
 
     public ArrayOf<AlphaEvaluator> getPredicates(Type t) {
@@ -191,19 +181,6 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
             this.dataBeta = new HashMap<>();
             this.dataAlpha.putAll(other.dataAlpha);
             this.dataBeta.putAll(other.dataBeta);
-        }
-
-        public ArrayOf<AlphaBucketMeta> getAlphaMasks(FieldsKey fields, boolean beta) {
-            Map<FieldsKey, FieldAlphas> map = beta ?
-                    dataBeta
-                    :
-                    dataAlpha;
-            FieldAlphas fieldData = map.get(fields);
-            if (fieldData == null) {
-                return EMPTY_MASKS;
-            } else {
-                return fieldData.data;
-            }
         }
 
         private AlphaBucketMeta getCreate(FieldsKey betaFields, boolean beta, AlphaMeta candidate, Consumer<AlphaBucketMeta> listener) {

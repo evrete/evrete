@@ -1,10 +1,8 @@
 package org.evrete.runtime;
 
-import org.evrete.runtime.structure.AggregateLhsDescriptor;
+class RuntimeAggregateLhs extends AbstractRuntimeLhs {
 
-public class RuntimeAggregateLhs extends RuntimeLhs {
-
-    public RuntimeAggregateLhs(RuntimeRule rule, RuntimeLhs parent, AggregateLhsDescriptor descriptor) {
+    RuntimeAggregateLhs(RuntimeRuleImpl rule, AbstractRuntimeLhs parent, AggregateLhsDescriptor descriptor) {
         super(rule, parent, descriptor);
     }
 }

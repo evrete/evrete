@@ -1,6 +1,8 @@
-package org.evrete.runtime.structure;
+package org.evrete.runtime.evaluation;
 
 import org.evrete.api.ComplexityObject;
+import org.evrete.runtime.FactType;
+import org.evrete.runtime.FactTypeField;
 import org.evrete.util.Bits;
 
 import java.util.*;

@@ -6,9 +6,9 @@ import java.util.function.IntPredicate;
 
 class ArrayBulkCleanupData {
     private static final int NULL_VALUE = -1;
-    final int[] indices;
-    final int[] lengths;
-    int currentIndex;
+    private final int[] indices;
+    private final int[] lengths;
+    private int currentIndex;
 
     public ArrayBulkCleanupData(int size) {
         indices = new int[size];
@@ -18,7 +18,7 @@ class ArrayBulkCleanupData {
         this.currentIndex = NULL_VALUE;
     }
 
-    void add(int i) {
+    private void add(int i) {
         if (currentIndex == NULL_VALUE) {
             // First run
             currentIndex = 0;
@@ -57,7 +57,7 @@ class ArrayBulkCleanupData {
 
 
     @SuppressWarnings("SuspiciousSystemArraycopy")
-    int applyTo(Object array, int initialSize) {
+    private int applyTo(Object array, int initialSize) {
         int totalDeleted = 0;
         for (int i = 0; i < indices.length; i++) {
             int idx = indices[i];

@@ -1,13 +1,13 @@
 package org.evrete.runtime.aggregate;
 
 import org.evrete.api.KeysStore;
+import org.evrete.runtime.AbstractRuntimeLhs;
 import org.evrete.runtime.RuntimeAggregateLhsJoined;
-import org.evrete.runtime.RuntimeLhs;
 
-public class NotExistsEvaluatorJoined extends AbstractEvaluatorJoined {
+class NotExistsEvaluatorJoined extends AbstractEvaluatorJoined {
 
 
-    public NotExistsEvaluatorJoined(RuntimeLhs root, RuntimeAggregateLhsJoined aggregate) {
+    public NotExistsEvaluatorJoined(AbstractRuntimeLhs root, RuntimeAggregateLhsJoined aggregate) {
         super(root, aggregate);
     }
 

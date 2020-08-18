@@ -5,6 +5,7 @@ import org.evrete.api.ActiveField;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
 import org.evrete.runtime.async.ForkJoinExecutor;
+import org.evrete.runtime.evaluation.AlphaDelta;
 
 import java.util.WeakHashMap;
 

@@ -8,11 +8,11 @@ public abstract class AbstractFastHashSet<K> extends AbstractHashData<K> {
 
     private static final int DEFAULT_INITIAL_SIZE = 16;
 
-    public AbstractFastHashSet(int initialCapacity) {
+    AbstractFastHashSet(int initialCapacity) {
         super(initialCapacity);
     }
 
-    public AbstractFastHashSet() {
+    AbstractFastHashSet() {
         this(DEFAULT_INITIAL_SIZE);
     }
 

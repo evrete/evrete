@@ -4,7 +4,12 @@ import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
 import org.evrete.collections.FastIdentityHashMap;
-import org.evrete.runtime.*;
+import org.evrete.runtime.MemoryChangeListener;
+import org.evrete.runtime.RuntimeObject;
+import org.evrete.runtime.evaluation.AlphaBucketMeta;
+import org.evrete.runtime.evaluation.AlphaConditions;
+import org.evrete.runtime.evaluation.AlphaDelta;
+import org.evrete.runtime.evaluation.AlphaEvaluator;
 
 import java.util.*;
 import java.util.function.BiPredicate;
@@ -127,7 +132,7 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
         }
     }
 
-    TypeMemoryBucket touchAlphaMemory(AlphaBucketMeta alphaMeta) {
+    private TypeMemoryBucket touchAlphaMemory(AlphaBucketMeta alphaMeta) {
         // Alpha storage
         if (!alphaMeta.isEmpty()) {
             int bucketIndex = alphaMeta.getBucketIndex();
@@ -186,7 +191,7 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
         this.deleteBuffer.clear();
     }
 
-    Collection<FieldsMemory> fieldsMemories() {
+    private Collection<FieldsMemory> fieldsMemories() {
         return betaMemories.values();
     }
 

@@ -1,13 +1,13 @@
 package org.evrete.runtime.async;
 
-import org.evrete.runtime.RuntimeRule;
+import org.evrete.runtime.RuntimeRuleImpl;
 
 import java.util.Collection;
 
 public class RuleMemoryDeleteTask extends Completer {
-    private final Collection<RuntimeRule> rules;
+    private final Collection<RuntimeRuleImpl> rules;
 
-    public RuleMemoryDeleteTask(Collection<RuntimeRule> rules) {
+    public RuleMemoryDeleteTask(Collection<RuntimeRuleImpl> rules) {
         this.rules = rules;
     }
 

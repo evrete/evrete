@@ -1,15 +1,12 @@
 package org.evrete.runtime;
 
+import org.evrete.api.RuntimeRule;
 import org.evrete.runtime.memory.SessionMemory;
-import org.evrete.runtime.structure.RuleDescriptor;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
-public class RuntimeRules implements Iterable<RuntimeRule>, MemoryChangeListener {
-    private final List<RuntimeRule> list = new ArrayList<>();
+public class RuntimeRules implements Iterable<RuntimeRuleImpl>, MemoryChangeListener {
+    private final List<RuntimeRuleImpl> list = new ArrayList<>();
     private final Collection<RuntimeAggregateLhsJoined> aggregateLhsGroups = new ArrayList<>();
     private final SessionMemory runtime;
 
@@ -17,13 +14,13 @@ public class RuntimeRules implements Iterable<RuntimeRule>, MemoryChangeListener
         this.runtime = runtime;
     }
 
-    private void add(RuntimeRule rule) {
+    private void add(RuntimeRuleImpl rule) {
         this.list.add(rule);
         this.aggregateLhsGroups.addAll(rule.getAggregateLhsGroups());
     }
 
-    public RuntimeRule addRule(RuleDescriptor ruleDescriptor) {
-        RuntimeRule r = new RuntimeRule(ruleDescriptor, runtime);
+    public RuntimeRuleImpl addRule(RuleDescriptor ruleDescriptor) {
+        RuntimeRuleImpl r = new RuntimeRuleImpl(ruleDescriptor, runtime);
         this.add(r);
         return r;
     }
@@ -33,17 +30,17 @@ public class RuntimeRules implements Iterable<RuntimeRule>, MemoryChangeListener
     }
 
     @Override
-    public Iterator<RuntimeRule> iterator() {
+    public Iterator<RuntimeRuleImpl> iterator() {
         return list.iterator();
     }
 
     public List<RuntimeRule> asList() {
-        return list;
+        return Collections.unmodifiableList(list);
     }
 
     @Override
     public void onAfterChange() {
-        for (RuntimeRule rule : list) {
+        for (RuntimeRuleImpl rule : list) {
             rule.onAfterChange();
         }
     }

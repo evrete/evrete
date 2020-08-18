@@ -7,7 +7,7 @@ import java.util.function.ToIntFunction;
 
 public abstract class AbstractFastHashMapBase<K, E extends HashEntry<K>> extends AbstractHashData<E> {
 
-    public AbstractFastHashMapBase(int initialCapacity) {
+    AbstractFastHashMapBase(int initialCapacity) {
         super(initialCapacity);
     }
 
@@ -37,7 +37,7 @@ public abstract class AbstractFastHashMapBase<K, E extends HashEntry<K>> extends
 
 
     @SuppressWarnings("unchecked")
-    public E removeKey(K key) {
+    E removeKey(K key) {
         int addr = getStorePosition(key, true);
         E found = (E) data[addr];
         if (found == null) {
@@ -55,12 +55,12 @@ public abstract class AbstractFastHashMapBase<K, E extends HashEntry<K>> extends
     }
 
 
-    public E getEntry(K key) {
+    E getEntry(K key) {
         int addr = getStorePosition(key, false);
         return get(addr);
     }
 
-    public final E computeEntryIfAbsent(K key, Function<K, E> function) {
+    final E computeEntryIfAbsent(K key, Function<K, E> function) {
         int addr = getStorePosition(key, true);
         E found = get(addr);
         if (found == null) {

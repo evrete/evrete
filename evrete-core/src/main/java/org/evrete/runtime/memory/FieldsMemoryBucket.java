@@ -4,15 +4,14 @@ import org.evrete.api.FieldsKey;
 import org.evrete.api.RuntimeFact;
 import org.evrete.api.spi.CollectionsService;
 import org.evrete.api.spi.SharedBetaFactStorage;
-import org.evrete.runtime.AlphaBucketMeta;
 import org.evrete.runtime.RuntimeObject;
+import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
 import java.util.Collection;
 
 class FieldsMemoryBucket {
     private final SharedBetaFactStorage fieldData;
     private final AlphaBucketMeta alphaMask;
-    private final int bucketIndex;
 
     private boolean insertDeltaAvailable = false;
     private boolean deleteDeltaAvailable = false;
@@ -21,14 +20,13 @@ class FieldsMemoryBucket {
         CollectionsService collectionsService = runtime.getConfiguration().getCollectionsService();
         this.alphaMask = alphaMask;
         this.fieldData = collectionsService.newBetaStorage(typeFields);
-        this.bucketIndex = alphaMask.getBucketIndex();
     }
 
     public void clear() {
         fieldData.clear();
     }
 
-    public SharedBetaFactStorage getFieldData() {
+    SharedBetaFactStorage getFieldData() {
         return fieldData;
     }
 
@@ -66,9 +64,4 @@ class FieldsMemoryBucket {
             deleteDeltaAvailable = false;
         }
     }
-
-    public int getBucketIndex() {
-        return bucketIndex;
-    }
-
 }

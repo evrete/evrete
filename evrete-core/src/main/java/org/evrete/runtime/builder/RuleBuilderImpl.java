@@ -58,7 +58,7 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
     }
 
 
-    protected C build(Consumer<RhsContext> rhs) {
+    C build(Consumer<RhsContext> rhs) {
         setRhs(rhs);
         return build();
     }

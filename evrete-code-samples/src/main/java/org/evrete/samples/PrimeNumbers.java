@@ -3,7 +3,7 @@ package org.evrete.samples;
 import org.evrete.KnowledgeService;
 import org.evrete.api.StatefulSession;
 
-public class PrimeNumbers {
+class PrimeNumbers {
     public static void main(String[] args) {
 
         KnowledgeService service = new KnowledgeService();

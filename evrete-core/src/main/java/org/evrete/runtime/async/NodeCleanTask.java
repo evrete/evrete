@@ -1,20 +1,20 @@
 package org.evrete.runtime.async;
 
 import org.evrete.api.KeysStore;
-import org.evrete.runtime.RuntimeRule;
+import org.evrete.runtime.FactType;
+import org.evrete.runtime.RuntimeRuleImpl;
 import org.evrete.runtime.memory.BetaConditionNode;
 import org.evrete.runtime.memory.BetaMemoryNode;
-import org.evrete.runtime.structure.FactType;
 import org.evrete.util.Bits;
 
 public class NodeCleanTask extends Completer {
     private final BetaConditionNode node;
-    private final RuntimeRule rule;
+    private final RuntimeRuleImpl rule;
     private final FactType[][] grouping;
     private final KeysStore subject;
     private final Bits deleteMask;
 
-    public NodeCleanTask(Completer completer, BetaConditionNode node, RuntimeRule rule, Bits deleteMask) {
+    public NodeCleanTask(Completer completer, BetaConditionNode node, RuntimeRuleImpl rule, Bits deleteMask) {
         super(completer);
         this.node = node;
         this.rule = rule;

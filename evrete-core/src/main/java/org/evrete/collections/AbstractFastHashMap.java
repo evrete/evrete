@@ -9,11 +9,11 @@ import java.util.function.Function;
 public abstract class AbstractFastHashMap<K, V> extends AbstractFastHashMapBase<K, AbstractFastHashMap.Entry<K, V>> {
     private static final int DEFAULT_INITIAL_SIZE = 16;
 
-    public AbstractFastHashMap() {
+    AbstractFastHashMap() {
         this(DEFAULT_INITIAL_SIZE);
     }
 
-    public AbstractFastHashMap(int initialCapacity) {
+    AbstractFastHashMap(int initialCapacity) {
         super(initialCapacity);
     }
 
@@ -68,7 +68,7 @@ public abstract class AbstractFastHashMap<K, V> extends AbstractFastHashMapBase<
     public static class Entry<K1, V1> extends HashEntry<K1> implements MapEntry<K1, V1> {
         V1 value;
 
-        public Entry(K1 key, V1 value) {
+        Entry(K1 key, V1 value) {
             super(key);
             this.value = value;
         }

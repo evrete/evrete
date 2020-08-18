@@ -43,7 +43,7 @@
         <dependency>
             <groupId>org.evrete</groupId>
             <artifactId>evrete-core</artifactId>
-            <version>1.0.15</version>
+            <version>1.0.16</version>
         </dependency>
     </dependencies>
 </project>

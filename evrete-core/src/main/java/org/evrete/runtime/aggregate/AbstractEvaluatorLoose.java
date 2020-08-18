@@ -8,12 +8,12 @@ import org.evrete.runtime.RuntimeAggregateLhsLoose;
 
 import java.util.function.BooleanSupplier;
 
-public abstract class AbstractEvaluatorLoose implements BooleanSupplier {
-    protected final RhsFactGroupIterator looseGroupIterator;
-    protected final ReIterator<ValueRow[]>[] keyReIterators;
+abstract class AbstractEvaluatorLoose implements BooleanSupplier {
+    final RhsFactGroupIterator looseGroupIterator;
+    final ReIterator<ValueRow[]>[] keyReIterators;
 
     @SuppressWarnings("unchecked")
-    public AbstractEvaluatorLoose(RuntimeAggregateLhsLoose aggregateLhs) {
+    AbstractEvaluatorLoose(RuntimeAggregateLhsLoose aggregateLhs) {
         this.looseGroupIterator = aggregateLhs.getLooseFactGroupIterator();
 
         RhsKeysGroupIterator[] keyGroupIterators = aggregateLhs.getKeyGroupIterators();

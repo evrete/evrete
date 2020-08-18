@@ -1,6 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.Named;
+import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
 import org.evrete.runtime.memory.SessionMemory;
 
