@@ -5,7 +5,7 @@
     <artifactId>evrete</artifactId>
     <packaging>pom</packaging>
     <name>evrete</name>
-    <version>1.0.19-SNAPSHOT</version>
+    <version>1.0.19</version>
     <url>https://www.evrete.org/</url>
     <description>Java rule engine</description>
 
@@ -21,7 +21,7 @@
         <connection>scm:git:https://github.com/andbi/evrete.git</connection>
         <developerConnection>scm:git:https://github.com/andbi/evrete.git</developerConnection>
         <url>https://github.com/andbi/evrete</url>
-        <tag>HEAD</tag>
+        <tag>evrete-1.0.19</tag>
     </scm>
 
     <licenses>
