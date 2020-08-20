@@ -15,34 +15,7 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <configuration>
-                    <skip>false</skip>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <configuration>
-                    <source>8</source>
-                    <nohelp>true</nohelp>
-                    <noindex>true</noindex>
-                    <notimestamp>true</notimestamp>
-                    <notree>true</notree>
-                    <quiet>true</quiet>
-                    <excludePackageNames>
-                        org.evrete.collections:org.evrete.runtime:org.evrete.runtime.*:org.evrete.spi:org.evrete.spi.*:org.evrete.util
-                    </excludePackageNames>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
 
             <plugin>
