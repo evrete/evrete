@@ -39,6 +39,7 @@
         </developer>
     </developers>
 
+<!--
     <distributionManagement>
         <repository>
             <id>github</id>
@@ -46,7 +47,18 @@
             <url>https://maven.pkg.github.com/andbi/evrete</url>
         </repository>
     </distributionManagement>
+-->
 
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 
     <build>
         <plugins>
