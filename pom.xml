@@ -6,8 +6,8 @@
     <packaging>pom</packaging>
     <name>evrete</name>
     <version>1.0.23-SNAPSHOT</version>
-    <url>https://www.evrete.org/</url>
-    <description>Java rule engine</description>
+    <url>https://www.evrete.org</url>
+    <description>Java Rule Engine</description>
 
     <properties>
         <timestamp>${maven.build.timestamp}</timestamp>
@@ -39,16 +39,6 @@
         </developer>
     </developers>
 
-<!--
-    <distributionManagement>
-        <repository>
-            <id>github</id>
-            <name>GitHub Apache Maven Packages</name>
-            <url>https://maven.pkg.github.com/andbi/evrete</url>
-        </repository>
-    </distributionManagement>
--->
-
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>
@@ -76,6 +66,21 @@
                     <version>2.7</version>
                     <configuration>
                         <skip>true</skip>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.2.0</version>
+                    <configuration>
+                        <archive>
+                            <manifestEntries>
+                                <Implementation-Title>${project.description}</Implementation-Title>
+                                <Implementation-Version>${project.version}</Implementation-Version>
+                                <Implementation-URL>https://www.evrete.org</Implementation-URL>
+                            </manifestEntries>
+                        </archive>
                     </configuration>
                 </plugin>
 
