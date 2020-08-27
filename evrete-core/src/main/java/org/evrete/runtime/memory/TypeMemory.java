@@ -5,6 +5,7 @@ import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
 import org.evrete.collections.FastIdentityHashMap;
 import org.evrete.runtime.MemoryChangeListener;
+import org.evrete.runtime.PlainMemory;
 import org.evrete.runtime.RuntimeObject;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaConditions;
@@ -18,13 +19,14 @@ import java.util.function.Function;
 import java.util.function.ToIntFunction;
 import java.util.logging.Logger;
 
-public final class TypeMemory implements MemoryChangeListener, ReIterable<RuntimeFact> {
+public final class TypeMemory implements MemoryChangeListener, PlainMemory {
     private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
     private final AlphaConditions alphaConditions;
     private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
     private final SessionMemory runtime;
     private final Type type;
-    private final IdentityMap facts;
+    private final IdentityMap mainFacts;
+    private final IdentityMap deltaFacts;
     private final ArrayOf<TypeMemoryBucket> alphaBuckets;
     private final List<RuntimeObject> insertBuffer = new LinkedList<>();
     private final List<RuntimeFact> deleteBuffer = new LinkedList<>();
@@ -38,7 +40,8 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
         this.alphaConditions = runtime.getAlphaConditions();
         Configuration conf = runtime.getConfiguration();
         this.type = type;
-        this.facts = new IdentityMap(conf);
+        this.mainFacts = new IdentityMap(conf);
+        this.deltaFacts = new IdentityMap(conf);
         this.alphaBuckets = new ArrayOf<>(TypeMemoryBucket.class);
     }
 
@@ -47,7 +50,8 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
     }
 
     void clear() {
-        facts.clear();
+        mainFacts.clear();
+        deltaFacts.clear();
         for (TypeMemoryBucket bucket : alphaBuckets.data) {
             bucket.clear();
         }
@@ -67,15 +71,44 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
     }
 
     public void forEach(Consumer<RuntimeFact> consumer) {
-        facts.forEachValue(consumer::accept);
+        throw new UnsupportedOperationException();
+        //mainFacts.forEachValue(consumer::accept);
     }
 
     @Override
-    public ReIterator<RuntimeFact> iterator() {
-        return this.facts.factIterator();
+    public boolean hasChanges() {
+        return deltaFacts.size() > 0;
     }
 
-    public ReIterable<RuntimeFact> get(AlphaBucketMeta alphaMask) {
+    @Override
+    public void commitChanges() {
+        if(deltaFacts.size() > 0) {
+            mainFacts.bulkAdd(deltaFacts);
+            deltaFacts.clear();
+        }
+        for (TypeMemoryBucket bucket : alphaBuckets.data) {
+            bucket.commitChanges();
+        }
+
+    }
+
+    @Override
+    public ReIterator<RuntimeFact> mainIterator() {
+        return mainFacts.factIterator();
+    }
+
+    @Override
+    public ReIterator<RuntimeFact> deltaIterator() {
+        return deltaFacts.factIterator();
+    }
+
+    //@Override
+    public ReIterator<RuntimeFact> iterator() {
+        throw new UnsupportedOperationException();
+        //return this.mainFacts.factIterator();
+    }
+
+    public PlainMemory get(AlphaBucketMeta alphaMask) {
         if (alphaMask.isEmpty()) {
             return this;
         }
@@ -114,12 +147,16 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
      * @param newField newly created field
      */
     void onNewActiveField(ActiveField newField) {
-        ReIterator<RuntimeObject> it = facts.factImplIterator();
-        while (it.hasNext()) {
-            RuntimeObject rto = it.next();
-            Object fieldValue = newField.readValue(rto.getDelegate());
-            rto.appendValue(newField, fieldValue);
+        for(IdentityMap map : new IdentityMap[]{mainFacts, deltaFacts}) {
+            ReIterator<RuntimeObject> it = map.factImplIterator();
+            while (it.hasNext()) {
+                RuntimeObject rto = it.next();
+                Object fieldValue = newField.readValue(rto.getDelegate());
+                rto.appendValue(newField, fieldValue);
+            }
         }
+
+
     }
 
     void touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
@@ -147,7 +184,11 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
 
 
     void onNewAlphaBucket(AlphaDelta delta) {
-        ReIterator<RuntimeObject> existingFacts = facts.factImplIterator();
+
+        //TODO !!!!!!
+        if(deltaFacts.size() > 0 ) throw new IllegalStateException();
+
+        ReIterator<RuntimeObject> existingFacts = mainFacts.factImplIterator();
         // 1. Update all the facts by applying new alpha flags
         AlphaEvaluator[] newEvaluators = delta.getNewEvaluators();
         if (newEvaluators.length > 0 && existingFacts.reset() > 0) {
@@ -178,7 +219,22 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
         }
     }
 
-    final void commitDelete() {
+    void commitMemoryDeltas() {
+        // Commit main storage (no alpha-conditions)
+        this.commitChanges();
+
+        // Commit alpha-buckets
+        for(TypeMemoryBucket b : alphaBuckets.data) {
+            b.commitChanges();
+        }
+
+        // Commit beta-memories
+        for(FieldsMemory fm : betaMemories.values()) {
+            fm.commitChanges();
+        }
+    }
+
+    final void doDelete() {
         if (deleteBuffer.isEmpty()) return;
         //Delete from non-beta memory
         for (TypeMemoryBucket bucket : alphaBuckets.data) {
@@ -196,7 +252,7 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
     }
 
     void deleteSingle(Object fact) {
-        RuntimeFact rtf = facts.remove(fact);
+        RuntimeFact rtf = mainFacts.remove(fact);
         if (rtf != null) {
             deleteBuffer.add(rtf);
         }
@@ -206,25 +262,16 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
     public void onBeforeChange() {
         this.alphaEvaluators = alphaConditions.getPredicates(type).data;
         this.activeFields = runtime.getActiveFields(type);
-        for (FieldsMemory fm : fieldsMemories()) {
-            fm.onBeforeChange();
-        }
     }
 
-    @Override
-    public void onAfterChange() {
-        for (FieldsMemory fm : fieldsMemories()) {
-            fm.onAfterChange();
-        }
-    }
 
     @SuppressWarnings("unchecked")
     final <T> void forEachMemoryObject(Consumer<T> consumer) {
-        facts.forEachKey(f -> consumer.accept((T) f));
+        mainFacts.forEachKey(f -> consumer.accept((T) f));
     }
 
     final void forEachObjectUnchecked(Consumer<Object> consumer) {
-        facts.forEachKey(consumer);
+        mainFacts.forEachKey(consumer);
     }
 
     final void insertSingle(Object o) {
@@ -253,11 +300,12 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
             rto = RuntimeObject.factory(o, values);
         }
 
-        if (facts.put(o, rto) == null) {
-            return rto;
-        } else {
+        if(mainFacts.contains(o) || deltaFacts.contains(o)) {
             LOGGER.warning("Object " + o + " has been already inserted, skipping insert");
             return null;
+        } else {
+            deltaFacts.put(o, rto);
+            return rto;
         }
     }
 
@@ -288,6 +336,10 @@ public final class TypeMemory implements MemoryChangeListener, ReIterable<Runtim
         @Override
         protected BiPredicate<Object, Object> keyHashEquals() {
             return EQ;
+        }
+
+        boolean contains(Object o) {
+            return get(o) != null;
         }
     }
 }

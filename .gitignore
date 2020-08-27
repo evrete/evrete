@@ -22,4 +22,4 @@ benchmark*.csv
 
 # Local dev/test files
 ######################
-XLocalDev*.java
+XLocalDev*.*

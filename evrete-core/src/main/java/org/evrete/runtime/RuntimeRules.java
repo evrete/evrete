@@ -6,7 +6,7 @@ import org.evrete.runtime.memory.SessionMemory;
 
 import java.util.*;
 
-public class RuntimeRules implements Iterable<RuntimeRuleImpl>, MemoryChangeListener {
+public class RuntimeRules implements Iterable<RuntimeRuleImpl> {
     private final List<RuntimeRuleImpl> list = new ArrayList<>();
     private final Collection<RuntimeAggregateLhsJoined> aggregateLhsGroups = new ArrayList<>();
     private final SessionMemory runtime;
@@ -43,10 +43,13 @@ public class RuntimeRules implements Iterable<RuntimeRuleImpl>, MemoryChangeList
         return Collections.unmodifiableList(list);
     }
 
-    @Override
-    public void onAfterChange() {
-        for (RuntimeRuleImpl rule : list) {
-            rule.onAfterChange();
+    public List<RuntimeRuleImpl> activeRules() {
+        List<RuntimeRuleImpl> l = new LinkedList<>();
+        for(RuntimeRuleImpl rule : list) {
+            if(rule.readActiveState()) {
+                l.add(rule);
+            }
         }
+        return l;
     }
 }

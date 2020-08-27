@@ -1,14 +1,51 @@
 package org.evrete.runtime.memory;
 
+import org.evrete.api.*;
+import org.evrete.collections.FastHashSet;
 import org.evrete.runtime.*;
 
-public class BetaEndNode extends BetaConditionNode {
-    public static final BetaEndNode[] ZERO_ARRAY = new BetaEndNode[0];
+import java.util.EnumMap;
 
+public class BetaEndNode extends BetaConditionNode implements KeyIteratorsBundle<ValueRow[]> {
+    public static final BetaEndNode[] ZERO_ARRAY = new BetaEndNode[0];
+    private final FastHashSet<ValueRow[]> oldKeysNewFacts = new FastHashSet<>();
+    private final EnumMap<KeyMode, ReIterator<ValueRow[]>> keyIterators = new EnumMap<>(KeyMode.class);
     public BetaEndNode(RuntimeRuleImpl rule, ConditionNodeDescriptor nodeDescriptor) {
         super(rule, nodeDescriptor, create(nodeDescriptor.getSources(), rule));
         FactType[] factTypes = nodeDescriptor.getEvalGrouping()[0];
         assert factTypes.length == nodeDescriptor.getTypes().length;
+
+        for(KeyMode mode : KeyMode.values()) {
+            RhsKeyIterator modeIterator;
+            switch (mode) {
+                case NEW_KEYS_NEW_FACTS:
+                    modeIterator = new ModeIteratorDelegate(
+                            mode,
+                            deltaIterator()
+                    );
+                    break;
+                case KNOWN_KEYS_KNOWN_FACTS:
+                    modeIterator = new ModeIteratorDelegate(
+                            mode,
+                            mainIterator()
+                    );
+                    break;
+                case KNOWN_KEYS_NEW_FACTS:
+                    modeIterator = new ModeIteratorDelegate(
+                            mode,
+                            oldKeysNewFacts.iterator()
+                    );
+                    break;
+                default:
+                    throw new UnsupportedOperationException();
+            }
+
+
+            this.keyIterators.put(mode, modeIterator);
+        }
+
+
+
     }
 
     private static BetaMemoryNode<?>[] create(NodeDescriptor[] sources, RuntimeRuleImpl rule) {
@@ -19,10 +56,27 @@ public class BetaEndNode extends BetaConditionNode {
         return result;
     }
 
-    //TODO !!! optimize
-    public boolean isInsertAvailable() {
-        for (RuntimeFactType entryNode : getEntryNodes()) {
-            if (entryNode.isInsertDeltaAvailable()) {
+    @Override
+    public void computeDelta(boolean deltaOnly) {
+        super.computeDelta(deltaOnly);
+        //TODO !!!! check if delta check applies here
+        if(deltaOnly) {
+            oldKeysNewFacts.clear();
+            for(RuntimeFactTypeKeyed entryNode : getEntryNodes()) {
+                long l = entryNode.getKeyStorage().deltaKnownKeys().keyIterator().reset();
+                if(l > 0) throw new UnsupportedOperationException("TODO !!!");
+            }
+        }
+    }
+
+    @Override
+    public EnumMap<KeyMode, ReIterator<ValueRow[]>> keyIterators() {
+        return keyIterators;
+    }
+
+    public boolean hasDeltaSources() {
+        for (RuntimeFactTypeKeyed entryNode : getEntryNodes()) {
+            if (entryNode.hasDeltaKeys()) {
                 return true;
             }
         }
@@ -41,7 +95,47 @@ public class BetaEndNode extends BetaConditionNode {
         }
     }
 
-    public RuntimeFactType[] getEntryNodes() {
+    public RuntimeFactTypeKeyed[] getEntryNodes() {
         return getGrouping()[0];
     }
+
+
+
+    private abstract static class ModeIterator implements RhsKeyIterator {
+        private final KeyMode mode;
+
+        public ModeIterator(KeyMode mode) {
+            this.mode = mode;
+        }
+
+        @Override
+        public final KeyMode getMode() {
+            return this.mode;
+        }
+    }
+
+    private static class ModeIteratorDelegate extends ModeIterator {
+        private final ReIterator<ValueRow[]> delegate;
+
+        public ModeIteratorDelegate(KeyMode mode, ReIterator<ValueRow[]> delegate) {
+            super(mode);
+            this.delegate = delegate;
+        }
+
+        @Override
+        public long reset() {
+            return delegate.reset();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return delegate.hasNext();
+        }
+
+        @Override
+        public ValueRow[] next() {
+            return delegate.next();
+        }
+    }
+
 }

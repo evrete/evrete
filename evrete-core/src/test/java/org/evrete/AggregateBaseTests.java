@@ -42,14 +42,23 @@ class AggregateBaseTests {
     @Test
     void groupBase01() {
         RuleBuilder<Knowledge> builder = knowledge.newRule("rule group 01");
-
-        builder.forEach("$a", TypeA.class, "$b", TypeB.class)
+        builder
+                .forEach(
+                        "$a", TypeA.class,
+                        "$b", TypeB.class)
                 .where("$a.i == $b.i")
-                .having().forEach(
-                fact("$b", TypeB.class),
-                fact("$c", TypeC.class)
-        ).where("$c.i == $a.i", "$b.i == $c.i")
-                .exists();
+                .having(
+                        fact("$b", TypeB.class),
+                        fact("$c", TypeC.class)
+                )
+                .where("$c.i == $a.i", "$b.i == $c.i")
+                .exists()
+                .setRhs(
+                        ctx -> {
+
+                        }
+                )
+        ;
 
         RuleDescriptor desc = knowledge.compileRule(builder);
         assert desc.getLhs().getAggregateDescriptors().size() == 1;
@@ -61,12 +70,12 @@ class AggregateBaseTests {
         builder
                 .forEach("$a", TypeA.class, "$b", TypeB.class)
                 .where("$a.i == $b.i")
-                .having().forEach(
+                .having(
                 fact("$b", TypeB.class),
                 fact("$c", TypeC.class)
         ).where("$c.i == $a.i", "$b.i == $c.i")
                 .exists()
-                .having().forEach(
+                .having(
                 fact("$b", TypeB.class),
                 fact("$c", TypeC.class)
         )
@@ -85,7 +94,7 @@ class AggregateBaseTests {
                 () -> knowledge
                         .newRule("rule group 03")
                         .forEach("$a", TypeA.class, "$b", TypeB.class)
-                        .having().forEach(
+                        .having(
                                 fact("$c", TypeC.class),
                                 fact("$d", TypeD.class)
                         )
@@ -100,12 +109,12 @@ class AggregateBaseTests {
         builder
                 .forEach("$a", TypeA.class, "$b", TypeB.class)
                 .where("$a.i == $b.i", "$a.id != 'Test'")
-                .having().forEach(
+                .having(
                 fact("$b", TypeB.class),
                 fact("$c", TypeC.class)
         ).where("$c.i == $a.i", "$b.i == $c.i", "$b.d > 0")
                 .exists()
-                .having().forEach(
+                .having(
                 fact("$b", TypeB.class),
                 fact("$c", TypeC.class)
         ).where("$c.i == $a.i", "$b.i == $c.i")
@@ -122,7 +131,7 @@ class AggregateBaseTests {
         builder
                 .forEach("$a", TypeA.class, "$b", TypeB.class)
                 .where("$a.i == $b.i", "$a.id == 'Hello'", "$a.d > 4444")
-                .having().forEach(
+                .having(
                 fact("$b", TypeB.class),
                 fact("$c", TypeC.class)
         ).where("$c.i == $a.i", "$b.i == $c.i", "$a.id != 'Hello1'", "$a.i != 777")
@@ -140,7 +149,7 @@ class AggregateBaseTests {
         builder
                 .forEach("$a", TypeA.class, "$b", TypeB.class)
                 .where("$a.i == $b.i")
-                .having().forEach(
+                .having(
                 fact("$b1", TypeB.class),
                 fact("$c1", TypeC.class)
         ).where("$c1.i == $a.l", "$b1.i == $c1.i")
@@ -164,15 +173,15 @@ class AggregateBaseTests {
                         "$b2", TypeB.class
                 )
                 .where("$a1.i == $b1.i", "$a2.i == $b2.i")
-                .having().forEach(
+                .having(
                 fact("$b", TypeB.class),
                 fact("$c", TypeC.class)
         ).where("$c.i == $a1.i", "$b.i == $c.i").exists()
-                .having().forEach(
+                .having(
                 fact("$b", TypeB.class),
                 fact("$c", TypeC.class)
         ).where("$c.d == $a1.d", "$b.i == $c.i").exists()
-                .having().forEach(
+                .having(
                 fact("$b", TypeB.class),
                 fact("$c", TypeC.class)
         ).where("$c.i == $a2.i", "$b.i == $c.i").exists()
@@ -192,15 +201,13 @@ class AggregateBaseTests {
         builder
                 .forEach("$a", TypeA.class, "$b", TypeB.class)
                 .where("$a.i == $b.i")
-                .having()
-                .forEach(
+                .having(
                         fact("$b1", TypeB.class),
                         fact("$c1", TypeC.class)
                 )
                 .where("$b1.i * 5 == $c1.i")
                 .exists()
-                .having()
-                .forEach(
+                .having(
                         fact("$b2", TypeB.class),
                         fact("$c2", TypeC.class)
                 )
@@ -244,8 +251,7 @@ class AggregateBaseTests {
         builder
                 .forEach("$a", TypeA.class, "$b", TypeB.class)
                 .where("$a.i == $b.i")
-                .having()
-                .forEach(
+                .having(
                         "$c1", TypeC.class,
                         "$d1", TypeD.class
                 )
@@ -303,8 +309,7 @@ class AggregateBaseTests {
                 .newRule()
                 .forEach("$a", TypeA.class)
                 .where("$a.i > 1")
-                .having()
-                .forEach(fact("$b", TypeB.class))
+                .having(fact("$b", TypeB.class))
                 .where("$b.i == $a.i", "$b.d > 10.0")
                 .exists()
                 .execute(ctx -> ruleCounter1.decrementAndGet())
@@ -312,8 +317,7 @@ class AggregateBaseTests {
                 .newRule()
                 .forEach("$a", TypeA.class)
                 .where("$a.i > 2")
-                .having()
-                .forEach("$b", TypeB.class)
+                .having("$b", TypeB.class)
                 .where("$b.i == $a.i", "$b.d > 30.0")
                 .exists()
                 .execute(ctx -> ruleCounter2.decrementAndGet());
@@ -415,8 +419,7 @@ class AggregateBaseTests {
                 .newRule()
                 .forEach("$a", TypeA.class)
                 .where("$a.i > 1")
-                .having()
-                .forEach(fact("$b", TypeB.class))
+                .having(fact("$b", TypeB.class))
                 .where("$b.i == $a.i", "$b.d > 10.0")
                 .notExists()
                 .execute(ctx -> ruleCounter1.decrementAndGet())
@@ -424,8 +427,7 @@ class AggregateBaseTests {
                 .newRule()
                 .forEach("$a", TypeA.class)
                 .where("$a.i > 2")
-                .having()
-                .forEach("$b", TypeB.class)
+                .having("$b", TypeB.class)
                 .where("$b.i == $a.i", "$b.d > 60.0")
                 .notExists()
                 .execute(ctx -> ruleCounter2.decrementAndGet());

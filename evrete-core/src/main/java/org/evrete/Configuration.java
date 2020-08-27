@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 public class Configuration {
     private static final Logger LOGGER = Logger.getLogger(Configuration.class.getName());
     private static final boolean DEFAULT_USE_REFLECTION = true;
-    private static final boolean DEFAULT_ORDERED_EXECUTION = false;
     private static final int DEFAULT_EXPECTED_OBJECT_COUNT = 256 * 1024;
     private static final int DEFAULT_SESSION_POOL_SIZE = 16;
     private static final int DEFAULT_MEMORY_BUFFER_CAPACITY = 256;
@@ -22,7 +21,6 @@ public class Configuration {
     private int expectedObjectCount = DEFAULT_EXPECTED_OBJECT_COUNT;
     private int memoryBufferCapacity = DEFAULT_MEMORY_BUFFER_CAPACITY;
     private long cycleLimit = DEFAULT_CYCLE_LIMIT;
-    private boolean orderedExecution = DEFAULT_ORDERED_EXECUTION;
     //private final KnowledgeServicesProvider servicesProvider;
     private boolean warnUnknownTypes = DEFAULT_WARN_UNKNOWN_TYPES;
     private boolean entryNodeCachingEnabled = true;
@@ -82,15 +80,6 @@ public class Configuration {
 
     public ExpressionResolver getExpressionsService() {
         return expressionResolver;
-    }
-
-    public boolean isOrderedExecution() {
-        return orderedExecution;
-    }
-
-    public Configuration setOrderedExecution(boolean orderedExecution) {
-        this.orderedExecution = orderedExecution;
-        return this;
     }
 
     public ClassLoader getClassLoader() {

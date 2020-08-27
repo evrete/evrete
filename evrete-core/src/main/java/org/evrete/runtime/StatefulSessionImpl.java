@@ -8,14 +8,12 @@ import org.evrete.runtime.memory.SessionMemory;
 public class StatefulSessionImpl extends SessionMemory implements StatefulSession {
     private final KnowledgeImpl knowledge;
     private final long cycleLimit;
-    private final boolean ordered;
     private boolean active = true;
 
     StatefulSessionImpl(KnowledgeImpl knowledge) {
         super(knowledge);
         this.knowledge = knowledge;
         this.cycleLimit = getConfiguration().getCycleLimit();
-        this.ordered = getConfiguration().isOrderedExecution();
     }
 
     @Override
@@ -36,32 +34,31 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
     @Override
     public void fire() {
         checkState();
-        FireContext ctx = new FireContext(this);
-        if (ordered) {
-            fireOrdered(ctx);
-        } else {
-            fireUnOrdered(ctx);
-        }
+        fireDefault(new FireContext(this));
     }
 
-    private void fireOrdered(FireContext ctx) {
+    private void fireSequential(FireContext ctx) {
+        throw new UnsupportedOperationException();
+/*
         doEvaluationTasks(ctx);
-        for (RuntimeRule r : getRules()) {
-            r.executeRhs();
+        for (RuntimeRule r : getActiveRules()) {
+            ((RuntimeRuleImpl) r).executeRhs();
+            commitMemory();
             if (hasMemoryTasks()) {
-                fireOrdered(ctx);
+                fireSequential(ctx);
             }
         }
+*/
     }
 
-    private void fireUnOrdered(FireContext ctx) {
+    private void fireDefault(FireContext ctx) {
         doEvaluationTasks(ctx);
-        for (RuntimeRule r : getRules()) {
+        for (RuntimeRuleImpl r : getActiveRules()) {
             r.executeRhs();
         }
-
+        commitMemoryDeltas();
         if (hasMemoryTasks()) {
-            fireUnOrdered(ctx);
+            fireDefault(ctx);
         }
     }
 
@@ -70,7 +67,7 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
         if (cycle > cycleLimit) {
             throw new IllegalStateException("Cycling limit of [" + cycleLimit + "] is reached. You might want to check the rules or increase the limit in configuration.");
         }
-        handleBuffer();
+        processChanges();
     }
 
 

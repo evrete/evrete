@@ -1,7 +1,7 @@
 package org.evrete.runtime;
 
+import org.evrete.api.Memory;
 import org.evrete.api.ReIterator;
-import org.evrete.api.RuntimeFact;
 import org.evrete.api.ValueRow;
 import org.evrete.api.spi.SharedBetaFactStorage;
 import org.evrete.runtime.memory.SessionMemory;
@@ -20,6 +20,11 @@ public class RuntimeFactTypeKeyed extends RuntimeFactType {
     }
 
     @Override
+    public Memory getSource() {
+        return keyStorage;
+    }
+
+    @Override
     boolean isBetaNode() {
         return true;
     }
@@ -29,26 +34,24 @@ public class RuntimeFactTypeKeyed extends RuntimeFactType {
     }
 
     public ReIterator<ValueRow[]> deltaIterator() {
-        return keyStorage.delta().keyIterator();
+        return keyStorage.deltaNewKeys().keyIterator();
     }
 
     public SharedBetaFactStorage getKeyStorage() {
         return keyStorage;
     }
 
-
     @Override
     public boolean isInsertDeltaAvailable() {
-        return keyStorage.delta().keyCount() > 0;
+        return keyStorage.deltaNewKeys().keyCount() > 0 || keyStorage.deltaKnownKeys().keyCount() > 0;
+    }
+
+    public boolean hasDeltaKeys() {
+        return keyStorage.deltaNewKeys().keyCount() > 0 || keyStorage.deltaKnownKeys().keyCount() > 0;
     }
 
     @Override
     public boolean isDeleteDeltaAvailable() {
         return keyStorage.hasDeletedKeys();
-    }
-
-    @Override
-    public ReIterator<RuntimeFact> iterator() {
-        throw new UnsupportedOperationException();
     }
 }

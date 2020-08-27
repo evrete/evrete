@@ -199,16 +199,22 @@ public class RuntimeAggregateLhsJoined extends RuntimeAggregateLhs {
             this.types = descriptor.getTypes();
             this.index = index;
 
+            this.main = null;
+            this.delta = null;
+/*
             this.main = iterator.getMainIterator();
             this.delta = iterator.getDeltaIterator();
+*/
         }
 
         ReIterator<ValueRow[]> main() {
-            return main;
+            throw new UnsupportedOperationException();
+            //return main;
         }
 
         ReIterator<ValueRow[]> delta() {
-            return delta;
+            throw new UnsupportedOperationException();
+            //return delta;
         }
     }
 }

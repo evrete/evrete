@@ -3,6 +3,7 @@ package org.evrete.runtime;
 import org.evrete.AbstractRule;
 import org.evrete.api.ValueRow;
 import org.evrete.runtime.memory.SessionMemory;
+import org.evrete.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,9 +18,11 @@ public abstract class AbstractRuntimeRule extends AbstractRule {
     private final RuntimeFactTypeKeyed[] betaFactSources;
     private final SessionMemory memory;
     private final Function<FactType, Predicate<ValueRow>> deletedKeys;
+    private final RuleDescriptor descriptor;
 
     AbstractRuntimeRule(RuleDescriptor descriptor, SessionMemory memory) {
         super(descriptor);
+        this.descriptor  = descriptor;
         this.memory = memory;
         FactType[] allFactTypes = descriptor.getLhs().getAllFactTypes();
         this.factSources = buildTypes(memory, allFactTypes);
@@ -35,6 +38,10 @@ public abstract class AbstractRuntimeRule extends AbstractRule {
             }
         }
         this.betaFactSources = betaNodes.toArray(new RuntimeFactTypeKeyed[0]);
+    }
+
+    public RuleDescriptor getDescriptor() {
+        return descriptor;
     }
 
     public Function<FactType, Predicate<ValueRow>> getDeletedKeys() {
@@ -55,8 +62,8 @@ public abstract class AbstractRuntimeRule extends AbstractRule {
         return (T) this.factSources[type.getInRuleIndex()];
     }
 
-    public RuntimeFactType[] resolve(FactType[] types) {
-        RuntimeFactType[] resolved = new RuntimeFactType[types.length];
+    public <Z extends RuntimeFactType> Z[] resolve(Class<Z> type, FactType[] types) {
+        Z[] resolved = CollectionUtils.array(type, types.length);// new RuntimeFactType[types.length];
         for (int i = 0; i < types.length; i++) {
             resolved[i] = resolve(types[i]);
         }
@@ -70,7 +77,7 @@ public abstract class AbstractRuntimeRule extends AbstractRule {
     //TODO !!! optimize
     public boolean isInsertDeltaAvailable() {
         boolean delta = false;
-        for (RuntimeFactTypeKeyed ft : this.betaFactSources) {
+        for (RuntimeFactType ft : this.getAllFactTypes()) {
             if (ft.isInsertDeltaAvailable()) {
                 delta = true;
             }

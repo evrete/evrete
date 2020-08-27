@@ -1,14 +1,9 @@
 package org.evrete.runtime;
 
-import org.evrete.api.ReIterator;
-import org.evrete.api.RuntimeFact;
-import org.evrete.api.ValueRow;
+import org.evrete.api.*;
 import org.evrete.runtime.memory.BetaEndNode;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BooleanSupplier;
 
 
@@ -21,13 +16,14 @@ public abstract class AbstractRuntimeLhs {
     final RuntimeFact[][] factState;
     private final ValueRow[][] keyState;
     final boolean hasBetaNodes;
-    private final RhsFactGroupIterator[] factGroupIterators;
+    private final NestedFactRunnable[] factGroupIterators;
     private final RhsKeysGroupIterator[] keyIterators;
     private final RhsFactGroupIterator looseFactGroupIterator;
-    private final Runnable factIterator;
-    private final RhsFactGroupIterator lastFactGroupIterator;
-    private final Runnable keyIterator;
-    private final RhsKeysGroupIterator lastKeyIterator;
+    private final NestedFactRunnable factIterator;
+    private final NestedFactRunnable lastFactGroupIterator;
+    private final boolean fullKeyScan;
+    //private final Runnable keyIterator;
+    //private final RhsKeysGroupIterator lastKeyIterator;
 
     AbstractRuntimeLhs(RuntimeRuleImpl rule, AbstractRuntimeLhs parent, AbstractLhsDescriptor descriptor) {
         this.descriptor = descriptor;
@@ -60,65 +56,61 @@ public abstract class AbstractRuntimeLhs {
             FactType[] types = groupDescriptor.getTypes();
             this.factState[factGroupId] = new RuntimeFact[types.length];
 
-            RhsFactGroupIterator groupIterator = new RhsFactGroupIterator(factGroupId, factState);
+            //RhsFactGroupIterator groupIterator = new RhsFactGroupIterator(factGroupId, factState);
+            RhsFactGroupIterator groupIterator;
             if (groupDescriptor.isLooseGroup()) {
                 // For a loose (alpha) group we're able to init fact iterators immediately
                 // because they won't ever change
-                groupIterator.setIterables(rule.resolve(types));
+                groupIterator = new RhsFactGroupIteratorLoose(factGroupId, rule.resolve(RuntimeFactTypePlain.class, types), factState);
                 if (looseIterator == null) {
                     looseIterator = groupIterator;
                 } else {
+                    // Duplicate loose iterator
                     throw new IllegalStateException();
                 }
             } else {
-                ReIterator<ValueRow[]> mainIterator;
-                ReIterator<ValueRow[]> deltaIterator;
                 ConditionNodeDescriptor finalNode = groupDescriptor.getFinalNode();
+                RhsKeysGroupIterator iterator;
+                int keyGroupId = groupDescriptor.getKeyGroupIndex();
                 if (finalNode != null) {
-                    BetaEndNode endNode = resolve(finalNode);
-                    mainIterator = endNode.mainIterator();
-                    deltaIterator = endNode.deltaIterator();
+                    BetaEndNode endNode = betaEndNodeMap.get(finalNode);
+                    groupIterator = new RhsFactGroupIteratorKeyed(factGroupId, factState);
+                    iterator = new RhsKeysGroupIterator(keyGroupId, endNode, groupIterator, keyState);
                 } else {
+                    throw new UnsupportedOperationException();
+/*
                     assert types.length == 1;
                     RuntimeFactTypeKeyed runtimeFactType = rule.resolve(types[0]);
+                    rtFactTypes = new RuntimeFactTypeKeyed[]{rule.resolve(types[0])};
                     mainIterator = runtimeFactType.mainIterator();
                     deltaIterator = runtimeFactType.deltaIterator();
+*/
                 }
 
-                int keyGroupId = groupDescriptor.getKeyGroupIndex();
-                RhsKeysGroupIterator iterator = RhsKeysGroupIterator.factory(keyGroupId, groupDescriptor, groupIterator, mainIterator, deltaIterator, keyState);
 
 
                 // Save and chain key iterators
                 keyIterators[keyGroupId] = iterator;
+/*
                 if (keyGroupId > 0) {
                     RhsKeysGroupIterator prev = keyIterators[keyGroupId - 1];
-                    prev.setRunnable(iterator);
+                    prev.setNested(iterator);
                 }
+*/
             }
 
             //Save and chain the FactGroupIterator
             factGroupIterators[factGroupId] = groupIterator;
             if (i > 0) {
-                RhsFactGroupIterator prev = factGroupIterators[i - 1];
+                NestedFactRunnable prev = factGroupIterators[i - 1];
                 prev.setDelegate(groupIterator);
             }
         }
 
         this.looseFactGroupIterator = looseIterator;
+        this.fullKeyScan = looseIterator != null;
         this.factIterator = factGroupIterators[0];
         this.lastFactGroupIterator = factGroupIterators[factGroupIterators.length - 1];
-
-
-        // Init key iterators
-        if (keyIterators.length > 0) {
-            this.keyIterator = keyIterators[0];
-            this.lastKeyIterator = keyIterators[keyIterators.length - 1];
-        } else {
-            this.keyIterator = null;
-            this.lastKeyIterator = null;
-        }
-
         this.hasBetaNodes = keyIterators.length > 0;
 
     }
@@ -147,14 +139,60 @@ public abstract class AbstractRuntimeLhs {
         return keyIterators;
     }
 
+    public AbstractLhsDescriptor getDescriptor() {
+        return descriptor;
+    }
+
+    /*
     void forEachKey(Runnable r) {
         lastKeyIterator.setRunnable(r);
         keyIterator.run();
     }
+*/
 
-    void forEachFact(Runnable r) {
+    void forEachKey(Runnable r) {
+        forEachKey(0, false, r);
+    }
+
+    void forEachKey(int index, boolean hasDelta, Runnable r) {
+        RhsKeysGroupIterator groupIterator = keyIterators[index];
+        EnumMap<KeyMode, ReIterator<ValueRow[]>> modeIterators = groupIterator.keyIterators();
+        KeyMode mode;
+        boolean iteratorPass;
+        ReIterator<ValueRow[]> i;
+
+        if(index == keyIterators.length - 1) {
+            // The last key
+            for(Map.Entry<KeyMode, ReIterator<ValueRow[]>> entry : modeIterators.entrySet()) {
+                mode = entry.getKey();
+                i = entry.getValue();
+                iteratorPass = fullKeyScan || hasDelta || mode.isDeltaMode();
+
+                if(iteratorPass && i.reset() > 0) {
+                    while (i.hasNext()) {
+                        groupIterator.initFactIterators(i.next());
+                        r.run();
+                    }
+                }
+            }
+        } else {
+            // A middle key
+            for(Map.Entry<KeyMode, ReIterator<ValueRow[]>> entry : modeIterators.entrySet()) {
+                mode = entry.getKey();
+                i = entry.getValue();
+                if(i.reset() > 0) {
+                    while (i.hasNext()) {
+                        groupIterator.initFactIterators(i.next());
+                        forEachKey(index + 1, mode.isDeltaMode(), r);
+                    }
+                }
+            }
+        }
+    }
+
+    void forEachFact(NestedFactRunnable r) {
         lastFactGroupIterator.setDelegate(r);
-        factIterator.run();
+        factIterator.forEachFact();
     }
 
     public final BetaEndNode resolve(ConditionNodeDescriptor descriptor) {

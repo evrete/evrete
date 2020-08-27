@@ -1,6 +1,7 @@
 package org.evrete.runtime.memory;
 
 import org.evrete.api.FieldsKey;
+import org.evrete.api.Memory;
 import org.evrete.api.ReIterator;
 import org.evrete.api.RuntimeFact;
 import org.evrete.api.spi.SharedBetaFactStorage;
@@ -10,8 +11,9 @@ import org.evrete.runtime.RuntimeObject;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
 import java.util.Collection;
+import java.util.logging.Logger;
 
-public class FieldsMemory implements MemoryChangeListener {
+public class FieldsMemory implements Memory {
     private final FieldsKey typeFields;
     private final SessionMemory runtime;
     private final ArrayOf<FieldsMemoryBucket> alphaBuckets;
@@ -33,6 +35,13 @@ public class FieldsMemory implements MemoryChangeListener {
             } else {
                 return storage;
             }
+        }
+    }
+
+    @Override
+    public void commitChanges() {
+        for(FieldsMemoryBucket bucket : alphaBuckets.data) {
+            bucket.commitChanges();
         }
     }
 
@@ -75,14 +84,6 @@ public class FieldsMemory implements MemoryChangeListener {
     void retract(Collection<RuntimeFact> facts) {
         for (FieldsMemoryBucket bucket : alphaBuckets.data) {
             bucket.retract(facts);
-        }
-    }
-
-    @Override
-    public void onAfterChange() {
-        for (FieldsMemoryBucket bucket : alphaBuckets.data) {
-            bucket.mergeInsertDelta();
-            bucket.mergeDeleteDelta();
         }
     }
 }

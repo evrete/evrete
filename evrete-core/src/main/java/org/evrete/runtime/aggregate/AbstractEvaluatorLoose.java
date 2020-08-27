@@ -19,7 +19,8 @@ abstract class AbstractEvaluatorLoose implements BooleanSupplier {
         RhsKeysGroupIterator[] keyGroupIterators = aggregateLhs.getKeyGroupIterators();
         this.keyReIterators = new ReIterator[keyGroupIterators.length];
         for (int i = 0; i < keyGroupIterators.length; i++) {
-            this.keyReIterators[i] = keyGroupIterators[i].getMainIterator();
+            throw new UnsupportedOperationException();
+            //this.keyReIterators[i] = keyGroupIterators[i].getMainIterator();
         }
 
     }

@@ -21,7 +21,7 @@ public class DefaultCollectionsService implements CollectionsService {
 
     @Override
     public SharedBetaFactStorage newBetaStorage(FieldsKey typeFields) {
-        return new SharedBetaDataTuple(typeFields);
+        return new SharedBetaData(typeFields);
     }
 
     @Override

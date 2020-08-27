@@ -1,20 +1,25 @@
 package org.evrete.helper;
 
+import org.drools.core.impl.KnowledgeBaseFactory;
 import org.evrete.api.ReIterator;
 import org.evrete.api.StatefulSession;
 import org.evrete.collections.CollectionReIterator;
 import org.evrete.collections.FastHashMap;
 import org.evrete.collections.FastHashSet;
 import org.evrete.util.CollectionUtils;
+import org.kie.api.KieBase;
 import org.kie.api.KieServices;
-import org.kie.api.builder.KieBuilder;
-import org.kie.api.builder.KieFileSystem;
-import org.kie.api.builder.KieRepository;
-import org.kie.api.builder.Message;
+import org.kie.api.builder.*;
+import org.kie.api.io.Resource;
+import org.kie.api.io.ResourceType;
 import org.kie.api.runtime.KieContainer;
+import org.kie.internal.builder.KnowledgeBuilder;
+import org.kie.internal.builder.KnowledgeBuilderFactory;
 import org.kie.internal.io.ResourceFactory;
+import org.kie.internal.utils.KieHelper;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
@@ -54,22 +59,35 @@ public final class TestUtils {
         return col;
     }
 
+    //TODO
     public static KieContainer droolsKnowledge(String file) {
         KieServices ks = KieServices.get();
-        //ks.newKieBaseConfiguration()
         KieRepository kr = ks.getRepository();
         KieFileSystem kfs = ks.newKieFileSystem();
-
+/*
+        KnowledgeBuilder builder = KnowledgeBuilderFactory.newKnowledgeBuilder();
+        builder.add(ResourceFactory.newFileResource(new File(file)), ResourceType.DRL);
+*/
         kfs.write(ResourceFactory.newFileResource(new File(file)));
-
         KieBuilder kb = ks.newKieBuilder(kfs);
-
-        kb.buildAll(); // kieModule is automatically deployed to KieRepository if successfully built.
+        kb.buildAll();
         if (kb.getResults().hasMessages(Message.Level.ERROR)) {
             throw new RuntimeException("Build Errors:\n" + kb.getResults().toString());
         }
 
         return ks.newKieContainer(kr.getDefaultReleaseId());
+    }
+
+    public static KieBase droolsKnowledge1(String file) {
+        KieHelper helper = new KieHelper();
+        Resource resource = ResourceFactory.newFileResource(file);
+        helper.addResource(resource, ResourceType.DRL);
+        Results results = helper.verify();
+        if (results.hasMessages(Message.Level.ERROR)) {
+            System.out.println(results.getMessages());
+            throw new RuntimeException("Build Errors:\n" + results.toString());
+        }
+        return helper.build();
     }
 
     public static <Z> IterableSet<Z> setOf(Set<Z> set) {

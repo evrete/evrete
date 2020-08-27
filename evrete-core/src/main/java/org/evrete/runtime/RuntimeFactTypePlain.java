@@ -1,16 +1,13 @@
 package org.evrete.runtime;
 
-import org.evrete.api.ReIterable;
-import org.evrete.api.ReIterator;
-import org.evrete.api.RuntimeFact;
 import org.evrete.runtime.memory.SessionMemory;
 
 public final class RuntimeFactTypePlain extends RuntimeFactType {
-    private final ReIterable<RuntimeFact> iterable;
+    private final PlainMemory plainMemory;
 
     RuntimeFactTypePlain(SessionMemory runtime, FactType other) {
         super(runtime, other);
-        this.iterable = runtime.get(other.getType()).get(other.getAlphaMask());
+        this.plainMemory = runtime.get(other.getType()).get(other.getAlphaMask());
     }
 
     @Override
@@ -25,11 +22,11 @@ public final class RuntimeFactTypePlain extends RuntimeFactType {
 
     @Override
     public boolean isInsertDeltaAvailable() {
-        throw new UnsupportedOperationException();
+        return plainMemory.hasChanges();
     }
 
     @Override
-    public ReIterator<RuntimeFact> iterator() {
-        return iterable.iterator();
+    public PlainMemory getSource() {
+        return plainMemory;
     }
 }

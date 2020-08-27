@@ -1,10 +1,6 @@
 package org.evrete.runtime.memory;
 
-import org.evrete.api.KeysStore;
-import org.evrete.api.ReIterator;
-import org.evrete.api.ThreadUnsafe;
-import org.evrete.api.ValueRow;
-import org.evrete.api.spi.SharedBetaFactStorage;
+import org.evrete.api.*;
 import org.evrete.collections.MappedReIterator;
 import org.evrete.runtime.EntryNodeDescriptor;
 import org.evrete.runtime.RuntimeFactType;
@@ -19,7 +15,7 @@ public class BetaEntryNode extends RuntimeFactTypeKeyed implements BetaMemoryNod
     BetaEntryNode(EntryNodeDescriptor node, RuntimeFactTypeKeyed factType) {
         super(factType);
         this.descriptor = node;
-        this.deltaStore = new KeysStoreDelegate(getKeyStorage().delta());
+        this.deltaStore = new KeysStoreDelegate(getKeyStorage().deltaNewKeys());
         this.mainStore = new KeysStoreDelegate(getKeyStorage().main());
         this.grouping = new RuntimeFactType[1][1];
         this.grouping[0][0] = this;
@@ -50,10 +46,10 @@ public class BetaEntryNode extends RuntimeFactTypeKeyed implements BetaMemoryNod
     }
 
     static class KeysStoreDelegate extends KeysStoreStub {
-        private final SharedBetaFactStorage.Scope storage;
+        private final KeyIterable storage;
         private final ReIterator<Entry> entryReIterator;
 
-        KeysStoreDelegate(SharedBetaFactStorage.Scope storage) {
+        KeysStoreDelegate(KeyIterable storage) {
             this.storage = storage;
             final DummyEntry entry = new DummyEntry();
 

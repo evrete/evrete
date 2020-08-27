@@ -56,11 +56,9 @@ public class RuntimeLhs extends AbstractRuntimeLhs implements RhsContext, Memory
         this.allBetaEndNodes = allBetas.toArray(BetaEndNode.ZERO_ARRAY);
     }
 
-
     static RuntimeLhs factory(RuntimeRuleImpl rule, LhsDescriptor descriptor, Buffer buffer) {
         return new RuntimeLhs(rule, descriptor, buffer);
     }
-
 
     public Collection<RuntimeAggregateLhsJoined> getAggregateConditionedGroups() {
         return aggregateConditionedGroups;
@@ -79,7 +77,7 @@ public class RuntimeLhs extends AbstractRuntimeLhs implements RhsContext, Memory
         forEach(() -> rhs.accept(this));
     }
 
-    private void forEach(Runnable eachFactRunnable) {
+    private void forEach(NestedFactRunnable eachFactRunnable) {
         if (testLooseGroups()) {
             if (hasBetaNodes) {
                 forEachKey(

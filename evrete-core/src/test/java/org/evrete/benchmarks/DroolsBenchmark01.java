@@ -99,7 +99,7 @@ public class DroolsBenchmark01 extends DroolsBenchmarkBase {
         public void initKnowledge() {
             service = new KnowledgeService();
             Knowledge eKnowledge = service.newKnowledge();
-            eKnowledge.newRule("sample02")
+            eKnowledge.newRule("sample01")
                     .forEach(
                             fact("$a", TypeA.class),
                             fact("$b", TypeB.class)

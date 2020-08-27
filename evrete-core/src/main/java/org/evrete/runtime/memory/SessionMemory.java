@@ -13,6 +13,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 
 public class SessionMemory extends AbstractRuntime<StatefulSession> implements WorkingMemory, MemoryChangeListener {
     private final BufferSafe buffer;
@@ -151,35 +152,36 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         return ruleStorage.asList();
     }
 
-    protected void handleBuffer() {
+    public List<RuntimeRuleImpl> getActiveRules() {
+        return ruleStorage.activeRules();
+    }
+
+    protected void processChanges() {
         onBeforeChange();
         List<Completer> tasksQueue = new LinkedList<>();
 
-        // 1. Deletes
+        // 1. Do deletes
         handleDeletes(tasksQueue);
 
         // 2. Do inserts
         handleInserts(tasksQueue);
 
         // 3. Execute all tasks orderly
-        ForkJoinExecutor executor = getExecutor();
-        for (Completer task : tasksQueue) {
-            executor.invoke(task);
+        if(!tasksQueue.isEmpty()) {
+            ForkJoinExecutor executor = getExecutor();
+            for (Completer task : tasksQueue) {
+                executor.invoke(task);
+            }
         }
-
+        //TODO !!! find a better place
+        buffer.clear();
         onAfterChange();
     }
 
     @Override
-    public void onAfterChange() {
-        buffer.clear();
-        ruleStorage.onAfterChange();
-        typedMemories.forEachValue(MemoryChangeListener::onAfterChange);
-    }
-
-    @Override
     public void onBeforeChange() {
-        ruleStorage.onBeforeChange();
+        //Logger.getAnonymousLogger().warning("!!!!!");
+        //ruleStorage.onBeforeChange();
         typedMemories.forEachValue(MemoryChangeListener::onBeforeChange);
     }
 
@@ -191,7 +193,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
                     while (iterator.hasNext()) {
                         tm.deleteSingle(iterator.next());
                     }
-                    tm.commitDelete();
+                    tm.doDelete();
                 }
         );
 
@@ -219,16 +221,18 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         );
 
         // Ordered task 1 - update end nodes
-        Collection<RuntimeRuleImpl> ruleInsertChanges = new LinkedList<>();
+        Collection<BetaEndNode> deltaEndNodes = new LinkedList<>();
 
         for (RuntimeRuleImpl rule : ruleStorage) {
-            if (rule.isInsertDeltaAvailable()) {
-                ruleInsertChanges.add(rule);
+            for(BetaEndNode endNode : rule.getAllBetaEndNodes()) {
+                if(endNode.hasDeltaSources()) {
+                    deltaEndNodes.add(endNode);
+                }
             }
         }
 
-        if (!ruleInsertChanges.isEmpty()) {
-            tasksQueue.add(new RuleMemoryInsertTask(ruleInsertChanges, true));
+        if (!deltaEndNodes.isEmpty()) {
+            tasksQueue.add(new RuleMemoryInsertTask(deltaEndNodes, true));
         }
 
 
@@ -262,6 +266,11 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
             return m;
         }
     }
+
+    protected void commitMemoryDeltas() {
+        typedMemories.forEachValue(TypeMemory::commitMemoryDeltas);
+    }
+
 
     protected boolean hasMemoryTasks() {
         return buffer.hasTasks();

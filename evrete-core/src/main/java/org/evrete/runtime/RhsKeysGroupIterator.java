@@ -1,41 +1,51 @@
 package org.evrete.runtime;
 
-import org.evrete.api.EachRunnable;
-import org.evrete.api.ReIterator;
-import org.evrete.api.ValueRow;
+import org.evrete.api.*;
 
+import java.util.EnumMap;
 import java.util.function.BooleanSupplier;
 
-public abstract class RhsKeysGroupIterator implements EachRunnable, Runnable {
+public class RhsKeysGroupIterator implements KeyIteratorsBundle<ValueRow[]> {
     private static final BooleanSupplier TRUE_PREDICATE = () -> true;
-    private final ReIterator<ValueRow[]> mainIterator;
-    private final ReIterator<ValueRow[]> deltaIterator;
     private final RhsFactGroupIterator groupIterator;
-    private Runnable runnable;
     private final ValueRow[][] state;
     private final int keyGroupId;
     private BooleanSupplier statePredicate = TRUE_PREDICATE;
+    private final KeyIteratorsBundle<ValueRow[]> endNode;
 
-    RhsKeysGroupIterator(int keyGroupId, RhsFactGroupIterator groupIterator, ReIterator<ValueRow[]> mainIterator, ReIterator<ValueRow[]> deltaIterator, ValueRow[][] state) {
-        this.mainIterator = mainIterator;
-        this.deltaIterator = deltaIterator;
+    public RhsKeysGroupIterator(int keyGroupId, KeyIteratorsBundle<ValueRow[]> endNode, RhsFactGroupIterator groupIterator, ValueRow[][] state) {
         this.groupIterator = groupIterator;
         this.keyGroupId = keyGroupId;
         this.state = state;
+        this.endNode = endNode;
     }
 
-    static RhsKeysGroupIterator factory(int keyGroupId, RhsFactGroupDescriptor groupDescriptor, RhsFactGroupIterator groupIterator, ReIterator<ValueRow[]> mainIterator, ReIterator<ValueRow[]> deltaIterator, ValueRow[][] state) {
+/*
+    static RhsKeysGroupIterator factory(int keyGroupId, RhsFactGroupDescriptor groupDescriptor, RhsFactGroupIterator groupIterator, ReIterator<ValueRow[]> mainIterator, ReIterator<ValueRow[]> deltaIterator, RuntimeFactTypeKeyed[] rtFactTypes, ValueRow[][] state) {
+
         return groupDescriptor.isAllUniqueKeysAndAlpha() ?
-                new WithIterators(keyGroupId, groupIterator, mainIterator, deltaIterator, state)
+                new WithIterators(keyGroupId, groupIterator, mainIterator, deltaIterator, rtFactTypes, state)
                 :
-                new WithIterables(keyGroupId, groupIterator, mainIterator, deltaIterator, state);
+                new WithIterables(keyGroupId, groupIterator, mainIterator, deltaIterator, rtFactTypes, state);
 
     }
+*/
 
+    @Override
+    public EnumMap<KeyMode, ReIterator<ValueRow[]>> keyIterators() {
+        return endNode.keyIterators();
+    }
+
+    void initFactIterators(ValueRow[] key) {
+        groupIterator.setIterables(key);
+    }
+
+/*
     @Override
     public void run() {
         runForEach(runnable);
     }
+*/
 
     public void addStateKeyPredicate(BooleanSupplier predicate) {
         if (this.statePredicate == TRUE_PREDICATE) {
@@ -46,10 +56,7 @@ public abstract class RhsKeysGroupIterator implements EachRunnable, Runnable {
         }
     }
 
-    public void setRunnable(Runnable runnable) {
-        this.runnable = runnable;
-    }
-
+/*
     public ReIterator<ValueRow[]> getMainIterator() {
         return mainIterator;
     }
@@ -57,7 +64,9 @@ public abstract class RhsKeysGroupIterator implements EachRunnable, Runnable {
     public ReIterator<ValueRow[]> getDeltaIterator() {
         return deltaIterator;
     }
+*/
 
+/*
     @Override
     public void runForEach(Runnable r) {
         if (mainIterator.reset() == 0) return;
@@ -70,6 +79,7 @@ public abstract class RhsKeysGroupIterator implements EachRunnable, Runnable {
             }
         }
     }
+*/
 
     void setFactIterables(ValueRow[] next) {
         groupIterator.setIterables(next);
@@ -79,11 +89,14 @@ public abstract class RhsKeysGroupIterator implements EachRunnable, Runnable {
         groupIterator.setIterators(next);
     }
 
+/*
     abstract void initFactIterators(ValueRow[] next);
+*/
 
+/*
     private static class WithIterators extends RhsKeysGroupIterator {
-        WithIterators(int keyGroupId, RhsFactGroupIterator groupIterator, ReIterator<ValueRow[]> mainIterator, ReIterator<ValueRow[]> deltaIterator, ValueRow[][] state) {
-            super(keyGroupId, groupIterator, mainIterator, deltaIterator, state);
+        WithIterators(int keyGroupId, RhsFactGroupIterator groupIterator, ReIterator<ValueRow[]> mainIterator, ReIterator<ValueRow[]> deltaIterator, RuntimeFactTypeKeyed[] rtFactTypes, ValueRow[][] state) {
+            super(keyGroupId, groupIterator, mainIterator, deltaIterator, rtFactTypes, state);
         }
 
         @Override
@@ -93,8 +106,8 @@ public abstract class RhsKeysGroupIterator implements EachRunnable, Runnable {
     }
 
     private static class WithIterables extends RhsKeysGroupIterator {
-        WithIterables(int keyGroupId, RhsFactGroupIterator groupIterator, ReIterator<ValueRow[]> mainIterator, ReIterator<ValueRow[]> deltaIterator, ValueRow[][] state) {
-            super(keyGroupId, groupIterator, mainIterator, deltaIterator, state);
+        WithIterables(int keyGroupId, RhsFactGroupIterator groupIterator, ReIterator<ValueRow[]> mainIterator, ReIterator<ValueRow[]> deltaIterator, RuntimeFactTypeKeyed[] rtFactTypes, ValueRow[][] state) {
+            super(keyGroupId, groupIterator, mainIterator, deltaIterator, rtFactTypes, state);
         }
 
         @Override
@@ -102,6 +115,6 @@ public abstract class RhsKeysGroupIterator implements EachRunnable, Runnable {
             setFactIterables(next);
         }
     }
-
+*/
 
 }

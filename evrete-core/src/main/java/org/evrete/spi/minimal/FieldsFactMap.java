@@ -1,14 +1,16 @@
 package org.evrete.spi.minimal;
 
+import org.evrete.api.KeyIterable;
 import org.evrete.api.ReIterator;
 import org.evrete.api.RuntimeFact;
 import org.evrete.api.ValueRow;
 import org.evrete.api.spi.SharedBetaFactStorage;
 
 import java.util.function.BiPredicate;
+import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
-class FieldsFactMap extends org.evrete.collections.AbstractHashData<ValueRowImpl> implements SharedBetaFactStorage.Scope {
+class FieldsFactMap extends org.evrete.collections.AbstractHashData<ValueRowImpl> implements KeyIterable {
     private static final ToIntFunction<Object> HASH_FUNCTION = Object::hashCode;
     private static final BiPredicate<ValueRowImpl, ValueRowImpl> EQ_FUNCTION_TYPED = ValueRowImpl::equals;
 
@@ -22,6 +24,10 @@ class FieldsFactMap extends org.evrete.collections.AbstractHashData<ValueRowImpl
         });
     }
 
+    ReIterator<ValueRow> keyIterator1() {
+        return iterator(valueRow -> valueRow);
+    }
+
     @Override
     public final long keyCount() {
         return size();
@@ -33,7 +39,7 @@ class FieldsFactMap extends org.evrete.collections.AbstractHashData<ValueRowImpl
     }
 
     public void addAll(FieldsFactMap other) {
-        resize((int) (this.size() + other.size() + 1));
+        resize(this.size() + other.size() + 1);
         other.forEachDataEntry(this::insertOtherNoResize);
     }
 
@@ -41,6 +47,7 @@ class FieldsFactMap extends org.evrete.collections.AbstractHashData<ValueRowImpl
     protected BiPredicate<Object, Object> getEqualsPredicate() {
         return IDENTITY_EQUALS;
     }
+
 
     private void insertOtherNoResize(ValueRowImpl other) {
         int hash = other.hashCode();

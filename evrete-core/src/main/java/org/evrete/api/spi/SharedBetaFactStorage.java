@@ -1,30 +1,17 @@
 package org.evrete.api.spi;
 
-import org.evrete.api.KeyIterable;
-import org.evrete.api.RuntimeFact;
-import org.evrete.api.ValueRow;
+import org.evrete.api.*;
 
-public interface SharedBetaFactStorage {
+import java.util.Collection;
+import java.util.function.Predicate;
+
+public interface SharedBetaFactStorage extends Memory, KeyIteratorsBundle<ValueRow> {
 
     void ensureDeltaCapacity(int insertCount);
 
     boolean delete(RuntimeFact fact);
 
-    /**
-     * <p>
-     * The method first reads the fact's key (values of specific fields) and
-     * checks if any of main and delta repositories contain such a key. If
-     * they don't, a new key will be created in the delta repository, the fact
-     * will be stored there under this key, and the method will return true.
-     * If the key is already known, the fact will be appended to the corresponding
-     * repository, and the method will return false.
-     * </p>
-     *
-     * @param fact fact to process
-     * @return true if the fact's field values (the storage key) are unknown to either
-     * delta and main scopes
-     */
-    boolean insert(RuntimeFact fact);
+    void insert(Collection<? extends RuntimeFact> collection, Predicate<RuntimeFact> predicate);
 
     /**
      * <p>
@@ -36,22 +23,17 @@ public interface SharedBetaFactStorage {
      */
     void insertDirect(RuntimeFact fact);
 
-    void mergeDelta();
-
     void clearDeletedKeys();
 
     boolean hasDeletedKeys();
 
     boolean isKeyDeleted(ValueRow row);
 
-    Scope delta();
+    KeyIterable deltaNewKeys();
 
-    Scope main();
+    KeyIterable deltaKnownKeys();
+
+    KeyIterable main();
 
     void clear();
-
-    interface Scope extends KeyIterable {
-
-        long keyCount();
-    }
 }

@@ -14,6 +14,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements MemoryChange
     private final RuntimeLhs lhs;
     private final Buffer ruleBuffer;
     private final Buffer memoryBuffer;
+    private boolean inActiveState = false;
 
     public RuntimeRuleImpl(RuleDescriptor rd, SessionMemory memory) {
         super(rd, memory);
@@ -22,11 +23,18 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements MemoryChange
         this.lhs = RuntimeLhs.factory(this, rd.getLhs(), ruleBuffer);
     }
 
-    @Override
     public final void executeRhs() {
+        assert this.inActiveState;
         this.lhs.forEach(rhs);
         // Merge memory changes
         memoryBuffer.takeAllFrom(ruleBuffer);
+        resetState();
+    }
+
+    boolean readActiveState() {
+        //TODO !!!!! do deletes mean an active state??????
+        this.inActiveState = isDeleteDeltaAvailable() || isInsertDeltaAvailable();
+        return inActiveState;
     }
 
     public final RuntimeRuleImpl setRhs(Consumer<RhsContext> consumer) {
@@ -34,16 +42,35 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements MemoryChange
         return this;
     }
 
+    public final RuntimeRuleImpl chainRhs(Consumer<RhsContext> consumer) {
+        super.chainRhs(consumer);
+        return this;
+    }
+
     @Override
     public void onAfterChange() {
-        resetState();
+        throw new UnsupportedOperationException();
+        //resetState();
+    }
+
+    public boolean isInActiveState() {
+        return inActiveState;
+    }
+
+    public void setInActiveState(boolean inActiveState) {
+        this.inActiveState = inActiveState;
     }
 
     private void resetState() {
+        this.inActiveState = false;
         // Merge deltas if available
         for (BetaEndNode endNode : lhs.getAllBetaEndNodes()) {
             endNode.mergeDelta();
         }
+    }
+
+    public RuntimeLhs getLhs() {
+        return lhs;
     }
 
     public BetaEndNode[] getAllBetaEndNodes() {

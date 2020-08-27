@@ -3,8 +3,9 @@ package org.evrete.runtime.evaluation;
 import org.evrete.api.RuntimeFact;
 
 import java.util.Arrays;
+import java.util.function.Predicate;
 
-public abstract class AlphaBucketMeta {
+public abstract class AlphaBucketMeta implements Predicate<RuntimeFact> {
     private static final AlphaEvaluator[] EMPTY_INDICES = new AlphaEvaluator[0];
     private static final boolean[] EMPTY_VALUES = new boolean[0];
     static final AlphaBucketMeta NO_FIELDS_NO_CONDITIONS = new AlphaBucketMeta(-777, EMPTY_INDICES, EMPTY_VALUES) {
@@ -26,6 +27,7 @@ public abstract class AlphaBucketMeta {
         this.hash = hash(alphaEvaluators, requiredValues);
     }
 
+    @Override
     public boolean test(RuntimeFact fact) {
         boolean[] tests = fact.getAlphaTests();
         for (AlphaEvaluator e : alphaEvaluators) {

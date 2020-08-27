@@ -15,4 +15,6 @@ public class SharedAlphaData extends FastIdentityHashSet<RuntimeFact> implements
     public void insert(RuntimeFact fact) {
         super.addNoResize(fact);
     }
+
+
 }

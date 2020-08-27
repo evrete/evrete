@@ -16,4 +16,6 @@ public interface Rule extends Named {
     <T> T getProperty(String name, T defaultValue);
 
     Rule setRhs(Consumer<RhsContext> rhs);
+
+    Rule chainRhs(Consumer<RhsContext> consumer);
 }

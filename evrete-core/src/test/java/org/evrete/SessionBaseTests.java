@@ -2,6 +2,7 @@ package org.evrete;
 
 import org.evrete.api.*;
 import org.evrete.classes.*;
+import org.evrete.helper.RhsAssert;
 import org.evrete.helper.TestUtils;
 import org.evrete.runtime.KnowledgeImpl;
 import org.evrete.runtime.StatefulSessionImpl;
@@ -138,18 +139,12 @@ class SessionBaseTests {
             rootGroup.where(randomCondition(references));
         }
 
-        AtomicInteger callCount = new AtomicInteger(0);
-        rootGroup.execute(ctx -> {
-            assert ctx.get("$TypeA").getClass().equals(TypeA.class);
-            assert ctx.get("$TypeB").getClass().equals(TypeB.class);
-            assert ctx.get("$TypeC").getClass().equals(TypeC.class);
-            assert ctx.get("$TypeD").getClass().equals(TypeD.class);
-            callCount.incrementAndGet();
-        });
+        rootGroup.execute();
 
 
         StatefulSession s = kn.createSession();
-
+        RhsAssert rhsAssert = new RhsAssert(s);
+        s.getRule("random").setRhs(rhsAssert);
         for (int i = 0; i < objectCount; i++) {
             TypeA a = new TypeA();
             TypeB b = new TypeB();
@@ -169,7 +164,8 @@ class SessionBaseTests {
             s.insert(a, b, c, d);
         }
         s.fire();
-        assert callCount.get() == Math.pow(objectCount, 4) : "Actual: " + callCount.get();
+        //assert callCount.get() == Math.pow(objectCount, 4) : "Actual: " + callCount.get();
+        rhsAssert.assertCount((int) Math.pow(objectCount, 4));
 
         Collection<Object> sessionObjects = TestUtils.sessionObjects(s);
         assert sessionObjects.size() == objectCount * 4;
@@ -209,10 +205,7 @@ class SessionBaseTests {
 
     @Test
     void testMultiFinal1() {
-        String ruleName = "testMultiFinal1";
-        AtomicInteger totalRows = new AtomicInteger(0);
-
-        knowledge.newRule(ruleName)
+        knowledge.newRule()
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -220,10 +213,10 @@ class SessionBaseTests {
                 )
                 .where("$a.i != $b.i")
                 .where("$c.l != $b.l")
-                .execute(ctx -> totalRows.incrementAndGet());
+                .execute();
 
         StatefulSession s = knowledge.createSession();
-
+        RhsAssert rhsAssert = new RhsAssert(s);
         TypeA a = new TypeA("A");
         a.setI(1);
         a.setL(1);
@@ -261,7 +254,7 @@ class SessionBaseTests {
         ccc.setL(333);
 
         s.insertAndFire(a, aa, aaa, b, bb, bbb, c, cc, ccc);
-        assert totalRows.get() == 27;
+        rhsAssert.assertCount(27);
     }
 
     @Test
@@ -317,22 +310,14 @@ class SessionBaseTests {
         ccc.setI(3);
         ccc.setL(3);
 
-        AtomicInteger totalRows = new AtomicInteger(0);
-        s.getRule(ruleName)
-                .setRhs(ctx -> totalRows.incrementAndGet());
+        RhsAssert rhsAssert = new RhsAssert(s, ruleName);
 
         s.insertAndFire(a, aa, aaa, b, bb, bbb, c, cc, ccc);
-        assert totalRows.get() == 3 : "Actual: " + totalRows.get();
+        rhsAssert.assertCount(3);
     }
 
     @Test
     void testSingleFinalNode1() {
-
-        final Set<TypeA> as1 = new HashSet<>();
-        final Set<TypeB> bs1 = new HashSet<>();
-        final Set<TypeC> cs1 = new HashSet<>();
-        final Set<TypeD> ds1 = new HashSet<>();
-        final AtomicInteger total = new AtomicInteger();
 
         knowledge.newRule("testSingleFinalNode1")
                 .forEach(
@@ -344,51 +329,43 @@ class SessionBaseTests {
                 .where("$a.i != $b.i")
                 .where("$a.i != $c.i")
                 .where("$a.i != $d.i")
-                .execute(ctx -> {
-                    total.getAndIncrement();
-                    TypeA a = ctx.get("$a");
-                    as1.add(a);
-                    TypeB b = ctx.get("$b");
-                    bs1.add(b);
-                    TypeC c = ctx.get("$c");
-                    cs1.add(c);
-                    TypeD d = ctx.get("$d");
-                    ds1.add(d);
-                });
+                .execute();
 
 
         StatefulSession s = knowledge.createSession();
+
+        RhsAssert rhsAssert = new RhsAssert(s);
 
         int ai = new Random().nextInt(20) + 1;
         int bi = new Random().nextInt(20) + 1;
         int ci = new Random().nextInt(20) + 1;
         int di = new Random().nextInt(20) + 1;
 
-        AtomicInteger id = new AtomicInteger(0);
+        int id = 0;
 
         for (int i = 0; i < ai; i++) {
-            int n = id.incrementAndGet();
+            int n = id++;
             TypeA obj = new TypeA(String.valueOf(n));
             obj.setI(n);
             s.insert(obj);
         }
 
         for (int i = 0; i < bi; i++) {
-            int n = id.incrementAndGet();
+            int n = id++;
             TypeB obj = new TypeB(String.valueOf(n));
             obj.setI(n);
             s.insert(obj);
         }
 
         for (int i = 0; i < ci; i++) {
-            int n = id.incrementAndGet();
+            int n = id++;
             TypeC obj = new TypeC(String.valueOf(n));
             obj.setI(n);
             s.insert(obj);
         }
 
         for (int i = 0; i < di; i++) {
-            int n = id.incrementAndGet();
+            int n = id++;
             TypeD obj = new TypeD(String.valueOf(n));
             obj.setI(n);
             s.insert(obj);
@@ -396,12 +373,12 @@ class SessionBaseTests {
 
         s.fire();
 
-        assert as1.size() == ai;
-        assert bs1.size() == bi;
-        assert cs1.size() == ci;
-        assert ds1.size() == di;
-        assert total.get() == ai * bi * ci * di;
-
+        rhsAssert
+                .assertUniqueCount("$a", ai)
+                .assertUniqueCount("$b", bi)
+                .assertUniqueCount("$c", ci)
+                .assertUniqueCount("$d", di)
+                .assertCount(ai * bi * ci * di);
     }
 
     @Test
@@ -415,9 +392,8 @@ class SessionBaseTests {
                 ).where(
                 "$a.i == $b.i",
                 "$c.l == $b.l",
-                "$c.i == $a.l"
-        )
-                .execute(null);
+                "$c.i == $a.l")
+                .execute();
 
         StatefulSessionImpl s = knowledge.createSession();
 
@@ -457,14 +433,13 @@ class SessionBaseTests {
         ccc.setI(3);
         ccc.setL(3);
 
-        AtomicInteger totalRows = new AtomicInteger(0);
-        s.getRule("test circular").setRhs(ctx -> totalRows.incrementAndGet());
+        RhsAssert rhsAssert = new RhsAssert(s, "test circular");
 
         s.insertAndFire(a, aa, aaa);
         s.insertAndFire(b, bb, bbb);
         s.insertAndFire(c, cc, ccc);
 
-        assert totalRows.get() == 3 : "Actual: " + totalRows.get();
+        rhsAssert.assertCount(3);
     }
 
 
@@ -505,13 +480,14 @@ class SessionBaseTests {
         TypeC c = new TypeC("CC");
         c.setL(1);
 
-        AtomicInteger totalRows = new AtomicInteger(0);
+        RhsAssert rhsAssert = new RhsAssert(s);
+
         s.getRule(ruleName)
                 .setRhs(null) // RHS can be overridden
-                .setRhs(ctx -> totalRows.incrementAndGet());
+                .setRhs(rhsAssert);
 
         s.insertAndFire(a, b, c);
-        assert totalRows.get() == 1 : "Actual: " + totalRows.get();
+        rhsAssert.assertCount(1).reset();
 
         //Second insert
         TypeA aa = new TypeA("A");
@@ -526,9 +502,8 @@ class SessionBaseTests {
         cc.setI(2);
         cc.setL(2);
 
-        totalRows.set(0);
         s.insertAndFire(aa, bb, cc);
-        assert totalRows.get() == 2 : "Actual: " + totalRows.get();
+        rhsAssert.assertCount(1);
 
         s.close();
     }
@@ -539,8 +514,8 @@ class SessionBaseTests {
 
         knowledge.newRule(ruleName)
                 .forEach(
-                        fact("$a", TypeA.class),
-                        fact("$b", TypeB.class)
+                        "$a", TypeA.class,
+                        "$b", TypeB.class
                 )
                 .where(
                         "$a.i * $b.l * $b.s == $a.l"
@@ -557,13 +532,10 @@ class SessionBaseTests {
         b1.setL(3);
         b1.setS((short) 5);
 
-        AtomicInteger totalRows = new AtomicInteger(0);
-        s.getRule(ruleName)
-                .setRhs(null) // RHS can be overridden
-                .setRhs(ctx -> totalRows.incrementAndGet());
+        RhsAssert rhsAssert = new RhsAssert(s, ruleName);
 
         s.insertAndFire(a1, b1);
-        assert totalRows.get() == 1 : "Actual: " + totalRows.get();
+        rhsAssert.assertCount(1).reset();
 
         //Second insert
         TypeA a2 = new TypeA("A2");
@@ -574,22 +546,14 @@ class SessionBaseTests {
         b2.setL(9);
         b2.setS((short) 11);
 
-        totalRows.set(0);
         s.insertAndFire(a2, b2);
-        assert totalRows.get() == 2 : "Actual: " + totalRows.get();
+        rhsAssert.assertCount(1);
 
         s.close();
     }
 
     @Test
     void testSingleFinalNode2() {
-        final AtomicInteger total = new AtomicInteger();
-
-        final Set<TypeA> as1 = new HashSet<>();
-        final Set<TypeB> bs1 = new HashSet<>();
-        final Set<TypeC> cs1 = new HashSet<>();
-        final Set<TypeD> ds1 = new HashSet<>();
-
         knowledge.newRule("testSingleFinalNode2")
                 .forEach(
                         fact("$a", TypeA.class),
@@ -600,25 +564,16 @@ class SessionBaseTests {
                 .where("$a.i == $b.i")
                 .where("$a.i == $c.i")
                 .where("$a.i == $d.i")
-                .execute(ctx -> {
-                    total.getAndIncrement();
-                    TypeA a = ctx.get("$a");
-                    as1.add(a);
-                    TypeB b = ctx.get("$b");
-                    bs1.add(b);
-                    TypeC c = ctx.get("$c");
-                    cs1.add(c);
-                    TypeD d = ctx.get("$d");
-                    ds1.add(d);
-                });
+                .execute();
         StatefulSession s = knowledge.createSession();
+        RhsAssert rhsAssert = new RhsAssert(s);
 
         int count = new Random().nextInt(200) + 1;
 
-        AtomicInteger id = new AtomicInteger(0);
+        int id = 0;
 
         for (int i = 0; i < count; i++) {
-            String stringId = String.valueOf(id.incrementAndGet());
+            String stringId = String.valueOf(id++);
             TypeA a = new TypeA(stringId);
             a.setI(i);
             s.insert(a);
@@ -638,24 +593,67 @@ class SessionBaseTests {
         }
         s.fire();
 
-        assert as1.size() == count : "Actual: " + as1.size();
-        assert bs1.size() == count;
-        assert cs1.size() == count;
-        assert ds1.size() == count;
-        assert total.get() == count : "Actual " + total.get();
-
+        rhsAssert
+                .assertCount(count)
+                .assertUniqueCount("$a", count)
+                .assertUniqueCount("$b", count)
+                .assertUniqueCount("$c", count)
+                .assertUniqueCount("$d", count);
     }
 
 
     @Test
-    void testAlphaBeta1() {
-        AtomicInteger fireCounter1 = new AtomicInteger();
-        Set<TypeA> setA1 = new HashSet<>();
-        Set<TypeB> setB1 = new HashSet<>();
+    void testBeta1() {
 
-        AtomicInteger fireCounter2 = new AtomicInteger();
-        Set<TypeA> setA2 = new HashSet<>();
-        Set<TypeB> setB2 = new HashSet<>();
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a", TypeA.class,
+                "$b", TypeB.class
+        );
+
+        knowledge.newRule()
+                .forEach(
+                        "$a", TypeA.class,
+                        "$b", TypeB.class
+                )
+                .where("$a.i == $b.i")
+                .execute(rhsAssert);
+
+        StatefulSessionImpl s = knowledge.createSession();
+
+        TypeA a1 = new TypeA("A1");
+        a1.setAllNumeric(1);
+
+        TypeA a2 = new TypeA("A2");
+        a2.setAllNumeric(2);
+
+        TypeB b1 = new TypeB("B1");
+        b1.setAllNumeric(1);
+
+        TypeB b2 = new TypeB("B2");
+        b2.setAllNumeric(2);
+
+        s.insertAndFire(a1, a2, b1, b2);
+        rhsAssert.assertCount(2);
+
+        System.out.println("=====================");
+        TypeA a1_1 = new TypeA("A1_1");
+        a1_1.setAllNumeric(1);
+        s.insertAndFire(a1_1);
+
+
+    }
+
+    @Test
+    void testAlphaBeta1() {
+        RhsAssert rhsAssert1 = new RhsAssert(
+                "$a", TypeA.class,
+                "$b", TypeB.class
+        );
+
+        RhsAssert rhsAssert2 = new RhsAssert(
+                "$a", TypeA.class,
+                "$b", TypeB.class
+        );
 
         knowledge.newRule("test alpha 1")
                 .forEach(
@@ -665,15 +663,7 @@ class SessionBaseTests {
                 .where("$a.i != $b.i")
                 .where("$a.d > 1")
                 .where("$b.i > 10")
-                .execute(
-                        ctx -> {
-                            TypeA a = ctx.get("$a");
-                            TypeB b = ctx.get("$b");
-                            setA1.add(a);
-                            setB1.add(b);
-                            fireCounter1.incrementAndGet();
-                        }
-                )
+                .execute(rhsAssert1)
                 .newRule("test alpha 2")
                 .forEach(
                         "$a", TypeA.class,
@@ -682,15 +672,8 @@ class SessionBaseTests {
                 .where("$a.i != $b.i")
                 .where("$a.i < 3")
                 .where("$b.f < 10")
-                .execute(
-                        ctx -> {
-                            TypeA a = ctx.get("$a");
-                            TypeB b = ctx.get("$b");
-                            setA2.add(a);
-                            setB2.add(b);
-                            fireCounter2.incrementAndGet();
-                        }
-                );
+                .execute(rhsAssert2)
+        ;
 
         StatefulSessionImpl s = knowledge.createSession();
 
@@ -711,18 +694,32 @@ class SessionBaseTests {
 
         s.insertAndFire(a, aa, aaa, b, bb);
 
-        assert fireCounter1.get() == 2 : "Actual: " + fireCounter1.get();
-        assert setB1.size() == 1 && setB1.contains(bb);
-        assert setA1.size() == 2 && setA1.contains(aa) && setA1.contains(aaa);
+        rhsAssert1
+                .assertCount(2)
+                .assertUniqueCount("$b", 1)
+                .assertContains("$b", bb)
+                .assertUniqueCount("$a", 2)
+                .assertContains("$a", aa)
+                .assertContains("$a", aaa)
+                .reset();
 
-        assert fireCounter2.get() == 2 : "Actual: " + fireCounter2.get();
-        assert setB2.size() == 1 && setB2.contains(b);
-        assert setA2.size() == 2 && setA2.contains(a) && setA2.contains(aa);
+        rhsAssert2
+                .assertCount(2)
+                .assertUniqueCount("$b", 1)
+                .assertContains("$b", b)
+                .assertUniqueCount("$a", 2)
+                .assertContains("$a", a)
+                .assertContains("$a", aa)
+                .reset();
+
     }
 
     @Test
     void testSimple1() {
-        AtomicInteger fireCounter = new AtomicInteger();
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a", TypeA.class,
+                "$b", TypeB.class
+        );
 
         knowledge.newRule()
                 .forEach(
@@ -730,13 +727,7 @@ class SessionBaseTests {
                         "$b", TypeB.class
                 )
                 .where("$a.i < $b.d")
-                .execute(
-                        ctx -> {
-                            assert ctx.get("$a") instanceof TypeA;
-                            assert ctx.get("$b") instanceof TypeB;
-                            fireCounter.incrementAndGet();
-                        }
-                );
+                .execute(rhsAssert);
 
 
         StatefulSessionImpl s = knowledge.createSession();
@@ -754,12 +745,16 @@ class SessionBaseTests {
         b2.setD(10.0);
 
         s.insertAndFire(a1, b1, a2, b2);
-        assert fireCounter.get() == 4 : "Actual: " + fireCounter.get();
+        rhsAssert.assertCount(4);
     }
 
     @Test
     void testSimple2() {
-        AtomicInteger fireCounter = new AtomicInteger();
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a", TypeA.class,
+                "$b", TypeB.class
+        );
+
 
         knowledge.newRule()
                 .forEach(
@@ -768,13 +763,7 @@ class SessionBaseTests {
                 )
                 .where("$a.i < $b.d")
                 .where("$a.f < $b.l")
-                .execute(
-                        ctx -> {
-                            assert ctx.get("$a") instanceof TypeA;
-                            assert ctx.get("$b") instanceof TypeB;
-                            fireCounter.incrementAndGet();
-                        }
-                );
+                .execute(rhsAssert);
 
         StatefulSessionImpl s = knowledge.createSession();
 
@@ -795,12 +784,20 @@ class SessionBaseTests {
         b2.setL(10L);
 
         s.insertAndFire(a1, b1, a2, b2);
-        assert fireCounter.get() == 4 : "Actual: " + fireCounter.get();
+        rhsAssert.assertCount(4);
+
+
     }
 
     @Test
     void testSimple3() {
-        AtomicInteger fireCounter = new AtomicInteger();
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a", TypeA.class,
+                "$b", TypeB.class,
+                "$c", TypeC.class,
+                "$d", TypeD.class
+        );
+
 
         knowledge.newRule()
                 .forEach(
@@ -813,15 +810,7 @@ class SessionBaseTests {
                 .where("$a.f < $b.l")
                 .where("$c.i < $d.d")
                 .where("$c.f < $d.l")
-                .execute(
-                        ctx -> {
-                            assert ctx.get("$a") instanceof TypeA;
-                            assert ctx.get("$b") instanceof TypeB;
-                            assert ctx.get("$c") instanceof TypeC;
-                            assert ctx.get("$d") instanceof TypeD;
-                            fireCounter.incrementAndGet();
-                        }
-                );
+                .execute(rhsAssert);
 
         StatefulSessionImpl s = knowledge.createSession();
 
@@ -858,12 +847,15 @@ class SessionBaseTests {
         d2.setL(20L);
 
         s.insertAndFire(a1, b1, c1, d1, a2, b2, c2, d2);
-        assert fireCounter.get() == 16 : "Actual: " + fireCounter.get();
+        rhsAssert.assertCount(16);
     }
 
     @Test
     void testSimple4() {
-        AtomicInteger fireCounter = new AtomicInteger();
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a", TypeA.class,
+                "$b", TypeB.class
+        );
 
         knowledge.newRule("test alpha 1")
                 .forEach(
@@ -871,9 +863,7 @@ class SessionBaseTests {
                         "$b", TypeB.class
                 )
                 .where("$a.i != $b.i")
-                .execute(
-                        ctx -> fireCounter.incrementAndGet()
-                );
+                .execute(rhsAssert);
 
         StatefulSessionImpl s = knowledge.createSession();
 
@@ -890,12 +880,15 @@ class SessionBaseTests {
         b2.setI(10);
 
         s.insertAndFire(a1, b1, a2, b2);
-        assert fireCounter.get() == 4 : "Actual: " + fireCounter.get();
+        rhsAssert.assertCount(4);
     }
 
     @Test
     void testUniType1() {
-        AtomicInteger fireCounter = new AtomicInteger();
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a1", TypeA.class,
+                "$a2", TypeA.class
+        );
 
         knowledge.newRule("test alpha 1")
                 .forEach(
@@ -903,9 +896,7 @@ class SessionBaseTests {
                         "$a2", TypeA.class
                 )
                 .where("$a1.i != $a2.i")
-                .execute(
-                        ctx -> fireCounter.incrementAndGet()
-                );
+                .execute(rhsAssert);
 
         StatefulSessionImpl s = knowledge.createSession();
 
@@ -916,13 +907,11 @@ class SessionBaseTests {
         a2.setI(10);
 
         s.insertAndFire(a1, a2);
-        assert fireCounter.get() == 2;// [a1, a2], [a2, a1]
+        rhsAssert.assertCount(2); // [a1, a2], [a2, a1]
     }
 
     @Test
     void testUniType2() {
-        AtomicInteger fireCounter = new AtomicInteger();
-
         Set<String> collectedJoinedIds = new HashSet<>();
         knowledge.newRule("test uni 2")
                 .forEach(
@@ -933,7 +922,6 @@ class SessionBaseTests {
                 .where("$a1.i * $a2.i == $a3.i")
                 .execute(
                         ctx -> {
-                            fireCounter.incrementAndGet();
                             TypeA a1 = ctx.get("$a1");
                             TypeA a2 = ctx.get("$a2");
                             TypeA a3 = ctx.get("$a3");
@@ -991,9 +979,11 @@ class SessionBaseTests {
     @Test
     void testUniType3() {
         int rule = 0;
-
-        //for(rule = 0; rule < 20; rule++) {
-        AtomicInteger fireCounter = new AtomicInteger();
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a1", TypeA.class,
+                "$a2", TypeA.class,
+                "$a3", TypeA.class
+        );
 
         knowledge.newRule("test uni " + rule)
                 .forEach(
@@ -1004,9 +994,7 @@ class SessionBaseTests {
                 .where("$a1.i + $a2.i == $a3.i")
                 .where("$a3.i > $a2.i")
                 .where("$a2.i > $a1.i")
-                .execute(
-                        ctx -> fireCounter.incrementAndGet()
-                );
+                .execute(rhsAssert);
 
         StatefulSessionImpl s = knowledge.createSession();
 
@@ -1017,22 +1005,22 @@ class SessionBaseTests {
         a2.setI(10);
 
         s.insertAndFire(a1, a2);
-        assert fireCounter.get() == 0;
+        rhsAssert.assertCount(0).reset();
 
         TypeA a3 = new TypeA("A3");
         a3.setI(11);
 
         s.insertAndFire(a3);
-        assert fireCounter.get() == 1; //[a1, a2, a3]
-
-        //}
-
-
+        rhsAssert.assertCount(1); //[a1, a2, a3]
     }
 
     @Test
     void testUniType4() {
-        AtomicInteger fireCounter = new AtomicInteger();
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a1", TypeA.class,
+                "$a2", TypeA.class,
+                "$a3", TypeA.class
+        );
 
         knowledge.newRule("test uni 2")
                 .forEach(
@@ -1042,9 +1030,7 @@ class SessionBaseTests {
                 )
                 .where("$a1.i + $a2.i == $a3.i")
                 .where("$a2.i > $a1.i")
-                .execute(
-                        ctx -> fireCounter.incrementAndGet()
-                );
+                .execute(rhsAssert);
 
         StatefulSessionImpl s = knowledge.createSession();
 
@@ -1068,14 +1054,18 @@ class SessionBaseTests {
 
         s.insertAndFire(a1, a2, a3, a11, a22, a33);
 
-        assert fireCounter.get() == 8 : "Actual: " + fireCounter.get();
+        rhsAssert.assertCount(8);
 
     }
 
 
     @Test
     void testAlphaBeta2() {
-        AtomicInteger fireCounter = new AtomicInteger();
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a", TypeA.class,
+                "$b", TypeB.class,
+                "$c", TypeC.class
+        );
 
         knowledge.newRule()
                 .forEach(
@@ -1086,9 +1076,7 @@ class SessionBaseTests {
                 .where("$a.i == $b.i")
                 .where("$a.i > 4")
                 .where("$b.i > 3")
-                .execute(
-                        ctx -> fireCounter.incrementAndGet()
-                );
+                .execute(rhsAssert);
 
         StatefulSession s = knowledge.createSession();
 
@@ -1101,15 +1089,24 @@ class SessionBaseTests {
             s.insert(a, b);
         }
         s.fire();
-        assert fireCounter.get() == 0;
-        s.insert(new TypeC("C"));
+        rhsAssert.assertCount(0).reset();
+        s.insertAndFire(new TypeC("C"));
+        rhsAssert.assertCount(5).reset();
+
         s.fire();
-        assert fireCounter.get() == 5;
+        rhsAssert.assertCount(0).reset();
+
+        s.insertAndFire(new TypeC("C"));
+        rhsAssert.assertCount(5);
+
     }
 
     @Test
     void testAlpha0() {
-        AtomicInteger fireCounter = new AtomicInteger();
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a", TypeA.class,
+                "$b", TypeB.class
+        );
 
         knowledge.newRule()
                 .forEach(
@@ -1118,9 +1115,7 @@ class SessionBaseTests {
                 )
                 .where("$a.i > 4")
                 .where("$b.i > 3")
-                .execute(
-                        ctx -> fireCounter.incrementAndGet()
-                );
+                .execute(rhsAssert);
 
         StatefulSession s = knowledge.createSession();
 
@@ -1133,12 +1128,16 @@ class SessionBaseTests {
             s.insert(a, b);
         }
         s.fire();
-        assert fireCounter.get() == 30 : "Actual:" + fireCounter.get();
+        rhsAssert.assertCount(30);
     }
 
     @Test
     void testAlpha1() {
-        AtomicInteger fireCounter = new AtomicInteger();
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a", TypeA.class,
+                "$b", TypeB.class,
+                "$c", TypeC.class
+        );
 
         knowledge.newRule()
                 .forEach(
@@ -1148,9 +1147,7 @@ class SessionBaseTests {
                 )
                 .where("$a.i > 4")
                 .where("$b.i > 3")
-                .execute(
-                        ctx -> fireCounter.incrementAndGet()
-                );
+                .execute(rhsAssert);
 
         StatefulSession s = knowledge.createSession();
 
@@ -1163,18 +1160,30 @@ class SessionBaseTests {
             s.insert(a, b);
         }
         s.fire();
-        assert fireCounter.get() == 0;
-        s.insert(new TypeC("C"));
+        TypeC c1 = new TypeC("C");
+        TypeC c2 = new TypeC("C");
+        rhsAssert.assertCount(0).reset();
+        s.insert(c1);
         s.fire();
-        assert fireCounter.get() == 30 : "Actual:" + fireCounter.get();
+        rhsAssert
+                .assertCount(30)
+                .assertContains("$c", c1)
+                .reset();
+        s.insert(c2);
+        s.fire();
+        rhsAssert
+                .assertCount(30)
+                .assertNotContains("$c", c1)
+                .assertContains("$c", c2);
     }
 
     @Test
     void testAlpha2() {
-        AtomicInteger fireCounter = new AtomicInteger();
-        Set<TypeA> setA = new HashSet<>();
-        Set<TypeB> setB = new HashSet<>();
-        Set<TypeC> setC = new HashSet<>();
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a", TypeA.class,
+                "$b", TypeB.class,
+                "$c", TypeC.class
+        );
 
         knowledge.newRule()
                 .forEach(
@@ -1185,14 +1194,7 @@ class SessionBaseTests {
                 .where("$a.i > 4")
                 .where("$b.i > 3")
                 .where("$c.i > 6")
-                .execute(
-                        ctx -> {
-                            setA.add(ctx.get("$a"));
-                            setB.add(ctx.get("$b"));
-                            setC.add(ctx.get("$c"));
-                            fireCounter.incrementAndGet();
-                        }
-                );
+                .execute(rhsAssert);
 
         StatefulSession s = knowledge.createSession();
 
@@ -1205,7 +1207,7 @@ class SessionBaseTests {
             s.insert(a, b);
         }
         s.fire();
-        assert fireCounter.get() == 0; // No instances of TypeC, no rhs
+        rhsAssert.assertCount(0).reset();
 
         // This insert cycle will result in 3 matching pairs of C (7,8,9)
         for (int i = 0; i < 10; i++) {
@@ -1214,10 +1216,11 @@ class SessionBaseTests {
             s.insert(c);
         }
         s.fire();
-        assert fireCounter.get() == 30 * 3;
-        assert setA.size() == 5;
-        assert setB.size() == 6;
-        assert setC.size() == 3;
+        rhsAssert
+                .assertCount(30 * 3)
+                .assertUniqueCount("$a", 5)
+                .assertUniqueCount("$b", 6)
+                .assertUniqueCount("$c", 3);
     }
 
     @Test
@@ -1225,23 +1228,22 @@ class SessionBaseTests {
         Configuration conf = knowledge.getConfiguration();
         conf.setWarnUnknownTypes(false);
         assert !knowledge.getConfiguration().isWarnUnknownTypes();
-
-        AtomicInteger counter1 = new AtomicInteger();
-        AtomicInteger counter2 = new AtomicInteger();
-        AtomicInteger counter3 = new AtomicInteger();
+        RhsAssert rhsAssert1 = new RhsAssert("$a", TypeA.class);
+        RhsAssert rhsAssert2 = new RhsAssert("$a", TypeA.class);
+        RhsAssert rhsAssert3 = new RhsAssert("$a", TypeA.class);
 
         knowledge.newRule("rule 1")
                 .forEach("$a", TypeA.class)
                 .where("$a.i > 4")
-                .execute(ctx -> counter1.incrementAndGet())
+                .execute(rhsAssert1)
                 .newRule("rule 2")
                 .forEach("$a", TypeA.class)
                 .where("$a.i > 5")
-                .execute(ctx -> counter2.incrementAndGet())
+                .execute(rhsAssert2)
                 .newRule("rule 3")
                 .forEach("$a", TypeA.class)
                 .where("$a.i > 6")
-                .execute(ctx -> counter3.incrementAndGet());
+                .execute(rhsAssert3);
 
 
         Type aType = knowledge.getTypeResolver().getType(TypeA.class.getName());
@@ -1254,9 +1256,9 @@ class SessionBaseTests {
             s.insert(a);
         }
         s.fire();
-        assert counter1.get() == 5;
-        assert counter2.get() == 4;
-        assert counter3.get() == 3;
+        rhsAssert1.assertCount(5);
+        rhsAssert2.assertCount(4);
+        rhsAssert3.assertCount(3);
 
         assert s.get(aType).knownFieldSets().size() == 0;
         assert s.getAlphaConditions().size(aType) == 3;
@@ -1268,28 +1270,22 @@ class SessionBaseTests {
         conf.setWarnUnknownTypes(false);
         assert !knowledge.getConfiguration().isWarnUnknownTypes();
 
-        AtomicInteger counter1 = new AtomicInteger();
-        AtomicInteger counter2 = new AtomicInteger();
-        AtomicInteger counter3 = new AtomicInteger();
+        RhsAssert rhsAssert1 = new RhsAssert("$a", TypeA.class);
+        RhsAssert rhsAssert2 = new RhsAssert("$a", TypeA.class);
+        RhsAssert rhsAssert3 = new RhsAssert("$a", TypeA.class);
 
         knowledge.newRule("rule 1")
-                .forEach(
-                        fact("$a", TypeA.class)
-                )
+                .forEach("$a", TypeA.class)
                 .where("$a.i > 4")
-                .execute(ctx -> counter1.incrementAndGet());
-        knowledge.newRule("rule 2")
-                .forEach(
-                        fact("$a", TypeA.class)
-                )
+                .execute(rhsAssert1)
+                .newRule("rule 2")
+                .forEach("$a", TypeA.class)
                 .where("$a.i > 5")
-                .execute(ctx -> counter2.incrementAndGet());
-        knowledge.newRule("rule 3")
-                .forEach(
-                        fact("$a", TypeA.class)
-                )
+                .execute(rhsAssert2)
+                .newRule("rule 3")
+                .forEach("$a", TypeA.class)
                 .where("$a.i <= 4") // Inverse to rule 1
-                .execute(ctx -> counter3.incrementAndGet());
+                .execute(rhsAssert3);
 
 
         Type aType = knowledge.getTypeResolver().getType(TypeA.class.getName());
@@ -1302,9 +1298,9 @@ class SessionBaseTests {
             s.insert(a);
         }
         s.fire();
-        assert counter1.get() == 5;
-        assert counter2.get() == 4;
-        assert counter3.get() == 5;
+        rhsAssert1.assertCount(5);
+        rhsAssert2.assertCount(4);
+        rhsAssert3.assertCount(5);
 
         assert s.get(aType).knownFieldSets().size() == 0;
     }
@@ -1315,27 +1311,23 @@ class SessionBaseTests {
         conf.setWarnUnknownTypes(false);
         assert !knowledge.getConfiguration().isWarnUnknownTypes();
 
-        AtomicInteger counter1 = new AtomicInteger();
-        AtomicInteger counter2 = new AtomicInteger();
-        AtomicInteger counter3 = new AtomicInteger();
+        RhsAssert rhsAssert1 = new RhsAssert("$a", TypeA.class);
+        RhsAssert rhsAssert2 = new RhsAssert("$a", TypeA.class);
+        RhsAssert rhsAssert3 = new RhsAssert("$a", TypeA.class);
 
         knowledge
                 .newRule("rule 1")
                 .forEach(fact("$a", TypeA.class))
                 .where("$a.id.equals('A5')")
-                .execute(ctx -> counter1.incrementAndGet())
+                .execute(rhsAssert1)
                 .newRule("rule 2")
-                .forEach(
-                        fact("$a", TypeA.class)
-                )
+                .forEach("$a", TypeA.class)
                 .where("$a.id.equals('A7')")
-                .execute(ctx -> counter2.incrementAndGet())
+                .execute(rhsAssert2)
                 .newRule("rule 3")
-                .forEach(
-                        fact("$a", TypeA.class)
-                )
+                .forEach("$a", TypeA.class)
                 .where("!$a.id.equals('A5')") // Inverse to rule 1
-                .execute(ctx -> counter3.incrementAndGet());
+                .execute(rhsAssert3);
 
         Type aType = knowledge.getTypeResolver().getType(TypeA.class.getName());
         StatefulSessionImpl s = knowledge.createSession();
@@ -1346,10 +1338,60 @@ class SessionBaseTests {
         s.fire();
         assert s.get(aType).knownFieldSets().size() == 0;
 
-        assert counter1.get() == 1;
-        assert counter2.get() == 1;
-        assert counter3.get() == 9;
+        rhsAssert1.assertCount(1);
+        rhsAssert2.assertCount(1);
+        rhsAssert3.assertCount(9);
     }
+
+
+    @Test
+    void testAlpha6() {
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a", TypeA.class,
+                "$b", TypeB.class
+        );
+
+        knowledge.newRule()
+                .forEach(
+                        fact("$a", TypeA.class),
+                        fact("$b", TypeB.class)
+                )
+                .where("$a.i > 4")
+                .where("$b.i > 3")
+                .execute(rhsAssert);
+
+        StatefulSession s = knowledge.createSession();
+
+        TypeA $a1 = new TypeA("A1");
+        TypeA $a2 = new TypeA("A2");
+        $a1.setI(5);
+        $a2.setI(5);
+        TypeB $b1 = new TypeB("B1");
+        $b1.setI(4);
+        s.insertAndFire($a1, $a2, $b1);
+
+        rhsAssert.assertCount(2).reset();
+        // Assert that the rules never fires again unless there's a new data
+        s.fire();
+        rhsAssert.assertCount(0).reset();
+
+        TypeB $b2 = new TypeB("B1");
+        $b2.setI(1);
+        s.insertAndFire($b2);
+        rhsAssert.assertCount(0).reset();
+
+        TypeB $b3 = new TypeB("B1");
+        $b3.setI(4);
+        s.insertAndFire($b3);
+        rhsAssert
+                .assertCount(2)
+                .assertUniqueCount("$b", 1)
+                .assertContains("$b", $b3)
+                .assertUniqueCount("$a", 2)
+                .assertContains("$a", $a1)
+                .assertContains("$a", $a2);
+    }
+
 
     @Test
     void primeNumbers() {
@@ -1384,7 +1426,15 @@ class SessionBaseTests {
 
     @Test
     void testMixed1() {
-        AtomicInteger fireCounter = new AtomicInteger();
+        //TODO !!!! continue with non-unique keys
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a1", TypeA.class,
+                "$a2", TypeA.class,
+                "$b1", TypeB.class,
+                "$b2", TypeB.class,
+                "$c", TypeC.class,
+                "$d", TypeD.class
+        );
 
         knowledge.newRule("test alpha 1")
                 .forEach(
@@ -1398,9 +1448,7 @@ class SessionBaseTests {
                 .where("$a1.i != $b1.i")
                 .where("$a2.i != $b2.i")
                 .where("$c.i > 0")
-                .execute(
-                        ctx -> fireCounter.incrementAndGet()
-                );
+                .execute(rhsAssert);
 
         StatefulSessionImpl s = knowledge.createSession();
 
@@ -1422,26 +1470,22 @@ class SessionBaseTests {
         TypeD d1 = new TypeD("D1");
 
         s.insertAndFire(a1, b1, a2, b2, c1, d1);
-        assert fireCounter.get() == 0 : "Actual: " + fireCounter.get();
+        rhsAssert.assertCount(0).reset();
 
         TypeC c2 = new TypeC("C2");
         c2.setI(1);
         s.insertAndFire(c2);
 
-
-        assert fireCounter.get() == 4 * 4 : "Actual: " + fireCounter.get();
+        rhsAssert.assertCount(4 * 4).reset();
 
         TypeC c3 = new TypeC("C3");
         c3.setI(100);
-        fireCounter.set(0);
         s.insertAndFire(c3);
-
-        assert fireCounter.get() == 2 * 4 * 4 : "Actual: " + fireCounter.get();
+        rhsAssert.assertCount(4 * 4).reset();
 
         TypeD d2 = new TypeD("D2");
-        fireCounter.set(0);
         s.insertAndFire(d2);
+        rhsAssert.assertCount(2 * 4 * 4);
 
-        assert fireCounter.get() == 2 * 2 * 4 * 4 : "Actual: " + fireCounter.get();
     }
 }

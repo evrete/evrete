@@ -4,10 +4,7 @@ import org.evrete.api.KeysStore;
 import org.evrete.api.ReIterator;
 import org.evrete.api.ValueRow;
 import org.evrete.collections.MappedReIterator;
-import org.evrete.runtime.ConditionNodeDescriptor;
-import org.evrete.runtime.FactType;
-import org.evrete.runtime.RuntimeFactType;
-import org.evrete.runtime.RuntimeRuleImpl;
+import org.evrete.runtime.*;
 import org.evrete.runtime.evaluation.EvaluatorGroup;
 
 import java.util.ArrayList;
@@ -21,7 +18,7 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
     private final ConditionNodeDescriptor descriptor;
     private final BetaMemoryNode<?>[] sources;
     private final BetaConditionNode[] conditionSources;
-    private final RuntimeFactType[][] grouping;
+    private final RuntimeFactTypeKeyed[][] grouping;
     private final RuntimeRuleImpl rule;
     private final ReIterator<ValueRow[]> mainIterator;
     private final ReIterator<ValueRow[]> deltaIterator;
@@ -44,9 +41,9 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
         this.expression = descriptor.getExpression();
 
         FactType[][] descGrouping = descriptor.getEvalGrouping();
-        this.grouping = new RuntimeFactType[descGrouping.length][];
+        this.grouping = new RuntimeFactTypeKeyed[descGrouping.length][];
         for (int i = 0; i < descGrouping.length; i++) {
-            this.grouping[i] = rule.resolve(descGrouping[i]);
+            this.grouping[i] = rule.resolve(RuntimeFactTypeKeyed.class, descGrouping[i]);
         }
 
         this.mainIterator = new MappedReIterator<>(mainStore.entries(), KeysStore.Entry::key);
@@ -72,7 +69,7 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
     }
 
 
-    public RuntimeFactType[][] getGrouping() {
+    public RuntimeFactTypeKeyed[][] getGrouping() {
         return grouping;
     }
 

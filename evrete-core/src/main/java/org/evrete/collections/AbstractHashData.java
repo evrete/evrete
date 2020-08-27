@@ -185,7 +185,7 @@ public abstract class AbstractHashData<E> extends UnsignedIntArray implements Re
         return data.length;
     }
 
-    public final long size() {
+    public final int size() {
         return size;
     }
 

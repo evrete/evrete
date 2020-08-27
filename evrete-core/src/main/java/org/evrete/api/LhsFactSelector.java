@@ -9,8 +9,7 @@ import static org.evrete.api.FactBuilder.fact;
  *
  * @param <T> the return type for fact selectors
  */
-@SuppressWarnings("unused")
-public interface FactSelector<T> {
+public interface LhsFactSelector<T> {
     /**
      * <p>
      *     The main method which associates the implementation with a list fact type builders.

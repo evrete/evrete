@@ -3,8 +3,8 @@ import org.evrete.classes.TypeB;
 rule "sample01"
   when
       $a : TypeA()
-      $b : TypeB( $a.i != $b.i )
+      $b : TypeB( $a.i == $b.i )
   then
-      $a.waitNs($a.getL());
+      System.out.println("A: " + $a + ", B: " + $b);
 end
 

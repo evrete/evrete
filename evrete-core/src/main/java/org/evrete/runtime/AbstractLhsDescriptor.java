@@ -202,7 +202,7 @@ public abstract class AbstractLhsDescriptor {
         return level;
     }
 
-    Set<FactType> getGroupFactTypes() {
+    public Set<FactType> getGroupFactTypes() {
         return groupFactTypes;
     }
 
