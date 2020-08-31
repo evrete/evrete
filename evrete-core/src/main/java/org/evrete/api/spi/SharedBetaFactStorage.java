@@ -5,7 +5,7 @@ import org.evrete.api.*;
 import java.util.Collection;
 import java.util.function.Predicate;
 
-public interface SharedBetaFactStorage extends Memory, KeyIteratorsBundle<ValueRow> {
+public interface SharedBetaFactStorage extends Memory, KeyReIterables<ValueRow> {
 
     void ensureDeltaCapacity(int insertCount);
 
@@ -28,12 +28,6 @@ public interface SharedBetaFactStorage extends Memory, KeyIteratorsBundle<ValueR
     boolean hasDeletedKeys();
 
     boolean isKeyDeleted(ValueRow row);
-
-    KeyIterable deltaNewKeys();
-
-    KeyIterable deltaKnownKeys();
-
-    KeyIterable main();
 
     void clear();
 }

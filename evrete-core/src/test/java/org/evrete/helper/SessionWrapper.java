@@ -20,6 +20,8 @@ public interface SessionWrapper {
                 session.fireAllRules();
             }
 
+
+
             @Override
             public void close() {
                 session.dispose();
@@ -64,6 +66,13 @@ public interface SessionWrapper {
     }
 
     void insert(Object o);
+
+    default void insertAndFire(Object... objects) {
+        for(Object o : objects) {
+            insert(o);
+        }
+        fire();
+    }
 
     void fire();
 

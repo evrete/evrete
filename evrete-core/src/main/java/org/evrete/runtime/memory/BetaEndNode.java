@@ -1,20 +1,30 @@
 package org.evrete.runtime.memory;
 
 import org.evrete.api.*;
-import org.evrete.collections.FastHashSet;
+import org.evrete.collections.CollectionReIterator;
+import org.evrete.collections.MappedReIterator;
 import org.evrete.runtime.*;
 
+import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.function.IntFunction;
 
-public class BetaEndNode extends BetaConditionNode implements KeyIteratorsBundle<ValueRow[]> {
+//TODO !!! optimize by sharing the value array and pre-built functions
+public class BetaEndNode extends BetaConditionNode implements KeyReIterators<ValueRow[]> {
     public static final BetaEndNode[] ZERO_ARRAY = new BetaEndNode[0];
-    private final FastHashSet<ValueRow[]> oldKeysNewFacts = new FastHashSet<>();
+    private final List<ValueRow[]> oldKeysNewFacts;
     private final EnumMap<KeyMode, ReIterator<ValueRow[]>> keyIterators = new EnumMap<>(KeyMode.class);
+    private final RuntimeFactTypeKeyed[] entryNodes;
+
     public BetaEndNode(RuntimeRuleImpl rule, ConditionNodeDescriptor nodeDescriptor) {
         super(rule, nodeDescriptor, create(nodeDescriptor.getSources(), rule));
         FactType[] factTypes = nodeDescriptor.getEvalGrouping()[0];
         assert factTypes.length == nodeDescriptor.getTypes().length;
 
+        //this.oldKeysNewFacts = rule.getMemory().newKeysStore(getDescriptor().getEvalGrouping());
+        this.oldKeysNewFacts = new LinkedList<>();
         for(KeyMode mode : KeyMode.values()) {
             RhsKeyIterator modeIterator;
             switch (mode) {
@@ -31,21 +41,18 @@ public class BetaEndNode extends BetaConditionNode implements KeyIteratorsBundle
                     );
                     break;
                 case KNOWN_KEYS_NEW_FACTS:
+                    ReIterator<ValueRow[]> listReIterator = new CollectionReIterator<>(oldKeysNewFacts);
                     modeIterator = new ModeIteratorDelegate(
                             mode,
-                            oldKeysNewFacts.iterator()
+                            listReIterator
                     );
                     break;
                 default:
                     throw new UnsupportedOperationException();
             }
-
-
             this.keyIterators.put(mode, modeIterator);
         }
-
-
-
+        this.entryNodes = getEntryNodes();
     }
 
     private static BetaMemoryNode<?>[] create(NodeDescriptor[] sources, RuntimeRuleImpl rule) {
@@ -61,12 +68,86 @@ public class BetaEndNode extends BetaConditionNode implements KeyIteratorsBundle
         super.computeDelta(deltaOnly);
         //TODO !!!! check if delta check applies here
         if(deltaOnly) {
-            oldKeysNewFacts.clear();
-            for(RuntimeFactTypeKeyed entryNode : getEntryNodes()) {
-                long l = entryNode.getKeyStorage().deltaKnownKeys().keyIterator().reset();
-                if(l > 0) throw new UnsupportedOperationException("TODO !!!");
-            }
+            ValueRow[] array = new ValueRow[entryNodes.length];
+            computeOldKeysNewFacts(0, false, array);
+            //System.out.println("Computed delta " + oldKeysNewFacts);
         }
+    }
+
+    void computeOldKeysNewFacts(int index, boolean oldKeysNewFactsPresent, ValueRow[] array) {
+        KeyReIterators<ValueRow> entry = entryNodes[index].getKeyIterators();
+        ReIterator<ValueRow> knownKeysKnownFacts = entry.keyIterator(KeyMode.KNOWN_KEYS_KNOWN_FACTS);
+        ReIterator<ValueRow> knownKeysNewFacts = entry.keyIterator(KeyMode.KNOWN_KEYS_NEW_FACTS);
+        ReIterator<ValueRow> newKeysNewFacts = entry.keyIterator(KeyMode.NEW_KEYS_NEW_FACTS);
+        ReIterator<ValueRow> it;
+        if(index == entryNodes.length - 1) {
+            // The last entry
+            it = knownKeysNewFacts;
+            if(it.reset() > 0) {
+                while (it.hasNext()) {
+                    array[index] = it.next();
+                    testAndSave(array);
+                }
+            }
+
+            it = knownKeysKnownFacts;
+            if(oldKeysNewFactsPresent && it.reset() > 0) {
+                while (it.hasNext()) {
+                    array[index] = it.next();
+                    testAndSave(array);
+                }
+            }
+
+            it = newKeysNewFacts;
+            if(oldKeysNewFactsPresent && it.reset() > 0) {
+                while (it.hasNext()) {
+                    array[index] = it.next();
+                    testAndSave(array);
+                }
+            }
+        } else {
+            // A middle entry
+            it = knownKeysNewFacts;
+            if(it.reset() > 0) {
+                while (it.hasNext()) {
+                    array[index] = it.next();
+                    computeOldKeysNewFacts(index + 1, true, array);
+                }
+            }
+
+            it = knownKeysKnownFacts;
+            if(it.reset() > 0) {
+                while (it.hasNext()) {
+                    array[index] = it.next();
+                    computeOldKeysNewFacts(index + 1, oldKeysNewFactsPresent, array);
+                }
+            }
+
+            it = newKeysNewFacts;
+            if(it.reset() > 0) {
+                while (it.hasNext()) {
+                    array[index] = it.next();
+                    computeOldKeysNewFacts(index + 1, oldKeysNewFactsPresent, array);
+                }
+            }
+
+        }
+
+    }
+
+    //TODO !!! optimize
+    private void testAndSave(ValueRow[] array) {
+        KeysStore main = getMainStore();
+        KeysStore delta = getDeltaStore();
+        if(main.hasKey(value -> array[value]) || delta.hasKey(value -> array[value])) {
+            oldKeysNewFacts.add(Arrays.copyOf(array, array.length));
+        }
+    }
+
+    @Override
+    public void mergeDelta() {
+        super.mergeDelta();
+        oldKeysNewFacts.clear();
     }
 
     @Override

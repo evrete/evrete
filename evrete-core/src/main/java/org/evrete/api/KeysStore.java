@@ -5,17 +5,17 @@ import java.util.function.Predicate;
 
 public interface KeysStore {
 
-    default boolean isEmpty() {
-        return keyCount() == 0;
-    }
+    boolean isEmpty();
 
     void clear();
 
-    long keyCount();
-
     void save(IntFunction<IntToValueRow> values);
 
-    KeysStore getNext(IntToValueRow key);
+    Entry get(IntToValueRow key);
+
+    default boolean hasKey(IntToValueRow key) {
+        return get(key) != null;
+    }
 
     void append(KeysStore other);
 

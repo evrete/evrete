@@ -206,11 +206,7 @@ public final class TypeMemory implements MemoryChangeListener, PlainMemory {
             TypeMemoryBucket newBucket = touchAlphaMemory(alphaMeta);
             assert newBucket != null;
             // Fill data
-            if (existingFacts.reset() > 0) {
-                while (existingFacts.hasNext()) {
-                    newBucket.insertSingle(existingFacts.next());
-                }
-            }
+            newBucket.fillMainStorage(existingFacts);
         } else {
             // 3. Process keyed/beta-memory
             betaMemories

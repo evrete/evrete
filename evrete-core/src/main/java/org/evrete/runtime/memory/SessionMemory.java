@@ -13,7 +13,6 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.logging.Logger;
 
 public class SessionMemory extends AbstractRuntime<StatefulSession> implements WorkingMemory, MemoryChangeListener {
     private final BufferSafe buffer;
@@ -180,8 +179,6 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
 
     @Override
     public void onBeforeChange() {
-        //Logger.getAnonymousLogger().warning("!!!!!");
-        //ruleStorage.onBeforeChange();
         typedMemories.forEachValue(MemoryChangeListener::onBeforeChange);
     }
 
@@ -224,7 +221,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         Collection<BetaEndNode> deltaEndNodes = new LinkedList<>();
 
         for (RuntimeRuleImpl rule : ruleStorage) {
-            for(BetaEndNode endNode : rule.getAllBetaEndNodes()) {
+            for(BetaEndNode endNode : rule.getLhs().getAllBetaEndNodes()) {
                 if(endNode.hasDeltaSources()) {
                     deltaEndNodes.add(endNode);
                 }

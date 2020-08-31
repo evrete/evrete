@@ -10,110 +10,75 @@ import org.evrete.runtime.memory.Buffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class RuntimeLhs extends AbstractRuntimeLhs implements RhsContext, MemoryChangeListener {
-    private final Collection<RuntimeAggregateLhsLoose> aggregateLooseGroups = new ArrayList<>();
-    private final Collection<RuntimeAggregateLhsJoined> aggregateConditionedGroups = new ArrayList<>();
-    private final BetaEndNode[] allBetaEndNodes;
+public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContext, MemoryChangeListener, ActivationSubject {
+    //private final Collection<RuntimeAggregateLhsLoose> aggregateLooseGroups = new ArrayList<>();
+    //private final Collection<RuntimeAggregateLhsJoined> aggregateConditionedGroups = new ArrayList<>();
+    private final Collection<BetaEndNode> allBetaEndNodes = new ArrayList<>();
     private final Function<String, int[]> name2indices;
     private final Buffer buffer;
     private final TypeResolver typeResolver;
+    private final RuntimeRuleImpl rule;
 
-    private RuntimeLhs(RuntimeRuleImpl rule, LhsDescriptor descriptor, Buffer buffer) {
+    protected RuntimeLhs(RuntimeRuleImpl rule, LhsDescriptor descriptor, Buffer buffer) {
         super(rule, descriptor);
         this.name2indices = descriptor.getNameIndices();
         this.buffer = buffer;
         this.typeResolver = rule.getMemory().getTypeResolver();
-
-
-        //this.allFactTypes = descriptor.getAllFactTypes();
-        Collection<BetaEndNode> allBetas = new ArrayList<>(getEndNodes());
-        // Create runtime LHS groups
-
-        for (AggregateLhsDescriptor ad : descriptor.getAggregateDescriptors()) {
-            RuntimeAggregateLhs aggregate;
-            if (ad.isLoose()) {
-                RuntimeAggregateLhsLoose loose = new RuntimeAggregateLhsLoose(rule, this, ad);
-                aggregateLooseGroups.add(loose);
-                aggregate = loose;
-            } else {
-                RuntimeAggregateLhsJoined conditioned = new RuntimeAggregateLhsJoined(rule, this, ad);
-                //this.aggregateNodes.add(conditioned.getAggregateNode());
-                aggregateConditionedGroups.add(conditioned);
-
-                // Set this group as a key predicate
-                RhsFactGroupDescriptor[] myGroups = ad.getJoinCondition().getLevelData()[0].getKeyGroupSequence();
-                addStateKeyPredicate(myGroups[myGroups.length - 1], conditioned.getAggregateKeyPredicate());
-
-                aggregate = conditioned;
-            }
-            allBetas.addAll(aggregate.getEndNodes());
-        }
-
-
-        this.allBetaEndNodes = allBetas.toArray(BetaEndNode.ZERO_ARRAY);
+        this.allBetaEndNodes.addAll(getEndNodes());
+        this.rule = rule;
     }
 
     static RuntimeLhs factory(RuntimeRuleImpl rule, LhsDescriptor descriptor, Buffer buffer) {
-        return new RuntimeLhs(rule, descriptor, buffer);
-    }
-
-    public Collection<RuntimeAggregateLhsJoined> getAggregateConditionedGroups() {
-        return aggregateConditionedGroups;
-    }
-
-    private boolean testLooseGroups() {
-        for (RuntimeAggregateLhsLoose group : aggregateLooseGroups) {
-            if (!group.getAsBoolean()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public void forEach(Consumer<RhsContext> rhs) {
-        forEach(() -> rhs.accept(this));
-    }
-
-    private void forEach(NestedFactRunnable eachFactRunnable) {
-        if (testLooseGroups()) {
-            if (hasBetaNodes) {
-                forEachKey(
-                        () -> forEachFact(eachFactRunnable)
-                );
-            } else {
-                forEachFact(eachFactRunnable);
-            }
+        Set<AggregateLhsDescriptor> aggregates = descriptor.getAggregateDescriptors();
+        if(aggregates.isEmpty()) {
+            return new RuntimeLhsDefault(rule, descriptor, buffer);
+        } else {
+            return new RuntimeLhsAggregate(rule, descriptor, buffer, aggregates);
         }
     }
 
-    public BetaEndNode[] getAllBetaEndNodes() {
+    public RuntimeRuleImpl getRule() {
+        return rule;
+    }
+
+    protected void addEndNodes(Collection<BetaEndNode> endNodes) {
+        this.allBetaEndNodes.addAll(endNodes);
+    }
+
+    public abstract Collection<RuntimeAggregateLhsJoined> getAggregateConditionedGroups();
+
+    public abstract void forEach(Consumer<RhsContext> rhs);
+
+    public final Collection<BetaEndNode> getAllBetaEndNodes() {
         return allBetaEndNodes;
     }
 
+
     @Override
-    public RuntimeFact getFact(String name) {
+    public final RuntimeFact getFact(String name) {
         int[] arr = name2indices.apply(name);
         if (arr == null) throw new IllegalArgumentException("Unknown type reference: " + name);
         return factState[arr[0]][arr[1]];
     }
 
     @Override
-    public RhsContext update(Object obj) {
+    public final RhsContext update(Object obj) {
         buffer.add(typeResolver, Action.UPDATE, Collections.singleton(obj));
         return this;
     }
 
     @Override
-    public RhsContext delete(Object obj) {
+    public final RhsContext delete(Object obj) {
         buffer.add(typeResolver, Action.RETRACT, Collections.singleton(obj));
         return this;
     }
 
     @Override
-    public RhsContext insert(Object obj) {
+    public final RhsContext insert(Object obj) {
         buffer.add(typeResolver, Action.INSERT, Collections.singleton(obj));
         return this;
     }

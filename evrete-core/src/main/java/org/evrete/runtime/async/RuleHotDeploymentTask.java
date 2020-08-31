@@ -20,7 +20,7 @@ public class RuleHotDeploymentTask extends Completer {
     protected void execute() {
         // Terminal nodes for each beta graph should be evaluated
         List<NodeDeltaTask> deltaTasks = new LinkedList<>();
-        for (BetaEndNode endNode : rule.getAllBetaEndNodes()) {
+        for (BetaEndNode endNode : rule.getLhs().getAllBetaEndNodes()) {
             NodeDeltaTask dt = new NodeDeltaTask(this, endNode, false);
             deltaTasks.add(dt);
         }
@@ -39,15 +39,12 @@ public class RuleHotDeploymentTask extends Completer {
 
     @Override
     public void onCompletion(CountedCompleter<?> caller) {
-        //Merge terminal nodes' data
-        for (BetaEndNode endNode : rule.getAllBetaEndNodes()) {
-            endNode.mergeDelta();
-        }
-
         // Evaluate aggregate nodes, if any
-        for (RuntimeAggregateLhsJoined agg : rule.getAggregateLhsGroups()) {
+        for (RuntimeAggregateLhsJoined agg : rule.getLhs().getAggregateConditionedGroups()) {
             agg.evaluate(false);
         }
+
+        rule.resetState();
     }
 
 }

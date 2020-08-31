@@ -3,7 +3,7 @@ package org.evrete.runtime;
 import org.evrete.api.Memory;
 import org.evrete.runtime.memory.SessionMemory;
 
-public abstract class RuntimeFactType extends FactType  {
+public abstract class RuntimeFactType extends FactType implements ActivationSubject  {
     private final SessionMemory runtime;
 
     abstract boolean isBetaNode();

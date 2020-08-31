@@ -34,6 +34,6 @@ abstract class AbstractEvaluatorJoined implements BooleanSupplier {
     }
 
     KeysStore matchingValues() {
-        return aggregateData.getNext(parentValues);
+        return aggregateData.get(parentValues).getNext();
     }
 }

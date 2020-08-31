@@ -3,6 +3,7 @@ package org.evrete.runtime;
 import org.evrete.api.*;
 import org.evrete.runtime.evaluation.EvaluatorInternal;
 
+import java.util.EnumMap;
 import java.util.function.BooleanSupplier;
 import java.util.function.IntFunction;
 
@@ -61,7 +62,9 @@ public class RuntimeAggregateLhsJoined extends RuntimeAggregateLhs {
                     saveMapping[level][inLevelIndex] = new int[]{iteratorIndex, t.getInGroupIndex()};
                     inLevelIndex++;
                 }
-                this.iterators[iteratorIndex] = new SourceIterator(iteratorIndex, d, allLhs[level].resolve(d));
+                AbstractRuntimeLhs lhs = allLhs[level];
+                RhsFactGroupBeta beta = lhs.getGroup(d);
+                this.iterators[iteratorIndex] = new SourceIterator(iteratorIndex, d, beta);
                 iteratorIndex++;
             }
         }
@@ -112,6 +115,7 @@ public class RuntimeAggregateLhsJoined extends RuntimeAggregateLhs {
 
     public void evaluate(boolean deltaOnly) {
         evaluate(0, false, deltaOnly);
+        System.out.println("@@@@@ " + successData);
     }
 
     private void evaluate(int index, boolean hasDelta, boolean deltaOnly) {
@@ -120,36 +124,40 @@ public class RuntimeAggregateLhsJoined extends RuntimeAggregateLhs {
         if (index == iterators.length - 1) {
             // Last
             // 1. Main
-            it = iterator.main();
-            it.reset();
-            while (it.hasNext() && (!deltaOnly || hasDelta)) {
-                state[index] = it.next();
-                testAndSave();
+            it = iterator.keyIterator(KeyMode.KNOWN_KEYS_KNOWN_FACTS);
+            if(it.reset() > 0) {
+                while (it.hasNext() && (!deltaOnly || hasDelta)) {
+                    state[index] = it.next();
+                    testAndSave();
+                }
             }
 
             // 2. Delta
-            it = iterator.delta();
-            it.reset();
-            while (it.hasNext()) {
-                state[index] = it.next();
-                testAndSave();
+            it = iterator.keyIterator(KeyMode.NEW_KEYS_NEW_FACTS);
+            if(it.reset() > 0) {
+                while (it.hasNext()) {
+                    state[index] = it.next();
+                    testAndSave();
+                }
             }
 
         } else {
             // 1. Main
-            it = iterator.main();
-            it.reset();
-            while (it.hasNext()) {
-                state[index] = it.next();
-                evaluate(index + 1, hasDelta, deltaOnly);
+            it = iterator.keyIterator(KeyMode.KNOWN_KEYS_KNOWN_FACTS);
+            if(it.reset() >0) {
+                while (it.hasNext()) {
+                    state[index] = it.next();
+                    evaluate(index + 1, hasDelta, deltaOnly);
+                }
             }
 
             // 2. Delta
-            it = iterator.delta();
-            it.reset();
-            while (it.hasNext()) {
-                state[index] = it.next();
-                evaluate(index + 1, true, deltaOnly);
+            it = iterator.keyIterator(KeyMode.NEW_KEYS_NEW_FACTS);
+            if(it.reset() > 0) {
+                while (it.hasNext()) {
+                    state[index] = it.next();
+                    evaluate(index + 1, true, deltaOnly);
+                }
             }
         }
     }
@@ -189,32 +197,20 @@ public class RuntimeAggregateLhsJoined extends RuntimeAggregateLhs {
     }
 
 
-    static class SourceIterator {
+    static class SourceIterator implements KeyReIterators<ValueRow[]>{
         private final FactType[] types;
         private final int index;
-        private final ReIterator<ValueRow[]> main;
-        private final ReIterator<ValueRow[]> delta;
+        private final EnumMap<KeyMode, ReIterator<ValueRow[]>> map;
 
-        SourceIterator(int index, RhsFactGroupDescriptor descriptor, RhsKeysGroupIterator iterator) {
+        SourceIterator(int index, RhsFactGroupDescriptor descriptor, KeyReIterators<ValueRow[]> iterator) {
             this.types = descriptor.getTypes();
             this.index = index;
-
-            this.main = null;
-            this.delta = null;
-/*
-            this.main = iterator.getMainIterator();
-            this.delta = iterator.getDeltaIterator();
-*/
+            this.map = iterator.keyIterators();
         }
 
-        ReIterator<ValueRow[]> main() {
-            throw new UnsupportedOperationException();
-            //return main;
-        }
-
-        ReIterator<ValueRow[]> delta() {
-            throw new UnsupportedOperationException();
-            //return delta;
+        @Override
+        public EnumMap<KeyMode, ReIterator<ValueRow[]>> keyIterators() {
+            return map;
         }
     }
 }

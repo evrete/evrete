@@ -1,24 +1,37 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
+import org.evrete.api.KeyMode;
+import org.evrete.api.KeyReIterators;
+import org.evrete.api.ReIterator;
+import org.evrete.api.ValueRow;
+import org.evrete.runtime.memory.BetaEndNode;
 
 import java.util.EnumMap;
 import java.util.function.BooleanSupplier;
 
-public class RhsKeysGroupIterator implements KeyIteratorsBundle<ValueRow[]> {
+public class RhsKeysGroupIterator implements KeyReIterators<ValueRow[]> {
     private static final BooleanSupplier TRUE_PREDICATE = () -> true;
     private final RhsFactGroupIterator groupIterator;
     private final ValueRow[][] state;
     private final int keyGroupId;
     private BooleanSupplier statePredicate = TRUE_PREDICATE;
-    private final KeyIteratorsBundle<ValueRow[]> endNode;
+    private final KeyReIterators<ValueRow[]> iterators;
 
-    public RhsKeysGroupIterator(int keyGroupId, KeyIteratorsBundle<ValueRow[]> endNode, RhsFactGroupIterator groupIterator, ValueRow[][] state) {
+    public RhsKeysGroupIterator(int keyGroupId, KeyReIterators<ValueRow[]> endNode, RhsFactGroupIterator groupIterator, ValueRow[][] state) {
         this.groupIterator = groupIterator;
         this.keyGroupId = keyGroupId;
         this.state = state;
-        this.endNode = endNode;
+        this.iterators = endNode;
     }
+
+/*
+    public RhsKeysGroupIterator(int keyGroupId, RuntimeFactTypeKeyed entryNode, RhsFactGroupIterator groupIterator, ValueRow[][] state) {
+        this.groupIterator = groupIterator;
+        this.keyGroupId = keyGroupId;
+        this.state = state;
+        this.iterators = entryNode.getMappedKeyIterators();
+    }
+*/
 
 /*
     static RhsKeysGroupIterator factory(int keyGroupId, RhsFactGroupDescriptor groupDescriptor, RhsFactGroupIterator groupIterator, ReIterator<ValueRow[]> mainIterator, ReIterator<ValueRow[]> deltaIterator, RuntimeFactTypeKeyed[] rtFactTypes, ValueRow[][] state) {
@@ -33,11 +46,16 @@ public class RhsKeysGroupIterator implements KeyIteratorsBundle<ValueRow[]> {
 
     @Override
     public EnumMap<KeyMode, ReIterator<ValueRow[]>> keyIterators() {
-        return endNode.keyIterators();
+        return iterators.keyIterators();
     }
 
-    void initFactIterators(ValueRow[] key) {
-        groupIterator.setIterables(key);
+    boolean setSate(ValueRow[] key) {
+        state[keyGroupId] = key;
+        boolean b = statePredicate.getAsBoolean();
+        if (b) {
+            groupIterator.setIterables(key);
+        }
+        return b;
     }
 
 /*
@@ -81,6 +99,7 @@ public class RhsKeysGroupIterator implements KeyIteratorsBundle<ValueRow[]> {
     }
 */
 
+/*
     void setFactIterables(ValueRow[] next) {
         groupIterator.setIterables(next);
     }
@@ -88,6 +107,7 @@ public class RhsKeysGroupIterator implements KeyIteratorsBundle<ValueRow[]> {
     void setFactIterators(ValueRow[] next) {
         groupIterator.setIterators(next);
     }
+*/
 
 /*
     abstract void initFactIterators(ValueRow[] next);

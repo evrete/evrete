@@ -33,7 +33,7 @@ public class NodeCleanTask extends Completer {
             Bits sourceMask = source.getTypeMask();
             if (source.isConditionNode() && sourceMask.intersects(deleteMask)) {
                 BetaConditionNode sourceNode = (BetaConditionNode) source;
-                if (sourceNode.hasMainData()) {
+                if (!sourceNode.getMainStore().isEmpty()) {
                     forkNew(new NodeCleanTask(this, sourceNode));
                 }
             }

@@ -30,17 +30,18 @@ class KeysStoreStub implements KeysStore {
     }
 
     @Override
-    public KeysStore getNext(IntToValueRow key) {
+    public Entry get(IntToValueRow key) {
+        //TODO override or provide a message
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isEmpty() {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public ReIterator<Entry> entries() {
-        throw new UnsupportedOperationException("Not implemented in " + this.getClass().getName());
-    }
-
-    @Override
-    public long keyCount() {
         throw new UnsupportedOperationException("Not implemented in " + this.getClass().getName());
     }
 }

@@ -1,36 +1,20 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.KeyIterable;
 import org.evrete.api.ReIterator;
 import org.evrete.api.RuntimeFact;
 import org.evrete.api.ValueRow;
-import org.evrete.api.spi.SharedBetaFactStorage;
 
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
-class FieldsFactMap extends org.evrete.collections.AbstractHashData<ValueRowImpl> implements KeyIterable {
+class FieldsFactMap extends org.evrete.collections.AbstractHashData<ValueRowImpl> {
     private static final ToIntFunction<Object> HASH_FUNCTION = Object::hashCode;
     private static final BiPredicate<ValueRowImpl, ValueRowImpl> EQ_FUNCTION_TYPED = ValueRowImpl::equals;
+    private static final Function<ValueRowImpl, ValueRow> IMPL_MAPPING = v -> v;
 
-
-    @Override
-    public ReIterator<ValueRow[]> keyIterator() {
-        final ValueRowImpl[] arr = new ValueRowImpl[1];
-        return iterator(vr -> {
-            arr[0] = vr;
-            return arr;
-        });
-    }
-
-    ReIterator<ValueRow> keyIterator1() {
-        return iterator(valueRow -> valueRow);
-    }
-
-    @Override
-    public final long keyCount() {
-        return size();
+    ReIterator<ValueRow> keyIterator() {
+        return iterator(IMPL_MAPPING);
     }
 
     @Override
@@ -47,7 +31,6 @@ class FieldsFactMap extends org.evrete.collections.AbstractHashData<ValueRowImpl
     protected BiPredicate<Object, Object> getEqualsPredicate() {
         return IDENTITY_EQUALS;
     }
-
 
     private void insertOtherNoResize(ValueRowImpl other) {
         int hash = other.hashCode();

@@ -53,4 +53,9 @@ public class EvaluatorGroup implements ComplexityObject {
     public Bits getTypeMask() {
         return typeMask;
     }
+
+    @Override
+    public String toString() {
+        return Arrays.toString(evaluators);
+    }
 }

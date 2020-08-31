@@ -26,6 +26,15 @@ public final class RuntimeFactTypePlain extends RuntimeFactType {
     }
 
     @Override
+    public boolean isInActiveState() {
+        return plainMemory.hasChanges();
+    }
+
+    @Override
+    public void resetState() {
+    }
+
+    @Override
     public PlainMemory getSource() {
         return plainMemory;
     }

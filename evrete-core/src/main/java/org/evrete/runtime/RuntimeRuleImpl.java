@@ -10,11 +10,10 @@ import java.util.Collection;
 import java.util.function.Consumer;
 
 
-public class RuntimeRuleImpl extends AbstractRuntimeRule implements MemoryChangeListener, RuntimeRule {
+public class RuntimeRuleImpl extends AbstractRuntimeRule implements MemoryChangeListener, RuntimeRule, ActivationSubject {
     private final RuntimeLhs lhs;
     private final Buffer ruleBuffer;
     private final Buffer memoryBuffer;
-    private boolean inActiveState = false;
 
     public RuntimeRuleImpl(RuleDescriptor rd, SessionMemory memory) {
         super(rd, memory);
@@ -24,17 +23,11 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements MemoryChange
     }
 
     public final void executeRhs() {
-        assert this.inActiveState;
+        assert isInActiveState();
         this.lhs.forEach(rhs);
         // Merge memory changes
         memoryBuffer.takeAllFrom(ruleBuffer);
         resetState();
-    }
-
-    boolean readActiveState() {
-        //TODO !!!!! do deletes mean an active state??????
-        this.inActiveState = isDeleteDeltaAvailable() || isInsertDeltaAvailable();
-        return inActiveState;
     }
 
     public final RuntimeRuleImpl setRhs(Consumer<RhsContext> consumer) {
@@ -53,31 +46,32 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements MemoryChange
         //resetState();
     }
 
+    @Override
     public boolean isInActiveState() {
-        return inActiveState;
+        return lhs.isInActiveState();
     }
 
-    public void setInActiveState(boolean inActiveState) {
-        this.inActiveState = inActiveState;
-    }
-
-    private void resetState() {
-        this.inActiveState = false;
+    @Override
+    public void resetState() {
+        lhs.resetState();
         // Merge deltas if available
         for (BetaEndNode endNode : lhs.getAllBetaEndNodes()) {
             endNode.mergeDelta();
         }
     }
 
+    @Override
     public RuntimeLhs getLhs() {
         return lhs;
     }
 
-    public BetaEndNode[] getAllBetaEndNodes() {
+/*
+    public Collection<BetaEndNode> getAllBetaEndNodes() {
         return lhs.getAllBetaEndNodes();
     }
 
     public Collection<RuntimeAggregateLhsJoined> getAggregateLhsGroups() {
         return lhs.getAggregateConditionedGroups();
     }
+*/
 }

@@ -37,19 +37,18 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
         fireDefault(new FireContext(this));
     }
 
-    private void fireSequential(FireContext ctx) {
-        throw new UnsupportedOperationException();
 /*
+    private void fireSequential(FireContext ctx) {
         doEvaluationTasks(ctx);
         for (RuntimeRule r : getActiveRules()) {
             ((RuntimeRuleImpl) r).executeRhs();
-            commitMemory();
+            commitMemoryDeltas();
             if (hasMemoryTasks()) {
                 fireSequential(ctx);
             }
         }
-*/
     }
+*/
 
     private void fireDefault(FireContext ctx) {
         doEvaluationTasks(ctx);

@@ -26,6 +26,17 @@ class TypeMemoryBucket implements PlainMemory {
         this.delta.clear();
     }
 
+    void fillMainStorage(ReIterator<RuntimeObject> iterator) {
+        if (iterator.reset() > 0) {
+            while (iterator.hasNext()) {
+                RuntimeObject rto = iterator.next();
+                if (alphaMask.test(rto)) {
+                    data.insert(rto);
+                }
+            }
+        }
+    }
+
     @Override
     public boolean hasChanges() {
         return delta.size() > 0;
@@ -45,7 +56,7 @@ class TypeMemoryBucket implements PlainMemory {
     public void commitChanges() {
         int deltaSize;
         if((deltaSize = delta.size()) > 0) {
-            //TODO !!!!bulk insert
+            //TODO !!!!bulk insert, change interface, use the same approach in hot deployment
             data.ensureExtraCapacity(deltaSize);
             delta.iterator().forEachRemaining(data::insert);
             delta.clear();
@@ -55,30 +66,23 @@ class TypeMemoryBucket implements PlainMemory {
     void insert(Collection<RuntimeObject> facts) {
         delta.ensureExtraCapacity(facts.size());
         for (RuntimeObject rto : facts) {
-            insertSingle(rto);
+            if (alphaMask.test(rto)) {
+                delta.insert(rto);
+            }
         }
     }
 
-    void insertSingle(RuntimeObject rto) {
+    void insertSingle1(RuntimeObject rto) {
         if (alphaMask.test(rto)) {
             delta.insert(rto);
         }
     }
 
     void retract(Collection<RuntimeFact> facts) {
-        throw new UnsupportedOperationException();
-/*
         for (RuntimeFact fact : facts) {
             if (alphaMask.test(fact)) {
                 data.delete(fact);
             }
         }
-*/
-    }
-
-    //@Override
-    public ReIterator<RuntimeFact> iterator() {
-        throw new UnsupportedOperationException();
-        //return data.iterator();
     }
 }

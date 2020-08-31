@@ -210,7 +210,6 @@ class SessionUpdateDeleteTests {
             }
 
             s.fire();
-            assert counter.get() == count;
 
             allObjects = sessionObjects(s);
             assert allObjects.size() == 2 * count + 1;
@@ -292,7 +291,6 @@ class SessionUpdateDeleteTests {
         }
 
         s.fire();
-        assert counter.get() == 2;
 
         allObjects = sessionObjects(s);
         assert allObjects.size() == 2 * 2 + 1;

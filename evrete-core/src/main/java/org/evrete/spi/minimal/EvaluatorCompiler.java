@@ -59,8 +59,7 @@ class EvaluatorCompiler {
         }
     }
 
-    Evaluator buildExpression(StringLiteralRemover remover, String strippedExpression2, List<ConditionStringTerm> terms) {
-        String strippedExpression = strippedExpression2;
+    Evaluator buildExpression(StringLiteralRemover remover, String strippedExpression, List<ConditionStringTerm> terms) {
 
         int accumulatedShift = 0;
         StringJoiner argClasses = new StringJoiner(", ");
@@ -120,6 +119,7 @@ class EvaluatorCompiler {
         String comparableClassSource = classJavaSource.replaceAll(clazz, "CLASS_STUB");
 
         FieldReference[] descriptor = descriptorBuilder.toArray(FieldReference.ZERO_ARRAY);
+        if(descriptor.length == 0) throw new IllegalStateException("No field references were resolved.");
         MethodHandle methodHandle = compileExpression(className, classJavaSource);
         return new EvaluatorImpl(methodHandle, remover.getOriginal(), comparableClassSource, descriptor);
 

@@ -2,197 +2,97 @@ package org.evrete.runtime;
 
 import org.evrete.api.*;
 import org.evrete.runtime.memory.BetaEndNode;
+import org.evrete.util.CollectionUtils;
 
 import java.util.*;
-import java.util.function.BooleanSupplier;
 
 
-public abstract class AbstractRuntimeLhs {
+public abstract class AbstractRuntimeLhs implements ActivationSubject {
     private final Collection<BetaEndNode> endNodes = new ArrayList<>();
     private final AbstractLhsDescriptor descriptor;
     private final AbstractRuntimeLhs parent;
     private final Map<ConditionNodeDescriptor, BetaEndNode> betaEndNodeMap = new HashMap<>();
+    private final RhsFactGroup[] rhsFactGroups;
+    private final RhsFactGroupAlpha alphaFactGroup;
+    private final RhsFactGroupBeta[] betaFactGroups;
+    final boolean hasBetaNodes;
+    final boolean hasAlphaNodes;
 
     final RuntimeFact[][] factState;
     private final ValueRow[][] keyState;
-    final boolean hasBetaNodes;
-    private final NestedFactRunnable[] factGroupIterators;
-    private final RhsKeysGroupIterator[] keyIterators;
-    private final RhsFactGroupIterator looseFactGroupIterator;
-    private final NestedFactRunnable factIterator;
-    private final NestedFactRunnable lastFactGroupIterator;
-    private final boolean fullKeyScan;
-    //private final Runnable keyIterator;
-    //private final RhsKeysGroupIterator lastKeyIterator;
 
     AbstractRuntimeLhs(RuntimeRuleImpl rule, AbstractRuntimeLhs parent, AbstractLhsDescriptor descriptor) {
         this.descriptor = descriptor;
         this.parent = parent;
 
         // Init end nodes first
-        // (this should stay in this class, unlike keys and fact iterators)
-        for (RhsFactGroupDescriptor groupDescriptor : descriptor.getAllFactGroups()) {
-            ConditionNodeDescriptor finalNode = groupDescriptor.getFinalNode();
-            if (finalNode != null) {
-                BetaEndNode endNode = new BetaEndNode(rule, finalNode);
-                endNodes.add(endNode);
-                betaEndNodeMap.put(finalNode, endNode);
-            }
-        }
-
-
-        // Init iteration states
         RhsFactGroupDescriptor[] allFactGroups = descriptor.getAllFactGroups();
-        this.factGroupIterators = new RhsFactGroupIterator[allFactGroups.length];
-        this.keyIterators = new RhsKeysGroupIterator[descriptor.getBetaFactGroupCount()];
-        this.keyState = new ValueRow[descriptor.getBetaFactGroupCount()][];
+        this.rhsFactGroups = new RhsFactGroup[allFactGroups.length];
+        this.keyState = new ValueRow[allFactGroups.length][];
         this.factState = new RuntimeFact[allFactGroups.length][];
 
-        RhsFactGroupIterator looseIterator = null;
-        for (int i = 0; i < allFactGroups.length; i++) {
-            RhsFactGroupDescriptor groupDescriptor = allFactGroups[i];
-            int factGroupId = groupDescriptor.getFactGroupIndex();
-            assert factGroupId == i;
-            FactType[] types = groupDescriptor.getTypes();
-            this.factState[factGroupId] = new RuntimeFact[types.length];
+        RhsFactGroupAlpha alpha = null;
+        for (RhsFactGroupDescriptor groupDescriptor : allFactGroups) {
+            int groupIndex = groupDescriptor.getFactGroupIndex();
+            this.factState[groupIndex] = new RuntimeFact[groupDescriptor.getTypes().length];
 
-            //RhsFactGroupIterator groupIterator = new RhsFactGroupIterator(factGroupId, factState);
-            RhsFactGroupIterator groupIterator;
-            if (groupDescriptor.isLooseGroup()) {
-                // For a loose (alpha) group we're able to init fact iterators immediately
-                // because they won't ever change
-                groupIterator = new RhsFactGroupIteratorLoose(factGroupId, rule.resolve(RuntimeFactTypePlain.class, types), factState);
-                if (looseIterator == null) {
-                    looseIterator = groupIterator;
-                } else {
-                    // Duplicate loose iterator
-                    throw new IllegalStateException();
-                }
+            RhsFactGroup factGroup;
+            if(groupDescriptor.isLooseGroup()) {
+                factGroup = alpha = new RhsFactGroupAlpha(rule, groupDescriptor, factState);
             } else {
                 ConditionNodeDescriptor finalNode = groupDescriptor.getFinalNode();
-                RhsKeysGroupIterator iterator;
-                int keyGroupId = groupDescriptor.getKeyGroupIndex();
                 if (finalNode != null) {
-                    BetaEndNode endNode = betaEndNodeMap.get(finalNode);
-                    groupIterator = new RhsFactGroupIteratorKeyed(factGroupId, factState);
-                    iterator = new RhsKeysGroupIterator(keyGroupId, endNode, groupIterator, keyState);
+                    BetaEndNode endNode = new BetaEndNode(rule, finalNode);
+                    endNodes.add(endNode);
+                    betaEndNodeMap.put(finalNode, endNode);
+                    factGroup = new RhsFactGroupBeta(groupDescriptor, endNode, keyState, factState);
                 } else {
-                    throw new UnsupportedOperationException();
-/*
-                    assert types.length == 1;
-                    RuntimeFactTypeKeyed runtimeFactType = rule.resolve(types[0]);
-                    rtFactTypes = new RuntimeFactTypeKeyed[]{rule.resolve(types[0])};
-                    mainIterator = runtimeFactType.mainIterator();
-                    deltaIterator = runtimeFactType.deltaIterator();
-*/
+                    RuntimeFactTypeKeyed singleType = rule.resolve(groupDescriptor.getTypes()[0]);
+                    factGroup = new RhsFactGroupBeta(groupDescriptor, singleType, keyState, factState);
                 }
-
-
-
-                // Save and chain key iterators
-                keyIterators[keyGroupId] = iterator;
-/*
-                if (keyGroupId > 0) {
-                    RhsKeysGroupIterator prev = keyIterators[keyGroupId - 1];
-                    prev.setNested(iterator);
-                }
-*/
             }
-
-            //Save and chain the FactGroupIterator
-            factGroupIterators[factGroupId] = groupIterator;
-            if (i > 0) {
-                NestedFactRunnable prev = factGroupIterators[i - 1];
-                prev.setDelegate(groupIterator);
-            }
+            this.rhsFactGroups[groupIndex] = factGroup;
         }
-
-        this.looseFactGroupIterator = looseIterator;
-        this.fullKeyScan = looseIterator != null;
-        this.factIterator = factGroupIterators[0];
-        this.lastFactGroupIterator = factGroupIterators[factGroupIterators.length - 1];
-        this.hasBetaNodes = keyIterators.length > 0;
-
+        this.betaFactGroups = CollectionUtils.filter(RhsFactGroupBeta.class, rhsFactGroups, group -> !group.isAlpha());
+        this.alphaFactGroup = alpha;
+        this.hasBetaNodes = this.betaFactGroups.length > 0;
+        this.hasAlphaNodes = this.alphaFactGroup != null;
     }
 
-    void addStateKeyPredicate(RhsFactGroupDescriptor descriptor, BooleanSupplier predicate) {
-        this.keyIterators[descriptor.getKeyGroupIndex()].addStateKeyPredicate(predicate);
+    @Override
+    public boolean isInActiveState() {
+        return readState(rhsFactGroups);
     }
 
-    RhsKeysGroupIterator resolve(RhsFactGroupDescriptor descriptor) {
-        return keyIterators[descriptor.getKeyGroupIndex()];
+    @Override
+    public void resetState() {
+        resetState(rhsFactGroups);
+    }
+
+    public RhsFactGroupAlpha getAlphaFactGroup() {
+        return alphaFactGroup;
+    }
+
+    public RhsFactGroupBeta[] getBetaFactGroups() {
+        return betaFactGroups;
     }
 
     public ValueRow[][] getKeyState() {
         return keyState;
     }
 
-    public RhsFactGroupIterator getLooseFactGroupIterator() {
-        return looseFactGroupIterator;
+
+    @SuppressWarnings("unchecked")
+    public  <T extends RhsFactGroup> T getGroup(RhsFactGroupDescriptor descriptor) {
+        return (T) rhsFactGroups[descriptor.getFactGroupIndex()];
     }
 
     AbstractRuntimeLhs(RuntimeRuleImpl rule, LhsDescriptor descriptor) {
         this(rule, null, descriptor);
     }
 
-    public RhsKeysGroupIterator[] getKeyGroupIterators() {
-        return keyIterators;
-    }
-
     public AbstractLhsDescriptor getDescriptor() {
         return descriptor;
-    }
-
-    /*
-    void forEachKey(Runnable r) {
-        lastKeyIterator.setRunnable(r);
-        keyIterator.run();
-    }
-*/
-
-    void forEachKey(Runnable r) {
-        forEachKey(0, false, r);
-    }
-
-    void forEachKey(int index, boolean hasDelta, Runnable r) {
-        RhsKeysGroupIterator groupIterator = keyIterators[index];
-        EnumMap<KeyMode, ReIterator<ValueRow[]>> modeIterators = groupIterator.keyIterators();
-        KeyMode mode;
-        boolean iteratorPass;
-        ReIterator<ValueRow[]> i;
-
-        if(index == keyIterators.length - 1) {
-            // The last key
-            for(Map.Entry<KeyMode, ReIterator<ValueRow[]>> entry : modeIterators.entrySet()) {
-                mode = entry.getKey();
-                i = entry.getValue();
-                iteratorPass = fullKeyScan || hasDelta || mode.isDeltaMode();
-
-                if(iteratorPass && i.reset() > 0) {
-                    while (i.hasNext()) {
-                        groupIterator.initFactIterators(i.next());
-                        r.run();
-                    }
-                }
-            }
-        } else {
-            // A middle key
-            for(Map.Entry<KeyMode, ReIterator<ValueRow[]>> entry : modeIterators.entrySet()) {
-                mode = entry.getKey();
-                i = entry.getValue();
-                if(i.reset() > 0) {
-                    while (i.hasNext()) {
-                        groupIterator.initFactIterators(i.next());
-                        forEachKey(index + 1, mode.isDeltaMode(), r);
-                    }
-                }
-            }
-        }
-    }
-
-    void forEachFact(NestedFactRunnable r) {
-        lastFactGroupIterator.setDelegate(r);
-        factIterator.forEachFact();
     }
 
     public final BetaEndNode resolve(ConditionNodeDescriptor descriptor) {
@@ -210,7 +110,6 @@ public abstract class AbstractRuntimeLhs {
     Collection<BetaEndNode> getEndNodes() {
         return endNodes;
     }
-
 
     @Override
     public String toString() {

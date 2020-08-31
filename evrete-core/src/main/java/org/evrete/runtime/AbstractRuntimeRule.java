@@ -75,6 +75,7 @@ public abstract class AbstractRuntimeRule extends AbstractRule {
     }
 
     //TODO !!! optimize
+    //TODO !!! this method is called twice when identifying active rules
     public boolean isInsertDeltaAvailable() {
         boolean delta = false;
         for (RuntimeFactType ft : this.getAllFactTypes()) {
@@ -106,4 +107,5 @@ public abstract class AbstractRuntimeRule extends AbstractRule {
         memory.reSortRules();
     }
 
+    public abstract RuntimeLhs getLhs();
 }

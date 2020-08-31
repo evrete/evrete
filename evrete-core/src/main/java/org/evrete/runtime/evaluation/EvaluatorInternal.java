@@ -39,4 +39,9 @@ public class EvaluatorInternal implements ComplexityObject, LogicallyComparable 
     public int compare(LogicallyComparable other) {
         return delegate.compare(other);
     }
+
+    @Override
+    public String toString() {
+        return delegate.toString();
+    }
 }

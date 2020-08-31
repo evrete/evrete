@@ -17,7 +17,7 @@ class SharedBetaData implements SharedBetaFactStorage {
     private final FieldsFactMap main = new FieldsFactMap();
     private final FastHashSet<ValueRow> deleteTasks = new FastHashSet<>();
     private final ActiveField[] fields;
-    private final EnumMap<KeyMode, ReIterator<ValueRow>> keyIterators;
+    private final EnumMap<KeyMode, ReIterable<ValueRow>> keyIterables;
 
     private final BiPredicate<ValueRowImpl, Object[]> SHARED_ARRAY_EQ = new BiPredicate<ValueRowImpl, Object[]>() {
         @Override
@@ -29,28 +29,28 @@ class SharedBetaData implements SharedBetaFactStorage {
     SharedBetaData(FieldsKey typeFields) {
         this.fields = typeFields.getFields();
         this.reusableValueArr = new Object[fields.length];
-        this.keyIterators = buildKeyIterators();
+        this.keyIterables = buildKeyIterables();
     }
 
 
     @Override
-    public EnumMap<KeyMode, ReIterator<ValueRow>> keyIterators() {
-        return keyIterators;
+    public EnumMap<KeyMode, ReIterable<ValueRow>> keyIterables() {
+        return keyIterables;
     }
 
-    private EnumMap<KeyMode, ReIterator<ValueRow>> buildKeyIterators() {
-        EnumMap<KeyMode, ReIterator<ValueRow>> map = new EnumMap<>(KeyMode.class);
+    private EnumMap<KeyMode, ReIterable<ValueRow>> buildKeyIterables() {
+        EnumMap<KeyMode, ReIterable<ValueRow>> map = new EnumMap<>(KeyMode.class);
         for(KeyMode mode : KeyMode.values()) {
-            ReIterator<ValueRow> iterator;
+            ReIterable<ValueRow> iterator;
             switch (mode) {
                 case KNOWN_KEYS_KNOWN_FACTS:
-                    iterator = main.keyIterator1();
+                    iterator = main::keyIterator;
                     break;
                 case KNOWN_KEYS_NEW_FACTS:
-                    iterator = deltaKnownKeys.keyIterator1();
+                    iterator = deltaKnownKeys::keyIterator;
                     break;
                 case NEW_KEYS_NEW_FACTS:
-                    iterator = deltaNewKeys.keyIterator1();
+                    iterator = deltaNewKeys::keyIterator;
                     break;
                 default:
                     throw new IllegalStateException();
@@ -121,21 +121,6 @@ class SharedBetaData implements SharedBetaFactStorage {
 
         clearDeletedKeys();
 
-    }
-
-    @Override
-    public KeyIterable deltaNewKeys() {
-        return deltaNewKeys;
-    }
-
-    @Override
-    public KeyIterable deltaKnownKeys() {
-        return deltaKnownKeys;
-    }
-
-    @Override
-    public KeyIterable main() {
-        return main;
     }
 
     private void insert(RuntimeFact fact) {

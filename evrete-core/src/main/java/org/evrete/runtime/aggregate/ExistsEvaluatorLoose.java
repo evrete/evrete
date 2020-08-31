@@ -17,6 +17,6 @@ class ExistsEvaluatorLoose extends AbstractEvaluatorLoose {
                 return false;
             }
         }
-        return looseGroupIterator == null || looseGroupIterator.reset() != 0;
+        return alphaFactGroup == null || alphaFactGroup.getComputedFactCount() != 0;
     }
 }

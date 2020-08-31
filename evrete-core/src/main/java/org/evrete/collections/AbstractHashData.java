@@ -113,7 +113,7 @@ public abstract class AbstractHashData<E> extends UnsignedIntArray implements Re
         return findBinIndexFor(key, hash, data, eqTest);
     }
 
-    public <K> int findBinIndex(K key, int hash, BiPredicate<E, K> eqTest) {
+    public <K> int findBinIndex(K key, int hash, BiPredicate<? super E, K> eqTest) {
         return findBinIndex(key, hash, data, eqTest);
     }
 
@@ -281,9 +281,12 @@ public abstract class AbstractHashData<E> extends UnsignedIntArray implements Re
         return new It();
     }
 
-    protected <T> ReIterator<T> iterator(Function<E, T> mapper) {
+/*
+    @Override
+    public  <T> ReIterator<T> iterator(Function<E, T> mapper) {
         return new It1<>(mapper);
     }
+*/
 
     @SuppressWarnings("unchecked")
     public Stream<E> stream() {
@@ -354,6 +357,11 @@ public abstract class AbstractHashData<E> extends UnsignedIntArray implements Re
             return size;
         }
 
+        @Override
+        public String toString() {
+            return AbstractHashData.this.toString();
+        }
+
         Object nextObject() {
             Object ret = next;
             findNext();
@@ -379,6 +387,7 @@ public abstract class AbstractHashData<E> extends UnsignedIntArray implements Re
         }
     }
 
+/*
     private class It1<T> extends AbstractIterator<T> {
         private final Function<E, T> mapper;
 
@@ -390,9 +399,9 @@ public abstract class AbstractHashData<E> extends UnsignedIntArray implements Re
         @Override
         @SuppressWarnings("unchecked")
         public T next() {
-            //if (next == null) throw new NoSuchElementException();
             E ret = (E) nextObject();
             return mapper.apply(ret);
         }
     }
+*/
 }

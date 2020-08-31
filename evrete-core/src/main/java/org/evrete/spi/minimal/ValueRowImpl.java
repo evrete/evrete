@@ -59,7 +59,7 @@ class ValueRowImpl implements ValueRow {
 
     @Override
     public String toString() {
-        return Arrays.toString(data);
+        return Arrays.toString(data) + " ---> " + delegate;
     }
 
     @Override

@@ -2,12 +2,19 @@ package org.evrete.util;
 
 import java.lang.reflect.Array;
 import java.util.*;
-import java.util.function.BiPredicate;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.function.ToIntFunction;
+import java.util.function.*;
+import java.util.stream.Collectors;
 
 public final class CollectionUtils {
+
+    @SuppressWarnings("unchecked")
+    public static <T, Z extends T> Z[] filter(Class<Z> type, T[] input, Predicate<T> predicate) {
+        List<Z> list = Arrays
+                .stream(input)
+                .filter(predicate).map(t -> (Z) t)
+                .collect(Collectors.toList());
+        return list.toArray(array(type, 0));
+    }
 
     public static <T> T[] appendToArray(T[] old, T newValue) {
         T[] newArr = Arrays.copyOf(old, old.length + 1);

@@ -30,7 +30,7 @@ public class BetaMemoryDeleteTask extends Completer {
 
         Bits deleteMask = new Bits();
         Collection<BetaEndNode> betaEndNodes = new HashSet<>();
-        for (BetaEndNode endNode : rule.getAllBetaEndNodes()) {
+        for (BetaEndNode endNode : rule.getLhs().getAllBetaEndNodes()) {
             for (RuntimeFactType factType : endNode.getEntryNodes()) {
                 if (factType.isDeleteDeltaAvailable()) {
                     deleteMask.set(factType.getInRuleIndex());
@@ -48,7 +48,7 @@ public class BetaMemoryDeleteTask extends Completer {
 
     @Override
     public void onCompletion(CountedCompleter<?> caller) {
-        Collection<RuntimeAggregateLhsJoined> aggregateNodes = rule.getAggregateLhsGroups();
+        Collection<RuntimeAggregateLhsJoined> aggregateNodes = rule.getLhs().getAggregateConditionedGroups();
         if (aggregateNodes.isEmpty()) return;
 
 

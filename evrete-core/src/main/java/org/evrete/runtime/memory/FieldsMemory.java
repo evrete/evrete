@@ -63,7 +63,8 @@ public class FieldsMemory implements Memory {
             while (existingFacts.hasNext()) {
                 RuntimeObject rto = existingFacts.next();
                 if (alphaMeta.test(rto)) {
-                    betaFactStorage.insertDirect(rto);
+                    throw new UnsupportedOperationException();
+                    //betaFactStorage.insertDirect(rto);
                 }
             }
         }

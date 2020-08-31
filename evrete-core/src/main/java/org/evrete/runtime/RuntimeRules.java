@@ -17,7 +17,7 @@ public class RuntimeRules implements Iterable<RuntimeRuleImpl> {
 
     private void add(RuntimeRuleImpl rule) {
         this.list.add(rule);
-        this.aggregateLhsGroups.addAll(rule.getAggregateLhsGroups());
+        this.aggregateLhsGroups.addAll(rule.getLhs().getAggregateConditionedGroups());
     }
 
     public RuntimeRuleImpl addRule(RuleDescriptor ruleDescriptor) {
@@ -46,7 +46,7 @@ public class RuntimeRules implements Iterable<RuntimeRuleImpl> {
     public List<RuntimeRuleImpl> activeRules() {
         List<RuntimeRuleImpl> l = new LinkedList<>();
         for(RuntimeRuleImpl rule : list) {
-            if(rule.readActiveState()) {
+            if(rule.isInActiveState()) {
                 l.add(rule);
             }
         }

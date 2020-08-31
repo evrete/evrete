@@ -18,10 +18,10 @@ class NotExistsEvaluatorLoose extends AbstractEvaluatorLoose {
             }
         }
 
-        if (looseGroupIterator == null) {
+        if (alphaFactGroup == null) {
             return false;
         } else {
-            return looseGroupIterator.reset() == 0;
+            return alphaFactGroup.getComputedFactCount() == 0;
         }
     }
 }

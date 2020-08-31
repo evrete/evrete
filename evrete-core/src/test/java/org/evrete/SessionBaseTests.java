@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.evrete.api.FactBuilder.fact;
@@ -44,8 +45,6 @@ class SessionBaseTests {
         }
         FieldReference[] descriptor = new FieldReference[varCount];
         for (int i = 0; i < varCount; i++) {
-
-
             boolean exists;
             FieldReference ref;
             do {
@@ -180,6 +179,42 @@ class SessionBaseTests {
     @BeforeEach
     void init() {
         knowledge = (KnowledgeImpl) service.newKnowledge();
+    }
+
+    @Test
+    void plainTest0() {
+        RhsAssert rhsAssert = new RhsAssert("$n", Integer.class);
+        knowledge.newRule()
+                .forEach("$n", Integer.class)
+                .execute(rhsAssert);
+
+        StatefulSession session = knowledge.createSession();
+        session.insertAndFire(1, 2);
+        rhsAssert.assertCount(2).reset();
+        session.insertAndFire(3);
+        rhsAssert.assertCount(1).assertContains("$n", 3);
+        session.close();
+    }
+
+    @Test
+    void plainTest1() {
+        RhsAssert rhsAssert = new RhsAssert("$n", Integer.class);
+        knowledge.newRule()
+                .forEach("$n", Integer.class)
+                .where("$n.intValue >= 0 ")
+                .execute(rhsAssert);
+
+        StatefulSession session = knowledge.createSession();
+        session.insertAndFire(1, 2);
+        rhsAssert.assertCount(2).reset();
+        session.insertAndFire(3);
+        rhsAssert.assertCount(1).assertContains("$n", 3).reset();
+
+        session.fire();
+        rhsAssert.assertCount(0);
+        session.insertAndFire(-1);
+        rhsAssert.assertCount(0);
+        session.close();
     }
 
     @Test
@@ -633,14 +668,14 @@ class SessionBaseTests {
         b2.setAllNumeric(2);
 
         s.insertAndFire(a1, a2, b1, b2);
-        rhsAssert.assertCount(2);
+        rhsAssert.assertCount(2).reset();
 
-        System.out.println("=====================");
         TypeA a1_1 = new TypeA("A1_1");
         a1_1.setAllNumeric(1);
         s.insertAndFire(a1_1);
-
-
+        rhsAssert.assertCount(1);
+        rhsAssert.assertContains("$a", a1_1);
+        rhsAssert.assertContains("$b", b1);
     }
 
     @Test
@@ -1196,7 +1231,7 @@ class SessionBaseTests {
                 .where("$c.i > 6")
                 .execute(rhsAssert);
 
-        StatefulSession s = knowledge.createSession();
+        StatefulSession session = knowledge.createSession();
 
         // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
         for (int i = 0; i < 10; i++) {
@@ -1204,18 +1239,18 @@ class SessionBaseTests {
             a.setI(i);
             TypeB b = new TypeB("B" + i);
             b.setI(i);
-            s.insert(a, b);
+            session.insert(a, b);
         }
-        s.fire();
+        session.fire();
         rhsAssert.assertCount(0).reset();
 
         // This insert cycle will result in 3 matching pairs of C (7,8,9)
         for (int i = 0; i < 10; i++) {
             TypeC c = new TypeC("C" + i);
             c.setI(i);
-            s.insert(c);
+            session.insert(c);
         }
-        s.fire();
+        session.fire();
         rhsAssert
                 .assertCount(30 * 3)
                 .assertUniqueCount("$a", 5)
@@ -1247,21 +1282,21 @@ class SessionBaseTests {
 
 
         Type aType = knowledge.getTypeResolver().getType(TypeA.class.getName());
-        StatefulSessionImpl s = knowledge.createSession();
+        StatefulSessionImpl session = knowledge.createSession();
 
         // This insert cycle will result in 5 matching As
         for (int i = 0; i < 10; i++) {
             TypeA a = new TypeA("A" + i);
             a.setI(i);
-            s.insert(a);
+            session.insert(a);
         }
-        s.fire();
+        session.fire();
         rhsAssert1.assertCount(5);
         rhsAssert2.assertCount(4);
         rhsAssert3.assertCount(3);
 
-        assert s.get(aType).knownFieldSets().size() == 0;
-        assert s.getAlphaConditions().size(aType) == 3;
+        assert session.get(aType).knownFieldSets().size() == 0;
+        assert session.getAlphaConditions().size(aType) == 3;
     }
 
     @Test

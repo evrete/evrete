@@ -54,10 +54,6 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
         return conditionSources;
     }
 
-    public boolean hasMainData() {
-        return !mainStore.isEmpty();
-    }
-
     @Override
     public KeysStore getDeltaStore() {
         return this.deltaStore;

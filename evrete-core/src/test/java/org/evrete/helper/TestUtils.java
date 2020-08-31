@@ -59,15 +59,10 @@ public final class TestUtils {
         return col;
     }
 
-    //TODO
     public static KieContainer droolsKnowledge(String file) {
         KieServices ks = KieServices.get();
         KieRepository kr = ks.getRepository();
         KieFileSystem kfs = ks.newKieFileSystem();
-/*
-        KnowledgeBuilder builder = KnowledgeBuilderFactory.newKnowledgeBuilder();
-        builder.add(ResourceFactory.newFileResource(new File(file)), ResourceType.DRL);
-*/
         kfs.write(ResourceFactory.newFileResource(new File(file)));
         KieBuilder kb = ks.newKieBuilder(kfs);
         kb.buildAll();

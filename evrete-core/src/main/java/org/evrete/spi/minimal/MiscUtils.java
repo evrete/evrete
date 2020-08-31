@@ -39,12 +39,22 @@ final class MiscUtils {
     }
 
 
-    static boolean sameData(ValueRow[] arr1, ValueRow[] arr2) {
+    static boolean sameDataIdentity(ValueRow[] arr1, ValueRow[] arr2) {
         int l = arr1.length;
         assert l == arr2.length;
 
         for (int i = 0; i < l; i++) {
             if (arr1[i] != arr2[i]) return false;
+        }
+        return true;
+    }
+
+    static boolean sameDataEquals(ValueRow[] arr1, ValueRow[] arr2) {
+        int l = arr1.length;
+        assert l == arr2.length;
+
+        for (int i = 0; i < l; i++) {
+            if (!arr1[i].equals(arr2[i])) return false;
         }
         return true;
     }
@@ -77,6 +87,14 @@ final class MiscUtils {
         int i = 0;
         for (; i < arr.length; i++) {
             if (v.apply(i) != arr[i]) return false;
+        }
+        return true;
+    }
+
+    static boolean eqEquals(IntToValueRow v, ValueRow[] arr) {
+        int i = 0;
+        for (; i < arr.length; i++) {
+            if (!v.apply(i).equals(arr[i])) return false;
         }
         return true;
     }

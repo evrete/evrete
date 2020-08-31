@@ -15,8 +15,8 @@ public class BetaEntryNode extends RuntimeFactTypeKeyed implements BetaMemoryNod
     BetaEntryNode(EntryNodeDescriptor node, RuntimeFactTypeKeyed factType) {
         super(factType);
         this.descriptor = node;
-        this.deltaStore = new KeysStoreDelegate(getKeyStorage().deltaNewKeys());
-        this.mainStore = new KeysStoreDelegate(getKeyStorage().main());
+        this.deltaStore = new KeysStoreDelegate(getKeyIterators().keyIterator(KeyMode.NEW_KEYS_NEW_FACTS));
+        this.mainStore = new KeysStoreDelegate(getKeyIterators().keyIterator(KeyMode.KNOWN_KEYS_KNOWN_FACTS));
         this.grouping = new RuntimeFactType[1][1];
         this.grouping[0][0] = this;
     }
@@ -46,22 +46,15 @@ public class BetaEntryNode extends RuntimeFactTypeKeyed implements BetaMemoryNod
     }
 
     static class KeysStoreDelegate extends KeysStoreStub {
-        private final KeyIterable storage;
         private final ReIterator<Entry> entryReIterator;
 
-        KeysStoreDelegate(KeyIterable storage) {
-            this.storage = storage;
+        KeysStoreDelegate(ReIterator<ValueRow> storage) {
             final DummyEntry entry = new DummyEntry();
 
-            this.entryReIterator = new MappedReIterator<>(storage.keyIterator(), valueRows -> {
-                entry.arr = valueRows;
+            this.entryReIterator = new MappedReIterator<>(storage, valueRows -> {
+                entry.arr[0] = valueRows;
                 return entry;
             });
-        }
-
-        @Override
-        public long keyCount() {
-            return storage.keyCount();
         }
 
         @Override
@@ -72,7 +65,7 @@ public class BetaEntryNode extends RuntimeFactTypeKeyed implements BetaMemoryNod
     }
 
     private static class DummyEntry implements KeysStore.Entry {
-        ValueRow[] arr;
+        final ValueRow[] arr = new ValueRow[1];
 
         @Override
         public ValueRow[] key() {

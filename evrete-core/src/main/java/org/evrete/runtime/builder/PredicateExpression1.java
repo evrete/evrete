@@ -49,7 +49,6 @@ class PredicateExpression1 extends AbstractExpression {
             return predicate.test(values);
         }
 
-
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;

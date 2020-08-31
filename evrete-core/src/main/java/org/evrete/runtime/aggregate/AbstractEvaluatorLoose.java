@@ -2,26 +2,25 @@ package org.evrete.runtime.aggregate;
 
 import org.evrete.api.ReIterator;
 import org.evrete.api.ValueRow;
-import org.evrete.runtime.RhsFactGroupIterator;
-import org.evrete.runtime.RhsKeysGroupIterator;
-import org.evrete.runtime.RuntimeAggregateLhsLoose;
+import org.evrete.runtime.*;
 
 import java.util.function.BooleanSupplier;
 
 abstract class AbstractEvaluatorLoose implements BooleanSupplier {
-    final RhsFactGroupIterator looseGroupIterator;
+    final RhsFactGroupAlpha alphaFactGroup;
     final ReIterator<ValueRow[]>[] keyReIterators;
 
-    @SuppressWarnings("unchecked")
     AbstractEvaluatorLoose(RuntimeAggregateLhsLoose aggregateLhs) {
-        this.looseGroupIterator = aggregateLhs.getLooseFactGroupIterator();
+        throw new UnsupportedOperationException();
+/*
+        this.alphaFactGroup = aggregateLhs.getAlphaFactGroup();
 
-        RhsKeysGroupIterator[] keyGroupIterators = aggregateLhs.getKeyGroupIterators();
-        this.keyReIterators = new ReIterator[keyGroupIterators.length];
-        for (int i = 0; i < keyGroupIterators.length; i++) {
-            throw new UnsupportedOperationException();
-            //this.keyReIterators[i] = keyGroupIterators[i].getMainIterator();
+        RhsFactGroupBeta[] betaFactGroups = aggregateLhs.getBetaFactGroups();
+        this.keyReIterators = new ReIterator[betaFactGroups.length];
+        for (int i = 0; i < betaFactGroups.length; i++) {
+            this.keyReIterators[i] = keyGroupIterators[i].getMainIterator();
         }
 
+*/
     }
 }

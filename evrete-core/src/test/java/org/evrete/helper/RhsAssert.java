@@ -1,5 +1,6 @@
 package org.evrete.helper;
 
+import org.evrete.api.Copyable;
 import org.evrete.api.RhsContext;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
@@ -7,16 +8,20 @@ import org.evrete.runtime.FactType;
 import org.evrete.runtime.RuleDescriptor;
 import org.evrete.runtime.RuntimeRuleImpl;
 
+import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class RhsAssert implements Consumer<RhsContext> {
+public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
     private final Map<String, Collection<Object>> collector = new HashMap<>();
     private final Map<String, String> types = new HashMap<>();
     private final AtomicInteger callCounter = new AtomicInteger(0);
+    private final Entry[] entries;
+    private PrintStream out;
 
     private static final Function<RuleDescriptor, Entry[]> FROM_DESCRIPTOR = rule -> {
         Set<FactType> types = rule.getLhs().getGroupFactTypes();
@@ -31,13 +36,18 @@ public class RhsAssert implements Consumer<RhsContext> {
 
 
     private RhsAssert(Entry[] entries) {
-        //this.entries = entries;
+        this.entries = entries;
         for (Entry entry : entries) {
             if (collector.put(entry.name, new HashSet<>()) != null) {
                 throw new IllegalStateException("Duplicate entry name: " + entry.name);
             }
             types.put(entry.name, entry.clazz);
         }
+    }
+
+    @Override
+    public RhsAssert copyOf() {
+        return new RhsAssert(Arrays.copyOf(this.entries, this.entries.length));
     }
 
     private RhsAssert(Supplier<Entry[]> supplier) {
@@ -129,6 +139,7 @@ public class RhsAssert implements Consumer<RhsContext> {
 
     public void reset() {
         callCounter.set(0);
+        this.out = null;
         for (Collection<Object> objects : collector.values()) {
             objects.clear();
         }
@@ -137,10 +148,12 @@ public class RhsAssert implements Consumer<RhsContext> {
     @Override
     public void accept(RhsContext ctx) {
         callCounter.incrementAndGet();
+        Map<String, Object> values = new HashMap<>();
         for (Map.Entry<String, Collection<Object>> entry : collector.entrySet()) {
             String var = entry.getKey();
 
             Object o = ctx.get(var);
+            values.put(var, o);
             Class<?> cl = o.getClass();
             String expected = types.get(var);
             if (expected == null) throw new IllegalStateException("Unknown type");
@@ -149,11 +162,35 @@ public class RhsAssert implements Consumer<RhsContext> {
 
             entry.getValue().add(o);
         }
+
+        if(out != null) {
+            StringJoiner joiner = new StringJoiner(" ", ">>> ", "\t");
+            values.forEach((var, o) -> joiner.add(var + "=" + o));
+            out.println(joiner.toString());
+        }
+
     }
 
     public RhsAssert assertCount(int total) {
         assert callCounter.get() == total : "Actual: " + callCounter.get();
         return this;
+    }
+
+    public int getCount() {
+        return callCounter.get();
+    }
+
+    @SuppressWarnings("unused")
+    public void debugOut(PrintStream stream) {
+        this.out = stream;
+    }
+
+    @SuppressWarnings("unused")
+    public void debugCounts(PrintStream stream) {
+        Map<String, Integer> map = new HashMap<>();
+        collector.forEach((s, objects) -> map.put(s, objects.size()));
+
+        stream.println(map);
     }
 
     public RhsAssert assertUniqueCount(String var, int count) {

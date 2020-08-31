@@ -97,8 +97,6 @@ public abstract class Base {
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{" +
-                "id='" + id + '\'' +
-                ", i=" + i +
-                '}';
+                "id='" + id + "'}";
     }
 }

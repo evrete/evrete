@@ -8,6 +8,7 @@ import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.classes.TypeD;
+import org.evrete.helper.RhsAssert;
 import org.evrete.runtime.StatefulSessionImpl;
 import org.junit.jupiter.api.*;
 
@@ -18,6 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
 import static org.evrete.api.FactBuilder.fact;
+import static org.evrete.helper.TestUtils.sessionObjects;
 
 class HotDeploymentTests {
     private static KnowledgeService service;
@@ -38,6 +40,42 @@ class HotDeploymentTests {
         session = service.newKnowledge().createSession();
     }
 
+
+    @Test
+    void plainTest0() {
+        RhsAssert rhsAssert = new RhsAssert("$n", Integer.class);
+        session.newRule()
+                .forEach("$n", Integer.class)
+                .execute(rhsAssert);
+
+        session.insertAndFire(1, 2);
+        rhsAssert.assertCount(2).reset();
+        session.insertAndFire(3);
+        rhsAssert.assertCount(1).assertContains("$n", 3);
+        session.close();
+    }
+
+    @Test
+    void plainTest1() {
+        RhsAssert rhsAssert = new RhsAssert("$n", Integer.class);
+        session.newRule()
+                .forEach("$n", Integer.class)
+                .where("$n.intValue >= 0 ")
+                .execute(rhsAssert);
+
+        session.insertAndFire(1, 2);
+        rhsAssert.assertCount(2).reset();
+        session.insertAndFire(3);
+        rhsAssert.assertCount(1).assertContains("$n", 3).reset();
+
+        session.fire();
+        rhsAssert.assertCount(0);
+        session.insertAndFire(-1);
+        rhsAssert.assertCount(0);
+        session.close();
+    }
+
+
     @Test
     void namingTest() {
         session.newRule("A").forEach("$a", String.class).execute();
@@ -53,13 +91,6 @@ class HotDeploymentTests {
 
     @Test
     void testSingleFinalNode1() {
-
-        final Set<TypeA> as1 = new HashSet<>();
-        final Set<TypeB> bs1 = new HashSet<>();
-        final Set<TypeC> cs1 = new HashSet<>();
-        final Set<TypeD> ds1 = new HashSet<>();
-        final AtomicInteger total = new AtomicInteger();
-
 
         Predicate<Object[]> sharedPredicate = objects -> {
             int i1 = (int) objects[0];
@@ -77,18 +108,9 @@ class HotDeploymentTests {
                 .where(sharedPredicate, "$a.i", "$b.i")
                 .where(sharedPredicate, "$a.i", "$c.i")
                 .where(sharedPredicate, "$a.i", "$d.i")
-                .execute(ctx -> {
-                    total.getAndIncrement();
-                    TypeA a = ctx.get("$a");
-                    as1.add(a);
-                    TypeB b = ctx.get("$b");
-                    bs1.add(b);
-                    TypeC c = ctx.get("$c");
-                    cs1.add(c);
-                    TypeD d = ctx.get("$d");
-                    ds1.add(d);
-                });
+                .execute();
 
+        RhsAssert rhsAssert = new RhsAssert(session);
 
         int ai = new Random().nextInt(20) + 1;
         int bi = new Random().nextInt(20) + 1;
@@ -127,11 +149,12 @@ class HotDeploymentTests {
 
         session.fire();
 
-        assert as1.size() == ai;
-        assert bs1.size() == bi;
-        assert cs1.size() == ci;
-        assert ds1.size() == di;
-        assert total.get() == ai * bi * ci * di;
+        rhsAssert
+                .assertUniqueCount("$a", ai)
+                .assertUniqueCount("$b", bi)
+                .assertUniqueCount("$c", ci)
+                .assertUniqueCount("$d", di)
+                .assertCount(ai * bi * ci * di);
 
     }
 
@@ -205,14 +228,13 @@ class HotDeploymentTests {
         ccc.setI(3);
         ccc.setL(3);
 
-        AtomicInteger totalRows = new AtomicInteger(0);
-        session.getRule("test circular").setRhs(ctx -> totalRows.incrementAndGet());
+        RhsAssert rhsAssert = new RhsAssert(session, "test circular");
 
         session.insertAndFire(a, aa, aaa);
         session.insertAndFire(b, bb, bbb);
         session.insertAndFire(c, cc, ccc);
 
-        assert totalRows.get() == 3 : "Actual: " + totalRows.get();
+        rhsAssert.assertCount(3);
     }
 
     @Test
@@ -248,13 +270,14 @@ class HotDeploymentTests {
         TypeC c = new TypeC("CC");
         c.setL(1);
 
-        AtomicInteger totalRows = new AtomicInteger(0);
+        RhsAssert rhsAssert = new RhsAssert(session);
+
         session.getRule(ruleName)
                 .setRhs(null) // RHS can be overridden
-                .setRhs(ctx -> totalRows.incrementAndGet());
+                .setRhs(rhsAssert);
 
         session.insertAndFire(a, b, c);
-        assert totalRows.get() == 1 : "Actual: " + totalRows.get();
+        rhsAssert.assertCount(1).reset();
 
         //Second insert
         TypeA aa = new TypeA("A");
@@ -269,9 +292,8 @@ class HotDeploymentTests {
         cc.setI(2);
         cc.setL(2);
 
-        totalRows.set(0);
         session.insertAndFire(aa, bb, cc);
-        assert totalRows.get() == 2 : "Actual: " + totalRows.get();
+        rhsAssert.assertCount(1);
 
         session.close();
     }
@@ -306,13 +328,9 @@ class HotDeploymentTests {
         b1.setL(3);
         b1.setS((short) 5);
 
-        AtomicInteger totalRows = new AtomicInteger(0);
-        session.getRule(ruleName)
-                .setRhs(null) // RHS can be overridden
-                .setRhs(ctx -> totalRows.incrementAndGet());
-
+        RhsAssert rhsAssert = new RhsAssert(session, ruleName);
         session.insertAndFire(a1, b1);
-        assert totalRows.get() == 1 : "Actual: " + totalRows.get();
+        rhsAssert.assertCount(1).reset();
 
         //Second insert
         TypeA a2 = new TypeA("A2");
@@ -323,28 +341,23 @@ class HotDeploymentTests {
         b2.setL(9);
         b2.setS((short) 11);
 
-        totalRows.set(0);
         session.insertAndFire(a2, b2);
-        assert totalRows.get() == 2 : "Actual: " + totalRows.get();
+        rhsAssert.assertCount(1);
 
         session.close();
     }
 
     @Test
     void testMixed1() {
-        AtomicInteger fireCounter = new AtomicInteger();
-        // A shared predicate between $a1.i != $b1.i and $a2.i != $b2.i
-        Predicate<Object[]> beta = arr -> {
-            int a1i = (int) arr[0];
-            int b1i = (int) arr[1];
-            return a1i != b1i;
-        };
-
-        // $c.i > 0
-        Predicate<Object[]> alpha = arr -> {
-            int i = (int) arr[0];
-            return i > 0;
-        };
+        //TODO !!!! continue with non-unique keys
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a1", TypeA.class,
+                "$a2", TypeA.class,
+                "$b1", TypeB.class,
+                "$b2", TypeB.class,
+                "$c", TypeC.class,
+                "$d", TypeD.class
+        );
 
         session.newRule("test alpha 1")
                 .forEach(
@@ -355,12 +368,10 @@ class HotDeploymentTests {
                         "$c", TypeC.class,
                         "$d", TypeD.class
                 )
-                .where(beta, "$a1.i", "$b1.i")
-                .where(beta, "$a2.i", "$b2.i")
-                .where(alpha, "$c.i")
-                .execute(
-                        ctx -> fireCounter.incrementAndGet()
-                );
+                .where("$a1.i != $b1.i")
+                .where("$a2.i != $b2.i")
+                .where("$c.i > 0")
+                .execute(rhsAssert);
 
 
         TypeA a1 = new TypeA("A1");
@@ -381,37 +392,35 @@ class HotDeploymentTests {
         TypeD d1 = new TypeD("D1");
 
         session.insertAndFire(a1, b1, a2, b2, c1, d1);
-        assert fireCounter.get() == 0 : "Actual: " + fireCounter.get();
+        rhsAssert.assertCount(0).reset();
 
         TypeC c2 = new TypeC("C2");
         c2.setI(1);
         session.insertAndFire(c2);
 
-        assert fireCounter.get() == 4 * 4 : "Actual: " + fireCounter.get();
+        rhsAssert.assertCount(4 * 4).reset();
 
         TypeC c3 = new TypeC("C3");
         c3.setI(100);
-        fireCounter.set(0);
         session.insertAndFire(c3);
-
-        assert fireCounter.get() == 2 * 4 * 4 : "Actual: " + fireCounter.get();
+        rhsAssert.assertCount(4 * 4).reset();
 
         TypeD d2 = new TypeD("D2");
-        fireCounter.set(0);
         session.insertAndFire(d2);
-
-        assert fireCounter.get() == 2 * 2 * 4 * 4 : "Actual: " + fireCounter.get();
+        rhsAssert.assertCount(2 * 4 * 4);
     }
 
     @Test
     void testAlphaBeta1() {
-        AtomicInteger fireCounter1 = new AtomicInteger();
-        Set<TypeA> setA1 = new HashSet<>();
-        Set<TypeB> setB1 = new HashSet<>();
+        RhsAssert rhsAssert1 = new RhsAssert(
+                "$a", TypeA.class,
+                "$b", TypeB.class
+        );
 
-        AtomicInteger fireCounter2 = new AtomicInteger();
-        Set<TypeA> setA2 = new HashSet<>();
-        Set<TypeB> setB2 = new HashSet<>();
+        RhsAssert rhsAssert2 = new RhsAssert(
+                "$a", TypeA.class,
+                "$b", TypeB.class
+        );
 
 
         ValuesPredicate rule1_1 = v -> {
@@ -453,15 +462,7 @@ class HotDeploymentTests {
                 .where(rule1_1, "$a.i", "$b.i")
                 .where(rule1_2, "$a.d")
                 .where(rule1_3, "$b.i")
-                .execute(
-                        ctx -> {
-                            TypeA a = ctx.get("$a");
-                            TypeB b = ctx.get("$b");
-                            setA1.add(a);
-                            setB1.add(b);
-                            fireCounter1.incrementAndGet();
-                        }
-                )
+                .execute(rhsAssert1)
                 .newRule("test alpha 2")
                 .forEach(
                         "$a", TypeA.class,
@@ -470,15 +471,7 @@ class HotDeploymentTests {
                 .where(rule2_1, "$a.i", "$b.i")
                 .where(rule2_2, "$a.i")
                 .where(rule2_3, "$b.f")
-                .execute(
-                        ctx -> {
-                            TypeA a = ctx.get("$a");
-                            TypeB b = ctx.get("$b");
-                            setA2.add(a);
-                            setB2.add(b);
-                            fireCounter2.incrementAndGet();
-                        }
-                );
+                .execute(rhsAssert2);
 
 
         TypeA a = new TypeA("A");
@@ -498,19 +491,27 @@ class HotDeploymentTests {
 
         session.insertAndFire(a, aa, aaa, b, bb);
 
-        assert fireCounter1.get() == 2 : "Actual: " + fireCounter1.get();
-        assert setB1.size() == 1 && setB1.contains(bb);
-        assert setA1.size() == 2 && setA1.contains(aa) && setA1.contains(aaa);
+        rhsAssert1
+                .assertCount(2)
+                .assertUniqueCount("$b", 1)
+                .assertContains("$b", bb)
+                .assertUniqueCount("$a", 2)
+                .assertContains("$a", aa)
+                .assertContains("$a", aaa)
+                .reset();
 
-        assert fireCounter2.get() == 2 : "Actual: " + fireCounter2.get();
-        assert setB2.size() == 1 && setB2.contains(b);
-        assert setA2.size() == 2 && setA2.contains(a) && setA2.contains(aa);
+        rhsAssert2
+                .assertCount(2)
+                .assertUniqueCount("$b", 1)
+                .assertContains("$b", b)
+                .assertUniqueCount("$a", 2)
+                .assertContains("$a", a)
+                .assertContains("$a", aa)
+                .reset();
     }
 
     @Test
     void testUniType2() {
-        AtomicInteger fireCounter = new AtomicInteger();
-
         Set<String> collectedJoinedIds = new HashSet<>();
 
         ValuesPredicate predicate = v -> {
@@ -529,7 +530,6 @@ class HotDeploymentTests {
                 .where(predicate, "$a1.i", "$a2.i", "$a3.i")
                 .execute(
                         ctx -> {
-                            fireCounter.incrementAndGet();
                             TypeA a1 = ctx.get("$a1");
                             TypeA a2 = ctx.get("$a2");
                             TypeA a3 = ctx.get("$a3");
@@ -585,17 +585,11 @@ class HotDeploymentTests {
 
     @Test
     void testAlpha1() {
-        AtomicInteger fireCounter = new AtomicInteger();
-
-        ValuesPredicate p1 = v -> {
-            int i1 = (int) v.apply(0);
-            return i1 > 4;
-        };
-
-        ValuesPredicate p2 = v -> {
-            int i1 = (int) v.apply(0);
-            return i1 > 3;
-        };
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a", TypeA.class,
+                "$b", TypeB.class,
+                "$c", TypeC.class
+        );
 
         session.newRule()
                 .forEach(
@@ -603,11 +597,10 @@ class HotDeploymentTests {
                         fact("$b", TypeB.class),
                         fact("$c", TypeC.class)
                 )
-                .where(p1, "$a.i")
-                .where(p2, "$b.i")
-                .execute(
-                        ctx -> fireCounter.incrementAndGet()
-                );
+                .where("$a.i > 4")
+                .where("$b.i > 3")
+                .execute(rhsAssert);
+
 
         // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
         for (int i = 0; i < 10; i++) {
@@ -618,34 +611,30 @@ class HotDeploymentTests {
             session.insert(a, b);
         }
         session.fire();
-        assert fireCounter.get() == 0;
-        session.insert(new TypeC("C"));
+        TypeC c1 = new TypeC("C");
+        TypeC c2 = new TypeC("C");
+        rhsAssert.assertCount(0).reset();
+        session.insert(c1);
         session.fire();
-        assert fireCounter.get() == 30 : "Actual:" + fireCounter.get();
+        rhsAssert
+                .assertCount(30)
+                .assertContains("$c", c1)
+                .reset();
+        session.insert(c2);
+        session.fire();
+        rhsAssert
+                .assertCount(30)
+                .assertNotContains("$c", c1)
+                .assertContains("$c", c2);
     }
 
     @Test
     void testAlpha2() {
-        AtomicInteger fireCounter = new AtomicInteger();
-        Set<TypeA> setA = new HashSet<>();
-        Set<TypeB> setB = new HashSet<>();
-        Set<TypeC> setC = new HashSet<>();
-
-        ValuesPredicate p1 = v -> {
-            int i1 = (int) v.apply(0);
-            return i1 > 4;
-        };
-
-        ValuesPredicate p2 = v -> {
-            int i1 = (int) v.apply(0);
-            return i1 > 3;
-        };
-
-        ValuesPredicate p3 = v -> {
-            int i1 = (int) v.apply(0);
-            return i1 > 6;
-        };
-
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a", TypeA.class,
+                "$b", TypeB.class,
+                "$c", TypeC.class
+        );
 
         session.newRule()
                 .forEach(
@@ -653,18 +642,10 @@ class HotDeploymentTests {
                         "$b", TypeB.class,
                         "$c", TypeC.class
                 )
-                .where(p1, "$a.i")
-                .where(p2, "$b.i")
-                .where(p3, "$c.i")
-                .execute(
-                        ctx -> {
-                            setA.add(ctx.get("$a"));
-                            setB.add(ctx.get("$b"));
-                            setC.add(ctx.get("$c"));
-                            fireCounter.incrementAndGet();
-                        }
-                );
-
+                .where("$a.i > 4")
+                .where("$b.i > 3")
+                .where("$c.i > 6")
+                .execute(rhsAssert);
 
         // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
         for (int i = 0; i < 10; i++) {
@@ -675,7 +656,7 @@ class HotDeploymentTests {
             session.insert(a, b);
         }
         session.fire();
-        assert fireCounter.get() == 0; // No instances of TypeC, no rhs
+        rhsAssert.assertCount(0).reset();
 
         // This insert cycle will result in 3 matching pairs of C (7,8,9)
         for (int i = 0; i < 10; i++) {
@@ -684,75 +665,51 @@ class HotDeploymentTests {
             session.insert(c);
         }
         session.fire();
-        assert fireCounter.get() == 30 * 3;
-        assert setA.size() == 5;
-        assert setB.size() == 6;
-        assert setC.size() == 3;
+        rhsAssert
+                .assertCount(30 * 3)
+                .assertUniqueCount("$a", 5)
+                .assertUniqueCount("$b", 6)
+                .assertUniqueCount("$c", 3);
     }
 
     @Test
     void testAlpha3() {
-        Configuration conf = session.getConfiguration();
-        conf.setWarnUnknownTypes(false);
-        assert !session.getConfiguration().isWarnUnknownTypes();
+        RhsAssert rhsAssert1 = new RhsAssert("$a", TypeA.class);
+        RhsAssert rhsAssert2 = new RhsAssert("$a", TypeA.class);
+        RhsAssert rhsAssert3 = new RhsAssert("$a", TypeA.class);
 
-        AtomicInteger counter1 = new AtomicInteger();
-        AtomicInteger counter2 = new AtomicInteger();
-        AtomicInteger counter3 = new AtomicInteger();
-
-        ValuesPredicate p1 = v -> {
-            String s = (String) v.apply(0);
-            return s.equals("A5");
-        };
-
-        ValuesPredicate p2 = v -> {
-            String s = (String) v.apply(0);
-            return s.equals("A7");
-        };
-
-        ValuesPredicate p3 = v -> {
-            String s = (String) v.apply(0);
-            return !s.equals("A5");
-        };
-
-        session
-                .newRule("rule 1")
-                .forEach(fact("$a", TypeA.class))
-                .where(p1, "$a.id")
-                .execute(ctx -> counter1.incrementAndGet())
+        session.newRule("rule 1")
+                .forEach("$a", TypeA.class)
+                .where("$a.i > 4")
+                .execute(rhsAssert1)
                 .newRule("rule 2")
-                .forEach(
-                        fact("$a", TypeA.class)
-                )
-                .where(p2, "$a.id")
-                .execute(ctx -> counter2.incrementAndGet())
+                .forEach("$a", TypeA.class)
+                .where("$a.i > 5")
+                .execute(rhsAssert2)
                 .newRule("rule 3")
-                .forEach(
-                        fact("$a", TypeA.class)
-                )
-                .where(p3, "$a.id") // Inverse to rule 1
-                .execute(ctx -> counter3.incrementAndGet());
+                .forEach("$a", TypeA.class)
+                .where("$a.i > 6")
+                .execute(rhsAssert3);
+
 
         Type aType = session.getTypeResolver().getType(TypeA.class.getName());
 
+        // This insert cycle will result in 5 matching As
         for (int i = 0; i < 10; i++) {
-            session.insert(new TypeA("A" + i));
+            TypeA a = new TypeA("A" + i);
+            a.setI(i);
+            session.insert(a);
         }
         session.fire();
-        assert ((StatefulSessionImpl) session).get(aType).knownFieldSets().size() == 0;
-
-        assert counter1.get() == 1;
-        assert counter2.get() == 1;
-        assert counter3.get() == 9;
-
+        rhsAssert1.assertCount(5);
+        rhsAssert2.assertCount(4);
+        rhsAssert3.assertCount(3);
     }
 
     @Test
     void testAlpha4() {
 
         // Rule 1
-        AtomicInteger ruleCounter1 = new AtomicInteger();
-
         ValuesPredicate p1_1 = v -> {
             int i1 = (int) v.apply(0);
             return i1 > 4;
@@ -771,9 +728,7 @@ class HotDeploymentTests {
                 )
                 .where(p1_1, "$a.i")
                 .where(p1_2, "$b.i")
-                .execute(
-                        ctx -> ruleCounter1.incrementAndGet()
-                );
+                .execute();
 
         // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
         for (int i = 0; i < 10; i++) {
@@ -783,19 +738,19 @@ class HotDeploymentTests {
             b.setI(i);
             session.insert(a, b);
         }
+        RhsAssert rhsAssert1 = new RhsAssert(session, "rule 1");
+
         session.fire();
-        assert ruleCounter1.get() == 0;
+        rhsAssert1.assertCount(0).reset();
 
         TypeC c = new TypeC();
 
         session.insert(c);
         session.fire();
-        assert ruleCounter1.get() == 30 : "Actual:" + ruleCounter1.get();
+        rhsAssert1.assertCount(30).reset();
 
 
         // Adding another rule
-        AtomicInteger ruleCounter2 = new AtomicInteger();
-
         ValuesPredicate p2_1 = v -> {
             int i1 = (int) v.apply(0);
             return i1 > 3;
@@ -814,53 +769,44 @@ class HotDeploymentTests {
                 )
                 .where(p2_1, "$a.i")
                 .where(p2_2, "$b.i")
-                .execute(
-                        ctx -> ruleCounter2.incrementAndGet()
-                );
+                .execute();
+        RhsAssert rhsAssert2 = new RhsAssert(session, "rule 2");
 
         session.fire();
-        assert ruleCounter2.get() == 7 * 6;
+        rhsAssert2.assertCount(0).reset();
 
-        ruleCounter1.set(0);
-        ruleCounter2.set(0);
         session.deleteAndFire(c);
-        assert ruleCounter1.get() == 0;
-        assert ruleCounter2.get() == 0;
+        rhsAssert1.assertCount(0).reset();
+        rhsAssert2.assertCount(0).reset();
 
-        ruleCounter1.set(0);
-        ruleCounter2.set(0);
         session.insertAndFire(c);
-        assert ruleCounter1.get() == 6 * 5;
-        assert ruleCounter2.get() == 7 * 6;
+        rhsAssert1.assertCount(6 * 5);
+        rhsAssert2.assertCount(7 * 6);
     }
 
 
     @Test
     void testAlpha5() {
-        AtomicInteger ruleCounter1 = new AtomicInteger();
+        RhsAssert rhsAssert1 = new RhsAssert("$i", Integer.class);
 
         session.newRule("rule 1")
                 .forEach("$i", Integer.class)
                 .where("$i.intValue > 2")
-                .execute(
-                        ctx -> ruleCounter1.incrementAndGet()
-                );
+                .execute(rhsAssert1);
 
         for (int i = 0; i < 10; i++) {
             session.insert(i);
         }
         session.fire();
-        assert ruleCounter1.get() == 7; //3,4,5,6,7,8,9
+        rhsAssert1.assertCount(7); //3,4,5,6,7,8,9
 
         // Another rule w/o alpha
-        AtomicInteger ruleCounter2 = new AtomicInteger();
+        RhsAssert rhsAssert2 = new RhsAssert("$i", Integer.class);
         session.newRule("rule 2")
                 .forEach("$i", Integer.class)
-                .execute(
-                        ctx -> ruleCounter2.incrementAndGet()
-                );
+                .execute(rhsAssert2);
         session.fire();
-        assert ruleCounter2.get() == 10;
+        rhsAssert2.assertCount(0);
 
     }
 
@@ -890,12 +836,22 @@ class HotDeploymentTests {
                         ctx -> ruleCounter2.incrementAndGet()
                 );
         session.fire();
-        assert ruleCounter2.get() == 7; //3,4,5,6,7,8,9
+        assert ruleCounter2.get() == 0; //3,4,5,6,7,8,9
     }
 
     @Test
     void testMixedMulti() {
-        AtomicInteger fireCounter1 = new AtomicInteger();
+        RhsAssert rhsAssert1 = new RhsAssert(
+                "$a1", TypeA.class,
+                "$b1", TypeB.class,
+                "$a2", TypeA.class,
+                "$b2", TypeB.class,
+                "$c", TypeC.class,
+                "$d", TypeD.class
+        );
+
+        RhsAssert rhsAssert2 = rhsAssert1.copyOf();
+        RhsAssert rhsAssert3 = rhsAssert1.copyOf();
         // A shared predicate between $a1.i != $b1.i and $a2.i != $b2.i
         Predicate<Object[]> beta = arr -> {
             int a1i = (int) arr[0];
@@ -921,59 +877,58 @@ class HotDeploymentTests {
                 .where(beta, "$a1.i", "$b1.i")
                 .where(beta, "$a2.i", "$b2.i")
                 .where(alpha, "$c.i")
-                .execute(
-                        ctx -> fireCounter1.incrementAndGet()
-                );
+                .execute(rhsAssert1);
 
 
         TypeA a1 = new TypeA("A1");
         a1.setI(1);
 
         TypeA a2 = new TypeA("A2");
-        a2.setI(1);
+        a2.setI(2);
 
         TypeB b1 = new TypeB("B1");
-        b1.setI(10);
+        b1.setI(3);
 
         TypeB b2 = new TypeB("B2");
-        b2.setI(10);
+        b2.setI(4);
 
         TypeC c1 = new TypeC("C1");
-        c1.setI(-1);
+        c1.setI(-300);
 
         TypeD d1 = new TypeD("D1");
-        d1.setI(100);
+        d1.setI(400);
 
         session.insertAndFire(a1, b1, a2, b2, c1, d1);
-        assert fireCounter1.get() == 0 : "Actual: " + fireCounter1.get();
+        rhsAssert1.assertCount(0);
 
         TypeC c2 = new TypeC("C2");
-        c2.setI(1);
+        c2.setI(301);
         session.insertAndFire(c2);
 
-        assert fireCounter1.get() == 4 * 4 : "Actual: " + fireCounter1.get();
+        rhsAssert1.assertCount(4 * 4).reset();
 
         TypeC c3 = new TypeC("C3");
-        c3.setI(100);
-        fireCounter1.set(0);
+        c3.setI(302);
         session.insertAndFire(c3);
 
-        assert fireCounter1.get() == 2 * 4 * 4 : "Actual: " + fireCounter1.get();
+        rhsAssert1.assertCount(4 * 4).reset();
 
         TypeD d2 = new TypeD("D2");
-        d2.setI(1000);
-        fireCounter1.set(0);
+        d2.setI(4000);
         session.insertAndFire(d2);
 
-        assert fireCounter1.get() == 2 * 2 * 4 * 4 : "Actual: " + fireCounter1.get();
-
-
-        //Reset counters
-        fireCounter1.set(0);
+        rhsAssert1
+                .assertCount(2 * 4 * 4)
+                .assertUniqueCount("$d", 1)
+                .assertUniqueCount("$a1", 2)
+                .assertUniqueCount("$b1", 2)
+                .assertUniqueCount("$a2", 2)
+                .assertUniqueCount("$b2", 2)
+                .assertUniqueCount("$c", 2)
+                .reset();
 
 
         // Creating the same rule under another name
-        AtomicInteger fireCounter2 = new AtomicInteger();
         session.newRule("test alpha 2")
                 .forEach(
                         "$a1", TypeA.class,
@@ -986,21 +941,13 @@ class HotDeploymentTests {
                 .where(beta, "$a1.i", "$b1.i")
                 .where(beta, "$a2.i", "$b2.i")
                 .where(alpha, "$c.i")
-                .execute(
-                        ctx -> fireCounter2.incrementAndGet()
-                );
+                .execute(rhsAssert2);
 
         session.fire();
-        assert fireCounter1.get() == 2 * 2 * 4 * 4 : "Actual: " + fireCounter1.get();
-        assert fireCounter2.get() == 2 * 2 * 4 * 4 : "Actual: " + fireCounter2.get();
-
-
-        //Reset counters
-        fireCounter1.set(0);
-        fireCounter2.set(0);
+        rhsAssert1.assertCount(0).reset();
+        rhsAssert2.assertCount(0).reset();
 
         // Another rule  with extra alpha predicates
-        AtomicInteger fireCounter3 = new AtomicInteger();
         session.newRule("test alpha 3")
                 .forEach(
                         "$a1", TypeA.class,
@@ -1014,60 +961,30 @@ class HotDeploymentTests {
                 .where(beta, "$a2.i", "$b2.i")
                 .where(alpha, "$c.i")
                 .where("$d.i > 100")
-                .execute(
-                        ctx -> fireCounter3.incrementAndGet()
-                );
+                .execute(rhsAssert3);
 
         session.fire();
 
-        assert fireCounter1.get() == 2 * 2 * 4 * 4 : "Actual: " + fireCounter1.get();
-        assert fireCounter2.get() == 2 * 2 * 4 * 4 : "Actual: " + fireCounter2.get();
-        assert fireCounter3.get() == 2 * 4 * 4 : "Actual: " + fireCounter3.get();
+        rhsAssert1.assertCount(0);
+        rhsAssert2.assertCount(0);
+        rhsAssert3.assertCount(0);
 
         // Test the new ruleset as a whole
-        fireCounter1.set(0);
-        fireCounter2.set(0);
-        fireCounter3.set(0);
-        TypeD d3 = new TypeD();
-        d3.setI(-1);
+        TypeD d3 = new TypeD("D3");
+        d3.setI(-4000);
 
         session.insertAndFire(d3);
-        assert fireCounter1.get() == 3 * 2 * 4 * 4 : "Actual: " + fireCounter1.get();
-        assert fireCounter2.get() == 3 * 2 * 4 * 4 : "Actual: " + fireCounter2.get();
-        assert fireCounter3.get() == 2 * 4 * 4 : "Actual: " + fireCounter3.get();
+        rhsAssert1.assertCount(2 * 4 * 4).reset();
+        rhsAssert2.assertCount(2 * 4 * 4).reset();
+        rhsAssert3.assertCount(0).reset();
 
-        fireCounter1.set(0);
-        fireCounter2.set(0);
-        fireCounter3.set(0);
-        TypeD d4 = new TypeD();
-        d4.setI(1000);
+        TypeD d4 = new TypeD("D4");
+        d4.setI(4000);
         session.insertAndFire(d4);
-        assert fireCounter1.get() == 4 * 2 * 4 * 4 : "Actual: " + fireCounter1.get();
-        assert fireCounter2.get() == 4 * 2 * 4 * 4 : "Actual: " + fireCounter2.get();
-        assert fireCounter3.get() == 2 * 2 * 4 * 4 : "Actual: " + fireCounter3.get();
+        rhsAssert1.assertCount(2 * 4 * 4).reset();
+        rhsAssert2.assertCount(2 * 4 * 4).reset();
+        rhsAssert3.assertCount(2 * 4 * 4).reset();
 
-        fireCounter1.set(0);
-        fireCounter2.set(0);
-        fireCounter3.set(0);
-        TypeD d5 = new TypeD();
-        d5.setI(103);
-        session.insertAndFire(d5);
-        assert fireCounter1.get() == 5 * 2 * 4 * 4 : "Actual: " + fireCounter1.get();
-        assert fireCounter2.get() == 5 * 2 * 4 * 4 : "Actual: " + fireCounter2.get();
-        assert fireCounter3.get() == 3 * 2 * 4 * 4 : "Actual: " + fireCounter3.get();
-
-
-        fireCounter1.set(0);
-        fireCounter2.set(0);
-        fireCounter3.set(0);
-        TypeA a3 = new TypeA();
-        a3.setI(1000);
-        TypeB b3 = new TypeB();
-        b3.setI(1000);
-        session.insertAndFire(a3, b3);
-        assert fireCounter1.get() == 5 * 2 * 8 * 8 : "Actual: " + fireCounter1.get();
-        assert fireCounter2.get() == 5 * 2 * 8 * 8 : "Actual: " + fireCounter2.get();
-        assert fireCounter3.get() == 3 * 2 * 8 * 8 : "Actual: " + fireCounter3.get();
 
         session.close();
     }

@@ -5,11 +5,6 @@ import java.util.function.ToIntFunction;
 
 public class FastIdentityHashSet<K> extends AbstractFastHashSet<K> {
 
-    @SuppressWarnings("unused")
-    public FastIdentityHashSet(int initialCapacity) {
-        super(initialCapacity);
-    }
-
     public FastIdentityHashSet() {
         super();
     }
