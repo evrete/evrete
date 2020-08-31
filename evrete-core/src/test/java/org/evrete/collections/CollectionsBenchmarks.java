@@ -1,6 +1,6 @@
 package org.evrete.collections;
 
-import org.evrete.benchmarks.BenchmarkCollections;
+import org.evrete.benchmarks.Collections;
 import org.junit.jupiter.api.Test;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -9,7 +9,7 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.openjdk.jmh.runner.options.TimeValue;
 
 
-class CollectionsBenchmarkTest {
+class CollectionsBenchmarks {
 
     /*
         Benchmark                      (implementation)  Mode  Cnt  Score   Error  Units
@@ -31,7 +31,7 @@ class CollectionsBenchmarkTest {
         TimeValue duration = TimeValue.milliseconds(1000L);
         int iterations = 10;
         Options opt = new OptionsBuilder()
-                .include(BenchmarkCollections.class.getSimpleName())
+                .include(Collections.class.getSimpleName())
                 //.jvmArgsPrepend("--add-opens=java.base/java.io=ALL-UNNAMED")
                 .warmupIterations(iterations)
                 .warmupTime(duration)

@@ -2,14 +2,12 @@ package org.evrete.runtime.memory;
 
 import org.evrete.api.*;
 import org.evrete.collections.CollectionReIterator;
-import org.evrete.collections.MappedReIterator;
 import org.evrete.runtime.*;
 
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.IntFunction;
 
 //TODO !!! optimize by sharing the value array and pre-built functions
 public class BetaEndNode extends BetaConditionNode implements KeyReIterators<ValueRow[]> {

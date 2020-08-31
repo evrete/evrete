@@ -118,10 +118,6 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>2.22.2</version>
                     <configuration>
-                        <excludes>
-                            <exclude>**/*BenchmarkTest.java</exclude>
-                            <exclude>**/*BenchmarkTests.java</exclude>
-                        </excludes>
                         <systemProperties>
                             <property>
                                 <name>java.util.logging.config.file</name>
@@ -199,6 +195,21 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/*BenchmarkTest.java</exclude>
+                                <exclude>**/*BenchmarkTests.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+
         </profile>
         <profile>
             <id>benchmarks</id>
@@ -208,9 +219,13 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
+                            <excludes>
+                                <exclude>**/*Test.java</exclude>
+                                <exclude>**/*Tests.java</exclude>
+                            </excludes>
                             <includes>
-                                <include>**/*BenchmarkTest.java</include>
-                                <include>**/*BenchmarkTests.java</include>
+                                <include>**/CollectionsBenchmarks.java</include>
+                                <include>**/ExpressionsBenchmarks.java</include>
                             </includes>
                         </configuration>
                     </plugin>
@@ -225,9 +240,12 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
+                            <excludes>
+                                <exclude>**/*Test.java</exclude>
+                                <exclude>**/*Tests.java</exclude>
+                            </excludes>
                             <includes>
-                                <include>**/*DroolsBenchmarkTest.java</include>
-                                <include>**/*DroolsBenchmarkTests.java</include>
+                                <include>**/DroolsBenchmarks.java</include>
                             </includes>
                         </configuration>
                     </plugin>

@@ -14,10 +14,6 @@ public class TypeResolverWrapper implements TypeResolver {
         return delegate.getType(name);
     }
 
-    protected TypeResolver getDelegate() {
-        return delegate;
-    }
-
     @Override
     public Type resolve(Object o) {
         return delegate.resolve(o);

@@ -5,7 +5,6 @@ import org.evrete.runtime.memory.Buffer;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 

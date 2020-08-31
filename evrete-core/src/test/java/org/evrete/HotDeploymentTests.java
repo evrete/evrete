@@ -9,7 +9,6 @@ import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.classes.TypeD;
 import org.evrete.helper.RhsAssert;
-import org.evrete.runtime.StatefulSessionImpl;
 import org.junit.jupiter.api.*;
 
 import java.util.HashSet;
@@ -19,7 +18,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
 import static org.evrete.api.FactBuilder.fact;
-import static org.evrete.helper.TestUtils.sessionObjects;
 
 class HotDeploymentTests {
     private static KnowledgeService service;

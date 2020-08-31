@@ -4,7 +4,6 @@ import org.evrete.api.KeyMode;
 import org.evrete.api.KeyReIterators;
 import org.evrete.api.ReIterator;
 import org.evrete.api.ValueRow;
-import org.evrete.runtime.memory.BetaEndNode;
 
 import java.util.EnumMap;
 import java.util.function.BooleanSupplier;

@@ -72,12 +72,6 @@ class TypeMemoryBucket implements PlainMemory {
         }
     }
 
-    void insertSingle1(RuntimeObject rto) {
-        if (alphaMask.test(rto)) {
-            delta.insert(rto);
-        }
-    }
-
     void retract(Collection<RuntimeFact> facts) {
         for (RuntimeFact fact : facts) {
             if (alphaMask.test(fact)) {

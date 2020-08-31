@@ -20,7 +20,7 @@ import static org.evrete.api.FactBuilder.fact;
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @Fork(value = 1, warmups = 1)
-public class DroolsBenchmark01 extends DroolsBenchmarkBase {
+public class Drools01 extends DroolsBase {
 
     @Benchmark
     public void simple(BenchmarkState state) {

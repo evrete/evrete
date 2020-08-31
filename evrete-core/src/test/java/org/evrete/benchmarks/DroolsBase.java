@@ -3,7 +3,7 @@ package org.evrete.benchmarks;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DroolsBenchmarkBase {
+public class DroolsBase {
     static final int objectCount = 4096;
     static final Map<String, Integer> UNIQUENESS_MAPPING = new HashMap<>();
     static final String ONE_TO_1 = "1/1  ";

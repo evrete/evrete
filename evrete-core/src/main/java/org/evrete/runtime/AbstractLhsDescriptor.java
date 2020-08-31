@@ -22,7 +22,6 @@ public abstract class AbstractLhsDescriptor {
     private final int level;
     private final Set<FactType> groupFactTypes = new HashSet<>();
     private final RhsFactGroupDescriptor[] allFactGroups;
-    private final int betaFactGroupCount;
 
     AbstractLhsDescriptor(AbstractRuntime<?> runtime, AbstractLhsDescriptor parent, AbstractLhsBuilder<?, ?> group, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
         this.level = parent == null ? 0 : parent.level + 1;
@@ -77,7 +76,6 @@ public abstract class AbstractLhsDescriptor {
             keyGroupIndex++;
         }
 
-        this.betaFactGroupCount = keyGroupIndex;
         if (!alphaFactTypes.isEmpty()) {
             allFactGroups.add(new RhsFactGroupDescriptor(this, factGroupCounter, alphaFactTypes));
         }
@@ -92,10 +90,6 @@ public abstract class AbstractLhsDescriptor {
         }
 
         this.allFactGroups = allFactGroups.toArray(RhsFactGroupDescriptor.ZERO_ARRAY);
-    }
-
-    int getBetaFactGroupCount() {
-        return betaFactGroupCount;
     }
 
     MapFunction<String, int[]> getNameIndices() {

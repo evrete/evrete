@@ -70,11 +70,6 @@ public final class TypeMemory implements MemoryChangeListener, PlainMemory {
         }
     }
 
-    public void forEach(Consumer<RuntimeFact> consumer) {
-        throw new UnsupportedOperationException();
-        //mainFacts.forEachValue(consumer::accept);
-    }
-
     @Override
     public boolean hasChanges() {
         return deltaFacts.size() > 0;
@@ -100,12 +95,6 @@ public final class TypeMemory implements MemoryChangeListener, PlainMemory {
     @Override
     public ReIterator<RuntimeFact> deltaIterator() {
         return deltaFacts.factIterator();
-    }
-
-    //@Override
-    public ReIterator<RuntimeFact> iterator() {
-        throw new UnsupportedOperationException();
-        //return this.mainFacts.factIterator();
     }
 
     public PlainMemory get(AlphaBucketMeta alphaMask) {

@@ -6,7 +6,6 @@ import org.evrete.runtime.memory.BetaEndNode;
 import org.evrete.runtime.memory.Buffer;
 import org.evrete.runtime.memory.SessionMemory;
 
-import java.util.Collection;
 import java.util.function.Consumer;
 
 

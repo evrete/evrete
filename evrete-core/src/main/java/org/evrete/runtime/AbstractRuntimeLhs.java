@@ -15,8 +15,6 @@ public abstract class AbstractRuntimeLhs implements ActivationSubject {
     private final RhsFactGroup[] rhsFactGroups;
     private final RhsFactGroupAlpha alphaFactGroup;
     private final RhsFactGroupBeta[] betaFactGroups;
-    final boolean hasBetaNodes;
-    final boolean hasAlphaNodes;
 
     final RuntimeFact[][] factState;
     private final ValueRow[][] keyState;
@@ -55,8 +53,6 @@ public abstract class AbstractRuntimeLhs implements ActivationSubject {
         }
         this.betaFactGroups = CollectionUtils.filter(RhsFactGroupBeta.class, rhsFactGroups, group -> !group.isAlpha());
         this.alphaFactGroup = alpha;
-        this.hasBetaNodes = this.betaFactGroups.length > 0;
-        this.hasAlphaNodes = this.alphaFactGroup != null;
     }
 
     @Override

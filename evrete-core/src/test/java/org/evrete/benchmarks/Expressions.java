@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @Fork(value = 1, warmups = 1)
 @SuppressWarnings("MethodMayBeStatic")
-public class BenchmarkExpressions {
+public class Expressions {
     private static final int count = 100_000;
 
     @Benchmark

@@ -1,6 +1,5 @@
 package org.evrete.helper;
 
-import org.drools.core.impl.KnowledgeBaseFactory;
 import org.evrete.api.ReIterator;
 import org.evrete.api.StatefulSession;
 import org.evrete.collections.CollectionReIterator;
@@ -13,13 +12,10 @@ import org.kie.api.builder.*;
 import org.kie.api.io.Resource;
 import org.kie.api.io.ResourceType;
 import org.kie.api.runtime.KieContainer;
-import org.kie.internal.builder.KnowledgeBuilder;
-import org.kie.internal.builder.KnowledgeBuilderFactory;
 import org.kie.internal.io.ResourceFactory;
 import org.kie.internal.utils.KieHelper;
 
 import java.io.File;
-import java.io.InputStream;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
