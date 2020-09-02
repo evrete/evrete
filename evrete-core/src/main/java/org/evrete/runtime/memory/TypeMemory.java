@@ -1,6 +1,5 @@
 package org.evrete.runtime.memory;
 
-import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
 import org.evrete.collections.FastIdentityHashMap;
@@ -38,10 +37,9 @@ public final class TypeMemory implements MemoryChangeListener, PlainMemory {
     TypeMemory(SessionMemory runtime, Type type) {
         this.runtime = runtime;
         this.alphaConditions = runtime.getAlphaConditions();
-        Configuration conf = runtime.getConfiguration();
         this.type = type;
-        this.mainFacts = new IdentityMap(conf);
-        this.deltaFacts = new IdentityMap(conf);
+        this.mainFacts = new IdentityMap();
+        this.deltaFacts = new IdentityMap();
         this.alphaBuckets = new ArrayOf<>(TypeMemoryBucket.class);
     }
 
@@ -300,10 +298,6 @@ public final class TypeMemory implements MemoryChangeListener, PlainMemory {
         private static final Function<Entry<Object, RuntimeObject>, RuntimeObject> MAPPER_IMPL = Entry::getValue;
 
         private static final BiPredicate<Object, Object> EQ = (fact1, fact2) -> fact1 == fact2;
-
-        IdentityMap(Configuration conf) {
-            super(conf.getExpectedObjectCount());
-        }
 
         ReIterator<RuntimeFact> factIterator() {
             return iterator(MAPPER);

@@ -40,12 +40,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements MemoryChange
     }
 
     @Override
-    public void onAfterChange() {
-        throw new UnsupportedOperationException();
-        //resetState();
-    }
-
-    @Override
     public boolean isInActiveState() {
         return lhs.isInActiveState();
     }

@@ -43,8 +43,6 @@ class SessionUpdateDeleteTests {
 
     @Test
     void updateAlpha1() {
-        knowledge.getConfiguration().setCycleLimit(20);
-
         AtomicInteger counter = new AtomicInteger();
         AtomicReference<TypeA> ref = new AtomicReference<>();
         ref.set(new TypeA());

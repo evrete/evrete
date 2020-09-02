@@ -174,7 +174,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         }
         //TODO !!! find a better place
         buffer.clear();
-        onAfterChange();
+        //onAfterChange();
     }
 
     @Override

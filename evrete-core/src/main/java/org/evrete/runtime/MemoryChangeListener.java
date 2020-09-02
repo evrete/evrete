@@ -4,8 +4,4 @@ public interface MemoryChangeListener {
     default void onBeforeChange() {
 
     }
-
-    default void onAfterChange() {
-
-    }
 }
