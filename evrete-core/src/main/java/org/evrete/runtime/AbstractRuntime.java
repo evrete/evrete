@@ -2,6 +2,7 @@ package org.evrete.runtime;
 
 import org.evrete.Configuration;
 import org.evrete.api.*;
+import org.evrete.runtime.async.Completer;
 import org.evrete.runtime.async.ForkJoinExecutor;
 import org.evrete.runtime.builder.RuleBuilderImpl;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
@@ -23,6 +24,8 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     private final AlphaConditions alphaConditions;
     private final ForkJoinExecutor executor;
     private final ActiveFields activeFields;
+    private final Queue<Completer> tasksQueue = new LinkedList<>();
+
 
     private Comparator<Rule> ruleComparator = SALIENCE_COMPARATOR;
 
@@ -82,6 +85,17 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
             return activationManagerFactory.getConstructor().newInstance();
         } catch (Throwable e) {
             throw new RuntimeException("Unable to create activation manager");
+        }
+    }
+
+    protected void queueTask(Completer task) {
+        this.tasksQueue.add(task);
+    }
+
+    protected void processAllTasks() {
+        Completer task;
+        while ((task = tasksQueue.poll()) != null) {
+            executor.invoke(task);
         }
     }
 

@@ -49,8 +49,12 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
 
     private void fireDefault(ActivationContext ctx) {
         processChanges();
-        for (RuntimeRuleImpl r : getActiveRules()) {
-            r.executeRhs();
+        activationManager.reset(ctx.incrementFireCount());
+        for (RuntimeRuleImpl r : getAgenda()) {
+            if(activationManager.test(r)) {
+                r.executeRhs();
+                activationManager.onActivation(r);
+            }
         }
         commitMemoryDeltas();
         if (hasMemoryTasks()) {

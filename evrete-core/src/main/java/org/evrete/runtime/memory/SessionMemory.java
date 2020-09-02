@@ -151,7 +151,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         return ruleStorage.asList();
     }
 
-    public List<RuntimeRuleImpl> getActiveRules() {
+    public List<RuntimeRuleImpl> getAgenda() {
         return ruleStorage.activeRules();
     }
 
@@ -172,9 +172,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
                 executor.invoke(task);
             }
         }
-        //TODO !!! find a better place
         buffer.clear();
-        //onAfterChange();
     }
 
     @Override
@@ -232,7 +230,6 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
             tasksQueue.add(new RuleMemoryInsertTask(deltaEndNodes, true));
         }
 
-
         // Ordered task 2 - update aggregate nodes
         Collection<RuntimeAggregateLhsJoined> aggregateGroups = ruleStorage.getAggregateLhsGroups();
         if (!aggregateGroups.isEmpty()) {
@@ -240,20 +237,6 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         }
 
     }
-
-/*
-    public void init1(FactType factType) {
-        Type t = factType.getType();
-        TypeMemory tm = typedMemories.get(t);
-        if (tm == null) {
-            tm = new TypeMemory(this, t);
-            typedMemories.put(t, tm);
-        }
-        AlphaBucketMeta mask = factType.getAlphaMask();
-        FieldsKey key = factType.getFields();
-        tm.init111(key, mask);
-    }
-*/
 
     public TypeMemory get(Type t) {
         TypeMemory m = typedMemories.get(t);

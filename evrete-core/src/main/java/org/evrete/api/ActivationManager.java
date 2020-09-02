@@ -13,11 +13,6 @@ public interface ActivationManager extends Predicate<RuntimeRule> {
 
     /**
      * <p>
-     *      When a session is fired, its activation (execution) may result in changes in the session's
-     *      memory and subsequent activations of rules. This process continues until there are no changes
-     *      left in the working memory.
-     * </p>
-     * <p>
      *     This method is called once for each memory change and before any rule activations.
      * </p>
      *
