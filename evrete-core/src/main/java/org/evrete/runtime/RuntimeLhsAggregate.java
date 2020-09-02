@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class RuntimeLhsAggregate extends RuntimeLhs implements RhsContext, MemoryChangeListener {
+public class RuntimeLhsAggregate extends RuntimeLhs implements RhsContext {
     private final Collection<RuntimeAggregateLhsLoose> aggregateLooseGroups = new ArrayList<>();
     private final Collection<RuntimeAggregateLhsJoined> aggregateConditionedGroups = new ArrayList<>();
 

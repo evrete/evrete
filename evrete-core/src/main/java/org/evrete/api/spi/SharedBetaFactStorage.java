@@ -1,6 +1,9 @@
 package org.evrete.api.spi;
 
-import org.evrete.api.*;
+import org.evrete.api.KeyReIterables;
+import org.evrete.api.Memory;
+import org.evrete.api.RuntimeFact;
+import org.evrete.api.ValueRow;
 
 import java.util.Collection;
 import java.util.function.Predicate;

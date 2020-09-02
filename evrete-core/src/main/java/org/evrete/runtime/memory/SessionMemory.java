@@ -4,7 +4,10 @@ import org.evrete.api.*;
 import org.evrete.api.spi.SharedBetaFactStorage;
 import org.evrete.collections.FastHashMap;
 import org.evrete.runtime.*;
-import org.evrete.runtime.async.*;
+import org.evrete.runtime.async.AggregateComputeTask;
+import org.evrete.runtime.async.RuleHotDeploymentTask;
+import org.evrete.runtime.async.RuleMemoryDeleteTask;
+import org.evrete.runtime.async.RuleMemoryInsertTask;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaDelta;
 
@@ -14,7 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class SessionMemory extends AbstractRuntime<StatefulSession> implements WorkingMemory, MemoryChangeListener {
+public class SessionMemory extends AbstractRuntime<StatefulSession> implements WorkingMemory {
     private final BufferSafe buffer;
     private final RuntimeRules ruleStorage;
     private final FastHashMap<Type, TypeMemory> typedMemories;
@@ -156,31 +159,19 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
     }
 
     protected void processChanges() {
-        onBeforeChange();
-        List<Completer> tasksQueue = new LinkedList<>();
+        typedMemories.forEachValue(TypeMemory::onBeforeChange);
 
         // 1. Do deletes
-        handleDeletes(tasksQueue);
+        handleDeletes();
 
         // 2. Do inserts
-        handleInserts(tasksQueue);
+        handleInserts();
 
-        // 3. Execute all tasks orderly
-        if(!tasksQueue.isEmpty()) {
-            ForkJoinExecutor executor = getExecutor();
-            for (Completer task : tasksQueue) {
-                executor.invoke(task);
-            }
-        }
+        processAllTasks();
         buffer.clear();
     }
 
-    @Override
-    public void onBeforeChange() {
-        typedMemories.forEachValue(MemoryChangeListener::onBeforeChange);
-    }
-
-    private void handleDeletes(List<Completer> tasksQueue) {
+    private void handleDeletes() {
         buffer.takeAll(
                 Action.RETRACT,
                 (type, iterator) -> {
@@ -199,11 +190,11 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
             }
         }
         if (!ruleDeleteChanges.isEmpty()) {
-            tasksQueue.add(new RuleMemoryDeleteTask(ruleDeleteChanges));
+            queueTask(new RuleMemoryDeleteTask(ruleDeleteChanges));
         }
     }
 
-    private void handleInserts(List<Completer> tasksQueue) {
+    private void handleInserts() {
         buffer.takeAll(
                 Action.INSERT,
                 (type, iterator) -> {
@@ -227,13 +218,13 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         }
 
         if (!deltaEndNodes.isEmpty()) {
-            tasksQueue.add(new RuleMemoryInsertTask(deltaEndNodes, true));
+            queueTask(new RuleMemoryInsertTask(deltaEndNodes, true));
         }
 
         // Ordered task 2 - update aggregate nodes
         Collection<RuntimeAggregateLhsJoined> aggregateGroups = ruleStorage.getAggregateLhsGroups();
         if (!aggregateGroups.isEmpty()) {
-            tasksQueue.add(new AggregateComputeTask(aggregateGroups, true));
+            queueTask(new AggregateComputeTask(aggregateGroups, true));
         }
 
     }

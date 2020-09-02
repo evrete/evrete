@@ -3,7 +3,6 @@ package org.evrete.runtime.memory;
 import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
 import org.evrete.collections.FastIdentityHashMap;
-import org.evrete.runtime.MemoryChangeListener;
 import org.evrete.runtime.PlainMemory;
 import org.evrete.runtime.RuntimeObject;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
@@ -18,7 +17,7 @@ import java.util.function.Function;
 import java.util.function.ToIntFunction;
 import java.util.logging.Logger;
 
-public final class TypeMemory implements MemoryChangeListener, PlainMemory {
+public final class TypeMemory implements PlainMemory {
     private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
     private final AlphaConditions alphaConditions;
     private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
@@ -241,8 +240,7 @@ public final class TypeMemory implements MemoryChangeListener, PlainMemory {
         }
     }
 
-    @Override
-    public void onBeforeChange() {
+    void onBeforeChange() {
         this.alphaEvaluators = alphaConditions.getPredicates(type).data;
         this.activeFields = runtime.getActiveFields(type);
     }

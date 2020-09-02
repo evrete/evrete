@@ -2,7 +2,8 @@ package org.evrete.runtime.aggregate;
 
 import org.evrete.api.ReIterator;
 import org.evrete.api.ValueRow;
-import org.evrete.runtime.*;
+import org.evrete.runtime.RhsFactGroupAlpha;
+import org.evrete.runtime.RuntimeAggregateLhsLoose;
 
 import java.util.function.BooleanSupplier;
 

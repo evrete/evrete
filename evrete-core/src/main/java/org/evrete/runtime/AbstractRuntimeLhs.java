@@ -1,10 +1,14 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
+import org.evrete.api.RuntimeFact;
+import org.evrete.api.ValueRow;
 import org.evrete.runtime.memory.BetaEndNode;
 import org.evrete.util.CollectionUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public abstract class AbstractRuntimeLhs implements ActivationSubject {

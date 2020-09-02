@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
-public class RuntimeLhsDefault extends RuntimeLhs implements RhsContext, MemoryChangeListener {
+public class RuntimeLhsDefault extends RuntimeLhs implements RhsContext {
     private static final Collection<RuntimeAggregateLhsJoined> EMPTY_AGGREGATES = Collections.unmodifiableCollection(Collections.emptyList());
 
     RuntimeLhsDefault(RuntimeRuleImpl rule, LhsDescriptor descriptor, Buffer buffer) {

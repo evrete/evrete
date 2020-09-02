@@ -4,7 +4,10 @@ import org.evrete.api.KeysStore;
 import org.evrete.api.ReIterator;
 import org.evrete.api.ValueRow;
 import org.evrete.collections.MappedReIterator;
-import org.evrete.runtime.*;
+import org.evrete.runtime.ConditionNodeDescriptor;
+import org.evrete.runtime.FactType;
+import org.evrete.runtime.RuntimeFactTypeKeyed;
+import org.evrete.runtime.RuntimeRuleImpl;
 import org.evrete.runtime.evaluation.EvaluatorGroup;
 
 import java.util.ArrayList;

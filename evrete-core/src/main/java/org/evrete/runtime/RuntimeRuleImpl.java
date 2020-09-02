@@ -9,7 +9,7 @@ import org.evrete.runtime.memory.SessionMemory;
 import java.util.function.Consumer;
 
 
-public class RuntimeRuleImpl extends AbstractRuntimeRule implements MemoryChangeListener, RuntimeRule, ActivationSubject {
+public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule, ActivationSubject {
     private final RuntimeLhs lhs;
     private final Buffer ruleBuffer;
     private final Buffer memoryBuffer;
