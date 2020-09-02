@@ -55,6 +55,7 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
                 r.executeRhs();
                 activationManager.onActivation(r);
             }
+            r.resetState();
         }
         commitMemoryDeltas();
         if (hasMemoryTasks()) {

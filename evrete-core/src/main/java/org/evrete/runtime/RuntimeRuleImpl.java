@@ -24,9 +24,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     public final void executeRhs() {
         assert isInActiveState();
         this.lhs.forEach(rhs);
-        // Merge memory changes
         memoryBuffer.takeAllFrom(ruleBuffer);
-        resetState();
     }
 
     public final RuntimeRuleImpl setRhs(Consumer<RhsContext> consumer) {

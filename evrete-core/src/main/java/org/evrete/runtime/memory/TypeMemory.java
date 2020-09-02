@@ -29,9 +29,9 @@ public final class TypeMemory implements PlainMemory {
     private final List<RuntimeObject> insertBuffer = new LinkedList<>();
     private final List<RuntimeFact> deleteBuffer = new LinkedList<>();
 
-    private ActiveField[] activeFields;
+    private ActiveField[] cachedActiveFields;
 
-    private AlphaEvaluator[] alphaEvaluators;
+    private AlphaEvaluator[] cachesAlphaEvaluators;
 
     TypeMemory(SessionMemory runtime, Type type) {
         this.runtime = runtime;
@@ -40,6 +40,8 @@ public final class TypeMemory implements PlainMemory {
         this.mainFacts = new IdentityMap();
         this.deltaFacts = new IdentityMap();
         this.alphaBuckets = new ArrayOf<>(TypeMemoryBucket.class);
+        this.cachedActiveFields = runtime.getActiveFields(type);
+        this.cachesAlphaEvaluators = alphaConditions.getPredicates(type).data;
     }
 
     public final Set<FieldsKey> knownFieldSets() {
@@ -142,6 +144,8 @@ public final class TypeMemory implements PlainMemory {
             }
         }
 
+        this.cachedActiveFields = runtime.getActiveFields(type);
+
 
     }
 
@@ -168,11 +172,12 @@ public final class TypeMemory implements PlainMemory {
         return null;
     }
 
-
     void onNewAlphaBucket(AlphaDelta delta) {
 
-        //TODO !!!!!!
-        if(deltaFacts.size() > 0 ) throw new IllegalStateException();
+        if(deltaFacts.size() > 0 ) {
+            //TODO develop a strategy
+            throw new UnsupportedOperationException("A new condition was created in an uncommitted memory.");
+        }
 
         ReIterator<RuntimeObject> existingFacts = mainFacts.factImplIterator();
         // 1. Update all the facts by applying new alpha flags
@@ -199,6 +204,8 @@ public final class TypeMemory implements PlainMemory {
                     .computeIfAbsent(key, k -> new FieldsMemory(runtime, key))
                     .onNewAlphaBucket(alphaMeta, existingFacts);
         }
+
+        this.cachesAlphaEvaluators = alphaConditions.getPredicates(type).data;
     }
 
     void commitMemoryDeltas() {
@@ -240,11 +247,6 @@ public final class TypeMemory implements PlainMemory {
         }
     }
 
-    void onBeforeChange() {
-        this.alphaEvaluators = alphaConditions.getPredicates(type).data;
-        this.activeFields = runtime.getActiveFields(type);
-    }
-
 
     @SuppressWarnings("unchecked")
     final <T> void forEachMemoryObject(Consumer<T> consumer) {
@@ -264,15 +266,15 @@ public final class TypeMemory implements PlainMemory {
         final RuntimeObject rto;
 
         // Read values
-        Object[] values = new Object[activeFields.length];
-        for (int i = 0; i < activeFields.length; i++) {
-            values[i] = activeFields[i].readValue(o);
+        Object[] values = new Object[cachedActiveFields.length];
+        for (int i = 0; i < cachedActiveFields.length; i++) {
+            values[i] = cachedActiveFields[i].readValue(o);
         }
 
         // Evaluate alpha conditions if necessary
-        if (alphaEvaluators.length > 0) {
-            boolean[] alphaTests = new boolean[alphaEvaluators.length];
-            for (AlphaEvaluator alpha : alphaEvaluators) {
+        if (cachesAlphaEvaluators.length > 0) {
+            boolean[] alphaTests = new boolean[cachesAlphaEvaluators.length];
+            for (AlphaEvaluator alpha : cachesAlphaEvaluators) {
                 int fieldInUseIndex = alpha.getValueIndex();
                 alphaTests[alpha.getUniqueId()] = alpha.test(values[fieldInUseIndex]);
             }

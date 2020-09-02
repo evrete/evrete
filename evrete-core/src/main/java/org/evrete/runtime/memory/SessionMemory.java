@@ -159,13 +159,12 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
     }
 
     protected void processChanges() {
-        typedMemories.forEachValue(TypeMemory::onBeforeChange);
-
         // 1. Do deletes
         handleDeletes();
 
         // 2. Do inserts
         handleInserts();
+
 
         processAllTasks();
         buffer.clear();
