@@ -9,6 +9,10 @@ public interface StatefulSession extends WorkingMemory, RuntimeContext<StatefulS
 
     void close();
 
+    ActivationManager getActivationManager();
+
+    void setActivationManager(ActivationManager activationManager);
+
     RuntimeRule getRule(String name);
 
     List<RuntimeRule> getRules();

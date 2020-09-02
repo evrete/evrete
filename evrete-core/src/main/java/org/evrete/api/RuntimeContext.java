@@ -29,6 +29,10 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners {
 
     RuntimeListeners getListeners();
 
+    <A extends ActivationManager> void setActivationManagerFactory(Class<A> managerClass);
+
+    Class<? extends ActivationManager> getActivationManagerFactory();
+
     TypeResolver getTypeResolver();
 
     RuleDescriptor getRuleDescriptor(String name);

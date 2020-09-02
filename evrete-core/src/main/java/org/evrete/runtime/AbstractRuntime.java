@@ -26,6 +26,8 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
 
     private Comparator<Rule> ruleComparator = SALIENCE_COMPARATOR;
 
+    private Class<? extends ActivationManager> activationManagerFactory;
+
     protected abstract void onNewActiveField(ActiveField newField);
 
     protected abstract void onNewAlphaBucket(AlphaDelta alphaDelta);
@@ -44,6 +46,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         this.listeners = new RuntimeListeners();
         this.executor = executor;
         this.activeFields = new ActiveFields();
+        this.activationManagerFactory = UnconditionalActivationManager.class;
     }
 
     /**
@@ -61,6 +64,25 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         this.listeners = parent.listeners.copyOf();
         this.activeFields = parent.activeFields.copyOf();
         this.ruleComparator = parent.ruleComparator;
+        this.activationManagerFactory = parent.activationManagerFactory;
+    }
+
+    @Override
+    public <A extends ActivationManager> void setActivationManagerFactory(Class<A> managerClass) {
+        this.activationManagerFactory = managerClass;
+    }
+
+    @Override
+    public Class<? extends ActivationManager> getActivationManagerFactory() {
+        return activationManagerFactory;
+    }
+
+    protected ActivationManager newActivationManager() {
+        try {
+            return activationManagerFactory.getConstructor().newInstance();
+        } catch (Throwable e) {
+            throw new RuntimeException("Unable to create activation manager");
+        }
     }
 
     @Override
