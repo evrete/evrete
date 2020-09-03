@@ -43,8 +43,8 @@ public class RuntimeRules implements Iterable<RuntimeRuleImpl> {
         return Collections.unmodifiableList(list);
     }
 
-    public List<RuntimeRuleImpl> activeRules() {
-        List<RuntimeRuleImpl> l = new LinkedList<>();
+    public List<RuntimeRule> activeRules() {
+        List<RuntimeRule> l = new LinkedList<>();
         for(RuntimeRuleImpl rule : list) {
             if(rule.isInActiveState()) {
                 l.add(rule);

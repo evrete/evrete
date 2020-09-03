@@ -32,6 +32,18 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
         return this;
     }
 
+
+    public RuleBuilderImpl<C> salience(int salience) {
+        setSalience(salience);
+        return this;
+    }
+
+    @Override
+    public <Z> RuleBuilder<C> property(String property, Z value) {
+        setProperty(property, value);
+        return this;
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public C getRuntime() {

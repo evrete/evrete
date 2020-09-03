@@ -8,4 +8,8 @@ public interface RuleBuilder<C extends RuntimeContext<C>> extends Rule, LhsFactS
 
     C getRuntime();
 
+    RuleBuilder<C> salience(int salience);
+
+    <Z> RuleBuilder<C> property(String property, Z value);
+
 }

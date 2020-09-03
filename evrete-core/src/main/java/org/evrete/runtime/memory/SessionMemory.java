@@ -61,6 +61,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         if (hotDeployment) {
             getExecutor().invoke(new RuleHotDeploymentTask(rule));
         }
+        reSortRules();
         return rule;
     }
 
@@ -154,7 +155,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         return ruleStorage.asList();
     }
 
-    public List<RuntimeRuleImpl> getAgenda() {
+    public List<RuntimeRule> getAgenda() {
         return ruleStorage.activeRules();
     }
 

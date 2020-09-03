@@ -26,7 +26,6 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     private final ActiveFields activeFields;
     private final Queue<Completer> tasksQueue = new LinkedList<>();
 
-
     private Comparator<Rule> ruleComparator = SALIENCE_COMPARATOR;
 
     private Class<? extends ActivationManager> activationManagerFactory;
@@ -82,9 +81,9 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
 
     protected ActivationManager newActivationManager() {
         try {
-            return activationManagerFactory.getConstructor().newInstance();
+            return activationManagerFactory.getDeclaredConstructor().newInstance();
         } catch (Throwable e) {
-            throw new RuntimeException("Unable to create activation manager");
+            throw new RuntimeException("Unable to create activation manager. Probably the provided factory class has no public and zero-argument constructor.", e);
         }
     }
 
@@ -208,4 +207,8 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     public void addConditionTestListener(EvaluationListener listener) {
         listeners.addConditionTestListener(listener);
     }
+
+    static class UnconditionalActivationManager implements ActivationManager {
+    }
+
 }

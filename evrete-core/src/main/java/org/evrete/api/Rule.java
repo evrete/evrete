@@ -9,11 +9,14 @@ public interface Rule extends Named {
 
     void setSalience(int value);
 
-    <T> void setProperty(String name, T value);
+    <T> void setProperty(String property, T value);
 
-    <T> T getProperty(String name);
+    <T> T getProperty(String property);
 
-    <T> T getProperty(String name, T defaultValue);
+    default <T> T getProperty(String name, T defaultValue) {
+        T obj = getProperty(name);
+        return obj == null ? defaultValue : obj;
+    }
 
     Rule setRhs(Consumer<RhsContext> rhs);
 

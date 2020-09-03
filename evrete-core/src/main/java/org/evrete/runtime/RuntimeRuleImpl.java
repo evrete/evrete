@@ -56,7 +56,14 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         return lhs;
     }
 
-/*
+    @Override
+    public String toString() {
+        return "RuntimeRule{" +
+                "name=" + getName() +
+                '}';
+    }
+
+    /*
     public Collection<BetaEndNode> getAllBetaEndNodes() {
         return lhs.getAllBetaEndNodes();
     }
