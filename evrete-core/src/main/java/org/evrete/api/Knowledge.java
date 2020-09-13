@@ -9,6 +9,12 @@ public interface Knowledge extends RuntimeContext<Knowledge> {
 
     List<RuleDescriptor> getRuleDescriptors();
 
+    @Override
+    Knowledge addImport(String imp);
+
+    @Override
+    Knowledge addImport(Class<?> type);
+
     default <A extends ActivationManager> Knowledge activationManager(Class<A> factory) {
         setActivationManagerFactory(factory);
         return this;

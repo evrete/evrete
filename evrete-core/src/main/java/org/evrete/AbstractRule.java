@@ -3,7 +3,9 @@ package org.evrete;
 import org.evrete.api.RhsContext;
 import org.evrete.api.Rule;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
@@ -12,8 +14,10 @@ public abstract class AbstractRule implements Rule {
     private static final Logger LOGGER = Logger.getLogger(AbstractRule.class.getName());
     private final String name;
     private final Consumer<RhsContext> nullRhs;
+    private final Set<String> imports;
     protected Consumer<RhsContext> rhs;
     private int salience;
+    private String literalRhs;
 
     private final Map<String, Object> properties;
 
@@ -23,6 +27,7 @@ public abstract class AbstractRule implements Rule {
         this.salience = defaultSalience;
         this.nullRhs = arg -> LOGGER.warning("No RHS is set for rule '" + AbstractRule.this.name + '\'');
         this.rhs = nullRhs;
+        this.imports = new HashSet<>();
     }
 
     protected AbstractRule(AbstractRule other) {
@@ -32,6 +37,23 @@ public abstract class AbstractRule implements Rule {
         this.salience = other.salience;
         this.nullRhs = other.nullRhs;
         this.rhs = other.rhs;
+        this.literalRhs = other.literalRhs;
+        this.imports = new HashSet<>(other.imports);
+    }
+
+    @Override
+    public Rule addImport(String imp) {
+        this.imports.add(imp);
+        return this;
+    }
+
+    @Override
+    public Set<String> getImports() {
+        return imports;
+    }
+
+    public String getLiteralRhs() {
+        return literalRhs;
     }
 
     @Override
@@ -66,19 +88,22 @@ public abstract class AbstractRule implements Rule {
     }
 
     @Override
-    public Rule setRhs(Consumer<RhsContext> rhs) {
+    public void setRhs(Consumer<RhsContext> rhs) {
         this.rhs = rhs == null ? nullRhs : rhs;
-        return this;
+        this.literalRhs = null;
+    }
+
+    public void setRhs(String literalRhs) {
+        this.literalRhs = literalRhs;
     }
 
     @Override
-    public Rule chainRhs(Consumer<RhsContext> consumer) {
+    public void chainRhs(Consumer<RhsContext> consumer) {
         if(rhs == nullRhs || rhs == null) {
             setRhs(consumer);
         } else {
             setRhs(rhs.andThen(consumer));
         }
-        return this;
     }
 
 

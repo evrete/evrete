@@ -3,7 +3,7 @@ package org.evrete.runtime;
 import org.evrete.api.KeyReIterators;
 import org.evrete.api.Memory;
 import org.evrete.api.ValueRow;
-import org.evrete.api.spi.SharedBetaFactStorage;
+import org.evrete.api.SharedBetaFactStorage;
 import org.evrete.runtime.memory.SessionMemory;
 import org.evrete.util.ValueRowToArray;
 

@@ -41,6 +41,7 @@ public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContex
         }
     }
 
+    @Override
     public RuntimeRuleImpl getRule() {
         return rule;
     }
@@ -56,7 +57,6 @@ public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContex
     public final Collection<BetaEndNode> getAllBetaEndNodes() {
         return allBetaEndNodes;
     }
-
 
     @Override
     public final RuntimeFact getFact(String name) {

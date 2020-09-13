@@ -1,20 +1,13 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.spi.CollectionsService;
-import org.evrete.api.spi.CollectionsServiceProvider;
+import org.evrete.api.RuntimeContext;
+import org.evrete.api.MemoryCollections;
+import org.evrete.api.spi.MemoryCollectionsProvider;
 
-import java.util.Properties;
-
-public class DefaultCollectionServiceProvider implements CollectionsServiceProvider {
-    private static final int ORDER = Integer.MAX_VALUE;
+public class DefaultCollectionServiceProvider extends LastServiceProvider implements MemoryCollectionsProvider {
 
     @Override
-    public CollectionsService instance(Properties properties) {
+    public MemoryCollections instance(RuntimeContext<?> requester) {
         return new DefaultCollectionsService();
-    }
-
-    @Override
-    public int order() {
-        return ORDER;
     }
 }

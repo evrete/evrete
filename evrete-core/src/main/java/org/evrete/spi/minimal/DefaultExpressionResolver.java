@@ -1,10 +1,6 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.Evaluator;
-import org.evrete.api.NamedType;
-import org.evrete.api.Type;
-import org.evrete.api.TypeField;
-import org.evrete.api.spi.ExpressionResolver;
+import org.evrete.api.*;
 import org.evrete.runtime.builder.FieldReference;
 import org.evrete.util.NextIntSupplier;
 
@@ -19,8 +15,8 @@ class DefaultExpressionResolver implements ExpressionResolver {
 
     private final EvaluatorCompiler evaluatorCompiler;
 
-    DefaultExpressionResolver(ClassLoader classLoader) {
-        this.evaluatorCompiler = new EvaluatorCompiler(classLoader);
+    DefaultExpressionResolver(RuntimeContext<?> requester) {
+        this.evaluatorCompiler = new EvaluatorCompiler(requester.getClassLoader());
     }
 
     @Override
@@ -41,11 +37,11 @@ class DefaultExpressionResolver implements ExpressionResolver {
         }
 
 
-        Type type = typeRef.getType();
+        Type<?> type = typeRef.getType();
         TypeField field = type.getField(dottedProp);
         if (field == null) {
             if (type instanceof TypeImpl) {
-                field = ((TypeImpl) type).inspectClass(dottedProp);
+                field = ((TypeImpl<?>) type).inspectClass(dottedProp);
             }
             if (field == null) {
                 throw new IllegalArgumentException("Unable to resolve property '" + dottedProp + "' of " + type);

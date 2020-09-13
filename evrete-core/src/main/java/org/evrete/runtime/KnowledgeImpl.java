@@ -1,10 +1,7 @@
 package org.evrete.runtime;
 
-import org.evrete.Configuration;
-import org.evrete.api.ActiveField;
-import org.evrete.api.Knowledge;
-import org.evrete.api.StatefulSession;
-import org.evrete.runtime.async.ForkJoinExecutor;
+import org.evrete.KnowledgeService;
+import org.evrete.api.*;
 import org.evrete.runtime.evaluation.AlphaDelta;
 
 import java.util.WeakHashMap;
@@ -13,8 +10,13 @@ public class KnowledgeImpl extends AbstractRuntime<Knowledge> implements Knowled
     private final WeakHashMap<StatefulSession, Object> sessions = new WeakHashMap<>();
     private final Object VALUE = new Object();
 
-    public KnowledgeImpl(Configuration conf, ForkJoinExecutor executor) {
-        super(conf, executor);
+    public KnowledgeImpl(KnowledgeService service) {
+        super(service);
+    }
+
+    @Override
+    protected TypeResolver newTypeResolver() {
+        return getService().getTypeResolverProvider().instance(this);
     }
 
 
@@ -26,6 +28,18 @@ public class KnowledgeImpl extends AbstractRuntime<Knowledge> implements Knowled
     @Override
     protected void onNewAlphaBucket(AlphaDelta delta) {
         // Do nothing
+    }
+
+    @Override
+    public Knowledge addImport(String imp) {
+        super.addImport(imp);
+        return this;
+    }
+
+    @Override
+    public Knowledge addImport(Class<?> type) {
+        super.addImport(type);
+        return this;
     }
 
     @Override

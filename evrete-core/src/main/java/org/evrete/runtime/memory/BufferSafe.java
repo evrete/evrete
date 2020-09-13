@@ -29,7 +29,17 @@ public class BufferSafe extends Buffer {
     }
 
     @Override
-    void takeAll(Action action, BiConsumer<Type, Iterator<Object>> consumer) {
+    public void insert(TypeResolver resolver, String objectType, Collection<?> objects) {
+        try {
+            writeLock.lock();
+            super.insert(resolver, objectType, objects);
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
+    @Override
+    void takeAll(Action action, BiConsumer<Type<?>, Iterator<Object>> consumer) {
         try {
             writeLock.lock();
             super.takeAll(action, consumer);

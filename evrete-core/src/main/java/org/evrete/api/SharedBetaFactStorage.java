@@ -1,4 +1,4 @@
-package org.evrete.api.spi;
+package org.evrete.api;
 
 import org.evrete.api.KeyReIterables;
 import org.evrete.api.Memory;

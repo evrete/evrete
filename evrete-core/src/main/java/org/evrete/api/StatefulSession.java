@@ -11,6 +11,12 @@ public interface StatefulSession extends WorkingMemory, RuntimeContext<StatefulS
 
     ActivationManager getActivationManager();
 
+    @Override
+    StatefulSession addImport(String imp);
+
+    @Override
+    StatefulSession addImport(Class<?> type);
+
     void setActivationManager(ActivationManager activationManager);
 
     RuntimeRule getRule(String name);
@@ -28,6 +34,11 @@ public interface StatefulSession extends WorkingMemory, RuntimeContext<StatefulS
 
     default void insertAndFire(Object... objects) {
         insert(objects);
+        fire();
+    }
+
+    default void insertTypedAndFire(String factType, Object... objects) {
+        insertTyped(factType, objects);
         fire();
     }
 

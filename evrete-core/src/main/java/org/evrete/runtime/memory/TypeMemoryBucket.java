@@ -2,7 +2,7 @@ package org.evrete.runtime.memory;
 
 import org.evrete.api.ReIterator;
 import org.evrete.api.RuntimeFact;
-import org.evrete.api.spi.SharedPlainFactStorage;
+import org.evrete.api.SharedPlainFactStorage;
 import org.evrete.runtime.PlainMemory;
 import org.evrete.runtime.RuntimeObject;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
@@ -16,8 +16,8 @@ class TypeMemoryBucket implements PlainMemory {
 
     TypeMemoryBucket(SessionMemory runtime, AlphaBucketMeta alphaMask) {
         assert !alphaMask.isEmpty();
-        this.data = runtime.getConfiguration().getCollectionsService().newPlainStorage();
-        this.delta = runtime.getConfiguration().getCollectionsService().newPlainStorage();
+        this.data = runtime.newSharedPlainStorage();
+        this.delta = runtime.newSharedPlainStorage();
         this.alphaMask = alphaMask;
     }
 

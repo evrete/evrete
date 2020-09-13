@@ -8,8 +8,11 @@ import java.util.function.*;
  * The definition of a type which is assigned to every object before it gets
  * into the working memory.
  * </p>
+ * @param <T> Java type
  */
-public interface Type extends Named {
+public interface Type<T> extends Named {
+
+    Class<T> getJavaType();
 
     Collection<TypeField> getDeclaredFields();
 
@@ -44,24 +47,23 @@ public interface Type extends Named {
      * @param name field name
      * @param type field value type
      * @param function the function that will be used to read field's value
-     * @param <T> expected Java type of the function's argument
      * @return newly created field
      */
-    <T> TypeField declareField(String name, Class<?> type, Function<T, Object> function);
+    TypeField declareField(String name, Class<?> type, Function<T, Object> function);
 
-    default <T> TypeField declareField(final String name, final ToIntFunction<T> function) {
+    default TypeField declareField(final String name, final ToIntFunction<T> function) {
         return declareField(name, int.class, function::applyAsInt);
     }
 
-    default <T> TypeField declareField(final String name, final ToLongFunction<T> function) {
+    default TypeField declareField(final String name, final ToLongFunction<T> function) {
         return declareField(name, long.class, function::applyAsLong);
     }
 
-    default <T> TypeField declareField(final String name, final ToDoubleFunction<T> function) {
+    default TypeField declareField(final String name, final ToDoubleFunction<T> function) {
         return declareField(name, double.class, function::applyAsDouble);
     }
 
-    default <T> TypeField declareField(final String name, final Predicate<T> function) {
+    default TypeField declareField(final String name, final Predicate<T> function) {
         return declareField(name, boolean.class, function::test);
     }
 }

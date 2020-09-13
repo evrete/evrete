@@ -14,7 +14,7 @@ public class FactType implements Masked {
     private static final Comparator<FactType> COMPARATOR = Comparator.comparingInt(FactType::getInRuleIndex);
     public static final BiPredicate<FactType, FactType> EQUALITY_BY_INDEX = (t1, t2) -> t1.getInRuleIndex() == t2.getInRuleIndex();
     private final String var;
-    private final Type type;
+    private final Type<?> type;
     private final AlphaBucketMeta alphaMask;
     private final FieldsKey fields;
     private final int inRuleIndex;
@@ -116,7 +116,7 @@ public class FactType implements Masked {
         return var;
     }
 
-    public Type getType() {
+    public Type<?> getType() {
         return fields.getType();
     }
 

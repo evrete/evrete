@@ -2,7 +2,7 @@ package org.evrete.api;
 
 import java.util.function.Consumer;
 
-public interface Rule extends Named {
+public interface Rule extends Named, FluentImports<Rule> {
     Consumer<RhsContext> getRhs();
 
     int getSalience();
@@ -18,7 +18,9 @@ public interface Rule extends Named {
         return obj == null ? defaultValue : obj;
     }
 
-    Rule setRhs(Consumer<RhsContext> rhs);
+    void setRhs(String literalRhs);
 
-    Rule chainRhs(Consumer<RhsContext> consumer);
+    void setRhs(Consumer<RhsContext> rhs);
+
+    void chainRhs(Consumer<RhsContext> consumer);
 }

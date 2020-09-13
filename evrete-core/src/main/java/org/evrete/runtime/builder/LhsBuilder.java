@@ -1,9 +1,6 @@
 package org.evrete.runtime.builder;
 
-import org.evrete.api.ExistsFactSelector;
-import org.evrete.api.FactBuilder;
-import org.evrete.api.RhsContext;
-import org.evrete.api.RuntimeContext;
+import org.evrete.api.*;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -33,13 +30,30 @@ public class LhsBuilder<C extends RuntimeContext<C>> extends AbstractLhsBuilder<
         return getRuleBuilder().build(consumer);
     }
 
-    public LhsBuilder<C> setRhs(Consumer<RhsContext> consumer) {
-        getRuleBuilder().setRhs(consumer);
-        return self();
+    public C execute(String literalRhs) {
+        return getRuleBuilder().build(literalRhs);
     }
 
+    public RuleBuilder<C> setRhs(Consumer<RhsContext> consumer) {
+        RuleBuilderImpl<C> builder = getRuleBuilder();
+        builder.setRhs(consumer);
+        return builder;
+    }
+
+    public RuleBuilder<C> setRhs(String literalConsumer) {
+        RuleBuilderImpl<C> builder = getRuleBuilder();
+        builder.setRhs(literalConsumer);
+        return builder;
+    }
+
+    public RuleBuilder<C> create() {
+        return getRuleBuilder();
+    }
+
+
+
     public C execute() {
-        return getRuleBuilder().build(null);
+        return getRuleBuilder().build();
     }
 
     public AggregateLhsBuilder<C> having(FactBuilder... facts) {

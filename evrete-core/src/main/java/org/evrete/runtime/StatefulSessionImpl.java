@@ -34,6 +34,18 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
     }
 
     @Override
+    public StatefulSession addImport(String imp) {
+        super.addImport(imp);
+        return this;
+    }
+
+    @Override
+    public StatefulSession addImport(Class<?> type) {
+        super.addImport(type);
+        return this;
+    }
+
+    @Override
     public ActivationManager getActivationManager() {
         return activationManager;
     }
@@ -42,6 +54,14 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
     public void setActivationManager(ActivationManager activationManager) {
         this.activationManager = activationManager;
     }
+
+    @Override
+    public <A extends ActivationManager> void setActivationManagerFactory(Class<A> managerClass) {
+        super.setActivationManagerFactory(managerClass);
+        this.activationManager = newActivationManager();
+    }
+
+
 
     @Override
     public void fire() {

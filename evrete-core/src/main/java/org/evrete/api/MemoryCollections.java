@@ -1,9 +1,6 @@
-package org.evrete.api.spi;
+package org.evrete.api;
 
-import org.evrete.api.FieldsKey;
-import org.evrete.api.KeysStore;
-
-public interface CollectionsService {
+public interface MemoryCollections {
 
     KeysStore newKeyStore(int[] factTypeCounts);
 

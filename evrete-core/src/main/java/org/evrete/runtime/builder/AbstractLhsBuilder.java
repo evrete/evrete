@@ -178,7 +178,7 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         this.conditions.add(new PredicateExpression0(expression));
     }
 
-    public synchronized FactTypeBuilder buildLhs(String name, Type type) {
+    public synchronized FactTypeBuilder buildLhs(String name, Type<?> type) {
         checkRefName(name);
         FactTypeBuilder factType = new FactTypeBuilder(this, name, type);
         this.declaredLhsTypes.put(name, factType);

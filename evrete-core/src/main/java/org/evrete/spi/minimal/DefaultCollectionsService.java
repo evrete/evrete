@@ -2,11 +2,11 @@ package org.evrete.spi.minimal;
 
 import org.evrete.api.FieldsKey;
 import org.evrete.api.KeysStore;
-import org.evrete.api.spi.CollectionsService;
-import org.evrete.api.spi.SharedBetaFactStorage;
-import org.evrete.api.spi.SharedPlainFactStorage;
+import org.evrete.api.MemoryCollections;
+import org.evrete.api.SharedBetaFactStorage;
+import org.evrete.api.SharedPlainFactStorage;
 
-public class DefaultCollectionsService implements CollectionsService {
+public class DefaultCollectionsService implements MemoryCollections {
 
     private static KeysStore factory(int[] arraySizes, int level) {
         int depth = arraySizes.length;

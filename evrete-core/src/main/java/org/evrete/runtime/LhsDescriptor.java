@@ -15,7 +15,6 @@ public class LhsDescriptor extends AbstractLhsDescriptor {
     private final MapFunction<NamedType, FactType> rootMapping;
     private final FactType[] allFactTypes;
 
-
     public LhsDescriptor(AbstractRuntime<?> runtime, LhsBuilder<?> root, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> rootMapping) {
         super(runtime, null, root, factIdGenerator, rootMapping);
         Collection<FactType> allFacts = new HashSet<>(getGroupFactTypes());

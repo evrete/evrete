@@ -23,17 +23,16 @@ class JcCompiler {
     private static final AtomicInteger counter = new AtomicInteger();
     private final String packageName;
     private final JcClassLoader classLoader;
-    private final Map<Type, Map<String, Function<?, ?>>> compiledLambdas = new HashMap<>();
+    private final Map<Type<?>, Map<String, Function<?, ?>>> compiledLambdas = new HashMap<>();
     private final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
     private int globalId = 0;
-
 
     public JcCompiler(ClassLoader classLoader) {
         this.classLoader = new JcClassLoader(classLoader);
         this.packageName = JcCompiler.class.getPackage().getName() + ".p" + counter.incrementAndGet();
     }
 
-    public final Function<?, ?> compileLambda(TypeImpl type, String exp) {
+    public final Function<?, ?> compileLambda(TypeImpl<?> type, String exp) {
         String lambda = exp.trim();
         lambda = lambda.endsWith(";") ? lambda : lambda + ';';
         Function<?, ?> function = compiledLambdas.computeIfAbsent(type, k -> new HashMap<>()).get(lambda);
@@ -44,7 +43,7 @@ class JcCompiler {
                     packageName,
                     className,
                     FUNCTION_NAME,
-                    type.getClazz().getName(),
+                    type.getJavaType().getName(),
                     FIELD_NAME,
                     lambda
             );

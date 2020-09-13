@@ -51,7 +51,7 @@ public final class TestUtils {
 
     public static <T> Collection<T> sessionObjects(StatefulSession s, Class<T> type) {
         Collection<T> col = new LinkedList<>();
-        s.forEachMemoryObject(type, col::add);
+        s.forEachMemoryObject(type.getName(), col::add);
         return col;
     }
 

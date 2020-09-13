@@ -11,12 +11,12 @@ import static org.evrete.api.LogicallyComparable.*;
 
 public class AlphaConditions implements Copyable<AlphaConditions> {
     private static final ArrayOf<AlphaEvaluator> EMPTY = new ArrayOf<>(new AlphaEvaluator[0]);
-    private final Map<Type, ArrayOf<AlphaEvaluator>> alphaPredicates;
-    private final Map<Type, TypeAlphas> typeAlphas;
+    private final Map<Type<?>, ArrayOf<AlphaEvaluator>> alphaPredicates;
+    private final Map<Type<?>, TypeAlphas> typeAlphas;
 
     private AlphaConditions(AlphaConditions other) {
         this.alphaPredicates = new HashMap<>();
-        for (Map.Entry<Type, ArrayOf<AlphaEvaluator>> entry : other.alphaPredicates.entrySet()) {
+        for (Map.Entry<Type<?>, ArrayOf<AlphaEvaluator>> entry : other.alphaPredicates.entrySet()) {
             this.alphaPredicates.put(entry.getKey(), new ArrayOf<>(entry.getValue()));
         }
 
@@ -34,7 +34,7 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
         return new AlphaConditions(this);
     }
 
-    public int size(Type type) {
+    public int size(Type<?> type) {
         return alphaPredicates.getOrDefault(type, EMPTY).data.length;
     }
 
@@ -45,7 +45,7 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
 
         Collection<AlphaEvaluator> newEvaluators = new LinkedList<>();
 
-        Type type = betaFields.getType();
+        Type<?> type = betaFields.getType();
         AlphaMeta candidate = createAlphaMask(runtime, type, typePredicates, newEvaluators::add);
         return typeAlphas
                 .computeIfAbsent(type, TypeAlphas::new)
@@ -57,7 +57,7 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
                 );
     }
 
-    public ArrayOf<AlphaEvaluator> getPredicates(Type t) {
+    public ArrayOf<AlphaEvaluator> getPredicates(Type<?> t) {
         return alphaPredicates.getOrDefault(t, EMPTY);
     }
 
@@ -68,7 +68,7 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
                 '}';
     }
 
-    private AlphaMeta createAlphaMask(AbstractRuntime<?> runtime, Type t, Set<Evaluator> typePredicates, Consumer<AlphaEvaluator> listener) {
+    private AlphaMeta createAlphaMask(AbstractRuntime<?> runtime, Type<?> t, Set<Evaluator> typePredicates, Consumer<AlphaEvaluator> listener) {
         ArrayOf<AlphaEvaluator> existing = alphaPredicates.computeIfAbsent(t, k -> new ArrayOf<>(new AlphaEvaluator[0]));
         List<EvaluationSide> mapping = new LinkedList<>();
 
@@ -171,7 +171,7 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
         private final Map<FieldsKey, FieldAlphas> dataAlpha;
         private final Map<FieldsKey, FieldAlphas> dataBeta;
 
-        TypeAlphas(Type type) {
+        TypeAlphas(Type<?> type) {
             this.dataAlpha = new HashMap<>();
             this.dataBeta = new HashMap<>();
         }

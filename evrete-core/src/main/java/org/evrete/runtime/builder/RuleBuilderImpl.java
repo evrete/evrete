@@ -1,10 +1,7 @@
 package org.evrete.runtime.builder;
 
 import org.evrete.AbstractRule;
-import org.evrete.api.FactBuilder;
-import org.evrete.api.RhsContext;
-import org.evrete.api.RuleBuilder;
-import org.evrete.api.RuntimeContext;
+import org.evrete.api.*;
 import org.evrete.runtime.AbstractRuntime;
 
 import java.util.function.Consumer;
@@ -32,9 +29,20 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
         return this;
     }
 
-
     public RuleBuilderImpl<C> salience(int salience) {
         setSalience(salience);
+        return this;
+    }
+
+    @Override
+    public RuleBuilderImpl<C> addImport(String imp) {
+        super.addImport(imp);
+        return this;
+    }
+
+    @Override
+    public RuleBuilder<C> addImport(Class<?> type) {
+        super.addImport(type);
         return this;
     }
 
@@ -55,7 +63,7 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
         return lhsBuilder;
     }
 
-    private C build() {
+    C build() {
         switch (runtime.getKind()) {
             case SESSION:
                 runtime.deployRule(runtime.compileRule(this));
@@ -72,6 +80,11 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
 
     C build(Consumer<RhsContext> rhs) {
         setRhs(rhs);
+        return build();
+    }
+
+    C build(String literalRhs) {
+        setRhs(literalRhs);
         return build();
     }
 

@@ -7,17 +7,19 @@ public interface RhsContext {
 
     RuntimeFact getFact(String name);
 
-    //TODO !!! check if fact fields have _really_ changed
+    //TODO check if fact fields have _really_ changed
     RhsContext update(Object obj);
 
     RhsContext delete(Object obj);
 
-    //TODO add tests
+    RuntimeRule getRule();
+
+    //TODO add more tests
     default RhsContext deleteFact(String factRef) {
         return delete(getObject(factRef));
     }
 
-    //TODO add tests
+    //TODO add more tests
     default RhsContext updateFact(String factRef) {
         return update(getObject(factRef));
     }

@@ -1,7 +1,6 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
-import org.evrete.api.spi.SharedBetaFactStorage;
 import org.evrete.collections.FastHashSet;
 
 import java.util.Arrays;

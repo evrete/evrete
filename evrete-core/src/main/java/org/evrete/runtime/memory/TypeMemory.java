@@ -22,7 +22,7 @@ public final class TypeMemory implements PlainMemory {
     private final AlphaConditions alphaConditions;
     private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
     private final SessionMemory runtime;
-    private final Type type;
+    private final Type<?> type;
     private final IdentityMap mainFacts;
     private final IdentityMap deltaFacts;
     private final ArrayOf<TypeMemoryBucket> alphaBuckets;
@@ -33,7 +33,7 @@ public final class TypeMemory implements PlainMemory {
 
     private AlphaEvaluator[] cachesAlphaEvaluators;
 
-    TypeMemory(SessionMemory runtime, Type type) {
+    TypeMemory(SessionMemory runtime, Type<?> type) {
         this.runtime = runtime;
         this.alphaConditions = runtime.getAlphaConditions();
         this.type = type;

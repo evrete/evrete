@@ -1,7 +1,5 @@
-package org.evrete.api.spi;
+package org.evrete.api;
 
-import org.evrete.api.Evaluator;
-import org.evrete.api.NamedType;
 import org.evrete.runtime.builder.FieldReference;
 
 import java.util.function.Function;

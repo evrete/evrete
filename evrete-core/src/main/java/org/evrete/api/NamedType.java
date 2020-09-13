@@ -1,7 +1,7 @@
 package org.evrete.api;
 
 public interface NamedType {
-    Type getType();
+    Type<?> getType();
 
     String getVar();
 }

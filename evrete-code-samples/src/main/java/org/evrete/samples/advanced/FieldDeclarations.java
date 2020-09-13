@@ -13,7 +13,7 @@ class FieldDeclarations {
         Knowledge knowledge = service.newKnowledge();
         TypeResolver typeResolver = knowledge.getTypeResolver();
 
-        Type type = typeResolver.getOrDeclare(Integer.class);
+        Type<Integer> type = typeResolver.getOrDeclare(Integer.class);
 
         // Despite being defined, this field will never be evaluated,
         // because it's not a part of any conditions

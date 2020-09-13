@@ -1,7 +1,6 @@
 package org.evrete.runtime.memory;
 
 import org.evrete.api.*;
-import org.evrete.api.spi.SharedBetaFactStorage;
 import org.evrete.collections.FastHashMap;
 import org.evrete.runtime.*;
 import org.evrete.runtime.async.AggregateComputeTask;
@@ -17,10 +16,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class SessionMemory extends AbstractRuntime<StatefulSession> implements WorkingMemory {
+public abstract class SessionMemory extends AbstractRuntime<StatefulSession> implements WorkingMemory {
     private final BufferSafe buffer;
     private final RuntimeRules ruleStorage;
-    private final FastHashMap<Type, TypeMemory> typedMemories;
+    private final FastHashMap<Type<?>, TypeMemory> typedMemories;
 
     protected SessionMemory(KnowledgeImpl parent) {
         super(parent);
@@ -33,6 +32,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         }
     }
 
+
     public void reSortRules() {
         ruleStorage.sort(getRuleComparator());
     }
@@ -41,6 +41,11 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
     public void setRuleComparator(Comparator<Rule> ruleComparator) {
         super.setRuleComparator(ruleComparator);
         reSortRules();
+    }
+
+    @Override
+    protected TypeResolver newTypeResolver() {
+        return getParentContext().getTypeResolver().copyOf();
     }
 
     @Override
@@ -66,7 +71,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
     }
 
     private void touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
-        Type t = key.getType();
+        Type<?> t = key.getType();
         typedMemories
                 .computeIfAbsent(t, k -> new TypeMemory(this, t))
                 .touchMemory(key, alphaMeta);
@@ -85,8 +90,14 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
     }
 
     @Override
+    public void insert(String factType, Collection<?> objects) {
+        if (objects == null) return;
+        this.buffer.insert(getTypeResolver(), factType, objects);
+    }
+
+    @Override
     protected synchronized void onNewActiveField(ActiveField newField) {
-        Type t = newField.getDeclaringType();
+        Type<?> t = newField.getDeclaringType();
         TypeMemory tm = typedMemories.get(t);
         if (tm == null) {
             tm = new TypeMemory(this, t);
@@ -98,7 +109,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
 
     @Override
     protected void onNewAlphaBucket(AlphaDelta delta) {
-        Type t = delta.getKey().getType();
+        Type<?> t = delta.getKey().getType();
         TypeMemory tm = typedMemories.get(t);
         if (tm == null) {
             tm = new TypeMemory(this, t);
@@ -113,7 +124,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
     }
 
     public SharedBetaFactStorage getBetaFactStorage(FactType factType) {
-        Type t = factType.getType();
+        Type<?> t = factType.getType();
         FieldsKey fields = factType.getFields();
         AlphaBucketMeta mask = factType.getAlphaMask();
 
@@ -139,7 +150,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
 
     @Override
     public <T> void forEachMemoryObject(String type, Consumer<T> consumer) {
-        Type t = getTypeResolver().getType(type);
+        Type<?> t = getTypeResolver().getType(type);
         TypeMemory tm = typedMemories.get(t);
         if (tm != null) {
             tm.forEachMemoryObject(consumer);
@@ -229,7 +240,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
 
     }
 
-    public TypeMemory get(Type t) {
+    public TypeMemory get(Type<?> t) {
         TypeMemory m = typedMemories.get(t);
         if (m == null) {
             throw new IllegalArgumentException("No type memory created for " + t);

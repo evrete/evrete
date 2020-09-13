@@ -26,7 +26,6 @@ public class Buffer {
         TypedObjects deletes = actionData.get(Action.RETRACT);
         TypedObjects inserts = actionData.get(Action.INSERT);
 
-
         switch (action) {
             case INSERT:
                 inserts.ensureExtraCapacity(objectCount);
@@ -53,7 +52,22 @@ public class Buffer {
         }
     }
 
-    void takeAll(Action action, BiConsumer<Type, Iterator<Object>> consumer) {
+    public void insert(TypeResolver resolver, String objectType, Collection<?> objects) {
+        int objectCount = objects.size();
+        Type<?> type = resolver.getType(objectType);
+        if(type == null) {
+            LOGGER.warning("Objects of unknown type '" + objectType + "' will be ignored.");
+        }
+
+        TypedObjects inserts = actionData.get(Action.INSERT);
+        inserts.ensureExtraCapacity(objectCount);
+        for (Object o : objects) {
+            insertsAvailable |= inserts.add(type, o);
+        }
+    }
+
+
+    void takeAll(Action action, BiConsumer<Type<?>, Iterator<Object>> consumer) {
         actionData.get(action).takeAll(consumer);
     }
 
@@ -92,23 +106,27 @@ public class Buffer {
 
 
     private static class TypedObjects implements BufferedInsert {
-        private final Map<Type, FastIdentityHashSet<Object>> data = new HashMap<>();
+        private final Map<Type<?>, FastIdentityHashSet<Object>> data = new HashMap<>();
 
         boolean add(TypeResolver resolver, Object o) {
-            Type type = resolver.resolve(o);
+            Type<?> type = resolver.resolve(o);
             if (type == null) {
-                LOGGER.warning("Object {" + o + "} of unknown type '" + o.getClass() + "' will be ignored.");
+                LOGGER.warning("Object {" + o + "} is of an unknown type '" + o.getClass() + "' and will be ignored.");
                 return false;
             } else {
                 return data.computeIfAbsent(type, t -> new FastIdentityHashSet<>()).add(o);
             }
         }
 
+        boolean add(Type<?> type, Object o) {
+            return data.computeIfAbsent(type, t -> new FastIdentityHashSet<>()).add(o);
+        }
 
-        void takeAll(BiConsumer<Type, Iterator<Object>> consumer) {
-            for (Map.Entry<Type, FastIdentityHashSet<Object>> entry : data.entrySet()) {
+
+        void takeAll(BiConsumer<Type<?>, Iterator<Object>> consumer) {
+            for (Map.Entry<Type<?>, FastIdentityHashSet<Object>> entry : data.entrySet()) {
                 FastIdentityHashSet<Object> set = entry.getValue();
-                Type t = entry.getKey();
+                Type<?> t = entry.getKey();
                 consumer.accept(t, set.iterator());
                 set.clear();
             }
@@ -122,7 +140,7 @@ public class Buffer {
         }
 
         void add(TypedObjects other) {
-            for (Map.Entry<Type, FastIdentityHashSet<Object>> entry : other.data.entrySet()) {
+            for (Map.Entry<Type<?>, FastIdentityHashSet<Object>> entry : other.data.entrySet()) {
                 this.data.computeIfAbsent(entry.getKey(), k -> new FastIdentityHashSet<>()).bulkAdd(entry.getValue());
             }
         }

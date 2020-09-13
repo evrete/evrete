@@ -1,4 +1,4 @@
-package org.evrete.api.spi;
+package org.evrete.api;
 
 import org.evrete.api.BufferedInsert;
 import org.evrete.api.ReIterable;

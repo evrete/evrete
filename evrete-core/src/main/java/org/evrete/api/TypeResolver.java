@@ -4,28 +4,42 @@ import java.util.Collection;
 
 public interface TypeResolver extends Copyable<TypeResolver> {
 
-    Type getType(String name);
+    <T> Type<T> getType(String name);
 
-    Collection<Type> getKnownTypes();
+    Collection<Type<?>> getKnownTypes();
 
-    Type declare(String typeName);
+    <T> Type<T> declare(String typeName, Class<T> javaType);
 
-    default Type getOrDeclare(String typeName) {
-        Type t = getType(typeName);
+    <T> Type<T> declare(String typeName, String javaType);
+
+    default <T> Type<T> getOrDeclare(String typeName, Class<T> javaType) {
+        Type<T> t = getType(typeName);
         if (t == null) {
-            t = declare(typeName);
+            t = declare(typeName, javaType);
         }
         return t;
     }
 
-    default Type getOrDeclare(Class<?> cl) {
-        return getOrDeclare(cl.getName());
+    default <T> Type<T> getOrDeclare(String typeName, String javaType) {
+        Type<T> t = getType(typeName);
+        if (t == null) {
+            t = declare(typeName, javaType);
+        }
+        return t;
     }
 
-    default Type declare(Class<?> type) {
-        return declare(type.getName());
+    default <T> Type<T> getOrDeclare(String typeName) {
+        return getOrDeclare(typeName, typeName);
     }
 
-    Type resolve(Object o);
+    default <T> Type<T> getOrDeclare(Class<T> cl) {
+        return getOrDeclare(cl.getName(), cl);
+    }
+
+    default <T> Type<T> declare(Class<T> type) {
+        return declare(type.getName(), type);
+    }
+
+    <T> Type<T> resolve(Object o);
 
 }

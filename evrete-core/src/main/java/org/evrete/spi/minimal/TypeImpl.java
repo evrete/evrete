@@ -10,53 +10,55 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
-class TypeImpl implements Copyable<TypeImpl>, Type {
+class TypeImpl<T> implements Copyable<TypeImpl<T>>, Type<T> {
     private final String name;
-    private final Class<?> clazz;
+    private final Class<T> javaType;
     private final Map<String, TypeFieldImpl> fields = new HashMap<>();
     private final JcCompiler compiler;
 
-    private TypeImpl(JcCompiler compiler, Class<?> clazz) {
-        this(clazz.getName(), clazz, compiler);
+    private TypeImpl(JcCompiler compiler, Class<T> javaType) {
+        this(javaType.getName(), javaType, compiler);
     }
 
-    private TypeImpl(String name, Class<?> clazz, JcCompiler compiler) {
-        this.clazz = clazz;
+    TypeImpl(String name, Class<T> javaType, JcCompiler compiler) {
+        Objects.requireNonNull(name);
+        Objects.requireNonNull(javaType);
+        this.javaType = javaType;
         this.compiler = compiler;
         this.name = name;
     }
 
+/*
     private TypeImpl(String name, JcCompiler compiler) {
         this(name, null, compiler);
     }
+*/
 
-    private TypeImpl(TypeImpl other) {
-        this(other.name, other.clazz, other.compiler);
+    private TypeImpl(TypeImpl<T> other) {
+        this(other.name, other.javaType, other.compiler);
         this.fields.putAll(other.fields);
     }
 
 
-    static TypeImpl factory(JcCompiler compiler, String className) {
+    @SuppressWarnings("unchecked")
+    static <T> TypeImpl<T> factory(JcCompiler compiler, String className) {
         Const.assertName(className);
-        Class<?> clazz;
+        Class<T> clazz;
         try {
             ClassLoader classLoader = compiler.getClassLoader();
-            clazz = classLoader.loadClass(className);
-            return new TypeImpl(compiler, clazz);
+            clazz = (Class<T>) classLoader.loadClass(className);
+            return new TypeImpl<>(compiler, clazz);
         } catch (ClassNotFoundException e) {
-            return new TypeImpl(className, compiler);
+            throw new IllegalArgumentException("Can not resolve class name '" + className + "'", e);
         }
     }
 
     @Override
-    public TypeImpl copyOf() {
-        return new TypeImpl(this);
+    public TypeImpl<T> copyOf() {
+        return new TypeImpl<>(this);
     }
 
     @Override
@@ -68,7 +70,7 @@ class TypeImpl implements Copyable<TypeImpl>, Type {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        TypeImpl type = (TypeImpl) o;
+        TypeImpl<?> type = (TypeImpl<?>) o;
         return name.equals(type.name);
     }
 
@@ -130,18 +132,19 @@ class TypeImpl implements Copyable<TypeImpl>, Type {
     @Override
     @SuppressWarnings("unchecked")
     public TypeField declareField(String name, Class<?> type, String lambdaExpression) {
-        Function<Object, Object> function = (Function<Object, Object>) compiler.compileLambda(this, lambdaExpression);
+        Function<T, Object> function = (Function<T, Object>) compiler.compileLambda(this, lambdaExpression);
         return declareField(name, type, function);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> TypeField declareField(String name, Class<?> type, Function<T, Object> function) {
+    public TypeField declareField(String name, Class<?> type, Function<T, Object> function) {
         return getCreateField(name, type, o -> function.apply((T) o));
     }
 
-    final Class<?> getClazz() {
-        return clazz;
+    @Override
+    public final Class<T> getJavaType() {
+        return javaType;
     }
 
     @Override
@@ -152,7 +155,7 @@ class TypeImpl implements Copyable<TypeImpl>, Type {
 
     @Override
     public String toString() {
-        return clazz.getSimpleName();
+        return javaType.getSimpleName();
     }
 
     private TypeField getCreateField(final String name, final Class<?> type, final Function<Object, ?> function) {
@@ -177,7 +180,7 @@ class TypeImpl implements Copyable<TypeImpl>, Type {
     synchronized TypeField inspectClass(String dottedProp) {
         TypeField field = getField(dottedProp);
         if (field != null) return field;
-        Class<?> currentClass = clazz;
+        Class<?> currentClass = javaType;
         if (currentClass == null) return null;
         String[] parts = dottedProp.split("\\.");
         ArrayOf<ValueReader> getters = new ArrayOf<>(ValueReader.class);

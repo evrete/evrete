@@ -87,12 +87,12 @@ class SessionBaseTests {
         };
         TypeResolver typeResolver = kn.getTypeResolver();
 
-        Type aType = typeResolver.declare(TypeA.class);
-        Type bType = typeResolver.declare(TypeB.class);
-        Type cType = typeResolver.declare(TypeC.class);
-        Type dType = typeResolver.declare(TypeD.class);
+        Type<TypeA> aType = typeResolver.declare(TypeA.class);
+        Type<TypeB> bType = typeResolver.declare(TypeB.class);
+        Type<TypeC> cType = typeResolver.declare(TypeC.class);
+        Type<TypeD> dType = typeResolver.declare(TypeD.class);
 
-        Type[] allTypes = new Type[]{aType, bType, cType, dType};
+        Type<Base>[] allTypes = new Type[]{aType, bType, cType, dType};
         FieldReference[][] references = new FieldReference[allTypes.length][fields.length];
 
 
@@ -101,7 +101,7 @@ class SessionBaseTests {
         LhsBuilder<Knowledge> rootGroup = builder.getLhs();
 
         for (int t = 0; t < allTypes.length; t++) {
-            Type type = allTypes[t];
+            Type<Base> type = allTypes[t];
 
             int lastDot = type.getName().lastIndexOf(".");
             String factName = type.getName().substring(lastDot + 1);
@@ -304,7 +304,7 @@ class SessionBaseTests {
                 .where(
                         "$a.i == $b.i",
                         "$c.l == $b.l"
-                ).execute(null);
+                ).execute();
 
         StatefulSession s = knowledge.createSession();
 
@@ -500,7 +500,7 @@ class SessionBaseTests {
                         "$a.i == $b.i",
                         "$c.l == $b.l"
                 )
-                .execute(null);
+                .execute();
 
         StatefulSession s = knowledge.createSession();
 
@@ -517,8 +517,7 @@ class SessionBaseTests {
         RhsAssert rhsAssert = new RhsAssert(s);
 
         s.getRule(ruleName)
-                .setRhs(null) // RHS can be overridden
-                .setRhs(rhsAssert);
+                .setRhs(rhsAssert); // RHS can be overridden
 
         s.insertAndFire(a, b, c);
         rhsAssert.assertCount(1).reset();
@@ -554,7 +553,7 @@ class SessionBaseTests {
                 .where(
                         "$a.i * $b.l * $b.s == $a.l"
                 )
-                .execute(null);
+                .execute();
 
         StatefulSession s = knowledge.createSession();
 
@@ -1280,7 +1279,7 @@ class SessionBaseTests {
                 .execute(rhsAssert3);
 
 
-        Type aType = knowledge.getTypeResolver().getType(TypeA.class.getName());
+        Type<TypeA> aType = knowledge.getTypeResolver().getType(TypeA.class.getName());
         StatefulSessionImpl session = knowledge.createSession();
 
         // This insert cycle will result in 5 matching As
@@ -1322,7 +1321,7 @@ class SessionBaseTests {
                 .execute(rhsAssert3);
 
 
-        Type aType = knowledge.getTypeResolver().getType(TypeA.class.getName());
+        Type<TypeA> aType = knowledge.getTypeResolver().getType(TypeA.class.getName());
         StatefulSessionImpl s = knowledge.createSession();
 
         // This insert cycle will result in 5 matching As
@@ -1363,7 +1362,7 @@ class SessionBaseTests {
                 .where("!$a.id.equals('A5')") // Inverse to rule 1
                 .execute(rhsAssert3);
 
-        Type aType = knowledge.getTypeResolver().getType(TypeA.class.getName());
+        Type<TypeA> aType = knowledge.getTypeResolver().getType(TypeA.class.getName());
         StatefulSessionImpl s = knowledge.createSession();
 
         for (int i = 0; i < 10; i++) {

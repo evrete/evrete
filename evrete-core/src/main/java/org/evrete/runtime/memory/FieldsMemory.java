@@ -4,7 +4,7 @@ import org.evrete.api.FieldsKey;
 import org.evrete.api.Memory;
 import org.evrete.api.ReIterator;
 import org.evrete.api.RuntimeFact;
-import org.evrete.api.spi.SharedBetaFactStorage;
+import org.evrete.api.SharedBetaFactStorage;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.RuntimeObject;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;

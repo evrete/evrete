@@ -5,22 +5,21 @@ import java.util.Collection;
 import java.util.Comparator;
 
 public final class FieldsKey {
-    private static final Comparator<ActiveField> ZERO_ARR_COMPARATOR = (o1, o2) -> 0;
     private static final Comparator<ActiveField> DEFAULT_COMPARATOR = Comparator.comparing(ActiveField::getValueIndex);
     private final ActiveField[] fields;
-    private final Type type;
+    private final Type<?> type;
 
-    public FieldsKey(Type type, Collection<ActiveField> collection) {
+    public FieldsKey(Type<?> type, Collection<ActiveField> collection) {
         this(type, collection.toArray(ActiveField.ZERO_ARRAY), DEFAULT_COMPARATOR);
     }
 
-    private FieldsKey(Type type, ActiveField[] arr, Comparator<ActiveField> comparator) {
+    private FieldsKey(Type<?> type, ActiveField[] arr, Comparator<ActiveField> comparator) {
         this.fields = arr;
         Arrays.sort(this.fields, comparator);
         this.type = type;
     }
 
-    public Type getType() {
+    public Type<?> getType() {
         return type;
     }
 

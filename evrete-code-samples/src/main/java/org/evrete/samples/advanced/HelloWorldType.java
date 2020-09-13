@@ -13,13 +13,13 @@ public class HelloWorldType {
         TypeResolver typeResolver = knowledge.getTypeResolver();
 
         // Declare a new Type named "Hello World"
-        Type helloType = typeResolver
-                .declare(HELLO_WORLD_CONST);
+        Type<String> helloType = typeResolver
+                .declare(HELLO_WORLD_CONST, String.class);
 
         HelloWorldResolver myResolver = new HelloWorldResolver(typeResolver);
         knowledge.wrapTypeResolver(myResolver);
         // Declare a new int field which equals the squared length of the input String
-        helloType.<String>declareField(
+        helloType.declareField(
                 "lenSquared",
                 int.class,
                 s -> s.length() * s.length()
@@ -58,12 +58,14 @@ public class HelloWorldType {
         }
 
         @Override
-        public Type resolve(Object o) {
+        public <T> Type<T> resolve(Object o) {
             if (o instanceof String) {
                 return getType(HELLO_WORLD_CONST);
             } else {
                 return super.resolve(o);
             }
         }
+
+
     }
 }

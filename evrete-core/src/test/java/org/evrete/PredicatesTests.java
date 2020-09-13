@@ -22,6 +22,7 @@ import java.util.function.Predicate;
 
 import static org.evrete.api.FactBuilder.fact;
 
+
 class PredicatesTests {
     private static KnowledgeService service;
     private KnowledgeImpl knowledge;
@@ -231,8 +232,7 @@ class PredicatesTests {
         RhsAssert rhsAssert = new RhsAssert(s);
 
         s.getRule(ruleName)
-                .setRhs(null) // RHS can be overridden
-                .setRhs(rhsAssert);
+                .setRhs(rhsAssert); // RHS can be overridden
 
         s.insertAndFire(a, b, c);
         rhsAssert.assertCount(1).reset();
@@ -275,7 +275,7 @@ class PredicatesTests {
                         "$b", TypeB.class
                 )
                 .where(predicate, "$a.i", "$b.l", "$b.s", "$a.l")
-                .execute(null);
+                .execute();
 
         StatefulSession s = knowledge.createSession();
 

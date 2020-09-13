@@ -86,7 +86,7 @@ class SessionUpdateDeleteTests {
     void updateAlpha3() {
         AtomicInteger counter = new AtomicInteger();
 
-        Type t = knowledge.getTypeResolver().declare(TypeA.class);
+        Type<TypeA> t = knowledge.getTypeResolver().declare(TypeA.class);
         TypeField field = t.declareField("length", (ToIntFunction<TypeA>) value -> value.getStr().length());
         assert field.getValueType().equals(int.class);
 

@@ -35,7 +35,7 @@ public final class ActiveField implements TypeField {
     }
 
     @Override
-    public Type getDeclaringType() {
+    public Type<?> getDeclaringType() {
         return delegate.getDeclaringType();
     }
 

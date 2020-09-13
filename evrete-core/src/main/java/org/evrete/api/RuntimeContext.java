@@ -6,8 +6,8 @@ import org.evrete.runtime.RuntimeListeners;
 
 import java.util.Comparator;
 
-public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners {
-    Comparator<Rule> SALIENCE_COMPARATOR = (o1, o2) -> -1 * Integer.compare(o1.getSalience(), o2.getSalience());
+public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, FluentImports<RuntimeContext<?>> {
+    Comparator<Rule> SALIENCE_COMPARATOR = (rule1, rule2) -> -1 * Integer.compare(rule1.getSalience(), rule2.getSalience());
 
     Comparator<Rule> getRuleComparator();
 
@@ -25,11 +25,19 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners {
 
     RuleBuilder<C> newRule();
 
+    RuntimeContext<?> getParentContext();
+
     void wrapTypeResolver(TypeResolverWrapper wrapper);
 
     RuntimeListeners getListeners();
 
     <A extends ActivationManager> void setActivationManagerFactory(Class<A> managerClass);
+
+    void setActivationManagerFactory(String managerClass);
+
+    ClassLoader getClassLoader();
+
+    void setClassLoader(ClassLoader classLoader);
 
     Class<? extends ActivationManager> getActivationManagerFactory();
 

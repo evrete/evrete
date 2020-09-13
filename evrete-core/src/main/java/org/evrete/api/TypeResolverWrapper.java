@@ -10,27 +10,32 @@ public class TypeResolverWrapper implements TypeResolver {
     }
 
     @Override
-    public Type getType(String name) {
+    public <T> Type<T> getType(String name) {
         return delegate.getType(name);
     }
 
     @Override
-    public Type resolve(Object o) {
+    public <T> Type<T> resolve(Object o) {
         return delegate.resolve(o);
     }
 
     @Override
-    public Collection<Type> getKnownTypes() {
+    public Collection<Type<?>> getKnownTypes() {
         return delegate.getKnownTypes();
     }
 
     @Override
-    public Type declare(String typeName) {
-        return delegate.declare(typeName);
+    public <T> Type<T> declare(String typeName, String javaType) {
+        return delegate.declare(typeName, javaType);
     }
 
     @Override
     public TypeResolver copyOf() {
         return new TypeResolverWrapper(this);
+    }
+
+    @Override
+    public <T> Type<T> declare(String typeName, Class<T> javaType) {
+        return delegate.declare(typeName, javaType);
     }
 }

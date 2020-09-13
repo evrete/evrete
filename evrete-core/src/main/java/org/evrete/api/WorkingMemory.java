@@ -7,6 +7,8 @@ import java.util.function.Consumer;
 
 public interface WorkingMemory {
 
+    void insert(String factType, Collection<?> objects);
+
     void insert(Collection<?> objects);
 
     void delete(Collection<?> objects);
@@ -20,12 +22,12 @@ public interface WorkingMemory {
 
     void forEachMemoryObject(Consumer<Object> consumer);
 
-    default <T> void forEachMemoryObject(Class<T> clazz, Consumer<T> consumer) {
-        forEachMemoryObject(clazz.getName(), consumer);
-    }
-
     default void insert(Object... objects) {
         insert(Arrays.asList(objects));
+    }
+
+    default void insertTyped(String factType, Object... objects) {
+        insert(factType, Arrays.asList(objects));
     }
 
     default void delete(Object... objects) {

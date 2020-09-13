@@ -46,7 +46,6 @@ class EvaluatorCompiler {
         this.classLoader = classLoader;
     }
 
-
     private MethodHandle compileExpression(String className, String classJavaSource) {
         try {
             JcCompiler compiler = new JcCompiler(classLoader);

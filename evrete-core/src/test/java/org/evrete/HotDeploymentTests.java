@@ -2,7 +2,6 @@ package org.evrete;
 
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
-import org.evrete.api.Type;
 import org.evrete.api.ValuesPredicate;
 import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
@@ -271,8 +270,7 @@ class HotDeploymentTests {
         RhsAssert rhsAssert = new RhsAssert(session);
 
         session.getRule(ruleName)
-                .setRhs(null) // RHS can be overridden
-                .setRhs(rhsAssert);
+                .setRhs(rhsAssert); // RHS can be overridden
 
         session.insertAndFire(a, b, c);
         rhsAssert.assertCount(1).reset();
@@ -315,7 +313,7 @@ class HotDeploymentTests {
                         "$b", TypeB.class
                 )
                 .where(predicate, "$a.i", "$b.l", "$b.s", "$a.l")
-                .execute(null);
+                .execute();
 
 
         TypeA a1 = new TypeA("A1");
@@ -690,7 +688,6 @@ class HotDeploymentTests {
                 .execute(rhsAssert3);
 
 
-        Type aType = session.getTypeResolver().getType(TypeA.class.getName());
 
         // This insert cycle will result in 5 matching As
         for (int i = 0; i < 10; i++) {

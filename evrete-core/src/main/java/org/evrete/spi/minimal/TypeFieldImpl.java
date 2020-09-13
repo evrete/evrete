@@ -10,9 +10,9 @@ class TypeFieldImpl implements TypeField {
     private final String name;
     private final Function<Object, ?> function;
     private final Class<?> valueType;
-    private final TypeImpl declaringType;
+    private final TypeImpl<?> declaringType;
 
-    TypeFieldImpl(TypeImpl declaringType, String name, Class<?> valueType, Function<Object, ?> function) {
+    TypeFieldImpl(TypeImpl<?> declaringType, String name, Class<?> valueType, Function<Object, ?> function) {
         this.name = name;
         this.valueType = valueType;
         this.function = function;
@@ -20,7 +20,7 @@ class TypeFieldImpl implements TypeField {
     }
 
     @Override
-    public Type getDeclaringType() {
+    public Type<?> getDeclaringType() {
         return declaringType;
     }
 

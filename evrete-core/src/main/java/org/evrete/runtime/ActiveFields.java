@@ -11,13 +11,13 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class ActiveFields implements Copyable<ActiveFields> {
-    private final Map<Type, TypeData> typeData = new HashMap<>();
+    private final Map<Type<?>, TypeData> typeData = new HashMap<>();
 
     public ActiveFields() {
     }
 
     private ActiveFields(ActiveFields other) {
-        for (Map.Entry<Type, TypeData> entry : other.typeData.entrySet()) {
+        for (Map.Entry<Type<?>, TypeData> entry : other.typeData.entrySet()) {
             this.typeData.put(entry.getKey(), entry.getValue().copyOf());
         }
     }
@@ -26,7 +26,7 @@ public class ActiveFields implements Copyable<ActiveFields> {
         return typeData.computeIfAbsent(field.getDeclaringType(), v -> new TypeData()).getCreate(field, listener);
     }
 
-    public ActiveField[] getActiveFields(Type t) {
+    public ActiveField[] getActiveFields(Type<?> t) {
         TypeData d = typeData.get(t);
         return d == null ? ActiveField.ZERO_ARRAY : d.fieldsInUse;
     }

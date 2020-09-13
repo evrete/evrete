@@ -10,6 +10,12 @@ public interface RuleBuilder<C extends RuntimeContext<C>> extends Rule, LhsFactS
 
     RuleBuilder<C> salience(int salience);
 
+    @Override
+    RuleBuilder<C> addImport(String imp);
+
+    @Override
+    RuleBuilder<C> addImport(Class<?> type);
+
     <Z> RuleBuilder<C> property(String property, Z value);
 
 }
