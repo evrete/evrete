@@ -2,28 +2,25 @@ package org.evrete.spi.minimal;
 
 import org.evrete.api.RhsContext;
 import org.evrete.api.RuntimeContext;
-import org.evrete.api.spi.LiteralRhsProvider;
+import org.evrete.api.spi.LiteralRhsCompiler;
 import org.evrete.runtime.FactType;
 
 import java.util.Collection;
 import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import java.util.logging.Logger;
 
-public class DefaultLiteralRhsProvider extends LastServiceProvider implements LiteralRhsProvider {
+public class DefaultLiteralRhsProvider extends LastServiceProvider implements LiteralRhsCompiler {
     private static final AtomicInteger classCounter = new AtomicInteger(0);
     private static final String classPackage = DefaultLiteralRhsProvider.class.getPackage().getName() + ".rhs";
 
     @Override
-    public Consumer<RhsContext> buildRhs(RuntimeContext<?> requester, String literalRhs, Collection<FactType> factTypes, Collection<String> imports) {
+    public Consumer<RhsContext> compileRhs(RuntimeContext<?> requester, String literalRhs, Collection<FactType> factTypes, Collection<String> imports) {
         FactType[] types = factTypes.toArray(FactType.ZERO_ARRAY);
 
         Class<? extends AbstractLiteralRhs> clazz = buildClass(requester.getClassLoader(), types, literalRhs, imports);
         try {
-            AbstractLiteralRhs rhs = clazz.getDeclaredConstructor().newInstance();
-            rhs.setLhsTypes(types);
-            return rhs;
+            return clazz.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             throw new IllegalStateException("Unable to initialize RHS", e);
         }

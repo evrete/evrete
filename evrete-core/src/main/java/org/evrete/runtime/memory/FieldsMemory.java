@@ -82,7 +82,7 @@ public class FieldsMemory implements Memory {
 
     void retract(Collection<RuntimeFact> facts) {
         for (FieldsMemoryBucket bucket : alphaBuckets.data) {
-            bucket.retract(facts);
+            bucket.delete(facts);
         }
     }
 }

@@ -35,30 +35,7 @@ class FieldsMemoryBucket implements Memory {
         fieldData.insert(facts, alphaMask);
     }
 
-    //TODO !!! delete directly with a predicate
-    void retract(Collection<RuntimeFact> facts) {
-        for (RuntimeFact fact : facts) {
-            if (alphaMask.test(fact)) {
-                if (fieldData.delete(fact)) {
-                    //deleteDeltaAvailable = true;
-                }
-            }
-        }
+    void delete(Collection<RuntimeFact> facts) {
+        fieldData.delete(facts, alphaMask);
     }
-
-/*
-    void mergeInsertDelta() {
-        //if (insertDeltaAvailable) {
-            fieldData.mergeDelta();
-            //insertDeltaAvailable = false;
-        //}
-    }
-
-    void mergeDeleteDelta() {
-        //if (deleteDeltaAvailable) {
-            fieldData.clearDeletedKeys();
-            //deleteDeltaAvailable = false;
-        //}
-    }
-*/
 }

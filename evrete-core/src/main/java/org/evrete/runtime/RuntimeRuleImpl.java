@@ -58,7 +58,12 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         memoryBuffer.takeAllFrom(ruleBuffer);
     }
 
-
+    public void clear() {
+        //TODO don't forget aggregate nodes once they're back
+        for(BetaEndNode endNode : lhs.getAllBetaEndNodes()) {
+            endNode.clear();
+        }
+    }
 
     @SuppressWarnings("unchecked")
     public <T extends RuntimeFactType> T resolve(FactType type) {

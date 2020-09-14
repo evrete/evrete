@@ -6,7 +6,7 @@ abstract class LastServiceProvider implements OrderedServiceProvider {
     private static final int ORDER = Integer.MAX_VALUE;
 
     @Override
-    public int order() {
+    public int sortOrder() {
         return ORDER;
     }
 }

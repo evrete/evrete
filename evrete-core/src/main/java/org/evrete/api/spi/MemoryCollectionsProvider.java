@@ -4,7 +4,6 @@ import org.evrete.api.MemoryCollections;
 import org.evrete.api.OrderedServiceProvider;
 import org.evrete.api.RuntimeContext;
 
-//TODO !!! api docs
 public interface MemoryCollectionsProvider extends OrderedServiceProvider {
     /**
      *

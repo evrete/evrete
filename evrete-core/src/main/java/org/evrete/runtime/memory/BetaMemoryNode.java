@@ -19,6 +19,8 @@ public interface BetaMemoryNode<D extends NodeDescriptor> {
         getDeltaStore().clear();
     }
 
+    void clear();
+
     RuntimeFactType[][] getGrouping();
 
     D getDescriptor();

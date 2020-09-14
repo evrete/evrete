@@ -2,11 +2,11 @@ package org.evrete.api;
 
 public interface OrderedServiceProvider extends Comparable<OrderedServiceProvider> {
 
-    int order();
+    int sortOrder();
 
     @Override
     default int compareTo(OrderedServiceProvider o) {
-        return Integer.compare(this.order(), o.order());
+        return Integer.compare(this.sortOrder(), o.sortOrder());
     }
 
 }

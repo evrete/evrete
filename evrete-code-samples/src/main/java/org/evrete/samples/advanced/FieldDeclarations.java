@@ -16,10 +16,10 @@ class FieldDeclarations {
         Type<Integer> type = typeResolver.getOrDeclare(Integer.class);
 
         // Despite being defined, this field will never be evaluated,
-        // because it's not a part of any conditions
+        // because it's not a part of any condition
         type.declareField(
                 "self",
-                Integer.class, (Function<Integer, Object>) o -> o);
+                Integer.class, o -> o);
 
         type.declareField("factorial", FieldDeclarations::computeFactorial);
 

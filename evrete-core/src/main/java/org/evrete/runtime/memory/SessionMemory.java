@@ -81,6 +81,9 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
     public void clear() {
         buffer.clear();
         typedMemories.forEachValue(TypeMemory::clear);
+        for(RuntimeRuleImpl rule : ruleStorage) {
+            rule.clear();
+        }
     }
 
     @Override

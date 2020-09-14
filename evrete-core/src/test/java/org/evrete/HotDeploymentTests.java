@@ -37,7 +37,6 @@ class HotDeploymentTests {
         session = service.newKnowledge().createSession();
     }
 
-
     @Test
     void plainTest0() {
         RhsAssert rhsAssert = new RhsAssert("$n", Integer.class);

@@ -3,6 +3,7 @@ package org.evrete;
 import org.evrete.api.RhsContext;
 import org.evrete.api.Rule;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -45,6 +46,11 @@ public abstract class AbstractRule implements Rule {
     public Rule addImport(String imp) {
         this.imports.add(imp);
         return this;
+    }
+
+    @Override
+    public Collection<String> getPropertyNames() {
+        return properties.keySet();
     }
 
     @Override

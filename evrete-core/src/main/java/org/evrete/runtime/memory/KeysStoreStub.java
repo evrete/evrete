@@ -31,7 +31,6 @@ class KeysStoreStub implements KeysStore {
 
     @Override
     public Entry get(IntToValueRow key) {
-        //TODO override or provide a message
         throw new UnsupportedOperationException();
     }
 

@@ -3,7 +3,7 @@ package org.evrete.runtime;
 import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
-import org.evrete.api.spi.LiteralRhsProvider;
+import org.evrete.api.spi.LiteralRhsCompiler;
 import org.evrete.runtime.async.Completer;
 import org.evrete.runtime.async.ForkJoinExecutor;
 import org.evrete.runtime.builder.RuleBuilderImpl;
@@ -13,6 +13,7 @@ import org.evrete.runtime.evaluation.AlphaDelta;
 import org.evrete.util.LazyInstance;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -34,11 +35,13 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     private final LazyInstance<MemoryCollections> collectionsService = new LazyInstance<>(this::newCollectionsService);
     private final LazyInstance<ExpressionResolver> expressionResolver = new LazyInstance<>(this::newExpressionResolver);
     private final LazyInstance<TypeResolver> typeResolver = new LazyInstance<>(this::newTypeResolver);
-    private final LazyInstance<LiteralRhsProvider> rhsCompiler = new LazyInstance<>(this::newLiteralLhsProvider);
+    private final LazyInstance<LiteralRhsCompiler> rhsCompiler = new LazyInstance<>(this::newLiteralLhsProvider);
 
     private Comparator<Rule> ruleComparator = SALIENCE_COMPARATOR;
 
     private Class<? extends ActivationManager> activationManagerFactory;
+
+    private final Map<String, Object> properties;
 
     protected abstract TypeResolver newTypeResolver();
 
@@ -64,6 +67,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         this.activationManagerFactory = UnconditionalActivationManager.class;
         this.classLoader = service.getClassLoader();
         this.imports = new HashSet<>();
+        this.properties = new ConcurrentHashMap<>();
     }
 
     /**
@@ -83,12 +87,29 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         this.activationManagerFactory = parent.activationManagerFactory;
         this.classLoader = parent.classLoader;
         this.imports = new HashSet<>(parent.imports);
+        this.properties = new ConcurrentHashMap<>(parent.properties);
     }
 
     @Override
     public RuntimeContext<?> addImport(String imp) {
         this.imports.add(imp);
         return this;
+    }
+
+    @Override
+    public <T> void setProperty(String property, T value) {
+        this.properties.put(property, value);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T getProperty(String property) {
+        return (T) properties.get(property);
+    }
+
+    @Override
+    public Collection<String> getPropertyNames() {
+        return properties.keySet();
     }
 
     @Override
@@ -180,7 +201,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         return service.getExecutor();
     }
 
-    public LazyInstance<LiteralRhsProvider> getRhsCompiler() {
+    public LazyInstance<LiteralRhsCompiler> getRhsCompiler() {
         return rhsCompiler;
     }
 
@@ -249,7 +270,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         return service.getExpressionResolverProvider().instance(this);
     }
 
-    private LiteralRhsProvider newLiteralLhsProvider() {
+    private LiteralRhsCompiler newLiteralLhsProvider() {
         return service.getLiteralRhsProvider();
     }
 
@@ -286,7 +307,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     }
 
     Consumer<RhsContext> compile(String literalRhs, Collection<FactType> factTypes, Collection<String> imports) {
-        return getRhsCompiler().get().buildRhs(this, literalRhs, factTypes, imports);
+        return getRhsCompiler().get().compileRhs(this, literalRhs, factTypes, imports);
     }
 
     public ExpressionResolver getExpressionResolver() {

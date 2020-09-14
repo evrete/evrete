@@ -2,7 +2,7 @@ package org.evrete;
 
 import org.evrete.api.Knowledge;
 import org.evrete.api.OrderedServiceProvider;
-import org.evrete.api.spi.LiteralRhsProvider;
+import org.evrete.api.spi.LiteralRhsCompiler;
 import org.evrete.api.spi.MemoryCollectionsProvider;
 import org.evrete.api.spi.ExpressionResolverProvider;
 import org.evrete.api.spi.TypeResolverProvider;
@@ -17,7 +17,7 @@ public class KnowledgeService {
     private final MemoryCollectionsProvider collectionsServiceProvider;
     private final ExpressionResolverProvider expressionResolverProvider;
     private final TypeResolverProvider typeResolverProvider;
-    private final LiteralRhsProvider literalRhsProvider;
+    private final LiteralRhsCompiler literalRhsProvider;
     private ClassLoader classLoader;
 
 
@@ -26,7 +26,7 @@ public class KnowledgeService {
         this.collectionsServiceProvider = loadService(MemoryCollectionsProvider.class);
         this.expressionResolverProvider = loadService(ExpressionResolverProvider.class);
         this.typeResolverProvider = loadService(TypeResolverProvider.class);
-        this.literalRhsProvider = loadService(LiteralRhsProvider.class);
+        this.literalRhsProvider = loadService(LiteralRhsCompiler.class);
         this.classLoader = Thread.currentThread().getContextClassLoader();
     }
 
@@ -66,7 +66,7 @@ public class KnowledgeService {
         return expressionResolverProvider;
     }
 
-    public LiteralRhsProvider getLiteralRhsProvider() {
+    public LiteralRhsCompiler getLiteralRhsProvider() {
         return literalRhsProvider;
     }
 

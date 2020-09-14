@@ -148,6 +148,11 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
         oldKeysNewFacts.clear();
     }
 
+    public void clear() {
+        super.clear();
+        this.oldKeysNewFacts.clear();
+    }
+
     @Override
     public EnumMap<KeyMode, ReIterator<ValueRow[]>> keyIterators() {
         return keyIterators;

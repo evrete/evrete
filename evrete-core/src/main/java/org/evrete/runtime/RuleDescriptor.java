@@ -1,7 +1,6 @@
 package org.evrete.runtime;
 
 import org.evrete.AbstractRule;
-import org.evrete.api.Rule;
 import org.evrete.runtime.builder.RuleBuilderImpl;
 import org.evrete.util.MapFunction;
 import org.evrete.util.NextIntSupplier;

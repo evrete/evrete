@@ -66,6 +66,7 @@ public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContex
     }
 
     @Override
+    //TODO check if fact fields have _really_ changed
     public final RhsContext update(Object obj) {
         buffer.add(typeResolver, Action.UPDATE, Collections.singleton(obj));
         return this;

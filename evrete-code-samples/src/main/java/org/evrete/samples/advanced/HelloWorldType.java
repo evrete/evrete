@@ -25,7 +25,6 @@ public class HelloWorldType {
                 s -> s.length() * s.length()
         );
 
-
         StatefulSession session = knowledge
                 .newRule()
                 .forEach("$hw", HELLO_WORLD_CONST)

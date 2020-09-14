@@ -104,4 +104,15 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
     public ReIterator<ValueRow[]> deltaIterator() {
         return deltaIterator;
     }
+
+    @Override
+    public void clear() {
+        getDeltaStore().clear();
+        getMainStore().clear();
+
+        for(BetaMemoryNode<?> source : getSources()) {
+            source.clear();
+        }
+    }
+
 }

@@ -8,6 +8,6 @@ import org.evrete.runtime.FactType;
 import java.util.Collection;
 import java.util.function.Consumer;
 
-public interface LiteralRhsProvider extends OrderedServiceProvider {
-    Consumer<RhsContext> buildRhs(RuntimeContext<?> requester, String literalRhs, Collection<FactType> factTypes, Collection<String> imports);
+public interface LiteralRhsCompiler extends OrderedServiceProvider {
+    Consumer<RhsContext> compileRhs(RuntimeContext<?> requester, String literalRhs, Collection<FactType> factTypes, Collection<String> imports);
 }

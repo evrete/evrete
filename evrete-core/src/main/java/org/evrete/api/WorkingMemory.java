@@ -15,7 +15,6 @@ public interface WorkingMemory {
 
     void update(Collection<?> objects);
 
-    //TODO !!! clear condition nodes' data as well
     void clear();
 
     <T> void forEachMemoryObject(String type, Consumer<T> consumer);

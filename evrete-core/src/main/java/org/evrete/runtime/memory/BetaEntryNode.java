@@ -42,6 +42,10 @@ public class BetaEntryNode extends RuntimeFactTypeKeyed implements BetaMemoryNod
     }
 
     @Override
+    public void clear() {
+    }
+
+    @Override
     public void mergeDelta() {
     }
 
