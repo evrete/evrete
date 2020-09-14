@@ -22,7 +22,7 @@ Maven Central Repository
 <dependency>
     <groupId>org.evrete</groupId>
     <artifactId>evrete-core</artifactId>
-    <version>1.1.01</version>
+    <version>1.2.00</version>
 </dependency>
 ```
 
