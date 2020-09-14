@@ -16,12 +16,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
-    private final Map<String, Collection<Object>> collector = new HashMap<>();
-    private final Map<String, String> types = new HashMap<>();
-    private final AtomicInteger callCounter = new AtomicInteger(0);
-    private final Entry[] entries;
-    private PrintStream out;
-
     private static final Function<RuleDescriptor, Entry[]> FROM_DESCRIPTOR = rule -> {
         Set<FactType> types = rule.getLhs().getGroupFactTypes();
         Entry[] entries = new Entry[types.size()];
@@ -32,6 +26,11 @@ public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
         return entries;
     };
     private static final Function<RuntimeRuleImpl, Entry[]> FROM_RULE = rule -> FROM_DESCRIPTOR.apply(rule.getDescriptor());
+    private final Map<String, Collection<Object>> collector = new HashMap<>();
+    private final Map<String, String> types = new HashMap<>();
+    private final AtomicInteger callCounter = new AtomicInteger(0);
+    private final Entry[] entries;
+    private PrintStream out;
 
 
     private RhsAssert(Entry[] entries) {
@@ -42,11 +41,6 @@ public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
             }
             types.put(entry.name, entry.clazz);
         }
-    }
-
-    @Override
-    public RhsAssert copyOf() {
-        return new RhsAssert(Arrays.copyOf(this.entries, this.entries.length));
     }
 
     private RhsAssert(Supplier<Entry[]> supplier) {
@@ -63,27 +57,15 @@ public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
         rule.chainRhs(this);
     }
 
-
-
-    private static RuntimeRuleImpl getSingleRule(StatefulSession s) {
-        List<RuntimeRule> rules = s.getRules();
-        if(rules.size() == 0) {
-            throw new IllegalStateException("Zero rule count, one expected");
-        } else if (rules.size() > 1) {
-            throw new IllegalStateException("Multiple rule count, one expected");
-        } else {
-            return (RuntimeRuleImpl) rules.get(0);
-        }
-    }
-
-
     public RhsAssert(StatefulSession statefulSession, String name) {
         this((RuntimeRuleImpl) statefulSession.getRule(name));
     }
 
+
     public RhsAssert(StatefulSession statefulSession) {
         this(getSingleRule(statefulSession));
     }
+
 
     public RhsAssert(String var, Class<?> type) {
         this(new Entry[]{
@@ -136,6 +118,22 @@ public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
         });
     }
 
+    private static RuntimeRuleImpl getSingleRule(StatefulSession s) {
+        List<RuntimeRule> rules = s.getRules();
+        if (rules.size() == 0) {
+            throw new IllegalStateException("Zero rule count, one expected");
+        } else if (rules.size() > 1) {
+            throw new IllegalStateException("Multiple rule count, one expected");
+        } else {
+            return (RuntimeRuleImpl) rules.get(0);
+        }
+    }
+
+    @Override
+    public RhsAssert copyOf() {
+        return new RhsAssert(Arrays.copyOf(this.entries, this.entries.length));
+    }
+
     public void reset() {
         callCounter.set(0);
         this.out = null;
@@ -157,12 +155,13 @@ public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
             String expected = types.get(var);
             if (expected == null) throw new IllegalStateException("Unknown type");
 
-            if (!cl.getName().equals(expected)) throw new IllegalStateException("Type mismatch for '" + var + "'. Expected type: '" + expected + "', Found: " + cl.getName());
+            if (!cl.getName().equals(expected))
+                throw new IllegalStateException("Type mismatch for '" + var + "'. Expected type: '" + expected + "', Found: " + cl.getName());
 
             entry.getValue().add(o);
         }
 
-        if(out != null) {
+        if (out != null) {
             StringJoiner joiner = new StringJoiner(" ", ">>> ", "\t");
             values.forEach((var, o) -> joiner.add(var + "=" + o));
             out.println(joiner.toString());

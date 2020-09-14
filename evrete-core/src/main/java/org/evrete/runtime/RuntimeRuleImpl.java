@@ -27,7 +27,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
 
     public RuntimeRuleImpl(RuleDescriptor rd, SessionMemory memory) {
         super(memory, rd, rd.getLhs().getGroupFactTypes());
-        this.descriptor  = rd;
+        this.descriptor = rd;
         this.memory = memory;
         FactType[] allFactTypes = descriptor.getLhs().getAllFactTypes();
         this.factSources = buildTypes(memory, allFactTypes);
@@ -45,11 +45,19 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         this.betaFactSources = betaNodes.toArray(new RuntimeFactTypeKeyed[0]);
 
 
-
         ///
         this.ruleBuffer = new Buffer();
         this.memoryBuffer = memory.getBuffer();
         this.lhs = RuntimeLhs.factory(this, rd.getLhs(), ruleBuffer);
+    }
+
+    private static RuntimeFactType[] buildTypes(SessionMemory runtime, FactType[] allFactTypes) {
+        RuntimeFactType[] factSources = new RuntimeFactType[allFactTypes.length];
+        for (FactType factType : allFactTypes) {
+            RuntimeFactType iterable = RuntimeFactType.factory(factType, runtime);
+            factSources[iterable.getInRuleIndex()] = iterable;
+        }
+        return factSources;
     }
 
     public final void executeRhs() {
@@ -60,7 +68,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
 
     public void clear() {
         //TODO don't forget aggregate nodes once they're back
-        for(BetaEndNode endNode : lhs.getAllBetaEndNodes()) {
+        for (BetaEndNode endNode : lhs.getAllBetaEndNodes()) {
             endNode.clear();
         }
     }
@@ -135,13 +143,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         return lhs;
     }
 
-    @Override
-    public String toString() {
-        return "RuntimeRule{" +
-                "name=" + getName() +
-                '}';
-    }
-
     /*
     public Collection<BetaEndNode> getAllBetaEndNodes() {
         return lhs.getAllBetaEndNodes();
@@ -152,13 +153,11 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     }
 */
 
-    private static RuntimeFactType[] buildTypes(SessionMemory runtime, FactType[] allFactTypes) {
-        RuntimeFactType[] factSources = new RuntimeFactType[allFactTypes.length];
-        for (FactType factType : allFactTypes) {
-            RuntimeFactType iterable = RuntimeFactType.factory(factType, runtime);
-            factSources[iterable.getInRuleIndex()] = iterable;
-        }
-        return factSources;
+    @Override
+    public String toString() {
+        return "RuntimeRule{" +
+                "name=" + getName() +
+                '}';
     }
 
 }

@@ -76,7 +76,7 @@ public final class TypeMemory implements PlainMemory {
 
     @Override
     public void commitChanges() {
-        if(deltaFacts.size() > 0) {
+        if (deltaFacts.size() > 0) {
             mainFacts.bulkAdd(deltaFacts);
             deltaFacts.clear();
         }
@@ -135,7 +135,7 @@ public final class TypeMemory implements PlainMemory {
      * @param newField newly created field
      */
     void onNewActiveField(ActiveField newField) {
-        for(IdentityMap map : new IdentityMap[]{mainFacts, deltaFacts}) {
+        for (IdentityMap map : new IdentityMap[]{mainFacts, deltaFacts}) {
             ReIterator<RuntimeObject> it = map.factImplIterator();
             while (it.hasNext()) {
                 RuntimeObject rto = it.next();
@@ -174,7 +174,7 @@ public final class TypeMemory implements PlainMemory {
 
     void onNewAlphaBucket(AlphaDelta delta) {
 
-        if(deltaFacts.size() > 0 ) {
+        if (deltaFacts.size() > 0) {
             //TODO develop a strategy
             throw new UnsupportedOperationException("A new condition was created in an uncommitted memory.");
         }
@@ -213,12 +213,12 @@ public final class TypeMemory implements PlainMemory {
         this.commitChanges();
 
         // Commit alpha-buckets
-        for(TypeMemoryBucket b : alphaBuckets.data) {
+        for (TypeMemoryBucket b : alphaBuckets.data) {
             b.commitChanges();
         }
 
         // Commit beta-memories
-        for(FieldsMemory fm : betaMemories.values()) {
+        for (FieldsMemory fm : betaMemories.values()) {
             fm.commitChanges();
         }
     }
@@ -283,7 +283,7 @@ public final class TypeMemory implements PlainMemory {
             rto = RuntimeObject.factory(o, values);
         }
 
-        if(mainFacts.contains(o) || deltaFacts.contains(o)) {
+        if (mainFacts.contains(o) || deltaFacts.contains(o)) {
             LOGGER.warning("Object " + o + " has been already inserted, skipping insert");
             return null;
         } else {

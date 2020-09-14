@@ -62,10 +62,9 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
     }
 
 
-
     @Override
     public void fire() {
-        if(hasMemoryTasks()) {
+        if (hasMemoryTasks()) {
             fireDefault(new ActivationContext(this));
         }
     }
@@ -74,12 +73,12 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
         checkState();
         processChanges();
         List<RuntimeRule> agenda = getAgenda();
-        if(agenda.size() > 0) {
+        if (agenda.size() > 0) {
             activationManager.onAgenda(ctx.incrementFireCount(), agenda);
             for (RuntimeRule r : getAgenda()) {
                 RuntimeRuleImpl impl = (RuntimeRuleImpl) r;
 
-                if(activationManager.test(impl)) {
+                if (activationManager.test(impl)) {
                     impl.executeRhs();
                     activationManager.onActivation(impl);
                 }

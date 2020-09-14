@@ -12,7 +12,7 @@ import static org.evrete.api.FactBuilder.fact;
 public interface ExistsFactSelector<T> {
     /**
      * <p>
-     *     The main method which associates the implementation with a list fact type builders.
+     * The main method which associates the implementation with a list fact type builders.
      * </p>
      *
      * @param facts an array of facts to declare

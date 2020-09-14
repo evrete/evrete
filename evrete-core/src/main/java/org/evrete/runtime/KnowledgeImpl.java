@@ -1,7 +1,10 @@
 package org.evrete.runtime;
 
 import org.evrete.KnowledgeService;
-import org.evrete.api.*;
+import org.evrete.api.ActiveField;
+import org.evrete.api.Knowledge;
+import org.evrete.api.StatefulSession;
+import org.evrete.api.TypeResolver;
 import org.evrete.runtime.evaluation.AlphaDelta;
 
 import java.util.WeakHashMap;

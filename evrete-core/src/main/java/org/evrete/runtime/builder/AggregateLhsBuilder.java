@@ -12,7 +12,7 @@ public class AggregateLhsBuilder<C extends RuntimeContext<C>> extends AbstractLh
 
     AggregateLhsBuilder(LhsBuilder<C> parent, FactBuilder[] facts) {
         super(parent);
-        if(facts == null || facts.length == 0) {
+        if (facts == null || facts.length == 0) {
             throw new IllegalArgumentException("Empty fact selection in a sub-query");
         }
         this.parent = parent;

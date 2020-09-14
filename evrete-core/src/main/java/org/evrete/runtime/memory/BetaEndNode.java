@@ -23,7 +23,7 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
 
         //this.oldKeysNewFacts = rule.getMemory().newKeysStore(getDescriptor().getEvalGrouping());
         this.oldKeysNewFacts = new LinkedList<>();
-        for(KeyMode mode : KeyMode.values()) {
+        for (KeyMode mode : KeyMode.values()) {
             RhsKeyIterator modeIterator;
             switch (mode) {
                 case NEW_KEYS_NEW_FACTS:
@@ -61,11 +61,23 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
         return result;
     }
 
+    private static BetaMemoryNode<?> create(RuntimeRuleImpl rule, NodeDescriptor desc) {
+        if (desc.isConditionNode()) {
+            return new BetaConditionNode(
+                    rule, (ConditionNodeDescriptor) desc,
+                    create(desc.getSources(), rule)
+            );
+        } else {
+            EntryNodeDescriptor descriptor = (EntryNodeDescriptor) desc;
+            return new BetaEntryNode(descriptor, rule.resolve(descriptor.getFactType()));
+        }
+    }
+
     @Override
     public void computeDelta(boolean deltaOnly) {
         super.computeDelta(deltaOnly);
         //TODO !!!! check if delta check applies here
-        if(deltaOnly) {
+        if (deltaOnly) {
             ValueRow[] array = new ValueRow[entryNodes.length];
             computeOldKeysNewFacts(0, false, array);
             //System.out.println("Computed delta " + oldKeysNewFacts);
@@ -78,10 +90,10 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
         ReIterator<ValueRow> knownKeysNewFacts = entry.keyIterator(KeyMode.KNOWN_KEYS_NEW_FACTS);
         ReIterator<ValueRow> newKeysNewFacts = entry.keyIterator(KeyMode.NEW_KEYS_NEW_FACTS);
         ReIterator<ValueRow> it;
-        if(index == entryNodes.length - 1) {
+        if (index == entryNodes.length - 1) {
             // The last entry
             it = knownKeysNewFacts;
-            if(it.reset() > 0) {
+            if (it.reset() > 0) {
                 while (it.hasNext()) {
                     array[index] = it.next();
                     testAndSave(array);
@@ -89,7 +101,7 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
             }
 
             it = knownKeysKnownFacts;
-            if(oldKeysNewFactsPresent && it.reset() > 0) {
+            if (oldKeysNewFactsPresent && it.reset() > 0) {
                 while (it.hasNext()) {
                     array[index] = it.next();
                     testAndSave(array);
@@ -97,7 +109,7 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
             }
 
             it = newKeysNewFacts;
-            if(oldKeysNewFactsPresent && it.reset() > 0) {
+            if (oldKeysNewFactsPresent && it.reset() > 0) {
                 while (it.hasNext()) {
                     array[index] = it.next();
                     testAndSave(array);
@@ -106,7 +118,7 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
         } else {
             // A middle entry
             it = knownKeysNewFacts;
-            if(it.reset() > 0) {
+            if (it.reset() > 0) {
                 while (it.hasNext()) {
                     array[index] = it.next();
                     computeOldKeysNewFacts(index + 1, true, array);
@@ -114,7 +126,7 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
             }
 
             it = knownKeysKnownFacts;
-            if(it.reset() > 0) {
+            if (it.reset() > 0) {
                 while (it.hasNext()) {
                     array[index] = it.next();
                     computeOldKeysNewFacts(index + 1, oldKeysNewFactsPresent, array);
@@ -122,7 +134,7 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
             }
 
             it = newKeysNewFacts;
-            if(it.reset() > 0) {
+            if (it.reset() > 0) {
                 while (it.hasNext()) {
                     array[index] = it.next();
                     computeOldKeysNewFacts(index + 1, oldKeysNewFactsPresent, array);
@@ -137,7 +149,7 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
     private void testAndSave(ValueRow[] array) {
         KeysStore main = getMainStore();
         KeysStore delta = getDeltaStore();
-        if(main.hasKey(value -> array[value]) || delta.hasKey(value -> array[value])) {
+        if (main.hasKey(value -> array[value]) || delta.hasKey(value -> array[value])) {
             oldKeysNewFacts.add(Arrays.copyOf(array, array.length));
         }
     }
@@ -167,22 +179,9 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
         return false;
     }
 
-    private static BetaMemoryNode<?> create(RuntimeRuleImpl rule, NodeDescriptor desc) {
-        if (desc.isConditionNode()) {
-            return new BetaConditionNode(
-                    rule, (ConditionNodeDescriptor) desc,
-                    create(desc.getSources(), rule)
-            );
-        } else {
-            EntryNodeDescriptor descriptor = (EntryNodeDescriptor) desc;
-            return new BetaEntryNode(descriptor, rule.resolve(descriptor.getFactType()));
-        }
-    }
-
     public RuntimeFactTypeKeyed[] getEntryNodes() {
         return getGrouping()[0];
     }
-
 
 
     private abstract static class ModeIterator implements RhsKeyIterator {

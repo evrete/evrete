@@ -11,13 +11,13 @@ public interface StatefulSession extends WorkingMemory, RuntimeContext<StatefulS
 
     ActivationManager getActivationManager();
 
+    void setActivationManager(ActivationManager activationManager);
+
     @Override
     StatefulSession addImport(String imp);
 
     @Override
     StatefulSession addImport(Class<?> type);
-
-    void setActivationManager(ActivationManager activationManager);
 
     RuntimeRule getRule(String name);
 

@@ -79,7 +79,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
 
 
     void run(ScanMode mode, Runnable r) {
-        switch (mode){
+        switch (mode) {
             case DELTA:
                 runDelta(0, false, r);
                 return;
@@ -111,7 +111,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
 
             // Delta iterator
             it = memory.deltaIterator();
-            if(it.reset() > 0) {
+            if (it.reset() > 0) {
                 while (it.hasNext()) {
                     state[index] = it.next();
                     r.run();
@@ -120,7 +120,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
         } else {
             // Main iterator
             it = memory.mainIterator();
-            if(it.reset() > 0) {
+            if (it.reset() > 0) {
                 while (it.hasNext()) {
                     state[index] = it.next();
                     runDelta(index + 1, hasDelta, r);
@@ -129,7 +129,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
 
             // Delta iterator
             it = memory.deltaIterator();
-            if(it.reset() > 0) {
+            if (it.reset() > 0) {
                 while (it.hasNext()) {
                     state[index] = it.next();
                     runDelta(index + 1, true, r);
@@ -146,7 +146,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
             //Last
             // Main iterator
             it = memory.mainIterator();
-            if(it.reset() > 0) {
+            if (it.reset() > 0) {
                 while (it.hasNext()) {
                     state[index] = it.next();
                     r.run();
@@ -155,7 +155,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
 
             // Delta iterator
             it = memory.deltaIterator();
-            if(it.reset() > 0) {
+            if (it.reset() > 0) {
                 while (it.hasNext()) {
                     state[index] = it.next();
                     r.run();
@@ -164,7 +164,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
         } else {
             // Main iterator
             it = memory.mainIterator();
-            if(it.reset() > 0) {
+            if (it.reset() > 0) {
                 while (it.hasNext()) {
                     state[index] = it.next();
                     runFull(index + 1, r);
@@ -173,10 +173,10 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
 
             // Delta iterator
             it = memory.deltaIterator();
-            if(it.reset() > 0) {
+            if (it.reset() > 0) {
                 while (it.hasNext()) {
                     state[index] = it.next();
-                    runFull(index + 1,  r);
+                    runFull(index + 1, r);
                 }
             }
         }
@@ -190,7 +190,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
             //Last
             // Main iterator
             it = memory.mainIterator();
-            if(it.reset() > 0) {
+            if (it.reset() > 0) {
                 while (it.hasNext()) {
                     state[index] = it.next();
                     r.run();
@@ -199,7 +199,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
         } else {
             // Main iterator
             it = memory.mainIterator();
-            if(it.reset() > 0) {
+            if (it.reset() > 0) {
                 while (it.hasNext()) {
                     state[index] = it.next();
                     runKnown(index + 1, r);

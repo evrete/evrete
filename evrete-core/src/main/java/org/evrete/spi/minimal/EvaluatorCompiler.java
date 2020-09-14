@@ -118,7 +118,7 @@ class EvaluatorCompiler {
         String comparableClassSource = classJavaSource.replaceAll(clazz, "CLASS_STUB");
 
         FieldReference[] descriptor = descriptorBuilder.toArray(FieldReference.ZERO_ARRAY);
-        if(descriptor.length == 0) throw new IllegalStateException("No field references were resolved.");
+        if (descriptor.length == 0) throw new IllegalStateException("No field references were resolved.");
         MethodHandle methodHandle = compileExpression(className, classJavaSource);
         return new EvaluatorImpl(methodHandle, remover.getOriginal(), comparableClassSource, descriptor);
 

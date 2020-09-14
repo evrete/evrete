@@ -32,6 +32,27 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         }
     }
 
+    private static void processSecondary(NodeIterationState state, ReIterator<KeysStore.Entry>[] secondary, KeysStore destination) {
+        recursiveIteration(0, secondary, state::setSecondaryEntry, () -> state.saveTo(destination));
+    }
+
+    private static void recursiveIteration(int sourceIndex, ReIterator<KeysStore.Entry>[] entryData, ObjIntConsumer<KeysStore.Entry> consumer, Runnable endRunnable) {
+        ReIterator<KeysStore.Entry> it = entryData[sourceIndex];
+        it.reset();
+        if (sourceIndex == entryData.length - 1) {
+            // Last source
+            while (it.hasNext()) {
+                consumer.accept(it.next(), sourceIndex);
+                endRunnable.run();
+            }
+        } else {
+            while (it.hasNext()) {
+                consumer.accept(it.next(), sourceIndex);
+                recursiveIteration(sourceIndex + 1, entryData, consumer, endRunnable);
+            }
+        }
+    }
+
     public void computeDelta(boolean deltaOnly) {
         evaluateSources(deltaOnly, false, 0);
     }
@@ -103,26 +124,5 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
                         processSecondary(state, state.buildSecondary(), destination);
                     }
                 });
-    }
-
-    private static void processSecondary(NodeIterationState state, ReIterator<KeysStore.Entry>[] secondary, KeysStore destination) {
-        recursiveIteration(0, secondary, state::setSecondaryEntry, () -> state.saveTo(destination));
-    }
-
-    private static void recursiveIteration(int sourceIndex, ReIterator<KeysStore.Entry>[] entryData, ObjIntConsumer<KeysStore.Entry> consumer, Runnable endRunnable) {
-        ReIterator<KeysStore.Entry> it = entryData[sourceIndex];
-        it.reset();
-        if (sourceIndex == entryData.length - 1) {
-            // Last source
-            while (it.hasNext()) {
-                consumer.accept(it.next(), sourceIndex);
-                endRunnable.run();
-            }
-        } else {
-            while (it.hasNext()) {
-                consumer.accept(it.next(), sourceIndex);
-                recursiveIteration(sourceIndex + 1, entryData, consumer, endRunnable);
-            }
-        }
     }
 }

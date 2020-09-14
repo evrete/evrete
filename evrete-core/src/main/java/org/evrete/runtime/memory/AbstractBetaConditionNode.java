@@ -110,7 +110,7 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
         getDeltaStore().clear();
         getMainStore().clear();
 
-        for(BetaMemoryNode<?> source : getSources()) {
+        for (BetaMemoryNode<?> source : getSources()) {
             source.clear();
         }
     }

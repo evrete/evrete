@@ -39,20 +39,6 @@ public class RhsFactGroupDescriptor implements Masked {
         this(lhsDescriptor, factGroupIndex, keyGroupIndex, finalNode, finalNode.getEvalGrouping()[0], false);
     }
 
-    int positionOf(FactType type) {
-        for (int pos = 0; pos < types.length; pos++) {
-            if (types[pos] == type) {
-                return pos;
-            }
-        }
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public Bits getMask() {
-        return mask;
-    }
-
     public RhsFactGroupDescriptor(AbstractLhsDescriptor lhsDescriptor, int factGroupIndex, int keyGroupIndex, FactType keyedType) {
         this(lhsDescriptor, factGroupIndex, keyGroupIndex, null, new FactType[]{keyedType}, false);
         if (keyedType.getFields().size() == 0) {
@@ -67,6 +53,20 @@ public class RhsFactGroupDescriptor implements Masked {
                 throw new IllegalStateException();
             }
         }
+    }
+
+    int positionOf(FactType type) {
+        for (int pos = 0; pos < types.length; pos++) {
+            if (types[pos] == type) {
+                return pos;
+            }
+        }
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Bits getMask() {
+        return mask;
     }
 
     public AbstractLhsDescriptor getLhsDescriptor() {

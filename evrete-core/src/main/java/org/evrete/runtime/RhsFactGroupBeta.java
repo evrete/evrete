@@ -31,50 +31,6 @@ public class RhsFactGroupBeta implements RhsFactGroup, KeyReIterators<ValueRow[]
         this(descriptor, new RuntimeFactTypeKeyed[]{singleType}, singleType.getMappedKeyIterators(), keyState, factState);
     }
 
-    private boolean setKey(ValueRow[] key) {
-        this.keyState[groupIndex] = key;
-
-        //System.out.println(keyIterators + ": " + groupIndex + " = " + Arrays.toString(key));
-        // TODO !!! optimize by using setIterators if input nodes are all unique
-        this.nestedFactIterator.setIterables(key);
-        return true;
-    }
-
-    private void runForEachFact(Runnable r) {
-        nestedFactIterator.runForEach(r);
-    }
-
-    @Override
-    public EnumMap<KeyMode, ReIterator<ValueRow[]>> keyIterators() {
-        return keyIterators.keyIterators();
-    }
-
-    @Override
-    public boolean isAlpha() {
-        return false;
-    }
-
-    @Override
-    public int getIndex() {
-        return groupIndex;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public RuntimeFactTypeKeyed[] getTypes() {
-        return types;
-    }
-
-    @Override
-    public boolean isInActiveState() {
-        return readState(types);
-    }
-
-    @Override
-    public void resetState() {
-        resetState(types);
-    }
-
     static void runKeys(ScanMode mode, RhsFactGroupBeta[] groups, Runnable r) {
         switch (mode) {
             case DELTA:
@@ -90,7 +46,6 @@ public class RhsFactGroupBeta implements RhsFactGroup, KeyReIterators<ValueRow[]
                 throw new UnsupportedOperationException();
         }
     }
-
 
     private static void runDelta(int index, int lastIndex, boolean hasDelta, RhsFactGroupBeta[] groups, Runnable r) {
         RhsFactGroupBeta group = groups[index];
@@ -185,14 +140,13 @@ public class RhsFactGroupBeta implements RhsFactGroup, KeyReIterators<ValueRow[]
                 if (iterator.reset() > 0 && (!mode.isDeltaMode())) {
                     while (iterator.hasNext()) {
                         if (group.setKey(iterator.next())) {
-                            runKnown(index + 1, lastIndex,  groups, r);
+                            runKnown(index + 1, lastIndex, groups, r);
                         }
                     }
                 }
             }
         }
     }
-
 
     static void runCurrentFacts(RhsFactGroupBeta[] groups, Runnable r) {
         runCurrentFacts(0, groups.length - 1, groups, r);
@@ -201,12 +155,56 @@ public class RhsFactGroupBeta implements RhsFactGroup, KeyReIterators<ValueRow[]
     private static void runCurrentFacts(int index, int lastIndex, RhsFactGroupBeta[] groups, Runnable r) {
         RhsFactGroupBeta group = groups[index];
 
-        if(index == lastIndex) {
+        if (index == lastIndex) {
             group.runForEachFact(r);
         } else {
             int nextIndex = index + 1;
             Runnable nested = () -> runCurrentFacts(nextIndex, lastIndex, groups, r);
             group.runForEachFact(nested);
         }
+    }
+
+    private boolean setKey(ValueRow[] key) {
+        this.keyState[groupIndex] = key;
+
+        //System.out.println(keyIterators + ": " + groupIndex + " = " + Arrays.toString(key));
+        // TODO !!! optimize by using setIterators if input nodes are all unique
+        this.nestedFactIterator.setIterables(key);
+        return true;
+    }
+
+    private void runForEachFact(Runnable r) {
+        nestedFactIterator.runForEach(r);
+    }
+
+    @Override
+    public EnumMap<KeyMode, ReIterator<ValueRow[]>> keyIterators() {
+        return keyIterators.keyIterators();
+    }
+
+    @Override
+    public boolean isAlpha() {
+        return false;
+    }
+
+    @Override
+    public int getIndex() {
+        return groupIndex;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public RuntimeFactTypeKeyed[] getTypes() {
+        return types;
+    }
+
+    @Override
+    public boolean isInActiveState() {
+        return readState(types);
+    }
+
+    @Override
+    public void resetState() {
+        resetState(types);
     }
 }

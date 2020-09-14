@@ -45,8 +45,8 @@ public class RuntimeRules implements Iterable<RuntimeRuleImpl> {
 
     public List<RuntimeRule> activeRules() {
         List<RuntimeRule> l = new LinkedList<>();
-        for(RuntimeRuleImpl rule : list) {
-            if(rule.isInActiveState()) {
+        for (RuntimeRuleImpl rule : list) {
+            if (rule.isInActiveState()) {
                 l.add(rule);
             }
         }

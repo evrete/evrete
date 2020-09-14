@@ -114,7 +114,6 @@ public class LiteralRhsTests {
     }
 
 
-
     public static class SystemOut {
         private static final AtomicInteger counter = new AtomicInteger(0);
         private static final Collection<Object> collector = new LinkedList<>();

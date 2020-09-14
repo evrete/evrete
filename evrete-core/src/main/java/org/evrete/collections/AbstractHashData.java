@@ -20,11 +20,11 @@ import java.util.stream.Stream;
  * @param <E> Entry type
  */
 public abstract class AbstractHashData<E> extends UnsignedIntArray implements ReIterable<E>, BufferedInsert {
-    private static final int DEFAULT_INITIAL_CAPACITY = 4;
+    protected static final BiPredicate<Object, Object> IDENTITY_EQUALS = (o1, o2) -> o1 == o2;
     static final ToIntFunction<Object> DEFAULT_HASH = Object::hashCode;
     static final ToIntFunction<Object> IDENTITY_HASH = System::identityHashCode;
     static final BiPredicate<Object, Object> DEFAULT_EQUALS = Object::equals;
-    protected static final BiPredicate<Object, Object> IDENTITY_EQUALS = (o1, o2) -> o1 == o2;
+    private static final int DEFAULT_INITIAL_CAPACITY = 4;
     private static final int MAXIMUM_CAPACITY = 1 << 30;
     private static final int MINIMUM_CAPACITY = 2;
     Object[] data;

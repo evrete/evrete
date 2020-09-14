@@ -5,8 +5,8 @@ import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ForkJoinExecutor {
-    private final ForkJoinPool delegate;
     private static final AtomicInteger poolCounter = new AtomicInteger(0);
+    private final ForkJoinPool delegate;
 
     public ForkJoinExecutor() {
         this(Runtime.getRuntime().availableProcessors());

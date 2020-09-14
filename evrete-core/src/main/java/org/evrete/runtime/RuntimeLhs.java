@@ -34,7 +34,7 @@ public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContex
 
     static RuntimeLhs factory(RuntimeRuleImpl rule, LhsDescriptor descriptor, Buffer buffer) {
         Set<AggregateLhsDescriptor> aggregates = descriptor.getAggregateDescriptors();
-        if(aggregates.isEmpty()) {
+        if (aggregates.isEmpty()) {
             return new RuntimeLhsDefault(rule, descriptor, buffer);
         } else {
             return new RuntimeLhsAggregate(rule, descriptor, buffer, aggregates);

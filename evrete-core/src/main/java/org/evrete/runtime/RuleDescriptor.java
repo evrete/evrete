@@ -13,6 +13,12 @@ public class RuleDescriptor extends AbstractRuntimeRule {
         this.lhsDescriptor = lhsDescriptor;
     }
 
+    static RuleDescriptor factory(AbstractRuntime<?> runtime, RuleBuilderImpl<?> rule) {
+        RuleBuilderImpl<?> compiled = rule.compileConditions(runtime);
+        LhsDescriptor lhsDescriptor = new LhsDescriptor(runtime, compiled.getLhs(), new NextIntSupplier(), new MapFunction<>());
+        return new RuleDescriptor(runtime, rule, lhsDescriptor);
+    }
+
     public LhsDescriptor getLhs() {
         return lhsDescriptor;
     }
@@ -21,11 +27,5 @@ public class RuleDescriptor extends AbstractRuntimeRule {
     public RuleDescriptor addImport(String imp) {
         super.addImport(imp);
         return this;
-    }
-
-    static RuleDescriptor factory(AbstractRuntime<?> runtime, RuleBuilderImpl<?> rule) {
-        RuleBuilderImpl<?> compiled = rule.compileConditions(runtime);
-        LhsDescriptor lhsDescriptor = new LhsDescriptor(runtime, compiled.getLhs(), new NextIntSupplier(), new MapFunction<>());
-        return new RuleDescriptor(runtime, rule, lhsDescriptor);
     }
 }

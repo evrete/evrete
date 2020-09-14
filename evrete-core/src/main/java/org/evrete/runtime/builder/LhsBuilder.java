@@ -51,7 +51,6 @@ public class LhsBuilder<C extends RuntimeContext<C>> extends AbstractLhsBuilder<
     }
 
 
-
     public C execute() {
         return getRuleBuilder().build();
     }

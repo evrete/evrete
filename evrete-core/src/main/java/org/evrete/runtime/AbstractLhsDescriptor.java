@@ -92,14 +92,6 @@ public abstract class AbstractLhsDescriptor {
         this.allFactGroups = allFactGroups.toArray(RhsFactGroupDescriptor.ZERO_ARRAY);
     }
 
-    MapFunction<String, int[]> getNameIndices() {
-        return nameIndices;
-    }
-
-    RhsFactGroupDescriptor[] getAllFactGroups() {
-        return allFactGroups;
-    }
-
     private static ConditionNodeDescriptor[] findBestAllocation(AbstractLhsBuilder.Compiled lhsBuilder, MapFunction<NamedType, FactType> mapping) {
         // Compiling conditions
         Set<Evaluator> betaConditions = new HashSet<>(lhsBuilder.getBetaConditions());
@@ -191,6 +183,13 @@ public abstract class AbstractLhsDescriptor {
         return distance;
     }
 
+    MapFunction<String, int[]> getNameIndices() {
+        return nameIndices;
+    }
+
+    RhsFactGroupDescriptor[] getAllFactGroups() {
+        return allFactGroups;
+    }
 
     public int getLevel() {
         return level;

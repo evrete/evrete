@@ -39,7 +39,7 @@ class SharedBetaData implements SharedBetaFactStorage {
 
     private EnumMap<KeyMode, ReIterable<ValueRow>> buildKeyIterables() {
         EnumMap<KeyMode, ReIterable<ValueRow>> map = new EnumMap<>(KeyMode.class);
-        for(KeyMode mode : KeyMode.values()) {
+        for (KeyMode mode : KeyMode.values()) {
             ReIterable<ValueRow> iterator;
             switch (mode) {
                 case KNOWN_KEYS_KNOWN_FACTS:
@@ -108,8 +108,8 @@ class SharedBetaData implements SharedBetaFactStorage {
 
     @Override
     public void delete(Collection<? extends RuntimeFact> collection, Predicate<RuntimeFact> predicate) {
-        for(RuntimeFact fact : collection) {
-            if(predicate.test(fact)) {
+        for (RuntimeFact fact : collection) {
+            if (predicate.test(fact)) {
                 delete(fact);
             }
         }

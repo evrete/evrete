@@ -5,13 +5,13 @@ import java.util.function.Consumer;
 public interface Rule extends PropertyAccess, Named, FluentImports<Rule> {
     Consumer<RhsContext> getRhs();
 
-    int getSalience();
-
-    void setSalience(int value);
-
     void setRhs(String literalRhs);
 
     void setRhs(Consumer<RhsContext> rhs);
+
+    int getSalience();
+
+    void setSalience(int value);
 
     void chainRhs(Consumer<RhsContext> consumer);
 }

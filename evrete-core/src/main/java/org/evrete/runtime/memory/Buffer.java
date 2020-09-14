@@ -55,7 +55,7 @@ public class Buffer {
     public void insert(TypeResolver resolver, String objectType, Collection<?> objects) {
         int objectCount = objects.size();
         Type<?> type = resolver.getType(objectType);
-        if(type == null) {
+        if (type == null) {
             LOGGER.warning("Objects of unknown type '" + objectType + "' will be ignored.");
         }
 

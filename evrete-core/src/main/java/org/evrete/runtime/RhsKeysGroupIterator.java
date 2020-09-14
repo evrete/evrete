@@ -13,8 +13,8 @@ public class RhsKeysGroupIterator implements KeyReIterators<ValueRow[]> {
     private final RhsFactGroupIterator groupIterator;
     private final ValueRow[][] state;
     private final int keyGroupId;
-    private BooleanSupplier statePredicate = TRUE_PREDICATE;
     private final KeyReIterators<ValueRow[]> iterators;
+    private BooleanSupplier statePredicate = TRUE_PREDICATE;
 
     public RhsKeysGroupIterator(int keyGroupId, KeyReIterators<ValueRow[]> endNode, RhsFactGroupIterator groupIterator, ValueRow[][] state) {
         this.groupIterator = groupIterator;

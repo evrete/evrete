@@ -31,15 +31,15 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
 
     RuntimeListeners getListeners();
 
-    <A extends ActivationManager> void setActivationManagerFactory(Class<A> managerClass);
-
-    void setActivationManagerFactory(String managerClass);
-
     ClassLoader getClassLoader();
 
     void setClassLoader(ClassLoader classLoader);
 
     Class<? extends ActivationManager> getActivationManagerFactory();
+
+    <A extends ActivationManager> void setActivationManagerFactory(Class<A> managerClass);
+
+    void setActivationManagerFactory(String managerClass);
 
     TypeResolver getTypeResolver();
 

@@ -16,10 +16,8 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
     private final Map<String, FactTypeBuilder> declaredLhsTypes;
     //private final int level;
     private final Set<AbstractExpression> conditions = new HashSet<>();
-    private Compiled compiledData;
     private final Function<String, FactTypeBuilder> factTypeMapper;
-
-    protected abstract G self();
+    private Compiled compiledData;
 
     private AbstractLhsBuilder(RuleBuilderImpl<C> ruleBuilder, AbstractLhsBuilder<C, ?> parent) {
         this.ruleBuilder = ruleBuilder;
@@ -44,6 +42,8 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
     AbstractLhsBuilder(AbstractLhsBuilder<C, ?> parent) {
         this(parent.ruleBuilder, parent);
     }
+
+    protected abstract G self();
 
     private TypeResolver getTypeResolver() {
         return ruleBuilder.getRuntimeContext().getTypeResolver();

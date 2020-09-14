@@ -12,6 +12,7 @@ import java.util.Map;
 
 
 public abstract class AbstractRuntimeLhs implements ActivationSubject {
+    final RuntimeFact[][] factState;
     private final Collection<BetaEndNode> endNodes = new ArrayList<>();
     private final AbstractLhsDescriptor descriptor;
     private final AbstractRuntimeLhs parent;
@@ -19,8 +20,6 @@ public abstract class AbstractRuntimeLhs implements ActivationSubject {
     private final RhsFactGroup[] rhsFactGroups;
     private final RhsFactGroupAlpha alphaFactGroup;
     private final RhsFactGroupBeta[] betaFactGroups;
-
-    final RuntimeFact[][] factState;
     private final ValueRow[][] keyState;
 
     AbstractRuntimeLhs(RuntimeRuleImpl rule, AbstractRuntimeLhs parent, AbstractLhsDescriptor descriptor) {
@@ -39,7 +38,7 @@ public abstract class AbstractRuntimeLhs implements ActivationSubject {
             this.factState[groupIndex] = new RuntimeFact[groupDescriptor.getTypes().length];
 
             RhsFactGroup factGroup;
-            if(groupDescriptor.isLooseGroup()) {
+            if (groupDescriptor.isLooseGroup()) {
                 factGroup = alpha = new RhsFactGroupAlpha(rule, groupDescriptor, factState);
             } else {
                 ConditionNodeDescriptor finalNode = groupDescriptor.getFinalNode();
@@ -57,6 +56,10 @@ public abstract class AbstractRuntimeLhs implements ActivationSubject {
         }
         this.betaFactGroups = CollectionUtils.filter(RhsFactGroupBeta.class, rhsFactGroups, group -> !group.isAlpha());
         this.alphaFactGroup = alpha;
+    }
+
+    AbstractRuntimeLhs(RuntimeRuleImpl rule, LhsDescriptor descriptor) {
+        this(rule, null, descriptor);
     }
 
     @Override
@@ -81,14 +84,9 @@ public abstract class AbstractRuntimeLhs implements ActivationSubject {
         return keyState;
     }
 
-
     @SuppressWarnings("unchecked")
-    public  <T extends RhsFactGroup> T getGroup(RhsFactGroupDescriptor descriptor) {
+    public <T extends RhsFactGroup> T getGroup(RhsFactGroupDescriptor descriptor) {
         return (T) rhsFactGroups[descriptor.getFactGroupIndex()];
-    }
-
-    AbstractRuntimeLhs(RuntimeRuleImpl rule, LhsDescriptor descriptor) {
-        this(rule, null, descriptor);
     }
 
     public AbstractLhsDescriptor getDescriptor() {

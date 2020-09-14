@@ -11,8 +11,8 @@ import java.util.function.BiPredicate;
 
 public class FactType implements Masked {
     public static final FactType[] ZERO_ARRAY = new FactType[0];
-    private static final Comparator<FactType> COMPARATOR = Comparator.comparingInt(FactType::getInRuleIndex);
     public static final BiPredicate<FactType, FactType> EQUALITY_BY_INDEX = (t1, t2) -> t1.getInRuleIndex() == t2.getInRuleIndex();
+    private static final Comparator<FactType> COMPARATOR = Comparator.comparingInt(FactType::getInRuleIndex);
     private final String var;
     private final Type<?> type;
     private final AlphaBucketMeta alphaMask;
@@ -74,6 +74,15 @@ public class FactType implements Masked {
         return factGroup;
     }
 
+    void setFactGroup(RhsFactGroupDescriptor factGroup) {
+        if (this.factGroup == null) {
+            this.factGroup = factGroup;
+            this.inGroupIndex = factGroup.positionOf(this);
+        } else {
+            throw new IllegalStateException();
+        }
+    }
+
     public int getBucketIndex() {
         return alphaMask.getBucketIndex();
     }
@@ -84,15 +93,6 @@ public class FactType implements Masked {
 
     public boolean isUniqueKeyAndAlpha() {
         return uniqueKeyAndAlpha;
-    }
-
-    void setFactGroup(RhsFactGroupDescriptor factGroup) {
-        if (this.factGroup == null) {
-            this.factGroup = factGroup;
-            this.inGroupIndex = factGroup.positionOf(this);
-        } else {
-            throw new IllegalStateException();
-        }
     }
 
     public int findFieldPosition(TypeField field) {

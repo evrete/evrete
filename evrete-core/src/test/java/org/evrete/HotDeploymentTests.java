@@ -687,7 +687,6 @@ class HotDeploymentTests {
                 .execute(rhsAssert3);
 
 
-
         // This insert cycle will result in 5 matching As
         for (int i = 0; i < 10; i++) {
             TypeA a = new TypeA("A" + i);

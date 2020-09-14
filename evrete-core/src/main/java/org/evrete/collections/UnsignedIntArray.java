@@ -10,8 +10,8 @@ import java.util.stream.IntStream;
 
 public class UnsignedIntArray {
     private static final int NULL_VALUE = -1;
-    private int[] unsignedIndices;
     protected int currentInsertIndex;
+    private int[] unsignedIndices;
 
     public UnsignedIntArray(int initialSize) {
         this.unsignedIndices = (int[]) Array.newInstance(int.class, Math.max(initialSize, 1));

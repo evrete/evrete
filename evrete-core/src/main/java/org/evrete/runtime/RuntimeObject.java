@@ -8,8 +8,8 @@ import java.util.Arrays;
 
 public final class RuntimeObject implements RuntimeFact {
     private static final boolean[] EMPTY_ALPHA_TESTS = new boolean[0];
-    private Object[] values;
     private final Object delegate;
+    private Object[] values;
     private boolean[] alphaTests;
 
     private RuntimeObject(Object o, Object[] values) {
@@ -22,11 +22,18 @@ public final class RuntimeObject implements RuntimeFact {
         this.alphaTests = alphaTests;
     }
 
+    public static RuntimeObject factory(Object o, Object[] values, boolean[] alphaTests) {
+        return new RuntimeObject(o, values, alphaTests);
+    }
+
+    public static RuntimeObject factory(Object o, Object[] values) {
+        return new RuntimeObject(o, values);
+    }
+
     @Override
     public Object apply(ActiveField field) {
         return values[field.getValueIndex()];
     }
-
 
     @Override
     public boolean[] getAlphaTests() {
@@ -42,14 +49,6 @@ public final class RuntimeObject implements RuntimeFact {
     @Override
     public Object[] getValues() {
         return values;
-    }
-
-    public static RuntimeObject factory(Object o, Object[] values, boolean[] alphaTests) {
-        return new RuntimeObject(o, values, alphaTests);
-    }
-
-    public static RuntimeObject factory(Object o, Object[] values) {
-        return new RuntimeObject(o, values);
     }
 
     public final void appendValue(ActiveField field, Object value) {

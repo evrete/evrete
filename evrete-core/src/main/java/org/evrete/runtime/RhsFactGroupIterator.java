@@ -7,13 +7,13 @@ import org.evrete.api.RuntimeFact;
 public abstract class RhsFactGroupIterator implements NestedFactRunnable {
     private NestedFactRunnable delegate;
 
+    public NestedFactRunnable getDelegate() {
+        return delegate;
+    }
+
     @Override
     public void setDelegate(NestedFactRunnable delegate) {
         this.delegate = delegate;
-    }
-
-    public NestedFactRunnable getDelegate() {
-        return delegate;
     }
 
     public abstract <I extends ReIterator<RuntimeFact>> void setIterators(I[] data);

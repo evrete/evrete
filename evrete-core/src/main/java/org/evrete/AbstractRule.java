@@ -16,11 +16,10 @@ public abstract class AbstractRule implements Rule {
     private final String name;
     private final Consumer<RhsContext> nullRhs;
     private final Set<String> imports;
+    private final Map<String, Object> properties;
     protected Consumer<RhsContext> rhs;
     private int salience;
     private String literalRhs;
-
-    private final Map<String, Object> properties;
 
     protected AbstractRule(String name, int defaultSalience) {
         this.name = name;
@@ -89,11 +88,6 @@ public abstract class AbstractRule implements Rule {
     }
 
     @Override
-    public final String getName() {
-        return name;
-    }
-
-    @Override
     public void setRhs(Consumer<RhsContext> rhs) {
         this.rhs = rhs == null ? nullRhs : rhs;
         this.literalRhs = null;
@@ -104,8 +98,13 @@ public abstract class AbstractRule implements Rule {
     }
 
     @Override
+    public final String getName() {
+        return name;
+    }
+
+    @Override
     public void chainRhs(Consumer<RhsContext> consumer) {
-        if(rhs == nullRhs || rhs == null) {
+        if (rhs == nullRhs || rhs == null) {
             setRhs(consumer);
         } else {
             setRhs(rhs.andThen(consumer));

@@ -11,9 +11,9 @@ public class LazyInstance<T> {
     }
 
     public T get() {
-        if(instance == null) {
+        if (instance == null) {
             synchronized (supplier) {
-                if(instance == null) {
+                if (instance == null) {
                     instance = supplier.get();
                 }
             }

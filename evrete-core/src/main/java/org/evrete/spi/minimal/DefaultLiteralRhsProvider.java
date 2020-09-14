@@ -37,8 +37,8 @@ public class DefaultLiteralRhsProvider extends LastServiceProvider implements Li
     String buildSource(String className, FactType[] types, String literalRhs, Collection<String> imports) {
         StringJoiner methodArgs = new StringJoiner(", ");
         StringJoiner args = new StringJoiner(", ");
-        for(FactType t : types) {
-            methodArgs.add(t.getType().getJavaType().getName() + " " +  t.getVar());
+        for (FactType t : types) {
+            methodArgs.add(t.getType().getJavaType().getName() + " " + t.getVar());
             args.add(t.getVar());
         }
 
@@ -46,8 +46,8 @@ public class DefaultLiteralRhsProvider extends LastServiceProvider implements Li
         sb.append("package ").append(classPackage).append(";\n\n");
 
         // Adding imports
-        if(!imports.isEmpty()) {
-            for(String imp : imports) {
+        if (!imports.isEmpty()) {
+            for (String imp : imports) {
                 String s = imp
                         .replaceAll("\\s", "")
                         .replaceAll(";", "");
@@ -56,12 +56,12 @@ public class DefaultLiteralRhsProvider extends LastServiceProvider implements Li
             sb.append("\n");
         }
 
-        sb.append("public class ").append(className).append(" extends ").append(AbstractLiteralRhs.class.getName()).append( " {\n\n");
+        sb.append("public class ").append(className).append(" extends ").append(AbstractLiteralRhs.class.getName()).append(" {\n\n");
 
         // Abstract method
         sb.append("\t@").append(Override.class.getName()).append("\n");
         sb.append("\tprotected void doRhs() {\n");
-        for(FactType t : types) {
+        for (FactType t : types) {
             sb.append("\t\t").append(t.getType().getJavaType().getName()).append(" ").append(t.getVar()).append(" = ").append("get(\"").append(t.getVar()).append("\");\n");
 
         }

@@ -8,8 +8,8 @@ import org.evrete.collections.FastIdentityHashSet;
 import java.util.Arrays;
 
 class ValueRowImpl implements ValueRow {
-    private final FastIdentityHashSet<RuntimeFact> facts = new FastIdentityHashSet<>();
     final Object[] data;
+    private final FastIdentityHashSet<RuntimeFact> facts = new FastIdentityHashSet<>();
     private final int hash;
     private final ReIterator<RuntimeFact> delegate;
 

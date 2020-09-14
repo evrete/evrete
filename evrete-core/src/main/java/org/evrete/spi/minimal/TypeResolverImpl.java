@@ -16,9 +16,9 @@ class TypeResolverImpl implements TypeResolver {
 
     private final Map<String, TypeCacheEntry> typeInheritanceCache = new HashMap<>();
     private final JcCompiler compiler;
+    private final ClassLoader classLoader;
     private int typeCounter = 0;
     private int fieldSetsCounter = 0;
-    private final ClassLoader classLoader;
 
     public TypeResolverImpl(RuntimeContext<?> requester) {
         this.classLoader = requester.getClassLoader();
@@ -109,10 +109,10 @@ class TypeResolverImpl implements TypeResolver {
 
         List<TypeImpl<?>> matching = new LinkedList<>();
         List<Class<?>> superClasses = superClasses(type);
-        for(Class<?> sup : superClasses) {
+        for (Class<?> sup : superClasses) {
             String supName = sup.getName();
             ArrayOf<TypeImpl<?>> match = typesByJavaType.get(supName);
-            if(match != null && match.data.length == 1) {
+            if (match != null && match.data.length == 1) {
                 matching.add(match.data[0]);
             }
         }

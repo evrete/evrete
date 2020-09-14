@@ -125,7 +125,7 @@ public class RuntimeAggregateLhsJoined extends RuntimeAggregateLhs {
             // Last
             // 1. Main
             it = iterator.keyIterator(KeyMode.KNOWN_KEYS_KNOWN_FACTS);
-            if(it.reset() > 0) {
+            if (it.reset() > 0) {
                 while (it.hasNext() && (!deltaOnly || hasDelta)) {
                     state[index] = it.next();
                     testAndSave();
@@ -134,7 +134,7 @@ public class RuntimeAggregateLhsJoined extends RuntimeAggregateLhs {
 
             // 2. Delta
             it = iterator.keyIterator(KeyMode.NEW_KEYS_NEW_FACTS);
-            if(it.reset() > 0) {
+            if (it.reset() > 0) {
                 while (it.hasNext()) {
                     state[index] = it.next();
                     testAndSave();
@@ -144,7 +144,7 @@ public class RuntimeAggregateLhsJoined extends RuntimeAggregateLhs {
         } else {
             // 1. Main
             it = iterator.keyIterator(KeyMode.KNOWN_KEYS_KNOWN_FACTS);
-            if(it.reset() >0) {
+            if (it.reset() > 0) {
                 while (it.hasNext()) {
                     state[index] = it.next();
                     evaluate(index + 1, hasDelta, deltaOnly);
@@ -153,7 +153,7 @@ public class RuntimeAggregateLhsJoined extends RuntimeAggregateLhs {
 
             // 2. Delta
             it = iterator.keyIterator(KeyMode.NEW_KEYS_NEW_FACTS);
-            if(it.reset() > 0) {
+            if (it.reset() > 0) {
                 while (it.hasNext()) {
                     state[index] = it.next();
                     evaluate(index + 1, true, deltaOnly);
@@ -197,7 +197,7 @@ public class RuntimeAggregateLhsJoined extends RuntimeAggregateLhs {
     }
 
 
-    static class SourceIterator implements KeyReIterators<ValueRow[]>{
+    static class SourceIterator implements KeyReIterators<ValueRow[]> {
         private final FactType[] types;
         private final int index;
         private final EnumMap<KeyMode, ReIterator<ValueRow[]>> map;

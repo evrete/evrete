@@ -575,7 +575,7 @@ class PredicatesTests {
                 .where(p2, "$b.i")
                 .where(p3, "$c.i")
                 .execute(rhsAssert)
-                ;
+        ;
 
         StatefulSession s = knowledge.createSession();
 

@@ -2,9 +2,9 @@ package org.evrete;
 
 import org.evrete.api.Knowledge;
 import org.evrete.api.OrderedServiceProvider;
+import org.evrete.api.spi.ExpressionResolverProvider;
 import org.evrete.api.spi.LiteralRhsCompiler;
 import org.evrete.api.spi.MemoryCollectionsProvider;
-import org.evrete.api.spi.ExpressionResolverProvider;
 import org.evrete.api.spi.TypeResolverProvider;
 import org.evrete.runtime.KnowledgeImpl;
 import org.evrete.runtime.async.ForkJoinExecutor;
@@ -32,6 +32,18 @@ public class KnowledgeService {
 
     public KnowledgeService() {
         this(new Configuration());
+    }
+
+    private static <Z extends OrderedServiceProvider> Z loadService(Class<Z> clazz) {
+        List<Z> providers = new LinkedList<>();
+        Iterator<Z> sl = ServiceLoader.load(clazz).iterator();
+        sl.forEachRemaining(providers::add);
+        Collections.sort(providers);
+        if (providers.isEmpty()) {
+            throw new IllegalStateException("Implementation missing: " + clazz);
+        } else {
+            return providers.iterator().next();
+        }
     }
 
     public ClassLoader getClassLoader() {
@@ -72,18 +84,6 @@ public class KnowledgeService {
 
     public TypeResolverProvider getTypeResolverProvider() {
         return typeResolverProvider;
-    }
-
-    private static <Z extends OrderedServiceProvider> Z loadService(Class<Z> clazz) {
-        List<Z> providers = new LinkedList<>();
-        Iterator<Z> sl = ServiceLoader.load(clazz).iterator();
-        sl.forEachRemaining(providers::add);
-        Collections.sort(providers);
-        if (providers.isEmpty()) {
-            throw new IllegalStateException("Implementation missing: " + clazz);
-        } else {
-            return providers.iterator().next();
-        }
     }
 
 }

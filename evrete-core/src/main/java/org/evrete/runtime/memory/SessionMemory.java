@@ -81,7 +81,7 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
     public void clear() {
         buffer.clear();
         typedMemories.forEachValue(TypeMemory::clear);
-        for(RuntimeRuleImpl rule : ruleStorage) {
+        for (RuntimeRuleImpl rule : ruleStorage) {
             rule.clear();
         }
     }
@@ -224,8 +224,8 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
         Collection<BetaEndNode> deltaEndNodes = new LinkedList<>();
 
         for (RuntimeRuleImpl rule : ruleStorage) {
-            for(BetaEndNode endNode : rule.getLhs().getAllBetaEndNodes()) {
-                if(endNode.hasDeltaSources()) {
+            for (BetaEndNode endNode : rule.getLhs().getAllBetaEndNodes()) {
+                if (endNode.hasDeltaSources()) {
                     deltaEndNodes.add(endNode);
                 }
             }

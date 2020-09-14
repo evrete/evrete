@@ -1,4 +1,3 @@
-
 package org.evrete.api;
 
 public final class FactBuilder {

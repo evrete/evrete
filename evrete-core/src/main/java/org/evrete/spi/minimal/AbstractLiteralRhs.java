@@ -8,6 +8,7 @@ import java.util.function.Consumer;
 
 public abstract class AbstractLiteralRhs implements Consumer<RhsContext>, RhsContext {
     private RhsContext ctx;
+
     protected abstract void doRhs();
 
     @Override

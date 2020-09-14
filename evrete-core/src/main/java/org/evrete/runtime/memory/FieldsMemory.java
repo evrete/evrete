@@ -1,10 +1,6 @@
 package org.evrete.runtime.memory;
 
-import org.evrete.api.FieldsKey;
-import org.evrete.api.Memory;
-import org.evrete.api.ReIterator;
-import org.evrete.api.RuntimeFact;
-import org.evrete.api.SharedBetaFactStorage;
+import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.RuntimeObject;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
@@ -38,7 +34,7 @@ public class FieldsMemory implements Memory {
 
     @Override
     public void commitChanges() {
-        for(FieldsMemoryBucket bucket : alphaBuckets.data) {
+        for (FieldsMemoryBucket bucket : alphaBuckets.data) {
             bucket.commitChanges();
         }
     }

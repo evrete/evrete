@@ -48,10 +48,10 @@ public class RuntimeLhsAggregate extends RuntimeLhs implements RhsContext {
 
     @Override
     public boolean isInActiveState() {
-        for(AbstractRuntimeLhs g : aggregateLooseGroups) {
+        for (AbstractRuntimeLhs g : aggregateLooseGroups) {
             g.isInActiveState();
         }
-        for(AbstractRuntimeLhs g : aggregateConditionedGroups) {
+        for (AbstractRuntimeLhs g : aggregateConditionedGroups) {
             g.isInActiveState();
         }
         return super.isInActiveState();
@@ -59,10 +59,10 @@ public class RuntimeLhsAggregate extends RuntimeLhs implements RhsContext {
 
     @Override
     public void resetState() {
-        for(AbstractRuntimeLhs g : aggregateLooseGroups) {
+        for (AbstractRuntimeLhs g : aggregateLooseGroups) {
             g.resetState();
         }
-        for(AbstractRuntimeLhs g : aggregateConditionedGroups) {
+        for (AbstractRuntimeLhs g : aggregateConditionedGroups) {
             g.resetState();
         }
         super.resetState();

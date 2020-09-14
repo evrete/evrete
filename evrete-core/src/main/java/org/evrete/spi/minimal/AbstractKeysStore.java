@@ -10,7 +10,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
-abstract class AbstractKeysStore<E extends KeysStoreEntry> extends AbstractHashData<E> implements KeysStore  {
+abstract class AbstractKeysStore<E extends KeysStoreEntry> extends AbstractHashData<E> implements KeysStore {
     static final BiPredicate<Object, Object> EQ_PREDICATE = (o1, o2) -> {
         KeysStoreEntry e1 = (KeysStoreEntry) o1;
         KeysStoreEntry e2 = (KeysStoreEntry) o2;
@@ -18,9 +18,9 @@ abstract class AbstractKeysStore<E extends KeysStoreEntry> extends AbstractHashD
     };
 
     static final ToIntFunction<Object> HASH_FUNCTION = value -> ((KeysStoreEntry) value).hash;
+    static final BiPredicate<KeysStoreEntry, ValueRow[]> EQ_FUNCTION = (entry, rows) -> MiscUtils.sameData(entry.key, rows);
     private static final BiPredicate<KeysStoreEntry, IntToValueRow> EQ_FUNCTION1 = (entry, intToValueRow) -> MiscUtils.eqEquals(intToValueRow, entry.key);
     private static final Function<KeysStoreEntry, Entry> KEY_MAPPER = entry -> entry;
-    static final BiPredicate<KeysStoreEntry, ValueRow[]> EQ_FUNCTION = (entry, rows) -> MiscUtils.sameData(entry.key, rows);
     final int arrSize;
     final int level;
 

@@ -1,10 +1,6 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.FieldsKey;
-import org.evrete.api.KeysStore;
-import org.evrete.api.MemoryCollections;
-import org.evrete.api.SharedBetaFactStorage;
-import org.evrete.api.SharedPlainFactStorage;
+import org.evrete.api.*;
 
 public class DefaultCollectionsService implements MemoryCollections {
 

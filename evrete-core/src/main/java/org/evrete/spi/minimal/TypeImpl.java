@@ -56,29 +56,6 @@ class TypeImpl<T> implements Copyable<TypeImpl<T>>, Type<T> {
         }
     }
 
-    @Override
-    public TypeImpl<T> copyOf() {
-        return new TypeImpl<>(this);
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TypeImpl<?> type = (TypeImpl<?>) o;
-        return name.equals(type.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
-
     private static ValueReader resolve(MethodHandles.Lookup lookup, Class<?> clazz, String prop) {
         MethodHandle handle = null;
 
@@ -124,6 +101,33 @@ class TypeImpl<T> implements Copyable<TypeImpl<T>>, Type<T> {
         return null;
     }
 
+    private static String capitalizeFirst(String str) {
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+
+    @Override
+    public TypeImpl<T> copyOf() {
+        return new TypeImpl<>(this);
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TypeImpl<?> type = (TypeImpl<?>) o;
+        return name.equals(type.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
+
     @Override
     public TypeField getField(String name) {
         return fields.get(name);
@@ -152,7 +156,6 @@ class TypeImpl<T> implements Copyable<TypeImpl<T>>, Type<T> {
         return Collections.unmodifiableCollection(fields.values());
     }
 
-
     @Override
     public String toString() {
         return javaType.getSimpleName();
@@ -171,10 +174,6 @@ class TypeImpl<T> implements Copyable<TypeImpl<T>>, Type<T> {
             }
         }
         return field;
-    }
-
-    private static String capitalizeFirst(String str) {
-        return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 
     synchronized TypeField inspectClass(String dottedProp) {

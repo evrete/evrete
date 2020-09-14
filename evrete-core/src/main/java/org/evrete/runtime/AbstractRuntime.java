@@ -30,26 +30,15 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     private final KnowledgeService service;
     private final ActiveFields activeFields;
     private final Queue<Completer> tasksQueue = new LinkedList<>();
-    private ClassLoader classLoader;
-
     private final LazyInstance<MemoryCollections> collectionsService = new LazyInstance<>(this::newCollectionsService);
     private final LazyInstance<ExpressionResolver> expressionResolver = new LazyInstance<>(this::newExpressionResolver);
     private final LazyInstance<TypeResolver> typeResolver = new LazyInstance<>(this::newTypeResolver);
     private final LazyInstance<LiteralRhsCompiler> rhsCompiler = new LazyInstance<>(this::newLiteralLhsProvider);
-
-    private Comparator<Rule> ruleComparator = SALIENCE_COMPARATOR;
-
-    private Class<? extends ActivationManager> activationManagerFactory;
-
     private final Map<String, Object> properties;
-
-    protected abstract TypeResolver newTypeResolver();
-
-    protected abstract void onNewActiveField(ActiveField newField);
-
-    protected abstract void onNewAlphaBucket(AlphaDelta alphaDelta);
-
     private final AbstractRuntime<?> parent;
+    private ClassLoader classLoader;
+    private Comparator<Rule> ruleComparator = SALIENCE_COMPARATOR;
+    private Class<? extends ActivationManager> activationManagerFactory;
 
     /**
      * Constructor for a Knowledge object
@@ -90,6 +79,12 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         this.properties = new ConcurrentHashMap<>(parent.properties);
     }
 
+    protected abstract TypeResolver newTypeResolver();
+
+    protected abstract void onNewActiveField(ActiveField newField);
+
+    protected abstract void onNewAlphaBucket(AlphaDelta alphaDelta);
+
     @Override
     public RuntimeContext<?> addImport(String imp) {
         this.imports.add(imp);
@@ -113,24 +108,8 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     }
 
     @Override
-    public <A extends ActivationManager> void setActivationManagerFactory(Class<A> managerClass) {
-        this.activationManagerFactory = managerClass;
-    }
-
-    @Override
     public Set<String> getImports() {
         return imports;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public final void setActivationManagerFactory(String managerClass) {
-        try {
-            Class<? extends ActivationManager> factory = (Class<? extends ActivationManager>) Class.forName(managerClass, true, classLoader);
-            setActivationManagerFactory(factory);
-        } catch (ClassNotFoundException e) {
-            throw new IllegalArgumentException(managerClass);
-        }
     }
 
     @Override
@@ -165,6 +144,22 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     @Override
     public Class<? extends ActivationManager> getActivationManagerFactory() {
         return activationManagerFactory;
+    }
+
+    @Override
+    public <A extends ActivationManager> void setActivationManagerFactory(Class<A> managerClass) {
+        this.activationManagerFactory = managerClass;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public final void setActivationManagerFactory(String managerClass) {
+        try {
+            Class<? extends ActivationManager> factory = (Class<? extends ActivationManager>) Class.forName(managerClass, true, classLoader);
+            setActivationManagerFactory(factory);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalArgumentException(managerClass);
+        }
     }
 
     protected ActivationManager newActivationManager() {

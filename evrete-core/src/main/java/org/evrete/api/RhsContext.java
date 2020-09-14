@@ -2,15 +2,16 @@ package org.evrete.api;
 
 /**
  * <p>
- *     Rule activation context that provides access to the rule's variables and
- *     working memory methods.
+ * Rule activation context that provides access to the rule's variables and
+ * working memory methods.
  * </p>
  */
 public interface RhsContext {
     /**
      * <p>
-     *     Inserts a new object into the working memory.
+     * Inserts a new object into the working memory.
      * </p>
+     *
      * @param obj the object
      * @return the context itself so the methods could be chained
      */
@@ -18,10 +19,11 @@ public interface RhsContext {
 
     /**
      * <p>
-     *     This method lets the working memory know that one of its objects has changed.
-     *     Always call this method to get conditions re-evaluated, and
-     *     avoid calling it if the changes are not relevant to the conditions.
+     * This method lets the working memory know that one of its objects has changed.
+     * Always call this method to get conditions re-evaluated, and
+     * avoid calling it if the changes are not relevant to the conditions.
      * </p>
+     *
      * @param obj the changed object
      * @return the context itself so the methods could be chained
      */
@@ -29,8 +31,9 @@ public interface RhsContext {
 
     /**
      * <p>
-     *     This method removes an instance from the working memory.
+     * This method removes an instance from the working memory.
      * </p>
+     *
      * @param obj the object to remove
      * @return the context itself so the methods could be chained
      */
@@ -38,8 +41,9 @@ public interface RhsContext {
 
     /**
      * <p>
-     *     Returns a fact reference by its name, specified in the LHS
+     * Returns a fact reference by its name, specified in the LHS
      * </p>
+     *
      * @param name the fact name
      * @return current inner fact representation with a reference to the inserted instance
      */
@@ -77,8 +81,9 @@ public interface RhsContext {
 
     /**
      * <p>
-     *     Returns current fact by its name
+     * Returns current fact by its name
      * </p>
+     *
      * @param name the fact name
      * @return current instance
      */
@@ -88,10 +93,11 @@ public interface RhsContext {
 
     /**
      * <p>
-     *     A typed version of the <code>getObject()</code> method.
+     * A typed version of the <code>getObject()</code> method.
      * </p>
+     *
      * @param name fact name
-     * @param <T> cast type
+     * @param <T>  cast type
      * @return current instance
      */
     @SuppressWarnings("unchecked")

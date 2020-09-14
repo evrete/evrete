@@ -8,6 +8,7 @@ import java.util.function.*;
  * The definition of a type which is assigned to every object before it gets
  * into the working memory.
  * </p>
+ *
  * @param <T> Java type
  */
 public interface Type<T> extends Named {
@@ -18,8 +19,8 @@ public interface Type<T> extends Named {
 
     /**
      * <p>
-     *      Returns a declared field with the given name, or null
-     *      if no such field is found.
+     * Returns a declared field with the given name, or null
+     * if no such field is found.
      * </p>
      *
      * @param name field name
@@ -29,12 +30,12 @@ public interface Type<T> extends Named {
 
     /**
      * <p>
-     *     A field declaration through a lambda expression, like "<code>o -&gt; {return o.getSomeValue()}</code>"
-     *     The expression may also contain valid Java code before returning its value.
+     * A field declaration through a lambda expression, like "<code>o -&gt; {return o.getSomeValue()}</code>"
+     * The expression may also contain valid Java code before returning its value.
      * </p>
      *
-     * @param name field name
-     * @param type field value type
+     * @param name             field name
+     * @param type             field value type
      * @param lambdaExpression lambda expression as a literal
      * @return newly created field
      */
@@ -42,10 +43,11 @@ public interface Type<T> extends Named {
 
     /**
      * <p>
-     *      Field declaration with a {@link Function} as value reader.
+     * Field declaration with a {@link Function} as value reader.
      * </p>
-     * @param name field name
-     * @param type field value type
+     *
+     * @param name     field name
+     * @param type     field value type
      * @param function the function that will be used to read field's value
      * @return newly created field
      */

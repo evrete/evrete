@@ -55,7 +55,7 @@ class TypeMemoryBucket implements PlainMemory {
     @Override
     public void commitChanges() {
         int deltaSize;
-        if((deltaSize = delta.size()) > 0) {
+        if ((deltaSize = delta.size()) > 0) {
             //TODO !!!!bulk insert, change interface, use the same approach in hot deployment
             data.ensureExtraCapacity(deltaSize);
             delta.iterator().forEachRemaining(data::insert);

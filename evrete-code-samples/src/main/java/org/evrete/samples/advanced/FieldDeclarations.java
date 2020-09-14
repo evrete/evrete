@@ -3,8 +3,6 @@ package org.evrete.samples.advanced;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 
-import java.util.function.Function;
-
 class FieldDeclarations {
 
     public static void main(String[] args) {

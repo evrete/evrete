@@ -2,13 +2,12 @@ package org.evrete.classes;
 
 @SuppressWarnings("unused")
 public abstract class Base {
-    private String id;
-
     public int i;
-    private float f;
     public double d;
-    private long l;
     public short s;
+    private String id;
+    private float f;
+    private long l;
 
 
     Base(String id) {
