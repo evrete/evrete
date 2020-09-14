@@ -1,7 +1,10 @@
 package org.evrete.runtime.builder;
 
 import org.evrete.AbstractRule;
-import org.evrete.api.*;
+import org.evrete.api.FactBuilder;
+import org.evrete.api.RhsContext;
+import org.evrete.api.RuleBuilder;
+import org.evrete.api.RuntimeContext;
 import org.evrete.runtime.AbstractRuntime;
 
 import java.util.function.Consumer;
@@ -48,7 +51,7 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
 
     @Override
     public <Z> RuleBuilder<C> property(String property, Z value) {
-        setProperty(property, value);
+        set(property, value);
         return this;
     }
 

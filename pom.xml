@@ -166,9 +166,13 @@
                         <notimestamp>true</notimestamp>
                         <notree>true</notree>
                         <quiet>true</quiet>
+                        <stylesheet>
+                            maven
+                        </stylesheet>
                         <excludePackageNames>
                             org.evrete.collections:org.evrete.runtime:org.evrete.runtime.*:org.evrete.spi:org.evrete.spi.*:org.evrete.util
                         </excludePackageNames>
+                        <stylesheetfile>/css/javadoc.css</stylesheetfile>
                     </configuration>
                     <executions>
                         <execution>

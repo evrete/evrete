@@ -73,13 +73,13 @@ public abstract class AbstractRule implements Rule {
     }
 
     @Override
-    public final <T> void setProperty(String property, T value) {
+    public final <T> void set(String property, T value) {
         this.properties.put(property, value);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public final <T> T getProperty(String property) {
+    public final <T> T get(String property) {
         return (T) properties.get(property);
     }
 

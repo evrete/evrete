@@ -47,13 +47,25 @@ public interface RhsContext {
 
     /**
      * <p>
-     *     A convenience method that returns reference to the current rule and its
-     *     environment.
+     * A convenience method that returns reference to the current rule and its
+     * environment.
      * </p>
      *
      * @return current rule
      */
     RuntimeRule getRule();
+
+    /**
+     * <p>
+     * Provides access to the runtime context, an equivalent to
+     * <code>getRule().getRuntime()</code>.
+     * </p>
+     *
+     * @return runtime context (session)
+     */
+    default RuntimeContext<?> getRuntime() {
+        return getRule().getRuntime();
+    }
 
     default RhsContext deleteFact(String factRef) {
         return delete(getObject(factRef));

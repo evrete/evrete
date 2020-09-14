@@ -97,13 +97,13 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     }
 
     @Override
-    public <T> void setProperty(String property, T value) {
+    public <T> void set(String property, T value) {
         this.properties.put(property, value);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T getProperty(String property) {
+    public <T> T get(String property) {
         return (T) properties.get(property);
     }
 
