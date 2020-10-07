@@ -8,10 +8,13 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 /**
+ * <p>
  * A classical forward chaining example from
  * https://en.wikipedia.org/wiki/Forward_chaining
+ * </p>
  * <p>
  * This example shows how type fields can be created on the fly.
+ * </p>
  */
 class WhoIsFritzDynamicFields {
     public static void main(String[] args) {
