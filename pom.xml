@@ -187,6 +187,7 @@
     <modules>
         <module>evrete-core</module>
         <module>evrete-code-samples</module>
+        <module>evrete-showcase</module>
     </modules>
 
     <profiles>
