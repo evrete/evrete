@@ -30,8 +30,7 @@ public final class TypeMemory implements PlainMemory {
     private final List<RuntimeFact> deleteBuffer = new LinkedList<>();
 
     private ActiveField[] cachedActiveFields;
-
-    private AlphaEvaluator[] cachesAlphaEvaluators;
+    private AlphaEvaluator[] cachedAlphaEvaluators;
 
     TypeMemory(SessionMemory runtime, Type<?> type) {
         this.runtime = runtime;
@@ -41,7 +40,7 @@ public final class TypeMemory implements PlainMemory {
         this.deltaFacts = new IdentityMap();
         this.alphaBuckets = new ArrayOf<>(TypeMemoryBucket.class);
         this.cachedActiveFields = runtime.getActiveFields(type);
-        this.cachesAlphaEvaluators = alphaConditions.getPredicates(type).data;
+        this.cachedAlphaEvaluators = alphaConditions.getPredicates(type).data;
     }
 
     public final Set<FieldsKey> knownFieldSets() {
@@ -205,7 +204,7 @@ public final class TypeMemory implements PlainMemory {
                     .onNewAlphaBucket(alphaMeta, existingFacts);
         }
 
-        this.cachesAlphaEvaluators = alphaConditions.getPredicates(type).data;
+        this.cachedAlphaEvaluators = alphaConditions.getPredicates(type).data;
     }
 
     void commitMemoryDeltas() {
@@ -258,11 +257,11 @@ public final class TypeMemory implements PlainMemory {
     }
 
     final void insertSingle(Object o) {
-        RuntimeObject rto = register(o);
+        RuntimeObject rto = mapToHandle(o);
         insertBuffer.add(rto);
     }
 
-    private RuntimeObject register(Object o) {
+    private RuntimeObject mapToHandle(Object o) {
         final RuntimeObject rto;
 
         // Read values
@@ -272,9 +271,9 @@ public final class TypeMemory implements PlainMemory {
         }
 
         // Evaluate alpha conditions if necessary
-        if (cachesAlphaEvaluators.length > 0) {
-            boolean[] alphaTests = new boolean[cachesAlphaEvaluators.length];
-            for (AlphaEvaluator alpha : cachesAlphaEvaluators) {
+        if (cachedAlphaEvaluators.length > 0) {
+            boolean[] alphaTests = new boolean[cachedAlphaEvaluators.length];
+            for (AlphaEvaluator alpha : cachedAlphaEvaluators) {
                 int fieldInUseIndex = alpha.getValueIndex();
                 alphaTests[alpha.getUniqueId()] = alpha.test(values[fieldInUseIndex]);
             }

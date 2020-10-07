@@ -32,6 +32,13 @@ public class ActiveFields implements Copyable<ActiveFields> {
     }
 
     @Override
+    public String toString() {
+        return "ActiveFields{" +
+                "typeData=" + typeData +
+                '}';
+    }
+
+    @Override
     public ActiveFields copyOf() {
         return new ActiveFields(this);
     }
@@ -63,6 +70,13 @@ public class ActiveFields implements Copyable<ActiveFields> {
         @Override
         public TypeData copyOf() {
             return new TypeData(this);
+        }
+
+        @Override
+        public String toString() {
+            return "TypeData{" +
+                    "fieldsInUse=" + Arrays.toString(fieldsInUse) +
+                    '}';
         }
     }
 }

@@ -5,7 +5,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 
-public abstract class AbstractFastHashMapBase<K, E extends HashEntry<K>> extends AbstractHashData<E> {
+public abstract class AbstractFastHashMapBase<K, E extends HashEntry<K>> extends AbstractLinearHash<E> {
 
     AbstractFastHashMapBase(int initialCapacity) {
         super(initialCapacity);

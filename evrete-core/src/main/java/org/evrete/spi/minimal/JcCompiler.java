@@ -1,65 +1,19 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.Type;
-
 import javax.tools.*;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 class JcCompiler {
     private static final Logger LOGGER = Logger.getLogger(JcCompiler.class.getName());
-    private static final String FUNCTION_NAME = Function.class.getName();
-    private static final String FIELD_NAME = "FUNC";
-    private static final String FIELD_TEMPLATE = "" +
-            "package %s;\n" +
-            "public interface %s {\n" +
-            "  %s<%s, Object> %s =\n" +
-            "    %s\n" +
-            "}\n";
-
-    private static final AtomicInteger counter = new AtomicInteger();
-    private final String packageName;
     private final JcClassLoader classLoader;
-    private final Map<Type<?>, Map<String, Function<?, ?>>> compiledLambdas = new HashMap<>();
     private final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-    private int globalId = 0;
 
     public JcCompiler(ClassLoader classLoader) {
         this.classLoader = new JcClassLoader(classLoader);
-        this.packageName = JcCompiler.class.getPackage().getName() + ".p" + counter.incrementAndGet();
-    }
-
-    public final Function<?, ?> compileLambda(TypeImpl<?> type, String exp) {
-        String lambda = exp.trim();
-        lambda = lambda.endsWith(";") ? lambda : lambda + ';';
-        Function<?, ?> function = compiledLambdas.computeIfAbsent(type, k -> new HashMap<>()).get(lambda);
-
-        if (function == null) {
-            String className = "F" + (globalId++);
-            String source = String.format(FIELD_TEMPLATE,
-                    packageName,
-                    className,
-                    FUNCTION_NAME,
-                    type.getJavaType().getName(),
-                    FIELD_NAME,
-                    lambda
-            );
-            Class<?> compiled = compile(className, source);
-            try {
-                function = (Function<?, ?>) compiled
-                        .getField(FIELD_NAME)
-                        .get(null); // Getting value of a static field
-                compiledLambdas.get(type).put(lambda, function);
-            } catch (JcCompilationException e) {
-                throw e;
-            } catch (Throwable e) {
-                throw new JcCompilationException(e);
-            }
-        }
-        return function;
     }
 
     public Class<?> compile(String className, String source) {

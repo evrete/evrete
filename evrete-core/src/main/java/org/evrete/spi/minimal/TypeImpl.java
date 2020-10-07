@@ -1,6 +1,5 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.Copyable;
 import org.evrete.api.Type;
 import org.evrete.api.TypeField;
 import org.evrete.collections.ArrayOf;
@@ -13,47 +12,21 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.Function;
 
-class TypeImpl<T> implements Copyable<TypeImpl<T>>, Type<T> {
+class TypeImpl<T> implements Type<T> {
     private final String name;
     private final Class<T> javaType;
     private final Map<String, TypeFieldImpl> fields = new HashMap<>();
-    private final JcCompiler compiler;
 
-    private TypeImpl(JcCompiler compiler, Class<T> javaType) {
-        this(javaType.getName(), javaType, compiler);
-    }
-
-    TypeImpl(String name, Class<T> javaType, JcCompiler compiler) {
+    TypeImpl(String name, Class<T> javaType) {
         Objects.requireNonNull(name);
         Objects.requireNonNull(javaType);
         this.javaType = javaType;
-        this.compiler = compiler;
         this.name = name;
     }
 
-/*
-    private TypeImpl(String name, JcCompiler compiler) {
-        this(name, null, compiler);
-    }
-*/
-
     private TypeImpl(TypeImpl<T> other) {
-        this(other.name, other.javaType, other.compiler);
+        this(other.name, other.javaType);
         this.fields.putAll(other.fields);
-    }
-
-
-    @SuppressWarnings("unchecked")
-    static <T> TypeImpl<T> factory(JcCompiler compiler, String className) {
-        Const.assertName(className);
-        Class<T> clazz;
-        try {
-            ClassLoader classLoader = compiler.getClassLoader();
-            clazz = (Class<T>) classLoader.loadClass(className);
-            return new TypeImpl<>(compiler, clazz);
-        } catch (ClassNotFoundException e) {
-            throw new IllegalArgumentException("Can not resolve class name '" + className + "'", e);
-        }
     }
 
     private static ValueReader resolve(MethodHandles.Lookup lookup, Class<?> clazz, String prop) {
@@ -133,12 +106,14 @@ class TypeImpl<T> implements Copyable<TypeImpl<T>>, Type<T> {
         return fields.get(name);
     }
 
+/*
     @Override
     @SuppressWarnings("unchecked")
     public TypeField declareField(String name, Class<?> type, String lambdaExpression) {
         Function<T, Object> function = (Function<T, Object>) compiler.compileLambda(this, lambdaExpression);
         return declareField(name, type, function);
     }
+*/
 
     @Override
     @SuppressWarnings("unchecked")
@@ -158,7 +133,9 @@ class TypeImpl<T> implements Copyable<TypeImpl<T>>, Type<T> {
 
     @Override
     public String toString() {
-        return javaType.getSimpleName();
+        return "{name='" + name + '\'' +
+                ", javaType=" + javaType +
+                '}';
     }
 
     private TypeField getCreateField(final String name, final Class<?> type, final Function<Object, ?> function) {

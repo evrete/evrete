@@ -160,15 +160,13 @@
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>3.2.0</version>
                     <configuration>
+                        <doclint>none</doclint>
                         <source>8</source>
                         <nohelp>true</nohelp>
                         <noindex>true</noindex>
                         <notimestamp>true</notimestamp>
                         <notree>true</notree>
                         <quiet>true</quiet>
-                        <stylesheet>
-                            maven
-                        </stylesheet>
                         <excludePackageNames>
                             org.evrete.collections:org.evrete.runtime:org.evrete.runtime.*:org.evrete.spi:org.evrete.spi.*:org.evrete.util
                         </excludePackageNames>

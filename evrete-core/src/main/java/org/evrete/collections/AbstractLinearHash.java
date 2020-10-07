@@ -13,13 +13,12 @@ import java.util.stream.Stream;
 /**
  * A simple implementation of linear probing hash table without fail-fast bells and whistles and alike.
  * Unlike the stock Java's HashMap, this implementation can shrink down its bucket table when necessary
- * thus preserving the _real_ O(N) scan complexity. (Java HashMap's scan time degrades significantly at
- * low fill ratios). Compared to the Java's HashMap, this implementation is 2 times faster in scanning
- * and shows similar timing for put/remove operations
+ * thus preserving the _real_ O(N) scan complexity. Compared to the Java's HashMap, this implementation
+ * is 2-5 times faster.
  *
  * @param <E> Entry type
  */
-public abstract class AbstractHashData<E> extends UnsignedIntArray implements ReIterable<E>, BufferedInsert {
+public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements ReIterable<E>, BufferedInsert {
     protected static final BiPredicate<Object, Object> IDENTITY_EQUALS = (o1, o2) -> o1 == o2;
     static final ToIntFunction<Object> DEFAULT_HASH = Object::hashCode;
     static final ToIntFunction<Object> IDENTITY_HASH = System::identityHashCode;
@@ -32,14 +31,14 @@ public abstract class AbstractHashData<E> extends UnsignedIntArray implements Re
     int size = 0;
     int deletes = 0;
 
-    protected AbstractHashData(int initialCapacity) {
+    protected AbstractLinearHash(int initialCapacity) {
         super(initialCapacity);
         int capacity = tableSizeFor(initialCapacity);
         this.data = new Object[capacity];
         this.deletedIndices = new boolean[capacity];
     }
 
-    protected AbstractHashData() {
+    protected AbstractLinearHash() {
         this(DEFAULT_INITIAL_CAPACITY);
     }
 
@@ -134,7 +133,7 @@ public abstract class AbstractHashData<E> extends UnsignedIntArray implements Re
         saveDirect(element, addr);
     }
 
-    public final <Z extends AbstractHashData<E>> void bulkAdd(Z other) {
+    public final <Z extends AbstractLinearHash<E>> void bulkAdd(Z other) {
         resize(size + other.size);
 
         ToIntFunction<Object> hashFunc = getHashFunction();
@@ -359,7 +358,7 @@ public abstract class AbstractHashData<E> extends UnsignedIntArray implements Re
 
         @Override
         public String toString() {
-            return AbstractHashData.this.toString();
+            return AbstractLinearHash.this.toString();
         }
 
         Object nextObject() {

@@ -4,13 +4,13 @@ import org.evrete.api.IntToValueRow;
 import org.evrete.api.KeysStore;
 import org.evrete.api.ReIterator;
 import org.evrete.api.ValueRow;
-import org.evrete.collections.AbstractHashData;
+import org.evrete.collections.AbstractLinearHash;
 
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
-abstract class AbstractKeysStore<E extends KeysStoreEntry> extends AbstractHashData<E> implements KeysStore {
+abstract class AbstractKeysStore<E extends KeysStoreEntry> extends AbstractLinearHash<E> implements KeysStore {
     static final BiPredicate<Object, Object> EQ_PREDICATE = (o1, o2) -> {
         KeysStoreEntry e1 = (KeysStoreEntry) o1;
         KeysStoreEntry e2 = (KeysStoreEntry) o2;

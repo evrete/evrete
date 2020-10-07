@@ -11,7 +11,7 @@ import java.util.function.*;
  *
  * @param <T> Java type
  */
-public interface Type<T> extends Named {
+public interface Type<T> extends Named, Copyable<Type<T>> {
 
     Class<T> getJavaType();
 
@@ -28,18 +28,6 @@ public interface Type<T> extends Named {
      */
     TypeField getField(String name);
 
-    /**
-     * <p>
-     * A field declaration through a lambda expression, like "<code>o -&gt; {return o.getSomeValue()}</code>"
-     * The expression may also contain valid Java code before returning its value.
-     * </p>
-     *
-     * @param name             field name
-     * @param type             field value type
-     * @param lambdaExpression lambda expression as a literal
-     * @return newly created field
-     */
-    TypeField declareField(String name, Class<?> type, String lambdaExpression);
 
     /**
      * <p>

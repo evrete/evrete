@@ -8,6 +8,8 @@ public interface TypeResolver extends Copyable<TypeResolver> {
 
     Collection<Type<?>> getKnownTypes();
 
+    void wrapType(TypeWrapper<?> typeWrapper);
+
     <T> Type<T> declare(String typeName, Class<T> javaType);
 
     <T> Type<T> declare(String typeName, String javaType);

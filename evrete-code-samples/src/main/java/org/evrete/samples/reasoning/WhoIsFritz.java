@@ -65,7 +65,7 @@ class WhoIsFritz {
                 )
                 .createSession();
 
-        // Fritz and known properties
+        // Fritz and his known properties
         Subject fritz = new Subject();
         fritz.eatsFlies = true;
         fritz.croaks = true;

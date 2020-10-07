@@ -44,7 +44,7 @@ class DefaultExpressionResolver implements ExpressionResolver {
                 field = ((TypeImpl<?>) type).inspectClass(dottedProp);
             }
             if (field == null) {
-                throw new IllegalArgumentException("Unable to resolve property '" + dottedProp + "' of " + type);
+                throw new IllegalArgumentException("Unable to resolve property '" + dottedProp + "' of the type " + type);
             }
         }
 
