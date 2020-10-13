@@ -11,12 +11,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class DefaultExpressionResolver implements ExpressionResolver {
+    private static final String BASE_CLASS_PROPERTY = "org.evrete.minimal.condition-base-class";
+
     private static final Pattern REFERENCE_PATTERN = Pattern.compile("\\$[a-zA-Z0-9]+(\\.[a-zA-Z][a-zA-Z0-9]*)+");
 
     private final EvaluatorCompiler evaluatorCompiler;
+    private final String conditionBaseClassName;
 
     DefaultExpressionResolver(RuntimeContext<?> requester) {
         this.evaluatorCompiler = new EvaluatorCompiler(requester.getClassLoader());
+        this.conditionBaseClassName = requester.getConfiguration().getProperty(BASE_CLASS_PROPERTY, Object.class.getName());
     }
 
     @Override
@@ -36,16 +40,10 @@ class DefaultExpressionResolver implements ExpressionResolver {
             throw new IllegalArgumentException("There's no declared reference '" + lhsFactTYpe + "' in provided context.");
         }
 
-
         Type<?> type = typeRef.getType();
         TypeField field = type.getField(dottedProp);
         if (field == null) {
-            if (type instanceof TypeImpl) {
-                field = ((TypeImpl<?>) type).inspectClass(dottedProp);
-            }
-            if (field == null) {
-                throw new IllegalArgumentException("Unable to resolve property '" + dottedProp + "' of the type " + type);
-            }
+            throw new IllegalArgumentException("Unable to resolve property '" + dottedProp + "' of the type " + type);
         }
 
         return new FieldReferenceImpl(typeRef, field);
@@ -87,7 +85,13 @@ class DefaultExpressionResolver implements ExpressionResolver {
             terms.add(t);
         }
 
-        return evaluatorCompiler.buildExpression(remover, strippedExpression, terms);
+        try {
+            Class<?> baseClass = evaluatorCompiler.getClassLoader().loadClass(conditionBaseClassName);
+            return evaluatorCompiler.buildExpression(baseClass, remover, strippedExpression, terms);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException("Unable to load class '" + conditionBaseClassName + "'");
+        }
+
     }
 
 }

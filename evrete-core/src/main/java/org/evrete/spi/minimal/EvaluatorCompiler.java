@@ -15,7 +15,7 @@ import java.util.StringJoiner;
 class EvaluatorCompiler {
     private static final String JAVA_EVALUATOR_TEMPLATE = "package %s;\n" +
             "\n" +
-            "public class %s {\n" +
+            "public class %s extends %s {\n" +
             "    public static final java.lang.invoke.MethodHandle HANDLE;\n" +
             "\n" +
             "    static {\n" +
@@ -46,6 +46,10 @@ class EvaluatorCompiler {
         this.classLoader = classLoader;
     }
 
+    public ClassLoader getClassLoader() {
+        return classLoader;
+    }
+
     private MethodHandle compileExpression(String className, String classJavaSource) {
         try {
             JcCompiler compiler = new JcCompiler(classLoader);
@@ -58,7 +62,7 @@ class EvaluatorCompiler {
         }
     }
 
-    Evaluator buildExpression(StringLiteralRemover remover, String strippedExpression, List<ConditionStringTerm> terms) {
+    Evaluator buildExpression(Class<?> baseClass, StringLiteralRemover remover, String strippedExpression, List<ConditionStringTerm> terms) {
 
         int accumulatedShift = 0;
         StringJoiner argClasses = new StringJoiner(", ");
@@ -106,6 +110,7 @@ class EvaluatorCompiler {
                 JAVA_EVALUATOR_TEMPLATE,
                 pkg,
                 clazz,
+                baseClass.getName(),
                 clazz,
                 IntToValue.class.getName() + ".class",
                 methodArgs.toString(),
