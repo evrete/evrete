@@ -103,7 +103,16 @@ class TypeImpl<T> implements Type<T> {
 
     @Override
     public TypeField getField(String name) {
-        return fields.get(name);
+        TypeField field = fields.get(name);
+        if (field == null) {
+            synchronized (this) {
+                field = fields.get(name);
+                if (field == null) {
+                    field = inspectClass(name);
+                }
+            }
+        }
+        return field;
     }
 
 /*
@@ -153,11 +162,8 @@ class TypeImpl<T> implements Type<T> {
         return field;
     }
 
-    synchronized TypeField inspectClass(String dottedProp) {
-        TypeField field = getField(dottedProp);
-        if (field != null) return field;
+    private TypeField inspectClass(String dottedProp) {
         Class<?> currentClass = javaType;
-        if (currentClass == null) return null;
         String[] parts = dottedProp.split("\\.");
         ArrayOf<ValueReader> getters = new ArrayOf<>(ValueReader.class);
 

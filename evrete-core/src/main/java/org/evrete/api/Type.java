@@ -20,7 +20,7 @@ public interface Type<T> extends Named, Copyable<Type<T>> {
     /**
      * <p>
      * Returns a declared field with the given name, or null
-     * if no such field is found.
+     * if no such field is found or resolved
      * </p>
      *
      * @param name field name
