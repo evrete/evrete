@@ -2,7 +2,7 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>evrete-code-samples</artifactId>
+    <artifactId>evrete-showcase</artifactId>
     <parent>
         <artifactId>evrete</artifactId>
         <groupId>org.evrete</groupId>
@@ -17,11 +17,31 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.2.3</version>
+                <!-- Remove version from the war file -->
                 <configuration>
-                    <skip>true</skip>
+                    <warName>${project.artifactId}</warName>
+                    <webappDirectory>${project.build.directory}/${project.artifactId}</webappDirectory>
+                    <webResources>
+                        <resource>
+                            <directory>${project.basedir}/src/main/resources</directory>
+                        </resource>
+                    </webResources>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat7-maven-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <server>localTomcat</server>
+                    <warFile>${project.build.directory}/${project.artifactId}.war</warFile>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 
@@ -31,5 +51,25 @@
             <artifactId>evrete-core</artifactId>
             <version>1.2.02-SNAPSHOT</version>
         </dependency>
+
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>4.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.websocket</groupId>
+            <artifactId>javax.websocket-api</artifactId>
+            <version>1.1</version>
+            <scope>provided</scope>
+        </dependency>
+
+
     </dependencies>
+
+    <modules>
+        <module>evrete-stock-app</module>
+    </modules>
 </project>

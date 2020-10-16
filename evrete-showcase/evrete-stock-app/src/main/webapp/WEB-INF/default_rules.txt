@@ -1,0 +1,77 @@
+/**
+ * @rule Compute EMA(12)
+ * @select $current, $previous
+ * @where $current.id == $previous.id + 1
+ * @where $current.EMA12 == UNDEFINED
+ */
+
+// EMA weighted multiplier
+double k = 2.0 /(12 + 1);
+
+// By definition, EMA is a weighted combination of
+// current price and previous EMA. If there is no
+// previous EMA defined, then the previous close price
+// will be used
+double ema = k * $current.close
+             +
+             (1.0 - k) * $previous.get("EMA12", $previous.close);
+
+// Saving EMA value for current time slot, so
+// it could be reused by future price entries
+$current.set("EMA12", ema);
+update($current);
+
+
+/**
+ * @rule Compute EMA(26)
+ * @select $current, $previous
+ * @where $current.id == $previous.id + 1
+ * @where $current.EMA26 == UNDEFINED
+*/
+
+double k = 2.0 /(26 + 1);
+double ema = k * $current.close
+             +
+             (1.0 - k) * $previous.get("EMA26", $previous.close);
+$current.set("EMA26", ema);
+update($current);
+
+
+/**
+ * @rule Compute EMA difference
+ * @select $slot
+ * @where $slot.id > 0
+ * @where $slot.DIFF == UNDEFINED
+ */
+
+double ema26 = $slot.get("EMA26");
+double ema12 = $slot.get("EMA12");
+$slot.set("DIFF", ema26 - ema12);
+update($slot);
+
+/**
+ * @rule Mark possible bullish trend
+ * @select $current, $previous
+ * @where $current.id == $previous.id + 1
+ * @where $current.id > 15
+ * @where $current.DIFF != UNDEFINED
+ * @where $current.DIFF < 0.0
+ * @where $previous.DIFF > 0.0
+ *
+ */
+
+$current.set("LONG", "Possible bullish trend");
+
+/**
+ * @rule Mark possible bearish trend
+ * @select $current, $previous
+ * @where $current.id == $previous.id + 1
+ * @where $current.id > 15
+ * @where $current.DIFF != UNDEFINED
+ * @where $current.DIFF > 0.0
+ * @where $previous.DIFF < 0.0
+ *
+ */
+
+$current.set("SHORT", "Possible bearish trend");
+
