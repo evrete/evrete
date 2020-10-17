@@ -1,4 +1,4 @@
-package org.evrete.showcase.stock.json;
+package org.evrete.showcase.shared;
 
 public class Message extends JsonMessage {
     public String text;

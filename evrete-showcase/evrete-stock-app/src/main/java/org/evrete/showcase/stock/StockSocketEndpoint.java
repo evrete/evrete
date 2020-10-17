@@ -1,6 +1,12 @@
 package org.evrete.showcase.stock;
 
-import org.evrete.showcase.stock.json.*;
+import org.evrete.showcase.shared.JsonMessage;
+import org.evrete.showcase.shared.Message;
+import org.evrete.showcase.shared.SocketMessenger;
+import org.evrete.showcase.shared.Utils;
+import org.evrete.showcase.stock.json.ConfigMessage;
+import org.evrete.showcase.stock.json.OHLCMessage;
+import org.evrete.showcase.stock.json.RunMessage;
 
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
@@ -9,16 +15,16 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @ServerEndpoint(value = "/ws/socket")
-public class WsSocketEndpoint {
-    private final Map<Session, WsSessionWrapper> sessionMap = new ConcurrentHashMap<>();
+public class StockSocketEndpoint {
+    private final Map<Session, StockSessionWrapper> sessionMap = new ConcurrentHashMap<>();
 
     @OnOpen
     public void onOpen(Session session) {
-        WsSessionWrapper wrapper = new WsSessionWrapper(session);
+        StockSessionWrapper wrapper = new StockSessionWrapper(session);
         sessionMap.put(session, wrapper);
 
         // On new session we provide web client with default rules and stock price history
-        WsMessenger messenger = wrapper.getMessenger();
+        SocketMessenger messenger = wrapper.getMessenger();
         try {
             messenger.send(new ConfigMessage(
                     AppContext.DEFAULT_SOURCE,
@@ -27,7 +33,7 @@ public class WsSocketEndpoint {
 
             messenger.send(new Message(
                     "LOG",
-                    "Maximum entries: " + WsSessionWrapper.MAX_DATA_SIZE
+                    "Maximum entries: " + StockSessionWrapper.MAX_DATA_SIZE
             ));
         } catch (Exception e) {
             closeSession(session);
@@ -41,7 +47,7 @@ public class WsSocketEndpoint {
 
     @OnMessage
     public void processMessage(String message, Session session) {
-        WsSessionWrapper sessionWrapper = sessionMap.get(session);
+        StockSessionWrapper sessionWrapper = sessionMap.get(session);
         try {
             process(message, sessionWrapper);
         } catch (RuntimeException e) {
@@ -56,8 +62,8 @@ public class WsSocketEndpoint {
         }
     }
 
-    private void process(String message, WsSessionWrapper sessionWrapper) throws Exception {
-        WsMessenger messenger = sessionWrapper.getMessenger();
+    private void process(String message, StockSessionWrapper sessionWrapper) throws Exception {
+        SocketMessenger messenger = sessionWrapper.getMessenger();
         JsonMessage m = Utils.fromJson(message, JsonMessage.class);
         switch (m.getType()) {
             case "PING":
@@ -89,7 +95,7 @@ public class WsSocketEndpoint {
     }
 
     private void closeSession(Session session) {
-        WsSessionWrapper wrapper = sessionMap.remove(session);
+        StockSessionWrapper wrapper = sessionMap.remove(session);
         if (wrapper != null) {
             wrapper.closeSession();
         }

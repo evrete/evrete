@@ -1,16 +1,13 @@
-package org.evrete.showcase.stock;
-
-import org.evrete.showcase.stock.json.JsonMessage;
-import org.evrete.showcase.stock.json.Message;
+package org.evrete.showcase.shared;
 
 import javax.websocket.Session;
 import java.io.IOException;
 
-public class WsMessenger {
+public class SocketMessenger {
     private final Session session;
     private int delay;
 
-    public WsMessenger(Session session) {
+    public SocketMessenger(Session session) {
         this.session = session;
     }
 

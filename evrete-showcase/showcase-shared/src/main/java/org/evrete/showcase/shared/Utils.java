@@ -1,14 +1,14 @@
-package org.evrete.showcase.stock;
+package org.evrete.showcase.shared;
 
 import com.google.gson.Gson;
 
 public class Utils {
 
-    static String toJson(Object o) {
+    public static String toJson(Object o) {
         return new Gson().toJson(o);
     }
 
-    static <T> T fromJson(String src, Class<T> t) {
+    public static <T> T fromJson(String src, Class<T> t) {
         return new Gson().fromJson(src, t);
     }
 

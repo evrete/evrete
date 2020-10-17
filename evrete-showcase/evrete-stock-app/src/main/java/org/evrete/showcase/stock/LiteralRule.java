@@ -3,7 +3,8 @@ package org.evrete.showcase.stock;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.runtime.RuleDescriptor;
-import org.evrete.showcase.stock.json.Message;
+import org.evrete.showcase.shared.Message;
+import org.evrete.showcase.shared.SocketMessenger;
 import org.evrete.showcase.stock.rule.TimeSlot;
 
 import java.util.*;
@@ -93,7 +94,7 @@ public class LiteralRule {
                 .replaceAll("(\\s)+$", "");
     }
 
-    public static Knowledge parse(KnowledgeService knowledgeService, String rs, WsMessenger messenger) throws Exception {
+    public static Knowledge parse(KnowledgeService knowledgeService, String rs, SocketMessenger messenger) throws Exception {
         Knowledge knowledge = knowledgeService.newKnowledge();
         Type<TimeSlot> subjectType = knowledge.getTypeResolver().declare(TimeSlot.class);
         knowledge.getTypeResolver().wrapType(new SlotType(subjectType));

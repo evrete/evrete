@@ -185,17 +185,17 @@ function saveStockData() {
 }
 
 function _createWebSocket() {
-    let url = window.location.href + 'ws/socket';
+    let url = window.location.href.replace(/[^/]*$/, '') + 'ws/socket';
     url = url.replace('http', 'ws');
     const webSocket = new WebSocket(url, ['protocolOne', 'protocolTwo']);
     webSocket.onmessage = onMessage;
     webSocket.onerror = function (event) {
-        ELEMENT_LOG.append('<li class="ERROR">Error: <pre>' + event.toString() + '</pre></li>');
+        ELEMENT_LOG.append('<li class="ERROR">Network error</li>');
         sessionEnd();
     };
 
     webSocket.onclose = function (event) {
-        ELEMENT_LOG.append('<li>Connection closed, please reload the page.</li>');
+        ELEMENT_LOG.append('<li>Connection closed, reason: "' + event.reason + '". Please reload the page.</li>');
         sessionEnd();
         setControls([false, false]);
     };
@@ -225,7 +225,6 @@ function _createEditor(element, mode) {
         vScrollBarAlwaysVisible: true,
         minLines: 8,
         scrollPastEnd: 0.5,
-        //fontSize: 16,
         theme: 'ace/theme/xcode'
     })
 }

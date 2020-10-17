@@ -1,5 +1,6 @@
 package org.evrete.showcase.stock.json;
 
+import org.evrete.showcase.shared.JsonMessage;
 import org.evrete.showcase.stock.OHLC;
 
 public class ConfigMessage extends JsonMessage {

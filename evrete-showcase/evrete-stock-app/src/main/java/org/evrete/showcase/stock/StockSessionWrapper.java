@@ -4,7 +4,10 @@ import org.evrete.api.ActivationManager;
 import org.evrete.api.Knowledge;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
-import org.evrete.showcase.stock.json.Message;
+import org.evrete.showcase.shared.AbstractSocketSession;
+import org.evrete.showcase.shared.Message;
+import org.evrete.showcase.shared.SocketMessenger;
+import org.evrete.showcase.shared.Utils;
 import org.evrete.showcase.stock.json.RunMessage;
 import org.evrete.showcase.stock.rule.TimeSlot;
 
@@ -14,14 +17,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
-class WsSessionWrapper {
+class StockSessionWrapper extends AbstractSocketSession {
     public static final int MAX_DATA_SIZE = 128;
     final AtomicInteger counter = new AtomicInteger(0);
-    private final WsMessenger messenger;
-    private StatefulSession knowledgeSession;
 
-    public WsSessionWrapper(Session session) {
-        this.messenger = new WsMessenger(session);
+    public StockSessionWrapper(Session session) {
+        super(session);
     }
 
     synchronized boolean insert(OHLC ohlc) throws IOException {
@@ -31,38 +32,34 @@ class WsSessionWrapper {
             return false;
         } else {
             TimeSlot slot = new TimeSlot(id, ohlc);
+            StatefulSession knowledgeSession = getKnowledgeSession();
             if (knowledgeSession != null) {
                 knowledgeSession.insertAndFire(slot);
-                messenger.sendDelayed(new Message("OHLC_INSERTED", Utils.toJson(slot)));
+                getMessenger().sendDelayed(new Message("OHLC_INSERTED", Utils.toJson(slot)));
             }
             return true;
         }
     }
 
-    public WsMessenger getMessenger() {
-        return messenger;
-    }
-
     public synchronized void closeSession() {
-        if (knowledgeSession != null) {
-            knowledgeSession.close();
-            knowledgeSession = null;
-        }
+        super.closeSession();
         counter.set(0);
     }
 
     synchronized void initSession(RunMessage msg) throws Exception {
         // Set delay
+        SocketMessenger messenger = getMessenger();
         messenger.setDelay(msg.delay);
         // Close previous session if active
         closeSession();
 
         // Compile knowledge session
         Knowledge knowledge = LiteralRule.parse(AppContext.knowledgeService(), msg.rules, messenger);
-        this.knowledgeSession = knowledge.createSession();
+        StatefulSession knowledgeSession = knowledge.createSession();
+        setKnowledgeSession(knowledgeSession);
         // We'll be using activation manager for execution callbacks
-        ActivationManager activationManager = this.knowledgeSession.getActivationManager();
-        this.knowledgeSession.setActivationManager(new DelegateActivationManager(activationManager));
+        ActivationManager activationManager = knowledgeSession.getActivationManager();
+        knowledgeSession.setActivationManager(new DelegateActivationManager(activationManager));
 
         messenger.send(new Message("READY_FOR_DATA"));
     }
@@ -91,7 +88,7 @@ class WsSessionWrapper {
         public void onActivation(RuntimeRule rule) {
             delegate.onActivation(rule);
             try {
-                messenger.sendDelayed(new Message("RULE_EXECUTED", rule.getName()));
+                getMessenger().sendDelayed(new Message("RULE_EXECUTED", rule.getName()));
             } catch (IOException e) {
                 throw new IllegalStateException(e);
             }

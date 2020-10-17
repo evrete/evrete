@@ -1,9 +1,7 @@
-package org.evrete.showcase.stock.json;
+package org.evrete.showcase.shared;
 
 public class JsonMessage {
     static final String TYPE_ERROR = "ERROR";
-    static final String TYPE_OHLC = "OHLC";
-    static final String TYPE_RUN = "RUN_COMMAND";
     final String type;
 
     public JsonMessage(String type) {
