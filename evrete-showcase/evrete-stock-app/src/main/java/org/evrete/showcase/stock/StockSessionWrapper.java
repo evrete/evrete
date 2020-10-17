@@ -1,13 +1,8 @@
 package org.evrete.showcase.stock;
 
-import org.evrete.api.ActivationManager;
-import org.evrete.api.Knowledge;
-import org.evrete.api.RuntimeRule;
-import org.evrete.api.StatefulSession;
-import org.evrete.showcase.shared.AbstractSocketSession;
-import org.evrete.showcase.shared.Message;
-import org.evrete.showcase.shared.SocketMessenger;
-import org.evrete.showcase.shared.Utils;
+import org.evrete.api.*;
+import org.evrete.runtime.RuleDescriptor;
+import org.evrete.showcase.shared.*;
 import org.evrete.showcase.stock.json.RunMessage;
 import org.evrete.showcase.stock.rule.TimeSlot;
 
@@ -16,6 +11,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.ToDoubleFunction;
 
 class StockSessionWrapper extends AbstractSocketSession {
     public static final int MAX_DATA_SIZE = 128;
@@ -46,22 +42,30 @@ class StockSessionWrapper extends AbstractSocketSession {
         counter.set(0);
     }
 
-    synchronized void initSession(RunMessage msg) throws Exception {
-        // Set delay
-        SocketMessenger messenger = getMessenger();
-        messenger.setDelay(msg.delay);
-        // Close previous session if active
-        closeSession();
+    private static Knowledge parse(String rs, SocketMessenger messenger) throws Exception {
+        Knowledge knowledge = AppContext.knowledgeService().newKnowledge();
 
-        // Compile knowledge session
-        Knowledge knowledge = LiteralRule.parse(AppContext.knowledgeService(), msg.rules, messenger);
-        StatefulSession knowledgeSession = knowledge.createSession();
-        setKnowledgeSession(knowledgeSession);
-        // We'll be using activation manager for execution callbacks
-        ActivationManager activationManager = knowledgeSession.getActivationManager();
-        knowledgeSession.setActivationManager(new DelegateActivationManager(activationManager));
+        Type<TimeSlot> subjectType = knowledge.getTypeResolver().declare(TimeSlot.class);
+        knowledge.getTypeResolver().wrapType(new SlotType(subjectType));
 
-        messenger.send(new Message("READY_FOR_DATA"));
+
+        List<LiteralRule> parsedRules = LiteralRule.parse(rs);
+
+        messenger.sendDelayed(new Message("LOG", "Compiling " + parsedRules.size() + " rules..."));
+        for (LiteralRule r : parsedRules) {
+            RuleBuilder<Knowledge> builder = knowledge.newRule(r.getName());
+            FactBuilder[] factTypes = r.parsedFactTypes(TimeSlot.class);
+            String[] conditions = r.parsedConditions();
+            builder
+                    .forEach(factTypes)
+                    .where(conditions)
+                    .setRhs(r.getBody());
+
+            RuleDescriptor descriptor = knowledge.compileRule(builder);
+            messenger.sendDelayed(new Message("RULE_COMPILED", descriptor.getName()));
+        }
+        return knowledge;
+
     }
 
     private class DelegateActivationManager implements ActivationManager {
@@ -94,4 +98,41 @@ class StockSessionWrapper extends AbstractSocketSession {
             }
         }
     }
+
+    synchronized void initSession(RunMessage msg) throws Exception {
+        // Set delay
+        SocketMessenger messenger = getMessenger();
+        messenger.setDelay(msg.delay);
+        // Close previous session if active
+        closeSession();
+
+        // Compile knowledge session
+
+
+        Knowledge knowledge = parse(msg.rules, messenger);
+        StatefulSession knowledgeSession = knowledge.createSession();
+        setKnowledgeSession(knowledgeSession);
+        // We'll be using activation manager for execution callbacks
+        ActivationManager activationManager = knowledgeSession.getActivationManager();
+        knowledgeSession.setActivationManager(new DelegateActivationManager(activationManager));
+
+        messenger.send(new Message("READY_FOR_DATA"));
+    }
+
+    public static class SlotType extends TypeWrapper<TimeSlot> {
+        public SlotType(Type<TimeSlot> delegate) {
+            super(delegate);
+        }
+
+        @Override
+        public TypeField getField(String name) {
+            TypeField found = getDelegate().getField(name);
+            if (found == null) {
+                //Declaring field right in the get method
+                found = declareField(name, (ToDoubleFunction<TimeSlot>) subject -> subject.get(name, ConditionSuperClass.UNDEFINED));
+            }
+            return found;
+        }
+    }
+
 }
