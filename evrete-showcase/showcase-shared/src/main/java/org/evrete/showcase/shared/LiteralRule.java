@@ -1,14 +1,8 @@
-package org.evrete.showcase.stock;
+package org.evrete.showcase.shared;
 
-import org.evrete.KnowledgeService;
-import org.evrete.api.*;
-import org.evrete.runtime.RuleDescriptor;
-import org.evrete.showcase.shared.Message;
-import org.evrete.showcase.shared.SocketMessenger;
-import org.evrete.showcase.stock.rule.TimeSlot;
+import org.evrete.api.FactBuilder;
 
 import java.util.*;
-import java.util.function.ToDoubleFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -70,34 +64,12 @@ public class LiteralRule {
         this.body = body;
     }
 
-    private static List<String> trimComments(String[] arr) {
-        List<String> l = new ArrayList<>();
-        for (String s : arr) {
-            // Trim spaces on both ends
-            s = trimBothEnds(s);
-            s = s.replaceAll("(\\s)+$", "");
-            // Trim left comment part
-            s = s.replaceAll("^/(\\*)+(\\s)*", "");
-            // Trim right comment part
-            s = s.replaceAll("(\\s)*(\\*)+/$", "");
-            // Trim comment continuation
-            s = s.replaceAll("^(\\*)+(\\s)*", "");
-            if (!s.isEmpty()) {
-                l.add(s);
-            }
-        }
-        return l;
-    }
-
-    static String trimBothEnds(String s) {
+    private static String trimBothEnds(String s) {
         return s.replaceAll("^(\\s)+", "")
                 .replaceAll("(\\s)+$", "");
     }
 
-    public static Knowledge parse(KnowledgeService knowledgeService, String rs, SocketMessenger messenger) throws Exception {
-        Knowledge knowledge = knowledgeService.newKnowledge();
-        Type<TimeSlot> subjectType = knowledge.getTypeResolver().declare(TimeSlot.class);
-        knowledge.getTypeResolver().wrapType(new SlotType(subjectType));
+    public static List<LiteralRule> parse(String rs) throws Exception {
 
         List<LiteralRule> parsedRules = new LinkedList<>();
         Pattern pattern = Pattern.compile("(?s)/\\*.*?\\*/");
@@ -122,30 +94,40 @@ public class LiteralRule {
             throw new Exception("'" + rs + "' is not a valid rule");
         }
 
-        messenger.sendDelayed(new Message("LOG", "Compiling " + parsedRules.size() + " rules..."));
-        for (LiteralRule r : parsedRules) {
-            RuleBuilder<Knowledge> builder = knowledge.newRule(r.name);
-            FactBuilder[] factTypes = r.parsedFactTypes();
-            String[] conditions = r.parsedConditions();
-            builder
-                    .forEach(factTypes)
-                    .where(conditions)
-                    .setRhs(r.getBody());
-
-            RuleDescriptor descriptor = knowledge.compileRule(builder);
-            messenger.sendDelayed(new Message("RULE_COMPILED", descriptor.getName()));
-        }
-        return knowledge;
+        return parsedRules;
     }
 
-    public FactBuilder[] parsedFactTypes() {
+    public String getName() {
+        return name;
+    }
+
+    public FactBuilder[] parsedFactTypes(Class<?> type) {
         List<FactBuilder> l = new ArrayList<>(factTypeVars.size());
 
         for (String var : this.factTypeVars) {
-            l.add(FactBuilder.fact(var, TimeSlot.class));
+            l.add(FactBuilder.fact(var, type));
         }
 
         return l.toArray(new FactBuilder[0]);
+    }
+
+    private static List<String> trimComments(String[] arr) {
+        List<String> l = new ArrayList<>();
+        for (String s : arr) {
+            // Trim spaces on both ends
+            s = trimBothEnds(s);
+            s = s.replaceAll("(\\s)+$", "");
+            // Trim left comment part
+            s = s.replaceAll("^/(\\*)+(\\s)*", "");
+            // Trim right comment part
+            s = s.replaceAll("(\\s)*(\\*)+/$", "");
+            // Trim comment continuation
+            s = s.replaceAll("^(\\*)+(\\s)*", "");
+            if (!s.isEmpty()) {
+                l.add(s);
+            }
+        }
+        return l;
     }
 
     public String[] parsedConditions() {
@@ -154,21 +136,5 @@ public class LiteralRule {
 
     public String getBody() {
         return body;
-    }
-
-    public static class SlotType extends TypeWrapper<TimeSlot> {
-        public SlotType(Type<TimeSlot> delegate) {
-            super(delegate);
-        }
-
-        @Override
-        public TypeField getField(String name) {
-            TypeField found = getDelegate().getField(name);
-            if (found == null) {
-                //Declaring field right in the get method
-                found = declareField(name, (ToDoubleFunction<TimeSlot>) subject -> subject.get(name, ConditionSuperClass.UNDEFINED));
-            }
-            return found;
-        }
     }
 }
