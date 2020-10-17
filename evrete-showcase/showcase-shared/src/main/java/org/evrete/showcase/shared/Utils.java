@@ -2,6 +2,12 @@ package org.evrete.showcase.shared;
 
 import com.google.gson.Gson;
 
+import javax.servlet.ServletContext;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
 public class Utils {
 
     public static String toJson(Object o) {
@@ -20,4 +26,18 @@ public class Utils {
             e.printStackTrace();
         }
     }
+
+    public static String readResourceAsString(ServletContext ctx, String path) throws IOException {
+
+        try (ByteArrayOutputStream buffer = new ByteArrayOutputStream(); InputStream is = ctx.getResourceAsStream(path)) {
+            int nRead;
+            byte[] data = new byte[1024];
+            while ((nRead = is.read(data, 0, data.length)) != -1) {
+                buffer.write(data, 0, nRead);
+            }
+            buffer.flush();
+            return new String(buffer.toByteArray(), StandardCharsets.UTF_8);
+        }
+    }
+
 }
