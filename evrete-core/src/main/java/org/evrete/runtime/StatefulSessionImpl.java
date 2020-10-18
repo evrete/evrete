@@ -69,29 +69,26 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
         }
     }
 
+    //TODO !!!!!!! fix this!!!!
     private void fireDefault(ActivationContext ctx) {
-        checkState();
-        processChanges();
-        List<RuntimeRule> agenda = getAgenda();
-        if (agenda.size() > 0) {
-            activationManager.onAgenda(ctx.incrementFireCount(), agenda);
-            for (RuntimeRule r : getAgenda()) {
-                RuntimeRuleImpl impl = (RuntimeRuleImpl) r;
+        while (active && hasMemoryTasks()) {
+            // Prepare and process memory deltas
+            processChanges();
+            List<RuntimeRule> agenda = getAgenda();
+            if (agenda.size() > 0) {
+                activationManager.onAgenda(ctx.incrementFireCount(), agenda);
+                for (RuntimeRule r : getAgenda()) {
+                    RuntimeRuleImpl impl = (RuntimeRuleImpl) r;
 
-                if (activationManager.test(impl)) {
-                    impl.executeRhs();
-                    activationManager.onActivation(impl);
+                    if (activationManager.test(impl)) {
+                        impl.executeRhs();
+                        activationManager.onActivation(impl);
+                    }
+                    impl.resetState();
                 }
-                impl.resetState();
             }
-        }
-        commitMemoryDeltas();
-        if (hasMemoryTasks()) {
-            fireDefault(ctx);
+            commitMemoryDeltas();
         }
     }
 
-    private void checkState() {
-        if (!active) throw new IllegalStateException("Session has been closed");
-    }
 }
