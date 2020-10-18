@@ -69,7 +69,6 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
         }
     }
 
-    //TODO !!!!!!! fix this!!!!
     private void fireDefault(ActivationContext ctx) {
         while (active && hasMemoryTasks()) {
             // Prepare and process memory deltas
