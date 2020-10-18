@@ -256,7 +256,6 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
         typedMemories.forEachValue(TypeMemory::commitMemoryDeltas);
     }
 
-
     protected boolean hasMemoryTasks() {
         return buffer.hasTasks();
     }
