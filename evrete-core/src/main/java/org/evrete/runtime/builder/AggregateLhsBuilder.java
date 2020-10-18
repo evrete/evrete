@@ -6,6 +6,8 @@ import org.evrete.runtime.aggregate.AggregateEvaluatorFactory;
 import org.evrete.runtime.aggregate.ExistsEvaluatorFactory;
 import org.evrete.runtime.aggregate.NotExistsEvaluatorFactory;
 
+import java.util.Arrays;
+
 public class AggregateLhsBuilder<C extends RuntimeContext<C>> extends AbstractLhsBuilder<C, AggregateLhsBuilder<C>> {
     private final LhsBuilder<C> parent;
     private AggregateEvaluatorFactory aggregateEvaluatorFactory;
@@ -16,7 +18,7 @@ public class AggregateLhsBuilder<C extends RuntimeContext<C>> extends AbstractLh
             throw new IllegalArgumentException("Empty fact selection in a sub-query");
         }
         this.parent = parent;
-        buildLhs(facts);
+        buildLhs(Arrays.asList(facts));
     }
 
     public LhsBuilder<C> exists() {

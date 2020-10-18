@@ -4,10 +4,7 @@ import org.evrete.api.*;
 import org.evrete.runtime.AbstractRuntime;
 import org.evrete.util.MapOfSet;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -189,8 +186,8 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         return buildLhs(name, getTypeResolver().getOrDeclare(type));
     }
 
-    G buildLhs(FactBuilder... facts) {
-        if (facts == null || facts.length == 0) return self();
+    G buildLhs(Collection<FactBuilder> facts) {
+        if (facts == null || facts.isEmpty()) return self();
         for (FactBuilder f : facts) {
             buildLhs(f.getName(), f.getType());
         }

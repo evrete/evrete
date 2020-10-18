@@ -1,5 +1,8 @@
 package org.evrete.api;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import static org.evrete.api.FactBuilder.fact;
 
 /**
@@ -15,10 +18,14 @@ public interface LhsFactSelector<T> {
      * The main method which associates the implementation with a list fact type builders.
      * </p>
      *
-     * @param facts an array of facts to declare
+     * @param facts a collection of facts to declare
      * @return the generic type of the FactSelector
      */
-    T forEach(FactBuilder... facts);
+    T forEach(Collection<FactBuilder> facts);
+
+    default T forEach(FactBuilder... facts) {
+        return forEach(Arrays.asList(facts));
+    }
 
     default T forEach(String var, Class<?> type) {
         return forEach(

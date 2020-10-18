@@ -7,6 +7,7 @@ import org.evrete.api.RuleBuilder;
 import org.evrete.api.RuntimeContext;
 import org.evrete.runtime.AbstractRuntime;
 
+import java.util.Collection;
 import java.util.function.Consumer;
 
 
@@ -92,7 +93,7 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
     }
 
     @Override
-    public LhsBuilder<C> forEach(FactBuilder... facts) {
+    public LhsBuilder<C> forEach(Collection<FactBuilder> facts) {
         return lhsBuilder.buildLhs(facts);
     }
 
