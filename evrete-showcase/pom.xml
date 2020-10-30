@@ -65,11 +65,12 @@
             <version>1.1</version>
             <scope>provided</scope>
         </dependency>
-
-
     </dependencies>
 
     <modules>
+        <module>showcase-shared</module>
         <module>evrete-stock-app</module>
+        <module>evrete-newton-laws</module>
+        <module>evrete-chess-queens</module>
     </modules>
 </project>
