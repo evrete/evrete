@@ -15,6 +15,8 @@ import java.util.function.ToDoubleFunction;
 
 class StockSessionWrapper extends AbstractSocketSession {
     public static final int MAX_DATA_SIZE = 128;
+    public static final int MAX_FACTS = 4;
+
     final AtomicInteger counter = new AtomicInteger(0);
 
     public StockSessionWrapper(Session session) {
@@ -37,11 +39,6 @@ class StockSessionWrapper extends AbstractSocketSession {
         }
     }
 
-    public synchronized void closeSession() {
-        super.closeSession();
-        counter.set(0);
-    }
-
     private static Knowledge parse(String rs, SocketMessenger messenger) throws Exception {
         Knowledge knowledge = AppContext.knowledgeService().newKnowledge();
 
@@ -53,6 +50,14 @@ class StockSessionWrapper extends AbstractSocketSession {
 
         messenger.sendDelayed(new Message("LOG", "Compiling " + parsedRules.size() + " rules..."));
         for (LiteralRule r : parsedRules) {
+            // Sanity checks
+            if (r.factTypeVars().isEmpty()) {
+                throw new Exception("Invalid rule header format: " + r.getName());
+            } else if (r.factTypeVars().size() > MAX_FACTS) {
+                throw new Exception("Too many fact declarations in rule '" + r.getName() + "'");
+            }
+
+
             RuleBuilder<Knowledge> builder = knowledge.newRule(r.getName());
             FactBuilder[] factTypes = r.parsedFactTypes(TimeSlot.class);
             String[] conditions = r.parsedConditions();
@@ -66,6 +71,11 @@ class StockSessionWrapper extends AbstractSocketSession {
         }
         return knowledge;
 
+    }
+
+    public synchronized boolean closeSession() {
+        counter.set(0);
+        return super.closeSession();
     }
 
     private class DelegateActivationManager implements ActivationManager {

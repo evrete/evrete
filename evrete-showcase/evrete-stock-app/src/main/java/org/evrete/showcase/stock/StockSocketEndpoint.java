@@ -10,7 +10,6 @@ import org.evrete.showcase.stock.json.RunMessage;
 
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
-import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -50,15 +49,8 @@ public class StockSocketEndpoint {
         StockSessionWrapper sessionWrapper = sessionMap.get(session);
         try {
             process(message, sessionWrapper);
-        } catch (RuntimeException e) {
-            try {
-                e.printStackTrace();
-                sessionWrapper.getMessenger().send(e);
-            } catch (IOException io) {
-                io.printStackTrace();
-            }
         } catch (Exception e) {
-            e.printStackTrace();
+            sessionWrapper.getMessenger().send(e);
         }
     }
 
