@@ -12,9 +12,56 @@ svg {
     position: relative;
 }
 
-#zoom-controls {
+.invisible {
+    display: none;
+    visibility: hidden;
+}
+
+#zoom-value {
     position: absolute;
-    top: 0;
-    left: 0;
-    margin-bottom: 0.5em !important;
+    right: 1em;
+    bottom: 1em;
+    font-family: monospace;
+}
+
+#zoom-value:before {
+    content: "Zoom: ";
+}
+
+#zoom-controls {
+    float: right;
+}
+
+#session-controls {
+    float: left;
+}
+
+#logs li {
+    font-family: monospace;
+}
+
+#logs li pre {
+    font-family: monospace;
+    font-size: 1.0em;
+}
+
+#logs .ERROR {
+    color: darkred;
+}
+
+#object-controls li {
+    border-left-color: transparent;
+    border-left-width: 0.5em;
+    border-left-style: solid;
+    display: inline-block;
+    margin: 0.25em 0.75em 0 0;
+    padding-left: 0.25em;
+    cursor: pointer;
+    font-family: monospace;
+}
+
+#state {
+    font-family: monospace;
+    font-size: 0.9em;
+    overflow-x: hidden;
 }
