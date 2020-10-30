@@ -1,0 +1,373 @@
+{
+  "Twins": {
+    "gravity": 4000,
+    "particles": {
+      "1": {
+        "id": "1",
+        "color": 9408055,
+        "mass": 31622,
+        "vectors": {
+          "position": {
+            "x": 800,
+            "y": 600
+          },
+          "acceleration": {
+            "x": 0,
+            "y": 0
+          },
+          "velocity": {
+            "x": 400,
+            "y": -400
+          }
+        }
+      },
+      "2": {
+        "id": "2",
+        "color": 15182491,
+        "mass": 31622,
+        "vectors": {
+          "position": {
+            "x": 900,
+            "y": 800
+          },
+          "acceleration": {
+            "x": 0,
+            "y": 0
+          },
+          "velocity": {
+            "x": -400,
+            "y": 400
+          }
+        }
+      }
+    },
+    "view": {
+      "center": {
+        "x": 1000,
+        "y": 800
+      },
+      "zoom": 0.6666666666666666
+    },
+    "counter": 2
+  },
+  "Double twins": {
+    "gravity": 5000,
+    "particles": {
+      "1": {
+        "id": "1",
+        "color": 9408055,
+        "mass": 31622,
+        "vectors": {
+          "position": {
+            "x": 100,
+            "y": 100
+          },
+          "acceleration": {
+            "x": 0,
+            "y": 0
+          },
+          "velocity": {
+            "x": 400,
+            "y": -400
+          }
+        }
+      },
+      "2": {
+        "id": "2",
+        "color": 15182491,
+        "mass": 31622,
+        "vectors": {
+          "position": {
+            "x": 200,
+            "y": 300
+          },
+          "acceleration": {
+            "x": 0,
+            "y": 0
+          },
+          "velocity": {
+            "x": -400,
+            "y": 400
+          }
+        }
+      },
+      "3": {
+        "id": "3",
+        "color": 4624114,
+        "mass": 31622,
+        "vectors": {
+          "position": {
+            "x": 1800,
+            "y": 1100
+          },
+          "acceleration": {
+            "x": 0,
+            "y": 0
+          },
+          "velocity": {
+            "x": 400,
+            "y": -400
+          }
+        }
+      },
+      "4": {
+        "id": "4",
+        "color": 3852394,
+        "mass": 31622,
+        "vectors": {
+          "position": {
+            "x": 1900,
+            "y": 1300
+          },
+          "acceleration": {
+            "x": 0,
+            "y": 0
+          },
+          "velocity": {
+            "x": -400,
+            "y": 400
+          }
+        }
+      }
+    },
+    "view": {
+      "center": {
+        "x": 1000,
+        "y": 800
+      },
+      "zoom": 0.6666666666666666
+    },
+    "counter": 4
+  },
+  "3 particles": {
+    "gravity": 5000,
+    "particles": {
+      "1": {
+        "id": "1",
+        "color": 12224615,
+        "mass": 31622.776601683792,
+        "vectors": {
+          "position": {
+            "x": 700,
+            "y": 200
+          },
+          "acceleration": {
+            "x": 0,
+            "y": 0
+          },
+          "velocity": {
+            "x": 800,
+            "y": 0
+          }
+        }
+      },
+      "2": {
+        "id": "2",
+        "color": 7743962,
+        "mass": 31622.776601683792,
+        "vectors": {
+          "position": {
+            "x": 1300,
+            "y": 1400
+          },
+          "acceleration": {
+            "x": 0,
+            "y": 0
+          },
+          "velocity": {
+            "x": -800,
+            "y": 0
+          }
+        }
+      },
+      "3": {
+        "id": "3",
+        "color": 11941914,
+        "mass": 112201.8454301963,
+        "vectors": {
+          "position": {
+            "x": 1000,
+            "y": 800
+          },
+          "acceleration": {
+            "x": 0,
+            "y": 0
+          },
+          "velocity": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      }
+    },
+    "view": {
+      "center": {
+        "x": 1000,
+        "y": 800
+      },
+      "zoom": 0.6666666666666666
+    },
+    "counter": 3
+  },
+  "3 particles (slight asymmetry)": {
+    "gravity": 5000,
+    "particles": {
+      "1": {
+        "id": "1",
+        "color": 12224615,
+        "mass": 31622.776601683792,
+        "vectors": {
+          "position": {
+            "x": 701,
+            "y": 200
+          },
+          "acceleration": {
+            "x": 0,
+            "y": 0
+          },
+          "velocity": {
+            "x": 800,
+            "y": 0
+          }
+        }
+      },
+      "2": {
+        "id": "2",
+        "color": 7743962,
+        "mass": 31622.776601683792,
+        "vectors": {
+          "position": {
+            "x": 1300,
+            "y": 1400
+          },
+          "acceleration": {
+            "x": 0,
+            "y": 0
+          },
+          "velocity": {
+            "x": -800,
+            "y": 0
+          }
+        }
+      },
+      "3": {
+        "id": "3",
+        "color": 11941914,
+        "mass": 112201.8454301963,
+        "vectors": {
+          "position": {
+            "x": 1000,
+            "y": 800
+          },
+          "acceleration": {
+            "x": 0,
+            "y": 0
+          },
+          "velocity": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      }
+    },
+    "view": {
+      "center": {
+        "x": 1000,
+        "y": 800
+      },
+      "zoom": 0.6666666666666666
+    },
+    "counter": 3
+  },
+  "Gravity assist": {
+    "gravity": 6324.555320336759,
+    "particles": {
+      "1": {
+        "id": "1",
+        "color": 13150128,
+        "mass": 446683.592150963,
+        "vectors": {
+          "position": {
+            "x": 1000,
+            "y": 800
+          },
+          "acceleration": {
+            "x": 0,
+            "y": 0
+          },
+          "velocity": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      },
+      "2": {
+        "id": "2",
+        "color": 15892496,
+        "mass": 31622.776601683792,
+        "vectors": {
+          "position": {
+            "x": 100,
+            "y": 800
+          },
+          "acceleration": {
+            "x": 0,
+            "y": 0
+          },
+          "velocity": {
+            "x": 0,
+            "y": -1000
+          }
+        }
+      },
+      "3": {
+        "id": "3",
+        "color": 12649694,
+        "mass": 31622.776601683792,
+        "vectors": {
+          "position": {
+            "x": 2700,
+            "y": 800
+          },
+          "acceleration": {
+            "x": 0,
+            "y": 0
+          },
+          "velocity": {
+            "x": 0,
+            "y": 1000
+          }
+        }
+      },
+      "4": {
+        "id": "4",
+        "color": 10237561,
+        "mass": 6000,
+        "vectors": {
+          "position": {
+            "x": 500,
+            "y": 2500
+          },
+          "acceleration": {
+            "x": 0,
+            "y": 0
+          },
+          "velocity": {
+            "x": -350,
+            "y": -1100
+          }
+        }
+      }
+    },
+    "view": {
+      "center": {
+        "x": 1000,
+        "y": 800
+      },
+      "zoom": 0.4444444444444444
+    },
+    "counter": 4
+  }
+}
+
+

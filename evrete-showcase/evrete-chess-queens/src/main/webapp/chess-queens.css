@@ -1,0 +1,54 @@
+body {
+    font-family: 'Roboto Slab', serif !important;
+}
+
+
+svg {
+    width: 100%;
+    height: 100%;
+    background: #333;
+    box-shadow: 2px 2px 4px #999999;
+    border: 1px solid #666666;
+}
+
+svg .cell-white, svg .cell-dark {
+    stroke: #999;
+    stroke-width: 0.01;
+}
+
+svg .cell-white {
+    fill: #cccccc;
+}
+
+svg .cell-dark {
+    fill: #aa4422;
+}
+
+svg .unavailable {
+    opacity: 0.25;
+}
+
+svg .queen {
+    fill: white;
+    stroke: none;
+}
+
+
+#svg-wrapper {
+}
+
+#logs li {
+    font-family: monospace;
+}
+
+#logs li pre {
+    font-family: monospace;
+    font-size: 1.0em;
+}
+
+#logs .ERROR {
+    color: darkred;
+}
+
+
+
