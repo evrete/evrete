@@ -10,6 +10,8 @@ public abstract class AbstractSocketSession {
 
     public AbstractSocketSession(Session session) {
         this.messenger = new SocketMessenger(session);
+        session.setMaxTextMessageBufferSize(1024 * 1024);
+        session.setMaxIdleTimeout(1000 * 60 * 30);
     }
 
     public final SocketMessenger getMessenger() {
@@ -24,10 +26,13 @@ public abstract class AbstractSocketSession {
         this.knowledgeSession = knowledgeSession;
     }
 
-    public void closeSession() {
+    public boolean closeSession() {
         if (knowledgeSession != null) {
             knowledgeSession.close();
             knowledgeSession = null;
+            return true;
+        } else {
+            return false;
         }
     }
 }

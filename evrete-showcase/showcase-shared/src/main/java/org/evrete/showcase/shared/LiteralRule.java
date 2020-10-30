@@ -7,7 +7,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LiteralRule {
-    public static final int MAX_FACTS = 4;
     private static final String PREFIX_RULE = "@rule";
     private static final String PREFIX_WHERE = "@where";
     private static final String PREFIX_SELECT = "@select";
@@ -16,7 +15,7 @@ public class LiteralRule {
     private final Collection<String> factTypeVars;
     private final String name;
 
-    private LiteralRule(String header, String body) throws Exception {
+    private LiteralRule(String header, String body) {
         // Parse header
         String s = header
                 .replaceAll("\r\n", "\n")
@@ -53,12 +52,6 @@ public class LiteralRule {
         }
 
         this.name = ruleName;
-        // Sanity checks
-        if (this.factTypeVars.isEmpty()) {
-            throw new Exception("Invalid rule header format: " + header);
-        } else if (factTypeVars.size() > MAX_FACTS) {
-            throw new Exception("Too many fact declarations in rule '" + name + "'");
-        }
 
         this.parsedConditions = conditions.toArray(new String[0]);
         this.body = body;
@@ -101,6 +94,11 @@ public class LiteralRule {
         return name;
     }
 
+
+    public Collection<String> factTypeVars() {
+        return factTypeVars;
+    }
+
     public FactBuilder[] parsedFactTypes(Class<?> type) {
         List<FactBuilder> l = new ArrayList<>(factTypeVars.size());
 
@@ -136,5 +134,15 @@ public class LiteralRule {
 
     public String getBody() {
         return body;
+    }
+
+    @Override
+    public String toString() {
+        return "LiteralRule{" +
+                "body='" + body + '\'' +
+                ", parsedConditions=" + Arrays.toString(parsedConditions) +
+                ", factTypeVars=" + factTypeVars +
+                ", name='" + name + '\'' +
+                '}';
     }
 }

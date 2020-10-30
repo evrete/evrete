@@ -1,9 +1,13 @@
 package org.evrete.showcase.shared;
 
+import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SocketMessenger {
+    private static final Logger LOGGER = Logger.getLogger(SocketMessenger.class.getName());
     private final Session session;
     private int delay;
 
@@ -11,8 +15,11 @@ public class SocketMessenger {
         this.session = session;
     }
 
-    private void send(String text) throws IOException {
-        session.getBasicRemote().sendText(text);
+    private synchronized void send(String text) throws IOException {
+        if (session.isOpen()) {
+            RemoteEndpoint.Basic endpoint = session.getBasicRemote();
+            endpoint.sendText(text);
+        }
     }
 
     public void setDelay(int delay) {
@@ -23,12 +30,24 @@ public class SocketMessenger {
         send(Utils.toJson(message));
     }
 
+    public <T extends JsonMessage> void sendUnchecked(T message) {
+        try {
+            send(message);
+        } catch (IOException e) {
+            LOGGER.log(Level.WARNING, e.getMessage(), e);
+        }
+    }
+
     public <T extends JsonMessage> void sendDelayed(T message) throws IOException {
         Utils.delay(delay);
         send(message);
     }
 
-    public void send(Exception e) throws IOException {
-        send(Message.error(e.getMessage()));
+    public void send(Exception e) {
+        try {
+            send(Message.error(e.getMessage()));
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
     }
 }
