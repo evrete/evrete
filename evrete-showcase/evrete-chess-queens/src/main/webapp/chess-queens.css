@@ -2,41 +2,80 @@ body {
     font-family: 'Roboto Slab', serif !important;
 }
 
-
 svg {
     width: 100%;
     height: 100%;
-    background: #333;
     box-shadow: 2px 2px 4px #999999;
     border: 1px solid #666666;
 }
 
-svg .cell-white, svg .cell-dark {
+
+/* main board */
+#main-board {
+    background: #333;
+}
+
+#main-board .cell-white, #main-board .cell-dark {
     stroke: #999;
     stroke-width: 0.01;
 }
 
-svg .cell-white {
-    fill: #cccccc;
+#main-board .cell-white {
+    fill: white;
 }
 
-svg .cell-dark {
+#main-board .cell-dark {
     fill: #aa4422;
 }
 
-svg .unavailable {
-    opacity: 0.25;
+#main-board .cell-white.unavailable, #main-board .cell-dark.unavailable {
+    stroke: white;
+    stroke-width: 1;
 }
 
-svg .queen {
+#main-board .cell-white.unavailable {
+    fill: #666666;
+}
+
+#main-board .cell-dark.unavailable {
+    fill: #766666;
+}
+
+
+#main-board .queen {
     fill: white;
     stroke: none;
 }
 
-
-#svg-wrapper {
+/* solution svg */
+.solution {
+    background: white;
 }
 
+#solutions .cell {
+    padding: 0 1em 0.5em 0 !important;
+}
+
+.solution .cell-white {
+    fill: white;
+}
+
+.solution .cell-dark {
+    fill: #aa4422;
+}
+
+.solution .queen.queen-on-dark {
+    fill: white;
+    stroke: none;
+}
+
+.solution .queen.queen-on-white {
+    fill: #aa4422;
+    stroke: none;
+}
+
+
+/* logs */
 #logs li {
     font-family: monospace;
 }
@@ -49,6 +88,4 @@ svg .queen {
 #logs .ERROR {
     color: darkred;
 }
-
-
 

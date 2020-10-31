@@ -1,11 +1,13 @@
 package org.evrete.showcase.chess.types;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.Objects;
+import java.util.Queue;
 
 public class ChessTask {
     public final boolean completed;
-    public final boolean failed;
-    private final ChessBoard board;
+    //public final boolean failed;
+    public final ChessBoard board;
     private final Queue<Cell> nextCol = new LinkedList<>();
     int nextColumn = -1;
 
@@ -27,24 +29,28 @@ public class ChessTask {
                 break;
             }
         }
-
-        if (board.queenCount == cells.length) {
-            this.completed = true;
-            this.failed = false;
-        } else {
-            this.completed = false;
-            this.failed = nextCol.isEmpty();
-        }
+        this.completed = board.queenCount == cells.length;
     }
 
+    public boolean hasTasks() {
+        return !nextCol.isEmpty();
+    }
+
+    public ChessTask nextTask() {
+        Cell cell = nextCol.poll();
+        Objects.requireNonNull(cell);
+        ChessBoard copy = this.board.copy();
+        copy.toggleQueen(cell.x, cell.y);
+        return new ChessTask(copy);
+    }
+
+/*
     public Collection<ChessTask> buildSubtasks() {
         if (nextCol.isEmpty()) throw new IllegalStateException();
 
         Collection<ChessTask> subTasks = new ArrayList<>();
-        for (Cell cell : nextCol) {
-            ChessBoard copy = this.board.copy();
-            copy.toggleQueen(cell.x, cell.y);
-            subTasks.add(new ChessTask(copy));
+        while (hasTasks()) {
+            subTasks.add(nextTask());
         }
 
         if (subTasks.isEmpty()) {
@@ -53,12 +59,17 @@ public class ChessTask {
 
         return subTasks;
     }
+*/
+
+    public boolean isFailed() {
+        return !completed && nextCol.isEmpty();
+    }
 
     @Override
     public String toString() {
         return "ChessTask{" +
                 "completed=" + completed +
-                ", failed=" + failed +
+                ", failed=" + isFailed() +
                 ", board=\n" + board +
                 "\n}";
     }

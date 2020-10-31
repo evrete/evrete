@@ -19,20 +19,16 @@
 <body>
 
 <div class="grid-container">
+    <h2>N queens puzzle</h2>
     <div class="grid-x grid-padding-x">
         <div class="cell medium-6 small-10 small-offset-1 medium-offset-0">
+
             <div id="svg-wrapper">
-                <svg class="svg"
+                <svg id="main-board"
                      height="1200"
-                     id="plot"
                      preserveAspectRatio="none"
                      viewBox="0 0 1200 1200"
                      width="1200">
-                    <defs>
-                        <symbol id="queen" viewBox="0 0 512 512">
-                            <path d="M436 512H76c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h360c6.627 0 12 5.373 12 12v24c0 6.627-5.373 12-12 12zM255.579 0c-30.928 0-56 25.072-56 56s25.072 56 56 56 56-25.072 56-56-25.072-56-56-56zm204.568 154.634c-5.768-3.045-12.916-.932-16.082 4.77-8.616 15.516-22.747 37.801-44.065 37.801-28.714 0-30.625-19.804-31.686-57.542-.183-6.492-5.501-11.664-11.995-11.664h-41.006c-5.175 0-9.754 3.328-11.388 8.238-8.89 26.709-26.073 40.992-47.925 40.992s-39.034-14.283-47.925-40.992c-1.634-4.91-6.213-8.238-11.388-8.238h-41.005c-6.495 0-11.813 5.174-11.995 11.667-1.052 37.642-2.934 57.539-31.688 57.539-20.691 0-33.817-20.224-44.425-38.025-3.266-5.48-10.258-7.431-15.899-4.453l-39.179 20.679a12 12 0 0 0-5.51 15.145L112 448h288l105.014-257.448a12 12 0 0 0-5.51-15.145l-39.357-20.773z"/>
-                        </symbol>
-                    </defs>
                     Your browser does not support inline SVG.
                 </svg>
             </div>
@@ -49,16 +45,14 @@
                         <option label="8x8" value="8"></option>
                         <option label="9x9" value="9"></option>
                         <option label="10x10" value="10"></option>
-                        <option label="11x11" value="11"></option>
-                        <option label="12x12" value="12"></option>
-                        <option label="13x13" value="13"></option>
                     </select>
                 </div>
                 <div class="cell small-1"></div>
 
                 <div class="cell auto">
                     <div class="button-group expanded text-right">
-                        <button class="button secondary" onclick="onUiReset()"><i class="lni lni-close"></i></button>
+                        <button class="button secondary" id="button-reset" onclick="onUiReset()"><i
+                                class="lni lni-close"></i></button>
                         <button class="button primary" disabled id="button-play" onclick="onUiRun()"><i
                                 class="lni lni-play"></i></button>
                     </div>
@@ -69,10 +63,20 @@
             </div>
         </div>
         <div class="cell medium-6 small-12">
-            <h5>Right</h5>
+            <div class="grid-x" id="solutions"></div>
         </div>
     </div>
 </div>
+
+<!-- An inline source for queen symbol-->
+<svg class="invisible">
+    <defs>
+        <symbol id="queen" viewBox="0 0 512 512">
+            <path d="M436 512H76c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h360c6.627 0 12 5.373 12 12v24c0 6.627-5.373 12-12 12zM255.579 0c-30.928 0-56 25.072-56 56s25.072 56 56 56 56-25.072 56-56-25.072-56-56-56zm204.568 154.634c-5.768-3.045-12.916-.932-16.082 4.77-8.616 15.516-22.747 37.801-44.065 37.801-28.714 0-30.625-19.804-31.686-57.542-.183-6.492-5.501-11.664-11.995-11.664h-41.006c-5.175 0-9.754 3.328-11.388 8.238-8.89 26.709-26.073 40.992-47.925 40.992s-39.034-14.283-47.925-40.992c-1.634-4.91-6.213-8.238-11.388-8.238h-41.005c-6.495 0-11.813 5.174-11.995 11.667-1.052 37.642-2.934 57.539-31.688 57.539-20.691 0-33.817-20.224-44.425-38.025-3.266-5.48-10.258-7.431-15.899-4.453l-39.179 20.679a12 12 0 0 0-5.51 15.145L112 448h288l105.014-257.448a12 12 0 0 0-5.51-15.145l-39.357-20.773z"/>
+        </symbol>
+    </defs>
+</svg>
+
 
 <!-- jQuery -->
 <script crossorigin="anonymous" src="https://code.jquery.com/jquery-3.5.1.min.js"></script>

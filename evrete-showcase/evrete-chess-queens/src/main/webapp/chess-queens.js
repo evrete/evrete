@@ -11,15 +11,19 @@ if ('WebSocket' in window || 'MozWebSocket' in window) {
     throw new Error('WebSocket is not supported');
 }
 const SVG_NS = "http://www.w3.org/2000/svg";
-const SVG = document.getElementById('plot');
+const SVG = document.getElementById('main-board');
 
-const ELEMENT_LOG = $('#logs');
+const LOG = $('#logs');
 
-
-let tmp = 0;
+const BUTTON_PLAY = $('#button-play');
+const BUTTON_RESET = $('#button-reset');
 
 function _onBoardClick(x, y, cell) {
-    console.log(x, y, cell);
+    if (BUTTON_PLAY.prop('disabled')) {
+        // A task is already running
+        return;
+    }
+
     if (cell['queen'] || cell['hits'] === 0) {
         // Place a new queen or remove existing one
         SOCKET.send(JSON.stringify({
@@ -36,43 +40,64 @@ function onUiReset() {
         'type': 'RESET',
         'text': $('#board-size').val()
     }));
+    $('#solutions').empty();
+    LOG.empty();
 }
 
 function onUiRun() {
-    $('#button-play').prop('disabled', true);
+    BUTTON_PLAY.prop('disabled', true);
+    BUTTON_RESET.prop('disabled', true);
+    LOG.empty();
     let m = {
         'type': 'RUN'
     };
-    tmp = 0;
+    $('#solutions').empty();
     SOCKET.send(JSON.stringify(m));
 }
 
 function onMessage(evt) {
     let msg = JSON.parse(evt.data);
-    //console.log(msg);
-    let playButton = $('#button-play');
     switch (msg['type']) {
         case 'BOARD':
-            _drawBoard(SVG, msg['board']);
-            playButton.prop('disabled', false);
+            let board = msg['board'];
+            _drawBoard(SVG, board, true);
+            const size = board.cells.length;
+            $('#board-size').val(size);
+            BUTTON_PLAY.prop('disabled', false);
+            BUTTON_RESET.prop('disabled', false);
             break;
-        case 'FOUND':
-            playButton.prop('disabled', false);
-            tmp++;
+        case 'SOLUTION':
+            _drawSolution(msg['id'], msg['board'])
             break;
         case 'STOPPED':
-            playButton.prop('disabled', false);
-            console.log("Found", tmp)
+            BUTTON_PLAY.prop('disabled', false);
+            BUTTON_RESET.prop('disabled', false);
             break;
         case 'ERROR':
-            ELEMENT_LOG.append('<li class="ERROR">' + msg.text + '</li>');
+            LOG.append('<li class="ERROR">' + msg.text + '</li>');
             break;
+        case 'INFO':
+            LOG.append('<li>' + msg.text + '</li>');
+            break;
+        case 'PONG':
+            // Ping response, doing nothing
+            break;
+        default:
+            LOG.append('<li  class="ERROR">Unknown message <pre>' + evt.data + '</pre></li>');
     }
 }
 
-function _drawBoard(svg, board) {
-    const size = board.cells.length;
-    $('#board-size').val(size);
+
+function _drawSolution(id, board) {
+    let svgId = 'solution' + id;
+    $('#solutions').append('<div class="cell small-3 medium-3"><div><svg id="' + svgId + '" class="solution" width="100" height="100" viewBox="0 0 100 100" preserveAspectRatio="none"></svg></div></div>');
+
+    let svg = document.getElementById(svgId);
+    _drawBoard(svg, board, false);
+}
+
+
+function _drawBoard(svg, board, listener) {
 
     // Clean the board
     $(svg).find('g').remove();
@@ -82,11 +107,13 @@ function _drawBoard(svg, board) {
     let pieces = document.createElementNS(SVG_NS, 'g');
 
     const svgSize = Number.parseInt(svg.getAttribute('width'));
+    const size = board.cells.length;
     let step = svgSize / size;
 
-    for (let x = 0; x < size; x++) {
-        for (let y = 0; y < size; y++) {
-            const cell = board.cells[x][y];
+    for (let col of board.cells) {
+        for (let cell of col) {
+            let x = cell.x;
+            let y = cell.y;
 
             const clickFunction = function () {
                 _onBoardClick(x, y, cell);
@@ -110,7 +137,9 @@ function _drawBoard(svg, board) {
             rect.setAttribute('y', svgY.toString());
             rect.setAttribute('width', step.toString());
             rect.setAttribute('height', step.toString());
-            rect.onclick = clickFunction;
+            if (listener) {
+                rect.onclick = clickFunction;
+            }
             surface.appendChild(rect);
 
             // Draw queen if present
@@ -118,6 +147,7 @@ function _drawBoard(svg, board) {
                 let queen = document.createElementNS(SVG_NS, "use");
                 queen.setAttribute('href', '#queen');
 
+                let styleClass = dark ? 'queen queen-on-dark' : 'queen queen-on-white';
 
                 let scaledWidth = 0.618034 * step;
                 let pad = (step - scaledWidth) / 2;
@@ -127,17 +157,19 @@ function _drawBoard(svg, board) {
                 queen.setAttribute('height', scaledWidth.toString());
                 queen.setAttribute('x', qx.toString());
                 queen.setAttribute('y', qy.toString());
-                queen.setAttribute('class', 'queen');
-                queen.onclick = clickFunction;
+                queen.setAttribute('class', styleClass);
+                if (listener) {
+                    queen.onclick = clickFunction;
+                }
                 pieces.appendChild(queen);
 
             }
+
         }
     }
+
     svg.appendChild(surface);
     svg.appendChild(pieces);
-
-
 }
 
 function _createWebSocket() {
@@ -146,11 +178,11 @@ function _createWebSocket() {
     const webSocket = new WebSocket(url, ['protocolOne', 'protocolTwo']);
     webSocket.onmessage = onMessage;
     webSocket.onerror = function () {
-        ELEMENT_LOG.append('<li class="ERROR">Network error</li>');
+        LOG.append('<li class="ERROR">Network error</li>');
     };
 
     webSocket.onclose = function (event) {
-        ELEMENT_LOG.append('<li>Connection closed, reason: "' + event.reason + '". Please reload the page.</li>');
+        LOG.append('<li>Connection closed, reason: "' + event.reason + '". Please reload the page.</li>');
     };
 
     // Optional. Some browsers (or networks) may not support ping/pong messaging,
