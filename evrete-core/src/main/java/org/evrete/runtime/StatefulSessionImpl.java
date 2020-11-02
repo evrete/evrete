@@ -86,7 +86,7 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
         }
     }
 
-    private void fireDefault(ActivationContext ctx) {
+    private void fireContinuous(ActivationContext ctx) {
         Buffer rawMemoryChanges = getBuffer();
 
         while (active && rawMemoryChanges.hasTasks()) {
@@ -108,7 +108,7 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
         }
     }
 
-    private void fireContinuous(ActivationContext ctx) {
+    private void fireDefault(ActivationContext ctx) {
         Buffer rawMemoryChanges = getBuffer();
 
         while (active && rawMemoryChanges.hasTasks()) {
