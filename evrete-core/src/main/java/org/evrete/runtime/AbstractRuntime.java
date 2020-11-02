@@ -4,7 +4,6 @@ import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.api.spi.LiteralRhsCompiler;
-import org.evrete.runtime.async.Completer;
 import org.evrete.runtime.async.ForkJoinExecutor;
 import org.evrete.runtime.builder.RuleBuilderImpl;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
@@ -29,7 +28,6 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     private final AlphaConditions alphaConditions;
     private final KnowledgeService service;
     private final ActiveFields activeFields;
-    private final Queue<Completer> tasksQueue = new LinkedList<>();
     private final LazyInstance<MemoryCollections> collectionsService = new LazyInstance<>(this::newCollectionsService);
     private final LazyInstance<ExpressionResolver> expressionResolver = new LazyInstance<>(this::newExpressionResolver);
     private final LazyInstance<TypeResolver> typeResolver = new LazyInstance<>(this::newTypeResolver);
@@ -91,9 +89,18 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         return this;
     }
 
+/*
     @Override
     public <T> void set(String property, T value) {
         this.properties.put(property, value);
+    }
+*/
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public C set(String property, Object value) {
+        this.properties.put(property, value);
+        return (C) this;
     }
 
     @Override
@@ -170,10 +177,13 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         }
     }
 
+/*
     protected void queueTask(Completer task) {
         this.tasksQueue.add(task);
     }
+*/
 
+/*
     protected void processAllTasks() {
         Completer task;
         ForkJoinExecutor executor = getExecutor();
@@ -181,6 +191,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
             executor.invoke(task);
         }
     }
+*/
 
     @Override
     public Comparator<Rule> getRuleComparator() {

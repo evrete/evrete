@@ -3,16 +3,14 @@ package org.evrete.runtime.memory;
 import org.evrete.api.*;
 import org.evrete.collections.FastHashMap;
 import org.evrete.runtime.*;
-import org.evrete.runtime.async.AggregateComputeTask;
+import org.evrete.runtime.async.Completer;
+import org.evrete.runtime.async.ForkJoinExecutor;
 import org.evrete.runtime.async.RuleHotDeploymentTask;
-import org.evrete.runtime.async.RuleMemoryDeleteTask;
-import org.evrete.runtime.async.RuleMemoryInsertTask;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaDelta;
 
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -169,23 +167,8 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
         return ruleStorage.asList();
     }
 
-    public List<RuntimeRule> getAgenda() {
-        return ruleStorage.activeRules();
-    }
-
-    protected void processChanges() {
+    protected List<RuntimeRule> processChanges(Buffer buffer) {
         // 1. Do deletes
-        handleDeletes();
-
-        // 2. Do inserts
-        handleInserts();
-
-
-        processAllTasks();
-        buffer.clear();
-    }
-
-    private void handleDeletes() {
         buffer.takeAll(
                 Action.RETRACT,
                 (type, iterator) -> {
@@ -193,22 +176,12 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
                     while (iterator.hasNext()) {
                         tm.deleteSingle(iterator.next());
                     }
-                    tm.doDelete();
+                    tm.commitDelete();
                 }
         );
 
-        Collection<RuntimeRuleImpl> ruleDeleteChanges = new LinkedList<>();
-        for (RuntimeRuleImpl rule : ruleStorage) {
-            if (rule.isDeleteDeltaAvailable()) {
-                ruleDeleteChanges.add(rule);
-            }
-        }
-        if (!ruleDeleteChanges.isEmpty()) {
-            queueTask(new RuleMemoryDeleteTask(ruleDeleteChanges));
-        }
-    }
 
-    private void handleInserts() {
+        // 2. Do inserts
         buffer.takeAll(
                 Action.INSERT,
                 (type, iterator) -> {
@@ -220,27 +193,17 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
                 }
         );
 
-        // Ordered task 1 - update end nodes
-        Collection<BetaEndNode> deltaEndNodes = new LinkedList<>();
+        // 3. Perform async updates on rules' beta nodes
+        List<Completer> tasks = ruleStorage.buildTasks();
 
-        for (RuntimeRuleImpl rule : ruleStorage) {
-            for (BetaEndNode endNode : rule.getLhs().getAllBetaEndNodes()) {
-                if (endNode.hasDeltaSources()) {
-                    deltaEndNodes.add(endNode);
-                }
+        if (tasks.size() > 0) {
+            ForkJoinExecutor executor = getExecutor();
+            for (Completer task : tasks) {
+                executor.invoke(task);
             }
         }
 
-        if (!deltaEndNodes.isEmpty()) {
-            queueTask(new RuleMemoryInsertTask(deltaEndNodes, true));
-        }
-
-        // Ordered task 2 - update aggregate nodes
-        Collection<RuntimeAggregateLhsJoined> aggregateGroups = ruleStorage.getAggregateLhsGroups();
-        if (!aggregateGroups.isEmpty()) {
-            queueTask(new AggregateComputeTask(aggregateGroups, true));
-        }
-
+        return ruleStorage.activeRules();
     }
 
     public TypeMemory get(Type<?> t) {
@@ -253,10 +216,7 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
     }
 
     protected void commitMemoryDeltas() {
+        // TODO can be paralleled
         typedMemories.forEachValue(TypeMemory::commitMemoryDeltas);
-    }
-
-    protected boolean hasMemoryTasks() {
-        return buffer.hasTasks();
     }
 }

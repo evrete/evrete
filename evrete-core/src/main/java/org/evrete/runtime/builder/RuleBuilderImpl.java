@@ -33,6 +33,12 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
         return this;
     }
 
+    @Override
+    public RuleBuilderImpl<C> set(String property, Object value) {
+        super.set(property, value);
+        return this;
+    }
+
     public RuleBuilderImpl<C> salience(int salience) {
         setSalience(salience);
         return this;

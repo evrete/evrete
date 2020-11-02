@@ -222,7 +222,7 @@ public final class TypeMemory implements PlainMemory {
         }
     }
 
-    final void doDelete() {
+    final void commitDelete() {
         if (deleteBuffer.isEmpty()) return;
         //Delete from non-beta memory
         for (TypeMemoryBucket bucket : alphaBuckets.data) {
@@ -246,6 +246,9 @@ public final class TypeMemory implements PlainMemory {
         }
     }
 
+    public long getTotalFacts() {
+        return mainFacts.size() + deltaFacts.size();
+    }
 
     @SuppressWarnings("unchecked")
     final <T> void forEachMemoryObject(Consumer<T> consumer) {
@@ -289,6 +292,14 @@ public final class TypeMemory implements PlainMemory {
             deltaFacts.put(o, rto);
             return rto;
         }
+    }
+
+    @Override
+    public String toString() {
+        return "TypeMemory{" +
+                "mainFacts=" + mainFacts.size() +
+                ", deltaFacts=" + deltaFacts.size() +
+                '}';
     }
 
     private static class IdentityMap extends FastIdentityHashMap<Object, RuntimeObject> {

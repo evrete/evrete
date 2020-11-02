@@ -1,5 +1,7 @@
 package org.evrete.api;
 
+import java.util.Collection;
+
 /**
  * <p>
  * Rule activation context that provides access to the rule's variables and
@@ -16,6 +18,21 @@ public interface RhsContext {
      * @return the context itself so the methods could be chained
      */
     RhsContext insert(Object obj);
+
+
+    default RhsContext insert(Collection<?> objects) {
+        for (Object o : objects) {
+            insert(o);
+        }
+        return this;
+    }
+
+    default RhsContext insert(Object[] objects) {
+        for (Object o : objects) {
+            insert(o);
+        }
+        return this;
+    }
 
     /**
      * <p>

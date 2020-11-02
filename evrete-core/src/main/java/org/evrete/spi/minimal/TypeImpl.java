@@ -142,8 +142,8 @@ class TypeImpl<T> implements Type<T> {
 
     @Override
     public String toString() {
-        return "{name='" + name + '\'' +
-                ", javaType=" + javaType +
+        return "{type='" + name + '\'' +
+                //", javaType=" + javaType +
                 '}';
     }
 

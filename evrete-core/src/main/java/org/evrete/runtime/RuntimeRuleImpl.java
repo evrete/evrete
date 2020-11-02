@@ -23,7 +23,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
 
     private final RuntimeLhs lhs;
     private final Buffer ruleBuffer;
-    private final Buffer memoryBuffer;
 
     public RuntimeRuleImpl(RuleDescriptor rd, SessionMemory memory) {
         super(memory, rd, rd.getLhs().getGroupFactTypes());
@@ -45,9 +44,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         this.betaFactSources = betaNodes.toArray(new RuntimeFactTypeKeyed[0]);
 
 
-        ///
         this.ruleBuffer = new Buffer();
-        this.memoryBuffer = memory.getBuffer();
         this.lhs = RuntimeLhs.factory(this, rd.getLhs(), ruleBuffer);
     }
 
@@ -60,17 +57,30 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         return factSources;
     }
 
-    public final void executeRhs() {
+    public final Buffer executeRhs() {
         assert isInActiveState();
         this.lhs.forEach(rhs);
-        memoryBuffer.takeAllFrom(ruleBuffer);
+        this.resetState();
+        return ruleBuffer;
     }
+
+/*
+    public Buffer getRuleBuffer() {
+        return ruleBuffer;
+    }
+*/
 
     public void clear() {
         //TODO don't forget aggregate nodes once they're back
         for (BetaEndNode endNode : lhs.getAllBetaEndNodes()) {
             endNode.clear();
         }
+    }
+
+    @Override
+    public RuntimeRule set(String property, Object value) {
+        super.set(property, value);
+        return this;
     }
 
     @SuppressWarnings("unchecked")

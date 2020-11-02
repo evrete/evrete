@@ -49,7 +49,7 @@ public class BufferSafe extends Buffer {
     }
 
     @Override
-    void clear() {
+    public void clear() {
         try {
             writeLock.lock();
             super.clear();

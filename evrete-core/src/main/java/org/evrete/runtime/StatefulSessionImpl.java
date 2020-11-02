@@ -4,14 +4,18 @@ import org.evrete.api.ActivationManager;
 import org.evrete.api.Named;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
+import org.evrete.runtime.memory.Buffer;
 import org.evrete.runtime.memory.SessionMemory;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
 public class StatefulSessionImpl extends SessionMemory implements StatefulSession {
     private final KnowledgeImpl knowledge;
     private boolean active = true;
     private ActivationManager activationManager;
+    private BooleanSupplier fireCriteria = () -> true;
 
     StatefulSessionImpl(KnowledgeImpl knowledge) {
         super(knowledge);
@@ -51,8 +55,9 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
     }
 
     @Override
-    public void setActivationManager(ActivationManager activationManager) {
+    public StatefulSession setActivationManager(ActivationManager activationManager) {
         this.activationManager = activationManager;
+        return this;
     }
 
     @Override
@@ -61,32 +66,77 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
         this.activationManager = newActivationManager();
     }
 
+    @Override
+    public StatefulSession setFireCriteria(BooleanSupplier fireCriteria) {
+        this.fireCriteria = fireCriteria;
+        return this;
+    }
 
     @Override
     public void fire() {
-        if (hasMemoryTasks()) {
-            fireDefault(new ActivationContext(this));
-        }
+        fireDefault(new ActivationContext(this));
+        //fireInterrupted(new ActivationContext(this));
     }
 
     private void fireDefault(ActivationContext ctx) {
-        while (active && hasMemoryTasks()) {
-            // Prepare and process memory deltas
-            processChanges();
-            List<RuntimeRule> agenda = getAgenda();
-            if (agenda.size() > 0) {
-                activationManager.onAgenda(ctx.incrementFireCount(), agenda);
-                for (RuntimeRule r : getAgenda()) {
-                    RuntimeRuleImpl impl = (RuntimeRuleImpl) r;
+        Buffer rawMemoryChanges = getBuffer();
 
-                    if (activationManager.test(impl)) {
-                        impl.executeRhs();
-                        activationManager.onActivation(impl);
-                    }
-                    impl.resetState();
+        while (active && rawMemoryChanges.hasTasks()) {
+            // Prepare and process memory deltas
+            List<RuntimeRule> agenda = processChanges(rawMemoryChanges);
+            rawMemoryChanges.clear();
+            activationManager.onAgenda(ctx.incrementFireCount(), agenda);
+            for (RuntimeRule r : agenda) {
+                RuntimeRuleImpl rule = (RuntimeRuleImpl) r;
+
+                if (fireCriteria.getAsBoolean() && activationManager.test(rule)) {
+                    Buffer buffer = rule.executeRhs();
+                    activationManager.onActivation(rule);
+
+                    //Buffer buffer = rule.getRuleBuffer();
+                    rawMemoryChanges.takeAllFrom(buffer);
                 }
+                //rule.resetState();
             }
             commitMemoryDeltas();
+        }
+    }
+
+    private void fireInterrupted(ActivationContext ctx) {
+        Buffer rawMemoryChanges = getBuffer();
+
+        while (active && rawMemoryChanges.hasTasks()) {
+            // Prepare and process memory deltas
+            System.out.println("**** 1 agenda: " + rawMemoryChanges);
+            List<RuntimeRule> agenda = processChanges(rawMemoryChanges);
+            rawMemoryChanges.clear();
+            activationManager.onAgenda(ctx.incrementFireCount(), agenda);
+
+
+            Iterator<RuntimeRule> agendaIterator = agenda.iterator();
+            while (agendaIterator.hasNext()) {
+                RuntimeRuleImpl rule = (RuntimeRuleImpl) agendaIterator.next();
+                if (fireCriteria.getAsBoolean() && activationManager.test(rule)) {
+                    System.out.println("**** 2 " + rule.getName());
+                    Buffer buffer = rule.executeRhs();
+                    activationManager.onActivation(rule);
+                    //Buffer buffer = rule.getRuleBuffer();
+
+                    if (buffer.hasTasks()) {
+                        // Start over from the beginning
+                        rawMemoryChanges.takeAllFrom(buffer);
+                        assert rawMemoryChanges.hasTasks();
+                        System.out.println("**** 3");
+                        commitMemoryDeltas();
+                        // Reset the state of other rules on the agenda
+                        agendaIterator.forEachRemaining(o -> ((RuntimeRuleImpl) o).resetState());
+                        break;
+                    }
+                }
+            }
+            System.out.println("**** 3");
+            commitMemoryDeltas();
+
         }
     }
 

@@ -2,8 +2,12 @@ package org.evrete.api;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
+//TODO javadoc
 public interface StatefulSession extends WorkingMemory, RuntimeContext<StatefulSession> {
+
+    StatefulSession setFireCriteria(BooleanSupplier fireCriteria);
 
     void fire();
 
@@ -11,7 +15,7 @@ public interface StatefulSession extends WorkingMemory, RuntimeContext<StatefulS
 
     ActivationManager getActivationManager();
 
-    void setActivationManager(ActivationManager activationManager);
+    StatefulSession setActivationManager(ActivationManager activationManager);
 
     @Override
     StatefulSession addImport(String imp);

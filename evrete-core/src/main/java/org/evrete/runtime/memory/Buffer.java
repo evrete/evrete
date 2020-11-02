@@ -87,11 +87,11 @@ public class Buffer {
     }
 
 
-    final boolean hasTasks() {
+    public final boolean hasTasks() {
         return insertsAvailable || deletesAvailable;
     }
 
-    void clear() {
+    public void clear() {
         this.insertsAvailable = false;
         this.deletesAvailable = false;
         for (TypedObjects typedObjects : actionData.values()) {
@@ -149,6 +149,11 @@ public class Buffer {
             for (FastIdentityHashSet<Object> set : data.values()) {
                 set.clear();
             }
+        }
+
+        @Override
+        public String toString() {
+            return data.toString();
         }
     }
 

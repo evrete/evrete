@@ -24,6 +24,12 @@ public class RuleDescriptor extends AbstractRuntimeRule {
     }
 
     @Override
+    public RuleDescriptor set(String property, Object value) {
+        super.set(property, value);
+        return this;
+    }
+
+    @Override
     public RuleDescriptor addImport(String imp) {
         super.addImport(imp);
         return this;

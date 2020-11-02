@@ -72,8 +72,9 @@ public abstract class AbstractRule implements Rule {
     }
 
     @Override
-    public final <T> void set(String property, T value) {
+    public Rule set(String property, Object value) {
         this.properties.put(property, value);
+        return this;
     }
 
     @Override

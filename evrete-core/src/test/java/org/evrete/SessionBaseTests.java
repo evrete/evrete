@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.evrete.api.FactBuilder.fact;
@@ -652,6 +653,14 @@ class SessionBaseTests {
                 .execute(rhsAssert);
 
         StatefulSessionImpl s = knowledge.createSession();
+        s.getRules().get(0).chainRhs(new Consumer<RhsContext>() {
+            @Override
+            public void accept(RhsContext ctx) {
+                TypeA $a = ctx.get("$a");
+                TypeB $b = ctx.get("$b");
+                System.out.println($a + " : " + $b);
+            }
+        });
 
         TypeA a1 = new TypeA("A1");
         a1.setAllNumeric(1);
@@ -667,7 +676,7 @@ class SessionBaseTests {
 
         s.insertAndFire(a1, a2, b1, b2);
         rhsAssert.assertCount(2).reset();
-
+        System.out.println("--------");
         TypeA a1_1 = new TypeA("A1_1");
         a1_1.setAllNumeric(1);
         s.insertAndFire(a1_1);

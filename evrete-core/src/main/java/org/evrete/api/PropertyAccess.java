@@ -2,8 +2,8 @@ package org.evrete.api;
 
 import java.util.Collection;
 
-public interface PropertyAccess {
-    <T> void set(String property, T value);
+public interface PropertyAccess<X> {
+    X set(String property, Object value);
 
     <T> T get(String property);
 
