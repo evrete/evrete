@@ -37,6 +37,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     private ClassLoader classLoader;
     private Comparator<Rule> ruleComparator = SALIENCE_COMPARATOR;
     private Class<? extends ActivationManager> activationManagerFactory;
+    private AgendaMode agendaMode;
 
     /**
      * Constructor for a Knowledge object
@@ -55,6 +56,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         this.classLoader = service.getClassLoader();
         this.imports = new HashSet<>();
         this.properties = new ConcurrentHashMap<>();
+        this.agendaMode = AgendaMode.DEFAULT;
     }
 
     /**
@@ -75,6 +77,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         this.classLoader = parent.classLoader;
         this.imports = new HashSet<>(parent.imports);
         this.properties = new ConcurrentHashMap<>(parent.properties);
+        this.agendaMode = parent.agendaMode;
     }
 
     protected abstract TypeResolver newTypeResolver();
@@ -89,12 +92,14 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         return this;
     }
 
-/*
-    @Override
-    public <T> void set(String property, T value) {
-        this.properties.put(property, value);
+    public AgendaMode getAgendaMode() {
+        return agendaMode;
     }
-*/
+
+    @Override
+    public void setAgendaMode(AgendaMode agendaMode) {
+        this.agendaMode = agendaMode;
+    }
 
     @Override
     @SuppressWarnings("unchecked")

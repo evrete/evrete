@@ -31,6 +31,8 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
 
     RuntimeListeners getListeners();
 
+    void setAgendaMode(AgendaMode agendaMode);
+
     ClassLoader getClassLoader();
 
     void setClassLoader(ClassLoader classLoader);
