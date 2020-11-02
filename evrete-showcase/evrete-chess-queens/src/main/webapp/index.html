@@ -19,7 +19,11 @@
 <body>
 
 <div class="grid-container">
-    <h2>N queens puzzle</h2>
+    <h2>N-Queens puzzle</h2>
+    <p>
+        The goal is to place N non-attacking queens on an N×N chessboard. For a desired board size, try solving the
+        problem yourself by toggling queen positions and/or let the system solve the rest.
+    </p>
     <div class="grid-x grid-padding-x">
         <div class="cell medium-6 small-10 small-offset-1 medium-offset-0">
 
@@ -48,15 +52,27 @@
                     </select>
                 </div>
                 <div class="cell small-1"></div>
-
                 <div class="cell auto">
                     <div class="button-group expanded text-right">
-                        <button class="button secondary" id="button-reset" onclick="onUiReset()"><i
-                                class="lni lni-close"></i></button>
-                        <button class="button primary" disabled id="button-play" onclick="onUiRun()"><i
-                                class="lni lni-play"></i></button>
+                        <button class="button secondary" id="button-reset" onclick="onUiReset()">
+                            <i class="lni lni-spinner-arrow"></i>
+                        </button>
+                        <button class="button primary" disabled id="button-play" onclick="onUiRun()">
+                            <i class="lni lni-play"></i>
+                        </button>
                     </div>
                 </div>
+            </div>
+            <div>
+                <h3>Instructions</h3>
+                <ul class="no-bullet">
+                    <li>
+                        <i class="lni lni-play"></i> - let the system solve the rest
+                    </li>
+                    <li>
+                        <i class="lni lni-spinner-arrow"></i> - clear the board
+                    </li>
+                </ul>
             </div>
             <div>
                 <ol id="logs"></ol>
