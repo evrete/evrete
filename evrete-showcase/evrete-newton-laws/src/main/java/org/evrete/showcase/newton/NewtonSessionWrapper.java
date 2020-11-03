@@ -135,6 +135,10 @@ class NewtonSessionWrapper extends AbstractSocketSession {
                     "Rule compiled: " + descriptor.getName()
             ));
         }
+
+        //TODO move to DEFAULT
+        knowledge.setAgendaMode(AgendaMode.CONTINUOUS);
+
         return knowledge;
     }
 

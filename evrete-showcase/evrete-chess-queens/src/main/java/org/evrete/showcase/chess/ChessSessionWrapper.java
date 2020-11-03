@@ -1,5 +1,6 @@
 package org.evrete.showcase.chess;
 
+import org.evrete.api.AgendaMode;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
 import org.evrete.showcase.chess.json.QueenToggleMessage;
@@ -53,6 +54,8 @@ class ChessSessionWrapper extends AbstractSocketSession {
                     ctx.insert($task.nextTask());
                     ctx.update($task);
                 });
+        //TODO move to DEFAULT
+        this.knowledge.setAgendaMode(AgendaMode.CONTINUOUS);
     }
 
 

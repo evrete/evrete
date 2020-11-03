@@ -69,6 +69,9 @@ class StockSessionWrapper extends AbstractSocketSession {
             RuleDescriptor descriptor = knowledge.compileRule(builder);
             messenger.sendDelayed(new Message("RULE_COMPILED", descriptor.getName()));
         }
+
+        //TODO move to DEFAULT
+        knowledge.setAgendaMode(AgendaMode.CONTINUOUS);
         return knowledge;
 
     }
