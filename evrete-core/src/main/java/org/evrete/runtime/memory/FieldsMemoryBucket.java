@@ -34,7 +34,19 @@ class FieldsMemoryBucket implements Memory {
         fieldData.insert(facts, alphaMask);
     }
 
+    void insert(RuntimeFact fact) {
+        if (alphaMask.test(fact)) {
+            fieldData.insert(fact);
+        }
+    }
+
     void delete(Collection<RuntimeFact> facts) {
         fieldData.delete(facts, alphaMask);
+    }
+
+    void delete(RuntimeFact fact) {
+        if (alphaMask.test(fact)) {
+            fieldData.delete(fact);
+        }
     }
 }

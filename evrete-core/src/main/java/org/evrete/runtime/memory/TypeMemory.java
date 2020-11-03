@@ -17,21 +17,15 @@ public final class TypeMemory extends TypeMemoryBase {
     private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
     private final AlphaConditions alphaConditions;
     private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
-    private final Type<?> type;
     private final ArrayOf<TypeMemoryBucket> alphaBuckets;
     private final List<RuntimeFact> insertBuffer = new LinkedList<>();
-    private final List<RuntimeFact> deleteBuffer = new LinkedList<>();
 
-    private ActiveField[] cachedActiveFields;
-    private AlphaEvaluator[] cachedAlphaEvaluators;
+    private final ActionQueue<RuntimeFact> inputBuffer = new ActionQueue<>();
 
     TypeMemory(SessionMemory runtime, Type<?> type) {
-        super(runtime);
+        super(runtime, type);
         this.alphaConditions = runtime.getAlphaConditions();
-        this.type = type;
         this.alphaBuckets = new ArrayOf<>(TypeMemoryBucket.class);
-        this.cachedActiveFields = runtime.getActiveFields(type);
-        this.cachedAlphaEvaluators = alphaConditions.getPredicates(type).data;
     }
 
 
@@ -39,21 +33,66 @@ public final class TypeMemory extends TypeMemoryBase {
         return Collections.unmodifiableSet(betaMemories.keySet());
     }
 
+
+    public RuntimeFact doAction(Action action, Object o) {
+        RuntimeFact fact;
+        switch (action) {
+            case INSERT:
+            case UPDATE:
+                fact = mapToHandle(o);
+                break;
+            case RETRACT:
+                // TODO don't delete just yet
+                fact = get(MemoryScope.MAIN).remove(o);
+                break;
+            default:
+                throw new IllegalStateException();
+
+        }
+        inputBuffer.add(action, fact);
+        return fact;
+    }
+
+
     void processInput(Action action, Queue<Object> iterator) {
         Object o;
 
         switch (action) {
             case RETRACT:
                 while ((o = iterator.poll()) != null) {
-                    deleteSingle(o);
+                    RuntimeFact rtf = get(MemoryScope.MAIN).remove(o);
+                    if (rtf != null) {
+                        //deleteBuffer.add(rtf);
+
+                        for (TypeMemoryBucket bucket : alphaBuckets.data) {
+                            bucket.retract(rtf);
+                        }
+                        //Delete from beta memory
+                        for (FieldsMemory fm : fieldsMemories()) {
+                            fm.retract(rtf);
+                        }
+                    }
                 }
-                commitDelete();
                 break;
             case INSERT:
                 while ((o = iterator.poll()) != null) {
-                    insertSingle(o);
+                    RuntimeFact rto = mapToHandle(o);
+                    if (rto != null) {
+                        insertBuffer.add(rto);
+                    }
                 }
-                commitInsert();
+                //Save to non-beta memory
+                if (!insertBuffer.isEmpty()) {
+                    for (TypeMemoryBucket bucket : alphaBuckets.data) {
+                        bucket.insert(insertBuffer);
+                    }
+                    //Save to beta memory
+                    for (FieldsMemory fm : fieldsMemories()) {
+                        fm.insert(insertBuffer);
+                    }
+                    this.insertBuffer.clear();
+                }
+
                 break;
             default:
                 throw new IllegalStateException();
@@ -215,30 +254,9 @@ public final class TypeMemory extends TypeMemoryBase {
         }
     }
 
-    final void commitDelete() {
-        if (deleteBuffer.isEmpty()) return;
-        //Delete from non-beta memory
-        for (TypeMemoryBucket bucket : alphaBuckets.data) {
-            bucket.retract(deleteBuffer);
-        }
-        //Delete from beta memory
-        for (FieldsMemory fm : fieldsMemories()) {
-            fm.retract(deleteBuffer);
-        }
-        this.deleteBuffer.clear();
-    }
-
     private Collection<FieldsMemory> fieldsMemories() {
         return betaMemories.values();
     }
-
-    void deleteSingle(Object fact) {
-        RuntimeFact rtf = get(MemoryScope.MAIN).remove(fact);
-        if (rtf != null) {
-            deleteBuffer.add(rtf);
-        }
-    }
-
 
     final <T> void forEachMemoryObject(Consumer<T> consumer) {
         get(MemoryScope.MAIN).forEachMemoryObject(consumer);

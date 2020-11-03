@@ -11,6 +11,10 @@ public interface SharedBetaFactStorage extends Memory, KeyReIterables<ValueRow> 
 
     void insert(Collection<? extends RuntimeFact> collection, Predicate<RuntimeFact> predicate);
 
+    void delete(RuntimeFact fact);
+
+    void insert(RuntimeFact fact);
+
     void delete(Collection<? extends RuntimeFact> collection, Predicate<RuntimeFact> predicate);
 
     void clearDeletedKeys();

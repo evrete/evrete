@@ -97,7 +97,8 @@ class SharedBetaData implements SharedBetaFactStorage {
         deltaKnownKeys.resize(deltaKnownKeys.size() + insertCount);
     }
 
-    private void delete(RuntimeFact fact) {
+    @Override
+    public void delete(RuntimeFact fact) {
         int hash = hash(fact);
         int addr = main.findBinIndex(reusableValueArr, hash, SHARED_ARRAY_EQ);
         ValueRow deleted = main.deleteAndTestExisting(fact, addr);
@@ -127,7 +128,7 @@ class SharedBetaData implements SharedBetaFactStorage {
 
     }
 
-    private void insert(RuntimeFact fact) {
+    private void insertInner(RuntimeFact fact) {
         int hash = hash(fact);
         int addr = main.findBinIndex(reusableValueArr, hash, SHARED_ARRAY_EQ);
         if (main.get(addr) == null) {
@@ -157,8 +158,13 @@ class SharedBetaData implements SharedBetaFactStorage {
         ensureDeltaCapacity(collection.size());
         for (RuntimeFact fact : collection) {
             if (predicate.test(fact)) {
-                insert(fact);
+                insertInner(fact);
             }
         }
+    }
+
+    @Override
+    public void insert(RuntimeFact fact) {
+        insertInner(fact);
     }
 }
