@@ -1,3 +1,4 @@
+/*
 package org.evrete.runtime.memory;
 
 import org.evrete.api.Action;
@@ -59,3 +60,4 @@ public class BufferSafe extends Buffer {
         }
     }
 }
+*/

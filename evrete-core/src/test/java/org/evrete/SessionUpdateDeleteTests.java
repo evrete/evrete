@@ -44,8 +44,7 @@ class SessionUpdateDeleteTests {
     @Test
     void updateAlpha1() {
         AtomicInteger counter = new AtomicInteger();
-        AtomicReference<TypeA> ref = new AtomicReference<>();
-        ref.set(new TypeA());
+        TypeA a = new TypeA();
 
         knowledge.newRule("test1")
                 .forEach(fact("$a", TypeA.class))
@@ -57,9 +56,9 @@ class SessionUpdateDeleteTests {
                     counter.incrementAndGet();
                 });
         StatefulSession s = knowledge.createSession();
-        s.insertAndFire(ref.get());
+        s.insertAndFire(a);
         assert counter.get() == 10;
-        assert ref.get().getI() == 10;
+        assert a.getI() == 10;
     }
 
     @Test

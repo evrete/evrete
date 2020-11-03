@@ -2,7 +2,6 @@ package org.evrete.runtime.memory;
 
 import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
-import org.evrete.collections.FastIdentityHashMap;
 import org.evrete.runtime.PlainMemory;
 import org.evrete.runtime.RuntimeFactImpl;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
@@ -11,13 +10,10 @@ import org.evrete.runtime.evaluation.AlphaDelta;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 
 import java.util.*;
-import java.util.function.BiPredicate;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.ToIntFunction;
 import java.util.logging.Logger;
 
-public final class TypeMemory implements PlainMemory {
+public final class TypeMemory implements PlainMemory, BiMemory<TypeMemoryComponent, TypeMemoryComponent> {
     private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
     private final AlphaConditions alphaConditions;
     private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
@@ -43,21 +39,35 @@ public final class TypeMemory implements PlainMemory {
         this.cachedAlphaEvaluators = alphaConditions.getPredicates(type).data;
     }
 
+    @Override
+    public TypeMemoryComponent get(MemoryScope scope) {
+        //TODO override or provide a message
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void mergeDelta1() {
+        //TODO override or provide a message
+        throw new UnsupportedOperationException();
+    }
+
     public final Set<FieldsKey> knownFieldSets() {
         return Collections.unmodifiableSet(betaMemories.keySet());
     }
 
-    void processInput(Action action, Iterator<Object> iterator) {
+    void processInput(Action action, Queue<Object> iterator) {
+        Object o;
+
         switch (action) {
             case RETRACT:
-                while (iterator.hasNext()) {
-                    deleteSingle(iterator.next());
+                while ((o = iterator.poll()) != null) {
+                    deleteSingle(o);
                 }
                 commitDelete();
                 break;
             case INSERT:
-                while (iterator.hasNext()) {
-                    insertSingle(iterator.next());
+                while ((o = iterator.poll()) != null) {
+                    insertSingle(o);
                 }
                 commitInsert();
                 break;
@@ -94,6 +104,7 @@ public final class TypeMemory implements PlainMemory {
 
     @Override
     public void commitChanges() {
+        System.out.println("$$$$ committed");
         if (deltaFacts.size() > 0) {
             mainFacts.bulkAdd(deltaFacts);
             deltaFacts.clear();
@@ -101,7 +112,6 @@ public final class TypeMemory implements PlainMemory {
         for (TypeMemoryBucket bucket : alphaBuckets.data) {
             bucket.commitChanges();
         }
-
     }
 
     @Override
@@ -284,30 +294,42 @@ public final class TypeMemory implements PlainMemory {
     }
 
     private RuntimeFactImpl mapToHandle(Object o) {
-        final RuntimeFactImpl rto;
-
-        // Read values
-        Object[] values = new Object[cachedActiveFields.length];
-        for (int i = 0; i < cachedActiveFields.length; i++) {
-            values[i] = cachedActiveFields[i].readValue(o);
+        //TODO !!! delete two conditions below
+        if (mainFacts.contains(o)) {
+            LOGGER.warning("!!!! Object " + o + " has been already inserted, skipping insert");
+            return null;
+        }
+        if (deltaFacts.contains(o)) {
+            LOGGER.warning("????? Object " + o + " has been already inserted, skipping insert " + deltaFacts);
+            return null;
         }
 
-        // Evaluate alpha conditions if necessary
-        if (cachedAlphaEvaluators.length > 0) {
-            boolean[] alphaTests = new boolean[cachedAlphaEvaluators.length];
-            for (AlphaEvaluator alpha : cachedAlphaEvaluators) {
-                int fieldInUseIndex = alpha.getValueIndex();
-                alphaTests[alpha.getUniqueId()] = alpha.test(values[fieldInUseIndex]);
-            }
-            rto = RuntimeFactImpl.factory(o, values, alphaTests);
-        } else {
-            rto = RuntimeFactImpl.factory(o, values);
-        }
 
         if (mainFacts.contains(o) || deltaFacts.contains(o)) {
             LOGGER.warning("Object " + o + " has been already inserted, skipping insert");
             return null;
         } else {
+            final RuntimeFactImpl rto;
+
+            // Read values
+            Object[] values = new Object[cachedActiveFields.length];
+            for (int i = 0; i < cachedActiveFields.length; i++) {
+                values[i] = cachedActiveFields[i].readValue(o);
+            }
+
+            // Evaluate alpha conditions if necessary
+            if (cachedAlphaEvaluators.length > 0) {
+                boolean[] alphaTests = new boolean[cachedAlphaEvaluators.length];
+                for (AlphaEvaluator alpha : cachedAlphaEvaluators) {
+                    int fieldInUseIndex = alpha.getValueIndex();
+                    alphaTests[alpha.getUniqueId()] = alpha.test(values[fieldInUseIndex]);
+                }
+                rto = RuntimeFactImpl.factory(o, values, alphaTests);
+            } else {
+                rto = RuntimeFactImpl.factory(o, values);
+            }
+
+
             deltaFacts.put(o, rto);
             return rto;
         }
@@ -321,33 +343,4 @@ public final class TypeMemory implements PlainMemory {
                 '}';
     }
 
-    private static class IdentityMap extends FastIdentityHashMap<Object, RuntimeFactImpl> {
-        private static final ToIntFunction<Object> HASH = System::identityHashCode;
-        private static final Function<Entry<Object, RuntimeFactImpl>, RuntimeFact> MAPPER = Entry::getValue;
-        private static final Function<Entry<Object, RuntimeFactImpl>, RuntimeFactImpl> MAPPER_IMPL = Entry::getValue;
-
-        private static final BiPredicate<Object, Object> EQ = (fact1, fact2) -> fact1 == fact2;
-
-        ReIterator<RuntimeFact> factIterator() {
-            return iterator(MAPPER);
-        }
-
-        ReIterator<RuntimeFactImpl> factImplIterator() {
-            return iterator(MAPPER_IMPL);
-        }
-
-        @Override
-        protected ToIntFunction<Object> keyHashFunction() {
-            return HASH;
-        }
-
-        @Override
-        protected BiPredicate<Object, Object> keyHashEquals() {
-            return EQ;
-        }
-
-        boolean contains(Object o) {
-            return get(o) != null;
-        }
-    }
 }

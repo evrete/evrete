@@ -13,13 +13,13 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public abstract class SessionMemory extends AbstractRuntime<StatefulSession> implements WorkingMemory {
-    private final BufferSafe buffer;
+    private final Buffer buffer;
     private final RuntimeRules ruleStorage;
     private final FastHashMap<Type<?>, TypeMemory> typedMemories;
 
     protected SessionMemory(KnowledgeImpl parent) {
         super(parent);
-        this.buffer = new BufferSafe();
+        this.buffer = new Buffer();
         this.ruleStorage = new RuntimeRules(this);
         this.typedMemories = new FastHashMap<>(getTypeResolver().getKnownTypes().size());
         // Deploy existing rules
@@ -118,7 +118,7 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
         }
     }
 
-    public BufferSafe getBuffer() {
+    public Buffer getBuffer() {
         return buffer;
     }
 
@@ -166,9 +166,8 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
     }
 
     protected List<RuntimeRule> processInput(Buffer buffer, Action... actions) {
-
         for (Action action : actions) {
-            buffer.takeAll(
+            buffer.forEach(
                     action,
                     (type, iterator) -> {
                         TypeMemory tm = get(type);

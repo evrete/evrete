@@ -1,10 +1,8 @@
 package org.evrete.runtime.memory;
 
 import org.evrete.api.Action;
-import org.evrete.api.BufferedInsert;
 import org.evrete.api.Type;
 import org.evrete.api.TypeResolver;
-import org.evrete.collections.FastIdentityHashSet;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -12,158 +10,88 @@ import java.util.logging.Logger;
 
 public class Buffer {
     private static final Logger LOGGER = Logger.getLogger(Buffer.class.getName());
-    private final EnumMap<Action, TypedObjects> actionData = new EnumMap<>(Action.class);
-    private boolean insertsAvailable = false;
-    private boolean deletesAvailable = false;
+    private final Map<Type<?>, ActionQueue<Object>> actionData = new HashMap<>();
+    private final int[] inserts;
 
     public Buffer() {
-        for (Action a : Action.values()) {
-            actionData.put(a, new TypedObjects());
-        }
+        this.inserts = new int[Action.values().length];
     }
 
     public void add(TypeResolver resolver, Action action, Collection<?> objects) {
-        int objectCount = objects.size();
-        TypedObjects deletes = actionData.get(Action.RETRACT);
-        TypedObjects inserts = actionData.get(Action.INSERT);
+        for (Object o : objects) {
+            addSingle(resolver, action, o);
+        }
+    }
 
-        switch (action) {
-            case INSERT:
-                inserts.ensureExtraCapacity(objectCount);
-                for (Object o : objects) {
-                    insertsAvailable |= inserts.add(resolver, o);
-                }
-                return;
-            case UPDATE:
-                inserts.ensureExtraCapacity(objectCount);
-                deletes.ensureExtraCapacity(objectCount);
-                for (Object o : objects) {
-                    insertsAvailable |= inserts.add(resolver, o);
-                    deletesAvailable |= deletes.add(resolver, o);
-                }
-                return;
-            case RETRACT:
-                deletes.ensureExtraCapacity(objectCount);
-                for (Object o : objects) {
-                    deletesAvailable |= deletes.add(resolver, o);
-                }
-                return;
-            default:
-                throw new IllegalStateException();
+    public void addSingle(TypeResolver resolver, Action action, Object o) {
+        Type<?> t = resolver.resolve(o);
+        addSingle(t, action, o);
+    }
+
+    public void addSingle(Type<?> t, Action action, Object o) {
+        Objects.requireNonNull(o);
+        if (t == null) {
+            LOGGER.warning("Object {" + o + "} is of an unknown type '" + o.getClass() + "' and will be ignored.");
+        } else {
+            if (action == Action.UPDATE) {
+                addSingle(t, Action.RETRACT, o);
+                addSingle(t, Action.INSERT, o);
+            }
+            this.actionData.computeIfAbsent(t, k -> new ActionQueue<>()).add(action, o);
+            this.inserts[action.ordinal()]++;
         }
     }
 
     public void insert(TypeResolver resolver, String objectType, Collection<?> objects) {
-        int objectCount = objects.size();
         Type<?> type = resolver.getType(objectType);
         if (type == null) {
             LOGGER.warning("Objects of unknown type '" + objectType + "' will be ignored.");
-        }
-
-        TypedObjects inserts = actionData.get(Action.INSERT);
-        inserts.ensureExtraCapacity(objectCount);
-        for (Object o : objects) {
-            insertsAvailable |= inserts.add(type, o);
+        } else {
+            for (Object o : objects) {
+                addSingle(type, Action.INSERT, o);
+            }
         }
     }
 
-
-    void takeAll(Action action, BiConsumer<Type<?>, Iterator<Object>> consumer) {
-        actionData.get(action).takeAll(consumer);
+    void forEach(Action action, BiConsumer<Type<?>, Queue<Object>> consumer) {
+        for (Map.Entry<Type<?>, ActionQueue<Object>> entry : actionData.entrySet()) {
+            Type<?> t = entry.getKey();
+            Queue<Object> queue = entry.getValue().get(action);
+            consumer.accept(t, queue);
+        }
     }
 
     public void takeAllFrom(Buffer other) {
-        if (!other.hasTasks()) return;
-        this.insertsAvailable |= other.insertsAvailable;
-        this.deletesAvailable |= other.deletesAvailable;
-        other.actionData.forEach(
-                (action, otherObjects) -> {
-                    TypedObjects myObjects = actionData.get(action);
-                    myObjects.add(otherObjects);
+        for (Map.Entry<Type<?>, ActionQueue<Object>> entry : other.actionData.entrySet()) {
+            Type<?> t = entry.getKey();
+            ActionQueue<Object> otherQueue = entry.getValue();
+            otherQueue.forEach((action, objects) -> {
+                for (Object o : objects) {
+                    addSingle(t, action, o);
                 }
-        );
-
-
+            });
+        }
         other.clear();
     }
 
 
-    public final boolean hasTasks() {
-        return insertsAvailable || deletesAvailable;
-    }
-
-    public final boolean hasInserts() {
-        return insertsAvailable;
-    }
-
-    public final boolean hasDeletes() {
-        return deletesAvailable;
+    public final boolean hasData(Action... actions) {
+        for (Action action : actions) {
+            if (inserts[action.ordinal()] > 0) return true;
+        }
+        return false;
     }
 
     public void clear() {
-        this.insertsAvailable = false;
-        this.deletesAvailable = false;
-        for (TypedObjects typedObjects : actionData.values()) {
-            typedObjects.clear();
-        }
+        this.actionData.clear();
+        Arrays.fill(this.inserts, 0);
     }
 
     @Override
     public String toString() {
-        return "Buffer{" + actionData + '}';
+        return "Buffer{" +
+                "actionData=" + actionData +
+                ", inserts=" + Arrays.toString(inserts) +
+                '}';
     }
-
-
-    private static class TypedObjects implements BufferedInsert {
-        private final Map<Type<?>, FastIdentityHashSet<Object>> data = new HashMap<>();
-
-        boolean add(TypeResolver resolver, Object o) {
-            Type<?> type = resolver.resolve(o);
-            if (type == null) {
-                LOGGER.warning("Object {" + o + "} is of an unknown type '" + o.getClass() + "' and will be ignored.");
-                return false;
-            } else {
-                return data.computeIfAbsent(type, t -> new FastIdentityHashSet<>()).add(o);
-            }
-        }
-
-        boolean add(Type<?> type, Object o) {
-            return data.computeIfAbsent(type, t -> new FastIdentityHashSet<>()).add(o);
-        }
-
-
-        void takeAll(BiConsumer<Type<?>, Iterator<Object>> consumer) {
-            for (Map.Entry<Type<?>, FastIdentityHashSet<Object>> entry : data.entrySet()) {
-                FastIdentityHashSet<Object> set = entry.getValue();
-                Type<?> t = entry.getKey();
-                consumer.accept(t, set.iterator());
-                set.clear();
-            }
-        }
-
-        @Override
-        public void ensureExtraCapacity(int insertCount) {
-            for (FastIdentityHashSet<Object> set : data.values()) {
-                set.ensureExtraCapacity(insertCount);
-            }
-        }
-
-        void add(TypedObjects other) {
-            for (Map.Entry<Type<?>, FastIdentityHashSet<Object>> entry : other.data.entrySet()) {
-                this.data.computeIfAbsent(entry.getKey(), k -> new FastIdentityHashSet<>()).bulkAdd(entry.getValue());
-            }
-        }
-
-        void clear() {
-            for (FastIdentityHashSet<Object> set : data.values()) {
-                set.clear();
-            }
-        }
-
-        @Override
-        public String toString() {
-            return data.toString();
-        }
-    }
-
 }

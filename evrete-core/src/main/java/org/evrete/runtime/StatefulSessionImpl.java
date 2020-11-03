@@ -86,7 +86,7 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
     private void fireContinuous(ActivationContext ctx) {
         Buffer rawMemoryChanges = getBuffer();
 
-        while (active && rawMemoryChanges.hasTasks()) {
+        while (active && rawMemoryChanges.hasData(Action.values())) {
             // Prepare and process memory deltas
             List<RuntimeRule> agenda = processInput(rawMemoryChanges, Action.RETRACT, Action.INSERT);
             rawMemoryChanges.clear();
@@ -108,7 +108,7 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
     private void fireDefault(ActivationContext ctx) {
         Buffer rawMemoryChanges = getBuffer();
 
-        while (active && rawMemoryChanges.hasTasks()) {
+        while (active && rawMemoryChanges.hasData(Action.values())) {
             // Prepare and process memory deltas
             List<RuntimeRule> agenda = processInput(rawMemoryChanges, Action.RETRACT, Action.INSERT);
             rawMemoryChanges.clear();
@@ -116,29 +116,35 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
 
 
             Iterator<RuntimeRule> agendaIterator = agenda.iterator();
+            boolean memoryCommitted = false;
             while (agendaIterator.hasNext()) {
                 RuntimeRuleImpl rule = (RuntimeRuleImpl) agendaIterator.next();
                 if (fireCriteria.getAsBoolean() && activationManager.test(rule)) {
                     Buffer buffer = rule.executeRhs();
                     activationManager.onActivation(rule);
 
-                    if (buffer.hasInserts()) {
+                    if (buffer.hasData(Action.INSERT)) {
+                        System.out.println("@@@@ 1");
                         rawMemoryChanges.takeAllFrom(buffer);
                         commitMemoryDeltas();
+                        memoryCommitted = true;
                         // Reset the state of other rules on the agenda
                         agendaIterator.forEachRemaining(o -> ((RuntimeRuleImpl) o).resetState());
                         // Start over from the beginning
                         break;
                     }
 
-                    if (buffer.hasDeletes()) {
+                    if (buffer.hasData(Action.RETRACT)) {
                         rawMemoryChanges.takeAllFrom(buffer);
+                        System.out.println("@@@@ 2");
                         commitMemoryDeltas();
-
+                        memoryCommitted = true;
                     }
                 }
             }
-            commitMemoryDeltas();
+            if (!memoryCommitted) {
+                commitMemoryDeltas();
+            }
         }
     }
 
