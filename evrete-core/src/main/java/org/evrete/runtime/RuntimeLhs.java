@@ -1,9 +1,9 @@
 package org.evrete.runtime;
 
+import org.evrete.api.Action;
 import org.evrete.api.RhsContext;
 import org.evrete.api.RuntimeFact;
 import org.evrete.api.TypeResolver;
-import org.evrete.runtime.memory.Action;
 import org.evrete.runtime.memory.BetaEndNode;
 import org.evrete.runtime.memory.Buffer;
 

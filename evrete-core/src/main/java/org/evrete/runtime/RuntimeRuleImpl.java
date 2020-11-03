@@ -58,7 +58,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     }
 
     public final Buffer executeRhs() {
-        assert isInActiveState();
+        //assert isInActiveState() : "Rule '" + getName() + "' is not in active state";
         this.lhs.forEach(rhs);
         this.resetState();
         return ruleBuffer;
@@ -109,7 +109,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         return memory;
     }
 
-    //TODO !!! investigate and optimize
     public boolean isDeleteDeltaAvailable() {
         boolean delta = false;
         for (RuntimeFactTypeKeyed ft : this.betaFactSources) {

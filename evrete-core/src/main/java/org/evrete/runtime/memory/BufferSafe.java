@@ -1,5 +1,6 @@
 package org.evrete.runtime.memory;
 
+import org.evrete.api.Action;
 import org.evrete.api.Type;
 import org.evrete.api.TypeResolver;
 

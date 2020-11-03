@@ -1453,7 +1453,7 @@ class SessionBaseTests {
         AtomicInteger primeCounter = new AtomicInteger();
         s.forEachMemoryObject(o -> primeCounter.incrementAndGet());
 
-        assert primeCounter.get() == 25; // There are 25 prime numbers in the range [2...100]
+        assert primeCounter.get() == 25 : "Actual: " + primeCounter.get(); // There are 25 prime numbers in the range [2...100]
         s.close();
     }
 

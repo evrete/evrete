@@ -47,6 +47,28 @@ public final class TypeMemory implements PlainMemory {
         return Collections.unmodifiableSet(betaMemories.keySet());
     }
 
+
+    void processInput(Action action, Iterator<Object> iterator) {
+        switch (action) {
+            case RETRACT:
+                while (iterator.hasNext()) {
+                    deleteSingle(iterator.next());
+                }
+                commitDelete();
+                break;
+            case INSERT:
+                while (iterator.hasNext()) {
+                    insertSingle(iterator.next());
+                }
+                commitInsert();
+                break;
+            default:
+                throw new IllegalStateException();
+        }
+
+
+    }
+
     void clear() {
         mainFacts.clear();
         deltaFacts.clear();

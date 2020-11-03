@@ -1,5 +1,6 @@
 package org.evrete.runtime.memory;
 
+import org.evrete.api.Action;
 import org.evrete.api.BufferedInsert;
 import org.evrete.api.Type;
 import org.evrete.api.TypeResolver;
@@ -89,6 +90,14 @@ public class Buffer {
 
     public final boolean hasTasks() {
         return insertsAvailable || deletesAvailable;
+    }
+
+    public final boolean hasInserts() {
+        return insertsAvailable;
+    }
+
+    public final boolean hasDeletes() {
+        return deletesAvailable;
     }
 
     public void clear() {

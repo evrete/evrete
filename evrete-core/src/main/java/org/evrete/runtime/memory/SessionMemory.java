@@ -3,8 +3,6 @@ package org.evrete.runtime.memory;
 import org.evrete.api.*;
 import org.evrete.collections.FastHashMap;
 import org.evrete.runtime.*;
-import org.evrete.runtime.async.Completer;
-import org.evrete.runtime.async.ForkJoinExecutor;
 import org.evrete.runtime.async.RuleHotDeploymentTask;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaDelta;
@@ -167,41 +165,20 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
         return ruleStorage.asList();
     }
 
-    protected List<RuntimeRule> processChanges(Buffer buffer) {
-        // 1. Do deletes
-        buffer.takeAll(
-                Action.RETRACT,
-                (type, iterator) -> {
-                    TypeMemory tm = get(type);
-                    while (iterator.hasNext()) {
-                        tm.deleteSingle(iterator.next());
-                    }
-                    tm.commitDelete();
-                }
-        );
+    protected List<RuntimeRule> processInput(Buffer buffer, Action... actions) {
 
-
-        // 2. Do inserts
-        buffer.takeAll(
-                Action.INSERT,
-                (type, iterator) -> {
-                    TypeMemory tm = get(type);
-                    while (iterator.hasNext()) {
-                        tm.insertSingle(iterator.next());
+        for (Action action : actions) {
+            buffer.takeAll(
+                    action,
+                    (type, iterator) -> {
+                        TypeMemory tm = get(type);
+                        tm.processInput(action, iterator);
                     }
-                    tm.commitInsert();
-                }
-        );
+            );
+        }
 
         // 3. Perform async updates on rules' beta nodes
-        List<Completer> tasks = ruleStorage.buildTasks();
-
-        if (tasks.size() > 0) {
-            ForkJoinExecutor executor = getExecutor();
-            for (Completer task : tasks) {
-                executor.invoke(task);
-            }
-        }
+        ruleStorage.updateBetaMemories(actions);
 
         return ruleStorage.activeRules();
     }

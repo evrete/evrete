@@ -1,9 +1,6 @@
 package org.evrete.runtime;
 
-import org.evrete.api.ActivationManager;
-import org.evrete.api.Named;
-import org.evrete.api.RuntimeRule;
-import org.evrete.api.StatefulSession;
+import org.evrete.api.*;
 import org.evrete.runtime.memory.Buffer;
 import org.evrete.runtime.memory.SessionMemory;
 
@@ -91,7 +88,7 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
 
         while (active && rawMemoryChanges.hasTasks()) {
             // Prepare and process memory deltas
-            List<RuntimeRule> agenda = processChanges(rawMemoryChanges);
+            List<RuntimeRule> agenda = processInput(rawMemoryChanges, Action.RETRACT, Action.INSERT);
             rawMemoryChanges.clear();
             activationManager.onAgenda(ctx.incrementFireCount(), agenda);
             for (RuntimeRule r : agenda) {
@@ -113,7 +110,7 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
 
         while (active && rawMemoryChanges.hasTasks()) {
             // Prepare and process memory deltas
-            List<RuntimeRule> agenda = processChanges(rawMemoryChanges);
+            List<RuntimeRule> agenda = processInput(rawMemoryChanges, Action.RETRACT, Action.INSERT);
             rawMemoryChanges.clear();
             activationManager.onAgenda(ctx.incrementFireCount(), agenda);
 
@@ -125,13 +122,19 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
                     Buffer buffer = rule.executeRhs();
                     activationManager.onActivation(rule);
 
-                    if (buffer.hasTasks()) {
+                    if (buffer.hasInserts()) {
                         rawMemoryChanges.takeAllFrom(buffer);
                         commitMemoryDeltas();
                         // Reset the state of other rules on the agenda
                         agendaIterator.forEachRemaining(o -> ((RuntimeRuleImpl) o).resetState());
                         // Start over from the beginning
                         break;
+                    }
+
+                    if (buffer.hasDeletes()) {
+                        rawMemoryChanges.takeAllFrom(buffer);
+                        commitMemoryDeltas();
+
                     }
                 }
             }
