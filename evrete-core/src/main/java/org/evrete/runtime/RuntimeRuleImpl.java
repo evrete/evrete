@@ -43,7 +43,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         }
         this.betaFactSources = betaNodes.toArray(new RuntimeFactTypeKeyed[0]);
 
-
         this.ruleBuffer = new Buffer();
         this.lhs = RuntimeLhs.factory(this, rd.getLhs(), ruleBuffer);
     }
@@ -63,12 +62,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         this.resetState();
         return ruleBuffer;
     }
-
-/*
-    public Buffer getRuleBuffer() {
-        return ruleBuffer;
-    }
-*/
 
     public void clear() {
         //TODO don't forget aggregate nodes once they're back

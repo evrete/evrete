@@ -36,9 +36,10 @@ public class Buffer {
             if (action == Action.UPDATE) {
                 addSingle(t, Action.RETRACT, o);
                 addSingle(t, Action.INSERT, o);
+            } else {
+                this.actionData.computeIfAbsent(t, k -> new ActionQueue<>()).add(action, o);
+                this.inserts[action.ordinal()]++;
             }
-            this.actionData.computeIfAbsent(t, k -> new ActionQueue<>()).add(action, o);
-            this.inserts[action.ordinal()]++;
         }
     }
 

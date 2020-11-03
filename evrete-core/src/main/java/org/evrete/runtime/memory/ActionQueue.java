@@ -17,7 +17,9 @@ public class ActionQueue<T> {
     }
 
     public void add(Action action, T o) {
-        data.get(action).add(o);
+        if (o != null) {
+            data.get(action).add(o);
+        }
     }
 
     public void clear() {

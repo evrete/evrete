@@ -121,10 +121,10 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
                 RuntimeRuleImpl rule = (RuntimeRuleImpl) agendaIterator.next();
                 if (fireCriteria.getAsBoolean() && activationManager.test(rule)) {
                     Buffer buffer = rule.executeRhs();
+
                     activationManager.onActivation(rule);
 
                     if (buffer.hasData(Action.INSERT)) {
-                        System.out.println("@@@@ 1");
                         rawMemoryChanges.takeAllFrom(buffer);
                         commitMemoryDeltas();
                         memoryCommitted = true;
@@ -136,7 +136,6 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
 
                     if (buffer.hasData(Action.RETRACT)) {
                         rawMemoryChanges.takeAllFrom(buffer);
-                        System.out.println("@@@@ 2");
                         commitMemoryDeltas();
                         memoryCommitted = true;
                     }
