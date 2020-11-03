@@ -13,14 +13,11 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
-public final class TypeMemory implements PlainMemory, BiMemory<TypeMemoryComponent, TypeMemoryComponent> {
+public final class TypeMemory extends TypeMemoryBase {
     private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
     private final AlphaConditions alphaConditions;
     private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
-    private final SessionMemory runtime;
     private final Type<?> type;
-    private final IdentityMap mainFacts;
-    private final IdentityMap deltaFacts;
     private final ArrayOf<TypeMemoryBucket> alphaBuckets;
     private final List<RuntimeFact> insertBuffer = new LinkedList<>();
     private final List<RuntimeFact> deleteBuffer = new LinkedList<>();
@@ -29,27 +26,14 @@ public final class TypeMemory implements PlainMemory, BiMemory<TypeMemoryCompone
     private AlphaEvaluator[] cachedAlphaEvaluators;
 
     TypeMemory(SessionMemory runtime, Type<?> type) {
-        this.runtime = runtime;
+        super(runtime);
         this.alphaConditions = runtime.getAlphaConditions();
         this.type = type;
-        this.mainFacts = new IdentityMap();
-        this.deltaFacts = new IdentityMap();
         this.alphaBuckets = new ArrayOf<>(TypeMemoryBucket.class);
         this.cachedActiveFields = runtime.getActiveFields(type);
         this.cachedAlphaEvaluators = alphaConditions.getPredicates(type).data;
     }
 
-    @Override
-    public TypeMemoryComponent get(MemoryScope scope) {
-        //TODO override or provide a message
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void mergeDelta1() {
-        //TODO override or provide a message
-        throw new UnsupportedOperationException();
-    }
 
     public final Set<FieldsKey> knownFieldSets() {
         return Collections.unmodifiableSet(betaMemories.keySet());
@@ -77,8 +61,7 @@ public final class TypeMemory implements PlainMemory, BiMemory<TypeMemoryCompone
     }
 
     void clear() {
-        mainFacts.clear();
-        deltaFacts.clear();
+        super.clearData();
         for (TypeMemoryBucket bucket : alphaBuckets.data) {
             bucket.clear();
         }
@@ -97,31 +80,13 @@ public final class TypeMemory implements PlainMemory, BiMemory<TypeMemoryCompone
         }
     }
 
-    @Override
-    public boolean hasChanges() {
-        return deltaFacts.size() > 0;
-    }
 
     @Override
     public void commitChanges() {
-        System.out.println("$$$$ committed");
-        if (deltaFacts.size() > 0) {
-            mainFacts.bulkAdd(deltaFacts);
-            deltaFacts.clear();
-        }
+        super.mergeDelta1();
         for (TypeMemoryBucket bucket : alphaBuckets.data) {
             bucket.commitChanges();
         }
-    }
-
-    @Override
-    public ReIterator<RuntimeFact> mainIterator() {
-        return mainFacts.factIterator();
-    }
-
-    @Override
-    public ReIterator<RuntimeFact> deltaIterator() {
-        return deltaFacts.factIterator();
     }
 
     public PlainMemory get(AlphaBucketMeta alphaMask) {
@@ -163,16 +128,17 @@ public final class TypeMemory implements PlainMemory, BiMemory<TypeMemoryCompone
      * @param newField newly created field
      */
     void onNewActiveField(ActiveField newField) {
-        for (IdentityMap map : new IdentityMap[]{mainFacts, deltaFacts}) {
-            ReIterator<RuntimeFactImpl> it = map.factImplIterator();
+        for (MemoryScope scope : MemoryScope.values()) {
+            TypeMemoryComponent component = get(scope);
+            ReIterator<RuntimeFact> it = component.iterator();
             while (it.hasNext()) {
-                RuntimeFactImpl rto = it.next();
+                RuntimeFactImpl rto = (RuntimeFactImpl) it.next();
                 Object fieldValue = newField.readValue(rto.getDelegate());
                 rto.appendValue(newField, fieldValue);
             }
-        }
 
-        this.cachedActiveFields = runtime.getActiveFields(type);
+        }
+        this.cachedActiveFields = getRuntime().getActiveFields(type);
     }
 
     void touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
@@ -180,7 +146,7 @@ public final class TypeMemory implements PlainMemory, BiMemory<TypeMemoryCompone
             touchAlphaMemory(alphaMeta);
         } else {
             betaMemories
-                    .computeIfAbsent(key, k -> new FieldsMemory(runtime, key))
+                    .computeIfAbsent(key, k -> new FieldsMemory(getRuntime(), key))
                     .touchMemory(alphaMeta);
         }
     }
@@ -190,7 +156,7 @@ public final class TypeMemory implements PlainMemory, BiMemory<TypeMemoryCompone
         if (!alphaMeta.isEmpty()) {
             int bucketIndex = alphaMeta.getBucketIndex();
             if (alphaBuckets.isEmptyAt(bucketIndex)) {
-                TypeMemoryBucket newBucket = new TypeMemoryBucket(runtime, alphaMeta);
+                TypeMemoryBucket newBucket = new TypeMemoryBucket(getRuntime(), alphaMeta);
                 alphaBuckets.set(bucketIndex, newBucket);
                 return newBucket;
             }
@@ -200,17 +166,17 @@ public final class TypeMemory implements PlainMemory, BiMemory<TypeMemoryCompone
 
     void onNewAlphaBucket(AlphaDelta delta) {
 
-        if (deltaFacts.size() > 0) {
+        if (get(MemoryScope.DELTA).totalFacts() > 0) {
             //TODO develop a strategy
             throw new UnsupportedOperationException("A new condition was created in an uncommitted memory.");
         }
 
-        ReIterator<RuntimeFactImpl> existingFacts = mainFacts.factImplIterator();
+        ReIterator<RuntimeFact> existingFacts = get(MemoryScope.MAIN).iterator();
         // 1. Update all the facts by applying new alpha flags
         AlphaEvaluator[] newEvaluators = delta.getNewEvaluators();
         if (newEvaluators.length > 0 && existingFacts.reset() > 0) {
             while (existingFacts.hasNext()) {
-                existingFacts.next().appendAlphaTest(newEvaluators);
+                ((RuntimeFactImpl) existingFacts.next()).appendAlphaTest(newEvaluators);
             }
         }
 
@@ -227,7 +193,7 @@ public final class TypeMemory implements PlainMemory, BiMemory<TypeMemoryCompone
         } else {
             // 3. Process keyed/beta-memory
             betaMemories
-                    .computeIfAbsent(key, k -> new FieldsMemory(runtime, key))
+                    .computeIfAbsent(key, k -> new FieldsMemory(getRuntime(), key))
                     .onNewAlphaBucket(alphaMeta, existingFacts);
         }
 
@@ -267,23 +233,19 @@ public final class TypeMemory implements PlainMemory, BiMemory<TypeMemoryCompone
     }
 
     void deleteSingle(Object fact) {
-        RuntimeFact rtf = mainFacts.remove(fact);
+        RuntimeFact rtf = get(MemoryScope.MAIN).remove(fact);
         if (rtf != null) {
             deleteBuffer.add(rtf);
         }
     }
 
-    public long getTotalFacts() {
-        return mainFacts.size() + deltaFacts.size();
-    }
 
-    @SuppressWarnings("unchecked")
     final <T> void forEachMemoryObject(Consumer<T> consumer) {
-        mainFacts.forEachKey(f -> consumer.accept((T) f));
+        get(MemoryScope.MAIN).forEachMemoryObject(consumer);
     }
 
     final void forEachObjectUnchecked(Consumer<Object> consumer) {
-        mainFacts.forEachKey(consumer);
+        get(MemoryScope.MAIN).forEachObjectUnchecked(consumer);
     }
 
     final void insertSingle(Object o) {
@@ -295,17 +257,17 @@ public final class TypeMemory implements PlainMemory, BiMemory<TypeMemoryCompone
 
     private RuntimeFactImpl mapToHandle(Object o) {
         //TODO !!! delete two conditions below
-        if (mainFacts.contains(o)) {
+        if (get(MemoryScope.MAIN).contains(o)) {
             LOGGER.warning("!!!! Object " + o + " has been already inserted, skipping insert");
             return null;
         }
-        if (deltaFacts.contains(o)) {
-            LOGGER.warning("????? Object " + o + " has been already inserted, skipping insert " + deltaFacts);
+        if (get(MemoryScope.DELTA).contains(o)) {
+            LOGGER.warning("????? Object " + o + " has been already inserted, skipping insert");
             return null;
         }
 
 
-        if (mainFacts.contains(o) || deltaFacts.contains(o)) {
+        if (get(MemoryScope.MAIN).contains(o) || get(MemoryScope.DELTA).contains(o)) {
             LOGGER.warning("Object " + o + " has been already inserted, skipping insert");
             return null;
         } else {
@@ -330,17 +292,8 @@ public final class TypeMemory implements PlainMemory, BiMemory<TypeMemoryCompone
             }
 
 
-            deltaFacts.put(o, rto);
+            get(MemoryScope.DELTA).put(o, rto);
             return rto;
         }
     }
-
-    @Override
-    public String toString() {
-        return "TypeMemory{" +
-                "mainFacts=" + mainFacts.size() +
-                ", deltaFacts=" + deltaFacts.size() +
-                '}';
-    }
-
 }

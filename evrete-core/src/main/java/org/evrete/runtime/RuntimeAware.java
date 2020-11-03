@@ -9,7 +9,7 @@ public abstract class RuntimeAware<T extends RuntimeContext<?>> {
         this.runtime = runtime;
     }
 
-    public T getRuntime() {
+    public final T getRuntime() {
         return runtime;
     }
 }

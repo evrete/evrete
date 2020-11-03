@@ -4,7 +4,6 @@ import org.evrete.api.ReIterator;
 import org.evrete.api.RuntimeFact;
 import org.evrete.api.SharedPlainFactStorage;
 import org.evrete.runtime.PlainMemory;
-import org.evrete.runtime.RuntimeFactImpl;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
 import java.util.Collection;
@@ -26,10 +25,10 @@ class TypeMemoryBucket implements PlainMemory {
         this.delta.clear();
     }
 
-    void fillMainStorage(ReIterator<RuntimeFactImpl> iterator) {
+    void fillMainStorage(ReIterator<RuntimeFact> iterator) {
         if (iterator.reset() > 0) {
             while (iterator.hasNext()) {
-                RuntimeFactImpl rto = iterator.next();
+                RuntimeFact rto = iterator.next();
                 if (alphaMask.test(rto)) {
                     data.insert(rto);
                 }
