@@ -4,7 +4,6 @@ import org.evrete.api.FieldsKey;
 import org.evrete.api.Memory;
 import org.evrete.api.RuntimeFact;
 import org.evrete.api.SharedBetaFactStorage;
-import org.evrete.runtime.RuntimeObject;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
 import java.util.Collection;
@@ -31,7 +30,7 @@ class FieldsMemoryBucket implements Memory {
         fieldData.commitChanges();
     }
 
-    void insert(Collection<RuntimeObject> facts) {
+    void insert(Collection<RuntimeFact> facts) {
         fieldData.insert(facts, alphaMask);
     }
 

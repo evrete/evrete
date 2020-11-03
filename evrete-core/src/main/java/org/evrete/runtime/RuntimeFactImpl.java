@@ -6,28 +6,28 @@ import org.evrete.runtime.evaluation.AlphaEvaluator;
 
 import java.util.Arrays;
 
-public final class RuntimeObject implements RuntimeFact {
+public final class RuntimeFactImpl implements RuntimeFact {
     private static final boolean[] EMPTY_ALPHA_TESTS = new boolean[0];
     private final Object delegate;
     private Object[] values;
     private boolean[] alphaTests;
 
-    private RuntimeObject(Object o, Object[] values) {
+    private RuntimeFactImpl(Object o, Object[] values) {
         this(o, values, EMPTY_ALPHA_TESTS);
     }
 
-    private RuntimeObject(Object o, Object[] values, boolean[] alphaTests) {
+    private RuntimeFactImpl(Object o, Object[] values, boolean[] alphaTests) {
         this.values = values;
         this.delegate = o;
         this.alphaTests = alphaTests;
     }
 
-    public static RuntimeObject factory(Object o, Object[] values, boolean[] alphaTests) {
-        return new RuntimeObject(o, values, alphaTests);
+    public static RuntimeFactImpl factory(Object o, Object[] values, boolean[] alphaTests) {
+        return new RuntimeFactImpl(o, values, alphaTests);
     }
 
-    public static RuntimeObject factory(Object o, Object[] values) {
-        return new RuntimeObject(o, values);
+    public static RuntimeFactImpl factory(Object o, Object[] values) {
+        return new RuntimeFactImpl(o, values);
     }
 
     @Override

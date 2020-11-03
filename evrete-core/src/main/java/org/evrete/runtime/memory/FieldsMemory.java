@@ -2,7 +2,7 @@ package org.evrete.runtime.memory;
 
 import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
-import org.evrete.runtime.RuntimeObject;
+import org.evrete.runtime.RuntimeFactImpl;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
 import java.util.Collection;
@@ -49,13 +49,13 @@ public class FieldsMemory implements Memory {
         return null;
     }
 
-    void onNewAlphaBucket(AlphaBucketMeta alphaMeta, ReIterator<RuntimeObject> existingFacts) {
+    void onNewAlphaBucket(AlphaBucketMeta alphaMeta, ReIterator<RuntimeFactImpl> existingFacts) {
         FieldsMemoryBucket newBucket = touchMemory(alphaMeta);
         assert newBucket != null;
         SharedBetaFactStorage betaFactStorage = newBucket.getFieldData();
         if (existingFacts.reset() > 0) {
             while (existingFacts.hasNext()) {
-                RuntimeObject rto = existingFacts.next();
+                RuntimeFactImpl rto = existingFacts.next();
                 if (alphaMeta.test(rto)) {
                     throw new UnsupportedOperationException();
                     //betaFactStorage.insertDirect(rto);
@@ -70,7 +70,7 @@ public class FieldsMemory implements Memory {
         }
     }
 
-    void insert(Collection<RuntimeObject> facts) {
+    void insert(Collection<RuntimeFact> facts) {
         for (FieldsMemoryBucket bucket : alphaBuckets.data) {
             bucket.insert(facts);
         }

@@ -4,7 +4,7 @@ import org.evrete.api.ReIterator;
 import org.evrete.api.RuntimeFact;
 import org.evrete.api.SharedPlainFactStorage;
 import org.evrete.runtime.PlainMemory;
-import org.evrete.runtime.RuntimeObject;
+import org.evrete.runtime.RuntimeFactImpl;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
 import java.util.Collection;
@@ -26,10 +26,10 @@ class TypeMemoryBucket implements PlainMemory {
         this.delta.clear();
     }
 
-    void fillMainStorage(ReIterator<RuntimeObject> iterator) {
+    void fillMainStorage(ReIterator<RuntimeFactImpl> iterator) {
         if (iterator.reset() > 0) {
             while (iterator.hasNext()) {
-                RuntimeObject rto = iterator.next();
+                RuntimeFactImpl rto = iterator.next();
                 if (alphaMask.test(rto)) {
                     data.insert(rto);
                 }
@@ -56,27 +56,35 @@ class TypeMemoryBucket implements PlainMemory {
     public void commitChanges() {
         int deltaSize;
         if ((deltaSize = delta.size()) > 0) {
-            //TODO !!!!bulk insert, change interface, use the same approach in hot deployment
+            //TODO !!!!bulk insert, change interface, use the same approach as in hot deployment
             data.ensureExtraCapacity(deltaSize);
             delta.iterator().forEachRemaining(data::insert);
             delta.clear();
         }
     }
 
-    void insert(Collection<RuntimeObject> facts) {
+    void insert(Collection<RuntimeFact> facts) {
         delta.ensureExtraCapacity(facts.size());
-        for (RuntimeObject rto : facts) {
-            if (alphaMask.test(rto)) {
-                delta.insert(rto);
-            }
+        for (RuntimeFact rto : facts) {
+            insert(rto);
+        }
+    }
+
+    void insert(RuntimeFact fact) {
+        if (alphaMask.test(fact)) {
+            delta.insert(fact);
         }
     }
 
     void retract(Collection<RuntimeFact> facts) {
         for (RuntimeFact fact : facts) {
-            if (alphaMask.test(fact)) {
-                data.delete(fact);
-            }
+            retract(fact);
+        }
+    }
+
+    void retract(RuntimeFact fact) {
+        if (alphaMask.test(fact)) {
+            data.delete(fact);
         }
     }
 }

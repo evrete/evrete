@@ -4,7 +4,7 @@ import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
 import org.evrete.collections.FastIdentityHashMap;
 import org.evrete.runtime.PlainMemory;
-import org.evrete.runtime.RuntimeObject;
+import org.evrete.runtime.RuntimeFactImpl;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaConditions;
 import org.evrete.runtime.evaluation.AlphaDelta;
@@ -26,7 +26,7 @@ public final class TypeMemory implements PlainMemory {
     private final IdentityMap mainFacts;
     private final IdentityMap deltaFacts;
     private final ArrayOf<TypeMemoryBucket> alphaBuckets;
-    private final List<RuntimeObject> insertBuffer = new LinkedList<>();
+    private final List<RuntimeFact> insertBuffer = new LinkedList<>();
     private final List<RuntimeFact> deleteBuffer = new LinkedList<>();
 
     private ActiveField[] cachedActiveFields;
@@ -47,7 +47,6 @@ public final class TypeMemory implements PlainMemory {
         return Collections.unmodifiableSet(betaMemories.keySet());
     }
 
-
     void processInput(Action action, Iterator<Object> iterator) {
         switch (action) {
             case RETRACT:
@@ -65,8 +64,6 @@ public final class TypeMemory implements PlainMemory {
             default:
                 throw new IllegalStateException();
         }
-
-
     }
 
     void clear() {
@@ -157,17 +154,15 @@ public final class TypeMemory implements PlainMemory {
      */
     void onNewActiveField(ActiveField newField) {
         for (IdentityMap map : new IdentityMap[]{mainFacts, deltaFacts}) {
-            ReIterator<RuntimeObject> it = map.factImplIterator();
+            ReIterator<RuntimeFactImpl> it = map.factImplIterator();
             while (it.hasNext()) {
-                RuntimeObject rto = it.next();
+                RuntimeFactImpl rto = it.next();
                 Object fieldValue = newField.readValue(rto.getDelegate());
                 rto.appendValue(newField, fieldValue);
             }
         }
 
         this.cachedActiveFields = runtime.getActiveFields(type);
-
-
     }
 
     void touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
@@ -200,7 +195,7 @@ public final class TypeMemory implements PlainMemory {
             throw new UnsupportedOperationException("A new condition was created in an uncommitted memory.");
         }
 
-        ReIterator<RuntimeObject> existingFacts = mainFacts.factImplIterator();
+        ReIterator<RuntimeFactImpl> existingFacts = mainFacts.factImplIterator();
         // 1. Update all the facts by applying new alpha flags
         AlphaEvaluator[] newEvaluators = delta.getNewEvaluators();
         if (newEvaluators.length > 0 && existingFacts.reset() > 0) {
@@ -282,12 +277,14 @@ public final class TypeMemory implements PlainMemory {
     }
 
     final void insertSingle(Object o) {
-        RuntimeObject rto = mapToHandle(o);
-        insertBuffer.add(rto);
+        RuntimeFactImpl rto = mapToHandle(o);
+        if (rto != null) {
+            insertBuffer.add(rto);
+        }
     }
 
-    private RuntimeObject mapToHandle(Object o) {
-        final RuntimeObject rto;
+    private RuntimeFactImpl mapToHandle(Object o) {
+        final RuntimeFactImpl rto;
 
         // Read values
         Object[] values = new Object[cachedActiveFields.length];
@@ -302,9 +299,9 @@ public final class TypeMemory implements PlainMemory {
                 int fieldInUseIndex = alpha.getValueIndex();
                 alphaTests[alpha.getUniqueId()] = alpha.test(values[fieldInUseIndex]);
             }
-            rto = RuntimeObject.factory(o, values, alphaTests);
+            rto = RuntimeFactImpl.factory(o, values, alphaTests);
         } else {
-            rto = RuntimeObject.factory(o, values);
+            rto = RuntimeFactImpl.factory(o, values);
         }
 
         if (mainFacts.contains(o) || deltaFacts.contains(o)) {
@@ -324,10 +321,10 @@ public final class TypeMemory implements PlainMemory {
                 '}';
     }
 
-    private static class IdentityMap extends FastIdentityHashMap<Object, RuntimeObject> {
+    private static class IdentityMap extends FastIdentityHashMap<Object, RuntimeFactImpl> {
         private static final ToIntFunction<Object> HASH = System::identityHashCode;
-        private static final Function<Entry<Object, RuntimeObject>, RuntimeFact> MAPPER = Entry::getValue;
-        private static final Function<Entry<Object, RuntimeObject>, RuntimeObject> MAPPER_IMPL = Entry::getValue;
+        private static final Function<Entry<Object, RuntimeFactImpl>, RuntimeFact> MAPPER = Entry::getValue;
+        private static final Function<Entry<Object, RuntimeFactImpl>, RuntimeFactImpl> MAPPER_IMPL = Entry::getValue;
 
         private static final BiPredicate<Object, Object> EQ = (fact1, fact2) -> fact1 == fact2;
 
@@ -335,7 +332,7 @@ public final class TypeMemory implements PlainMemory {
             return iterator(MAPPER);
         }
 
-        ReIterator<RuntimeObject> factImplIterator() {
+        ReIterator<RuntimeFactImpl> factImplIterator() {
             return iterator(MAPPER_IMPL);
         }
 
