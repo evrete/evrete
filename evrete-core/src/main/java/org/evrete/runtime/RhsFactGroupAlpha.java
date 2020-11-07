@@ -94,6 +94,10 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
         }
     }
 
+    private void set(int index, RuntimeFact fact) {
+        state[index] = fact;
+    }
+
     private void runDelta(int index, boolean hasDelta, Runnable r) {
         PlainMemory memory = types[index].getSource();
         ReIterator<RuntimeFact> it;
@@ -104,7 +108,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
             it = memory.mainIterator();
             if (hasDelta && it.reset() > 0) {
                 while (it.hasNext()) {
-                    state[index] = it.next();
+                    set(index, it.next());
                     r.run();
                 }
             }
@@ -113,7 +117,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
             it = memory.deltaIterator();
             if (it.reset() > 0) {
                 while (it.hasNext()) {
-                    state[index] = it.next();
+                    set(index, it.next());
                     r.run();
                 }
             }
@@ -122,7 +126,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
             it = memory.mainIterator();
             if (it.reset() > 0) {
                 while (it.hasNext()) {
-                    state[index] = it.next();
+                    set(index, it.next());
                     runDelta(index + 1, hasDelta, r);
                 }
             }
@@ -131,7 +135,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
             it = memory.deltaIterator();
             if (it.reset() > 0) {
                 while (it.hasNext()) {
-                    state[index] = it.next();
+                    set(index, it.next());
                     runDelta(index + 1, true, r);
                 }
             }
@@ -148,7 +152,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
             it = memory.mainIterator();
             if (it.reset() > 0) {
                 while (it.hasNext()) {
-                    state[index] = it.next();
+                    set(index, it.next());
                     r.run();
                 }
             }
@@ -157,7 +161,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
             it = memory.deltaIterator();
             if (it.reset() > 0) {
                 while (it.hasNext()) {
-                    state[index] = it.next();
+                    set(index, it.next());
                     r.run();
                 }
             }
@@ -166,7 +170,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
             it = memory.mainIterator();
             if (it.reset() > 0) {
                 while (it.hasNext()) {
-                    state[index] = it.next();
+                    set(index, it.next());
                     runFull(index + 1, r);
                 }
             }
@@ -175,7 +179,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
             it = memory.deltaIterator();
             if (it.reset() > 0) {
                 while (it.hasNext()) {
-                    state[index] = it.next();
+                    set(index, it.next());
                     runFull(index + 1, r);
                 }
             }
@@ -192,7 +196,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
             it = memory.mainIterator();
             if (it.reset() > 0) {
                 while (it.hasNext()) {
-                    state[index] = it.next();
+                    set(index, it.next());
                     r.run();
                 }
             }
@@ -201,7 +205,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
             it = memory.mainIterator();
             if (it.reset() > 0) {
                 while (it.hasNext()) {
-                    state[index] = it.next();
+                    set(index, it.next());
                     runKnown(index + 1, r);
                 }
             }

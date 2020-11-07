@@ -7,6 +7,8 @@ import org.evrete.api.StatefulSession;
 import org.evrete.api.TypeResolver;
 import org.evrete.runtime.evaluation.AlphaDelta;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.WeakHashMap;
 
 public class KnowledgeImpl extends AbstractRuntime<Knowledge> implements Knowledge {
@@ -51,11 +53,13 @@ public class KnowledgeImpl extends AbstractRuntime<Knowledge> implements Knowled
     }
 
     void close(StatefulSession session) {
-        sessions.remove(session);
+        synchronized (sessions) {
+            sessions.remove(session);
+        }
     }
 
-    public WeakHashMap<StatefulSession, Object> getSessions() {
-        return sessions;
+    public Collection<StatefulSession> getSessions() {
+        return Collections.unmodifiableCollection(sessions.keySet());
     }
 
     @Override

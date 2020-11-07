@@ -3,13 +3,11 @@ package org.evrete.runtime;
 import org.evrete.api.Action;
 import org.evrete.api.RhsContext;
 import org.evrete.api.RuntimeFact;
-import org.evrete.api.TypeResolver;
+import org.evrete.runtime.memory.ActionQueue;
 import org.evrete.runtime.memory.BetaEndNode;
-import org.evrete.runtime.memory.Buffer;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -19,20 +17,18 @@ public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContex
     //private final Collection<RuntimeAggregateLhsJoined> aggregateConditionedGroups = new ArrayList<>();
     private final Collection<BetaEndNode> allBetaEndNodes = new ArrayList<>();
     private final Function<String, int[]> name2indices;
-    private final Buffer buffer;
-    private final TypeResolver typeResolver;
+    private final ActionQueue<Object> buffer;
     private final RuntimeRuleImpl rule;
 
-    protected RuntimeLhs(RuntimeRuleImpl rule, LhsDescriptor descriptor, Buffer buffer) {
+    protected RuntimeLhs(RuntimeRuleImpl rule, LhsDescriptor descriptor, ActionQueue<Object> buffer) {
         super(rule, descriptor);
         this.name2indices = descriptor.getNameIndices();
         this.buffer = buffer;
-        this.typeResolver = rule.getMemory().getTypeResolver();
         this.allBetaEndNodes.addAll(getEndNodes());
         this.rule = rule;
     }
 
-    static RuntimeLhs factory(RuntimeRuleImpl rule, LhsDescriptor descriptor, Buffer buffer) {
+    static RuntimeLhs factory(RuntimeRuleImpl rule, LhsDescriptor descriptor, ActionQueue<Object> buffer) {
         Set<AggregateLhsDescriptor> aggregates = descriptor.getAggregateDescriptors();
         if (aggregates.isEmpty()) {
             return new RuntimeLhsDefault(rule, descriptor, buffer);
@@ -52,7 +48,8 @@ public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContex
 
     public abstract Collection<RuntimeAggregateLhsJoined> getAggregateConditionedGroups();
 
-    public abstract void forEach(Consumer<RhsContext> rhs);
+    abstract void forEach(Consumer<RhsContext> rhs);
+
 
     public final Collection<BetaEndNode> getAllBetaEndNodes() {
         return allBetaEndNodes;
@@ -68,19 +65,19 @@ public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContex
     @Override
     //TODO check if fact fields have _really_ changed
     public final RhsContext update(Object obj) {
-        buffer.add(typeResolver, Action.UPDATE, Collections.singleton(obj));
+        buffer.add(Action.UPDATE, obj);
         return this;
     }
 
     @Override
     public final RhsContext delete(Object obj) {
-        buffer.add(typeResolver, Action.RETRACT, Collections.singleton(obj));
+        buffer.add(Action.RETRACT, obj);
         return this;
     }
 
     @Override
     public final RhsContext insert(Object obj) {
-        buffer.add(typeResolver, Action.INSERT, Collections.singleton(obj));
+        buffer.add(Action.INSERT, obj);
         return this;
     }
 }

@@ -13,13 +13,14 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public abstract class SessionMemory extends AbstractRuntime<StatefulSession> implements WorkingMemory {
-    private final Buffer buffer;
+    //private final Buffer buffer;
     private final RuntimeRules ruleStorage;
     private final FastHashMap<Type<?>, TypeMemory> typedMemories;
+    private final ActionCounter actionCounter = new ActionCounter();
 
     protected SessionMemory(KnowledgeImpl parent) {
         super(parent);
-        this.buffer = new Buffer();
+        //this.buffer = new Buffer();
         this.ruleStorage = new RuntimeRules(this);
         this.typedMemories = new FastHashMap<>(getTypeResolver().getKnownTypes().size());
         // Deploy existing rules
@@ -75,7 +76,7 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
 
     @Override
     public void clear() {
-        buffer.clear();
+        //buffer.clear();
         typedMemories.forEachValue(TypeMemory::clear);
         for (RuntimeRuleImpl rule : ruleStorage) {
             rule.clear();
@@ -84,14 +85,19 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
 
     @Override
     public final void insert(Collection<?> objects) {
-        if (objects == null) return;
-        this.buffer.add(getTypeResolver(), Action.INSERT, objects);
+        memoryAction(Action.INSERT, objects);
     }
 
     @Override
     public void insert(String factType, Collection<?> objects) {
-        if (objects == null) return;
-        this.buffer.insert(getTypeResolver(), factType, objects);
+        if (objects == null || objects.isEmpty()) return;
+        Type<?> t = getTypeResolver().getType(factType);
+        if (t != null) {
+            TypeMemory tm = get(t);
+            for (Object o : objects) {
+                memoryAction(Action.INSERT, tm, o);
+            }
+        }
     }
 
     @Override
@@ -118,9 +124,23 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
         }
     }
 
+    public boolean hasMemoryChanges(Action... actions) {
+        return actionCounter.hasActions(actions);
+    }
+
+    public boolean hasMemoryChanges() {
+        return actionCounter.hasActions(Action.values());
+    }
+
+    public boolean hasAction(Action action) {
+        return actionCounter.hasActions(action);
+    }
+
+    /*
     public Buffer getBuffer() {
         return buffer;
     }
+*/
 
     public SharedBetaFactStorage getBetaFactStorage(FactType factType) {
         Type<?> t = factType.getType();
@@ -132,19 +152,35 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
 
     @Override
     public final void delete(Collection<?> objects) {
-        if (objects == null) return;
-        this.buffer.add(getTypeResolver(), Action.RETRACT, objects);
+        memoryAction(Action.RETRACT, objects);
     }
 
     @Override
     public void update(Collection<?> objects) {
-        if (objects == null) return;
-        this.buffer.add(getTypeResolver(), Action.UPDATE, objects);
+        memoryAction(Action.UPDATE, objects);
     }
 
     protected void destroy() {
-        buffer.clear();
         typedMemories.clear();
+    }
+
+    private void memoryAction(Action action, Collection<?> objects) {
+        if (objects == null || objects.isEmpty()) return;
+        TypeResolver resolver = getTypeResolver();
+        for (Object o : objects) {
+            Type<?> type = resolver.resolve(o);
+            memoryAction(action, get(type), o);
+        }
+    }
+
+    private void memoryAction(Action action, TypeMemory tm, Object o) {
+        if (action == Action.UPDATE) {
+            memoryAction(Action.RETRACT, tm, o);
+            memoryAction(Action.INSERT, tm, o);
+        } else {
+            tm.doAction(action, o);
+            this.actionCounter.increment(action);
+        }
     }
 
     @Override
@@ -165,21 +201,54 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
         return ruleStorage.asList();
     }
 
-    protected List<RuntimeRule> processInput(Buffer buffer, Action... actions) {
+    private void processInputBuffer(Action... actions) {
         for (Action action : actions) {
-            buffer.forEach(
-                    action,
-                    (type, iterator) -> {
-                        TypeMemory tm = get(type);
-                        tm.processInput(action, iterator);
-                    }
-            );
+            buildMemoryDeltas(action);
         }
 
-        // 3. Perform async updates on rules' beta nodes
-        ruleStorage.updateBetaMemories(actions);
+        this.ruleStorage.updateBetaMemories();
+    }
 
+/*
+    protected List<RuntimeRule> processInputBuffer() {
+        processInputBuffer(Action.values());
         return ruleStorage.activeRules();
+    }
+
+    protected List<RuntimeRule> agenda() {
+        return ruleStorage.activeRules();
+    }
+*/
+
+    public Agenda getAgenda() {
+        return ruleStorage.activeRules();
+    }
+
+    protected void buildMemoryDeltas(Action action) {
+        switch (action) {
+            case RETRACT:
+                typedMemories.forEachValue(tm -> tm.processInputBuffer(action));
+                this.ruleStorage.updateBetaMemories();
+                break;
+            case INSERT:
+                typedMemories.forEachValue(tm -> tm.processInputBuffer(action));
+                this.ruleStorage.updateBetaMemories();
+                break;
+            case UPDATE:
+                throw new IllegalStateException();
+        }
+        actionCounter.reset(action);
+
+/*
+        if(actionCounter.hasAction(action)) {
+            System.out.println("%%%%%% 1 " + action);
+            typedMemories.forEachValue(tm -> tm.processInputBuffer(action));
+            actionCounter.reset(action);
+        }
+        if(updateRules) {
+            this.ruleStorage.updateBetaMemories();
+        }
+*/
     }
 
     public TypeMemory get(Type<?> t) {
@@ -191,8 +260,17 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
         }
     }
 
+    public void appendToBuffer(ActionQueue<Object> actions) {
+        for (Action action : Action.values()) {
+            Collection<Object> objects = actions.get(action);
+            memoryAction(action, objects);
+        }
+    }
+
+
     protected void commitMemoryDeltas() {
         // TODO can be paralleled
         typedMemories.forEachValue(TypeMemory::commitMemoryDeltas);
     }
+
 }

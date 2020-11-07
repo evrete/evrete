@@ -45,17 +45,21 @@ public class NestedReIterator<T> implements EachRunnable {
         runForEach(0, r);
     }
 
+    protected void set(int index, T obj) {
+        state[index] = obj;
+    }
+
     private void runForEach(int index, Runnable r) {
         ReIterator<T> it = iterators[index];
         if (it.reset() == 0) return;
         if (index == lastIndex) {
             while (it.hasNext()) {
-                state[index] = it.next();
+                set(index, it.next());
                 r.run();
             }
         } else {
             while (it.hasNext()) {
-                state[index] = it.next();
+                set(index, it.next());
                 runForEach(index + 1, r);
             }
         }

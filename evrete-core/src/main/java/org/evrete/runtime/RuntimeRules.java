@@ -1,6 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.api.Action;
 import org.evrete.api.Rule;
 import org.evrete.api.RuntimeRule;
 import org.evrete.runtime.async.*;
@@ -13,10 +12,11 @@ public class RuntimeRules implements Iterable<RuntimeRuleImpl> {
     private final List<RuntimeRuleImpl> list = new ArrayList<>();
     private final Collection<RuntimeAggregateLhsJoined> aggregateLhsGroups = new ArrayList<>();
     private final SessionMemory runtime;
-
+    private final Agenda agenda;
 
     public RuntimeRules(SessionMemory runtime) {
         this.runtime = runtime;
+        this.agenda = new Agenda(list);
     }
 
     private void add(RuntimeRuleImpl rule) {
@@ -47,61 +47,43 @@ public class RuntimeRules implements Iterable<RuntimeRuleImpl> {
         return Collections.unmodifiableList(list);
     }
 
-    public List<RuntimeRule> activeRules() {
-        List<RuntimeRule> l = new LinkedList<>();
-        for (RuntimeRuleImpl rule : list) {
-            if (rule.isInActiveState()) {
-                l.add(rule);
-            }
-        }
-        return l;
+    public Agenda activeRules() {
+        return agenda.update();
     }
 
-    public void updateBetaMemories(Action... actions) {
+    public void updateBetaMemories() {
 
         List<Completer> tasks = new ArrayList<>(list.size() * 2);
+        // Ordered task 1 - update end nodes
+        Collection<BetaEndNode> deltaEndNodes = new LinkedList<>();
 
-        for (Action action : actions) {
-            switch (action) {
-                case INSERT:
-                    // Ordered task 1 - update end nodes
-                    Collection<BetaEndNode> deltaEndNodes = new LinkedList<>();
-
-                    for (RuntimeRuleImpl rule : list) {
-                        for (BetaEndNode endNode : rule.getLhs().getAllBetaEndNodes()) {
-                            if (endNode.hasDeltaSources()) {
-                                deltaEndNodes.add(endNode);
-                            }
-                        }
-                    }
-
-                    if (!deltaEndNodes.isEmpty()) {
-                        tasks.add(new RuleMemoryInsertTask(deltaEndNodes, true));
-                    }
-
-                    // Ordered task 2 - update aggregate nodes
-                    Collection<RuntimeAggregateLhsJoined> aggregateGroups = getAggregateLhsGroups();
-                    if (!aggregateGroups.isEmpty()) {
-                        tasks.add(new AggregateComputeTask(aggregateGroups, true));
-                    }
-                    break;
-                case RETRACT:
-                    // Delete async tasks
-                    Collection<RuntimeRuleImpl> ruleDeleteChanges = new LinkedList<>();
-                    for (RuntimeRuleImpl rule : list) {
-                        if (rule.isDeleteDeltaAvailable()) {
-                            ruleDeleteChanges.add(rule);
-                        }
-                    }
-                    if (!ruleDeleteChanges.isEmpty()) {
-                        tasks.add(new RuleMemoryDeleteTask(ruleDeleteChanges));
-                    }
-                    break;
-                default:
-                    throw new IllegalStateException();
-
-
+        for (RuntimeRuleImpl rule : list) {
+            for (BetaEndNode endNode : rule.getLhs().getAllBetaEndNodes()) {
+                if (endNode.hasDeltaSources()) {
+                    deltaEndNodes.add(endNode);
+                }
             }
+        }
+
+        if (!deltaEndNodes.isEmpty()) {
+            tasks.add(new RuleMemoryInsertTask(deltaEndNodes, true));
+        }
+
+        // Ordered task 2 - update aggregate nodes
+        Collection<RuntimeAggregateLhsJoined> aggregateGroups = getAggregateLhsGroups();
+        if (!aggregateGroups.isEmpty()) {
+            tasks.add(new AggregateComputeTask(aggregateGroups, true));
+        }
+
+        // Delete async tasks
+        Collection<RuntimeRuleImpl> ruleDeleteChanges = new LinkedList<>();
+        for (RuntimeRuleImpl rule : list) {
+            if (rule.isDeleteDeltaAvailable()) {
+                ruleDeleteChanges.add(rule);
+            }
+        }
+        if (!ruleDeleteChanges.isEmpty()) {
+            tasks.add(new RuleMemoryDeleteTask(ruleDeleteChanges));
         }
 
 

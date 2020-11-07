@@ -6,6 +6,7 @@ import org.evrete.api.RuntimeFact;
 import org.evrete.api.Type;
 import org.evrete.runtime.PlainMemory;
 import org.evrete.runtime.RuntimeAware;
+import org.evrete.runtime.RuntimeFactImpl;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 
 abstract class TypeMemoryBase extends RuntimeAware<SessionMemory> implements BiMemory<TypeMemoryComponent, TypeMemoryComponent>, PlainMemory {
@@ -58,4 +59,27 @@ abstract class TypeMemoryBase extends RuntimeAware<SessionMemory> implements BiM
     public final boolean hasChanges() {
         return components[MemoryScope.DELTA.ordinal()].hasData();
     }
+
+    /**
+     * <p>
+     * Modifies existing facts by appending value of the newly
+     * created field
+     * </p>
+     *
+     * @param newField newly created field
+     */
+    final void onNewActiveField(ActiveField newField) {
+        for (MemoryScope scope : MemoryScope.values()) {
+            TypeMemoryComponent component = get(scope);
+            ReIterator<RuntimeFact> it = component.iterator();
+            while (it.hasNext()) {
+                RuntimeFactImpl rto = (RuntimeFactImpl) it.next();
+                Object fieldValue = newField.readValue(rto.getDelegate());
+                rto.appendValue(newField, fieldValue);
+            }
+
+        }
+        this.cachedActiveFields = getRuntime().getActiveFields(type);
+    }
+
 }

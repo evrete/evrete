@@ -41,7 +41,8 @@ public class TypeA extends Base {
     @Override
     public String toString() {
         return "TypeA{" +
-                "i=" + i +
+                "id='" + getId() +
+                "', i=" + i +
                 '}';
     }
 }

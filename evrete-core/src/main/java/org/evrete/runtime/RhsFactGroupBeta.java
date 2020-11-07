@@ -20,7 +20,12 @@ public class RhsFactGroupBeta implements RhsFactGroup, KeyReIterators<ValueRow[]
         this.keyIterators = keyIterators;
         this.keyState = keyState;
         this.groupIndex = descriptor.getFactGroupIndex();
-        this.nestedFactIterator = new NestedReIterator<>(factState[groupIndex]);
+        this.nestedFactIterator = new NestedReIterator<RuntimeFact>(factState[groupIndex]) {
+            @Override
+            protected void set(int index, RuntimeFact obj) {
+                super.set(index, obj);
+            }
+        };
     }
 
     public RhsFactGroupBeta(RhsFactGroupDescriptor descriptor, BetaEndNode endNode, ValueRow[][] keyState, RuntimeFact[][] factState) {

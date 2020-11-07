@@ -18,7 +18,7 @@ public final class TypeMemory extends TypeMemoryBase {
     private final AlphaConditions alphaConditions;
     private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
     private final ArrayOf<TypeMemoryBucket> alphaBuckets;
-    private final List<RuntimeFact> insertBuffer = new LinkedList<>();
+    //private final List<RuntimeFact> insertBuffer = new LinkedList<>();
 
     private final ActionQueue<RuntimeFact> inputBuffer = new ActionQueue<>();
 
@@ -42,8 +42,7 @@ public final class TypeMemory extends TypeMemoryBase {
                 fact = mapToHandle(o);
                 break;
             case RETRACT:
-                // TODO don't delete just yet
-                fact = get(MemoryScope.MAIN).remove(o);
+                fact = deleteObject(o);
                 break;
             default:
                 throw new IllegalStateException();
@@ -54,49 +53,39 @@ public final class TypeMemory extends TypeMemoryBase {
     }
 
 
-    void processInput(Action action, Queue<Object> iterator) {
-        Object o;
+    RuntimeFact deleteObject(Object o) {
+        RuntimeFact fact = get(MemoryScope.MAIN).remove(o);
+        if (fact == null) {
+            fact = get(MemoryScope.DELTA).remove(o);
+        }
+        return fact;
+    }
 
+    public void processInputBuffer(Action action) {
+        Collection<RuntimeFact> facts = inputBuffer.get(action);
+        if (facts.isEmpty()) return;
         switch (action) {
-            case RETRACT:
-                while ((o = iterator.poll()) != null) {
-                    RuntimeFact rtf = get(MemoryScope.MAIN).remove(o);
-                    if (rtf != null) {
-                        //deleteBuffer.add(rtf);
-
-                        for (TypeMemoryBucket bucket : alphaBuckets.data) {
-                            bucket.retract(rtf);
-                        }
-                        //Delete from beta memory
-                        for (FieldsMemory fm : fieldsMemories()) {
-                            fm.retract(rtf);
-                        }
-                    }
+            case INSERT:
+                for (TypeMemoryBucket bucket : alphaBuckets.data) {
+                    bucket.insert(facts);
+                }
+                for (FieldsMemory fm : fieldsMemories()) {
+                    fm.insert(facts);
                 }
                 break;
-            case INSERT:
-                while ((o = iterator.poll()) != null) {
-                    RuntimeFact rto = mapToHandle(o);
-                    if (rto != null) {
-                        insertBuffer.add(rto);
-                    }
+            case RETRACT:
+                for (TypeMemoryBucket bucket : alphaBuckets.data) {
+                    bucket.retract(facts);
                 }
-                //Save to non-beta memory
-                if (!insertBuffer.isEmpty()) {
-                    for (TypeMemoryBucket bucket : alphaBuckets.data) {
-                        bucket.insert(insertBuffer);
-                    }
-                    //Save to beta memory
-                    for (FieldsMemory fm : fieldsMemories()) {
-                        fm.insert(insertBuffer);
-                    }
-                    this.insertBuffer.clear();
+                for (FieldsMemory fm : fieldsMemories()) {
+                    fm.retract(facts);
                 }
-
                 break;
             default:
-                throw new IllegalStateException();
+                throw new IllegalStateException("Unsupported action " + action);
+
         }
+        facts.clear();
     }
 
     void clear() {
@@ -108,6 +97,7 @@ public final class TypeMemory extends TypeMemoryBase {
         for (FieldsMemory fm : betaMemories.values()) {
             fm.clear();
         }
+        inputBuffer.clear();
     }
 
     public final FieldsMemory get(FieldsKey fields) {
@@ -145,6 +135,7 @@ public final class TypeMemory extends TypeMemoryBase {
         }
     }
 
+/*
     final void commitInsert() {
         if (insertBuffer.isEmpty()) return;
         //Save to non-beta memory
@@ -157,28 +148,8 @@ public final class TypeMemory extends TypeMemoryBase {
         }
         this.insertBuffer.clear();
     }
+*/
 
-    /**
-     * <p>
-     * Modifies existing facts by appending value of the newly
-     * created field
-     * </p>
-     *
-     * @param newField newly created field
-     */
-    void onNewActiveField(ActiveField newField) {
-        for (MemoryScope scope : MemoryScope.values()) {
-            TypeMemoryComponent component = get(scope);
-            ReIterator<RuntimeFact> it = component.iterator();
-            while (it.hasNext()) {
-                RuntimeFactImpl rto = (RuntimeFactImpl) it.next();
-                Object fieldValue = newField.readValue(rto.getDelegate());
-                rto.appendValue(newField, fieldValue);
-            }
-
-        }
-        this.cachedActiveFields = getRuntime().getActiveFields(type);
-    }
 
     void touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
         if (key.size() == 0) {
@@ -266,12 +237,14 @@ public final class TypeMemory extends TypeMemoryBase {
         get(MemoryScope.MAIN).forEachObjectUnchecked(consumer);
     }
 
+/*
     final void insertSingle(Object o) {
         RuntimeFactImpl rto = mapToHandle(o);
         if (rto != null) {
             insertBuffer.add(rto);
         }
     }
+*/
 
     private RuntimeFactImpl mapToHandle(Object o) {
         //TODO !!! delete two conditions below

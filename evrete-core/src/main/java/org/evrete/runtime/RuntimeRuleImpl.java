@@ -3,8 +3,8 @@ package org.evrete.runtime;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
 import org.evrete.api.ValueRow;
+import org.evrete.runtime.memory.ActionQueue;
 import org.evrete.runtime.memory.BetaEndNode;
-import org.evrete.runtime.memory.Buffer;
 import org.evrete.runtime.memory.SessionMemory;
 import org.evrete.util.CollectionUtils;
 
@@ -22,7 +22,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     private final RuleDescriptor descriptor;
 
     private final RuntimeLhs lhs;
-    private final Buffer ruleBuffer;
+    private final ActionQueue<Object> ruleBuffer = new ActionQueue<>();
 
     public RuntimeRuleImpl(RuleDescriptor rd, SessionMemory memory) {
         super(memory, rd, rd.getLhs().getGroupFactTypes());
@@ -42,8 +42,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
             }
         }
         this.betaFactSources = betaNodes.toArray(new RuntimeFactTypeKeyed[0]);
-
-        this.ruleBuffer = new Buffer();
         this.lhs = RuntimeLhs.factory(this, rd.getLhs(), ruleBuffer);
     }
 
@@ -56,10 +54,11 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         return factSources;
     }
 
-    public final Buffer executeRhs() {
-        //assert isInActiveState() : "Rule '" + getName() + "' is not in active state";
+    public final ActionQueue<Object> executeRhs() {
+        this.ruleBuffer.clear();
+        assert isInActiveState() : "Rule '" + getName() + "' is not in active state";
         this.lhs.forEach(rhs);
-        this.resetState();
+        //this.resetState();
         return ruleBuffer;
     }
 

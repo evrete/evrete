@@ -4,7 +4,9 @@ import org.evrete.api.StatefulSession;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.FactHandle;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 
 public interface SessionWrapper {
 
@@ -35,6 +37,16 @@ public interface SessionWrapper {
                 }
                 session.fireAllRules();
             }
+
+            @Override
+            public Collection<Object> getMemoryObjects() {
+                Collection<FactHandle> handles = session.getFactHandles();
+                Collection<Object> collection = new ArrayList<>(handles.size());
+                for (FactHandle h : handles) {
+                    collection.add(session.getObject(h));
+                }
+                return collection;
+            }
         };
     }
 
@@ -61,6 +73,13 @@ public interface SessionWrapper {
                 session.fire();
                 //session.clear();
             }
+
+            @Override
+            public Collection<Object> getMemoryObjects() {
+                Collection<Object> collection = new LinkedList<>();
+                session.forEachMemoryObject(collection::add);
+                return collection;
+            }
         };
     }
 
@@ -78,4 +97,6 @@ public interface SessionWrapper {
     void close();
 
     void retractAll();
+
+    Collection<Object> getMemoryObjects();
 }

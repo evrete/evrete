@@ -1,7 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.RhsContext;
-import org.evrete.runtime.memory.Buffer;
+import org.evrete.runtime.memory.ActionQueue;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,7 +12,7 @@ public class RuntimeLhsAggregate extends RuntimeLhs implements RhsContext {
     private final Collection<RuntimeAggregateLhsLoose> aggregateLooseGroups = new ArrayList<>();
     private final Collection<RuntimeAggregateLhsJoined> aggregateConditionedGroups = new ArrayList<>();
 
-    RuntimeLhsAggregate(RuntimeRuleImpl rule, LhsDescriptor descriptor, Buffer buffer, Set<AggregateLhsDescriptor> aggregates) {
+    RuntimeLhsAggregate(RuntimeRuleImpl rule, LhsDescriptor descriptor, ActionQueue<Object> buffer, Set<AggregateLhsDescriptor> aggregates) {
         super(rule, descriptor, buffer);
         throw new UnsupportedOperationException();
 
@@ -78,7 +78,7 @@ public class RuntimeLhsAggregate extends RuntimeLhs implements RhsContext {
     }
 
     @Override
-    public void forEach(Consumer<RhsContext> rhs) {
+    protected void forEach(Consumer<RhsContext> rhs) {
         forEach(() -> rhs.accept(this));
     }
 

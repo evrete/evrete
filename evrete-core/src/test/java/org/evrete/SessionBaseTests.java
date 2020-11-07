@@ -15,7 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.evrete.api.FactBuilder.fact;
@@ -649,7 +649,14 @@ class SessionBaseTests {
                         "$b", TypeB.class
                 )
                 .where("$a.i == $b.i")
-                .execute(rhsAssert);
+                .execute(rhsAssert.andThen(new Consumer<RhsContext>() {
+                    @Override
+                    public void accept(RhsContext ctx) {
+                        TypeA a = ctx.get("$a");
+                        TypeB b = ctx.get("$b");
+                        System.out.println(a + " : " + b);
+                    }
+                }));
 
         StatefulSessionImpl s = knowledge.createSession();
 
@@ -1425,37 +1432,6 @@ class SessionBaseTests {
                 .assertContains("$a", $a2);
     }
 
-
-    @Test
-    void primeNumbers() {
-        knowledge.newRule("prime numbers")
-                .forEach(
-                        "$i1", Integer.class,
-                        "$i2", Integer.class,
-                        "$i3", Integer.class
-                )
-                .where("$i1.intValue * $i2.intValue == $i3.intValue")
-                .execute(
-                        ctx -> {
-                            Integer i3 = ctx.get("$i3");
-                            ctx.delete(i3);
-                        }
-                );
-
-        StatefulSession s = knowledge.createSession();
-
-        for (int i = 2; i <= 100; i++) {
-            s.insert(i);
-        }
-
-        s.fire();
-
-        AtomicInteger primeCounter = new AtomicInteger();
-        s.forEachMemoryObject(o -> primeCounter.incrementAndGet());
-
-        assert primeCounter.get() == 25 : "Actual: " + primeCounter.get(); // There are 25 prime numbers in the range [2...100]
-        s.close();
-    }
 
     @Test
     void testMixed1() {

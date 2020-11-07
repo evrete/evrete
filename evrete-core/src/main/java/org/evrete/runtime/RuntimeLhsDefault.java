@@ -1,7 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.RhsContext;
-import org.evrete.runtime.memory.Buffer;
+import org.evrete.runtime.memory.ActionQueue;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 public class RuntimeLhsDefault extends RuntimeLhs implements RhsContext {
     private static final Collection<RuntimeAggregateLhsJoined> EMPTY_AGGREGATES = Collections.unmodifiableCollection(Collections.emptyList());
 
-    RuntimeLhsDefault(RuntimeRuleImpl rule, LhsDescriptor descriptor, Buffer buffer) {
+    RuntimeLhsDefault(RuntimeRuleImpl rule, LhsDescriptor descriptor, ActionQueue<Object> buffer) {
         super(rule, descriptor, buffer);
     }
 
@@ -21,7 +21,7 @@ public class RuntimeLhsDefault extends RuntimeLhs implements RhsContext {
     }
 
     @Override
-    public void forEach(Consumer<RhsContext> rhs) {
+    protected void forEach(Consumer<RhsContext> rhs) {
         forEach(() -> rhs.accept(this));
     }
 

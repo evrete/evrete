@@ -1,12 +1,13 @@
 package org.evrete.runtime;
 
 import org.evrete.api.*;
-import org.evrete.runtime.memory.Buffer;
+import org.evrete.runtime.memory.ActionQueue;
 import org.evrete.runtime.memory.SessionMemory;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 
 public class StatefulSessionImpl extends SessionMemory implements StatefulSession {
     private final KnowledgeImpl knowledge;
@@ -28,9 +29,13 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
     @Override
     public void close() {
         if (active) {
-            active = false;
-            super.destroy();
-            knowledge.close(this);
+            synchronized (this) {
+                if (active) {
+                    active = false;
+                    super.destroy();
+                    knowledge.close(this);
+                }
+            }
         }
     }
 
@@ -84,6 +89,8 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
     }
 
     private void fireContinuous(ActivationContext ctx) {
+        throw new UnsupportedOperationException();
+/*
         Buffer rawMemoryChanges = getBuffer();
 
         while (active && rawMemoryChanges.hasData(Action.values())) {
@@ -103,48 +110,81 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
             }
             commitMemoryDeltas();
         }
+*/
     }
 
     private void fireDefault(ActivationContext ctx) {
-        Buffer rawMemoryChanges = getBuffer();
+        Agenda agenda;
 
-        while (active && rawMemoryChanges.hasData(Action.values())) {
-            // Prepare and process memory deltas
-            List<RuntimeRule> agenda = processInput(rawMemoryChanges, Action.RETRACT, Action.INSERT);
-            rawMemoryChanges.clear();
-            activationManager.onAgenda(ctx.incrementFireCount(), agenda);
+        // Do until there are no changes in the memory
+        while (active && hasMemoryChanges()) {
+            assert !hasAction(Action.UPDATE);
+
+            if (hasAction(Action.RETRACT)) {
+                buildMemoryDeltas(Action.RETRACT);
+                commitMemoryDeltas();
+            }
+
+            if (hasAction(Action.INSERT)) {
+                buildMemoryDeltas(Action.INSERT);
+                // Get agenda and rules to be activated
+                agenda = getAgenda();
+                List<RuntimeRule> activeRules = agenda.activeRules();
+                // Firing the agenda listener
+                activationManager.onAgenda(ctx.incrementFireCount(), activeRules);
+
+                Iterator<RuntimeRule> agendaIterator = activeRules.iterator();
+
+                while (agendaIterator.hasNext()) {
+
+                    RuntimeRuleImpl rule = (RuntimeRuleImpl) agendaIterator.next();
+                    if (activationManager.test(rule)) {
+                        // The rule fill be fired
+                        ActionQueue<Object> ruleBuffer = rule.executeRhs();
+                        // Fire another agenda listener
+                        activationManager.onActivation(rule);
+                        // Merge rule actions into the main memory buffer
+                        appendToBuffer(ruleBuffer);
+
+                        // Reset this rule's delta beta-memory
+                        rule.resetState();
+
+                        assert !hasAction(Action.UPDATE);
+
+                        if (hasAction(Action.INSERT)) {
+                            // The default behaviour is to start over
+                            // Committing previous delta changes
+                            commitMemoryDeltas();
+                            // Committing all rules' delta memories
+                            agendaIterator.forEachRemaining(new Consumer<RuntimeRule>() {
+                                @Override
+                                public void accept(RuntimeRule rule) {
+                                    ((RuntimeRuleImpl) rule).resetState();
+                                }
+                            });
+
+                            // Commit beta memories of the rest of the rules
+                            for (RuntimeRule r : agenda.inactiveRules()) {
+                                ((RuntimeRuleImpl) r).resetState();
+                            }
+                            break;
+                        }
 
 
-            Iterator<RuntimeRule> agendaIterator = agenda.iterator();
-            boolean memoryCommitted = false;
-            while (agendaIterator.hasNext()) {
-                RuntimeRuleImpl rule = (RuntimeRuleImpl) agendaIterator.next();
-                if (fireCriteria.getAsBoolean() && activationManager.test(rule)) {
-                    Buffer buffer = rule.executeRhs();
-
-                    activationManager.onActivation(rule);
-
-                    if (buffer.hasData(Action.INSERT)) {
-                        rawMemoryChanges.takeAllFrom(buffer);
-                        commitMemoryDeltas();
-                        memoryCommitted = true;
-                        // Reset the state of other rules on the agenda
-                        agendaIterator.forEachRemaining(o -> ((RuntimeRuleImpl) o).resetState());
-                        // Start over from the beginning
-                        break;
-                    }
-
-                    if (buffer.hasData(Action.RETRACT)) {
-                        rawMemoryChanges.takeAllFrom(buffer);
-                        commitMemoryDeltas();
-                        memoryCommitted = true;
+                    } else {
+                        // Merge beta memory deltas event when not fired
+                        rule.resetState();
                     }
                 }
-            }
-            if (!memoryCommitted) {
+                // End of agenda
                 commitMemoryDeltas();
+                // Commit beta memories of the rest of the rules
+                for (RuntimeRule r : agenda.inactiveRules()) {
+                    ((RuntimeRuleImpl) r).resetState();
+                }
             }
         }
     }
+
 
 }
