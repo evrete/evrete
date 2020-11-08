@@ -112,20 +112,10 @@ public final class TypeMemory extends TypeMemoryBase {
 
     @Override
     public void commitChanges() {
-
-
         super.mergeDelta1();
         for (TypeMemoryBucket bucket : alphaBuckets.data) {
             bucket.commitChanges();
         }
-
-/*
-        try {
-            throw new Exception();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-*/
     }
 
     public PlainMemory get(AlphaBucketMeta alphaMask) {
@@ -144,22 +134,6 @@ public final class TypeMemory extends TypeMemoryBase {
             }
         }
     }
-
-/*
-    final void commitInsert() {
-        if (insertBuffer.isEmpty()) return;
-        //Save to non-beta memory
-        for (TypeMemoryBucket bucket : alphaBuckets.data) {
-            bucket.insert(insertBuffer);
-        }
-        //Save to beta memory
-        for (FieldsMemory fm : fieldsMemories()) {
-            fm.insert(insertBuffer);
-        }
-        this.insertBuffer.clear();
-    }
-*/
-
 
     void touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
         if (key.size() == 0) {
