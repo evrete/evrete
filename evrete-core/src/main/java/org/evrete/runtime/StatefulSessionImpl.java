@@ -114,21 +114,25 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
     }
 
     private void fireDefault(ActivationContext ctx) {
-        Agenda agenda;
-
         // Do until there are no changes in the memory
-        while (active && hasMemoryChanges()) {
+        while (active && hasMemoryChanges() && fireCriteria.getAsBoolean()) {
+            //System.out.println("Step 0");
             assert !hasAction(Action.UPDATE);
 
+            //reportMemories("\tStatus 1.1");
             if (hasAction(Action.RETRACT)) {
                 buildMemoryDeltas(Action.RETRACT);
-                commitMemoryDeltas();
+                //commitMemoryDeltas();
+                //System.out.println("Step 1");
             }
+            //reportMemories("\tStatus 1.2");
 
             if (hasAction(Action.INSERT)) {
+                //reportMemories("\tStatus 2.1");
                 buildMemoryDeltas(Action.INSERT);
+                //reportMemories("\tStatus 2.2");
                 // Get agenda and rules to be activated
-                agenda = getAgenda();
+                Agenda agenda = getAgenda();
                 List<RuntimeRule> activeRules = agenda.activeRules();
                 // Firing the agenda listener
                 activationManager.onAgenda(ctx.incrementFireCount(), activeRules);
@@ -136,6 +140,7 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
                 Iterator<RuntimeRule> agendaIterator = activeRules.iterator();
 
                 while (agendaIterator.hasNext()) {
+                    //System.out.println("Step 2");
 
                     RuntimeRuleImpl rule = (RuntimeRuleImpl) agendaIterator.next();
                     if (activationManager.test(rule)) {
@@ -154,7 +159,7 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
                         if (hasAction(Action.INSERT)) {
                             // The default behaviour is to start over
                             // Committing previous delta changes
-                            commitMemoryDeltas();
+                            //commitMemoryDeltas();
                             // Committing all rules' delta memories
                             agendaIterator.forEachRemaining(new Consumer<RuntimeRule>() {
                                 @Override
@@ -167,6 +172,8 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
                             for (RuntimeRule r : agenda.inactiveRules()) {
                                 ((RuntimeRuleImpl) r).resetState();
                             }
+                            //System.out.println("Step break!!!!!");
+                            //reportMemories("\tBreak status 1");
                             break;
                         }
 
@@ -177,12 +184,16 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
                     }
                 }
                 // End of agenda
+                //TODO !!! this one is called twice for INSERT
                 commitMemoryDeltas();
+                //reportMemories("\tBreak status 2");
                 // Commit beta memories of the rest of the rules
                 for (RuntimeRule r : agenda.inactiveRules()) {
                     ((RuntimeRuleImpl) r).resetState();
                 }
             }
+            //System.out.println("Step 3");
+
         }
     }
 

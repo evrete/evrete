@@ -12,16 +12,11 @@ import java.util.function.ToIntFunction;
 class IdentityMap extends FastIdentityHashMap<Object, RuntimeFactImpl> {
     private static final ToIntFunction<Object> HASH = System::identityHashCode;
     private static final Function<Entry<Object, RuntimeFactImpl>, RuntimeFact> MAPPER = Entry::getValue;
-    private static final Function<Entry<Object, RuntimeFactImpl>, RuntimeFactImpl> MAPPER_IMPL = Entry::getValue;
 
     private static final BiPredicate<Object, Object> EQ = (fact1, fact2) -> fact1 == fact2;
 
     ReIterator<RuntimeFact> factIterator() {
         return iterator(MAPPER);
-    }
-
-    ReIterator<RuntimeFactImpl> factImplIterator() {
-        return iterator(MAPPER_IMPL);
     }
 
     @Override

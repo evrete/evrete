@@ -9,6 +9,8 @@ import org.evrete.runtime.RuntimeAware;
 import org.evrete.runtime.RuntimeFactImpl;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 
+import java.util.Arrays;
+
 abstract class TypeMemoryBase extends RuntimeAware<SessionMemory> implements BiMemory<TypeMemoryComponent, TypeMemoryComponent>, PlainMemory {
     private final TypeMemoryComponent[] components = new TypeMemoryComponent[MemoryScope.values().length];
 
@@ -20,7 +22,7 @@ abstract class TypeMemoryBase extends RuntimeAware<SessionMemory> implements BiM
     public TypeMemoryBase(SessionMemory runtime, Type<?> type) {
         super(runtime);
         for (MemoryScope scope : MemoryScope.values()) {
-            components[scope.ordinal()] = new TypeMemoryComponent();
+            components[scope.ordinal()] = new TypeMemoryComponent(scope);
         }
         this.type = type;
         this.cachedActiveFields = runtime.getActiveFields(type);
@@ -43,6 +45,7 @@ abstract class TypeMemoryBase extends RuntimeAware<SessionMemory> implements BiM
         TypeMemoryComponent main = get(MemoryScope.MAIN);
         main.addAll(delta);
         delta.clearData();
+        //System.out.println("&&&&& merged");
     }
 
     @Override
@@ -82,4 +85,9 @@ abstract class TypeMemoryBase extends RuntimeAware<SessionMemory> implements BiM
         this.cachedActiveFields = getRuntime().getActiveFields(type);
     }
 
+
+    @Override
+    public String toString() {
+        return Arrays.toString(components);
+    }
 }

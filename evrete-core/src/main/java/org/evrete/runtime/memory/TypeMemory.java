@@ -112,10 +112,20 @@ public final class TypeMemory extends TypeMemoryBase {
 
     @Override
     public void commitChanges() {
+
+
         super.mergeDelta1();
         for (TypeMemoryBucket bucket : alphaBuckets.data) {
             bucket.commitChanges();
         }
+
+/*
+        try {
+            throw new Exception();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+*/
     }
 
     public PlainMemory get(AlphaBucketMeta alphaMask) {

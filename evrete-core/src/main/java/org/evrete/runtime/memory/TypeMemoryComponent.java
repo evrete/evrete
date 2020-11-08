@@ -8,6 +8,11 @@ import java.util.function.Consumer;
 
 public class TypeMemoryComponent implements BiMemoryComponent<TypeMemoryComponent> {
     private final IdentityMap map = new IdentityMap();
+    private final MemoryScope scope;
+
+    public TypeMemoryComponent(MemoryScope scope) {
+        this.scope = scope;
+    }
 
     @Override
     public void addAll(TypeMemoryComponent other) {
@@ -29,13 +34,20 @@ public class TypeMemoryComponent implements BiMemoryComponent<TypeMemoryComponen
 
     //TODO use totalFacts() instead
     public boolean hasData() {
+/*
+        System.out.println("@@@@@@ " + scope + " -> " + map);
+        try {
+            throw new Exception();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+*/
         return map.size() > 0;
     }
 
     public int totalFacts() {
         return map.size();
     }
-
 
     public RuntimeFact remove(Object key) {
         return map.remove(key);
@@ -54,4 +66,10 @@ public class TypeMemoryComponent implements BiMemoryComponent<TypeMemoryComponen
         map.forEachKey(consumer);
     }
 
+    @Override
+    public String toString() {
+        return "{scope=" + scope +
+                ", map=" + map +
+                '}';
+    }
 }

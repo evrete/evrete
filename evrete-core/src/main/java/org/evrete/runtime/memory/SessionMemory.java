@@ -40,6 +40,16 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
         reSortRules();
     }
 
+    protected void reportMemories(String name) {
+        typedMemories.forEachValue(new Consumer<TypeMemory>() {
+            @Override
+            public void accept(TypeMemory typeMemory) {
+                System.out.println(name + " : " + typeMemory);
+            }
+        });
+    }
+
+
     @Override
     protected TypeResolver newTypeResolver() {
         return getParentContext().getTypeResolver().copyOf();
@@ -228,11 +238,11 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
         switch (action) {
             case RETRACT:
                 typedMemories.forEachValue(tm -> tm.processInputBuffer(action));
-                this.ruleStorage.updateBetaMemories();
+                this.ruleStorage.updateBetaMemories(action);
                 break;
             case INSERT:
                 typedMemories.forEachValue(tm -> tm.processInputBuffer(action));
-                this.ruleStorage.updateBetaMemories();
+                this.ruleStorage.updateBetaMemories(action);
                 break;
             case UPDATE:
                 throw new IllegalStateException();

@@ -1,5 +1,6 @@
 package org.evrete.runtime;
 
+import org.evrete.api.Action;
 import org.evrete.api.Rule;
 import org.evrete.api.RuntimeRule;
 import org.evrete.runtime.async.*;
@@ -51,41 +52,56 @@ public class RuntimeRules implements Iterable<RuntimeRuleImpl> {
         return agenda.update();
     }
 
-    public void updateBetaMemories() {
+    public void updateBetaMemories(Action... actions) {
+        if (actions == null || actions.length == 0) throw new IllegalStateException();
+
 
         List<Completer> tasks = new ArrayList<>(list.size() * 2);
-        // Ordered task 1 - update end nodes
-        Collection<BetaEndNode> deltaEndNodes = new LinkedList<>();
 
-        for (RuntimeRuleImpl rule : list) {
-            for (BetaEndNode endNode : rule.getLhs().getAllBetaEndNodes()) {
-                if (endNode.hasDeltaSources()) {
-                    deltaEndNodes.add(endNode);
-                }
+        for (Action action : actions) {
+            switch (action) {
+                case INSERT:
+                    // Ordered task 1 - update end nodes
+                    Collection<BetaEndNode> deltaEndNodes = new LinkedList<>();
+
+                    for (RuntimeRuleImpl rule : list) {
+                        for (BetaEndNode endNode : rule.getLhs().getAllBetaEndNodes()) {
+                            if (endNode.hasDeltaSources()) {
+                                deltaEndNodes.add(endNode);
+                            }
+                        }
+                    }
+
+                    if (!deltaEndNodes.isEmpty()) {
+                        tasks.add(new RuleMemoryInsertTask(deltaEndNodes, true));
+                    }
+
+                    // Ordered task 2 - update aggregate nodes
+                    Collection<RuntimeAggregateLhsJoined> aggregateGroups = getAggregateLhsGroups();
+                    if (!aggregateGroups.isEmpty()) {
+                        tasks.add(new AggregateComputeTask(aggregateGroups, true));
+                    }
+                    break;
+
+                case RETRACT:
+                    // Delete async tasks
+                    Collection<RuntimeRuleImpl> ruleDeleteChanges = new LinkedList<>();
+                    for (RuntimeRuleImpl rule : list) {
+                        if (rule.isDeleteDeltaAvailable()) {
+                            ruleDeleteChanges.add(rule);
+                        }
+                    }
+                    if (!ruleDeleteChanges.isEmpty()) {
+                        tasks.add(new RuleMemoryDeleteTask(ruleDeleteChanges));
+                    }
+
+                    break;
+
+                default:
+                    throw new IllegalStateException();
+
             }
         }
-
-        if (!deltaEndNodes.isEmpty()) {
-            tasks.add(new RuleMemoryInsertTask(deltaEndNodes, true));
-        }
-
-        // Ordered task 2 - update aggregate nodes
-        Collection<RuntimeAggregateLhsJoined> aggregateGroups = getAggregateLhsGroups();
-        if (!aggregateGroups.isEmpty()) {
-            tasks.add(new AggregateComputeTask(aggregateGroups, true));
-        }
-
-        // Delete async tasks
-        Collection<RuntimeRuleImpl> ruleDeleteChanges = new LinkedList<>();
-        for (RuntimeRuleImpl rule : list) {
-            if (rule.isDeleteDeltaAvailable()) {
-                ruleDeleteChanges.add(rule);
-            }
-        }
-        if (!ruleDeleteChanges.isEmpty()) {
-            tasks.add(new RuleMemoryDeleteTask(ruleDeleteChanges));
-        }
-
 
         if (tasks.size() > 0) {
             ForkJoinExecutor executor = runtime.getExecutor();
