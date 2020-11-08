@@ -18,14 +18,13 @@ public final class TypeMemory extends TypeMemoryBase {
     private final AlphaConditions alphaConditions;
     private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
     private final ArrayOf<TypeMemoryBucket> alphaBuckets;
-    //private final List<RuntimeFact> insertBuffer = new LinkedList<>();
 
     private final ActionQueue<RuntimeFact> inputBuffer = new ActionQueue<>();
 
     TypeMemory(SessionMemory runtime, Type<?> type) {
         super(runtime, type);
         this.alphaConditions = runtime.getAlphaConditions();
-        this.alphaBuckets = new ArrayOf<>(TypeMemoryBucket.class);
+        this.alphaBuckets = new ArrayOf<>(new TypeMemoryBucket[]{new TypeMemoryBucket(runtime, AlphaBucketMeta.NO_FIELDS_NO_CONDITIONS)});
     }
 
 
@@ -110,7 +109,7 @@ public final class TypeMemory extends TypeMemoryBase {
     }
 
 
-    @Override
+    //@Override
     public void commitChanges() {
         super.mergeDelta1();
         for (TypeMemoryBucket bucket : alphaBuckets.data) {
@@ -119,20 +118,7 @@ public final class TypeMemory extends TypeMemoryBase {
     }
 
     public PlainMemory get(AlphaBucketMeta alphaMask) {
-        if (alphaMask.isEmpty()) {
-            return this;
-        }
-        int bucketIndex = alphaMask.getBucketIndex();
-        if (bucketIndex >= alphaBuckets.data.length) {
-            throw new IllegalStateException("No alpha memory initialized for " + alphaMask + ", type: " + type);
-        } else {
-            TypeMemoryBucket bucket = alphaBuckets.data[bucketIndex];
-            if (bucket == null) {
-                throw new IllegalStateException("No alpha memory initialized for " + alphaMask + ", type: " + type);
-            } else {
-                return bucket;
-            }
-        }
+        return alphaBuckets.getChecked(alphaMask.getBucketIndex());
     }
 
     void touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
@@ -231,17 +217,6 @@ public final class TypeMemory extends TypeMemoryBase {
 */
 
     private RuntimeFactImpl mapToHandle(Object o) {
-        //TODO !!! delete two conditions below
-        if (get(MemoryScope.MAIN).contains(o)) {
-            LOGGER.warning("!!!! Object " + o + " has been already inserted, skipping insert");
-            return null;
-        }
-        if (get(MemoryScope.DELTA).contains(o)) {
-            LOGGER.warning("????? Object " + o + " has been already inserted, skipping insert");
-            return null;
-        }
-
-
         if (get(MemoryScope.MAIN).contains(o) || get(MemoryScope.DELTA).contains(o)) {
             LOGGER.warning("Object " + o + " has been already inserted, skipping insert");
             return null;

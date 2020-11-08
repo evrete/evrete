@@ -131,16 +131,19 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
     }
 
     private static class FieldAlphas implements Copyable<FieldAlphas> {
-        private final Set<AlphaBucketMeta> dataOld;
         private final ArrayOf<AlphaBucketMeta> data;
 
         FieldAlphas(FieldsKey fields) {
-            this.dataOld = new HashSet<>();
-            this.data = new ArrayOf<>(new AlphaBucketMeta[0]);
+            if (fields.size() == 0) {
+                // for alpha emory
+                this.data = new ArrayOf<>(new AlphaBucketMeta[]{AlphaBucketMeta.NO_FIELDS_NO_CONDITIONS});
+            } else {
+                // for beta memory
+                this.data = new ArrayOf<>(new AlphaBucketMeta[0]);
+            }
         }
 
         FieldAlphas(FieldAlphas other) {
-            this.dataOld = new HashSet<>(other.dataOld);
             this.data = new ArrayOf<>(other.data);
         }
 

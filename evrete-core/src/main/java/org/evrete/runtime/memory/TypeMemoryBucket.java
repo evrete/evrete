@@ -14,7 +14,6 @@ class TypeMemoryBucket implements PlainMemory {
     private final AlphaBucketMeta alphaMask;
 
     TypeMemoryBucket(SessionMemory runtime, AlphaBucketMeta alphaMask) {
-        assert !alphaMask.isEmpty();
         this.data = runtime.newSharedPlainStorage();
         this.delta = runtime.newSharedPlainStorage();
         this.alphaMask = alphaMask;

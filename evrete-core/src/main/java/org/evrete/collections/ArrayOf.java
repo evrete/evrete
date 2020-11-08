@@ -3,6 +3,7 @@ package org.evrete.collections;
 import org.evrete.util.CollectionUtils;
 
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 /**
  * A simple array wrapper which allows for faster iteration and
@@ -42,6 +43,28 @@ public class ArrayOf<T> {
     public boolean isEmptyAt(int index) {
         if (index >= this.data.length) return true;// No such index
         return this.data[index] == null;
+    }
+
+    public T getChecked(int i) {
+        if (i >= data.length || i < 0) {
+            throw new IllegalStateException("No data initialized for " + i);
+        } else {
+            T t = data[i];
+            if (t == null) {
+                throw new IllegalStateException("No data initialized for " + i);
+            } else {
+                return t;
+            }
+        }
+    }
+
+    public T computeIfAbsent(int bucketIndex, Supplier<T> supplier) {
+        T t = data[bucketIndex];
+        if (t == null) {
+            t = supplier.get();
+            data[bucketIndex] = t;
+        }
+        return t;
     }
 
     @Override

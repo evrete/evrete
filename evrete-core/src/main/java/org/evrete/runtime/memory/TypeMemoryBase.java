@@ -4,14 +4,13 @@ import org.evrete.api.ActiveField;
 import org.evrete.api.ReIterator;
 import org.evrete.api.RuntimeFact;
 import org.evrete.api.Type;
-import org.evrete.runtime.PlainMemory;
 import org.evrete.runtime.RuntimeAware;
 import org.evrete.runtime.RuntimeFactImpl;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 
 import java.util.Arrays;
 
-abstract class TypeMemoryBase extends RuntimeAware<SessionMemory> implements BiMemory<TypeMemoryComponent, TypeMemoryComponent>, PlainMemory {
+abstract class TypeMemoryBase extends RuntimeAware<SessionMemory> implements BiMemory<TypeMemoryComponent, TypeMemoryComponent> {
     private final TypeMemoryComponent[] components = new TypeMemoryComponent[MemoryScope.values().length];
 
     protected ActiveField[] cachedActiveFields;
@@ -48,17 +47,17 @@ abstract class TypeMemoryBase extends RuntimeAware<SessionMemory> implements BiM
         //System.out.println("&&&&& merged");
     }
 
-    @Override
+    //@Override
     public final ReIterator<RuntimeFact> mainIterator() {
         return components[MemoryScope.MAIN.ordinal()].iterator();
     }
 
-    @Override
+    //@Override
     public final ReIterator<RuntimeFact> deltaIterator() {
         return components[MemoryScope.DELTA.ordinal()].iterator();
     }
 
-    @Override
+    //@Override
     public final boolean hasChanges() {
         return components[MemoryScope.DELTA.ordinal()].hasData();
     }
