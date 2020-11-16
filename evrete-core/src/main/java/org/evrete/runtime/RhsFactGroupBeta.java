@@ -20,10 +20,13 @@ public class RhsFactGroupBeta implements RhsFactGroup, KeyReIterators<ValueRow[]
         this.keyIterators = keyIterators;
         this.keyState = keyState;
         this.groupIndex = descriptor.getFactGroupIndex();
-        this.nestedFactIterator = new NestedReIterator<RuntimeFact>(factState[groupIndex]) {
+        this.nestedFactIterator = new NestedReIterator<RuntimeFact>(
+                factState[groupIndex],
+                fact -> !fact.isDeleted()
+        ) {
             @Override
-            protected void set(int index, RuntimeFact obj) {
-                super.set(index, obj);
+            protected boolean set(int index, RuntimeFact obj) {
+                return super.set(index, obj);
             }
         };
     }
@@ -171,8 +174,6 @@ public class RhsFactGroupBeta implements RhsFactGroup, KeyReIterators<ValueRow[]
 
     private boolean setKey(ValueRow[] key) {
         this.keyState[groupIndex] = key;
-
-        //System.out.println(keyIterators + ": " + groupIndex + " = " + Arrays.toString(key));
         // TODO !!! optimize by using setIterators if input nodes are all unique
         this.nestedFactIterator.setIterables(key);
         return true;
@@ -203,13 +204,13 @@ public class RhsFactGroupBeta implements RhsFactGroup, KeyReIterators<ValueRow[]
         return types;
     }
 
-    @Override
+    //@Override
     public boolean isInActiveState() {
-        return readState(types);
+        throw new UnsupportedOperationException();
     }
 
-    @Override
+    //@Override
     public void resetState() {
-        resetState(types);
+        throw new UnsupportedOperationException();
     }
 }
