@@ -105,12 +105,11 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
                             activationManager.onActivation(rule);
                         }
                     }
-                    rule.mergeNodeDeltas();
                 }
                 // processing rule memory changes (inserts, updates, deletes)
                 appendToBuffer(memoryActions);
+                commitInserts();
             }
-            commitDeltas();
         }
     }
 
@@ -164,7 +163,7 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
         System.out.println("\t" + stage + ": " + s);
     }
 
-    private void commitDeltas() {
+    private void commitInserts() {
         typeMemories().forEachRemaining(TypeMemory::commitDeltas);
     }
 

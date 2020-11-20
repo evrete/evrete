@@ -93,6 +93,7 @@ public class RuntimeRules implements Iterable<RuntimeRuleImpl> {
         Set<BetaEndNode> affectedEndNodes = new HashSet<>();
         // Scanning rules first because they are sorted by salience
         for (RuntimeRuleImpl rule : this.list) {
+            rule.mergeNodeDeltas();
             boolean ruleAdded = false;
 
             for (TypeMemory tm : memories) {
