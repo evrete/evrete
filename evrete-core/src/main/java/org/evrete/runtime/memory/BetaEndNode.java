@@ -85,6 +85,9 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
 
     @Override
     public void computeDelta(boolean deltaOnly) {
+        // Merge previous delta
+
+
         super.computeDelta(deltaOnly);
         // TODO create a single Terminal node which would keep only delta
         // Cleaning deleted items
@@ -100,6 +103,7 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
         //TODO !!!! check if delta check applies here
         if (deltaOnly) {
             ValueRow[] array = new ValueRow[entryNodes.length];
+            this.oldKeysNewFacts.clear();
             computeOldKeysNewFacts(0, false, array);
             //System.out.println("Computed delta " + oldKeysNewFacts);
         }
@@ -171,12 +175,6 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
         if (main.hasKey(value -> array[value]) || delta.hasKey(value -> array[value])) {
             oldKeysNewFacts.add(Arrays.copyOf(array, array.length));
         }
-    }
-
-    @Override
-    public void mergeDelta() {
-        super.mergeDelta();
-        oldKeysNewFacts.clear();
     }
 
     public void clear() {

@@ -4,7 +4,6 @@ import org.evrete.api.KeyMode;
 import org.evrete.api.ReIterator;
 import org.evrete.api.RhsContext;
 import org.evrete.api.ValueRow;
-import org.evrete.runtime.memory.ActionQueue;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -16,8 +15,8 @@ import java.util.logging.Logger;
 public class RuntimeLhsDefault extends RuntimeLhs implements RhsContext {
     private static final Collection<RuntimeAggregateLhsJoined> EMPTY_AGGREGATES = Collections.unmodifiableCollection(Collections.emptyList());
 
-    RuntimeLhsDefault(RuntimeRuleImpl rule, LhsDescriptor descriptor, ActionQueue<Object> buffer) {
-        super(rule, descriptor, buffer);
+    RuntimeLhsDefault(RuntimeRuleImpl rule, LhsDescriptor descriptor) {
+        super(rule, descriptor);
     }
 
     @Override

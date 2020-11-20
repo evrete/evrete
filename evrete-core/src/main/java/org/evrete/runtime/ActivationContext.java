@@ -2,17 +2,17 @@ package org.evrete.runtime;
 
 import org.evrete.api.Action;
 import org.evrete.api.ReIterator;
+import org.evrete.api.RuntimeRule;
 import org.evrete.runtime.memory.TypeMemory;
 
-import java.util.Collection;
-import java.util.EnumMap;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class ActivationContext {
     private final AtomicInteger activationCount = new AtomicInteger(0);
     private final StatefulSessionImpl session;
     final EnumMap<Action, Collection<TypeMemory>> changes = new EnumMap<>(Action.class);
+    private static final List<RuntimeRule> EMPTY_AGENDA = new ArrayList<>();
 
     ActivationContext(StatefulSessionImpl session) {
         this.session = session;
@@ -22,6 +22,28 @@ class ActivationContext {
 
     public StatefulSessionImpl getSession() {
         return session;
+    }
+
+
+    void doDeletions() {
+        Collection<TypeMemory> memoriesDelete = changes.get(Action.RETRACT);
+
+        if (memoriesDelete.size() > 0) {
+            // Clear the memories themselves
+            for (TypeMemory tm : memoriesDelete) {
+                tm.performDelete();
+            }
+        }
+    }
+
+
+    List<RuntimeRule> doInserts() {
+        Collection<TypeMemory> memoriesInsert = changes.get(Action.INSERT);
+        if (memoriesInsert.isEmpty()) {
+            return EMPTY_AGENDA;
+        } else {
+            return session.getRuleStorage().propagateInsertChanges(memoriesInsert);
+        }
     }
 
     boolean update() {

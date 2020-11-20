@@ -18,7 +18,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule 
     private final RuleDescriptor descriptor;
 
     private final RuntimeLhs lhs;
-    private final ActionQueue<Object> ruleBuffer = new ActionQueue<>();
     private final Set<Type<?>> allTypes = new HashSet<>();
     private int rhsCallCounter = 0;
 
@@ -32,7 +31,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule 
         for (RuntimeFactType t : factSources) {
             allTypes.add(t.getType());
         }
-        this.lhs = RuntimeLhs.factory(this, rd.getLhs(), ruleBuffer);
+        this.lhs = RuntimeLhs.factory(this, rd.getLhs());
     }
 
     private static RuntimeFactType[] buildTypes(SessionMemory runtime, FactType[] allFactTypes) {
@@ -54,16 +53,18 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule 
         return allTypes.contains(type);
     }
 
-    public final int executeRhs() {
+    public final int executeRhs(ActionQueue<Object> destinationBuffer) {
         this.rhsCallCounter = 0;
-        this.ruleBuffer.clear();
+        this.lhs.setBuffer(destinationBuffer);
         this.lhs.forEach(rhs.andThen(rhsContext -> increaseCallCount()));
         return this.rhsCallCounter;
     }
 
+/*
     public ActionQueue<Object> getRuleBuffer() {
         return ruleBuffer;
     }
+*/
 
     private void increaseCallCount() {
         this.rhsCallCounter++;

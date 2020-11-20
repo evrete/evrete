@@ -17,23 +17,22 @@ public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContex
     //private final Collection<RuntimeAggregateLhsJoined> aggregateConditionedGroups = new ArrayList<>();
     private final Collection<BetaEndNode> allBetaEndNodes = new ArrayList<>();
     private final Function<String, int[]> name2indices;
-    private final ActionQueue<Object> buffer;
+    private ActionQueue<Object> buffer;
     private final RuntimeRuleImpl rule;
 
-    protected RuntimeLhs(RuntimeRuleImpl rule, LhsDescriptor descriptor, ActionQueue<Object> buffer) {
+    protected RuntimeLhs(RuntimeRuleImpl rule, LhsDescriptor descriptor) {
         super(rule, descriptor);
         this.name2indices = descriptor.getNameIndices();
-        this.buffer = buffer;
         this.allBetaEndNodes.addAll(getEndNodes());
         this.rule = rule;
     }
 
-    static RuntimeLhs factory(RuntimeRuleImpl rule, LhsDescriptor descriptor, ActionQueue<Object> buffer) {
+    static RuntimeLhs factory(RuntimeRuleImpl rule, LhsDescriptor descriptor) {
         Set<AggregateLhsDescriptor> aggregates = descriptor.getAggregateDescriptors();
         if (aggregates.isEmpty()) {
-            return new RuntimeLhsDefault(rule, descriptor, buffer);
+            return new RuntimeLhsDefault(rule, descriptor);
         } else {
-            return new RuntimeLhsAggregate(rule, descriptor, buffer, aggregates);
+            return new RuntimeLhsAggregate(rule, descriptor, aggregates);
         }
     }
 
@@ -50,6 +49,9 @@ public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContex
 
     abstract void forEach(Consumer<RhsContext> rhs);
 
+    public void setBuffer(ActionQueue<Object> buffer) {
+        this.buffer = buffer;
+    }
 
     public final Collection<BetaEndNode> getAllBetaEndNodes() {
         return allBetaEndNodes;
