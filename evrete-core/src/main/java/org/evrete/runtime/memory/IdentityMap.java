@@ -2,14 +2,14 @@ package org.evrete.runtime.memory;
 
 import org.evrete.api.ReIterator;
 import org.evrete.api.RuntimeFact;
-import org.evrete.collections.FastIdentityHashMap;
+import org.evrete.collections.LinearIdentityHashMap;
 import org.evrete.runtime.RuntimeFactImpl;
 
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
-class IdentityMap extends FastIdentityHashMap<Object, RuntimeFactImpl> {
+class IdentityMap extends LinearIdentityHashMap<Object, RuntimeFactImpl> {
     private static final ToIntFunction<Object> HASH = System::identityHashCode;
     private static final Function<Entry<Object, RuntimeFactImpl>, RuntimeFact> MAPPER = Entry::getValue;
 

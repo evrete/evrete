@@ -20,6 +20,10 @@ public class CollectionReIterator<T> implements ReIterator<T> {
         return collection.size();
     }
 
+    @Override
+    public void remove() {
+        delegate.remove();
+    }
 
     @Override
     public boolean hasNext() {

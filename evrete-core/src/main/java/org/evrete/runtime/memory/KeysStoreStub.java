@@ -41,6 +41,6 @@ class KeysStoreStub implements KeysStore {
 
     @Override
     public ReIterator<Entry> entries() {
-        throw new UnsupportedOperationException("Not implemented in " + this.getClass().getName());
+        throw new UnsupportedOperationException("Not implemented in " + getClass().getName());
     }
 }

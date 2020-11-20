@@ -3,12 +3,12 @@ package org.evrete.collections;
 import java.util.function.BiPredicate;
 import java.util.function.ToIntFunction;
 
-public class FastIdentityHashMap<K, V> extends AbstractFastHashMap<K, V> {
-    public FastIdentityHashMap() {
+public class LinearIdentityHashMap<K, V> extends AbstractLinearHashMap<K, V> {
+    public LinearIdentityHashMap() {
         super();
     }
 
-    public FastIdentityHashMap(int initialCapacity) {
+    public LinearIdentityHashMap(int initialCapacity) {
         super(initialCapacity);
     }
 

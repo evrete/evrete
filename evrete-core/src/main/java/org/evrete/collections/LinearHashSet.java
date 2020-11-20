@@ -3,19 +3,23 @@ package org.evrete.collections;
 import java.util.function.BiPredicate;
 import java.util.function.ToIntFunction;
 
-public class FastIdentityHashSet<K> extends AbstractFastHashSet<K> {
+public class LinearHashSet<K> extends AbstractLinearHashSet<K> {
 
-    public FastIdentityHashSet() {
+    public LinearHashSet(int initialCapacity) {
+        super(initialCapacity);
+    }
+
+    public LinearHashSet() {
         super();
     }
 
     @Override
     protected ToIntFunction<Object> getHashFunction() {
-        return IDENTITY_HASH;
+        return DEFAULT_HASH;
     }
 
     @Override
     protected BiPredicate<Object, Object> getEqualsPredicate() {
-        return IDENTITY_EQUALS;
+        return DEFAULT_EQUALS;
     }
 }

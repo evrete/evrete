@@ -4,8 +4,6 @@ import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
-import java.util.Collection;
-
 public class FieldsMemory implements Memory {
     private final FieldsKey typeFields;
     private final SessionMemory runtime;
@@ -38,6 +36,12 @@ public class FieldsMemory implements Memory {
         }
     }
 
+    public void commitDeltas() {
+        for (FieldsMemoryBucket bucket : alphaBuckets.data) {
+            bucket.commitChanges();
+        }
+    }
+
     FieldsMemoryBucket touchMemory(AlphaBucketMeta alphaMeta) {
         int bucketIndex = alphaMeta.getBucketIndex();
         if (alphaBuckets.isEmptyAt(bucketIndex)) {
@@ -48,7 +52,7 @@ public class FieldsMemory implements Memory {
         return null;
     }
 
-    void onNewAlphaBucket(AlphaBucketMeta alphaMeta, ReIterator<RuntimeFact> existingFacts) {
+    <T extends RuntimeFact> void onNewAlphaBucket(AlphaBucketMeta alphaMeta, ReIterator<T> existingFacts) {
         FieldsMemoryBucket newBucket = touchMemory(alphaMeta);
         assert newBucket != null;
         SharedBetaFactStorage betaFactStorage = newBucket.getFieldData();
@@ -70,27 +74,40 @@ public class FieldsMemory implements Memory {
         }
     }
 
-    void insert(Collection<RuntimeFact> facts) {
+    void insert(ReIterable<? extends RuntimeFact> facts) {
         for (FieldsMemoryBucket bucket : alphaBuckets.data) {
             bucket.insert(facts);
         }
     }
 
-    void insert(RuntimeFact fact) {
-        for (FieldsMemoryBucket bucket : alphaBuckets.data) {
-            bucket.insert(fact);
+    /*
+        void insert(RuntimeFact fact) {
+            for (FieldsMemoryBucket bucket : alphaBuckets.data) {
+                bucket.insert(fact);
+            }
         }
-    }
 
-    void retract(Collection<RuntimeFact> facts) {
+        void retract(Collection<RuntimeFact> facts) {
+            for (FieldsMemoryBucket bucket : alphaBuckets.data) {
+                bucket.delete(facts);
+            }
+        }
+
+
+        void retract(RuntimeFact fact) {
+            for (FieldsMemoryBucket bucket : alphaBuckets.data) {
+                bucket.delete(fact);
+            }
+        }
+    */
+    public void retract(ReIterable<? extends RuntimeFact> facts) {
         for (FieldsMemoryBucket bucket : alphaBuckets.data) {
             bucket.delete(facts);
         }
     }
 
-    void retract(RuntimeFact fact) {
-        for (FieldsMemoryBucket bucket : alphaBuckets.data) {
-            bucket.delete(fact);
-        }
+    @Override
+    public String toString() {
+        return alphaBuckets.toString();
     }
 }

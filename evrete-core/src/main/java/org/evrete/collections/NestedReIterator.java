@@ -4,16 +4,20 @@ import org.evrete.api.EachRunnable;
 import org.evrete.api.ReIterable;
 import org.evrete.api.ReIterator;
 
+import java.util.function.Predicate;
+
 public class NestedReIterator<T> implements EachRunnable {
     private final ReIterator<T>[] iterators;
     private final T[] state;
     private final int lastIndex;
+    private final Predicate<T> filter;
 
     @SuppressWarnings("unchecked")
-    public NestedReIterator(T[] state) {
+    public NestedReIterator(T[] state, Predicate<T> filter) {
         this.iterators = (ReIterator<T>[]) new ReIterator[state.length];
         this.state = state;
         this.lastIndex = state.length - 1;
+        this.filter = filter;
     }
 
     public <I extends ReIterable<T>> void setIterables(I[] data) {
@@ -45,8 +49,13 @@ public class NestedReIterator<T> implements EachRunnable {
         runForEach(0, r);
     }
 
-    protected void set(int index, T obj) {
-        state[index] = obj;
+    protected boolean set(int index, T obj) {
+        if (filter.test(obj)) {
+            state[index] = obj;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private void runForEach(int index, Runnable r) {
@@ -54,13 +63,15 @@ public class NestedReIterator<T> implements EachRunnable {
         if (it.reset() == 0) return;
         if (index == lastIndex) {
             while (it.hasNext()) {
-                set(index, it.next());
-                r.run();
+                if (set(index, it.next())) {
+                    r.run();
+                }
             }
         } else {
             while (it.hasNext()) {
-                set(index, it.next());
-                runForEach(index + 1, r);
+                if (set(index, it.next())) {
+                    runForEach(index + 1, r);
+                }
             }
         }
     }

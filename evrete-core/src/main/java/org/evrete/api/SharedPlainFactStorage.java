@@ -6,7 +6,11 @@ public interface SharedPlainFactStorage extends BufferedInsert, ReIterable<Runti
 
     void delete(RuntimeFact fact);
 
+    RuntimeFact find(Object o);
+
     void clear();
 
     int size();
+
+    void insert(SharedPlainFactStorage other);
 }

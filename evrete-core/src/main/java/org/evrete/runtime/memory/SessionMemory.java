@@ -1,34 +1,38 @@
 package org.evrete.runtime.memory;
 
 import org.evrete.api.*;
-import org.evrete.collections.FastHashMap;
+import org.evrete.collections.LinearHashMap;
 import org.evrete.runtime.*;
 import org.evrete.runtime.async.RuleHotDeploymentTask;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaDelta;
 
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 
-public abstract class SessionMemory extends AbstractRuntime<StatefulSession> implements WorkingMemory {
+public class SessionMemory extends AbstractRuntime<StatefulSession> implements WorkingMemory {
+    private static final Logger LOGGER = Logger.getLogger(SessionMemory.class.getName());
     //private final Buffer buffer;
     private final RuntimeRules ruleStorage;
-    private final FastHashMap<Type<?>, TypeMemory> typedMemories;
-    private final ActionCounter actionCounter = new ActionCounter();
+    private final LinearHashMap<Type<?>, TypeMemory> typedMemories;
 
     protected SessionMemory(KnowledgeImpl parent) {
         super(parent);
         //this.buffer = new Buffer();
         this.ruleStorage = new RuntimeRules(this);
-        this.typedMemories = new FastHashMap<>(getTypeResolver().getKnownTypes().size());
+        this.typedMemories = new LinearHashMap<>(getTypeResolver().getKnownTypes().size());
         // Deploy existing rules
         for (RuleDescriptor descriptor : getRuleDescriptors()) {
             deployRule(descriptor, false);
         }
     }
 
+
+    public ReIterator<TypeMemory> typeMemories() {
+        return typedMemories.valueIterator();
+    }
 
     public void reSortRules() {
         ruleStorage.sort(getRuleComparator());
@@ -49,6 +53,9 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
         });
     }
 
+    public RuntimeRules getRuleStorage() {
+        return ruleStorage;
+    }
 
     @Override
     protected TypeResolver newTypeResolver() {
@@ -94,10 +101,22 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
     }
 
     @Override
-    public final void insert(Collection<?> objects) {
-        memoryAction(Action.INSERT, objects);
+    public void insert(Object fact) {
+        memoryAction(Action.INSERT, fact);
     }
 
+    @Override
+    public void insert(String factType, Object fact) {
+        Type<?> t = getTypeResolver().getType(factType);
+        if (t == null) {
+            LOGGER.warning("Unknown type '" + factType + "', insert skipped");
+        } else {
+            TypeMemory tm = get(t);
+            tm.doAction(Action.INSERT, fact);
+        }
+    }
+
+    /*
     @Override
     public void insert(String factType, Collection<?> objects) {
         if (objects == null || objects.isEmpty()) return;
@@ -109,6 +128,7 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
             }
         }
     }
+*/
 
     @Override
     protected synchronized void onNewActiveField(ActiveField newField) {
@@ -134,17 +154,37 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
         }
     }
 
-    public boolean hasMemoryChanges(Action... actions) {
-        return actionCounter.hasActions(actions);
+    //TODO !!!! optimize !!!!
+    public boolean hasMemoryChanges() {
+        ReIterator<TypeMemory> it = typedMemories.valueIterator();
+        while (it.hasNext()) {
+            TypeMemory tm = it.next();
+            if (tm.hasMemoryChanges()) {
+                return true;
+            }
+        }
+        return false;
     }
+
+    //TODO !!!! optimize !!!!
+    public boolean hasAction(Action action) {
+        ReIterator<TypeMemory> it = typedMemories.valueIterator();
+        while (it.hasNext()) {
+            TypeMemory tm = it.next();
+            if (tm.hasMemoryChanges(action)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+/*
 
     public boolean hasMemoryChanges() {
         return actionCounter.hasActions(Action.values());
     }
 
-    public boolean hasAction(Action action) {
-        return actionCounter.hasActions(action);
-    }
+*/
 
     /*
     public Buffer getBuffer() {
@@ -160,57 +200,70 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
         return get(t).get(fields).get(mask);
     }
 
+/*
     @Override
     public final void delete(Collection<?> objects) {
         memoryAction(Action.RETRACT, objects);
     }
+*/
 
+/*
     @Override
     public void update(Collection<?> objects) {
         memoryAction(Action.UPDATE, objects);
     }
+*/
 
     protected void destroy() {
         typedMemories.clear();
     }
 
+/*
     private void memoryAction(Action action, Collection<?> objects) {
         if (objects == null || objects.isEmpty()) return;
         TypeResolver resolver = getTypeResolver();
         for (Object o : objects) {
             Type<?> type = resolver.resolve(o);
-            memoryAction(action, get(type), o);
+            memoryAction(action, type, o);
         }
     }
+*/
 
-    private void memoryAction(Action action, TypeMemory tm, Object o) {
-        if (action == Action.UPDATE) {
-            memoryAction(Action.RETRACT, tm, o);
-            memoryAction(Action.INSERT, tm, o);
+/*
+    private void memoryAction(Action action, Type<?> t, Object o) {
+        TypeMemory tm = get(t);
+        tm.doAction(action, o);
+    }
+*/
+
+    private void memoryAction(Action action, Object o) {
+        Type<?> t = getTypeResolver().resolve(o);
+        if (t == null) {
+            LOGGER.warning("Unknown object type of " + o + ", action " + action + "  skipped");
         } else {
-            tm.doAction(action, o);
-            this.actionCounter.increment(action);
+            get(t).doAction(action, o);
         }
     }
 
     @Override
     public <T> void forEachMemoryObject(String type, Consumer<T> consumer) {
         Type<?> t = getTypeResolver().getType(type);
-        TypeMemory tm = typedMemories.get(t);
-        if (tm != null) {
+        if (t != null) {
+            TypeMemory tm = typedMemories.get(t);
             tm.forEachMemoryObject(consumer);
         }
     }
 
     @Override
     public void forEachMemoryObject(Consumer<Object> consumer) {
-        typedMemories.forEachValue(mem -> mem.forEachObjectUnchecked(consumer));
+        typedMemories.forEachValue(tm -> tm.forEachObjectUnchecked(consumer));
     }
 
     public List<RuntimeRule> getRules() {
         return ruleStorage.asList();
     }
 
+/*
     private void processInputBuffer(Action... actions) {
         for (Action action : actions) {
             buildMemoryDeltas(action);
@@ -218,6 +271,7 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
 
         this.ruleStorage.updateBetaMemories();
     }
+*/
 
 /*
     protected List<RuntimeRule> processInputBuffer() {
@@ -230,11 +284,14 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
     }
 */
 
+/*
     public Agenda getAgenda() {
         return ruleStorage.activeRules();
     }
+*/
 
-    protected void buildMemoryDeltas(Action action) {
+    protected void buildMemoryDeltas1(Action action) {
+/*
         switch (action) {
             case RETRACT:
                 typedMemories.forEachValue(tm -> tm.processInputBuffer(action));
@@ -247,7 +304,8 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
             case UPDATE:
                 throw new IllegalStateException();
         }
-        actionCounter.reset(action);
+*/
+        //actionCounter.reset(action);
 
 /*
         if(actionCounter.hasAction(action)) {
@@ -272,15 +330,28 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
 
     public void appendToBuffer(ActionQueue<Object> actions) {
         for (Action action : Action.values()) {
-            Collection<Object> objects = actions.get(action);
-            memoryAction(action, objects);
+            ReIterator<Object> it = actions.get(action);
+            while (it.hasNext()) {
+                memoryAction(action, it.next());
+            }
         }
     }
 
+    @Override
+    public void update(Object fact) {
+        memoryAction(Action.UPDATE, fact);
+    }
 
+    @Override
+    public void delete(Object fact) {
+        memoryAction(Action.RETRACT, fact);
+    }
+
+/*
     protected void commitMemoryDeltas() {
         // TODO can be paralleled
         typedMemories.forEachValue(TypeMemory::commitMemoryDeltas);
     }
+*/
 
 }

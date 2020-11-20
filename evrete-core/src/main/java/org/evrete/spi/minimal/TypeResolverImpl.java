@@ -158,6 +158,7 @@ class TypeResolverImpl implements TypeResolver {
     @Override
     @SuppressWarnings("unchecked")
     public <T> Type<T> resolve(Object o) {
+        Objects.requireNonNull(o);
         Class<?> javaType = o.getClass();
         String name = javaType.getName();
 

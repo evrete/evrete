@@ -6,6 +6,7 @@ import org.evrete.api.ReIterator;
 import org.evrete.util.CollectionUtils;
 
 import java.lang.reflect.Array;
+import java.util.NoSuchElementException;
 import java.util.StringJoiner;
 import java.util.function.*;
 import java.util.stream.Stream;
@@ -120,11 +121,15 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         return findBinIndexFor(hash, data, eqTest);
     }
 
+
+    //TODO !!!! review usage, consider making it void
     public final boolean add(E element) {
         resize();
+        BiPredicate<Object, Object> eq = getEqualsPredicate();
         int hash = getHashFunction().applyAsInt(element);
-        int addr = findBinIndexFor(element, hash, getEqualsPredicate());
-        return saveDirect(element, addr);
+        int addr = findBinIndexFor(element, hash, eq);
+        E old = saveDirect(element, addr);
+        return old == null || !eq.test(element, old);
     }
 
     public final void addNoResize(E element) {
@@ -157,23 +162,21 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         resize(size + insertCount);
     }
 
-    public final boolean saveDirect(E element, int addr) {
-        if (data[addr] == null) {
-            data[addr] = element;
+    @SuppressWarnings("unchecked")
+    public final E saveDirect(E element, int addr) {
+        Object old = data[addr];
+        data[addr] = element;
+        if (old == null) {
             addNew(addr);
             size++;
-            return true;
         } else {
             if (deletedIndices[addr]) {
                 deletedIndices[addr] = false;
                 deletes--;
                 size++;
-                data[addr] = element;
-                return true;
-            } else {
-                return false;
             }
         }
+        return (E) old;
     }
 
     protected abstract ToIntFunction<Object> getHashFunction();
@@ -237,7 +240,7 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         return joiner.toString();
     }
 
-    public final void clear() {
+    public void clear() {
         super.clear();
         CollectionUtils.systemFill(this.data, null);
         CollectionUtils.systemFill(this.deletedIndices, false);
@@ -250,7 +253,7 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         return data[addr] != null && !deletedIndices[addr];
     }
 
-    boolean removeEntry(Object e) {
+    public boolean removeEntry(Object e) {
         int addr = findBinIndexFor(e, getHashFunction().applyAsInt(e), getEqualsPredicate());
         return removeEntry(addr);
     }
@@ -332,9 +335,11 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
     }
 
 
+/*
     private abstract class AbstractIterator<T> implements ReIterator<T> {
         private int pos;
         private Object next;
+        private int current = -1;
 
         AbstractIterator() {
             reset();
@@ -345,6 +350,7 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
             next = null;
 
             while (next == null && pos < currentInsertIndex) {
+                current = pos;
                 idx = getAt(pos++);
                 next = deletedIndices[idx] ? null : data[idx];
             }
@@ -354,6 +360,12 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
             pos = 0;
             findNext();
             return size;
+        }
+
+        @Override
+        public final void remove() {
+            int idx = getAt(current);
+            markDeleted(idx);
         }
 
         @Override
@@ -372,17 +384,64 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         }
 
     }
+*/
 
-    private class It extends AbstractIterator<E> {
+    private class It implements ReIterator<E> {
+        int pos = 0;
+        int nextIndex = -1;
+        int currentIndex = -1;
 
         private It() {
-            super();
+            // Initial advance
+            nextIndex = computeNextIndex();
         }
+
+
+        @Override
+        public long reset() {
+            pos = 0;
+            nextIndex = computeNextIndex();
+            return size;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return nextIndex >= 0;
+        }
+
+        private int computeNextIndex() {
+            while (pos < currentInsertIndex) {
+                int idx = getAt(pos);
+                if (deletedIndices[idx]) {
+                    pos++;
+                } else {
+                    return idx;
+                }
+            }
+            return -1;
+        }
+
 
         @Override
         @SuppressWarnings("unchecked")
         public E next() {
-            return (E) nextObject();
+            if (nextIndex < 0) {
+                throw new NoSuchElementException();
+            } else {
+                pos++;
+                currentIndex = nextIndex;
+                nextIndex = computeNextIndex();
+                return (E) data[currentIndex];
+            }
+        }
+
+        @Override
+        public void remove() {
+            if (currentIndex < 0) {
+                throw new NoSuchElementException();
+            } else {
+                markDeleted(currentIndex);
+            }
         }
     }
 

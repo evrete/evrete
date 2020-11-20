@@ -31,4 +31,11 @@ public class RuntimeListeners implements Copyable<RuntimeListeners>, Listeners {
             listener.apply(node, evaluator, values, result);
         }
     }
+
+    @Override
+    public String toString() {
+        return "RuntimeListeners{" +
+                "evaluationListeners=" + evaluationListeners +
+                '}';
+    }
 }

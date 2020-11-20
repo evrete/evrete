@@ -1,20 +1,29 @@
 package org.evrete.collections;
 
 import org.evrete.api.MapEntry;
+import org.evrete.api.ReIterator;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public abstract class AbstractFastHashMap<K, V> extends AbstractFastHashMapBase<K, AbstractFastHashMap.Entry<K, V>> {
+public abstract class AbstractLinearHashMap<K, V> extends AbstractLinearHashMapBase<K, AbstractLinearHashMap.Entry<K, V>> {
     private static final int DEFAULT_INITIAL_SIZE = 16;
 
-    AbstractFastHashMap() {
+    AbstractLinearHashMap() {
         this(DEFAULT_INITIAL_SIZE);
     }
 
-    AbstractFastHashMap(int initialCapacity) {
+    AbstractLinearHashMap(int initialCapacity) {
         super(initialCapacity);
+    }
+
+    public ReIterator<K> keyIterator() {
+        return iterator(kvEntry -> kvEntry.key);
+    }
+
+    public ReIterator<V> valueIterator() {
+        return iterator(kvEntry -> kvEntry.value);
     }
 
     @SuppressWarnings("unchecked")

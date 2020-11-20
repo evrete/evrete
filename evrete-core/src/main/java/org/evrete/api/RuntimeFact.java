@@ -6,6 +6,8 @@ public interface RuntimeFact extends FieldToValue {
 
     Object[] getValues();
 
+    boolean isDeleted();
+
     boolean[] getAlphaTests();
 
     @SuppressWarnings("unchecked")

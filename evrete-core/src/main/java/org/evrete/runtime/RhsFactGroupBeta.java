@@ -1,34 +1,24 @@
 package org.evrete.runtime;
 
 import org.evrete.api.*;
-import org.evrete.collections.NestedReIterator;
 import org.evrete.runtime.memory.BetaEndNode;
 
 import java.util.EnumMap;
-import java.util.Map;
-import java.util.Set;
 
 public class RhsFactGroupBeta implements RhsFactGroup, KeyReIterators<ValueRow[]> {
     private final RuntimeFactTypeKeyed[] types;
     private final KeyReIterators<ValueRow[]> keyIterators;
     private final ValueRow[][] keyState;
     private final int groupIndex;
-    private final NestedReIterator<RuntimeFact> nestedFactIterator;
+    private final RuntimeFact[] iterationState;
+    private ValueRow[] currentKey;
 
     private RhsFactGroupBeta(RhsFactGroupDescriptor descriptor, RuntimeFactTypeKeyed[] types, KeyReIterators<ValueRow[]> keyIterators, ValueRow[][] keyState, RuntimeFact[][] factState) {
         this.types = types;
         this.keyIterators = keyIterators;
         this.keyState = keyState;
         this.groupIndex = descriptor.getFactGroupIndex();
-        this.nestedFactIterator = new NestedReIterator<RuntimeFact>(
-                factState[groupIndex],
-                fact -> !fact.isDeleted()
-        ) {
-            @Override
-            protected boolean set(int index, RuntimeFact obj) {
-                return super.set(index, obj);
-            }
-        };
+        this.iterationState = factState[this.groupIndex];
     }
 
     public RhsFactGroupBeta(RhsFactGroupDescriptor descriptor, BetaEndNode endNode, ValueRow[][] keyState, RuntimeFact[][] factState) {
@@ -37,123 +27,6 @@ public class RhsFactGroupBeta implements RhsFactGroup, KeyReIterators<ValueRow[]
 
     public RhsFactGroupBeta(RhsFactGroupDescriptor descriptor, RuntimeFactTypeKeyed singleType, ValueRow[][] keyState, RuntimeFact[][] factState) {
         this(descriptor, new RuntimeFactTypeKeyed[]{singleType}, singleType.getMappedKeyIterators(), keyState, factState);
-    }
-
-    static void runKeys(ScanMode mode, RhsFactGroupBeta[] groups, Runnable r) {
-        switch (mode) {
-            case DELTA:
-                runDelta(0, groups.length - 1, false, groups, r);
-                return;
-            case KNOWN:
-                runKnown(0, groups.length - 1, groups, r);
-                return;
-            case FULL:
-                runFull(0, groups.length - 1, groups, r);
-                return;
-            default:
-                throw new UnsupportedOperationException();
-        }
-    }
-
-    private static void runDelta(int index, int lastIndex, boolean hasDelta, RhsFactGroupBeta[] groups, Runnable r) {
-        RhsFactGroupBeta group = groups[index];
-        Set<Map.Entry<KeyMode, ReIterator<ValueRow[]>>> entries = group.keyIterators().entrySet();
-        KeyMode mode;
-        ReIterator<ValueRow[]> iterator;
-
-        if (index == lastIndex) {
-            for (Map.Entry<KeyMode, ReIterator<ValueRow[]>> entry : entries) {
-                mode = entry.getKey();
-                iterator = entry.getValue();
-                if ((mode.isDeltaMode() || hasDelta) && iterator.reset() > 0) {
-                    while (iterator.hasNext()) {
-                        if (group.setKey(iterator.next())) {
-                            r.run();
-                        }
-                    }
-                }
-            }
-
-        } else {
-            for (Map.Entry<KeyMode, ReIterator<ValueRow[]>> entry : entries) {
-                mode = entry.getKey();
-                iterator = entry.getValue();
-                if (iterator.reset() > 0) {
-                    while (iterator.hasNext()) {
-                        if (group.setKey(iterator.next())) {
-                            runDelta(index + 1, lastIndex, mode.isDeltaMode(), groups, r);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private static void runFull(int index, int lastIndex, RhsFactGroupBeta[] groups, Runnable r) {
-        RhsFactGroupBeta group = groups[index];
-        Set<Map.Entry<KeyMode, ReIterator<ValueRow[]>>> entries = group.keyIterators().entrySet();
-        ReIterator<ValueRow[]> iterator;
-
-        if (index == lastIndex) {
-            for (Map.Entry<KeyMode, ReIterator<ValueRow[]>> entry : entries) {
-                iterator = entry.getValue();
-                if (iterator.reset() > 0) {
-                    while (iterator.hasNext()) {
-                        if (group.setKey(iterator.next())) {
-                            r.run();
-                        }
-                    }
-                }
-            }
-
-        } else {
-            for (Map.Entry<KeyMode, ReIterator<ValueRow[]>> entry : entries) {
-                iterator = entry.getValue();
-                if (iterator.reset() > 0) {
-                    while (iterator.hasNext()) {
-                        if (group.setKey(iterator.next())) {
-                            runFull(index + 1, lastIndex, groups, r);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private static void runKnown(int index, int lastIndex, RhsFactGroupBeta[] groups, Runnable r) {
-        RhsFactGroupBeta group = groups[index];
-        Set<Map.Entry<KeyMode, ReIterator<ValueRow[]>>> entries = group.keyIterators().entrySet();
-        KeyMode mode;
-        ReIterator<ValueRow[]> iterator;
-
-        if (index == lastIndex) {
-            for (Map.Entry<KeyMode, ReIterator<ValueRow[]>> entry : entries) {
-                mode = entry.getKey();
-                iterator = entry.getValue();
-                //TODO !!!! optimize it, there's only one non-delta iterator!!!
-                if ((!mode.isDeltaMode()) && iterator.reset() > 0) {
-                    while (iterator.hasNext()) {
-                        if (group.setKey(iterator.next())) {
-                            r.run();
-                        }
-                    }
-                }
-            }
-
-        } else {
-            for (Map.Entry<KeyMode, ReIterator<ValueRow[]>> entry : entries) {
-                mode = entry.getKey();
-                iterator = entry.getValue();
-                //TODO !!!! optimize it, there's only one non-delta iterator!!!
-                if (iterator.reset() > 0 && (!mode.isDeltaMode())) {
-                    while (iterator.hasNext()) {
-                        if (group.setKey(iterator.next())) {
-                            runKnown(index + 1, lastIndex, groups, r);
-                        }
-                    }
-                }
-            }
-        }
     }
 
     static void runCurrentFacts(RhsFactGroupBeta[] groups, Runnable r) {
@@ -172,15 +45,46 @@ public class RhsFactGroupBeta implements RhsFactGroup, KeyReIterators<ValueRow[]
         }
     }
 
-    private boolean setKey(ValueRow[] key) {
+    boolean setKey(ValueRow[] key) {
         this.keyState[groupIndex] = key;
         // TODO !!! optimize by using setIterators if input nodes are all unique
-        this.nestedFactIterator.setIterables(key);
+        this.currentKey = key;
+
+        //this.nestedFactIterator.setIterables(key);
         return true;
     }
 
     private void runForEachFact(Runnable r) {
-        nestedFactIterator.runForEach(r);
+        //TODO !!! the length argument is always known, fix it
+        runForEachFact(0, this.currentKey.length, r);
+    }
+
+    private void runForEachFact(int index, int length, Runnable r) {
+        ReIterator<RuntimeFact> it = this.currentKey[index].iterator();
+        if (index == length - 1) {
+            // The last
+            while (it.hasNext()) {
+                RuntimeFact fact = it.next();
+                if (fact.isDeleted()) {
+                    // lazy deletion
+                    it.remove();
+                } else {
+                    this.iterationState[index] = fact;
+                    r.run();
+                }
+            }
+        } else {
+            while (it.hasNext()) {
+                RuntimeFact fact = it.next();
+                if (fact.isDeleted()) {
+                    // lazy deletion
+                    it.remove();
+                } else {
+                    this.iterationState[index] = fact;
+                    runForEachFact(index + 1, length, r);
+                }
+            }
+        }
     }
 
     @Override

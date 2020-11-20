@@ -3,6 +3,7 @@ package org.evrete.api;
 import java.util.function.Function;
 
 public interface ReIterable<T> {
+
     ReIterator<T> iterator();
 
     default <Z> ReIterator<Z> iterator(Function<? super T, Z> mapper) {
@@ -16,6 +17,11 @@ public interface ReIterable<T> {
             @Override
             public boolean hasNext() {
                 return it.hasNext();
+            }
+
+            @Override
+            public void remove() {
+                it.remove();
             }
 
             @Override

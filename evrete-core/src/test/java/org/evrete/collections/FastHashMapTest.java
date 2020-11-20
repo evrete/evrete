@@ -26,8 +26,8 @@ class FastHashMapTest {
             String r1 = fastMap.remove(s);
             String r2 = hashMap.remove(s);
             assert Objects.equals(r1, r2);
-            if (fastMap instanceof FastHashMap) {
-                ((FastHashMap<String, String>) fastMap).assertStructure();
+            if (fastMap instanceof LinearHashMap) {
+                ((LinearHashMap<String, String>) fastMap).assertStructure();
             }
             assert fastMap.size() == hashMap.size() : "Fast: " + fastMap.size() + ", Hash: " + hashMap.size();
         }
@@ -35,7 +35,7 @@ class FastHashMapTest {
 
     @Test
     void basic1() {
-        FastHashMap<String, TypeA> map = new FastHashMap<>(128);
+        LinearHashMap<String, TypeA> map = new LinearHashMap<>(128);
 
         TypeA a1 = new TypeA("a1");
         TypeA a2 = new TypeA("a2");
@@ -81,7 +81,7 @@ class FastHashMapTest {
 
     @Test
     void basic2() {
-        FastHashMap<String, TypeA> map = new FastHashMap<>(2);
+        LinearHashMap<String, TypeA> map = new LinearHashMap<>(2);
 
         TypeA a = new TypeA();
 
@@ -102,20 +102,20 @@ class FastHashMapTest {
 
     @Test
     void sizeTest() {
-        FastHashSet<String> set1 = new FastHashSet<>(5);
+        LinearHashSet<String> set1 = new LinearHashSet<>(5);
         assert set1.dataSize() == 8;
 
-        FastHashSet<String> set2 = new FastHashSet<>(0);
+        LinearHashSet<String> set2 = new LinearHashSet<>(0);
         assert set2.dataSize() == 2;
 
-        FastHashSet<String> set3 = new FastHashSet<>(32);
+        LinearHashSet<String> set3 = new LinearHashSet<>(32);
         assert set3.dataSize() == 32;
     }
 
 
     @Test
     void remove3() {
-        Mapping<String, String> fastSet = TestUtils.map(new FastHashMap<>(2));
+        Mapping<String, String> fastSet = TestUtils.map(new LinearHashMap<>(2));
         Mapping<String, String> hashSet = TestUtils.map(new HashMap<>(2));
 
         // Fill first

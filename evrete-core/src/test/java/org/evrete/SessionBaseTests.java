@@ -13,9 +13,10 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.evrete.api.FactBuilder.fact;
@@ -117,7 +118,6 @@ class SessionBaseTests {
                 if (field == null) {
                     throw new IllegalStateException();
                 } else {
-                    //references[t][f] = factType.getCreateReference(field);
                     references[t][f] = new FieldReference() {
                         @Override
                         public TypeField field() {
@@ -162,11 +162,10 @@ class SessionBaseTests {
             s.insert(a, b, c, d);
         }
         s.fire();
-        //assert callCount.get() == Math.pow(objectCount, 4) : "Actual: " + callCount.get();
         rhsAssert.assertCount((int) Math.pow(objectCount, 4));
 
         Collection<Object> sessionObjects = TestUtils.sessionObjects(s);
-        assert sessionObjects.size() == objectCount * 4;
+        assert sessionObjects.size() == objectCount * 4 : "Actual: " + sessionObjects.size() + ", expected: " + objectCount * 4;
 
         s.deleteAndFire(sessionObjects);
         assert TestUtils.sessionObjects(s).size() == 0;
@@ -180,14 +179,16 @@ class SessionBaseTests {
         knowledge = (KnowledgeImpl) service.newKnowledge();
     }
 
-    @Test
-    void plainTest0() {
+    @ParameterizedTest
+    @EnumSource(AgendaMode.class)
+    void plainTest0(AgendaMode mode) {
         RhsAssert rhsAssert = new RhsAssert("$n", Integer.class);
         knowledge.newRule()
                 .forEach("$n", Integer.class)
                 .execute(rhsAssert);
 
         StatefulSession session = knowledge.createSession();
+        session.setAgendaMode(mode);
         session.insertAndFire(1, 2);
         rhsAssert.assertCount(2).reset();
         session.insertAndFire(3);
@@ -649,14 +650,7 @@ class SessionBaseTests {
                         "$b", TypeB.class
                 )
                 .where("$a.i == $b.i")
-                .execute(rhsAssert.andThen(new Consumer<RhsContext>() {
-                    @Override
-                    public void accept(RhsContext ctx) {
-                        TypeA a = ctx.get("$a");
-                        TypeB b = ctx.get("$b");
-                        System.out.println(a + " : " + b);
-                    }
-                }));
+                .execute(rhsAssert);
 
         StatefulSessionImpl s = knowledge.createSession();
 

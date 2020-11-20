@@ -6,7 +6,6 @@ import org.evrete.runtime.builder.AbstractLhsBuilder;
 import org.evrete.runtime.builder.FactTypeBuilder;
 import org.evrete.runtime.evaluation.EvaluatorFactory;
 import org.evrete.runtime.evaluation.EvaluatorGroup;
-import org.evrete.util.CollectionUtils;
 import org.evrete.util.MapFunction;
 import org.evrete.util.NextIntSupplier;
 
@@ -97,16 +96,59 @@ public abstract class AbstractLhsDescriptor {
         Set<Evaluator> betaConditions = new HashSet<>(lhsBuilder.getBetaConditions());
         if (betaConditions.isEmpty()) return ConditionNodeDescriptor.ZERO_ARRAY;
 
-        final List<EvaluatorGroup> evaluators = EvaluatorFactory.flattenEvaluators(betaConditions, mapping);
+        final List<EvaluatorGroup> evaluators = new ArrayList<>(EvaluatorFactory.flattenEvaluators(betaConditions, mapping));
+        if (evaluators.isEmpty()) throw new IllegalStateException();
 
+        double maxComplexity = Double.MIN_VALUE;
+        double minComplexity = Double.MAX_VALUE;
         Set<FactType> betaTypes = new HashSet<>();
 
+        for (EvaluatorGroup g : evaluators) {
+            double complexity = g.getComplexity();
+            if (complexity <= 0.0) throw new IllegalStateException("Complexity must be a positive value");
+
+            if (complexity > maxComplexity) {
+                maxComplexity = complexity;
+            }
+
+            if (complexity < minComplexity) {
+                minComplexity = complexity;
+            }
+
+            betaTypes.addAll(g.descriptor());
+
+        }
+
+        // MinMax complexities
+        Map<EvaluatorGroup, Double> minMaxComplexities = new HashMap<>();
+        for (EvaluatorGroup g : evaluators) {
+            double newComplexity = 1.0 + (g.getComplexity() - minComplexity) / (maxComplexity - minComplexity);
+            minMaxComplexities.put(g, newComplexity * g.getEvaluators().length);
+        }
+
+        // Sorting
+        evaluators.sort(new Comparator<EvaluatorGroup>() {
+            @Override
+            public int compare(EvaluatorGroup g1, EvaluatorGroup g2) {
+                int cmp = Double.compare(minMaxComplexities.get(g1), minMaxComplexities.get(g2));
+                if (cmp == 0) {
+                    // Same complexity
+                    cmp = g1.toString().compareTo(g2.toString());
+                }
+                return cmp;
+            }
+        });
+
+        Collection<ConditionNodeDescriptor> finalNodes = ConditionNodeDescriptor.allocateConditions(betaTypes, evaluators);
+        return finalNodes.toArray(ConditionNodeDescriptor.ZERO_ARRAY);
+
+
+/*
         // Group conditions by var count
         TreeMap<Integer, List<EvaluatorGroup>> grouped = new TreeMap<>();
         for (EvaluatorGroup e : evaluators) {
             int count = e.descriptor().size();
             grouped.computeIfAbsent(count, k -> new ArrayList<>()).add(e);
-            betaTypes.addAll(e.descriptor());
         }
 
         // Create permutation for each level
@@ -147,9 +189,10 @@ public abstract class AbstractLhsDescriptor {
         }
         assert best != null;
         return best.toArray(ConditionNodeDescriptor.ZERO_ARRAY);
+*/
     }
 
-    //TODO take into account condition complexity
+/*
     private static double complexity(ConditionNodeDescriptor node) {
         NodeDescriptor[] sources = node.getSources();
         double[] distances = new double[sources.length];
@@ -167,7 +210,9 @@ public abstract class AbstractLhsDescriptor {
         }
         return avg * (1.0 + deviation);
     }
+*/
 
+/*
     private static double distanceToEntryNode(NodeDescriptor node) {
         double distance = 0.0;
         if (node.isConditionNode()) {
@@ -182,6 +227,7 @@ public abstract class AbstractLhsDescriptor {
         }
         return distance;
     }
+*/
 
     MapFunction<String, int[]> getNameIndices() {
         return nameIndices;

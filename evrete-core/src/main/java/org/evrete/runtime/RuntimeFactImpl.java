@@ -11,6 +11,7 @@ public final class RuntimeFactImpl implements RuntimeFact {
     private final Object delegate;
     private Object[] values;
     private boolean[] alphaTests;
+    private boolean deleted = false;
 
     private RuntimeFactImpl(Object o, Object[] values) {
         this(o, values, EMPTY_ALPHA_TESTS);
@@ -24,6 +25,15 @@ public final class RuntimeFactImpl implements RuntimeFact {
 
     public static RuntimeFactImpl factory(Object o, Object[] values, boolean[] alphaTests) {
         return new RuntimeFactImpl(o, values, alphaTests);
+    }
+
+    @Override
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 
     public static RuntimeFactImpl factory(Object o, Object[] values) {
@@ -70,8 +80,8 @@ public final class RuntimeFactImpl implements RuntimeFact {
     }
 
     public String toString() {
-        return "{delegate=" + getDelegate() +
-                //", values=" + Arrays.toString(values) +
+        return "{delegate=" + delegate +
+                ", deleted=" + deleted +
                 //", tests=" + Arrays.toString(alphaTests) +
                 '}';
     }

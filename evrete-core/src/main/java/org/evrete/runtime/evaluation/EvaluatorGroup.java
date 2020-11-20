@@ -56,6 +56,9 @@ public class EvaluatorGroup implements ComplexityObject {
 
     @Override
     public String toString() {
-        return Arrays.toString(evaluators);
+        return "EvaluatorGroup{" +
+                "evaluators=" + Arrays.toString(evaluators) +
+                ", complexity=" + complexity +
+                '}';
     }
 }

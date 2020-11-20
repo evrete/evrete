@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 public final class EvaluatorFactory {
 
-    public static List<EvaluatorGroup> flattenEvaluators(Collection<Evaluator> rawEvaluators, Function<NamedType, FactType> typeFunction) {
+    public static Collection<EvaluatorGroup> flattenEvaluators(Collection<Evaluator> rawEvaluators, Function<NamedType, FactType> typeFunction) {
         Collection<EvaluatorInternal> evaluators = convert(rawEvaluators, typeFunction);
 
         MapOfSet<Set<FactType>, EvaluatorInternal> groupedConditions = new MapOfSet<>();
@@ -25,7 +25,7 @@ public final class EvaluatorFactory {
         }
 
         // Union conditions if they share the same set of fact types
-        List<EvaluatorGroup> result = new ArrayList<>(groupedConditions.size());
+        Collection<EvaluatorGroup> result = new ArrayList<>(groupedConditions.size());
         for (Map.Entry<Set<FactType>, Set<EvaluatorInternal>> entry : groupedConditions.entrySet()) {
             // FactType.toArray(entry.getKey(), typeFunction);
             Collection<EvaluatorInternal> collection = entry.getValue();

@@ -1,6 +1,8 @@
+/*
 package org.evrete.runtime.async;
 
 import org.evrete.api.KeysStore;
+import org.evrete.api.Type;
 import org.evrete.runtime.FactType;
 import org.evrete.runtime.RuntimeAggregateLhsJoined;
 import org.evrete.runtime.RuntimeFactType;
@@ -11,6 +13,7 @@ import org.evrete.util.Bits;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.CountedCompleter;
 
 //import org.evrete.runtime.memory.AggregateJoinConditionNode;
@@ -18,11 +21,13 @@ import java.util.concurrent.CountedCompleter;
 public class BetaMemoryDeleteTask extends Completer {
     //private final Collection<BetaEndNode> betaEndNodes;
     private final RuntimeRuleImpl rule;
+    private final List<Type<?>> types;
 
-    public BetaMemoryDeleteTask(Completer parent, RuntimeRuleImpl rule) {
+    public BetaMemoryDeleteTask(Completer parent, RuntimeRuleImpl rule, List<Type<?>> types) {
         super(parent);
         //this.betaEndNodes = rule.getNodesToDelete();
         this.rule = rule;
+        this.types = types;
     }
 
     @Override
@@ -31,6 +36,7 @@ public class BetaMemoryDeleteTask extends Completer {
         Bits deleteMask = new Bits();
         Collection<BetaEndNode> betaEndNodes = new HashSet<>();
         for (BetaEndNode endNode : rule.getLhs().getAllBetaEndNodes()) {
+
             for (RuntimeFactType factType : endNode.getEntryNodes()) {
                 if (factType.isDeleteDeltaAvailable()) {
                     deleteMask.set(factType.getInRuleIndex());
@@ -65,3 +71,4 @@ public class BetaMemoryDeleteTask extends Completer {
         }
     }
 }
+*/

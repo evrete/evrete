@@ -44,7 +44,10 @@ public class RuleHotDeploymentTask extends Completer {
             agg.evaluate(false);
         }
 
-        rule.resetState();
+        // Merging dnd nodes' deltas
+        for (BetaEndNode endNode : rule.getLhs().getAllBetaEndNodes()) {
+            endNode.mergeDelta();
+        }
     }
 
 }

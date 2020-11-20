@@ -1,5 +1,6 @@
 package org.evrete.runtime.memory;
 
+import org.evrete.api.ReIterable;
 import org.evrete.api.ReIterator;
 import org.evrete.api.RuntimeFact;
 import org.evrete.api.SharedPlainFactStorage;
@@ -24,7 +25,7 @@ class TypeMemoryBucket implements PlainMemory {
         this.delta.clear();
     }
 
-    void fillMainStorage(ReIterator<RuntimeFact> iterator) {
+    <T extends RuntimeFact> void fillMainStorage(ReIterator<T> iterator) {
         if (iterator.reset() > 0) {
             while (iterator.hasNext()) {
                 RuntimeFact rto = iterator.next();
@@ -33,6 +34,14 @@ class TypeMemoryBucket implements PlainMemory {
                 }
             }
         }
+    }
+
+    public SharedPlainFactStorage getData() {
+        return data;
+    }
+
+    public SharedPlainFactStorage getDelta() {
+        return delta;
     }
 
     @Override
@@ -54,6 +63,19 @@ class TypeMemoryBucket implements PlainMemory {
     public void commitChanges() {
         int deltaSize;
         if ((deltaSize = delta.size()) > 0) {
+            data.insert(delta);
+/*
+            //TODO !!!!bulk insert, change interface, use the same approach as in hot deployment
+            data.ensureExtraCapacity(deltaSize);
+            delta.iterator().forEachRemaining(data::insert);
+*/
+            delta.clear();
+        }
+    }
+
+    public void commitDelta() {
+        int deltaSize;
+        if ((deltaSize = delta.size()) > 0) {
             //TODO !!!!bulk insert, change interface, use the same approach as in hot deployment
             data.ensureExtraCapacity(deltaSize);
             delta.iterator().forEachRemaining(data::insert);
@@ -65,6 +87,14 @@ class TypeMemoryBucket implements PlainMemory {
         delta.ensureExtraCapacity(facts.size());
         for (RuntimeFact rto : facts) {
             insert(rto);
+        }
+    }
+
+    void insert(ReIterable<? extends RuntimeFact> facts) {
+        ReIterator<? extends RuntimeFact> it = facts.iterator();
+        delta.ensureExtraCapacity((int) it.reset());
+        while (it.hasNext()) {
+            insert(it.next());
         }
     }
 
@@ -80,9 +110,28 @@ class TypeMemoryBucket implements PlainMemory {
         }
     }
 
+    void retract(ReIterable<? extends RuntimeFact> facts) {
+        ReIterator<? extends RuntimeFact> it = facts.iterator();
+        while (it.hasNext()) {
+            retract(it.next());
+        }
+    }
+
     void retract(RuntimeFact fact) {
         if (alphaMask.test(fact)) {
             data.delete(fact);
         }
+        if (alphaMask.test(fact)) {
+            delta.delete(fact);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "data=" + data +
+                ", delta=" + delta +
+                ", alphaMask=" + alphaMask +
+                '}';
     }
 }

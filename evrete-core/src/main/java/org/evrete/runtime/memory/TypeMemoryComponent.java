@@ -32,16 +32,7 @@ public class TypeMemoryComponent implements BiMemoryComponent<TypeMemoryComponen
         return map.contains(o);
     }
 
-    //TODO use totalFacts() instead
     public boolean hasData() {
-/*
-        System.out.println("@@@@@@ " + scope + " -> " + map);
-        try {
-            throw new Exception();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-*/
         return map.size() > 0;
     }
 

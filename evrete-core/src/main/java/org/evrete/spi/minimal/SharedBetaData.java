@@ -1,7 +1,6 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
-import org.evrete.collections.FastHashSet;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -14,14 +13,13 @@ class SharedBetaData implements SharedBetaFactStorage {
     private final FieldsFactMap deltaNewKeys = new FieldsFactMap();
     private final FieldsFactMap deltaKnownKeys = new FieldsFactMap();
     private final FieldsFactMap main = new FieldsFactMap();
-    private final FastHashSet<ValueRow> deleteTasks = new FastHashSet<>();
     private final ActiveField[] fields;
     private final EnumMap<KeyMode, ReIterable<ValueRow>> keyIterables;
 
     private final BiPredicate<ValueRowImpl, Object[]> SHARED_ARRAY_EQ = new BiPredicate<ValueRowImpl, Object[]>() {
         @Override
         public boolean test(ValueRowImpl entry, Object[] values) {
-            return MiscUtils.sameData(entry.data, reusableValueArr);
+            return !entry.isDeleted() && MiscUtils.sameData(entry.data, reusableValueArr);
         }
     };
 
@@ -60,26 +58,26 @@ class SharedBetaData implements SharedBetaFactStorage {
     }
 
     @Override
-    public boolean hasDeletedKeys() {
-        return deleteTasks.size() > 0;
-    }
-
-    @Override
-    public boolean isKeyDeleted(ValueRow row) {
-        return deleteTasks.contains(row);
-    }
-
-    @Override
     public void clear() {
         deltaNewKeys.clear();
         deltaKnownKeys.clear();
         main.clear();
-        deleteTasks.clear();
     }
 
     @Override
     public void clearDeletedKeys() {
-        deleteTasks.clear();
+        throw new UnsupportedOperationException();
+    }
+
+
+    @Override
+    public boolean hasDeletedKeys() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isKeyDeleted(ValueRow row) {
+        throw new UnsupportedOperationException();
     }
 
     @ThreadUnsafe
@@ -99,21 +97,35 @@ class SharedBetaData implements SharedBetaFactStorage {
 
     @Override
     public void delete(RuntimeFact fact) {
+        assert fact.isDeleted();
         int hash = hash(fact);
         int addr = main.findBinIndex(reusableValueArr, hash, SHARED_ARRAY_EQ);
-        ValueRow deleted = main.deleteAndTestExisting(fact, addr);
-        if (deleted != null) {
-            deleteTasks.add(deleted);
+        //ValueRow deleted = main.deleteAndTestExisting(fact, addr);
+        main.remove(fact, addr);
+/*
+        ValueRowImpl deleted = main.get(addr);
+        long remainingFacts = deleted.removeFact(fact);
+        if(remainingFacts == 0) {
+            main.
         }
+*/
+        //assert deleted != null : "Fact: " + fact + ", data: " + main.toString();
+        //TODO !!!!! mark key as deleted
+        //if (deleted != null) {
+        //    deleteTasks.add(deleted);
+        //}
     }
 
     @Override
     public void delete(Collection<? extends RuntimeFact> collection, Predicate<RuntimeFact> predicate) {
+        throw new UnsupportedOperationException();
+/*
         for (RuntimeFact fact : collection) {
             if (predicate.test(fact)) {
                 delete(fact);
             }
         }
+*/
     }
 
     @Override
@@ -123,15 +135,13 @@ class SharedBetaData implements SharedBetaFactStorage {
 
         deltaNewKeys.clear();
         deltaKnownKeys.clear();
-
-        clearDeletedKeys();
-
     }
 
     private void insertInner(RuntimeFact fact) {
         int hash = hash(fact);
         int addr = main.findBinIndex(reusableValueArr, hash, SHARED_ARRAY_EQ);
-        if (main.get(addr) == null) {
+        ValueRowImpl key = main.get(addr);
+        if (key == null) {
             // No entry in main storage, now looking in delta
             insertTo(hash, fact, deltaNewKeys);
         } else {
@@ -155,16 +165,28 @@ class SharedBetaData implements SharedBetaFactStorage {
 
     @Override
     public void insert(Collection<? extends RuntimeFact> collection, Predicate<RuntimeFact> predicate) {
+        throw new UnsupportedOperationException();
+/*
         ensureDeltaCapacity(collection.size());
         for (RuntimeFact fact : collection) {
             if (predicate.test(fact)) {
                 insertInner(fact);
             }
         }
+*/
     }
 
     @Override
     public void insert(RuntimeFact fact) {
         insertInner(fact);
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "main=" + main +
+                ", kNew=" + deltaNewKeys +
+                ", kOld=" + deltaKnownKeys +
+                '}';
     }
 }

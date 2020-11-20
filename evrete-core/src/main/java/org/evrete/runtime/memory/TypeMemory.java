@@ -19,76 +19,132 @@ public final class TypeMemory extends TypeMemoryBase {
     private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
     private final ArrayOf<TypeMemoryBucket> alphaBuckets;
 
-    private final ActionQueue<RuntimeFact> inputBuffer = new ActionQueue<>();
+    //private final ActionQueue<RuntimeFact> inputBuffer = new ActionQueue<>();
+    private final EnumMap<Action, SharedPlainFactStorage> inputBuffer = new EnumMap<>(Action.class);
+    //private final SharedPlainFactStorage existingObjects1;
 
     TypeMemory(SessionMemory runtime, Type<?> type) {
         super(runtime, type);
+        //this.existingObjects1 = runtime.newSharedPlainStorage();
+        for (Action action : Action.values()) {
+            this.inputBuffer.put(action, runtime.newSharedPlainStorage());
+        }
         this.alphaConditions = runtime.getAlphaConditions();
         this.alphaBuckets = new ArrayOf<>(new TypeMemoryBucket[]{new TypeMemoryBucket(runtime, AlphaBucketMeta.NO_FIELDS_NO_CONDITIONS)});
     }
-
 
     public final Set<FieldsKey> knownFieldSets() {
         return Collections.unmodifiableSet(betaMemories.keySet());
     }
 
+    public boolean hasMemoryChanges() {
+        assert inputBuffer.get(Action.UPDATE).size() == 0;
+        return hasMemoryChanges(Action.INSERT) || hasMemoryChanges(Action.RETRACT);
+    }
+
+    public boolean hasMemoryChanges(Action action) {
+        return inputBuffer.get(action).size() > 0;
+    }
+
+    public void propagateBetaDeltas() {
+        SharedPlainFactStorage inserts = inputBuffer.get(Action.INSERT);
+
+        for (TypeMemoryBucket bucket : alphaBuckets.data) {
+            bucket.insert(inserts);
+        }
+
+        for (FieldsMemory fm : betaMemories.values()) {
+            fm.insert(inputBuffer.get(Action.INSERT));
+        }
+
+        inserts.clear();
+    }
 
     public RuntimeFact doAction(Action action, Object o) {
-        RuntimeFact fact;
         switch (action) {
             case INSERT:
-            case UPDATE:
-                fact = mapToHandle(o);
-                break;
+                return doInsert(o);
             case RETRACT:
-                fact = deleteObject(o);
-                break;
+                return doDelete(o);
+            case UPDATE:
+                // Update is a sequence of delete and insert operation
+                RuntimeFact fact = doDelete(o);
+                if (fact == null) {
+                    LOGGER.warning("Unknown object: " + o + ", update skipped....");
+                    return null;
+                } else {
+                    return doInsert(o);
+                }
             default:
                 throw new IllegalStateException();
 
         }
-        inputBuffer.add(action, fact);
-        return fact;
     }
 
+    private RuntimeFact doInsert(Object o) {
 
-    RuntimeFact deleteObject(Object o) {
-        RuntimeFact fact = get(MemoryScope.MAIN).remove(o);
+
+        RuntimeFact fact = create(o);
+
+        inputBuffer.get(Action.INSERT).insert(fact);
+        //System.out.println("\tnew handle created: " + fact + ", total: " + inputBuffer.get(Action.INSERT));
+        return fact;
+
+/*
+        fact = main0().find(o);
+        if (fact != null && !fact.isDeleted()) {
+            LOGGER.warning("Object " + o + " has been already inserted, skipping...");
+        } else {
+            // No such fact in main data, checking insert buffer
+            SharedPlainFactStorage collection = inputBuffer.get(Action.INSERT);
+            fact = collection.find(o);
+            if (fact != null && !fact.isDeleted()) {
+                LOGGER.warning("Object " + o + " has been already inserted, skipping...");
+            } else {
+                // The fact is new to the memory, it needs to be saved in the INSERT buffer
+                fact = create(o);
+                System.out.println("\tnew handle created: " + fact);
+                collection.insert(fact);
+            }
+        }
+        return fact;
+*/
+    }
+
+    private RuntimeFact doDelete(Object o) {
+        // Checking the main storage
+        //RuntimeFact fact = main0().find(o);
+        RuntimeFact fact = find(o);
         if (fact == null) {
-            fact = get(MemoryScope.DELTA).remove(o);
+            // TODO do we really need to look in the insert buffer?
+            // Not found, looking in the insert buffer
+/*
+            fact = inputBuffer.get(Action.INSERT).find(o);
+            if (fact != null && !fact.isDeleted()) {
+                inputBuffer.get(Action.INSERT).delete(fact);
+                return fact;
+            }
+*/
+        } else {
+            inputBuffer.get(Action.RETRACT).insert(fact);
+            return fact;
+        }
+        LOGGER.warning("Object " + o + " hasn't been previously inserted");
+        return null;
+    }
+
+
+    RuntimeFact find(Object o) {
+        RuntimeFact fact = main0().find(o);
+        if (fact == null) {
+            fact = delta0().find(o);
         }
         return fact;
     }
 
-    public void processInputBuffer(Action action) {
-        Collection<RuntimeFact> facts = inputBuffer.get(action);
-        if (facts.isEmpty()) return;
-        switch (action) {
-            case INSERT:
-                for (TypeMemoryBucket bucket : alphaBuckets.data) {
-                    bucket.insert(facts);
-                }
-                for (FieldsMemory fm : fieldsMemories()) {
-                    fm.insert(facts);
-                }
-                break;
-            case RETRACT:
-                for (TypeMemoryBucket bucket : alphaBuckets.data) {
-                    bucket.retract(facts);
-                }
-                for (FieldsMemory fm : fieldsMemories()) {
-                    fm.retract(facts);
-                }
-                break;
-            default:
-                throw new IllegalStateException("Unsupported action " + action);
-
-        }
-        facts.clear();
-    }
 
     void clear() {
-        super.clearData();
+        //main1().clear(); // TODO remove!!!!
         for (TypeMemoryBucket bucket : alphaBuckets.data) {
             bucket.clear();
         }
@@ -108,13 +164,66 @@ public final class TypeMemory extends TypeMemoryBase {
         }
     }
 
+    public void commitDeltas() {
+        for (TypeMemoryBucket bucket : this.alphaBuckets.data) {
+            bucket.commitDelta();
+        }
+
+        for (FieldsMemory fm : betaMemories.values()) {
+            fm.commitDeltas();
+        }
+    }
+
+    public String reportStatus() {
+
+        String s = "\n\t\t" + type.getJavaType().getSimpleName() + "\n";
+        s += "\t\t\tbuffer: " + inputBuffer;
+        s += "\n\t\t\tmain:   " + main0();
+        s += "\n\t\t\tdelta:  " + delta0();
+        s += "\n\t\t\tkey memory:";
+        for (Map.Entry<FieldsKey, FieldsMemory> e : betaMemories.entrySet()) {
+            s += "\n\t\t\t\tkey:" + e.getKey();
+            s += "\n\t\t\t\tval:" + e.getValue();
+
+        }
+
+        return s;
+    }
+
 
     //@Override
     public void commitChanges() {
-        super.mergeDelta1();
+        // Append insert buffer to main storage
+        main0().insert(inputBuffer.get(Action.INSERT));
+
         for (TypeMemoryBucket bucket : alphaBuckets.data) {
             bucket.commitChanges();
         }
+
+        for (SharedPlainFactStorage actions : inputBuffer.values()) {
+            actions.clear();
+        }
+    }
+
+    public void performDelete() {
+        SharedPlainFactStorage deleteSubject = inputBuffer.get(Action.RETRACT);
+
+        // Step 1: Marking facts as deleted
+        ReIterator<RuntimeFact> it = deleteSubject.iterator();
+        while (it.hasNext()) {
+            RuntimeFactImpl impl = (RuntimeFactImpl) it.next();
+            impl.setDeleted(true);
+        }
+
+        for (TypeMemoryBucket bucket : alphaBuckets.data) {
+            bucket.retract(deleteSubject);
+        }
+
+        for (FieldsMemory fm : betaMemories.values()) {
+            fm.retract(deleteSubject);
+        }
+        // Step 3: clear the delete buffer
+        deleteSubject.clear();
     }
 
     public PlainMemory get(AlphaBucketMeta alphaMask) {
@@ -146,17 +255,19 @@ public final class TypeMemory extends TypeMemoryBase {
 
     void onNewAlphaBucket(AlphaDelta delta) {
 
-        if (get(MemoryScope.DELTA).totalFacts() > 0) {
+        if (inputBuffer.get(Action.INSERT).size() > 0) {
             //TODO develop a strategy
             throw new UnsupportedOperationException("A new condition was created in an uncommitted memory.");
         }
 
-        ReIterator<RuntimeFact> existingFacts = get(MemoryScope.MAIN).iterator();
+        ReIterator<RuntimeFact> existingFacts = main0().iterator();
         // 1. Update all the facts by applying new alpha flags
         AlphaEvaluator[] newEvaluators = delta.getNewEvaluators();
         if (newEvaluators.length > 0 && existingFacts.reset() > 0) {
             while (existingFacts.hasNext()) {
-                ((RuntimeFactImpl) existingFacts.next()).appendAlphaTest(newEvaluators);
+                RuntimeFactImpl fact = (RuntimeFactImpl) existingFacts.next();
+
+                fact.appendAlphaTest(newEvaluators);
             }
         }
 
@@ -180,70 +291,83 @@ public final class TypeMemory extends TypeMemoryBase {
         this.cachedAlphaEvaluators = alphaConditions.getPredicates(type).data;
     }
 
-    void commitMemoryDeltas() {
-        // Commit main storage (no alpha-conditions)
-        this.commitChanges();
-
-        // Commit alpha-buckets
-        for (TypeMemoryBucket b : alphaBuckets.data) {
-            b.commitChanges();
-        }
-
-        // Commit beta-memories
-        for (FieldsMemory fm : betaMemories.values()) {
-            fm.commitChanges();
-        }
-    }
-
-    private Collection<FieldsMemory> fieldsMemories() {
-        return betaMemories.values();
-    }
-
     final <T> void forEachMemoryObject(Consumer<T> consumer) {
-        get(MemoryScope.MAIN).forEachMemoryObject(consumer);
+        main0().iterator().forEachRemaining(fact -> {
+            if (!fact.isDeleted()) {
+                consumer.accept(fact.getDelegate());
+            } else {
+                //TODO !!!! clear
+                //System.out.println("*** " + fact);
+            }
+        });
     }
 
     final void forEachObjectUnchecked(Consumer<Object> consumer) {
-        get(MemoryScope.MAIN).forEachObjectUnchecked(consumer);
-    }
-
-/*
-    final void insertSingle(Object o) {
-        RuntimeFactImpl rto = mapToHandle(o);
-        if (rto != null) {
-            insertBuffer.add(rto);
-        }
-    }
-*/
-
-    private RuntimeFactImpl mapToHandle(Object o) {
-        if (get(MemoryScope.MAIN).contains(o) || get(MemoryScope.DELTA).contains(o)) {
-            LOGGER.warning("Object " + o + " has been already inserted, skipping insert");
-            return null;
-        } else {
-            final RuntimeFactImpl rto;
-
-            // Read values
-            Object[] values = new Object[cachedActiveFields.length];
-            for (int i = 0; i < cachedActiveFields.length; i++) {
-                values[i] = cachedActiveFields[i].readValue(o);
-            }
-
-            // Evaluate alpha conditions if necessary
-            if (cachedAlphaEvaluators.length > 0) {
-                boolean[] alphaTests = new boolean[cachedAlphaEvaluators.length];
-                for (AlphaEvaluator alpha : cachedAlphaEvaluators) {
-                    int fieldInUseIndex = alpha.getValueIndex();
-                    alphaTests[alpha.getUniqueId()] = alpha.test(values[fieldInUseIndex]);
-                }
-                rto = RuntimeFactImpl.factory(o, values, alphaTests);
+        main0().iterator().forEachRemaining(fact -> {
+            if (!fact.isDeleted()) {
+                consumer.accept(fact.getDelegate());
             } else {
-                rto = RuntimeFactImpl.factory(o, values);
+                //TODO !!!! clear
+                //System.out.println("*** " + fact);
+            }
+        });
+    }
+
+
+    private SharedPlainFactStorage main0() {
+        return alphaBuckets.data[0].getData();
+    }
+
+    private SharedPlainFactStorage delta0() {
+        return alphaBuckets.data[0].getDelta();
+    }
+
+    private RuntimeFactImpl create(Object o) {
+        // Read values
+        Object[] values = new Object[cachedActiveFields.length];
+        for (int i = 0; i < cachedActiveFields.length; i++) {
+            values[i] = cachedActiveFields[i].readValue(o);
+        }
+
+        // Evaluate alpha conditions if necessary
+        if (cachedAlphaEvaluators.length > 0) {
+            boolean[] alphaTests = new boolean[cachedAlphaEvaluators.length];
+            for (AlphaEvaluator alpha : cachedAlphaEvaluators) {
+                int fieldInUseIndex = alpha.getValueIndex();
+                alphaTests[alpha.getUniqueId()] = alpha.test(values[fieldInUseIndex]);
+            }
+            return RuntimeFactImpl.factory(o, values, alphaTests);
+        } else {
+            return RuntimeFactImpl.factory(o, values);
+        }
+    }
+
+    /**
+     * <p>
+     * Modifies existing facts by appending value of the newly
+     * created field
+     * </p>
+     *
+     * @param newField newly created field
+     */
+    final void onNewActiveField(ActiveField newField) {
+        for (SharedPlainFactStorage storage : new SharedPlainFactStorage[]{main0(), delta0()}) {
+            ReIterator<RuntimeFact> it = storage.iterator();
+            while (it.hasNext()) {
+                RuntimeFactImpl rto = (RuntimeFactImpl) it.next();
+                Object fieldValue = newField.readValue(rto.getDelegate());
+                rto.appendValue(newField, fieldValue);
             }
 
-
-            get(MemoryScope.DELTA).put(o, rto);
-            return rto;
         }
+        this.cachedActiveFields = getRuntime().getActiveFields(type);
+    }
+
+
+    @Override
+    public String toString() {
+        return "TypeMemory{" +
+                "alphaBuckets=" + alphaBuckets +
+                '}';
     }
 }

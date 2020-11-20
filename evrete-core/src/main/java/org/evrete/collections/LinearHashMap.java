@@ -3,14 +3,14 @@ package org.evrete.collections;
 import java.util.function.BiPredicate;
 import java.util.function.ToIntFunction;
 
-public class FastHashMap<K, V> extends AbstractFastHashMap<K, V> {
+public class LinearHashMap<K, V> extends AbstractLinearHashMap<K, V> {
 
     @SuppressWarnings("unused")
-    public FastHashMap() {
+    public LinearHashMap() {
         super();
     }
 
-    public FastHashMap(int initialCapacity) {
+    public LinearHashMap(int initialCapacity) {
         super(initialCapacity);
     }
 

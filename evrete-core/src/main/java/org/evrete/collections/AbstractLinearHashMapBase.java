@@ -5,9 +5,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 
-public abstract class AbstractFastHashMapBase<K, E extends HashEntry<K>> extends AbstractLinearHash<E> {
+public abstract class AbstractLinearHashMapBase<K, E extends HashEntry<K>> extends AbstractLinearHash<E> {
 
-    AbstractFastHashMapBase(int initialCapacity) {
+    AbstractLinearHashMapBase(int initialCapacity) {
         super(initialCapacity);
     }
 

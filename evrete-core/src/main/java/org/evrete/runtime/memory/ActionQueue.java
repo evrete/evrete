@@ -1,18 +1,20 @@
 package org.evrete.runtime.memory;
 
 import org.evrete.api.Action;
+import org.evrete.api.ReIterable;
+import org.evrete.api.ReIterator;
+import org.evrete.collections.LinearIdentityHashSet;
 
-import java.util.Collection;
 import java.util.EnumMap;
-import java.util.LinkedList;
+import java.util.Map;
 import java.util.function.BiConsumer;
 
 public class ActionQueue<T> {
-    private final EnumMap<Action, Collection<T>> data = new EnumMap<>(Action.class);
+    private final EnumMap<Action, LinearIdentityHashSet<T>> data = new EnumMap<>(Action.class);
 
     public ActionQueue() {
         for (Action action : Action.values()) {
-            data.put(action, new LinkedList<>());
+            data.put(action, new LinearIdentityHashSet<>());
         }
     }
 
@@ -23,14 +25,25 @@ public class ActionQueue<T> {
     }
 
     public void clear() {
-        for (Collection<T> queue : data.values()) {
-            queue.clear();
+        for (Action action : Action.values()) {
+            clear(action);
+        }
+    }
+
+    public void clear(Action action) {
+        data.get(action).clear();
+    }
+
+
+    public void fillFrom(ActionQueue<T> other) {
+        for (Map.Entry<Action, LinearIdentityHashSet<T>> entry : other.data.entrySet()) {
+            this.data.get(entry.getKey()).bulkAdd(entry.getValue());
         }
     }
 
 
     public boolean isEmpty() {
-        for (Collection<T> queue : data.values()) {
+        for (LinearIdentityHashSet<T> queue : data.values()) {
             if (queue.size() > 0) {
                 return false;
             }
@@ -40,18 +53,18 @@ public class ActionQueue<T> {
 
     public boolean hasActions(Action... actions) {
         for (Action action : actions) {
-            if (!data.get(action).isEmpty()) {
+            if (data.get(action).size() > 0) {
                 return true;
             }
         }
         return false;
     }
 
-    public Collection<T> get(Action action) {
-        return data.get(action);
+    public ReIterator<T> get(Action action) {
+        return data.get(action).iterator();
     }
 
-    public void forEach(BiConsumer<? super Action, ? super Collection<T>> action) {
+    public void forEach(BiConsumer<? super Action, ? super ReIterable<T>> action) {
         data.forEach(action);
     }
 

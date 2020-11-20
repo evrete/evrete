@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContext, ActivationSubject {
+public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContext {
     //private final Collection<RuntimeAggregateLhsLoose> aggregateLooseGroups = new ArrayList<>();
     //private final Collection<RuntimeAggregateLhsJoined> aggregateConditionedGroups = new ArrayList<>();
     private final Collection<BetaEndNode> allBetaEndNodes = new ArrayList<>();

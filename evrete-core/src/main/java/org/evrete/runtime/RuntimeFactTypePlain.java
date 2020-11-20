@@ -16,22 +16,8 @@ public final class RuntimeFactTypePlain extends RuntimeFactType {
     }
 
     @Override
-    public boolean isDeleteDeltaAvailable() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public boolean isInsertDeltaAvailable() {
         return plainMemory.hasChanges();
-    }
-
-    @Override
-    public boolean isInActiveState() {
-        return plainMemory.hasChanges();
-    }
-
-    @Override
-    public void resetState() {
     }
 
     @Override

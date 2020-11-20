@@ -19,6 +19,11 @@ public class MappedReIterator<Z, V> implements ReIterator<Z> {
     }
 
     @Override
+    public void remove() {
+        delegate.remove();
+    }
+
+    @Override
     public boolean hasNext() {
         return delegate.hasNext();
     }

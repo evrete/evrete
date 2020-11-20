@@ -4,15 +4,15 @@ package org.evrete.collections;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public abstract class AbstractFastHashSet<K> extends AbstractLinearHash<K> {
+public abstract class AbstractLinearHashSet<K> extends AbstractLinearHash<K> {
 
     private static final int DEFAULT_INITIAL_SIZE = 16;
 
-    AbstractFastHashSet(int initialCapacity) {
+    AbstractLinearHashSet(int initialCapacity) {
         super(initialCapacity);
     }
 
-    AbstractFastHashSet() {
+    AbstractLinearHashSet() {
         this(DEFAULT_INITIAL_SIZE);
     }
 

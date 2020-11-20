@@ -38,7 +38,7 @@ class FastHashSetTest {
 
     @Test
     void basic1() {
-        IterableSet<TypeA> set1 = TestUtils.setOf(new FastHashSet<>(128));
+        IterableSet<TypeA> set1 = TestUtils.setOf(new LinearHashSet<>(128));
 
         TypeA a1 = new TypeA();
         TypeA a2 = new TypeA();
@@ -83,22 +83,22 @@ class FastHashSetTest {
 
     @Test
     void basic2() {
-        FastHashSet<TypeA> set1 = new FastHashSet<>(16);
+        LinearHashSet<TypeA> set1 = new LinearHashSet<>(16);
 
         TypeA a1 = new TypeA("A1");
         TypeA a2 = new TypeA("A2");
         TypeA a3 = new TypeA("A3");
 
-        assert set1.add(a1);
-        assert !set1.add(a1);
-        assert set1.add(a2);
-        assert set1.add(a3);
+        set1.add(a1);
+        set1.add(a1);
+        set1.add(a2);
+        set1.add(a3);
         set1.assertStructure();
 
         for (int i = 0; i < 640; i++) {
-            assert set1.remove(a3);
+            set1.remove(a3);
             set1.assertStructure();
-            assert set1.add(a3);
+            set1.add(a3);
             set1.assertStructure();
         }
 
@@ -106,19 +106,19 @@ class FastHashSetTest {
 
     @Test
     void sizeTest() {
-        FastHashSet<String> set1 = new FastHashSet<>(5);
+        LinearHashSet<String> set1 = new LinearHashSet<>(5);
         assert set1.dataSize() == 8;
 
-        FastHashSet<String> set2 = new FastHashSet<>(0);
+        LinearHashSet<String> set2 = new LinearHashSet<>(0);
         assert set2.dataSize() == 2;
 
-        FastHashSet<String> set3 = new FastHashSet<>(32);
+        LinearHashSet<String> set3 = new LinearHashSet<>(32);
         assert set3.dataSize() == 32;
     }
 
     @Test
     void remove1() {
-        FastHashSet<String> set = new FastHashSet<>();
+        LinearHashSet<String> set = new LinearHashSet<>();
 
         assert set.add("a");
         assert set.size() == 1;
@@ -132,7 +132,7 @@ class FastHashSetTest {
 
     @Test
     void remove2() {
-        FastHashSet<String> fastSet = new FastHashSet<>(16);
+        LinearHashSet<String> fastSet = new LinearHashSet<>(16);
 
         // Prepare collection
         int totalEntries = 1_000_000;
@@ -174,7 +174,7 @@ class FastHashSetTest {
 
     @Test
     void remove3() {
-        IterableSet<String> fastSet = TestUtils.setOf(new FastHashSet<>(2));
+        IterableSet<String> fastSet = TestUtils.setOf(new LinearHashSet<>(2));
         IterableSet<String> hashSet = TestUtils.setOf(new HashSet<>(2));
 
         // Fill first
@@ -199,7 +199,7 @@ class FastHashSetTest {
 
     @Test
     void iterator1() {
-        FastHashSet<String> fastSet = new FastHashSet<>();
+        LinearHashSet<String> fastSet = new LinearHashSet<>();
         HashSet<String> hashSet = new HashSet<>();
 
 
@@ -239,6 +239,27 @@ class FastHashSetTest {
         }
         assert counter.get() == hashSet.size();
 
+
+    }
+
+    @Test
+    void iterator2() {
+        LinearHashSet<Integer> fastSet = new LinearHashSet<>();
+
+        for (int i = 0; i < 100; i++) {
+            fastSet.add(i);
+        }
+
+        Iterator<Integer> it = fastSet.iterator();
+
+        while (it.hasNext()) {
+            int i = it.next();
+            if (i % 2 == 0) {
+                it.remove();
+            }
+        }
+
+        assert fastSet.size == 50;
 
     }
 }

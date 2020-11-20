@@ -3,8 +3,8 @@ package org.evrete.helper;
 import org.evrete.api.ReIterator;
 import org.evrete.api.StatefulSession;
 import org.evrete.collections.CollectionReIterator;
-import org.evrete.collections.FastHashMap;
-import org.evrete.collections.FastHashSet;
+import org.evrete.collections.LinearHashMap;
+import org.evrete.collections.LinearHashSet;
 import org.evrete.util.CollectionUtils;
 import org.kie.api.KieBase;
 import org.kie.api.KieServices;
@@ -135,7 +135,7 @@ public final class TestUtils {
         };
     }
 
-    public static <Z> IterableSet<Z> setOf(FastHashSet<Z> set) {
+    public static <Z> IterableSet<Z> setOf(LinearHashSet<Z> set) {
         return new IterableSet<Z>() {
             @Override
             public boolean contains(Z element) {
@@ -239,7 +239,7 @@ public final class TestUtils {
         };
     }
 
-    public static <K1, V1> Mapping<K1, V1> map(FastHashMap<K1, V1> map) {
+    public static <K1, V1> Mapping<K1, V1> map(LinearHashMap<K1, V1> map) {
         return new Mapping<K1, V1>() {
             @Override
             public V1 put(K1 key, V1 value) {

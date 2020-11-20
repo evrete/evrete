@@ -115,7 +115,6 @@ public class RuntimeAggregateLhsJoined extends RuntimeAggregateLhs {
 
     public void evaluate(boolean deltaOnly) {
         evaluate(0, false, deltaOnly);
-        System.out.println("@@@@@ " + successData);
     }
 
     private void evaluate(int index, boolean hasDelta, boolean deltaOnly) {

@@ -23,7 +23,7 @@ public abstract class Completer extends CountedCompleter<Void> {
     private static Completer of(Completer parent, Collection<? extends Runnable> collection) {
         switch (collection.size()) {
             case 0:
-                throw new UnsupportedOperationException();
+                throw new IllegalArgumentException();
             case 1:
                 return new RunnableCompleter(parent, collection.iterator().next());
             default:

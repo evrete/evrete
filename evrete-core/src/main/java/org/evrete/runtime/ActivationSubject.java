@@ -1,3 +1,4 @@
+/*
 package org.evrete.runtime;
 
 interface ActivationSubject {
@@ -19,3 +20,4 @@ interface ActivationSubject {
         }
     }
 }
+*/

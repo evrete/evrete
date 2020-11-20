@@ -2,6 +2,7 @@ package org.evrete.runtime.memory;
 
 import org.evrete.api.KeysStore;
 import org.evrete.api.ReIterator;
+import org.evrete.api.ValueRow;
 import org.evrete.runtime.ConditionNodeDescriptor;
 import org.evrete.runtime.RuntimeRuleImpl;
 
@@ -42,15 +43,30 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         if (sourceIndex == entryData.length - 1) {
             // Last source
             while (it.hasNext()) {
-                consumer.accept(it.next(), sourceIndex);
-                endRunnable.run();
+                KeysStore.Entry entry = it.next();
+                if (isEntryNonDeleted(entry)) {
+                    consumer.accept(entry, sourceIndex);
+                    endRunnable.run();
+                }
             }
         } else {
             while (it.hasNext()) {
-                consumer.accept(it.next(), sourceIndex);
-                recursiveIteration(sourceIndex + 1, entryData, consumer, endRunnable);
+                KeysStore.Entry entry = it.next();
+                if (isEntryNonDeleted(entry)) {
+                    consumer.accept(entry, sourceIndex);
+                    recursiveIteration(sourceIndex + 1, entryData, consumer, endRunnable);
+                }
             }
         }
+    }
+
+    static boolean isEntryNonDeleted(KeysStore.Entry entry) {
+        for (ValueRow r : entry.key()) {
+            if (r.isDeleted()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void computeDelta(boolean deltaOnly) {

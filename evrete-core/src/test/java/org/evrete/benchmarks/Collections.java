@@ -2,7 +2,7 @@ package org.evrete.benchmarks;
 
 import org.evrete.api.ReIterator;
 import org.evrete.classes.TypeA;
-import org.evrete.collections.FastHashSet;
+import org.evrete.collections.LinearHashSet;
 import org.evrete.helper.IterableCollection;
 import org.evrete.helper.IterableSet;
 import org.evrete.helper.TestUtils;
@@ -73,9 +73,9 @@ public class Collections {
 
         public BenchState() {
             scanData.put(SetImplementation.HashSet, TestUtils.setOf(new HashSet<>(initialSize)));
-            scanData.put(SetImplementation.FastSet, TestUtils.setOf(new FastHashSet<>(initialSize)));
+            scanData.put(SetImplementation.FastSet, TestUtils.setOf(new LinearHashSet<>(initialSize)));
             addData.put(SetImplementation.HashSet, TestUtils.setOf(new HashSet<>(initialSize)));
-            addData.put(SetImplementation.FastSet, TestUtils.setOf(new FastHashSet<>(initialSize)));
+            addData.put(SetImplementation.FastSet, TestUtils.setOf(new LinearHashSet<>(initialSize)));
         }
 
         @Setup(Level.Iteration)

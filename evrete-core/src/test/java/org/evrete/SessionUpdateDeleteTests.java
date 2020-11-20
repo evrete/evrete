@@ -6,6 +6,7 @@ import org.evrete.api.TypeField;
 import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
+import org.evrete.helper.RhsAssert;
 import org.evrete.runtime.KnowledgeImpl;
 import org.evrete.runtime.StatefulSessionImpl;
 import org.junit.jupiter.api.AfterAll;
@@ -14,7 +15,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.ToIntFunction;
@@ -57,15 +57,15 @@ class SessionUpdateDeleteTests {
                 });
         StatefulSession s = knowledge.createSession();
         s.insertAndFire(a);
-        assert counter.get() == 10;
+        assert counter.get() == 10 : "Actual: " + counter.get();
         assert a.getI() == 10;
     }
 
     @Test
     void updateAlpha2() {
         AtomicInteger counter = new AtomicInteger();
-        AtomicReference<TypeA> ref = new AtomicReference<>();
-        ref.set(new TypeA());
+        TypeA ref = new TypeA();
+        ref.setAllNumeric(0);
         knowledge.newRule()
                 .forEach(fact("$a", TypeA.class))
                 .where("$a.d < 10.0")
@@ -76,9 +76,9 @@ class SessionUpdateDeleteTests {
                     counter.incrementAndGet();
                 });
         StatefulSession s = knowledge.createSession();
-        s.insertAndFire(ref.get());
-        assert counter.get() == 10;
-        assert ref.get().getD() == 10.1;
+        s.insertAndFire(ref);
+        assert counter.get() == 10 : "Actual: " + counter.get();
+        assert ref.getD() == 10.1;
     }
 
     @Test
@@ -107,7 +107,7 @@ class SessionUpdateDeleteTests {
     }
 
     @Test
-    void updateBeta1() {
+    void retractBeta1() {
         knowledge.newRule()
                 .forEach(
                         fact("$a", TypeA.class),
@@ -142,29 +142,113 @@ class SessionUpdateDeleteTests {
     }
 
     @Test
-    void updateBetaMixed() {
+    void updateBeta1() {
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a", TypeA.class,
+                "$b", TypeB.class
+        );
+
+        knowledge.newRule("update2")
+                .forEach(
+                        "$a", TypeA.class,
+                        "$b", TypeB.class
+                )
+                .where("$a.i == $b.i")
+                .execute(rhsAssert);
+        StatefulSessionImpl s = knowledge.createSession();
+
+        Collection<Object> allObjects = sessionObjects(s);
+        assert allObjects.size() == 0;
+
+        final int size = 1000;
+
+
+        Runnable multiActions = () -> {
+            TypeA[] instancesA = new TypeA[size];
+            TypeB[] instancesB = new TypeB[size];
+
+            for (int i = 0; i < size; i++) {
+                TypeA a = new TypeA("A" + i);
+                a.setAllNumeric(i);
+                TypeB b = new TypeB("B" + i);
+                b.setAllNumeric(-1);
+                instancesA[i] = a;
+                instancesB[i] = b;
+                s.insert(a, b);
+            }
+            s.fire();
+
+            // No matching conditions exist at the moment, the rule hasn't fired
+            rhsAssert.assertCount(0).reset();
+            Collection<Object> allObjects1 = sessionObjects(s);
+            // checking the session memory
+            assert allObjects1.size() == size * 2 : "Actual: " + allObjects1.size();
+            assert sessionObjects(s, TypeA.class).size() == size;
+            assert sessionObjects(s, TypeB.class).size() == size;
+
+
+            // Updating a single instance of B to match the condition
+            TypeB single = instancesB[0];
+            single.setAllNumeric(5); // Matches TypeA.i = 5
+            s.update(single);
+            for (TypeB b : instancesB) {
+                if (b != single) {
+                    s.delete(b);
+                }
+            }
+            s.fire();
+
+            // Assert execution && memory state
+            rhsAssert
+                    .assertCount(1)
+                    .assertContains("$a", instancesA[5])
+                    .assertContains("$b", single)
+                    .reset();
+            allObjects1 = sessionObjects(s);
+            assert allObjects1.size() == size + 1;
+
+            // Delete all
+            s.delete(allObjects1);
+            s.fire();
+            allObjects1 = sessionObjects(s);
+            assert allObjects1.size() == 0;
+
+        };
+
+
+        multiActions.run();
+        multiActions.run();
+        multiActions.run();
+    }
+
+    @Test
+    void updateBeta2() {
         AtomicInteger counter = new AtomicInteger();
 
-        knowledge.newRule()
+        knowledge.addConditionTestListener((node, evaluator, values, result) -> {
+        });
+
+        knowledge.newRule("update2")
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
                         fact("$c", TypeC.class)
                 )
-                .where("$a.i == $b.i")
-                .where("$a.i != $c.i")
+                .where("$a.i == $b.i", 2.0)
+                .where("$a.i != $c.i", 10.0)
                 .execute(ctx -> counter.getAndIncrement());
         StatefulSessionImpl s = knowledge.createSession();
-        //RuntimeRule rule = s.getRules().iterator().next();
 
         Collection<Object> allObjects = sessionObjects(s);
         assert allObjects.size() == 0;
 
+
         int session = 0;
 
-        while (session++ < 50) {
+        while (session < 10) {
+
             counter.set(0);
-            int count = new Random().nextInt(10) + 40;
+            int count = 20;
             for (int i = 0; i < count; i++) {
                 TypeA a = new TypeA("A" + i);
                 a.setI(i);
@@ -177,10 +261,12 @@ class SessionUpdateDeleteTests {
             }
 
             s.fire();
-            assert counter.get() == count * (count - 1) : counter.get() + " vs " + count * (count - 1);
 
             allObjects = sessionObjects(s);
             assert allObjects.size() == count * 3;
+
+            assert counter.get() == count * (count - 1) : counter.get() + " vs " + count * (count - 1);
+
 
             Collection<TypeC> col = sessionObjects(s, TypeC.class);
             assert col.size() == count;
@@ -194,7 +280,7 @@ class SessionUpdateDeleteTests {
             s.fire();
 
             allObjects = sessionObjects(s);
-            assert allObjects.size() == 3 * count;
+            assert allObjects.size() == 3 * count : allObjects.size() + " vs " + (3 * count);
 
             assert counter.get() == count * count : counter.get() + " vs " + (count * count);
             counter.set(0);
@@ -217,7 +303,65 @@ class SessionUpdateDeleteTests {
 
             allObjects = sessionObjects(s);
             assert allObjects.size() == 0;
+
+            session++;
         }
+    }
+
+    @Test
+    void retractMemoryTest() {
+        AtomicInteger counter = new AtomicInteger();
+
+        knowledge.newRule()
+                .forEach(
+                        fact("$a", TypeA.class),
+                        fact("$b", TypeB.class)
+                )
+                .where("$a.i == $b.i")
+                .execute(ctx -> counter.getAndIncrement());
+        StatefulSessionImpl s = knowledge.createSession();
+        //RuntimeRule rule = s.getRules().iterator().next();
+
+        Collection<Object> allObjects = sessionObjects(s);
+        assert allObjects.size() == 0;
+
+
+        final int count = 200;
+        for (int i = 0; i < count; i++) {
+            TypeA a = new TypeA("A" + i);
+            a.setI(i);
+            TypeB b = new TypeB("B" + i);
+            b.setI(i);
+            s.insert(a, b);
+        }
+
+        s.fire();
+
+        allObjects = sessionObjects(s);
+        assert allObjects.size() == count * 2;
+
+        // Retracting all
+        for (Object o : allObjects) {
+            s.delete(o);
+        }
+        s.fire();
+
+
+        // Inserting the same data
+        for (int i = 0; i < count; i++) {
+            TypeA a = new TypeA("A" + i);
+            a.setI(i);
+            TypeB b = new TypeB("B" + i);
+            b.setI(i);
+            s.insert(a, b);
+        }
+
+        s.fire();
+
+        allObjects = sessionObjects(s);
+        assert allObjects.size() == count * 2;
+
+
     }
 
     @Test
@@ -275,7 +419,7 @@ class SessionUpdateDeleteTests {
         s.fire();
 
         allObjects = sessionObjects(s);
-        assert allObjects.size() == 6;
+        assert allObjects.size() == 6 : "Actual: " + allObjects.size() + " vs 6";
 
         assert counter.get() == 4 : counter.get() + " vs 4";
         counter.set(0);

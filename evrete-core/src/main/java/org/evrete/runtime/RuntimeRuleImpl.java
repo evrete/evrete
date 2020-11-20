@@ -2,27 +2,25 @@ package org.evrete.runtime;
 
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
-import org.evrete.api.ValueRow;
+import org.evrete.api.Type;
 import org.evrete.runtime.memory.ActionQueue;
 import org.evrete.runtime.memory.BetaEndNode;
 import org.evrete.runtime.memory.SessionMemory;
 import org.evrete.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.HashSet;
+import java.util.Set;
 
 
-public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule, ActivationSubject {
+public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule {
     private final RuntimeFactType[] factSources;
-    private final RuntimeFactTypeKeyed[] betaFactSources;
     private final SessionMemory memory;
-    private final Function<FactType, Predicate<ValueRow>> deletedKeys;
     private final RuleDescriptor descriptor;
 
     private final RuntimeLhs lhs;
     private final ActionQueue<Object> ruleBuffer = new ActionQueue<>();
+    private final Set<Type<?>> allTypes = new HashSet<>();
+    private int rhsCallCounter = 0;
 
     public RuntimeRuleImpl(RuleDescriptor rd, SessionMemory memory) {
         super(memory, rd, rd.getLhs().getGroupFactTypes());
@@ -30,18 +28,10 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         this.memory = memory;
         FactType[] allFactTypes = descriptor.getLhs().getAllFactTypes();
         this.factSources = buildTypes(memory, allFactTypes);
-        this.deletedKeys = factType -> {
-            RuntimeFactTypeKeyed t = (RuntimeFactTypeKeyed) factSources[factType.getInRuleIndex()];
-            return valueRow -> t.getKeyStorage().isKeyDeleted(valueRow);
-        };
 
-        List<RuntimeFactTypeKeyed> betaNodes = new ArrayList<>(factSources.length);
         for (RuntimeFactType t : factSources) {
-            if (t.isBetaNode()) {
-                betaNodes.add((RuntimeFactTypeKeyed) t);
-            }
+            allTypes.add(t.getType());
         }
-        this.betaFactSources = betaNodes.toArray(new RuntimeFactTypeKeyed[0]);
         this.lhs = RuntimeLhs.factory(this, rd.getLhs(), ruleBuffer);
     }
 
@@ -54,12 +44,29 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         return factSources;
     }
 
-    public final ActionQueue<Object> executeRhs() {
+    public void mergeNodeDeltas() {
+        for (BetaEndNode endNode : lhs.getAllBetaEndNodes()) {
+            endNode.mergeDelta();
+        }
+    }
+
+    public boolean dependsOn(Type<?> type) {
+        return allTypes.contains(type);
+    }
+
+    public final int executeRhs() {
+        this.rhsCallCounter = 0;
         this.ruleBuffer.clear();
-        assert isInActiveState() : "Rule '" + getName() + "' is not in active state";
-        this.lhs.forEach(rhs);
-        //this.resetState();
+        this.lhs.forEach(rhs.andThen(rhsContext -> increaseCallCount()));
+        return this.rhsCallCounter;
+    }
+
+    public ActionQueue<Object> getRuleBuffer() {
         return ruleBuffer;
+    }
+
+    private void increaseCallCount() {
+        this.rhsCallCounter++;
     }
 
     public void clear() {
@@ -101,34 +108,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         return memory;
     }
 
-    public boolean isDeleteDeltaAvailable() {
-        boolean delta = false;
-        for (RuntimeFactTypeKeyed ft : this.betaFactSources) {
-            if (ft.isDeleteDeltaAvailable()) {
-                delta = true;
-            }
-        }
-        return delta;
-    }
-
-    public Function<FactType, Predicate<ValueRow>> getDeletedKeys() {
-        return deletedKeys;
-    }
-
-    @Override
-    public boolean isInActiveState() {
-        return lhs.isInActiveState();
-    }
-
-    @Override
-    public void resetState() {
-        lhs.resetState();
-        // Merge deltas if available
-        for (BetaEndNode endNode : lhs.getAllBetaEndNodes()) {
-            endNode.mergeDelta();
-        }
-    }
-
     @Override
     public StatefulSession getRuntime() {
         return (StatefulSession) memory;
@@ -143,16 +122,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     public RuntimeLhs getLhs() {
         return lhs;
     }
-
-    /*
-    public Collection<BetaEndNode> getAllBetaEndNodes() {
-        return lhs.getAllBetaEndNodes();
-    }
-
-    public Collection<RuntimeAggregateLhsJoined> getAggregateLhsGroups() {
-        return lhs.getAggregateConditionedGroups();
-    }
-*/
 
     @Override
     public String toString() {

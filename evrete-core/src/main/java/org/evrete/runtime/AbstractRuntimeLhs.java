@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public abstract class AbstractRuntimeLhs implements ActivationSubject {
+public abstract class AbstractRuntimeLhs {
     final RuntimeFact[][] factState;
     private final Collection<BetaEndNode> endNodes = new ArrayList<>();
     private final AbstractLhsDescriptor descriptor;
@@ -62,14 +62,16 @@ public abstract class AbstractRuntimeLhs implements ActivationSubject {
         this(rule, null, descriptor);
     }
 
-    @Override
+    //@Override
     public boolean isInActiveState() {
-        return readState(rhsFactGroups);
+        throw new UnsupportedOperationException();
+        //return readState(rhsFactGroups);
     }
 
-    @Override
+    //@Override
     public void resetState() {
-        resetState(rhsFactGroups);
+        throw new UnsupportedOperationException();
+        //resetState(rhsFactGroups);
     }
 
     public RhsFactGroupAlpha getAlphaFactGroup() {

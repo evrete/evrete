@@ -1,6 +1,6 @@
 package org.evrete.runtime;
 
-public interface RhsFactGroup extends ActivationSubject {
+public interface RhsFactGroup {
     boolean isAlpha();
 
     int getIndex();

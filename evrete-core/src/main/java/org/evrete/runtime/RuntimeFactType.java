@@ -3,7 +3,7 @@ package org.evrete.runtime;
 import org.evrete.api.Memory;
 import org.evrete.runtime.memory.SessionMemory;
 
-public abstract class RuntimeFactType extends FactType implements ActivationSubject {
+public abstract class RuntimeFactType extends FactType {
     private final SessionMemory runtime;
 
     RuntimeFactType(SessionMemory runtime, FactType other) {
@@ -28,6 +28,4 @@ public abstract class RuntimeFactType extends FactType implements ActivationSubj
     }
 
     public abstract boolean isInsertDeltaAvailable();
-
-    public abstract boolean isDeleteDeltaAvailable();
 }

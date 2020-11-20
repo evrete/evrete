@@ -3,11 +3,12 @@ package org.evrete.runtime;
 import org.evrete.api.*;
 import org.evrete.runtime.memory.ActionQueue;
 import org.evrete.runtime.memory.SessionMemory;
+import org.evrete.runtime.memory.TypeMemory;
 
-import java.util.Iterator;
+import java.util.Collection;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
 
 public class StatefulSessionImpl extends SessionMemory implements StatefulSession {
     private final KnowledgeImpl knowledge;
@@ -89,113 +90,116 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
     }
 
     private void fireContinuous(ActivationContext ctx) {
-        throw new UnsupportedOperationException();
-/*
-        Buffer rawMemoryChanges = getBuffer();
+        // Do until there are no changes in the memory
+        RuntimeRules ruleStorage = getRuleStorage();
+        ActionQueue<Object> ruleActions = new ActionQueue<>();
 
-        while (active && rawMemoryChanges.hasData(Action.values())) {
-            // Prepare and process memory deltas
-            List<RuntimeRule> agenda = processInput(rawMemoryChanges, Action.RETRACT, Action.INSERT);
-            rawMemoryChanges.clear();
-            activationManager.onAgenda(ctx.incrementFireCount(), agenda);
-            for (RuntimeRule r : agenda) {
-                RuntimeRuleImpl rule = (RuntimeRuleImpl) r;
+        while (active && fireCriteria.getAsBoolean() && ctx.update()) {
+            Collection<TypeMemory> memoriesInsert = ctx.changes.get(Action.INSERT);
+            Collection<TypeMemory> memoriesDelete = ctx.changes.get(Action.RETRACT);
 
-                if (fireCriteria.getAsBoolean() && activationManager.test(rule)) {
-                    Buffer buffer = rule.executeRhs();
-                    activationManager.onActivation(rule);
-
-                    rawMemoryChanges.takeAllFrom(buffer);
+            if (memoriesDelete.size() > 0) {
+                // Clear the memories themselves
+                for (TypeMemory tm : memoriesDelete) {
+                    tm.performDelete();
                 }
             }
-            commitMemoryDeltas();
+
+            if (memoriesInsert.size() > 0) {
+                // Step 1: propagate changes in type memories down to beta-memories
+                List<RuntimeRule> agenda = ruleStorage.propagateInsertChanges(memoriesInsert);
+                // Step 2: which rules are ready to fire?
+                activationManager.onAgenda(ctx.incrementFireCount(), agenda);
+
+                // Step 3: activating rules
+                ruleActions.clear();
+                for (RuntimeRule candidate : agenda) {
+                    RuntimeRuleImpl rule = (RuntimeRuleImpl) candidate;
+                    if (activationManager.test(candidate)) {
+                        // Active rule and obtain memory changes caused by its execution
+                        int callCount = rule.executeRhs();
+
+                        if (callCount > 0) {
+                            activationManager.onActivation(rule);
+                            // Append the changes to the session-wide action buffer
+                            ruleActions.fillFrom(rule.getRuleBuffer());
+                            appendToBuffer(rule.getRuleBuffer());
+                        }
+                    }
+                    rule.mergeNodeDeltas();
+                }
+                // Step 4: Merging memory deltas
+                commitDeltas(memoriesInsert);
+                // processing rule memory changes (inserts, updates, deletes)
+                appendToBuffer(ruleActions);
+            }
         }
-*/
     }
 
     private void fireDefault(ActivationContext ctx) {
         // Do until there are no changes in the memory
-        while (active && hasMemoryChanges() && fireCriteria.getAsBoolean()) {
-            //System.out.println("Step 0");
-            assert !hasAction(Action.UPDATE);
+        RuntimeRules ruleStorage = getRuleStorage();
+        ActionQueue<Object> ruleActions = new ActionQueue<>();
 
-            //reportMemories("\tStatus 1.1");
-            if (hasAction(Action.RETRACT)) {
-                buildMemoryDeltas(Action.RETRACT);
-                //commitMemoryDeltas();
-                //System.out.println("Step 1");
+        while (active && fireCriteria.getAsBoolean() && ctx.update()) {
+            Collection<TypeMemory> memoriesInsert = ctx.changes.get(Action.INSERT);
+            Collection<TypeMemory> memoriesDelete = ctx.changes.get(Action.RETRACT);
+
+            if (memoriesDelete.size() > 0) {
+                // Clear the memories themselves
+                for (TypeMemory tm : memoriesDelete) {
+                    tm.performDelete();
+                }
             }
-            //reportMemories("\tStatus 1.2");
 
-            if (hasAction(Action.INSERT)) {
-                //reportMemories("\tStatus 2.1");
-                buildMemoryDeltas(Action.INSERT);
-                //reportMemories("\tStatus 2.2");
-                // Get agenda and rules to be activated
-                Agenda agenda = getAgenda();
-                List<RuntimeRule> activeRules = agenda.activeRules();
-                // Firing the agenda listener
-                activationManager.onAgenda(ctx.incrementFireCount(), activeRules);
+            if (memoriesInsert.size() > 0) {
+                // Step 1: propagate changes in type memories down to beta-memories
+                List<RuntimeRule> agenda = ruleStorage.propagateInsertChanges(memoriesInsert);
+                // Step 2: which rules are ready to fire?
+                activationManager.onAgenda(ctx.incrementFireCount(), agenda);
 
-                Iterator<RuntimeRule> agendaIterator = activeRules.iterator();
+                // Step 3: activating rules
+                ruleActions.clear();
+                for (RuntimeRule candidate : agenda) {
+                    RuntimeRuleImpl rule = (RuntimeRuleImpl) candidate;
+                    if (activationManager.test(candidate)) {
+                        // Active rule and obtain memory changes caused by its execution
+                        int callCount = rule.executeRhs();
 
-                while (agendaIterator.hasNext()) {
-                    //System.out.println("Step 2");
-
-                    RuntimeRuleImpl rule = (RuntimeRuleImpl) agendaIterator.next();
-                    if (activationManager.test(rule)) {
-                        // The rule fill be fired
-                        ActionQueue<Object> ruleBuffer = rule.executeRhs();
-                        // Fire another agenda listener
-                        activationManager.onActivation(rule);
-                        // Merge rule actions into the main memory buffer
-                        appendToBuffer(ruleBuffer);
-
-                        // Reset this rule's delta beta-memory
-                        rule.resetState();
-
-                        assert !hasAction(Action.UPDATE);
-
-                        if (hasAction(Action.INSERT)) {
-                            // The default behaviour is to start over
-                            // Committing previous delta changes
-                            //commitMemoryDeltas();
-                            // Committing all rules' delta memories
-                            agendaIterator.forEachRemaining(new Consumer<RuntimeRule>() {
-                                @Override
-                                public void accept(RuntimeRule rule) {
-                                    ((RuntimeRuleImpl) rule).resetState();
-                                }
-                            });
-
-                            // Commit beta memories of the rest of the rules
-                            for (RuntimeRule r : agenda.inactiveRules()) {
-                                ((RuntimeRuleImpl) r).resetState();
-                            }
-                            //System.out.println("Step break!!!!!");
-                            //reportMemories("\tBreak status 1");
-                            break;
+                        if (callCount > 0) {
+                            activationManager.onActivation(rule);
                         }
-
-
-                    } else {
-                        // Merge beta memory deltas event when not fired
-                        rule.resetState();
+                        // Append the changes to the session-wide action buffer
+                        ruleActions.fillFrom(rule.getRuleBuffer());
+                        appendToBuffer(rule.getRuleBuffer());
                     }
+                    rule.mergeNodeDeltas();
                 }
-                // End of agenda
-                //TODO !!! this one is called twice for INSERT
-                commitMemoryDeltas();
-                //reportMemories("\tBreak status 2");
-                // Commit beta memories of the rest of the rules
-                for (RuntimeRule r : agenda.inactiveRules()) {
-                    ((RuntimeRuleImpl) r).resetState();
-                }
+                // Step 4: Merging memory deltas
+                commitDeltas(memoriesInsert);
+                // processing rule memory changes (inserts, updates, deletes)
+                appendToBuffer(ruleActions);
             }
-            //System.out.println("Step 3");
-
         }
     }
 
+    private void reportStatus(String stage) {
+        StringJoiner s = new StringJoiner(", ");
+        typeMemories().forEachRemaining(tm -> {
+            s.add(tm.reportStatus());
+        });
+        System.out.println("\t" + stage + ": " + s);
+    }
 
+    private void commitDeltas(Collection<TypeMemory> memories) {
+        for (TypeMemory tm : memories) {
+            tm.commitDeltas();
+        }
+    }
+
+    @Override
+    //TODO enable support
+    public void addConditionTestListener(EvaluationListener listener) {
+        throw new UnsupportedOperationException("Currently unsupported for session instances, use knowledge instances instead.");
+    }
 }

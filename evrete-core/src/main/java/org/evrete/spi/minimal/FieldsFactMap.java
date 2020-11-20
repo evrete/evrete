@@ -44,17 +44,15 @@ class FieldsFactMap extends AbstractLinearHash<ValueRowImpl> {
         }
     }
 
-    ValueRowImpl deleteAndTestExisting(RuntimeFact fact, int addr) {
+    void remove(RuntimeFact fact, int addr) {
         ValueRowImpl entry = get(addr);
         if (entry == null) {
-            return null;
+            throw new IllegalStateException();
         } else {
             if (entry.removeFact(fact) == 0) {
                 //Clear the whole key
                 markDeleted(addr);
-                return entry;
-            } else {
-                return null;
+                entry.setDeleted(true);
             }
         }
     }

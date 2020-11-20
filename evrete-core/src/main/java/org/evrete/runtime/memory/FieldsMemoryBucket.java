@@ -1,12 +1,7 @@
 package org.evrete.runtime.memory;
 
-import org.evrete.api.FieldsKey;
-import org.evrete.api.Memory;
-import org.evrete.api.RuntimeFact;
-import org.evrete.api.SharedBetaFactStorage;
+import org.evrete.api.*;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
-
-import java.util.Collection;
 
 class FieldsMemoryBucket implements Memory {
     private final SharedBetaFactStorage fieldData;
@@ -30,23 +25,44 @@ class FieldsMemoryBucket implements Memory {
         fieldData.commitChanges();
     }
 
-    void insert(Collection<RuntimeFact> facts) {
-        fieldData.insert(facts, alphaMask);
+    void insert(ReIterable<? extends RuntimeFact> facts) {
+        ReIterator<? extends RuntimeFact> it = facts.iterator();
+        int size = (int) it.reset();
+        if (size == 0) return;
+        fieldData.ensureDeltaCapacity(size);
+        while (it.hasNext()) {
+            insert(it.next());
+        }
     }
 
-    void insert(RuntimeFact fact) {
+    private void insert(RuntimeFact fact) {
         if (alphaMask.test(fact)) {
             fieldData.insert(fact);
         }
     }
 
+/*
     void delete(Collection<RuntimeFact> facts) {
         fieldData.delete(facts, alphaMask);
+    }
+*/
+
+    void delete(ReIterable<? extends RuntimeFact> facts) {
+        ReIterator<? extends RuntimeFact> it = facts.iterator();
+
+        while (it.hasNext()) {
+            delete(it.next());
+        }
     }
 
     void delete(RuntimeFact fact) {
         if (alphaMask.test(fact)) {
             fieldData.delete(fact);
         }
+    }
+
+    @Override
+    public String toString() {
+        return fieldData.toString();
     }
 }

@@ -25,7 +25,6 @@ public class NodeIterationState implements NodeIterationStateFactory.State {
 
         RuntimeListeners listeners = node.getRuntime().getListeners();
 
-
         this.nonPlainIndices = node.getNonPlainSourceIndices();
         if (nonPlainIndices.length == 0) {
             this.state = new KeysStore.Entry[1][];
@@ -153,6 +152,12 @@ public class NodeIterationState implements NodeIterationStateFactory.State {
 
         abstract boolean test();
 
+        @Override
+        public String toString() {
+            return "EvaluatorDelegate{" +
+                    "evaluator=" + evaluator +
+                    '}';
+        }
     }
 
 
