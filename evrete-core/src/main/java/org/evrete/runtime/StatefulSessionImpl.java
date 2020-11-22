@@ -10,7 +10,6 @@ import java.util.function.BooleanSupplier;
 
 public class StatefulSessionImpl extends SessionMemory implements StatefulSession {
     private final KnowledgeImpl knowledge;
-    private boolean active = true;
     private ActivationManager activationManager;
     private BooleanSupplier fireCriteria = () -> true;
 
@@ -27,14 +26,10 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
 
     @Override
     public void close() {
-        if (active) {
-            synchronized (this) {
-                if (active) {
-                    active = false;
-                    super.destroy();
-                    knowledge.close(this);
-                }
-            }
+        synchronized (this) {
+            invalidateSession();
+            super.destroy();
+            knowledge.close(this);
         }
     }
 
@@ -91,7 +86,8 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
         ActionQueue<Object> memoryActions = new ActionQueue<>();
         List<RuntimeRule> agenda;
 
-        while (active && fireCriteria.getAsBoolean() && hasActions(Action.INSERT, Action.RETRACT)) {
+        while (fireCriteria.getAsBoolean() && hasActions(Action.INSERT, Action.RETRACT)) {
+            _assertActive();
             // Mark deleted facts first
             doDeletions();
             if (!(agenda = propagateInsertChanges()).isEmpty()) {
@@ -117,7 +113,8 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
         ActionQueue<Object> memoryActions = new ActionQueue<>();
         List<RuntimeRule> agenda;
 
-        while (active && fireCriteria.getAsBoolean() && hasActions(Action.INSERT, Action.RETRACT)) {
+        while (fireCriteria.getAsBoolean() && hasActions(Action.INSERT, Action.RETRACT)) {
+            _assertActive();
             // Mark deleted facts first
             doDeletions();
             if (!(agenda = propagateInsertChanges()).isEmpty()) {
@@ -149,6 +146,7 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
     private void commitInserts() {
         typeMemories().forEachRemaining(TypeMemory::commitDeltas);
     }
+
 
     @Override
     //TODO enable support

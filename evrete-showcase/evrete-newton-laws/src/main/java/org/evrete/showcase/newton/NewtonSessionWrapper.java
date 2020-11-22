@@ -136,9 +136,6 @@ class NewtonSessionWrapper extends AbstractSocketSession {
             ));
         }
 
-        //TODO move to DEFAULT
-        knowledge.setActivationMode(ActivationMode.CONTINUOUS);
-
         return knowledge;
     }
 

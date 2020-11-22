@@ -70,7 +70,6 @@ class StockSessionWrapper extends AbstractSocketSession {
             messenger.sendDelayed(new Message("RULE_COMPILED", descriptor.getName()));
         }
 
-        //TODO move to DEFAULT
         knowledge.setActivationMode(ActivationMode.CONTINUOUS);
         return knowledge;
 

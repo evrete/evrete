@@ -184,15 +184,14 @@
         </pluginManagement>
     </build>
 
-    <modules>
-        <module>evrete-core</module>
-        <module>evrete-code-samples</module>
-        <module>evrete-showcase</module>
-    </modules>
-
     <profiles>
         <profile>
             <id>normal</id>
+            <modules>
+                <module>evrete-core</module>
+                <module>evrete-code-samples</module>
+                <module>evrete-showcase</module>
+            </modules>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
@@ -214,6 +213,9 @@
         </profile>
         <profile>
             <id>benchmarks</id>
+            <modules>
+                <module>evrete-core</module>
+            </modules>
             <build>
                 <plugins>
                     <plugin>
@@ -235,6 +237,9 @@
         </profile>
         <profile>
             <id>drools</id>
+            <modules>
+                <module>evrete-core</module>
+            </modules>
             <build>
                 <plugins>
                     <plugin>
@@ -254,10 +259,10 @@
             </build>
         </profile>
         <profile>
-            <id>full</id>
-        </profile>
-        <profile>
             <id>sonatype</id>
+            <modules>
+                <module>evrete-core</module>
+            </modules>
             <properties>
                 <gpg.key>B3A2519B3AC016443F74EBF4FAE509F54B7D0D42</gpg.key>
             </properties>

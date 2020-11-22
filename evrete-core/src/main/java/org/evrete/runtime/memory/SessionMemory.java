@@ -22,6 +22,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
     private final LinearHashMap<Type<?>, TypeMemory> typedMemories;
     private static final Function<AbstractLinearHashMap.Entry<Type<?>, TypeMemory>, TypeMemory> TYPE_MEMORY_MAPPING = AbstractLinearHashMap.Entry::getValue;
     private final ActionCounter actionCounter = new ActionCounter();
+    private boolean active1 = true;
 
     protected SessionMemory(KnowledgeImpl parent) {
         super(parent);
@@ -32,6 +33,17 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
             deployRule(descriptor, false);
         }
     }
+
+    protected void invalidateSession() {
+        this.active1 = false;
+    }
+
+    protected void _assertActive() {
+        if (!active1) {
+            throw new IllegalStateException("Session has been closed");
+        }
+    }
+
 
     @Override
     public Iterator<TypeMemory> iterator() {
@@ -215,6 +227,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
     }
 
     private void memoryAction(Action action, Type<?> t, Object o) {
+        _assertActive();
         if (t == null) {
             LOGGER.warning("Unknown object type of " + o + ", action " + action + "  skipped");
         } else {
