@@ -49,8 +49,6 @@ public class RhsFactGroupBeta implements RhsFactGroup, KeyReIterators<ValueRow[]
         this.keyState[groupIndex] = key;
         // TODO !!! optimize by using setIterators if input nodes are all unique
         this.currentKey = key;
-
-        //this.nestedFactIterator.setIterables(key);
         return true;
     }
 

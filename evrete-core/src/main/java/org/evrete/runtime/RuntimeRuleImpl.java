@@ -60,12 +60,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule 
         return this.rhsCallCounter;
     }
 
-/*
-    public ActionQueue<Object> getRuleBuffer() {
-        return ruleBuffer;
-    }
-*/
-
     private void increaseCallCount() {
         this.rhsCallCounter++;
     }

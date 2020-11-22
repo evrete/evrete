@@ -79,22 +79,15 @@ class TypeMemoryBucket implements PlainMemory {
         }
     }
 
+    //TODO review usage, we might need to setup a background purge process for that
     void retract(ReIterable<? extends RuntimeFact> facts) {
         ReIterator<? extends RuntimeFact> it = facts.iterator();
         while (it.hasNext()) {
-            retract(it.next());
+            assert it.next().isDeleted();
+            //retract(it.next());
         }
     }
 
-    //TODO !!!! optimize, we don't seem to need this method when using lazy delete
-    void retract(RuntimeFact fact) {
-        if (alphaMask.test(fact)) {
-            data.delete(fact);
-        }
-        if (alphaMask.test(fact)) {
-            delta.delete(fact);
-        }
-    }
 
     @Override
     public String toString() {

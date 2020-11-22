@@ -15,16 +15,24 @@ public interface SharedBetaFactStorage extends Memory, KeyReIterables<ValueRow> 
     void insert(RuntimeFact fact);
 
     @Deprecated
-    void delete(Collection<? extends RuntimeFact> collection, Predicate<RuntimeFact> predicate);
+    default void delete(Collection<? extends RuntimeFact> collection, Predicate<RuntimeFact> predicate) {
+        throw new UnsupportedOperationException();
+    }
 
     @Deprecated
-    void clearDeletedKeys();
+    default void clearDeletedKeys() {
+        throw new UnsupportedOperationException();
+    }
 
     @Deprecated
-    boolean hasDeletedKeys();
+    default boolean hasDeletedKeys() {
+        throw new UnsupportedOperationException();
+    }
 
     @Deprecated
-    boolean isKeyDeleted(ValueRow row);
+    default boolean isKeyDeleted(ValueRow row) {
+        throw new UnsupportedOperationException();
+    }
 
     void clear();
 }

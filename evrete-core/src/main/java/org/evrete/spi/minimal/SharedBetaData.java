@@ -64,22 +64,6 @@ class SharedBetaData implements SharedBetaFactStorage {
         main.clear();
     }
 
-    @Override
-    public void clearDeletedKeys() {
-        throw new UnsupportedOperationException();
-    }
-
-
-    @Override
-    public boolean hasDeletedKeys() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isKeyDeleted(ValueRow row) {
-        throw new UnsupportedOperationException();
-    }
-
     @ThreadUnsafe
     private int hash(FieldToValue key) {
         int hash = 0;
@@ -100,32 +84,7 @@ class SharedBetaData implements SharedBetaFactStorage {
         assert fact.isDeleted();
         int hash = hash(fact);
         int addr = main.findBinIndex(reusableValueArr, hash, SHARED_ARRAY_EQ);
-        //ValueRow deleted = main.deleteAndTestExisting(fact, addr);
         main.remove(fact, addr);
-/*
-        ValueRowImpl deleted = main.get(addr);
-        long remainingFacts = deleted.removeFact(fact);
-        if(remainingFacts == 0) {
-            main.
-        }
-*/
-        //assert deleted != null : "Fact: " + fact + ", data: " + main.toString();
-        //TODO !!!!! mark key as deleted
-        //if (deleted != null) {
-        //    deleteTasks.add(deleted);
-        //}
-    }
-
-    @Override
-    public void delete(Collection<? extends RuntimeFact> collection, Predicate<RuntimeFact> predicate) {
-        throw new UnsupportedOperationException();
-/*
-        for (RuntimeFact fact : collection) {
-            if (predicate.test(fact)) {
-                delete(fact);
-            }
-        }
-*/
     }
 
     @Override

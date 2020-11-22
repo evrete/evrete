@@ -25,7 +25,6 @@ public class SharedAlphaData extends AbstractLinearHash<RuntimeFact> implements 
 
     private static final BiPredicate<RuntimeFact, Object> FIND_FUNCTION = (runtimeFact, o) -> EQ_FUNCTION_OBJECT.test(runtimeFact.getDelegate(), o);
 
-
     @Override
     protected ToIntFunction<Object> getHashFunction() {
         return HASH_FUNCTION_HANDLE;
@@ -52,17 +51,6 @@ public class SharedAlphaData extends AbstractLinearHash<RuntimeFact> implements 
     @Override
     public void insert(SharedPlainFactStorage other) {
         int size = other.size();
-/*
-        this.ensureExtraCapacity(size);
-        other.iterator().forEachRemaining(new Consumer<RuntimeFact>() {
-            @Override
-            public void accept(RuntimeFact fact) {
-                if(!fact.isDeleted()) {
-                    SharedAlphaData.this.insert(fact);
-                }
-            }
-        });
-*/
         if (size == 0) return;
         if (other instanceof SharedAlphaData) {
             SharedAlphaData sad = (SharedAlphaData) other;
@@ -72,37 +60,4 @@ public class SharedAlphaData extends AbstractLinearHash<RuntimeFact> implements 
             other.iterator().forEachRemaining(this::insert);
         }
     }
-
-
-/*
-    @Override
-    public void delete(RuntimeFact fact) {
-        super.remove(fact);
-    }
-
-    @Override
-    public void insert(RuntimeFact fact) {
-        super.addNoResize(fact);
-    }
-
-
-    @Override
-    //TODO !!!! check usage
-    public RuntimeFact find(Object o) {
-        int addr = fi
-    }
-
-    @Override
-    public void insert(SharedPlainFactStorage other) {
-        int size = other.size();
-        if(size == 0) return;
-        if(other instanceof SharedAlphaData) {
-            SharedAlphaData sad = (SharedAlphaData) other;
-            this.bulkAdd(sad);
-        } else {
-            this.ensureExtraCapacity(size);
-            other.iterator().forEachRemaining(this::insert);
-        }
-    }
-*/
 }

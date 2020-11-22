@@ -305,8 +305,6 @@ class AggregateBaseTests {
         c2.setF(11.0f);
         c2.setD(a2.d * 10);
 
-        throw new UnsupportedOperationException("TODO continue the test !!!!");
-
         //counter.set(0);
         //session.delete(c1);
         //session.fire();
