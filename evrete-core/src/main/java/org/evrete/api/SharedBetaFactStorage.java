@@ -8,7 +8,9 @@ public interface SharedBetaFactStorage extends Memory, KeyReIterables<ValueRow> 
     void ensureDeltaCapacity(int insertCount);
 
     @Deprecated
-    void insert(Collection<? extends RuntimeFact> collection, Predicate<RuntimeFact> predicate);
+    default void insert(Collection<? extends RuntimeFact> collection, Predicate<RuntimeFact> predicate) {
+        throw new UnsupportedOperationException();
+    }
 
     void delete(RuntimeFact fact);
 

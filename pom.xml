@@ -5,7 +5,7 @@
     <artifactId>evrete</artifactId>
     <packaging>pom</packaging>
     <name>evrete</name>
-    <version>1.2.03-SNAPSHOT</version>
+    <version>1.2.02-SNAPSHOT</version>
     <url>https://www.evrete.org</url>
     <description>Java Rule Engine</description>
 

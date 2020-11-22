@@ -3,10 +3,8 @@ package org.evrete.spi.minimal;
 import org.evrete.api.*;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.EnumMap;
 import java.util.function.BiPredicate;
-import java.util.function.Predicate;
 
 class SharedBetaData implements SharedBetaFactStorage {
     private final Object[] reusableValueArr;
@@ -119,20 +117,6 @@ class SharedBetaData implements SharedBetaFactStorage {
         } else {
             key.addFact(fact);
         }
-    }
-
-
-    @Override
-    public void insert(Collection<? extends RuntimeFact> collection, Predicate<RuntimeFact> predicate) {
-        throw new UnsupportedOperationException();
-/*
-        ensureDeltaCapacity(collection.size());
-        for (RuntimeFact fact : collection) {
-            if (predicate.test(fact)) {
-                insertInner(fact);
-            }
-        }
-*/
     }
 
     @Override
