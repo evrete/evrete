@@ -21,11 +21,15 @@ public interface KeysStore {
 
     ReIterator<Entry> entries();
 
+    @Deprecated
     default <P extends Predicate<IntToValueRow>> void delete(P[] predicates) {
-        delete(predicates, 0);
+        throw new UnsupportedOperationException("Deprecated");
     }
 
-    <P extends Predicate<IntToValueRow>> void delete(P[] predicates, int index);
+    @Deprecated
+    default <P extends Predicate<IntToValueRow>> void delete(P[] predicates, int index) {
+        throw new UnsupportedOperationException("Deprecated");
+    }
 
     interface Entry {
         ValueRow[] key();

@@ -33,15 +33,6 @@ public final class TypeMemory extends TypeMemoryBase {
         return Collections.unmodifiableSet(betaMemories.keySet());
     }
 
-    public boolean hasMemoryChanges() {
-        assert inputBuffer.get(Action.UPDATE).size() == 0;
-        return hasMemoryChanges(Action.INSERT) || hasMemoryChanges(Action.RETRACT);
-    }
-
-    public boolean hasMemoryChanges(Action action) {
-        return inputBuffer.get(action).size() > 0;
-    }
-
     public void propagateBetaDeltas() {
         SharedPlainFactStorage inserts = inputBuffer.get(Action.INSERT);
 
@@ -57,31 +48,9 @@ public final class TypeMemory extends TypeMemoryBase {
     }
 
     public RuntimeFact doInsert(Object o) {
-
         RuntimeFact fact = create(o);
-
         inputBuffer.get(Action.INSERT).insert(fact);
         return fact;
-
-/*
-        fact = main0().find(o);
-        if (fact != null && !fact.isDeleted()) {
-            LOGGER.warning("Object " + o + " has been already inserted, skipping...");
-        } else {
-            // No such fact in main data, checking insert buffer
-            SharedPlainFactStorage collection = inputBuffer.get(Action.INSERT);
-            fact = collection.find(o);
-            if (fact != null && !fact.isDeleted()) {
-                LOGGER.warning("Object " + o + " has been already inserted, skipping...");
-            } else {
-                // The fact is new to the memory, it needs to be saved in the INSERT buffer
-                fact = create(o);
-                System.out.println("\tnew handle created: " + fact);
-                collection.insert(fact);
-            }
-        }
-        return fact;
-*/
     }
 
     public RuntimeFact doDelete(Object o) {
@@ -106,7 +75,6 @@ public final class TypeMemory extends TypeMemoryBase {
 
 
     void clear() {
-        //main1().clear(); // TODO remove!!!!
         for (TypeMemoryBucket bucket : alphaBuckets.data) {
             bucket.clear();
         }
@@ -133,20 +101,6 @@ public final class TypeMemory extends TypeMemoryBase {
 
         for (FieldsMemory fm : betaMemories.values()) {
             fm.commitDeltas();
-        }
-    }
-
-    //@Override
-    public void commitChanges() {
-        // Append insert buffer to main storage
-        main0().insert(inputBuffer.get(Action.INSERT));
-
-        for (TypeMemoryBucket bucket : alphaBuckets.data) {
-            bucket.commitChanges();
-        }
-
-        for (SharedPlainFactStorage actions : inputBuffer.values()) {
-            actions.clear();
         }
     }
 

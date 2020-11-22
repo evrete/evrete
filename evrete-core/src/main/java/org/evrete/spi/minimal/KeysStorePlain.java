@@ -7,7 +7,6 @@ import org.evrete.api.ValueRow;
 import java.util.Arrays;
 import java.util.StringJoiner;
 import java.util.function.IntFunction;
-import java.util.function.Predicate;
 
 class KeysStorePlain extends AbstractKeysStore<KeysStorePlain.MapEntry> {
 
@@ -41,19 +40,6 @@ class KeysStorePlain extends AbstractKeysStore<KeysStorePlain.MapEntry> {
         return j.toString();
     }
 
-    @Override
-    public final <P extends Predicate<IntToValueRow>> void delete(P[] predicates, int index) {
-        for (int i = 0; i < currentInsertIndex; i++) {
-            int idx = getAt(i);
-            MapEntry entry;
-            if ((entry = get(idx)) != null) {
-                IntToValueRow iv = z -> entry.key[z];
-                if (predicates[index].test(iv)) {
-                    markDeleted(idx);
-                }
-            }
-        }
-    }
 
     final static class MapEntry extends KeysStoreEntry {
 

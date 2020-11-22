@@ -18,7 +18,6 @@ import java.util.logging.Logger;
 
 public class SessionMemory extends AbstractRuntime<StatefulSession> implements WorkingMemory, Iterable<TypeMemory> {
     private static final Logger LOGGER = Logger.getLogger(SessionMemory.class.getName());
-    //private final Buffer buffer;
     private final RuntimeRules ruleStorage;
     private final LinearHashMap<Type<?>, TypeMemory> typedMemories;
     private static final Function<AbstractLinearHashMap.Entry<Type<?>, TypeMemory>, TypeMemory> TYPE_MEMORY_MAPPING = AbstractLinearHashMap.Entry::getValue;
@@ -26,7 +25,6 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
 
     protected SessionMemory(KnowledgeImpl parent) {
         super(parent);
-        //this.buffer = new Buffer();
         this.ruleStorage = new RuntimeRules(this);
         this.typedMemories = new LinearHashMap<>(getTypeResolver().getKnownTypes().size());
         // Deploy existing rules
@@ -52,15 +50,6 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
     public void setRuleComparator(Comparator<Rule> ruleComparator) {
         super.setRuleComparator(ruleComparator);
         reSortRules();
-    }
-
-    protected void reportMemories(String name) {
-        typedMemories.forEachValue(new Consumer<TypeMemory>() {
-            @Override
-            public void accept(TypeMemory typeMemory) {
-                System.out.println(name + " : " + typeMemory);
-            }
-        });
     }
 
     public RuntimeRules getRuleStorage() {
@@ -103,7 +92,6 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
 
     @Override
     public void clear() {
-        //buffer.clear();
         typedMemories.forEachValue(TypeMemory::clear);
         for (RuntimeRuleImpl rule : ruleStorage) {
             rule.clear();
@@ -206,35 +194,9 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         }
     }
 
-    //TODO !!!! optimize !!!!
-    public boolean hasMemoryChanges() {
-        ReIterator<TypeMemory> it = typedMemories.valueIterator();
-        while (it.hasNext()) {
-            TypeMemory tm = it.next();
-            if (tm.hasMemoryChanges()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     protected boolean hasActions(Action... actions) {
         return actionCounter.hasActions(actions);
     }
-
-/*
-
-    public boolean hasMemoryChanges() {
-        return actionCounter.hasActions(Action.values());
-    }
-
-*/
-
-    /*
-    public Buffer getBuffer() {
-        return buffer;
-    }
-*/
 
     public SharedBetaFactStorage getBetaFactStorage(FactType factType) {
         Type<?> t = factType.getType();
@@ -244,41 +206,9 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         return get(t).get(fields).get(mask);
     }
 
-/*
-    @Override
-    public final void delete(Collection<?> objects) {
-        memoryAction(Action.RETRACT, objects);
-    }
-*/
-
-/*
-    @Override
-    public void update(Collection<?> objects) {
-        memoryAction(Action.UPDATE, objects);
-    }
-*/
-
     protected void destroy() {
         typedMemories.clear();
     }
-
-/*
-    private void memoryAction(Action action, Collection<?> objects) {
-        if (objects == null || objects.isEmpty()) return;
-        TypeResolver resolver = getTypeResolver();
-        for (Object o : objects) {
-            Type<?> type = resolver.resolve(o);
-            memoryAction(action, type, o);
-        }
-    }
-*/
-
-/*
-    private void memoryAction(Action action, Type<?> t, Object o) {
-        TypeMemory tm = get(t);
-        tm.doAction(action, o);
-    }
-*/
 
     private void memoryAction(Action action, Object o) {
         memoryAction(action, getTypeResolver().resolve(o), o);
@@ -338,62 +268,6 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         return ruleStorage.asList();
     }
 
-/*
-    private void processInputBuffer(Action... actions) {
-        for (Action action : actions) {
-            buildMemoryDeltas(action);
-        }
-
-        this.ruleStorage.updateBetaMemories();
-    }
-*/
-
-/*
-    protected List<RuntimeRule> processInputBuffer() {
-        processInputBuffer(Action.values());
-        return ruleStorage.activeRules();
-    }
-
-    protected List<RuntimeRule> agenda() {
-        return ruleStorage.activeRules();
-    }
-*/
-
-/*
-    public Agenda getAgenda() {
-        return ruleStorage.activeRules();
-    }
-*/
-
-    protected void buildMemoryDeltas1(Action action) {
-/*
-        switch (action) {
-            case RETRACT:
-                typedMemories.forEachValue(tm -> tm.processInputBuffer(action));
-                this.ruleStorage.updateBetaMemories(action);
-                break;
-            case INSERT:
-                typedMemories.forEachValue(tm -> tm.processInputBuffer(action));
-                this.ruleStorage.updateBetaMemories(action);
-                break;
-            case UPDATE:
-                throw new IllegalStateException();
-        }
-*/
-        //actionCounter.reset(action);
-
-/*
-        if(actionCounter.hasAction(action)) {
-            System.out.println("%%%%%% 1 " + action);
-            typedMemories.forEachValue(tm -> tm.processInputBuffer(action));
-            actionCounter.reset(action);
-        }
-        if(updateRules) {
-            this.ruleStorage.updateBetaMemories();
-        }
-*/
-    }
-
     public TypeMemory get(Type<?> t) {
         TypeMemory m = typedMemories.get(t);
         if (m == null) {
@@ -421,12 +295,4 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
     public void delete(Object fact) {
         memoryAction(Action.RETRACT, fact);
     }
-
-/*
-    protected void commitMemoryDeltas() {
-        // TODO can be paralleled
-        typedMemories.forEachValue(TypeMemory::commitMemoryDeltas);
-    }
-*/
-
 }
