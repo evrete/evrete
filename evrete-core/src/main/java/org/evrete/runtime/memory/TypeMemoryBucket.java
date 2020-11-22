@@ -83,8 +83,8 @@ class TypeMemoryBucket implements PlainMemory {
     void retract(ReIterable<? extends RuntimeFact> facts) {
         ReIterator<? extends RuntimeFact> it = facts.iterator();
         while (it.hasNext()) {
-            assert it.next().isDeleted();
-            //retract(it.next());
+            RuntimeFact fact = it.next();
+            assert fact.isDeleted();
         }
     }
 
