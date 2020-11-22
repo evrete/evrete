@@ -18,14 +18,10 @@ public final class TypeMemory extends TypeMemoryBase {
     private final AlphaConditions alphaConditions;
     private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
     private final ArrayOf<TypeMemoryBucket> alphaBuckets;
-
-    //private final ActionQueue<RuntimeFact> inputBuffer = new ActionQueue<>();
     private final EnumMap<Action, SharedPlainFactStorage> inputBuffer = new EnumMap<>(Action.class);
-    //private final SharedPlainFactStorage existingObjects1;
 
     TypeMemory(SessionMemory runtime, Type<?> type) {
         super(runtime, type);
-        //this.existingObjects1 = runtime.newSharedPlainStorage();
         for (Action action : Action.values()) {
             this.inputBuffer.put(action, runtime.newSharedPlainStorage());
         }
@@ -60,34 +56,11 @@ public final class TypeMemory extends TypeMemoryBase {
         inserts.clear();
     }
 
-    public RuntimeFact doAction(Action action, Object o) {
-        switch (action) {
-            case INSERT:
-                return doInsert(o);
-            case RETRACT:
-                return doDelete(o);
-            case UPDATE:
-                // Update is a sequence of delete and insert operation
-                RuntimeFact fact = doDelete(o);
-                if (fact == null) {
-                    LOGGER.warning("Unknown object: " + o + ", update skipped....");
-                    return null;
-                } else {
-                    return doInsert(o);
-                }
-            default:
-                throw new IllegalStateException();
-
-        }
-    }
-
-    private RuntimeFact doInsert(Object o) {
-
+    public RuntimeFact doInsert(Object o) {
 
         RuntimeFact fact = create(o);
 
         inputBuffer.get(Action.INSERT).insert(fact);
-        //System.out.println("\tnew handle created: " + fact + ", total: " + inputBuffer.get(Action.INSERT));
         return fact;
 
 /*
@@ -111,26 +84,15 @@ public final class TypeMemory extends TypeMemoryBase {
 */
     }
 
-    private RuntimeFact doDelete(Object o) {
-        // Checking the main storage
-        //RuntimeFact fact = main0().find(o);
+    public RuntimeFact doDelete(Object o) {
         RuntimeFact fact = find(o);
-        if (fact == null) {
-            // TODO do we really need to look in the insert buffer?
-            // Not found, looking in the insert buffer
-/*
-            fact = inputBuffer.get(Action.INSERT).find(o);
-            if (fact != null && !fact.isDeleted()) {
-                inputBuffer.get(Action.INSERT).delete(fact);
-                return fact;
-            }
-*/
-        } else {
+        if (fact != null) {
             inputBuffer.get(Action.RETRACT).insert(fact);
             return fact;
+        } else {
+            LOGGER.warning("Object " + o + " hasn't been previously inserted");
+            return null;
         }
-        LOGGER.warning("Object " + o + " hasn't been previously inserted");
-        return null;
     }
 
 
@@ -174,23 +136,6 @@ public final class TypeMemory extends TypeMemoryBase {
         }
     }
 
-    public String reportStatus() {
-
-        String s = "\n\t\t" + type.getJavaType().getSimpleName() + "\n";
-        s += "\t\t\tbuffer: " + inputBuffer;
-        s += "\n\t\t\tmain:   " + main0();
-        s += "\n\t\t\tdelta:  " + delta0();
-        s += "\n\t\t\tkey memory:";
-        for (Map.Entry<FieldsKey, FieldsMemory> e : betaMemories.entrySet()) {
-            s += "\n\t\t\t\tkey:" + e.getKey();
-            s += "\n\t\t\t\tval:" + e.getValue();
-
-        }
-
-        return s;
-    }
-
-
     //@Override
     public void commitChanges() {
         // Append insert buffer to main storage
@@ -215,6 +160,7 @@ public final class TypeMemory extends TypeMemoryBase {
             impl.setDeleted(true);
         }
 
+        // Step 3: clear the delete buffer
         for (TypeMemoryBucket bucket : alphaBuckets.data) {
             bucket.retract(deleteSubject);
         }
@@ -295,9 +241,6 @@ public final class TypeMemory extends TypeMemoryBase {
         main0().iterator().forEachRemaining(fact -> {
             if (!fact.isDeleted()) {
                 consumer.accept(fact.getDelegate());
-            } else {
-                //TODO !!!! clear
-                //System.out.println("*** " + fact);
             }
         });
     }
@@ -306,9 +249,6 @@ public final class TypeMemory extends TypeMemoryBase {
         main0().iterator().forEachRemaining(fact -> {
             if (!fact.isDeleted()) {
                 consumer.accept(fact.getDelegate());
-            } else {
-                //TODO !!!! clear
-                //System.out.println("*** " + fact);
             }
         });
     }

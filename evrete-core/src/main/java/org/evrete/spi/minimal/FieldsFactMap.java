@@ -46,9 +46,7 @@ class FieldsFactMap extends AbstractLinearHash<ValueRowImpl> {
 
     void remove(RuntimeFact fact, int addr) {
         ValueRowImpl entry = get(addr);
-        if (entry == null) {
-            throw new IllegalStateException();
-        } else {
+        if (entry != null) {
             if (entry.removeFact(fact) == 0) {
                 //Clear the whole key
                 markDeleted(addr);

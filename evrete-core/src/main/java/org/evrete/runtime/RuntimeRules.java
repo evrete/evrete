@@ -2,14 +2,7 @@ package org.evrete.runtime;
 
 import org.evrete.api.Rule;
 import org.evrete.api.RuntimeRule;
-import org.evrete.api.Type;
-import org.evrete.runtime.async.AggregateComputeTask;
-import org.evrete.runtime.async.Completer;
-import org.evrete.runtime.async.ForkJoinExecutor;
-import org.evrete.runtime.async.RuleMemoryInsertTask;
-import org.evrete.runtime.memory.BetaEndNode;
 import org.evrete.runtime.memory.SessionMemory;
-import org.evrete.runtime.memory.TypeMemory;
 
 import java.util.*;
 
@@ -81,8 +74,8 @@ public class RuntimeRules implements Iterable<RuntimeRuleImpl> {
     }
 */
 
-    //TODO !!!! optimize
-    public List<RuntimeRule> propagateInsertChanges(Collection<TypeMemory> memories) {
+/*
+    public List<RuntimeRule> propagateInsertChanges() {
         // Build beta-deltas
         for (TypeMemory tm : memories) {
             tm.propagateBetaDeltas();
@@ -133,6 +126,7 @@ public class RuntimeRules implements Iterable<RuntimeRuleImpl> {
 
         return affectedRules;
     }
+*/
 
 /*
     public void updateBetaMemories(Action... actions) {

@@ -71,7 +71,7 @@ class StockSessionWrapper extends AbstractSocketSession {
         }
 
         //TODO move to DEFAULT
-        knowledge.setAgendaMode(AgendaMode.CONTINUOUS);
+        knowledge.setActivationMode(ActivationMode.CONTINUOUS);
         return knowledge;
 
     }

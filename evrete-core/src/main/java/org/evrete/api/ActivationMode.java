@@ -1,6 +1,6 @@
 package org.evrete.api;
 
-public enum AgendaMode {
+public enum ActivationMode {
     DEFAULT,
     CONTINUOUS
 }

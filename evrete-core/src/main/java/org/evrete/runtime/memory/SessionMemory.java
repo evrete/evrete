@@ -1,22 +1,28 @@
 package org.evrete.runtime.memory;
 
 import org.evrete.api.*;
+import org.evrete.collections.AbstractLinearHashMap;
 import org.evrete.collections.LinearHashMap;
 import org.evrete.runtime.*;
+import org.evrete.runtime.async.Completer;
+import org.evrete.runtime.async.ForkJoinExecutor;
 import org.evrete.runtime.async.RuleHotDeploymentTask;
+import org.evrete.runtime.async.RuleMemoryInsertTask;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaDelta;
 
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
-public class SessionMemory extends AbstractRuntime<StatefulSession> implements WorkingMemory {
+public class SessionMemory extends AbstractRuntime<StatefulSession> implements WorkingMemory, Iterable<TypeMemory> {
     private static final Logger LOGGER = Logger.getLogger(SessionMemory.class.getName());
     //private final Buffer buffer;
     private final RuntimeRules ruleStorage;
     private final LinearHashMap<Type<?>, TypeMemory> typedMemories;
+    private static final Function<AbstractLinearHashMap.Entry<Type<?>, TypeMemory>, TypeMemory> TYPE_MEMORY_MAPPING = AbstractLinearHashMap.Entry::getValue;
+    private final ActionCounter actionCounter = new ActionCounter();
 
     protected SessionMemory(KnowledgeImpl parent) {
         super(parent);
@@ -29,6 +35,10 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         }
     }
 
+    @Override
+    public Iterator<TypeMemory> iterator() {
+        return typedMemories.iterator(TYPE_MEMORY_MAPPING);
+    }
 
     public ReIterator<TypeMemory> typeMemories() {
         return typedMemories.valueIterator();
@@ -107,28 +117,70 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
 
     @Override
     public void insert(String factType, Object fact) {
-        Type<?> t = getTypeResolver().getType(factType);
-        if (t == null) {
-            LOGGER.warning("Unknown type '" + factType + "', insert skipped");
-        } else {
-            TypeMemory tm = get(t);
-            tm.doAction(Action.INSERT, fact);
-        }
+        memoryAction(Action.INSERT, getTypeResolver().getType(factType), fact);
     }
 
-    /*
-    @Override
-    public void insert(String factType, Collection<?> objects) {
-        if (objects == null || objects.isEmpty()) return;
-        Type<?> t = getTypeResolver().getType(factType);
-        if (t != null) {
-            TypeMemory tm = get(t);
-            for (Object o : objects) {
-                memoryAction(Action.INSERT, tm, o);
+    protected List<RuntimeRule> propagateInsertChanges() {
+        // Build beta-deltas
+        for (TypeMemory tm : this) {
+            tm.propagateBetaDeltas();
+        }
+
+
+        List<RuntimeRule> affectedRules = new LinkedList<>();
+        Set<BetaEndNode> affectedEndNodes = new HashSet<>();
+        // Scanning rules first because they are sorted by salience
+        for (RuntimeRuleImpl rule : ruleStorage) {
+            rule.mergeNodeDeltas();
+            boolean ruleAdded = false;
+
+            for (TypeMemory tm : this) {
+                Type<?> t = tm.getType();
+                if (!ruleAdded && rule.dependsOn(t)) {
+                    affectedRules.add(rule);
+                    ruleAdded = true;
+                }
+
+                for (BetaEndNode endNode : rule.getLhs().getAllBetaEndNodes()) {
+                    if (endNode.dependsOn(t)) {
+                        affectedEndNodes.add(endNode);
+                    }
+                }
             }
         }
-    }
+
+        // Ordered task 1 - process beta nodes, i.e. evaluate conditions
+        List<Completer> tasks = new LinkedList<>();
+        if (!affectedEndNodes.isEmpty()) {
+            tasks.add(new RuleMemoryInsertTask(affectedEndNodes, true));
+        }
+
+        // Ordered task 2 - update aggregate nodes
+/*
+        Collection<RuntimeAggregateLhsJoined> aggregateGroups = getAggregateLhsGroups();
+        if (!aggregateGroups.isEmpty()) {
+            tasks.add(new AggregateComputeTask(aggregateGroups, true));
+        }
 */
+
+        if (tasks.size() > 0) {
+            ForkJoinExecutor executor = getExecutor();
+            for (Completer task : tasks) {
+                executor.invoke(task);
+            }
+        }
+
+        actionCounter.reset(Action.INSERT);
+
+        return affectedRules;
+    }
+
+    protected void doDeletions() {
+        for (TypeMemory tm : this) {
+            tm.performDelete();
+        }
+        actionCounter.reset(Action.RETRACT);
+    }
 
     @Override
     protected synchronized void onNewActiveField(ActiveField newField) {
@@ -166,16 +218,8 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         return false;
     }
 
-    //TODO !!!! optimize !!!!
-    public boolean hasAction(Action action) {
-        ReIterator<TypeMemory> it = typedMemories.valueIterator();
-        while (it.hasNext()) {
-            TypeMemory tm = it.next();
-            if (tm.hasMemoryChanges(action)) {
-                return true;
-            }
-        }
-        return false;
+    protected boolean hasActions(Action... actions) {
+        return actionCounter.hasActions(actions);
     }
 
 /*
@@ -237,12 +281,43 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
 */
 
     private void memoryAction(Action action, Object o) {
-        Type<?> t = getTypeResolver().resolve(o);
+        memoryAction(action, getTypeResolver().resolve(o), o);
+    }
+
+    private void memoryAction(Action action, Type<?> t, Object o) {
         if (t == null) {
             LOGGER.warning("Unknown object type of " + o + ", action " + action + "  skipped");
         } else {
-            get(t).doAction(action, o);
+            memoryAction(action, get(t), o);
         }
+    }
+
+    private RuntimeFact memoryAction(Action action, TypeMemory tm, Object o) {
+        RuntimeFact fact;
+        switch (action) {
+            case INSERT:
+                fact = tm.doInsert(o);
+                break;
+            case RETRACT:
+                fact = tm.doDelete(o);
+                break;
+            case UPDATE:
+                RuntimeFact deleted = memoryAction(Action.RETRACT, tm, o);
+                if (deleted == null) {
+                    LOGGER.warning("Unknown object: " + o + ", update skipped....");
+                    fact = null;
+                } else {
+                    fact = memoryAction(Action.INSERT, tm, o);
+                }
+                break;
+            default:
+                throw new IllegalStateException();
+
+        }
+        if (fact != null) {
+            actionCounter.increment(action);
+        }
+        return fact;
     }
 
     @Override

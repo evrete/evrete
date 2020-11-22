@@ -1,5 +1,6 @@
 package org.evrete;
 
+import org.evrete.api.ActivationMode;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
 import org.evrete.api.ValuesPredicate;
@@ -8,7 +9,12 @@ import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.classes.TypeD;
 import org.evrete.helper.RhsAssert;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.HashSet;
 import java.util.Random;
@@ -37,8 +43,10 @@ class HotDeploymentTests {
         session = service.newKnowledge().createSession();
     }
 
-    @Test
-    void plainTest0() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void plainTest0(ActivationMode mode) {
+        session.setActivationMode(mode);
         RhsAssert rhsAssert = new RhsAssert("$n", Integer.class);
         session.newRule()
                 .forEach("$n", Integer.class)
@@ -51,8 +59,10 @@ class HotDeploymentTests {
         session.close();
     }
 
-    @Test
-    void plainTest1() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void plainTest1(ActivationMode mode) {
+        session.setActivationMode(mode);
         RhsAssert rhsAssert = new RhsAssert("$n", Integer.class);
         session.newRule()
                 .forEach("$n", Integer.class)
@@ -72,8 +82,10 @@ class HotDeploymentTests {
     }
 
 
-    @Test
-    void namingTest() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void namingTest(ActivationMode mode) {
+        session.setActivationMode(mode);
         session.newRule("A").forEach("$a", String.class).execute();
         RuntimeRule a = session.getRule("A");
         assert a != null;
@@ -85,8 +97,10 @@ class HotDeploymentTests {
         );
     }
 
-    @Test
-    void testSingleFinalNode1() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testSingleFinalNode1(ActivationMode mode) {
+        session.setActivationMode(mode);
 
         Predicate<Object[]> sharedPredicate = objects -> {
             int i1 = (int) objects[0];
@@ -154,8 +168,10 @@ class HotDeploymentTests {
 
     }
 
-    @Test
-    void testCircularMultiFinal() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testCircularMultiFinal(ActivationMode mode) {
+        session.setActivationMode(mode);
 
         ValuesPredicate p1 = values -> {
             int ai = (int) values.apply(0);
@@ -233,9 +249,11 @@ class HotDeploymentTests {
         rhsAssert.assertCount(3);
     }
 
-    @Test
-    void testMultiFinal2_mini() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testMultiFinal2_mini(ActivationMode mode) {
         String ruleName = "testMultiFinal2_mini";
+        session.setActivationMode(mode);
 
         session.newRule(ruleName)
                 .forEach(
@@ -293,9 +311,11 @@ class HotDeploymentTests {
         session.close();
     }
 
-    @Test
-    void testFields() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testFields(ActivationMode mode) {
         String ruleName = "testMultiFields";
+        session.setActivationMode(mode);
 
         // "$a.i * $b.l * $b.s == $a.l"
         ValuesPredicate predicate = v -> {
@@ -342,9 +362,11 @@ class HotDeploymentTests {
         session.close();
     }
 
-    @Test
-    void testMixed1() {
-        //TODO !!!! continue with non-unique keys
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testMixed1(ActivationMode mode) {
+        session.setActivationMode(mode);
+
         RhsAssert rhsAssert = new RhsAssert(
                 "$a1", TypeA.class,
                 "$a2", TypeA.class,
@@ -405,8 +427,11 @@ class HotDeploymentTests {
         rhsAssert.assertCount(2 * 4 * 4);
     }
 
-    @Test
-    void testAlphaBeta1() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testAlphaBeta1(ActivationMode mode) {
+        session.setActivationMode(mode);
+
         RhsAssert rhsAssert1 = new RhsAssert(
                 "$a", TypeA.class,
                 "$b", TypeB.class
@@ -505,8 +530,11 @@ class HotDeploymentTests {
                 .reset();
     }
 
-    @Test
-    void testUniType2() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testUniType2(ActivationMode mode) {
+        session.setActivationMode(mode);
+
         Set<String> collectedJoinedIds = new HashSet<>();
 
         ValuesPredicate predicate = v -> {
@@ -578,8 +606,11 @@ class HotDeploymentTests {
 
     }
 
-    @Test
-    void testAlpha1() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testAlpha1(ActivationMode mode) {
+        session.setActivationMode(mode);
+
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
                 "$b", TypeB.class,
@@ -623,8 +654,11 @@ class HotDeploymentTests {
                 .assertContains("$c", c2);
     }
 
-    @Test
-    void testAlpha2() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testAlpha2(ActivationMode mode) {
+        session.setActivationMode(mode);
+
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
                 "$b", TypeB.class,
@@ -667,8 +701,11 @@ class HotDeploymentTests {
                 .assertUniqueCount("$c", 3);
     }
 
-    @Test
-    void testAlpha3() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testAlpha3(ActivationMode mode) {
+        session.setActivationMode(mode);
+
         RhsAssert rhsAssert1 = new RhsAssert("$a", TypeA.class);
         RhsAssert rhsAssert2 = new RhsAssert("$a", TypeA.class);
         RhsAssert rhsAssert3 = new RhsAssert("$a", TypeA.class);
@@ -699,8 +736,10 @@ class HotDeploymentTests {
         rhsAssert3.assertCount(3);
     }
 
-    @Test
-    void testAlpha4() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testAlpha4(ActivationMode mode) {
+        session.setActivationMode(mode);
 
         // Rule 1
         ValuesPredicate p1_1 = v -> {
@@ -778,8 +817,11 @@ class HotDeploymentTests {
     }
 
 
-    @Test
-    void testAlpha5() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testAlpha5(ActivationMode mode) {
+        session.setActivationMode(mode);
+
         RhsAssert rhsAssert1 = new RhsAssert("$i", Integer.class);
 
         session.newRule("rule 1")
@@ -804,8 +846,11 @@ class HotDeploymentTests {
     }
 
     // An "inverse" version of the previous test
-    @Test
-    void testAlpha6() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testAlpha6(ActivationMode mode) {
+        session.setActivationMode(mode);
+
         AtomicInteger ruleCounter1 = new AtomicInteger();
 
         session.newRule("rule 1")
@@ -832,8 +877,11 @@ class HotDeploymentTests {
         assert ruleCounter2.get() == 0; //3,4,5,6,7,8,9
     }
 
-    @Test
-    void testMixedMulti() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testMixedMulti(ActivationMode mode) {
+        session.setActivationMode(mode);
+
         RhsAssert rhsAssert1 = new RhsAssert(
                 "$a1", TypeA.class,
                 "$b1", TypeB.class,

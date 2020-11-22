@@ -12,7 +12,6 @@ import org.evrete.runtime.builder.LhsBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
@@ -75,7 +74,7 @@ class SessionBaseTests {
     }
 
     @SuppressWarnings("unchecked")
-    private static void randomExpressionsTest(int objectCount, int conditions) {
+    private static void randomExpressionsTest(ActivationMode mode, int objectCount, int conditions) {
         Knowledge kn = service.newKnowledge();
 
         String[] fields = new String[]{"i", "l", "d", "f"};
@@ -140,7 +139,7 @@ class SessionBaseTests {
         rootGroup.execute();
 
 
-        StatefulSession s = kn.createSession();
+        StatefulSession s = kn.createSession().setActivationMode(mode);
         RhsAssert rhsAssert = new RhsAssert(s);
         s.getRule("random").setRhs(rhsAssert);
         for (int i = 0; i < objectCount; i++) {
@@ -180,15 +179,15 @@ class SessionBaseTests {
     }
 
     @ParameterizedTest
-    @EnumSource(AgendaMode.class)
-    void plainTest0(AgendaMode mode) {
+    @EnumSource(ActivationMode.class)
+    void plainTest0(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert("$n", Integer.class);
         knowledge.newRule()
                 .forEach("$n", Integer.class)
                 .execute(rhsAssert);
 
         StatefulSession session = knowledge.createSession();
-        session.setAgendaMode(mode);
+        session.setActivationMode(mode);
         session.insertAndFire(1, 2);
         rhsAssert.assertCount(2).reset();
         session.insertAndFire(3);
@@ -196,15 +195,16 @@ class SessionBaseTests {
         session.close();
     }
 
-    @Test
-    void plainTest1() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void plainTest1(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert("$n", Integer.class);
         knowledge.newRule()
                 .forEach("$n", Integer.class)
                 .where("$n.intValue >= 0 ")
                 .execute(rhsAssert);
 
-        StatefulSession session = knowledge.createSession();
+        StatefulSession session = knowledge.createSession().setActivationMode(mode);
         session.insertAndFire(1, 2);
         rhsAssert.assertCount(2).reset();
         session.insertAndFire(3);
@@ -217,8 +217,9 @@ class SessionBaseTests {
         session.close();
     }
 
-    @Test
-    void createDestroy1() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void createDestroy1(ActivationMode mode) {
         knowledge.newRule("test")
                 .forEach(
                         fact("$a1", TypeA.class.getName()),
@@ -226,8 +227,8 @@ class SessionBaseTests {
                 )
                 .where("$a1.id == $a2.id");
 
-        StatefulSessionImpl session1 = knowledge.createSession();
-        StatefulSessionImpl session2 = knowledge.createSession();
+        StatefulSession session1 = knowledge.createSession().setActivationMode(mode);
+        StatefulSession session2 = knowledge.createSession().setActivationMode(mode);
         session1.newRule();
 
         assert knowledge.getSessions().size() == 2;
@@ -238,8 +239,9 @@ class SessionBaseTests {
         assert knowledge.getSessions().isEmpty();
     }
 
-    @Test
-    void testMultiFinal1() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testMultiFinal1(ActivationMode mode) {
         knowledge.newRule()
                 .forEach(
                         fact("$a", TypeA.class),
@@ -250,7 +252,7 @@ class SessionBaseTests {
                 .where("$c.l != $b.l")
                 .execute();
 
-        StatefulSession s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
         RhsAssert rhsAssert = new RhsAssert(s);
         TypeA a = new TypeA("A");
         a.setI(1);
@@ -292,8 +294,9 @@ class SessionBaseTests {
         rhsAssert.assertCount(27);
     }
 
-    @Test
-    void testMultiFinal2() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testMultiFinal2(ActivationMode mode) {
         String ruleName = "testMultiFinal2";
 
         knowledge.newRule(ruleName)
@@ -307,7 +310,7 @@ class SessionBaseTests {
                         "$c.l == $b.l"
                 ).execute();
 
-        StatefulSession s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         TypeA a = new TypeA("A");
         a.setI(1);
@@ -351,8 +354,9 @@ class SessionBaseTests {
         rhsAssert.assertCount(3);
     }
 
-    @Test
-    void testSingleFinalNode1() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testSingleFinalNode1(ActivationMode mode) {
 
         knowledge.newRule("testSingleFinalNode1")
                 .forEach(
@@ -367,7 +371,7 @@ class SessionBaseTests {
                 .execute();
 
 
-        StatefulSession s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         RhsAssert rhsAssert = new RhsAssert(s);
 
@@ -416,8 +420,9 @@ class SessionBaseTests {
                 .assertCount(ai * bi * ci * di);
     }
 
-    @Test
-    void testCircularMultiFinal() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testCircularMultiFinal(ActivationMode mode) {
 
         knowledge.newRule("test circular")
                 .forEach(
@@ -430,7 +435,7 @@ class SessionBaseTests {
                 "$c.i == $a.l")
                 .execute();
 
-        StatefulSessionImpl s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         TypeA a = new TypeA("A");
         a.setI(1);
@@ -478,17 +483,19 @@ class SessionBaseTests {
     }
 
 
-    @Test
-    void randomExpressionsTest() {
-        for (int objectCount = 1; objectCount < 10; objectCount++) {
-            for (int conditions = 1; conditions < 10; conditions++) {
-                randomExpressionsTest(objectCount, conditions);
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void randomExpressionsTest(ActivationMode mode) {
+        for (int objectCount = 1; objectCount < 8; objectCount++) {
+            for (int conditions = 1; conditions < 8; conditions++) {
+                randomExpressionsTest(mode, objectCount, conditions);
             }
         }
     }
 
-    @Test
-    void testMultiFinal2_mini() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testMultiFinal2_mini(ActivationMode mode) {
         String ruleName = "testMultiFinal2_mini";
 
         knowledge.newRule(ruleName)
@@ -503,7 +510,7 @@ class SessionBaseTests {
                 )
                 .execute();
 
-        StatefulSession s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         TypeA a = new TypeA("AA");
         a.setI(1);
@@ -542,8 +549,9 @@ class SessionBaseTests {
         s.close();
     }
 
-    @Test
-    void testFields() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testFields(ActivationMode mode) {
         String ruleName = "testMultiFields";
 
         knowledge.newRule(ruleName)
@@ -556,7 +564,7 @@ class SessionBaseTests {
                 )
                 .execute();
 
-        StatefulSession s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         TypeA a1 = new TypeA("A1");
         a1.setI(2);
@@ -586,8 +594,9 @@ class SessionBaseTests {
         s.close();
     }
 
-    @Test
-    void testSingleFinalNode2() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testSingleFinalNode2(ActivationMode mode) {
         knowledge.newRule("testSingleFinalNode2")
                 .forEach(
                         fact("$a", TypeA.class),
@@ -599,7 +608,7 @@ class SessionBaseTests {
                 .where("$a.i == $c.i")
                 .where("$a.i == $d.i")
                 .execute();
-        StatefulSession s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
         RhsAssert rhsAssert = new RhsAssert(s);
 
         int count = new Random().nextInt(100) + 1;
@@ -635,9 +644,9 @@ class SessionBaseTests {
                 .assertUniqueCount("$d", count);
     }
 
-
-    @Test
-    void testBeta1() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testBeta1(ActivationMode mode) {
 
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
@@ -652,7 +661,7 @@ class SessionBaseTests {
                 .where("$a.i == $b.i")
                 .execute(rhsAssert);
 
-        StatefulSessionImpl s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         TypeA a1 = new TypeA("A1");
         a1.setAllNumeric(1);
@@ -677,8 +686,9 @@ class SessionBaseTests {
         rhsAssert.assertContains("$b", b1);
     }
 
-    @Test
-    void testAlphaBeta1() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testAlphaBeta1(ActivationMode mode) {
         RhsAssert rhsAssert1 = new RhsAssert(
                 "$a", TypeA.class,
                 "$b", TypeB.class
@@ -709,7 +719,7 @@ class SessionBaseTests {
                 .execute(rhsAssert2)
         ;
 
-        StatefulSessionImpl s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         TypeA a = new TypeA("A");
         a.setAllNumeric(0);
@@ -748,8 +758,9 @@ class SessionBaseTests {
 
     }
 
-    @Test
-    void testSimple1() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testSimple1(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
                 "$b", TypeB.class
@@ -764,7 +775,7 @@ class SessionBaseTests {
                 .execute(rhsAssert);
 
 
-        StatefulSessionImpl s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         TypeA a1 = new TypeA("A1");
         a1.setI(1);
@@ -782,8 +793,9 @@ class SessionBaseTests {
         rhsAssert.assertCount(4);
     }
 
-    @Test
-    void testSimple2() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testSimple2(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
                 "$b", TypeB.class
@@ -799,7 +811,7 @@ class SessionBaseTests {
                 .where("$a.f < $b.l")
                 .execute(rhsAssert);
 
-        StatefulSessionImpl s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         TypeA a1 = new TypeA("A1");
         a1.setI(1);
@@ -823,8 +835,9 @@ class SessionBaseTests {
 
     }
 
-    @Test
-    void testSimple3() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testSimple3(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
                 "$b", TypeB.class,
@@ -846,7 +859,7 @@ class SessionBaseTests {
                 .where("$c.f < $d.l")
                 .execute(rhsAssert);
 
-        StatefulSessionImpl s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         TypeA a1 = new TypeA("A1");
         a1.setI(1);
@@ -884,8 +897,9 @@ class SessionBaseTests {
         rhsAssert.assertCount(16);
     }
 
-    @Test
-    void testSimple4() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testSimple4(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
                 "$b", TypeB.class
@@ -899,7 +913,7 @@ class SessionBaseTests {
                 .where("$a.i != $b.i")
                 .execute(rhsAssert);
 
-        StatefulSessionImpl s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         TypeA a1 = new TypeA("A1");
         a1.setI(1);
@@ -917,8 +931,9 @@ class SessionBaseTests {
         rhsAssert.assertCount(4);
     }
 
-    @Test
-    void testUniType1() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testUniType1(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a1", TypeA.class,
                 "$a2", TypeA.class
@@ -932,7 +947,7 @@ class SessionBaseTests {
                 .where("$a1.i != $a2.i")
                 .execute(rhsAssert);
 
-        StatefulSessionImpl s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         TypeA a1 = new TypeA("A1");
         a1.setI(1);
@@ -944,8 +959,9 @@ class SessionBaseTests {
         rhsAssert.assertCount(2); // [a1, a2], [a2, a1]
     }
 
-    @Test
-    void testUniType2() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testUniType2(ActivationMode mode) {
         Set<String> collectedJoinedIds = new HashSet<>();
         knowledge.newRule("test uni 2")
                 .forEach(
@@ -963,7 +979,7 @@ class SessionBaseTests {
                         }
                 );
 
-        StatefulSessionImpl s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         TypeA a1 = new TypeA("A3");
         a1.setI(3);
@@ -1010,8 +1026,9 @@ class SessionBaseTests {
 
     }
 
-    @Test
-    void testUniType3() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testUniType3(ActivationMode mode) {
         int rule = 0;
         RhsAssert rhsAssert = new RhsAssert(
                 "$a1", TypeA.class,
@@ -1030,7 +1047,7 @@ class SessionBaseTests {
                 .where("$a2.i > $a1.i")
                 .execute(rhsAssert);
 
-        StatefulSessionImpl s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         TypeA a1 = new TypeA("A1");
         a1.setI(1);
@@ -1048,8 +1065,9 @@ class SessionBaseTests {
         rhsAssert.assertCount(1); //[a1, a2, a3]
     }
 
-    @Test
-    void testUniType4() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testUniType4(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a1", TypeA.class,
                 "$a2", TypeA.class,
@@ -1066,7 +1084,7 @@ class SessionBaseTests {
                 .where("$a2.i > $a1.i")
                 .execute(rhsAssert);
 
-        StatefulSessionImpl s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         TypeA a1 = new TypeA("A1-1");
         a1.setI(1);
@@ -1092,9 +1110,9 @@ class SessionBaseTests {
 
     }
 
-
-    @Test
-    void testAlphaBeta2() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testAlphaBeta2(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
                 "$b", TypeB.class,
@@ -1112,7 +1130,7 @@ class SessionBaseTests {
                 .where("$b.i > 3")
                 .execute(rhsAssert);
 
-        StatefulSession s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         // This insert cycle will result in 5 matching pairs of [A,B] with i=5,6,7,8,9
         for (int i = 0; i < 10; i++) {
@@ -1135,8 +1153,9 @@ class SessionBaseTests {
 
     }
 
-    @Test
-    void testAlpha0() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testAlpha0(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
                 "$b", TypeB.class
@@ -1151,7 +1170,7 @@ class SessionBaseTests {
                 .where("$b.i > 3")
                 .execute(rhsAssert);
 
-        StatefulSession s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
         for (int i = 0; i < 10; i++) {
@@ -1165,8 +1184,9 @@ class SessionBaseTests {
         rhsAssert.assertCount(30);
     }
 
-    @Test
-    void testAlpha1() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testAlpha1(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
                 "$b", TypeB.class,
@@ -1183,7 +1203,7 @@ class SessionBaseTests {
                 .where("$b.i > 3")
                 .execute(rhsAssert);
 
-        StatefulSession s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
         for (int i = 0; i < 10; i++) {
@@ -1211,8 +1231,9 @@ class SessionBaseTests {
                 .assertContains("$c", c2);
     }
 
-    @Test
-    void testAlpha2() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testAlpha2(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
                 "$b", TypeB.class,
@@ -1230,7 +1251,7 @@ class SessionBaseTests {
                 .where("$c.i > 6")
                 .execute(rhsAssert);
 
-        StatefulSession session = knowledge.createSession();
+        StatefulSession session = knowledge.createSession().setActivationMode(mode);
 
         // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
         for (int i = 0; i < 10; i++) {
@@ -1257,8 +1278,9 @@ class SessionBaseTests {
                 .assertUniqueCount("$c", 3);
     }
 
-    @Test
-    void testAlpha3() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testAlpha3(ActivationMode mode) {
         Configuration conf = knowledge.getConfiguration();
         conf.setWarnUnknownTypes(false);
         assert !knowledge.getConfiguration().isWarnUnknownTypes();
@@ -1281,7 +1303,7 @@ class SessionBaseTests {
 
 
         Type<TypeA> aType = knowledge.getTypeResolver().getType(TypeA.class.getName());
-        StatefulSessionImpl session = knowledge.createSession();
+        StatefulSessionImpl session = (StatefulSessionImpl) knowledge.createSession().setActivationMode(mode);
 
         // This insert cycle will result in 5 matching As
         for (int i = 0; i < 10; i++) {
@@ -1298,8 +1320,9 @@ class SessionBaseTests {
         assert session.getAlphaConditions().size(aType) == 3;
     }
 
-    @Test
-    void testAlpha4() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testAlpha4(ActivationMode mode) {
         Configuration conf = knowledge.getConfiguration();
         conf.setWarnUnknownTypes(false);
         assert !knowledge.getConfiguration().isWarnUnknownTypes();
@@ -1323,7 +1346,7 @@ class SessionBaseTests {
 
 
         Type<TypeA> aType = knowledge.getTypeResolver().getType(TypeA.class.getName());
-        StatefulSessionImpl s = knowledge.createSession();
+        StatefulSessionImpl s = (StatefulSessionImpl) knowledge.createSession().setActivationMode(mode);
 
         // This insert cycle will result in 5 matching As
         for (int i = 0; i < 10; i++) {
@@ -1339,8 +1362,9 @@ class SessionBaseTests {
         assert s.get(aType).knownFieldSets().size() == 0;
     }
 
-    @Test
-    void testAlpha5() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testAlpha5(ActivationMode mode) {
         Configuration conf = knowledge.getConfiguration();
         conf.setWarnUnknownTypes(false);
         assert !knowledge.getConfiguration().isWarnUnknownTypes();
@@ -1364,7 +1388,7 @@ class SessionBaseTests {
                 .execute(rhsAssert3);
 
         Type<TypeA> aType = knowledge.getTypeResolver().getType(TypeA.class.getName());
-        StatefulSessionImpl s = knowledge.createSession();
+        StatefulSessionImpl s = (StatefulSessionImpl) knowledge.createSession().setActivationMode(mode);
 
         for (int i = 0; i < 10; i++) {
             s.insert(new TypeA("A" + i));
@@ -1377,9 +1401,9 @@ class SessionBaseTests {
         rhsAssert3.assertCount(9);
     }
 
-
-    @Test
-    void testAlpha6() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testAlpha6(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
                 "$b", TypeB.class
@@ -1394,7 +1418,7 @@ class SessionBaseTests {
                 .where("$b.i > 3")
                 .execute(rhsAssert);
 
-        StatefulSession s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         TypeA $a1 = new TypeA("A1");
         TypeA $a2 = new TypeA("A2");
@@ -1426,10 +1450,9 @@ class SessionBaseTests {
                 .assertContains("$a", $a2);
     }
 
-
-    @Test
-    void testMixed1() {
-        //TODO !!!! continue with non-unique keys
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testMixed1(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a1", TypeA.class,
                 "$a2", TypeA.class,
@@ -1453,7 +1476,7 @@ class SessionBaseTests {
                 .where("$c.i > 0")
                 .execute(rhsAssert);
 
-        StatefulSessionImpl s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         TypeA a1 = new TypeA("A1");
         a1.setI(1);

@@ -31,7 +31,7 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
 
     RuntimeListeners getListeners();
 
-    void setAgendaMode(AgendaMode agendaMode);
+    C setActivationMode(ActivationMode agendaMode);
 
     ClassLoader getClassLoader();
 
@@ -46,10 +46,6 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
     TypeResolver getTypeResolver();
 
     RuleDescriptor getRuleDescriptor(String name);
-
-    default RuleDescriptor getRuleDescriptor(Named named) {
-        return getRuleDescriptor(named.getName());
-    }
 
     Configuration getConfiguration();
 

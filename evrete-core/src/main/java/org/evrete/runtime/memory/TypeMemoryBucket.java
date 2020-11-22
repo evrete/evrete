@@ -117,6 +117,7 @@ class TypeMemoryBucket implements PlainMemory {
         }
     }
 
+    //TODO !!!! optimize, we don't seem to need this method when using lazy delete
     void retract(RuntimeFact fact) {
         if (alphaMask.test(fact)) {
             data.delete(fact);

@@ -6,7 +6,6 @@ import org.evrete.runtime.memory.SessionMemory;
 import org.evrete.runtime.memory.TypeMemory;
 
 import java.util.List;
-import java.util.StringJoiner;
 import java.util.function.BooleanSupplier;
 
 public class StatefulSessionImpl extends SessionMemory implements StatefulSession {
@@ -92,9 +91,10 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
         ActionQueue<Object> memoryActions = new ActionQueue<>();
         List<RuntimeRule> agenda;
 
-        while (active && fireCriteria.getAsBoolean() && ctx.update()) {
-            ctx.doDeletions();
-            if (!(agenda = ctx.doInserts()).isEmpty()) {
+        while (active && fireCriteria.getAsBoolean() && hasActions(Action.INSERT, Action.RETRACT)) {
+            // Mark deleted facts first
+            doDeletions();
+            if (!(agenda = propagateInsertChanges()).isEmpty()) {
                 activationManager.onAgenda(ctx.incrementFireCount(), agenda);
                 memoryActions.clear();
                 for (RuntimeRule candidate : agenda) {
@@ -107,60 +107,43 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
                     }
                 }
                 // processing rule memory changes (inserts, updates, deletes)
-                appendToBuffer(memoryActions);
                 commitInserts();
+                appendToBuffer(memoryActions);
             }
         }
     }
 
     private void fireDefault(ActivationContext ctx) {
-        fireContinuous(ctx);
-/*
         ActionQueue<Object> memoryActions = new ActionQueue<>();
         List<RuntimeRule> agenda;
 
-        while (active && fireCriteria.getAsBoolean() && ctx.update()) {
-            Collection<TypeMemory> memoriesInsert = ctx.changes.get(Action.INSERT);
-            ctx.doDeletions();
-            agenda = ctx.doInserts();
-            if (!agenda.isEmpty()) {
+        while (active && fireCriteria.getAsBoolean() && hasActions(Action.INSERT, Action.RETRACT)) {
+            // Mark deleted facts first
+            doDeletions();
+            if (!(agenda = propagateInsertChanges()).isEmpty()) {
                 activationManager.onAgenda(ctx.incrementFireCount(), agenda);
                 memoryActions.clear();
-
-                boolean skipActivation = false;
                 for (RuntimeRule candidate : agenda) {
                     RuntimeRuleImpl rule = (RuntimeRuleImpl) candidate;
                     if (activationManager.test(candidate)) {
                         // Activate rule and obtain memory changes caused by its execution
-                        if (!skipActivation && rule.executeRhs(memoryActions) > 0) {
+                        if (rule.executeRhs(memoryActions) > 0) {
                             activationManager.onActivation(rule);
-
-                            if(memoryActions.hasActions(Action.INSERT, Action.UPDATE)) {
-                                // There are memory changes caused by the rule activation
-                                appendToBuffer(memoryActions);
+                            // Apply rule changes immediately
+                            appendToBuffer(memoryActions);
+                            memoryActions.clear();
+                            // Perform deletes (if any)
+                            doDeletions();
+                            if (hasActions(Action.INSERT)) {
+                                break;
                             }
-
-                            skipActivation = true;
-
                         }
                     }
-                    rule.mergeNodeDeltas();
                 }
-                // Step 4: Merging memory deltas
-                commitDeltas(memoriesInsert);
                 // processing rule memory changes (inserts, updates, deletes)
-
+                commitInserts();
             }
         }
-*/
-    }
-
-    private void reportStatus(String stage) {
-        StringJoiner s = new StringJoiner(", ");
-        typeMemories().forEachRemaining(tm -> {
-            s.add(tm.reportStatus());
-        });
-        System.out.println("\t" + stage + ": " + s);
     }
 
     private void commitInserts() {
