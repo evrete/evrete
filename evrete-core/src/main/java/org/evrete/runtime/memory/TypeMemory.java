@@ -96,7 +96,7 @@ public final class TypeMemory extends TypeMemoryBase {
 
     public void commitDeltas() {
         for (TypeMemoryBucket bucket : this.alphaBuckets.data) {
-            bucket.commitDelta();
+            bucket.commitChanges();
         }
 
         for (FieldsMemory fm : betaMemories.values()) {

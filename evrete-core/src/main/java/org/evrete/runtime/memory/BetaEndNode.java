@@ -21,7 +21,6 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
         FactType[] factTypes = nodeDescriptor.getEvalGrouping()[0];
         assert factTypes.length == nodeDescriptor.getTypes().length;
 
-        //this.oldKeysNewFacts = rule.getMemory().newKeysStore(getDescriptor().getEvalGrouping());
         this.oldKeysNewFacts = new LinkedList<>();
         for (KeyMode mode : KeyMode.values()) {
             RhsKeyIterator modeIterator;
@@ -85,9 +84,6 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
 
     @Override
     public void computeDelta(boolean deltaOnly) {
-        // Merge previous delta
-
-
         super.computeDelta(deltaOnly);
         // TODO create a single Terminal node which would keep only delta
         // Cleaning deleted items
@@ -105,7 +101,6 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
             ValueRow[] array = new ValueRow[entryNodes.length];
             this.oldKeysNewFacts.clear();
             computeOldKeysNewFacts(0, false, array);
-            //System.out.println("Computed delta " + oldKeysNewFacts);
         }
     }
 

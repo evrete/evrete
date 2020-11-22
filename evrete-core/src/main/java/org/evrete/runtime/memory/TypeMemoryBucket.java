@@ -7,8 +7,6 @@ import org.evrete.api.SharedPlainFactStorage;
 import org.evrete.runtime.PlainMemory;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
-import java.util.Collection;
-
 class TypeMemoryBucket implements PlainMemory {
     private final SharedPlainFactStorage data;
     private final SharedPlainFactStorage delta;
@@ -61,32 +59,9 @@ class TypeMemoryBucket implements PlainMemory {
 
     @Override
     public void commitChanges() {
-        int deltaSize;
-        if ((deltaSize = delta.size()) > 0) {
+        if (delta.size() > 0) {
             data.insert(delta);
-/*
-            //TODO !!!!bulk insert, change interface, use the same approach as in hot deployment
-            data.ensureExtraCapacity(deltaSize);
-            delta.iterator().forEachRemaining(data::insert);
-*/
             delta.clear();
-        }
-    }
-
-    public void commitDelta() {
-        int deltaSize;
-        if ((deltaSize = delta.size()) > 0) {
-            //TODO !!!!bulk insert, change interface, use the same approach as in hot deployment
-            data.ensureExtraCapacity(deltaSize);
-            delta.iterator().forEachRemaining(data::insert);
-            delta.clear();
-        }
-    }
-
-    void insert(Collection<RuntimeFact> facts) {
-        delta.ensureExtraCapacity(facts.size());
-        for (RuntimeFact rto : facts) {
-            insert(rto);
         }
     }
 
@@ -101,12 +76,6 @@ class TypeMemoryBucket implements PlainMemory {
     void insert(RuntimeFact fact) {
         if (alphaMask.test(fact)) {
             delta.insert(fact);
-        }
-    }
-
-    void retract(Collection<RuntimeFact> facts) {
-        for (RuntimeFact fact : facts) {
-            retract(fact);
         }
     }
 
