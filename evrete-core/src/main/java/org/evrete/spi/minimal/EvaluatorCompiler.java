@@ -102,7 +102,6 @@ class EvaluatorCompiler {
 
         String replaced = remover.unwrapLiterals(strippedExpression);
 
-
         String pkg = this.getClass().getPackage().getName() + ".compiled";
         String clazz = "Condition" + javaClassCounter.next();
         String className = pkg + "." + clazz;

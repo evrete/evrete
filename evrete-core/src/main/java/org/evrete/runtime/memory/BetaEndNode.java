@@ -11,7 +11,6 @@ import java.util.List;
 
 //TODO !!! optimize by sharing the value array and pre-built functions
 public class BetaEndNode extends BetaConditionNode implements KeyReIterators<ValueRow[]> {
-    public static final BetaEndNode[] ZERO_ARRAY = new BetaEndNode[0];
     private final List<ValueRow[]> oldKeysNewFacts;
     private final EnumMap<KeyMode, ReIterator<ValueRow[]>> keyIterators = new EnumMap<>(KeyMode.class);
     private final RuntimeFactTypeKeyed[] entryNodes;

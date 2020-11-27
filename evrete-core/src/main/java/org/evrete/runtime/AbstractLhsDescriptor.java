@@ -127,16 +127,13 @@ public abstract class AbstractLhsDescriptor {
         }
 
         // Sorting
-        evaluators.sort(new Comparator<EvaluatorGroup>() {
-            @Override
-            public int compare(EvaluatorGroup g1, EvaluatorGroup g2) {
-                int cmp = Double.compare(minMaxComplexities.get(g1), minMaxComplexities.get(g2));
-                if (cmp == 0) {
-                    // Same complexity
-                    cmp = g1.toString().compareTo(g2.toString());
-                }
-                return cmp;
+        evaluators.sort((g1, g2) -> {
+            int cmp = Double.compare(minMaxComplexities.get(g1), minMaxComplexities.get(g2));
+            if (cmp == 0) {
+                // Same complexity
+                cmp = g1.toString().compareTo(g2.toString());
             }
+            return cmp;
         });
 
         Collection<ConditionNodeDescriptor> finalNodes = ConditionNodeDescriptor.allocateConditions(betaTypes, evaluators);

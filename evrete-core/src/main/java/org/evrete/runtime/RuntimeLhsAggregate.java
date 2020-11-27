@@ -45,27 +45,6 @@ public class RuntimeLhsAggregate extends RuntimeLhs implements RhsContext {
         return aggregateConditionedGroups;
     }
 
-    @Override
-    public boolean isInActiveState() {
-        for (AbstractRuntimeLhs g : aggregateLooseGroups) {
-            g.isInActiveState();
-        }
-        for (AbstractRuntimeLhs g : aggregateConditionedGroups) {
-            g.isInActiveState();
-        }
-        return super.isInActiveState();
-    }
-
-    @Override
-    public void resetState() {
-        for (AbstractRuntimeLhs g : aggregateLooseGroups) {
-            g.resetState();
-        }
-        for (AbstractRuntimeLhs g : aggregateConditionedGroups) {
-            g.resetState();
-        }
-        super.resetState();
-    }
 
     private boolean testLooseGroups() {
         for (RuntimeAggregateLhsLoose group : aggregateLooseGroups) {

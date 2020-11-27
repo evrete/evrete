@@ -44,7 +44,6 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         }
     }
 
-
     @Override
     public Iterator<TypeMemory> iterator() {
         return typedMemories.iterator(TYPE_MEMORY_MAPPING);

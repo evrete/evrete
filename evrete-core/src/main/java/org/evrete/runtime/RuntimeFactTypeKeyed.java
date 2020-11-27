@@ -48,26 +48,6 @@ public class RuntimeFactTypeKeyed extends RuntimeFactType {
         return mappedKeyIterators;
     }
 
-    //@Override
-    public boolean isInActiveState() {
-        throw new UnsupportedOperationException();
-/*
-        return
-                keyIterators.keyIterator(NEW_KEYS_NEW_FACTS).reset() > 0
-                        ||
-                        keyIterators.keyIterator(KNOWN_KEYS_NEW_FACTS).reset() > 0;
-*/
-    }
-
-    //@Override
-    public void resetState() {
-        throw new UnsupportedOperationException();
-    }
-
-    public SharedBetaFactStorage getKeyStorage() {
-        return keyStorage;
-    }
-
     @Override
     public boolean isInsertDeltaAvailable() {
         return
@@ -75,9 +55,5 @@ public class RuntimeFactTypeKeyed extends RuntimeFactType {
                         ||
                         keyIterators.keyIterator(KNOWN_KEYS_NEW_FACTS).reset() > 0;
 
-    }
-
-    public boolean hasDeltaKeys() {
-        return isInsertDeltaAvailable();
     }
 }

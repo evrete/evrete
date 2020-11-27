@@ -22,16 +22,11 @@ public class ActionCounter {
         return false;
     }
 
-    public boolean hasAction(Action action) {
-        return this.counts[action.ordinal()] > 0;
-    }
-
     void reset() {
         for (Action action : Action.values()) {
             reset(action);
         }
     }
-
 
     void reset(Action action) {
         this.counts[action.ordinal()] = 0;

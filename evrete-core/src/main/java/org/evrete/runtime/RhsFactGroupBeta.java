@@ -105,14 +105,4 @@ public class RhsFactGroupBeta implements RhsFactGroup, KeyReIterators<ValueRow[]
     public RuntimeFactTypeKeyed[] getTypes() {
         return types;
     }
-
-    //@Override
-    public boolean isInActiveState() {
-        throw new UnsupportedOperationException();
-    }
-
-    //@Override
-    public void resetState() {
-        throw new UnsupportedOperationException();
-    }
 }

@@ -30,10 +30,6 @@ class JcCompiler {
         }
     }
 
-    public ClassLoader getClassLoader() {
-        return classLoader;
-    }
-
     private byte[] compileSourceToClassBytes(String className, String source) {
         JcFileManager<?> fileManager = JcFileManager.instance(compiler, classLoader.getParent());
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();

@@ -10,7 +10,7 @@ abstract class TypeMemoryBase extends RuntimeAware<SessionMemory> {
 
     protected ActiveField[] cachedActiveFields;
     protected AlphaEvaluator[] cachedAlphaEvaluators;
-    Type<?> type;
+    final Type<?> type;
 
 
     public TypeMemoryBase(SessionMemory runtime, Type<?> type) {

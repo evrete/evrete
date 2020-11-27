@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -307,7 +308,6 @@ class PredicatesTests {
         s.close();
     }
 
-
     @Test
     void testAlphaBeta1() {
         RhsAssert rhsAssert1 = new RhsAssert(
@@ -409,7 +409,6 @@ class PredicatesTests {
                 .reset();
     }
 
-
     @Test
     void testUniType2() {
         Set<String> collectedJoinedIds = new HashSet<>();
@@ -483,7 +482,6 @@ class PredicatesTests {
         assert collectedJoinedIds.contains("A11A7A77");
 
     }
-
 
     @Test
     void testAlpha1() {
@@ -602,5 +600,157 @@ class PredicatesTests {
                 .assertUniqueCount("$a", 5)
                 .assertUniqueCount("$b", 6)
                 .assertUniqueCount("$c", 3);
+    }
+
+    @Test
+    void testMethodInConditions1() {
+        AtomicInteger counter = new AtomicInteger(0);
+
+        StatefulSession session = knowledge
+                .newRule()
+                .forEach(
+                        "$a1", TypeA.class,
+                        "$a2", TypeA.class
+                )
+                .where("$a1.str.equals($a2.str)")
+                .execute(ctx -> {
+                    counter.incrementAndGet();
+                    TypeA a1 = ctx.get("$a1");
+                    TypeA a2 = ctx.get("$a2");
+                    assert Objects.equals(a1.getStr(), a2.getStr());
+                })
+                .createSession();
+
+        int count = 16;
+        for (int i = 0; i < count; i++) {
+            TypeA a = new TypeA("A" + i);
+            a.setStr(String.valueOf(i));
+            session.insert(a);
+        }
+
+        session.fire();
+        assert counter.get() == count;
+
+    }
+
+    @Test
+    void testMethodInConditions2() {
+        AtomicInteger counter = new AtomicInteger(0);
+
+        StatefulSession session = knowledge
+                .newRule()
+                .forEach(
+                        "$a1", TypeA.class
+                )
+                .where("!$a1.str.equals('0')")
+                .execute(ctx -> {
+                    counter.incrementAndGet();
+                    TypeA a1 = ctx.get("$a1");
+                    assert !Objects.equals(a1.getStr(), "0");
+                })
+                .createSession();
+
+        int count = 16;
+        for (int i = 0; i < count; i++) {
+            TypeA a = new TypeA("A" + i);
+            a.setStr(String.valueOf(i));
+            session.insert(a);
+        }
+
+        session.fire();
+        assert counter.get() == count - 1;
+
+    }
+
+    @Test
+    void testMethodInConditions3() {
+        AtomicInteger counter = new AtomicInteger(0);
+
+        StatefulSession session = knowledge
+                .newRule()
+                .forEach(
+                        "$a1", TypeA.class
+                )
+                .where("!\"0\".equals($a1.str)")
+                .execute(ctx -> {
+                    counter.incrementAndGet();
+                    TypeA a1 = ctx.get("$a1");
+                    assert !Objects.equals(a1.getStr(), "0");
+                })
+                .createSession();
+
+        int count = 16;
+        for (int i = 0; i < count; i++) {
+            TypeA a = new TypeA("A" + i);
+            a.setStr(String.valueOf(i));
+            session.insert(a);
+        }
+
+        session.fire();
+        assert counter.get() == count - 1;
+
+    }
+
+    @Test
+    void testMethodInConditions4() {
+        AtomicInteger counter = new AtomicInteger(0);
+
+        StatefulSession session = knowledge
+                .newRule()
+                .forEach(
+                        "$a1", TypeA.class
+                )
+                .where("!(\"\" + $a1.str).equals('0')")
+                .execute(ctx -> {
+                    counter.incrementAndGet();
+                    TypeA a1 = ctx.get("$a1");
+                    assert !Objects.equals(a1.getStr(), "0");
+                })
+                .createSession();
+
+        int count = 16;
+        for (int i = 0; i < count; i++) {
+            TypeA a = new TypeA("A" + i);
+            a.setStr(String.valueOf(i));
+            session.insert(a);
+        }
+
+        session.fire();
+        assert counter.get() == count - 1;
+
+    }
+
+    @Test
+    void testBaseConditionClass() {
+        AtomicInteger counter = new AtomicInteger(0);
+
+        StatefulSession session = knowledge
+                .newRule()
+                .forEach(
+                        "$a1", TypeA.class,
+                        "$a2", TypeA.class,
+                        "$a3", TypeA.class
+                )
+                .where("eq($a1.str, $a2.str, $a3.str)")
+                .execute(ctx -> {
+                    counter.incrementAndGet();
+                    TypeA a1 = ctx.get("$a1");
+                    TypeA a2 = ctx.get("$a2");
+                    TypeA a3 = ctx.get("$a3");
+                    assert Objects.equals(a1.getStr(), a2.getStr());
+                    assert Objects.equals(a1.getStr(), a3.getStr());
+                })
+                .createSession();
+
+        int count = 16;
+        for (int i = 0; i < count; i++) {
+            TypeA a = new TypeA("A" + i);
+            a.setStr(String.valueOf(i));
+            session.insert(a);
+        }
+
+        session.fire();
+        assert counter.get() == count;
+
     }
 }

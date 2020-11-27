@@ -7,8 +7,6 @@ import org.evrete.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 
 public abstract class AbstractRuntimeLhs {
@@ -16,7 +14,6 @@ public abstract class AbstractRuntimeLhs {
     private final Collection<BetaEndNode> endNodes = new ArrayList<>();
     private final AbstractLhsDescriptor descriptor;
     private final AbstractRuntimeLhs parent;
-    private final Map<ConditionNodeDescriptor, BetaEndNode> betaEndNodeMap = new HashMap<>();
     private final RhsFactGroup[] rhsFactGroups;
     private final RhsFactGroupAlpha alphaFactGroup;
     private final RhsFactGroupBeta[] betaFactGroups;
@@ -45,7 +42,6 @@ public abstract class AbstractRuntimeLhs {
                 if (finalNode != null) {
                     BetaEndNode endNode = new BetaEndNode(rule, finalNode);
                     endNodes.add(endNode);
-                    betaEndNodeMap.put(finalNode, endNode);
                     factGroup = new RhsFactGroupBeta(groupDescriptor, endNode, keyState, factState);
                 } else {
                     RuntimeFactTypeKeyed singleType = rule.resolve(groupDescriptor.getTypes()[0]);
@@ -62,17 +58,6 @@ public abstract class AbstractRuntimeLhs {
         this(rule, null, descriptor);
     }
 
-    //@Override
-    public boolean isInActiveState() {
-        throw new UnsupportedOperationException();
-        //return readState(rhsFactGroups);
-    }
-
-    //@Override
-    public void resetState() {
-        throw new UnsupportedOperationException();
-        //resetState(rhsFactGroups);
-    }
 
     public RhsFactGroupAlpha getAlphaFactGroup() {
         return alphaFactGroup;
@@ -95,17 +80,6 @@ public abstract class AbstractRuntimeLhs {
         return descriptor;
     }
 
-    public final BetaEndNode resolve(ConditionNodeDescriptor descriptor) {
-        AbstractRuntimeLhs current = this;
-        while (current != null) {
-            BetaEndNode node = betaEndNodeMap.get(descriptor);
-            if (node != null) {
-                return node;
-            }
-            current = current.parent;
-        }
-        throw new IllegalArgumentException("Node not found or the argument is not an end-node");
-    }
 
     Collection<BetaEndNode> getEndNodes() {
         return endNodes;

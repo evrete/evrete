@@ -38,27 +38,6 @@ final class MiscUtils {
         }
     }
 
-
-    static boolean sameDataIdentity(ValueRow[] arr1, ValueRow[] arr2) {
-        int l = arr1.length;
-        assert l == arr2.length;
-
-        for (int i = 0; i < l; i++) {
-            if (arr1[i] != arr2[i]) return false;
-        }
-        return true;
-    }
-
-    static boolean sameDataEquals(ValueRow[] arr1, ValueRow[] arr2) {
-        int l = arr1.length;
-        assert l == arr2.length;
-
-        for (int i = 0; i < l; i++) {
-            if (!arr1[i].equals(arr2[i])) return false;
-        }
-        return true;
-    }
-
     static int hash(ValueRow[] v) {
         int h = 0, i = 0;
         for (; i < v.length; i++) {
@@ -81,14 +60,6 @@ final class MiscUtils {
             h = h ^ v.apply(i).hashCode();
         }
         return h;
-    }
-
-    static boolean eqIdentity(IntToValueRow v, ValueRow[] arr) {
-        int i = 0;
-        for (; i < arr.length; i++) {
-            if (v.apply(i) != arr[i]) return false;
-        }
-        return true;
     }
 
     static boolean eqEquals(IntToValueRow v, ValueRow[] arr) {

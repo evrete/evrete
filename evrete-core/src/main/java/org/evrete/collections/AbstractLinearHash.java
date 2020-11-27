@@ -388,7 +388,7 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
 
     private class It implements ReIterator<E> {
         int pos = 0;
-        int nextIndex = -1;
+        int nextIndex;
         int currentIndex = -1;
 
         private It() {

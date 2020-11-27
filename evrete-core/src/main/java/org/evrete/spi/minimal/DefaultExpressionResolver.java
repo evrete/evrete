@@ -2,6 +2,7 @@ package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
 import org.evrete.runtime.builder.FieldReference;
+import org.evrete.util.BaseConditionClass;
 import org.evrete.util.NextIntSupplier;
 
 import java.util.ArrayList;
@@ -20,7 +21,7 @@ class DefaultExpressionResolver implements ExpressionResolver {
 
     DefaultExpressionResolver(RuntimeContext<?> requester) {
         this.evaluatorCompiler = new EvaluatorCompiler(requester.getClassLoader());
-        this.conditionBaseClassName = requester.getConfiguration().getProperty(BASE_CLASS_PROPERTY, Object.class.getName());
+        this.conditionBaseClassName = requester.getConfiguration().getProperty(BASE_CLASS_PROPERTY, BaseConditionClass.class.getName());
     }
 
     @Override
@@ -53,35 +54,23 @@ class DefaultExpressionResolver implements ExpressionResolver {
     public synchronized Evaluator buildExpression(String rawExpression, Function<String, NamedType> resolver) {
         StringLiteralRemover remover = StringLiteralRemover.of(rawExpression);
         String strippedExpression = remover.getConverted();
-
         Matcher m = REFERENCE_PATTERN.matcher(strippedExpression);
         List<ConditionStringTerm> terms = new ArrayList<>();
-        //Map<Term, JavaSourceFieldReference> resolvedExpressions = new HashMap<>();
+
         NextIntSupplier fieldCounter = new NextIntSupplier();
         while (m.find()) {
-            int matcherEnd = m.end();
-
-            int start, end;
-
-            start = m.start();
-            if (matcherEnd == strippedExpression.length()) {
-                end = matcherEnd;
-            } else {
-                char next = strippedExpression.charAt(matcherEnd);
-                if (next == '(') {
-                    // Match is a method
-                    end = strippedExpression.lastIndexOf('.');
-                    if (end < 0) throw new IllegalStateException("Something went wrong");
-                } else {
-                    end = matcherEnd;
-                }
+            int start = m.start(), end = m.end(), actualEnd = end;
+            if (end < strippedExpression.length() && strippedExpression.charAt(end) == '(') {
+                // The last group is a method call that needs to be effectively stripped off
+                // by moving the actualEnd to the rightmost dot
+                actualEnd = strippedExpression.substring(start, end).lastIndexOf('.') + start;
             }
 
-            String s = strippedExpression.substring(start, end);
+            String s = strippedExpression.substring(start, actualEnd);
             FieldReference fieldReference = resolve(s, resolver);
 
 
-            ConditionStringTerm t = new ConditionStringTerm(start, end, fieldReference, fieldCounter);
+            ConditionStringTerm t = new ConditionStringTerm(start, actualEnd, fieldReference, fieldCounter);
             terms.add(t);
         }
 

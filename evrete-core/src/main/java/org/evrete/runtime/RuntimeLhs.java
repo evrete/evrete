@@ -41,9 +41,11 @@ public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContex
         return rule;
     }
 
+/*
     protected void addEndNodes(Collection<BetaEndNode> endNodes) {
         this.allBetaEndNodes.addAll(endNodes);
     }
+*/
 
     public abstract Collection<RuntimeAggregateLhsJoined> getAggregateConditionedGroups();
 
@@ -65,7 +67,7 @@ public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContex
     }
 
     @Override
-    //TODO check if fact fields have _really_ changed
+    //TODO check if field values have _really_ changed
     public final RhsContext update(Object obj) {
         buffer.add(Action.UPDATE, obj);
         return this;
