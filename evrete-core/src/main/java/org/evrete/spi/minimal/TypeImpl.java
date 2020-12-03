@@ -13,6 +13,7 @@ import java.util.*;
 import java.util.function.Function;
 
 class TypeImpl<T> implements Type<T> {
+    static final String THIS_FIELD_NAME = "this";
     private final String name;
     private final Class<T> javaType;
     private final Map<String, TypeFieldImpl> fields = new HashMap<>();
@@ -22,6 +23,10 @@ class TypeImpl<T> implements Type<T> {
         Objects.requireNonNull(javaType);
         this.javaType = javaType;
         this.name = name;
+
+
+        this.fields.put(THIS_FIELD_NAME, new TypeFieldImpl(this, name, javaType, o -> o));
+
     }
 
     private TypeImpl(TypeImpl<T> other) {
@@ -115,15 +120,6 @@ class TypeImpl<T> implements Type<T> {
         return field;
     }
 
-/*
-    @Override
-    @SuppressWarnings("unchecked")
-    public TypeField declareField(String name, Class<?> type, String lambdaExpression) {
-        Function<T, Object> function = (Function<T, Object>) compiler.compileLambda(this, lambdaExpression);
-        return declareField(name, type, function);
-    }
-*/
-
     @Override
     @SuppressWarnings("unchecked")
     public TypeField declareField(String name, Class<?> type, Function<T, Object> function) {
@@ -163,15 +159,15 @@ class TypeImpl<T> implements Type<T> {
     }
 
     private TypeField inspectClass(String dottedProp) {
-        Class<?> currentClass = javaType;
         String[] parts = dottedProp.split("\\.");
         ArrayOf<ValueReader> getters = new ArrayOf<>(ValueReader.class);
 
         MethodHandles.Lookup lookup = MethodHandles.lookup();
 
-        Class<?> valueType = currentClass;
+        Class<?> valueType = javaType;
         for (String part : parts) {
-            ValueReader reader = resolve(lookup, currentClass, part);
+            Const.assertName(part);
+            ValueReader reader = resolve(lookup, valueType, part);
             if (reader == null) {
                 return null;
             } else {
@@ -188,7 +184,6 @@ class TypeImpl<T> implements Type<T> {
 
         return getCreateField(dottedProp, valueType, func);
     }
-
 
     private enum MethodMeta {
         DEFAULT("get", true, false),

@@ -283,6 +283,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
     public TypeMemory get(Type<?> t) {
         TypeMemory m = typedMemories.get(t);
         if (m == null) {
+            // TODO !!!! touch TypeMemory if a corresponding type has been explicitly declared in TypeResolver
             throw new IllegalArgumentException("No type memory created for " + t);
         } else {
             return m;

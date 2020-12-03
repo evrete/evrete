@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 class DefaultExpressionResolver implements ExpressionResolver {
     private static final String BASE_CLASS_PROPERTY = "org.evrete.minimal.condition-base-class";
 
-    private static final Pattern REFERENCE_PATTERN = Pattern.compile("\\$[a-zA-Z0-9]+(\\.[a-zA-Z][a-zA-Z0-9]*)+");
+    private static final Pattern REFERENCE_PATTERN = Pattern.compile("\\$[a-zA-Z0-9]+(\\.[a-zA-Z][a-zA-Z0-9]*)*");
 
     private final EvaluatorCompiler evaluatorCompiler;
     private final String conditionBaseClassName;
@@ -25,27 +25,42 @@ class DefaultExpressionResolver implements ExpressionResolver {
     }
 
     @Override
-    public FieldReference resolve(String s, Function<String, NamedType> resolver) {
-        int firstDot = s.indexOf('.');
-        if (firstDot < 0) {
-            throw new IllegalArgumentException("No field detected in '" + s + "'. The minimal implementation expects type and field, e.g. '$a.customer.id'");
-        }
-
-        String lhsFactTYpe = s.substring(0, firstDot);
-        String dottedProp = s.substring(firstDot + 1);
-        Const.assertName(dottedProp);
-        Const.assertName(lhsFactTYpe.substring(1));
-
+    public FieldReference resolve(String var, Function<String, NamedType> resolver) {
+        Type<?> type;
+        TypeField field;
         NamedType typeRef;
-        if ((typeRef = resolver.apply(lhsFactTYpe)) == null) {
-            throw new IllegalArgumentException("There's no declared reference '" + lhsFactTYpe + "' in provided context.");
+
+        int firstDot = var.indexOf('.');
+        if (firstDot < 0) {
+            // Var references type
+            if ((typeRef = resolver.apply(var)) == null) {
+                throw new IllegalArgumentException("There's no declared reference '" + var + "' in provided context.");
+            }
+
+            type = typeRef.getType();
+
+            field = type.getField(TypeImpl.THIS_FIELD_NAME);
+            if (field == null) {
+                throw new IllegalArgumentException("Type implementation doesn't support default 'this' field for " + type + ". As a workaround, use a specific type field in your expression rather than referencing the whole type.");
+            }
+        } else {
+            // Var references field
+            String lhsFactType = var.substring(0, firstDot);
+            String dottedProp = var.substring(firstDot + 1);
+            Const.assertName(dottedProp);
+            Const.assertName(lhsFactType.substring(1));
+
+            if ((typeRef = resolver.apply(lhsFactType)) == null) {
+                throw new IllegalArgumentException("There's no declared reference '" + lhsFactType + "' in provided context.");
+            }
+
+            type = typeRef.getType();
+            field = type.getField(dottedProp);
+            if (field == null) {
+                throw new IllegalArgumentException("Unable to resolve property '" + dottedProp + "' of the type " + type);
+            }
         }
 
-        Type<?> type = typeRef.getType();
-        TypeField field = type.getField(dottedProp);
-        if (field == null) {
-            throw new IllegalArgumentException("Unable to resolve property '" + dottedProp + "' of the type " + type);
-        }
 
         return new FieldReferenceImpl(typeRef, field);
     }

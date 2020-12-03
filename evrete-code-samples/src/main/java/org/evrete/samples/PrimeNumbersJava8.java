@@ -17,9 +17,7 @@ class PrimeNumbersJava8 {
                 )
                 .where(
                         PrimeNumbersJava8::test,
-                        "$i1.intValue",
-                        "$i2.intValue",
-                        "$i3.intValue")
+                        "$i1", "$i2", "$i3")
                 .execute() // No RHS
                 .createSession();
 

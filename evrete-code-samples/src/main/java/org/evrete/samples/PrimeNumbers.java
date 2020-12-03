@@ -15,7 +15,7 @@ class PrimeNumbers {
                         "$i2", Integer.class,
                         "$i3", Integer.class
                 )
-                .where("$i1.intValue * $i2.intValue == $i3.intValue")
+                .where("$i1 * $i2 == $i3")
                 .execute(
                         ctx -> {
                             int $i3 = ctx.get("$i3");

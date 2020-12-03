@@ -42,7 +42,7 @@ public interface WorkingMemory {
 
     <T> void forEachMemoryObject(String type, Consumer<T> consumer);
 
-    default <T> void forEachMemoryObject(Class<?> type, Consumer<T> consumer) {
+    default <T> void forEachMemoryObject(Class<T> type, Consumer<T> consumer) {
         forEachMemoryObject(type.getName(), consumer);
     }
 
