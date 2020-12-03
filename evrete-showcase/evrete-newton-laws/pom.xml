@@ -5,12 +5,12 @@
     <parent>
         <artifactId>evrete-showcase</artifactId>
         <groupId>org.evrete</groupId>
-        <version>1.2.04-SNAPSHOT</version>
+        <version>1.2.05-SNAPSHOT</version>
     </parent>
 
     <packaging>war</packaging>
     <name>evrete-newton-laws</name>
-    <version>1.2.04-SNAPSHOT</version>
+    <version>1.2.05-SNAPSHOT</version>
 
     <build>
         <plugins>
@@ -21,7 +21,7 @@
         <dependency>
             <groupId>org.evrete</groupId>
             <artifactId>showcase-shared</artifactId>
-            <version>1.2.04-SNAPSHOT</version>
+            <version>1.2.05-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>

@@ -5,12 +5,12 @@
     <parent>
         <artifactId>evrete</artifactId>
         <groupId>org.evrete</groupId>
-        <version>1.2.04-SNAPSHOT</version>
+        <version>1.2.05-SNAPSHOT</version>
     </parent>
 
     <packaging>pom</packaging>
     <name>evrete-code-samples</name>
-    <version>1.2.04-SNAPSHOT</version>
+    <version>1.2.05-SNAPSHOT</version>
 
     <build>
         <plugins>
@@ -21,7 +21,7 @@
         <dependency>
             <groupId>org.evrete</groupId>
             <artifactId>evrete-core</artifactId>
-            <version>1.2.04-SNAPSHOT</version>
+            <version>1.2.05-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>
