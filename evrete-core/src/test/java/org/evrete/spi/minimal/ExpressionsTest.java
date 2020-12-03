@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 class ExpressionsTest {
@@ -65,13 +66,44 @@ class ExpressionsTest {
     void test2() {
         LhsBuilder<Knowledge> root = rule.forEach();
         assert root.buildLhs("$a", TypeA.class).getVar().equals("$a");
-        //Evaluator ev1 = rule.getOutputGroup().compile("$a.i == 1");
         Evaluator ev1 = knowledge.compile("$a.i == 1", root.getFactTypeMapper());
-
-        //Evaluator ev2 = rule.getOutputGroup().compile(" $a.i ==     1   ");
         Evaluator ev2 = knowledge.compile("   $a.i ==     1     ", root.getFactTypeMapper());
         assert ev1.compare(ev2) == LogicallyComparable.RELATION_EQUALS;
     }
 
+    @Test
+    void testNestedFields() {
+        AtomicInteger counter = new AtomicInteger(0);
+        StatefulSession session = rule
+                .forEach("$o", Nested.class)
+                .where("$o.parent.parent.id > 0")
+                .where("$o.id > 2")
+                .execute(ctx -> counter.incrementAndGet())
+                .createSession();
+
+
+        Nested level1 = new Nested(10);
+        Nested level2 = new Nested(level1, 10);
+        Nested level3_1 = new Nested(level2, 5);
+        Nested level3_2 = new Nested(level2, 1);
+
+        session.insertAndFire(level3_1, level3_2);
+
+        assert counter.get() == 1 : "Actual: " + counter.get();
+    }
+
+    public static class Nested {
+        public final Nested parent;
+        public final int id;
+
+        public Nested(Nested parent, int id) {
+            this.parent = parent;
+            this.id = id;
+        }
+
+        public Nested(int id) {
+            this(null, id);
+        }
+    }
 
 }
