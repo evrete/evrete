@@ -29,7 +29,7 @@ public class MapFunction<K, V> implements Function<K, V> {
 
     public void putNew(K key, V value) {
         if (map.put(key, value) != null) {
-            throw new IllegalStateException();
+            throw new IllegalStateException("Key " + key + " is already associated with a value.");
         }
     }
 
@@ -41,7 +41,7 @@ public class MapFunction<K, V> implements Function<K, V> {
     public V apply(K k) {
         V found = map.get(k);
         if (found == null) {
-            throw new IllegalStateException();
+            throw new IllegalArgumentException("No data can be found for key " + k);
         } else {
             return found;
         }

@@ -10,4 +10,8 @@ import java.util.function.IntFunction;
 @FunctionalInterface
 public interface IntToValue extends IntFunction<Object> {
 
+    @SuppressWarnings("unchecked")
+    default <Z> Z cast(int value) {
+        return (Z) apply(value);
+    }
 }
