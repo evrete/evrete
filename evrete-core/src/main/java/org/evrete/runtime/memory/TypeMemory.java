@@ -227,8 +227,7 @@ public final class TypeMemory extends TypeMemoryBase {
         if (cachedAlphaEvaluators.length > 0) {
             boolean[] alphaTests = new boolean[cachedAlphaEvaluators.length];
             for (AlphaEvaluator alpha : cachedAlphaEvaluators) {
-                int fieldInUseIndex = alpha.getValueIndex();
-                alphaTests[alpha.getUniqueId()] = alpha.test(values[fieldInUseIndex]);
+                alphaTests[alpha.getUniqueId()] = alpha.test(values);
             }
             return RuntimeFactImpl.factory(o, values, alphaTests);
         } else {

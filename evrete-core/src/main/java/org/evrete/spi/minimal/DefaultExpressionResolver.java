@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 class DefaultExpressionResolver implements ExpressionResolver {
     private static final String BASE_CLASS_PROPERTY = "org.evrete.minimal.condition-base-class";
 
-    private static final Pattern REFERENCE_PATTERN = Pattern.compile("\\$[a-zA-Z0-9]+(\\.[a-zA-Z][a-zA-Z0-9]*)*");
+    private static final Pattern REFERENCE_PATTERN = Pattern.compile("\\$[a-zA-Z0-9]+(\\.[_a-zA-Z][_a-zA-Z0-9]*)*");
 
     private final EvaluatorCompiler evaluatorCompiler;
     private final String conditionBaseClassName;

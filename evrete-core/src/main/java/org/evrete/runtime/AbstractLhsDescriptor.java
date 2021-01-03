@@ -10,6 +10,7 @@ import org.evrete.util.MapFunction;
 import org.evrete.util.NextIntSupplier;
 
 import java.util.*;
+import java.util.function.ToDoubleFunction;
 
 /**
  * Descriptor for LHS of a rule. Each LHS consists of beta-graphs
@@ -127,104 +128,14 @@ public abstract class AbstractLhsDescriptor {
         }
 
         // Sorting
-        evaluators.sort((g1, g2) -> {
-            int cmp = Double.compare(minMaxComplexities.get(g1), minMaxComplexities.get(g2));
-            if (cmp == 0) {
-                // Same complexity
-                cmp = g1.toString().compareTo(g2.toString());
-            }
-            return cmp;
-        });
+        // Same complexity
+        evaluators.sort(Comparator.comparingDouble((ToDoubleFunction<EvaluatorGroup>) minMaxComplexities::get).thenComparing(EvaluatorGroup::toString));
 
         Collection<ConditionNodeDescriptor> finalNodes = ConditionNodeDescriptor.allocateConditions(betaTypes, evaluators);
         return finalNodes.toArray(ConditionNodeDescriptor.ZERO_ARRAY);
 
 
-/*
-        // Group conditions by var count
-        TreeMap<Integer, List<EvaluatorGroup>> grouped = new TreeMap<>();
-        for (EvaluatorGroup e : evaluators) {
-            int count = e.descriptor().size();
-            grouped.computeIfAbsent(count, k -> new ArrayList<>()).add(e);
-        }
-
-        // Create permutation for each level
-        TreeMap<Integer, List<List<EvaluatorGroup>>> groupedPermutations = new TreeMap<>();
-        for (Map.Entry<Integer, List<EvaluatorGroup>> entry : grouped.entrySet()) {
-            groupedPermutations.put(entry.getKey(), CollectionUtils.permutation(entry.getValue()));
-        }
-
-        List<Map<Integer, List<EvaluatorGroup>>> allCombinations = CollectionUtils.combinations(groupedPermutations, TreeMap::new);
-
-
-        List<List<EvaluatorGroup>> flatPermutations = new LinkedList<>();
-        for (Map<Integer, List<EvaluatorGroup>> map : allCombinations) {
-            //Flatten the map
-            List<EvaluatorGroup> l = new LinkedList<>();
-            for (Integer count : map.keySet()) {
-                l.addAll(map.get(count));
-            }
-            flatPermutations.add(l);
-        }
-
-
-        Collection<ConditionNodeDescriptor> best = null;
-        double min = Double.MAX_VALUE;
-
-        for (List<EvaluatorGroup> list : flatPermutations) {
-            Collection<ConditionNodeDescriptor> finalNodes = ConditionNodeDescriptor.allocateConditions(betaTypes, list);
-
-            double complexity = 0.0;
-            for (ConditionNodeDescriptor cnd : finalNodes) {
-                complexity += complexity(cnd);
-            }
-
-            if (complexity < min) {
-                min = complexity;
-                best = finalNodes;
-            }
-        }
-        assert best != null;
-        return best.toArray(ConditionNodeDescriptor.ZERO_ARRAY);
-*/
     }
-
-/*
-    private static double complexity(ConditionNodeDescriptor node) {
-        NodeDescriptor[] sources = node.getSources();
-        double[] distances = new double[sources.length];
-        double sum = 0.0;
-        for (int i = 0; i < sources.length; i++) {
-            double d = distanceToEntryNode(sources[i]);
-            distances[i] = d;
-            sum += d;
-        }
-        double avg = sum / sources.length;
-
-        double deviation = 0.0;
-        for (double distance : distances) {
-            deviation += Math.pow(distance - avg, 2);
-        }
-        return avg * (1.0 + deviation);
-    }
-*/
-
-/*
-    private static double distanceToEntryNode(NodeDescriptor node) {
-        double distance = 0.0;
-        if (node.isConditionNode()) {
-            for (NodeDescriptor source : node.getSources()) {
-                if (source.isConditionNode()) {
-                    distance += 1.0 + distanceToEntryNode(source);
-                } else {
-                    distance += 1.0;
-                }
-            }
-            distance = distance / node.getSources().length;
-        }
-        return distance;
-    }
-*/
 
     MapFunction<String, int[]> getNameIndices() {
         return nameIndices;

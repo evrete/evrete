@@ -226,6 +226,14 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         return activeFields.getCreate(field, this::onNewActiveField);
     }
 
+    public ActiveField[] getCreateActiveFields(TypeField[] fields) {
+        ActiveField[] activeFields = new ActiveField[fields.length];
+        for (int i = 0; i < fields.length; i++) {
+            activeFields[i] = getCreateActiveField(fields[i]);
+        }
+        return activeFields;
+    }
+
     public ActiveField[] getActiveFields(Type<?> type) {
         return activeFields.getActiveFields(type);
     }

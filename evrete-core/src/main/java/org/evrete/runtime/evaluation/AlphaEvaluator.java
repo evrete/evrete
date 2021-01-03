@@ -3,25 +3,28 @@ package org.evrete.runtime.evaluation;
 import org.evrete.api.ActiveField;
 import org.evrete.api.Evaluator;
 import org.evrete.api.LogicallyComparable;
-import org.evrete.runtime.builder.FieldReference;
 
 import java.util.function.Predicate;
 
-public class AlphaEvaluator implements LogicallyComparable, Predicate<Object> {
+public class AlphaEvaluator implements LogicallyComparable, Predicate<Object[]> {
     private final Evaluator delegate;
     private final int uniqueId;
-    private final int valueIndex;
+    private final int[] valueIndices;
 
-    AlphaEvaluator(int uniqueId, Evaluator e, ActiveField field) {
+    AlphaEvaluator(int uniqueId, Evaluator e, ActiveField[] fields) {
         this.uniqueId = uniqueId;
         this.delegate = e;
-        this.valueIndex = field.getValueIndex();
-        FieldReference[] descriptor = e.descriptor();
-        if (descriptor.length != 1) throw new IllegalStateException();
+
+        assert e.descriptor().length == fields.length;
+
+        this.valueIndices = new int[fields.length];
+        for (int i = 0; i < fields.length; i++) {
+            this.valueIndices[i] = fields[i].getValueIndex();
+        }
     }
 
-    public int getValueIndex() {
-        return valueIndex;
+    public int[] getValueIndices() {
+        return valueIndices;
     }
 
     @Override
@@ -39,8 +42,8 @@ public class AlphaEvaluator implements LogicallyComparable, Predicate<Object> {
     }
 
     @Override
-    public boolean test(Object o) {
-        return delegate.test(value -> o);
+    public boolean test(Object[] values) {
+        return delegate.test(value -> values[valueIndices[value]]);
     }
 
     public int getUniqueId() {

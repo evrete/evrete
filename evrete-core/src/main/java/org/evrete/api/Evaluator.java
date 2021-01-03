@@ -9,4 +9,5 @@ public interface Evaluator extends ValuesPredicate, LogicallyComparable, Complex
      * @return fields in correct order
      */
     FieldReference[] descriptor();
+
 }

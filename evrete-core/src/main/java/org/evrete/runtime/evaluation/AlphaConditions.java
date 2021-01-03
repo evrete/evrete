@@ -3,6 +3,7 @@ package org.evrete.runtime.evaluation;
 import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.AbstractRuntime;
+import org.evrete.runtime.builder.FieldReference;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -68,6 +69,24 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
                 '}';
     }
 
+    private static TypeField[] map(FieldReference[] descriptor) {
+        TypeField[] fields = new TypeField[descriptor.length];
+        for (int i = 0; i < descriptor.length; i++) {
+            fields[i] = descriptor[i].field();
+        }
+        return fields;
+    }
+
+    private static class EvaluationSide {
+        private final AlphaEvaluator condition;
+        private final boolean direct;
+
+        EvaluationSide(AlphaEvaluator condition, boolean direct) {
+            this.condition = condition;
+            this.direct = direct;
+        }
+    }
+
     private AlphaMeta createAlphaMask(AbstractRuntime<?> runtime, Type<?> t, Set<Evaluator> typePredicates, Consumer<AlphaEvaluator> listener) {
         ArrayOf<AlphaEvaluator> existing = alphaPredicates.computeIfAbsent(t, k -> new ArrayOf<>(new AlphaEvaluator[0]));
         List<EvaluationSide> mapping = new LinkedList<>();
@@ -96,8 +115,8 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
 
             if (found == null) {
                 //Unknown condition
-                TypeField field = alphaPredicate.descriptor()[0].field();
-                found = new AlphaEvaluator(existing.data.length, alphaPredicate, runtime.getCreateActiveField(field));
+                TypeField[] fields = map(alphaPredicate.descriptor());
+                found = new AlphaEvaluator(existing.data.length, alphaPredicate, runtime.getCreateActiveFields(fields));
                 existing.append(found);
                 listener.accept(found);
             }
@@ -118,16 +137,6 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
 
         Arrays.sort(alphaEvaluators, Comparator.comparingInt(AlphaEvaluator::getUniqueId));
         return new AlphaMeta(validValues, alphaEvaluators);
-    }
-
-    private static class EvaluationSide {
-        private final AlphaEvaluator condition;
-        private final boolean direct;
-
-        EvaluationSide(AlphaEvaluator condition, boolean direct) {
-            this.condition = condition;
-            this.direct = direct;
-        }
     }
 
     private static class FieldAlphas implements Copyable<FieldAlphas> {

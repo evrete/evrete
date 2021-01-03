@@ -4,6 +4,7 @@ import org.evrete.api.*;
 
 import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.Objects;
 import java.util.function.BiPredicate;
 
 class SharedBetaData implements SharedBetaFactStorage {
@@ -66,7 +67,7 @@ class SharedBetaData implements SharedBetaFactStorage {
     private int hash(FieldToValue key) {
         int hash = 0;
         for (int i = 0; i < fields.length; i++) {
-            hash ^= (reusableValueArr[i] = key.apply(fields[i])).hashCode();
+            hash ^= Objects.hashCode(reusableValueArr[i] = key.apply(fields[i]));
         }
         return hash;
     }

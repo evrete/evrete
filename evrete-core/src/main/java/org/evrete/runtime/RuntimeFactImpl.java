@@ -74,8 +74,7 @@ public final class RuntimeFactImpl implements RuntimeFact {
             int newIndex = currentSize + i;
             AlphaEvaluator newEvaluator = newEvaluators[i];
             assert newIndex == newEvaluator.getUniqueId();
-            Object fieldValue = values[newEvaluator.getValueIndex()];
-            this.alphaTests[newIndex] = newEvaluator.test(fieldValue);
+            this.alphaTests[newIndex] = newEvaluator.test(this.values);
         }
     }
 

@@ -7,6 +7,7 @@ import org.evrete.util.MapOfSet;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends AbstractLhsBuilder<C, ?>> {
     private final RuleBuilderImpl<C> ruleBuilder;
@@ -226,10 +227,11 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
 
         private void addCondition(Evaluator expression) {
             FieldReference[] descriptor = expression.descriptor();
+            Set<NamedType> involvedTypes = Arrays.stream(descriptor).map(FieldReference::type).collect(Collectors.toSet());
 
-            if (descriptor.length == 1) {
+            if (involvedTypes.size() == 1) {
                 // Alpha condition
-                NamedType type = descriptor[0].type();
+                NamedType type = involvedTypes.iterator().next();
                 this.alphaConditions.add(type, expression);
             } else {
                 // Beta condition
