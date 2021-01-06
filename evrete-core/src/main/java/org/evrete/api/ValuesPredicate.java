@@ -10,4 +10,7 @@ import java.util.function.Predicate;
 @FunctionalInterface
 public interface ValuesPredicate extends Predicate<IntToValue> {
 
+    default boolean test(final Object[] array) {
+        return test(IntToValue.of(array));
+    }
 }

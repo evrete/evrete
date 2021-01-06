@@ -188,9 +188,8 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         if (tm == null) {
             tm = new TypeMemory(this, t);
             typedMemories.put(t, tm);
-        } else {
-            tm.onNewActiveField(newField);
         }
+        tm.onNewActiveField(newField);
     }
 
     @Override

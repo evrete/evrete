@@ -11,23 +11,23 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class ActiveFields implements Copyable<ActiveFields> {
-    private final Map<Type<?>, TypeData> typeData = new HashMap<>();
+    private final Map<String, TypeData> typeData = new HashMap<>();
 
     public ActiveFields() {
     }
 
     private ActiveFields(ActiveFields other) {
-        for (Map.Entry<Type<?>, TypeData> entry : other.typeData.entrySet()) {
+        for (Map.Entry<String, TypeData> entry : other.typeData.entrySet()) {
             this.typeData.put(entry.getKey(), entry.getValue().copyOf());
         }
     }
 
     public synchronized ActiveField getCreate(TypeField field, Consumer<ActiveField> listener) {
-        return typeData.computeIfAbsent(field.getDeclaringType(), v -> new TypeData()).getCreate(field, listener);
+        return typeData.computeIfAbsent(field.getDeclaringType().getName(), v -> new TypeData()).getCreate(field, listener);
     }
 
     public ActiveField[] getActiveFields(Type<?> t) {
-        TypeData d = typeData.get(t);
+        TypeData d = typeData.get(t.getName());
         return d == null ? ActiveField.ZERO_ARRAY : d.fieldsInUse;
     }
 
@@ -53,9 +53,9 @@ public class ActiveFields implements Copyable<ActiveFields> {
             this.fieldsInUse = Arrays.copyOf(other.fieldsInUse, other.fieldsInUse.length);
         }
 
-        ActiveField getCreate(TypeField field, Consumer<ActiveField> listener) {
+        private ActiveField getCreate(TypeField field, Consumer<ActiveField> listener) {
             for (ActiveField af : fieldsInUse) {
-                if (af.getDelegate().equals(field)) {
+                if (af.getDelegate().getName().equals(field.getName())) {
                     return af;
                 }
             }

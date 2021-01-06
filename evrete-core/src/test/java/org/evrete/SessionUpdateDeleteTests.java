@@ -232,9 +232,6 @@ class SessionUpdateDeleteTests {
     void updateBeta2(ActivationMode mode) {
         AtomicInteger counter = new AtomicInteger();
 
-        knowledge.addConditionTestListener((node, evaluator, values, result) -> {
-        });
-
         knowledge.newRule("update2")
                 .forEach(
                         fact("$a", TypeA.class),

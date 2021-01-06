@@ -2,7 +2,6 @@ package org.evrete.api;
 
 import org.evrete.Configuration;
 import org.evrete.runtime.RuleDescriptor;
-import org.evrete.runtime.RuntimeListeners;
 
 import java.util.Comparator;
 
@@ -28,8 +27,6 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
     RuntimeContext<?> getParentContext();
 
     void wrapTypeResolver(TypeResolverWrapper wrapper);
-
-    RuntimeListeners getListeners();
 
     C setActivationMode(ActivationMode agendaMode);
 

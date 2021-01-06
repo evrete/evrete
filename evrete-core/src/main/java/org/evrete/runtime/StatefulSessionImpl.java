@@ -146,11 +146,4 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
     private void commitInserts() {
         typeMemories().forEachRemaining(TypeMemory::commitDeltas);
     }
-
-
-    @Override
-    //TODO enable support
-    public void addConditionTestListener(EvaluationListener listener) {
-        throw new UnsupportedOperationException("Currently unsupported for session instances, use knowledge instances instead.");
-    }
 }

@@ -21,7 +21,6 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     private final List<RuleBuilder<C>> ruleBuilders = new ArrayList<>();
     private final List<RuleDescriptor> ruleDescriptors;
     private final AtomicInteger ruleCounter;
-    private final RuntimeListeners listeners;
 
     private final Set<String> imports;
 
@@ -49,7 +48,6 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         this.ruleCounter = new AtomicInteger();
         this.alphaConditions = new AlphaConditions();
         this.ruleDescriptors = new ArrayList<>();
-        this.listeners = new RuntimeListeners();
         this.service = service;
         this.activeFields = new ActiveFields();
         this.activationManagerFactory = UnconditionalActivationManager.class;
@@ -70,7 +68,6 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         this.alphaConditions = parent.alphaConditions.copyOf();
         this.ruleDescriptors = new ArrayList<>(parent.ruleDescriptors);
         this.service = parent.service;
-        this.listeners = parent.listeners.copyOf();
         this.activeFields = parent.activeFields.copyOf();
         this.ruleComparator = parent.ruleComparator;
         this.activationManagerFactory = parent.activationManagerFactory;
@@ -90,6 +87,16 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     public RuntimeContext<?> addImport(String imp) {
         this.imports.add(imp);
         return this;
+    }
+
+    @Override
+    public void addListener(EvaluationListener listener) {
+        this.alphaConditions.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(EvaluationListener listener) {
+        this.alphaConditions.removeListener(listener);
     }
 
     public ActivationMode getAgendaMode() {
@@ -242,11 +249,6 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         return alphaConditions.register(this, fields, beta, typePredicates, this::onNewAlphaBucket);
     }
 
-    @Override
-    public RuntimeListeners getListeners() {
-        return listeners;
-    }
-
     public List<RuleDescriptor> getRuleDescriptors() {
         return ruleDescriptors;
     }
@@ -333,11 +335,6 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
 
     public ExpressionResolver getExpressionResolver() {
         return expressionResolver.get();
-    }
-
-    @Override
-    public void addConditionTestListener(EvaluationListener listener) {
-        listeners.addConditionTestListener(listener);
     }
 
     static class UnconditionalActivationManager implements ActivationManager {

@@ -4,7 +4,6 @@ import org.evrete.api.*;
 import org.evrete.runtime.ConditionNodeDescriptor;
 import org.evrete.runtime.FactType;
 import org.evrete.runtime.FactTypeField;
-import org.evrete.runtime.RuntimeListeners;
 import org.evrete.runtime.evaluation.EvaluatorGroup;
 import org.evrete.runtime.evaluation.EvaluatorInternal;
 
@@ -22,8 +21,6 @@ public class NodeIterationState implements NodeIterationStateFactory.State {
     public NodeIterationState(BetaConditionNode node, int[][][] locationData) {
         BetaMemoryNode<?>[] sources = node.getSources();
 
-
-        RuntimeListeners listeners = node.getRuntime().getListeners();
 
         this.nonPlainIndices = node.getNonPlainSourceIndices();
         if (nonPlainIndices.length == 0) {
@@ -46,14 +43,7 @@ public class NodeIterationState implements NodeIterationStateFactory.State {
 
         this.evaluators = new EvaluatorDelegate[delegates.length];
         for (int i = 0; i < evaluators.length; i++) {
-            EvaluatorDelegate delegate;
-            if (listeners.containsConditionTestListener()) {
-                delegate = new Verbose(delegates[i], state[0], node, listeners);
-            } else {
-                delegate = new Muted(delegates[i], state[0], node);
-            }
-
-            this.evaluators[i] = delegate;
+            this.evaluators[i] = new EvaluatorDelegate(delegates[i], state[0], node);
         }
 
     }
@@ -124,7 +114,7 @@ public class NodeIterationState implements NodeIterationStateFactory.State {
         }
     }
 
-    private abstract static class EvaluatorDelegate {
+    private final static class EvaluatorDelegate {
         final EvaluatorInternal evaluator;
         final IntToValue mappedValues;
         final ValueSupplier[] values;
@@ -150,7 +140,10 @@ public class NodeIterationState implements NodeIterationStateFactory.State {
             this.mappedValues = refId -> values[refId].get();
         }
 
-        abstract boolean test();
+
+        boolean test() {
+            return evaluator.test(mappedValues);
+        }
 
         @Override
         public String toString() {
@@ -160,34 +153,6 @@ public class NodeIterationState implements NodeIterationStateFactory.State {
         }
     }
 
-
-    private static class Muted extends EvaluatorDelegate {
-        Muted(EvaluatorInternal evaluator, KeysStore.Entry[] state, BetaConditionNode node) {
-            super(evaluator, state, node);
-        }
-
-        @Override
-        boolean test() {
-            return evaluator.test(mappedValues);
-        }
-
-    }
-
-    private static class Verbose extends EvaluatorDelegate {
-        private final RuntimeListeners listeners;
-
-        Verbose(EvaluatorInternal evaluator, KeysStore.Entry[] state, BetaConditionNode node, RuntimeListeners listeners) {
-            super(evaluator, state, node);
-            this.listeners = listeners;
-        }
-
-        @Override
-        boolean test() {
-            boolean b = evaluator.test(mappedValues);
-            listeners.fireConditionTestResult(node, evaluator.getDelegate(), mappedValues, b);
-            return b;
-        }
-    }
 
     private static class ValueSupplier implements Supplier<Object> {
         private final KeysStore.Entry[] state;

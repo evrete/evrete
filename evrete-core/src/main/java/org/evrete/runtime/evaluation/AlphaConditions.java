@@ -10,7 +10,8 @@ import java.util.function.Consumer;
 
 import static org.evrete.api.LogicallyComparable.*;
 
-public class AlphaConditions implements Copyable<AlphaConditions> {
+//TODO add comments
+public class AlphaConditions implements Copyable<AlphaConditions>, EvaluationListenerHolder {
     private static final ArrayOf<AlphaEvaluator> EMPTY = new ArrayOf<>(new AlphaEvaluator[0]);
     private final Map<Type<?>, ArrayOf<AlphaEvaluator>> alphaPredicates;
     private final Map<Type<?>, TypeAlphas> typeAlphas;
@@ -18,7 +19,12 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
     private AlphaConditions(AlphaConditions other) {
         this.alphaPredicates = new HashMap<>();
         for (Map.Entry<Type<?>, ArrayOf<AlphaEvaluator>> entry : other.alphaPredicates.entrySet()) {
-            this.alphaPredicates.put(entry.getKey(), new ArrayOf<>(entry.getValue()));
+            AlphaEvaluator[] alphaEvaluators = entry.getValue().data;
+            AlphaEvaluator[] copy = new AlphaEvaluator[alphaEvaluators.length];
+            for (int i = 0; i < copy.length; i++) {
+                copy[i] = alphaEvaluators[i].copyOf();
+            }
+            this.alphaPredicates.put(entry.getKey(), new ArrayOf<>(copy));
         }
 
         this.typeAlphas = new HashMap<>();
@@ -28,6 +34,24 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
     public AlphaConditions() {
         this.typeAlphas = new HashMap<>();
         this.alphaPredicates = new HashMap<>();
+    }
+
+    @Override
+    public void addListener(EvaluationListener listener) {
+        for (ArrayOf<AlphaEvaluator> evaluators : this.alphaPredicates.values()) {
+            for (AlphaEvaluator e : evaluators.data) {
+                e.addListener(listener);
+            }
+        }
+    }
+
+    @Override
+    public void removeListener(EvaluationListener listener) {
+        for (ArrayOf<AlphaEvaluator> evaluators : this.alphaPredicates.values()) {
+            for (AlphaEvaluator e : evaluators.data) {
+                e.removeListener(listener);
+            }
+        }
     }
 
     @Override
@@ -116,7 +140,20 @@ public class AlphaConditions implements Copyable<AlphaConditions> {
             if (found == null) {
                 //Unknown condition
                 TypeField[] fields = map(alphaPredicate.descriptor());
-                found = new AlphaEvaluator(existing.data.length, alphaPredicate, runtime.getCreateActiveFields(fields));
+                FieldReference[] descriptor = alphaPredicate.descriptor();
+
+
+                int[] valueIndices = new int[descriptor.length];
+                for (int i = 0; i < valueIndices.length; i++) {
+                    FieldReference ref = descriptor[i];
+                    ActiveField af = runtime.getCreateActiveField(ref.field());
+                    assert af.getDelegate().equals(ref.field());
+                    valueIndices[i] = af.getValueIndex();
+                }
+
+
+                found = new AlphaEvaluator(existing.data.length, alphaPredicate);
+                found.remap(valueIndices);
                 existing.append(found);
                 listener.accept(found);
             }

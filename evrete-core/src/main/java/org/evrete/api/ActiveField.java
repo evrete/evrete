@@ -60,6 +60,9 @@ public final class ActiveField implements TypeField {
 
     @Override
     public String toString() {
-        return delegate.toString();
+        return "ActiveField{" +
+                "delegate=" + delegate +
+                ", valueIndex=" + valueIndex +
+                '}';
     }
 }

@@ -43,4 +43,10 @@ class FieldReferenceImpl implements FieldReference {
     public final int hashCode() {
         return Objects.hash(type, field);
     }
+
+    @Override
+    public String toString() {
+        return "'" + type.getVar() + "." + field.getName() +
+                '\'';
+    }
 }

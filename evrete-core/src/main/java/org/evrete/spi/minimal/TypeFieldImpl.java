@@ -43,7 +43,8 @@ class TypeFieldImpl implements TypeField {
     public String toString() {
         return "{" +
                 "name='" + name + '\'' +
-                ", type='" + valueType + '\'' +
+                ", valueType='" + valueType + '\'' +
+                ", declaringType='" + declaringType.getName() + '\'' +
                 '}';
     }
 

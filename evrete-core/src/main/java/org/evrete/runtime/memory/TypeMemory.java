@@ -154,7 +154,6 @@ public final class TypeMemory extends TypeMemoryBase {
     }
 
     void onNewAlphaBucket(AlphaDelta delta) {
-
         if (inputBuffer.get(Action.INSERT).size() > 0) {
             //TODO develop a strategy
             throw new UnsupportedOperationException("A new condition was created in an uncommitted memory.");

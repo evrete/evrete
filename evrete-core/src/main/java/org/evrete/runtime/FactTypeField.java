@@ -21,7 +21,6 @@ public final class FactTypeField {
         return fieldIndex;
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -53,7 +53,6 @@ public class FactType implements Masked {
         this.uniqueKeyAndAlpha = other.uniqueKeyAndAlpha;
     }
 
-
     public static FactType[] toArray(Collection<FactType> set) {
         FactType[] arr = set.toArray(FactType.ZERO_ARRAY);
         Arrays.sort(arr, COMPARATOR);

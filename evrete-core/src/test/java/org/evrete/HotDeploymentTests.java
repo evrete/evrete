@@ -491,8 +491,8 @@ class HotDeploymentTests {
                 .where(rule2_1, "$a.i", "$b.i")
                 .where(rule2_2, "$a.i")
                 .where(rule2_3, "$b.f")
-                .execute(rhsAssert2);
-
+                .execute(rhsAssert2)
+        ;
 
         TypeA a = new TypeA("A");
         a.setAllNumeric(0);
@@ -508,6 +508,7 @@ class HotDeploymentTests {
 
         TypeB bb = new TypeB("BB");
         bb.setAllNumeric(100);
+
 
         session.insertAndFire(a, aa, aaa, b, bb);
 

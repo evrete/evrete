@@ -1167,6 +1167,8 @@ class SessionBaseTests {
                         fact("$b", TypeB.class)
                 )
                 .where("$a.i > 4")
+                .where("$a.l > 4")
+                .where("$b.l > 3")
                 .where("$b.i > 3")
                 .execute(rhsAssert);
 
@@ -1175,9 +1177,9 @@ class SessionBaseTests {
         // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
         for (int i = 0; i < 10; i++) {
             TypeA a = new TypeA("A" + i);
-            a.setI(i);
+            a.setAllNumeric(i);
             TypeB b = new TypeB("B" + i);
-            b.setI(i);
+            b.setAllNumeric(i);
             s.insert(a, b);
         }
         s.fire();

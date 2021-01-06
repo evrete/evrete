@@ -32,4 +32,13 @@ public class AlphaDelta {
     public AlphaEvaluator[] getNewEvaluators() {
         return newEvaluators;
     }
+
+    @Override
+    public String toString() {
+        return "AlphaDelta{" +
+                "key=" + key +
+                ", newAlphaMeta=" + newAlphaMeta +
+                ", newEvaluators=" + Arrays.toString(newEvaluators) +
+                '}';
+    }
 }
