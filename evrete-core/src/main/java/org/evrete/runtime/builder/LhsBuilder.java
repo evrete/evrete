@@ -1,18 +1,19 @@
 package org.evrete.runtime.builder;
 
-import org.evrete.api.*;
+import org.evrete.api.RhsContext;
+import org.evrete.api.RuleBuilder;
+import org.evrete.api.RuntimeContext;
 
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.function.Consumer;
 
-public class LhsBuilder<C extends RuntimeContext<C>> extends AbstractLhsBuilder<C, LhsBuilder<C>> implements ExistsFactSelector<AggregateLhsBuilder<C>> {
-    private final Collection<AggregateLhsBuilder<C>> aggregateGroups = new HashSet<>();
+public class LhsBuilder<C extends RuntimeContext<C>> extends AbstractLhsBuilder<C, LhsBuilder<C>> {
+    //private final Collection<AggregateLhsBuilder<C>> aggregateGroups = new HashSet<>();
 
     LhsBuilder(RuleBuilderImpl<C> ruleBuilder) {
         super(ruleBuilder);
     }
 
+/*
     void saveAggregate(AggregateLhsBuilder<C> group) {
         aggregateGroups.add(group);
     }
@@ -20,6 +21,7 @@ public class LhsBuilder<C extends RuntimeContext<C>> extends AbstractLhsBuilder<
     public Collection<AggregateLhsBuilder<C>> getAggregateGroups() {
         return aggregateGroups;
     }
+*/
 
     @Override
     protected LhsBuilder<C> self() {
@@ -55,8 +57,10 @@ public class LhsBuilder<C extends RuntimeContext<C>> extends AbstractLhsBuilder<
         return getRuleBuilder().build();
     }
 
+/*
     public AggregateLhsBuilder<C> having(FactBuilder... facts) {
         return new AggregateLhsBuilder<>(this, facts);
     }
+*/
 
 }

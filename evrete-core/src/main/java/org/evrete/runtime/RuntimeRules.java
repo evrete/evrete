@@ -8,7 +8,7 @@ import java.util.*;
 
 public class RuntimeRules implements Iterable<RuntimeRuleImpl> {
     private final List<RuntimeRuleImpl> list = new ArrayList<>();
-    private final Collection<RuntimeAggregateLhsJoined> aggregateLhsGroups = new ArrayList<>();
+    //private final Collection<RuntimeAggregateLhsJoined> aggregateLhsGroups = new ArrayList<>();
     private final SessionMemory runtime;
 
     public RuntimeRules(SessionMemory runtime) {
@@ -17,7 +17,7 @@ public class RuntimeRules implements Iterable<RuntimeRuleImpl> {
 
     private void add(RuntimeRuleImpl rule) {
         this.list.add(rule);
-        this.aggregateLhsGroups.addAll(rule.getLhs().getAggregateConditionedGroups());
+        //this.aggregateLhsGroups.addAll(rule.getLhs().getAggregateConditionedGroups());
     }
 
     public RuntimeRuleImpl addRule(RuleDescriptor ruleDescriptor) {
@@ -30,9 +30,11 @@ public class RuntimeRules implements Iterable<RuntimeRuleImpl> {
         this.list.sort(comparator);
     }
 
+/*
     public Collection<RuntimeAggregateLhsJoined> getAggregateLhsGroups() {
         return aggregateLhsGroups;
     }
+*/
 
     @Override
     public Iterator<RuntimeRuleImpl> iterator() {

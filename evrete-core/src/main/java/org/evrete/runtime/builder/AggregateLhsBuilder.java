@@ -1,3 +1,4 @@
+/*
 package org.evrete.runtime.builder;
 
 import org.evrete.api.FactBuilder;
@@ -43,3 +44,4 @@ public class AggregateLhsBuilder<C extends RuntimeContext<C>> extends AbstractLh
     }
 
 }
+*/

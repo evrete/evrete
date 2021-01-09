@@ -110,7 +110,7 @@ public class EvaluatorWrapper implements Evaluator, EvaluationListenerHolder {
     }
 
     @Override
-    public double getComplexity() {
+    public final double getComplexity() {
         return delegate.getComplexity();
     }
 

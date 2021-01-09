@@ -1,3 +1,4 @@
+/*
 package org.evrete.runtime.aggregate;
 
 import org.evrete.api.KeysStore;
@@ -16,3 +17,4 @@ class ExistsEvaluatorJoined extends AbstractEvaluatorJoined {
         return next != null;
     }
 }
+*/

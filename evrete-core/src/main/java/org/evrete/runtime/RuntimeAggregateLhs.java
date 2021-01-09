@@ -1,3 +1,4 @@
+/*
 package org.evrete.runtime;
 
 class RuntimeAggregateLhs extends AbstractRuntimeLhs {
@@ -6,3 +7,4 @@ class RuntimeAggregateLhs extends AbstractRuntimeLhs {
         super(rule, parent, descriptor);
     }
 }
+*/

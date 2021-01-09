@@ -1,3 +1,4 @@
+/*
 package org.evrete.runtime.aggregate;
 
 import org.evrete.runtime.AbstractRuntimeLhs;
@@ -13,3 +14,4 @@ public interface AggregateEvaluatorFactory {
     BooleanSupplier joinedGroupEvaluator(AbstractRuntimeLhs root, RuntimeAggregateLhsJoined aggregate);
 
 }
+*/

@@ -8,7 +8,6 @@ import org.evrete.runtime.memory.BetaEndNode;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -28,12 +27,15 @@ public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContex
     }
 
     static RuntimeLhs factory(RuntimeRuleImpl rule, LhsDescriptor descriptor) {
+        return new RuntimeLhsDefault(rule, descriptor);
+/*
         Set<AggregateLhsDescriptor> aggregates = descriptor.getAggregateDescriptors();
         if (aggregates.isEmpty()) {
             return new RuntimeLhsDefault(rule, descriptor);
         } else {
             return new RuntimeLhsAggregate(rule, descriptor, aggregates);
         }
+*/
     }
 
     @Override
@@ -47,7 +49,9 @@ public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContex
     }
 */
 
+/*
     public abstract Collection<RuntimeAggregateLhsJoined> getAggregateConditionedGroups();
+*/
 
     abstract void forEach(Consumer<RhsContext> rhs);
 

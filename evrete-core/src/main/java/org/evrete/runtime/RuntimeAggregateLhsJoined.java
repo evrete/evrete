@@ -1,3 +1,4 @@
+/*
 package org.evrete.runtime;
 
 import org.evrete.api.*;
@@ -213,3 +214,4 @@ public class RuntimeAggregateLhsJoined extends RuntimeAggregateLhs {
         }
     }
 }
+*/

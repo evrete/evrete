@@ -5,24 +5,24 @@ import org.evrete.api.ReIterator;
 import org.evrete.api.RhsContext;
 import org.evrete.api.ValueRow;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 public class RuntimeLhsDefault extends RuntimeLhs implements RhsContext {
-    private static final Collection<RuntimeAggregateLhsJoined> EMPTY_AGGREGATES = Collections.unmodifiableCollection(Collections.emptyList());
+    //private static final Collection<RuntimeAggregateLhsJoined> EMPTY_AGGREGATES = Collections.unmodifiableCollection(Collections.emptyList());
 
     RuntimeLhsDefault(RuntimeRuleImpl rule, LhsDescriptor descriptor) {
         super(rule, descriptor);
     }
 
+/*
     @Override
     public Collection<RuntimeAggregateLhsJoined> getAggregateConditionedGroups() {
         return EMPTY_AGGREGATES;
     }
+*/
 
     @Override
     protected void forEach(Consumer<RhsContext> rhs) {

@@ -1,3 +1,4 @@
+/*
 package org.evrete.runtime;
 
 import org.evrete.api.RhsContext;
@@ -13,11 +14,9 @@ public class RuntimeLhsAggregate extends RuntimeLhs implements RhsContext {
 
     RuntimeLhsAggregate(RuntimeRuleImpl rule, LhsDescriptor descriptor, Set<AggregateLhsDescriptor> aggregates) {
         super(rule, descriptor);
-        throw new UnsupportedOperationException();
 
         // Create runtime LHS groups
 
-/*
         for (AggregateLhsDescriptor ad : aggregates) {
             RuntimeAggregateLhs aggregate;
             if (ad.isLoose()) {
@@ -36,7 +35,6 @@ public class RuntimeLhsAggregate extends RuntimeLhs implements RhsContext {
             }
             addEndNodes(aggregate.getEndNodes());
         }
-*/
     }
 
 
@@ -61,8 +59,6 @@ public class RuntimeLhsAggregate extends RuntimeLhs implements RhsContext {
     }
 
     private void forEach(NestedFactRunnable eachFactRunnable) {
-        throw new UnsupportedOperationException();
-/*
         if (testLooseGroups()) {
             if (hasBetaNodes) {
                 forEachKey(
@@ -72,7 +68,7 @@ public class RuntimeLhsAggregate extends RuntimeLhs implements RhsContext {
                 forEachFact(eachFactRunnable);
             }
         }
-*/
     }
 
 }
+*/

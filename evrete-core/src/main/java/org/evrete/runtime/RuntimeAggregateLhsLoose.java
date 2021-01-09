@@ -1,3 +1,4 @@
+/*
 package org.evrete.runtime;
 
 import java.util.function.BooleanSupplier;
@@ -16,3 +17,4 @@ public class RuntimeAggregateLhsLoose extends RuntimeAggregateLhs implements Boo
         return lhsEvaluator.getAsBoolean();
     }
 }
+*/

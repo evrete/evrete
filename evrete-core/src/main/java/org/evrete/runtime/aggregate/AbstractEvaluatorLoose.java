@@ -1,3 +1,4 @@
+/*
 package org.evrete.runtime.aggregate;
 
 import org.evrete.api.ReIterator;
@@ -12,8 +13,6 @@ abstract class AbstractEvaluatorLoose implements BooleanSupplier {
     final ReIterator<ValueRow[]>[] keyReIterators;
 
     AbstractEvaluatorLoose(RuntimeAggregateLhsLoose aggregateLhs) {
-        throw new UnsupportedOperationException();
-/*
         this.alphaFactGroup = aggregateLhs.getAlphaFactGroup();
 
         RhsFactGroupBeta[] betaFactGroups = aggregateLhs.getBetaFactGroups();
@@ -21,7 +20,6 @@ abstract class AbstractEvaluatorLoose implements BooleanSupplier {
         for (int i = 0; i < betaFactGroups.length; i++) {
             this.keyReIterators[i] = keyGroupIterators[i].getMainIterator();
         }
-
-*/
     }
 }
+*/

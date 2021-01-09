@@ -1,3 +1,4 @@
+/*
 package org.evrete.runtime.aggregate;
 
 import org.evrete.runtime.AbstractRuntimeLhs;
@@ -22,3 +23,4 @@ public class ExistsEvaluatorFactory implements AggregateEvaluatorFactory {
         return new ExistsEvaluatorJoined(root, aggregate);
     }
 }
+*/

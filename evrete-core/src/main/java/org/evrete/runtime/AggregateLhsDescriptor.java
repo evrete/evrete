@@ -1,3 +1,4 @@
+/*
 package org.evrete.runtime;
 
 import org.evrete.api.NamedType;
@@ -50,3 +51,4 @@ public class AggregateLhsDescriptor extends AbstractLhsDescriptor {
 }
 
 
+*/

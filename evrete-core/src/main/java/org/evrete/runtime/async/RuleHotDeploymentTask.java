@@ -1,6 +1,5 @@
 package org.evrete.runtime.async;
 
-import org.evrete.runtime.RuntimeAggregateLhsJoined;
 import org.evrete.runtime.RuntimeRuleImpl;
 import org.evrete.runtime.memory.BetaEndNode;
 
@@ -40,9 +39,11 @@ public class RuleHotDeploymentTask extends Completer {
     @Override
     public void onCompletion(CountedCompleter<?> caller) {
         // Evaluate aggregate nodes, if any
+/*
         for (RuntimeAggregateLhsJoined agg : rule.getLhs().getAggregateConditionedGroups()) {
             agg.evaluate(false);
         }
+*/
 
         // Merging dnd nodes' deltas
         for (BetaEndNode endNode : rule.getLhs().getAllBetaEndNodes()) {

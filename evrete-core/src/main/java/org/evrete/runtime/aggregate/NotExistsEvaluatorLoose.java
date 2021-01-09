@@ -1,3 +1,4 @@
+/*
 package org.evrete.runtime.aggregate;
 
 import org.evrete.runtime.RuntimeAggregateLhsLoose;
@@ -10,8 +11,6 @@ class NotExistsEvaluatorLoose extends AbstractEvaluatorLoose {
 
     @Override
     public boolean getAsBoolean() {
-        throw new UnsupportedOperationException();
-/*
         for (ReIterator<ValueRow[]> it : keyReIterators) {
             if (it.reset() == 0) {
                 return true;
@@ -23,6 +22,6 @@ class NotExistsEvaluatorLoose extends AbstractEvaluatorLoose {
         } else {
             return alphaFactGroup.getComputedFactCount() == 0;
         }
-*/
     }
 }
+*/
