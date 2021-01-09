@@ -63,7 +63,7 @@ public class AlphaConditions implements Copyable<AlphaConditions>, EvaluationLis
         return alphaPredicates.getOrDefault(type, EMPTY).data.length;
     }
 
-    public synchronized AlphaBucketMeta register(AbstractRuntime<?> runtime, FieldsKey betaFields, boolean beta, Set<Evaluator> typePredicates, Consumer<AlphaDelta> listener) {
+    public synchronized AlphaBucketMeta register(AbstractRuntime<?> runtime, FieldsKey betaFields, boolean beta, Set<EvaluatorWrapper> typePredicates, Consumer<AlphaDelta> listener) {
         if (typePredicates.isEmpty() && betaFields.size() == 0) {
             return AlphaBucketMeta.NO_FIELDS_NO_CONDITIONS;
         }
@@ -111,16 +111,16 @@ public class AlphaConditions implements Copyable<AlphaConditions>, EvaluationLis
         }
     }
 
-    private AlphaMeta createAlphaMask(AbstractRuntime<?> runtime, Type<?> t, Set<Evaluator> typePredicates, Consumer<AlphaEvaluator> listener) {
+    private AlphaMeta createAlphaMask(AbstractRuntime<?> runtime, Type<?> t, Set<EvaluatorWrapper> typePredicates, Consumer<AlphaEvaluator> listener) {
         ArrayOf<AlphaEvaluator> existing = alphaPredicates.computeIfAbsent(t, k -> new ArrayOf<>(new AlphaEvaluator[0]));
         List<EvaluationSide> mapping = new LinkedList<>();
 
-        for (Evaluator alphaPredicate : typePredicates) {
+        for (EvaluatorWrapper alphaPredicate : typePredicates) {
             AlphaEvaluator found = null;
             boolean foundDirect = true;
 
             for (AlphaEvaluator ia : existing.data) {
-                int cmp = alphaPredicate.compare(ia.getDelegate());
+                int cmp = alphaPredicate.compare(ia);
                 switch (cmp) {
                     case RELATION_EQUALS:
                         found = ia;
@@ -139,7 +139,6 @@ public class AlphaConditions implements Copyable<AlphaConditions>, EvaluationLis
 
             if (found == null) {
                 //Unknown condition
-                TypeField[] fields = map(alphaPredicate.descriptor());
                 FieldReference[] descriptor = alphaPredicate.descriptor();
 
 

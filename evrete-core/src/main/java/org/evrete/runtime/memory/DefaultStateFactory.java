@@ -1,10 +1,10 @@
 package org.evrete.runtime.memory;
 
 import org.evrete.runtime.FactType;
-import org.evrete.runtime.evaluation.EvaluatorGroup;
+import org.evrete.runtime.evaluation.BetaEvaluatorGroup;
 import org.evrete.util.CollectionUtils;
 
-public class DefaultStateFactory implements NodeIterationStateFactory<NodeIterationState, EvaluatorGroup> {
+public class DefaultStateFactory implements NodeIterationStateFactory<NodeIterationState, BetaEvaluatorGroup> {
     private final BetaConditionNode node;
     private final int[][][] destinationData;
     private final boolean nonPlainSources;

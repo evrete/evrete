@@ -1,12 +1,13 @@
 package org.evrete.runtime;
 
 import org.evrete.api.*;
-import org.evrete.runtime.builder.FactTypeBuilder;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.util.Bits;
-import org.evrete.util.NextIntSupplier;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Objects;
 import java.util.function.BiPredicate;
 
 public class FactType implements Masked {
@@ -23,20 +24,14 @@ public class FactType implements Masked {
     private RhsFactGroupDescriptor factGroup;
     private int inGroupIndex = -1;
 
-    private FactType(AbstractRuntime<?> runtime, FactTypeBuilder builder, Set<Evaluator> alphaConditions, NextIntSupplier factIdGenerator) {
-        this.type = builder.getType();
-        this.var = builder.getVar();
-        this.inRuleIndex = factIdGenerator.next();
-
-        Collection<ActiveField> activeFields = new HashSet<>();
-        for (TypeField f : builder.getBetaTypeFields()) {
-            activeFields.add(runtime.getCreateActiveField(f));
-        }
-
-        this.fields = new FieldsKey(type, activeFields);
+    public FactType(String var, Type<?> type, AlphaBucketMeta alphaMask, FieldsKey fields, int inRuleIndex) {
+        this.var = var;
+        this.type = type;
+        this.alphaMask = alphaMask;
+        this.fields = fields;
+        this.inRuleIndex = inRuleIndex;
         this.mask = new Bits();
         this.mask.set(this.inRuleIndex);
-        this.alphaMask = runtime.getCreateAlphaMask(fields, builder.isBetaTypeBuilder(), alphaConditions);
     }
 
     FactType(FactType other) {
@@ -59,14 +54,6 @@ public class FactType implements Masked {
         return arr;
     }
 
-    static FactType factory(AbstractRuntime<?> runtime, FactTypeBuilder builder, Set<Evaluator> alphaConditions, NextIntSupplier factIdGenerator) {
-        return new FactType(
-                runtime,
-                builder,
-                alphaConditions,
-                factIdGenerator
-        );
-    }
 
     public RhsFactGroupDescriptor getFactGroup() {
         Objects.requireNonNull(factGroup);

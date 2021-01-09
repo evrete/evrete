@@ -1,11 +1,11 @@
 package org.evrete.runtime;
 
-import org.evrete.api.Evaluator;
 import org.evrete.api.NamedType;
 import org.evrete.runtime.aggregate.AggregateEvaluatorFactory;
 import org.evrete.runtime.builder.AbstractLhsBuilder;
 import org.evrete.runtime.builder.AggregateLhsBuilder;
 import org.evrete.runtime.evaluation.EvaluatorFactory;
+import org.evrete.runtime.evaluation.EvaluatorWrapper;
 import org.evrete.util.MapFunction;
 import org.evrete.util.NextIntSupplier;
 
@@ -22,7 +22,7 @@ public class AggregateLhsDescriptor extends AbstractLhsDescriptor {
         this.aggregateEvaluatorFactory = group.getAggregateEvaluatorFactory();
 
         AbstractLhsBuilder.Compiled compiled = group.getCompiledData();
-        Set<Evaluator> conditions = compiled.getAggregateConditions();
+        Set<EvaluatorWrapper> conditions = compiled.getAggregateConditions();
         if (conditions.isEmpty()) {
             //this.aggregateConditionNode = null;
             this.joinCondition = null;

@@ -1,16 +1,16 @@
 package org.evrete.runtime;
 
-import org.evrete.runtime.evaluation.EvaluatorGroup;
+import org.evrete.runtime.evaluation.BetaEvaluatorGroup;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class AggregateEvaluator extends EvaluatorGroup {
+public class AggregateEvaluator extends BetaEvaluatorGroup {
     private final LevelData[] levelData;
     private final FactType[][] grouping;
 
-    public AggregateEvaluator(EvaluatorGroup delegate) {
+    public AggregateEvaluator(BetaEvaluatorGroup delegate) {
         super(delegate);
 
         int maxLevel = Integer.MIN_VALUE;

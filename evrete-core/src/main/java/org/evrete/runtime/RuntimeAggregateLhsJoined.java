@@ -1,7 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.*;
-import org.evrete.runtime.evaluation.EvaluatorInternal;
+import org.evrete.runtime.evaluation.BetaEvaluator;
 
 import java.util.EnumMap;
 import java.util.function.BooleanSupplier;
@@ -10,7 +10,7 @@ import java.util.function.IntFunction;
 public class RuntimeAggregateLhsJoined extends RuntimeAggregateLhs {
     private final ValueRow[][] state;
     private final SourceIterator[] iterators;
-    private final EvaluatorInternal[] evaluators;
+    private final BetaEvaluator[] evaluators;
     private final IntToValue[] evaluatorValues;
     private final KeysStore successData;
     private final IntFunction<IntToValueRow> saveMapper;
@@ -174,9 +174,9 @@ public class RuntimeAggregateLhsJoined extends RuntimeAggregateLhs {
         private final ValueRow[][] state;
         private final int[][] addr;
 
-        IntToValueImpl(EvaluatorInternal evaluator, ValueRow[][] state, int[][] conditionMapping) {
+        IntToValueImpl(BetaEvaluator evaluator, ValueRow[][] state, int[][] conditionMapping) {
             this.state = state;
-            FactTypeField[] descriptor = evaluator.descriptor();
+            FactTypeField[] descriptor = evaluator.betaDescriptor();
             this.addr = new int[descriptor.length][];
 
 

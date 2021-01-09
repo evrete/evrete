@@ -8,7 +8,7 @@ import org.evrete.runtime.ConditionNodeDescriptor;
 import org.evrete.runtime.FactType;
 import org.evrete.runtime.RuntimeFactTypeKeyed;
 import org.evrete.runtime.RuntimeRuleImpl;
-import org.evrete.runtime.evaluation.EvaluatorGroup;
+import org.evrete.runtime.evaluation.BetaEvaluatorGroup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,7 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
     private final int[] nonPlainSourceIndices;
     private final KeysStore mainStore;
     private final KeysStore deltaStore;
-    private final EvaluatorGroup expression;
+    private final BetaEvaluatorGroup expression;
     private final ConditionNodeDescriptor descriptor;
     private final BetaMemoryNode<?>[] sources;
     private final BetaConditionNode[] conditionSources;

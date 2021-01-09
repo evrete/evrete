@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
 
-public class EvaluatorWrapper implements Evaluator, Copyable<EvaluatorWrapper>, EvaluationListenerHolder {
+public class EvaluatorWrapper implements Evaluator, EvaluationListenerHolder {
     private final Evaluator delegate;
     private final Set<EvaluationListener> listeners = new HashSet<>();
     private final Predicate<IntToValue> verboseUnmapped = new Predicate<IntToValue>() {
@@ -20,7 +20,7 @@ public class EvaluatorWrapper implements Evaluator, Copyable<EvaluatorWrapper>, 
             return b;
         }
     };
-    private final Set<NamedType> types = new HashSet<>();
+    private final Set<NamedType> namedTypes = new HashSet<>();
     private Predicate<IntToValue> active;
     private int[] indexMapper;
     private final Predicate<IntToValue> verboseMapped = new Predicate<IntToValue>() {
@@ -45,15 +45,15 @@ public class EvaluatorWrapper implements Evaluator, Copyable<EvaluatorWrapper>, 
     public EvaluatorWrapper(Evaluator delegate) {
         this.delegate = unwrap(delegate);
         for (FieldReference ref : delegate.descriptor()) {
-            this.types.add(ref.type());
+            this.namedTypes.add(ref.type());
         }
         updateActiveEvaluator();
     }
 
-    private EvaluatorWrapper(EvaluatorWrapper other) {
+    protected EvaluatorWrapper(EvaluatorWrapper other) {
         this.delegate = unwrap(other.delegate);
         this.listeners.addAll(other.listeners);
-        this.types.addAll(other.types);
+        this.namedTypes.addAll(other.namedTypes);
         this.indexMapper = other.indexMapper;
         updateActiveEvaluator();
     }
@@ -67,21 +67,25 @@ public class EvaluatorWrapper implements Evaluator, Copyable<EvaluatorWrapper>, 
         }
     }
 
-    public void remap(int[] indexMapper) {
+    public final void remap(int[] indexMapper) {
         this.indexMapper = indexMapper;
         updateActiveEvaluator();
     }
 
     @Override
-    public void addListener(EvaluationListener listener) {
+    public final void addListener(EvaluationListener listener) {
         this.listeners.add(listener);
         updateActiveEvaluator();
     }
 
     @Override
-    public void removeListener(EvaluationListener listener) {
+    public final void removeListener(EvaluationListener listener) {
         this.listeners.remove(listener);
         updateActiveEvaluator();
+    }
+
+    public Set<NamedType> getNamedTypes() {
+        return namedTypes;
     }
 
     private void updateActiveEvaluator() {
@@ -101,12 +105,7 @@ public class EvaluatorWrapper implements Evaluator, Copyable<EvaluatorWrapper>, 
     }
 
     @Override
-    public EvaluatorWrapper copyOf() {
-        return new EvaluatorWrapper(this);
-    }
-
-    @Override
-    public boolean test(IntToValue intToValue) {
+    public final boolean test(IntToValue intToValue) {
         return active.test(intToValue);
     }
 
@@ -121,7 +120,8 @@ public class EvaluatorWrapper implements Evaluator, Copyable<EvaluatorWrapper>, 
     }
 
     @Override
-    public int compare(LogicallyComparable other) {
+    public final int compare(LogicallyComparable other) {
+        // TODO check instances
         return delegate.compare(other);
     }
 }

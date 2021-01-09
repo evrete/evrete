@@ -7,12 +7,12 @@ import org.evrete.runtime.builder.FieldReference;
 
 import java.util.function.Function;
 
-public class EvaluatorInternal implements ComplexityObject, LogicallyComparable {
-    public static final EvaluatorInternal[] ZERO_ARRAY = new EvaluatorInternal[0];
-    private final Evaluator delegate;
+public class BetaEvaluator implements ComplexityObject, LogicallyComparable {
+    public static final BetaEvaluator[] ZERO_ARRAY = new BetaEvaluator[0];
+    private final EvaluatorWrapper delegate;
     private final FactTypeField[] descriptor;
 
-    public EvaluatorInternal(Evaluator delegate, Function<NamedType, FactType> typeFunction) {
+    public BetaEvaluator(EvaluatorWrapper delegate, Function<NamedType, FactType> typeFunction) {
         this.delegate = delegate;
         this.descriptor = new FactTypeField[delegate.descriptor().length];
         for (int ref = 0; ref < delegate.descriptor().length; ref++) {
@@ -23,12 +23,8 @@ public class EvaluatorInternal implements ComplexityObject, LogicallyComparable 
         }
     }
 
-    public FactTypeField[] descriptor() {
+    public FactTypeField[] betaDescriptor() {
         return descriptor;
-    }
-
-    public Evaluator getDelegate() {
-        return delegate;
     }
 
     public boolean test(IntToValue values) {

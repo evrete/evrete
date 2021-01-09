@@ -4,8 +4,8 @@ import org.evrete.api.*;
 import org.evrete.runtime.ConditionNodeDescriptor;
 import org.evrete.runtime.FactType;
 import org.evrete.runtime.FactTypeField;
-import org.evrete.runtime.evaluation.EvaluatorGroup;
-import org.evrete.runtime.evaluation.EvaluatorInternal;
+import org.evrete.runtime.evaluation.BetaEvaluator;
+import org.evrete.runtime.evaluation.BetaEvaluatorGroup;
 
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
@@ -37,13 +37,13 @@ public class NodeIterationState implements NodeIterationStateFactory.State {
         this.secondary = (ReIterator<KeysStore.Entry>[]) (new ReIterator[nonPlainIndices.length]);
 
 
-        EvaluatorGroup inner = node.getDescriptor().getExpression();
+        BetaEvaluatorGroup inner = node.getDescriptor().getExpression();
 
-        EvaluatorInternal[] delegates = inner.getEvaluators();
+        BetaEvaluator[] betaEvaluators = inner.getEvaluators();
 
-        this.evaluators = new EvaluatorDelegate[delegates.length];
+        this.evaluators = new EvaluatorDelegate[betaEvaluators.length];
         for (int i = 0; i < evaluators.length; i++) {
-            this.evaluators[i] = new EvaluatorDelegate(delegates[i], state[0], node);
+            this.evaluators[i] = new EvaluatorDelegate(betaEvaluators[i], state[0], node);
         }
 
     }
@@ -115,17 +115,17 @@ public class NodeIterationState implements NodeIterationStateFactory.State {
     }
 
     private final static class EvaluatorDelegate {
-        final EvaluatorInternal evaluator;
+        final BetaEvaluator evaluator;
         final IntToValue mappedValues;
         final ValueSupplier[] values;
         final BetaConditionNode node;
 
-        EvaluatorDelegate(EvaluatorInternal evaluator, KeysStore.Entry[] state, BetaConditionNode node) {
+        EvaluatorDelegate(BetaEvaluator evaluator, KeysStore.Entry[] state, BetaConditionNode node) {
             this.evaluator = evaluator;
             this.node = node;
-            this.values = new ValueSupplier[evaluator.descriptor().length];
-            for (int refId = 0; refId < evaluator.descriptor().length; refId++) {
-                FactTypeField ref = evaluator.descriptor()[refId];
+            this.values = new ValueSupplier[evaluator.betaDescriptor().length];
+            for (int refId = 0; refId < evaluator.betaDescriptor().length; refId++) {
+                FactTypeField ref = evaluator.betaDescriptor()[refId];
                 FactType type = ref.getFactType();
 
                 int fieldIndex = ref.getFieldIndex();

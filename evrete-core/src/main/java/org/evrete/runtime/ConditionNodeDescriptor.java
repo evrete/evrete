@@ -1,6 +1,6 @@
 package org.evrete.runtime;
 
-import org.evrete.runtime.evaluation.EvaluatorGroup;
+import org.evrete.runtime.evaluation.BetaEvaluatorGroup;
 import org.evrete.util.Bits;
 import org.evrete.util.CollectionUtils;
 import org.evrete.util.NextIntSupplier;
@@ -9,11 +9,11 @@ import java.util.*;
 
 public class ConditionNodeDescriptor extends NodeDescriptor {
     public static final ConditionNodeDescriptor[] ZERO_ARRAY = new ConditionNodeDescriptor[0];
-    private final EvaluatorGroup expression;
+    private final BetaEvaluatorGroup expression;
     private final int[] nonPlainSourceIndices;
     private final Map<Integer, TypeLocator> typeLocators = new HashMap<>();
 
-    private ConditionNodeDescriptor(NextIntSupplier idSupplier, EvaluatorGroup expression, Set<NodeDescriptor> sourceNodes) {
+    private ConditionNodeDescriptor(NextIntSupplier idSupplier, BetaEvaluatorGroup expression, Set<NodeDescriptor> sourceNodes) {
         super(idSupplier, sourceNodes);
         this.expression = expression;
 
@@ -73,7 +73,7 @@ public class ConditionNodeDescriptor extends NodeDescriptor {
     }
 
 
-    static Collection<ConditionNodeDescriptor> allocateConditions(Collection<FactType> betaTypes, List<EvaluatorGroup> list) {
+    static Collection<ConditionNodeDescriptor> allocateConditions(Collection<FactType> betaTypes, List<BetaEvaluatorGroup> list) {
         final Set<NodeDescriptor> unallocatedNodes = new HashSet<>();
         NextIntSupplier idSupplier = new NextIntSupplier();
         for (FactType factType : betaTypes) {
@@ -81,11 +81,11 @@ public class ConditionNodeDescriptor extends NodeDescriptor {
             unallocatedNodes.add(e);
         }
 
-        EvaluatorGroup[] evaluatorSequence = list.toArray(EvaluatorGroup.ZERO_ARRAY);
+        BetaEvaluatorGroup[] evaluatorSequence = list.toArray(BetaEvaluatorGroup.ZERO_ARRAY);
 
         // Loop through the expressions one by one
         // The initial order of expressions defines the outcome.
-        for (EvaluatorGroup evaluator : evaluatorSequence) {
+        for (BetaEvaluatorGroup evaluator : evaluatorSequence) {
             Set<NodeDescriptor> matching = Bits.matchesOR(evaluator.getTypeMask(), unallocatedNodes, NodeDescriptor::getMask);
             assert !matching.isEmpty();
             // replace the matching nodes with a new one
@@ -121,7 +121,7 @@ public class ConditionNodeDescriptor extends NodeDescriptor {
         return nonPlainSourceIndices;
     }
 
-    public EvaluatorGroup getExpression() {
+    public BetaEvaluatorGroup getExpression() {
         return expression;
     }
 

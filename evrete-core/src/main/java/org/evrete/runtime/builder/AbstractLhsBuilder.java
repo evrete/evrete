@@ -2,12 +2,12 @@ package org.evrete.runtime.builder;
 
 import org.evrete.api.*;
 import org.evrete.runtime.AbstractRuntime;
+import org.evrete.runtime.evaluation.EvaluatorWrapper;
 import org.evrete.util.MapOfSet;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends AbstractLhsBuilder<C, ?>> {
     private final RuleBuilderImpl<C> ruleBuilder;
@@ -210,10 +210,10 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
     }
 
     public static class Compiled {
-        private static final Set<Evaluator> EMPTY_ALPHA_CONDITIONS = new HashSet<>();
-        private final Set<Evaluator> betaConditions = new HashSet<>();
-        private final MapOfSet<NamedType, Evaluator> alphaConditions = new MapOfSet<>();
-        private final Set<Evaluator> aggregateConditions = new HashSet<>();
+        private static final Set<EvaluatorWrapper> EMPTY_ALPHA_CONDITIONS = new HashSet<>();
+        private final Set<EvaluatorWrapper> betaConditions = new HashSet<>();
+        private final MapOfSet<NamedType, EvaluatorWrapper> alphaConditions = new MapOfSet<>();
+        //private final Set<Evaluator> aggregateConditions = new HashSet<>();
         private final AbstractLhsBuilder<?, ?> lhsBuilder;
 
         Compiled(AbstractRuntime<?> runtime, AbstractLhsBuilder<?, ?> lhsBuilder) {
@@ -225,9 +225,12 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         }
 
 
-        private void addCondition(Evaluator expression) {
+        private void addCondition(Evaluator e) {
+            // Wrap the evaluator
+            EvaluatorWrapper expression = new EvaluatorWrapper(e);
+
             FieldReference[] descriptor = expression.descriptor();
-            Set<NamedType> involvedTypes = Arrays.stream(descriptor).map(FieldReference::type).collect(Collectors.toSet());
+            Set<NamedType> involvedTypes = expression.getNamedTypes();
 
             if (involvedTypes.size() == 1) {
                 // Alpha condition
@@ -255,7 +258,8 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
                     for (FieldReference ref : expression.descriptor()) {
                         AbstractLhsBuilder<?, ?> group = lhsBuilder.locateLhsGroup(ref.type());
                         if (group == lhsBuilder) {
-                            aggregateConditions.add(expression);
+                            throw new UnsupportedOperationException("Aggregate groups are currently not supported");
+                            //aggregateConditions.add(expression);
                         }
                     }
                 }
@@ -263,16 +267,17 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         }
 
 
-        public Set<Evaluator> getAlphaConditions(FactTypeBuilder builder) {
+        public Set<EvaluatorWrapper> getAlphaConditions(FactTypeBuilder builder) {
             return alphaConditions.getOrDefault(builder, EMPTY_ALPHA_CONDITIONS);
         }
 
-        public Set<Evaluator> getBetaConditions() {
+        public Set<EvaluatorWrapper> getBetaConditions() {
             return betaConditions;
         }
 
-        public Set<Evaluator> getAggregateConditions() {
-            return aggregateConditions;
+        public Set<EvaluatorWrapper> getAggregateConditions() {
+            throw new UnsupportedOperationException("Aggregate groups are currently not supported");
+            //return aggregateConditions;
         }
     }
 }

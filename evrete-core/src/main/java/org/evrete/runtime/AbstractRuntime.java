@@ -5,10 +5,12 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.api.spi.LiteralRhsCompiler;
 import org.evrete.runtime.async.ForkJoinExecutor;
+import org.evrete.runtime.builder.FactTypeBuilder;
 import org.evrete.runtime.builder.RuleBuilderImpl;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaConditions;
 import org.evrete.runtime.evaluation.AlphaDelta;
+import org.evrete.runtime.evaluation.EvaluatorWrapper;
 import org.evrete.util.LazyInstance;
 
 import java.util.*;
@@ -241,13 +243,31 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         return activeFields;
     }
 
+    public Set<ActiveField> getCreateActiveFields(Set<TypeField> fields) {
+        Set<ActiveField> activeFields = new HashSet<>();
+        for (TypeField field : fields) {
+            activeFields.add(getCreateActiveField(field));
+        }
+        return activeFields;
+    }
+
     public ActiveField[] getActiveFields(Type<?> type) {
         return activeFields.getActiveFields(type);
     }
 
-    AlphaBucketMeta getCreateAlphaMask(FieldsKey fields, boolean beta, Set<Evaluator> typePredicates) {
+    AlphaBucketMeta getCreateAlphaMask(FieldsKey fields, boolean beta, Set<EvaluatorWrapper> typePredicates) {
         return alphaConditions.register(this, fields, beta, typePredicates, this::onNewAlphaBucket);
     }
+
+
+    FactType buildFactType(FactTypeBuilder builder, Set<EvaluatorWrapper> alphaConditions, int inRuleId) {
+        Type<?> type = builder.getType();
+        Set<ActiveField> activeFields = getCreateActiveFields(builder.getBetaTypeFields());
+        FieldsKey fieldsKey = new FieldsKey(builder.getType(), activeFields);
+        AlphaBucketMeta alphaMask = getCreateAlphaMask(fieldsKey, builder.isBetaTypeBuilder(), alphaConditions);
+        return new FactType(builder.getVar(), type, alphaMask, fieldsKey, inRuleId);
+    }
+
 
     public List<RuleDescriptor> getRuleDescriptors() {
         return ruleDescriptors;
