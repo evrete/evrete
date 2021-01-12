@@ -1,10 +1,10 @@
 package org.evrete.runtime.evaluation;
 
 import org.evrete.api.Evaluator;
+import org.evrete.api.FieldReference;
 import org.evrete.api.NamedType;
+import org.evrete.runtime.BetaFieldReference;
 import org.evrete.runtime.FactType;
-import org.evrete.runtime.FactTypeField;
-import org.evrete.runtime.builder.FieldReference;
 import org.evrete.util.MapOfSet;
 
 import java.util.*;
@@ -20,7 +20,7 @@ public final class EvaluatorFactory {
 
         // Group conditions by involved fact type builders
         for (BetaEvaluator e : evaluators) {
-            Set<FactType> set = Arrays.stream(e.betaDescriptor()).map(FactTypeField::getFactType).collect(Collectors.toSet());
+            Set<FactType> set = Arrays.stream(e.betaDescriptor()).map(BetaFieldReference::getFactType).collect(Collectors.toSet());
             groupedConditions.computeIfAbsent(set, k -> new HashSet<>()).add(e);
         }
 
@@ -49,10 +49,12 @@ public final class EvaluatorFactory {
     }
 
 
+/*
     public static BetaEvaluatorGroup unionEvaluators(Collection<EvaluatorWrapper> raw, Function<NamedType, FactType> typeFunction) {
         Collection<BetaEvaluator> collection = convert(raw, typeFunction);
         return new BetaEvaluatorGroup(collection);
     }
+*/
 
     private static void validateExpression(Evaluator expression) {
         int refCount = expression.descriptor().length;

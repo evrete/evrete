@@ -1,43 +1,96 @@
 package org.evrete.runtime.memory;
 
 import org.evrete.api.*;
+import org.evrete.runtime.BetaEvaluationState;
+import org.evrete.runtime.BetaFieldReference;
 import org.evrete.runtime.ConditionNodeDescriptor;
 import org.evrete.runtime.FactType;
-import org.evrete.runtime.FactTypeField;
 import org.evrete.runtime.evaluation.BetaEvaluator;
 import org.evrete.runtime.evaluation.BetaEvaluatorGroup;
+import org.evrete.util.CollectionUtils;
 
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
-public class NodeIterationState implements NodeIterationStateFactory.State {
+public class NodeIterationState implements NodeIterationStateFactory.State, BetaEvaluationState {
     private final KeysStore.Entry[][] state;
     private final IntFunction<IntToValueRow> destinationValues;
-    private final int[] nonPlainIndices;
+    private final int[] nonPlainSourceIndices;
     private final ReIterator<KeysStore.Entry>[] secondary;
     private final EvaluatorDelegate[] evaluators;
+    private final boolean nonPlainSources;
+
 
     @SuppressWarnings("unchecked")
-    public NodeIterationState(BetaConditionNode node, int[][][] locationData) {
+    public NodeIterationState(BetaConditionNode node) {
         BetaMemoryNode<?>[] sources = node.getSources();
 
 
-        this.nonPlainIndices = node.getNonPlainSourceIndices();
-        if (nonPlainIndices.length == 0) {
+        this.nonPlainSourceIndices = node.getNonPlainSourceIndices();
+        this.nonPlainSources = nonPlainSourceIndices.length > 0;
+
+
+        // Destination data
+        FactType[][] primaryFactTypes = new FactType[sources.length][];
+        for (BetaMemoryNode<?> source : sources) {
+            primaryFactTypes[source.getSourceIndex()] = source.getGrouping()[0];
+        }
+
+
+        FactType[][] secondaryFactTypes = new FactType[nonPlainSourceIndices.length][];
+        for (int z = 0; z < nonPlainSourceIndices.length; z++) {
+            int nonPlainSourceId = nonPlainSourceIndices[z];
+            BetaMemoryNode<?> source = sources[nonPlainSourceId];
+            secondaryFactTypes[z] = source.getGrouping()[1];
+        }
+
+
+        FactType[][] grouping = node.getGrouping();
+        int totalLevels = grouping.length;
+        int[][][] destinationData = new int[totalLevels][][];
+
+        for (int level = 0; level < totalLevels; level++) {
+            FactType[] levelTypes = grouping[level];
+            int[][] locations = new int[levelTypes.length][];
+
+            for (int typeArrIndex = 0; typeArrIndex < levelTypes.length; typeArrIndex++) {
+                FactType t = levelTypes[typeArrIndex];
+
+                int[] addr;
+                int[] loc = CollectionUtils.locate2(t, primaryFactTypes, FactType.EQUALITY_BY_INDEX);
+                if (loc != null) {
+                    // Type belongs to primary level
+                    addr = new int[]{0, loc[0], loc[1]};
+                } else {
+                    loc = CollectionUtils.locate2(t, secondaryFactTypes, FactType.EQUALITY_BY_INDEX);
+                    if (loc == null) {
+                        //This can happen if one of the sources has grouping size deeper than 2
+                        throw new IllegalStateException();
+                    }
+                    addr = new int[]{1, loc[0], loc[1]};
+                }
+                locations[typeArrIndex] = addr;
+            }
+
+            destinationData[level] = locations;
+        }
+
+
+        if (this.nonPlainSourceIndices.length == 0) {
             this.state = new KeysStore.Entry[1][];
         } else {
             this.state = new KeysStore.Entry[2][];
-            this.state[1] = new KeysStore.Entry[nonPlainIndices.length];
+            this.state[1] = new KeysStore.Entry[this.nonPlainSourceIndices.length];
         }
         this.state[0] = new KeysStore.Entry[sources.length];
 
 
-        this.destinationValues = new DestinationValueAdapter(state, locationData);
+        this.destinationValues = new DestinationValueAdapter(state, destinationData);
         //this.conditionValues = new ConditionValueAdapter(state[0], conditionMappingIndices);
-        this.secondary = (ReIterator<KeysStore.Entry>[]) (new ReIterator[nonPlainIndices.length]);
+        this.secondary = (ReIterator<KeysStore.Entry>[]) (new ReIterator[this.nonPlainSourceIndices.length]);
 
 
-        BetaEvaluatorGroup inner = node.getDescriptor().getExpression();
+        BetaEvaluatorGroup inner = node.getExpression();
 
         BetaEvaluator[] betaEvaluators = inner.getEvaluators();
 
@@ -62,6 +115,17 @@ public class NodeIterationState implements NodeIterationStateFactory.State {
     }
 
     @Override
+    public Object apply(FactType factType, int fieldIndex) {
+        //TODO override or provide a message
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean hasNonPlainSources() {
+        return nonPlainSources;
+    }
+
+    @Override
     public void setEvaluationEntry(KeysStore.Entry entry, int sourceId) {
         state[0][sourceId] = entry;
     }
@@ -74,8 +138,8 @@ public class NodeIterationState implements NodeIterationStateFactory.State {
     @ThreadUnsafe
     @Override
     public ReIterator<KeysStore.Entry>[] buildSecondary() {
-        for (int i = 0; i < nonPlainIndices.length; i++) {
-            int sourceId = nonPlainIndices[i];
+        for (int i = 0; i < nonPlainSourceIndices.length; i++) {
+            int sourceId = nonPlainSourceIndices[i];
             secondary[i] = state[0][sourceId].getNext().entries();
         }
         return secondary;
@@ -125,7 +189,7 @@ public class NodeIterationState implements NodeIterationStateFactory.State {
             this.node = node;
             this.values = new ValueSupplier[evaluator.betaDescriptor().length];
             for (int refId = 0; refId < evaluator.betaDescriptor().length; refId++) {
-                FactTypeField ref = evaluator.betaDescriptor()[refId];
+                BetaFieldReference ref = evaluator.betaDescriptor()[refId];
                 FactType type = ref.getFactType();
 
                 int fieldIndex = ref.getFieldIndex();

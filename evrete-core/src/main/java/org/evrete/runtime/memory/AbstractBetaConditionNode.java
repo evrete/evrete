@@ -41,7 +41,7 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
         SessionMemory memory = rule.getMemory();
         this.mainStore = memory.newKeysStore(descriptor.getEvalGrouping());
         this.deltaStore = memory.newKeysStore(descriptor.getEvalGrouping());
-        this.expression = descriptor.getExpression();
+        this.expression = descriptor.getExpression().copyOf();
 
         FactType[][] descGrouping = descriptor.getEvalGrouping();
         this.grouping = new RuntimeFactTypeKeyed[descGrouping.length][];
@@ -95,6 +95,11 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
     @Override
     public KeysStore getMainStore() {
         return mainStore;
+    }
+
+
+    public BetaEvaluatorGroup getExpression() {
+        return expression;
     }
 
     public ReIterator<ValueRow[]> mainIterator() {

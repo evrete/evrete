@@ -4,13 +4,15 @@ import org.evrete.api.TypeField;
 
 import java.util.Objects;
 
-public final class FactTypeField {
+public final class BetaFieldReference {
     private final FactType factType;
+    private final int index;
     private final int fieldIndex;
 
-    public FactTypeField(FactType factType, TypeField field) {
+    public BetaFieldReference(int index, FactType factType, TypeField field) {
         this.factType = factType;
         this.fieldIndex = factType.findFieldPosition(field);
+        this.index = index;
     }
 
     public FactType getFactType() {
@@ -25,7 +27,7 @@ public final class FactTypeField {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        FactTypeField that = (FactTypeField) o;
+        BetaFieldReference that = (BetaFieldReference) o;
         return fieldIndex == that.fieldIndex &&
                 factType.equals(that.factType);
     }

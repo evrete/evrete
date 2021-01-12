@@ -1,7 +1,4 @@
-package org.evrete.runtime.builder;
-
-import org.evrete.api.NamedType;
-import org.evrete.api.TypeField;
+package org.evrete.api;
 
 public interface FieldReference {
     FieldReference[] ZERO_ARRAY = new FieldReference[0];

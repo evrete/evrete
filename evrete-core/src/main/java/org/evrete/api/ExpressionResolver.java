@@ -1,7 +1,5 @@
 package org.evrete.api;
 
-import org.evrete.runtime.builder.FieldReference;
-
 import java.util.function.Function;
 
 public interface ExpressionResolver {

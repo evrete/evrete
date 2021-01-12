@@ -10,8 +10,7 @@ import java.util.function.ObjIntConsumer;
 
 public class BetaConditionNode extends AbstractBetaConditionNode {
     static final BetaConditionNode[] EMPTY_ARRAY = new BetaConditionNode[0];
-    private final NodeIterationState state;
-    private final boolean nonPlainSources;
+    private final NodeIterationStateFactory.State state;
     private final ReIterator<KeysStore.Entry>[] entryData;
     private final ReIterator<KeysStore.Entry>[] mainIterators;
     private final ReIterator<KeysStore.Entry>[] deltaIterators;
@@ -20,9 +19,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
     @SuppressWarnings("unchecked")
     BetaConditionNode(RuntimeRuleImpl rule, ConditionNodeDescriptor descriptor, BetaMemoryNode<?>[] sources) {
         super(rule, descriptor, sources);
-        DefaultStateFactory stateFactory = new DefaultStateFactory(this);
-        this.state = stateFactory.newIterationState();
-        this.nonPlainSources = stateFactory.hasNonPlainSources();
+        this.state = new DefaultStateFactory().newIterationState(this);
         this.entryData = (ReIterator<KeysStore.Entry>[]) new ReIterator[sources.length];
         this.mainIterators = (ReIterator<KeysStore.Entry>[]) new ReIterator[sources.length];
         this.deltaIterators = (ReIterator<KeysStore.Entry>[]) new ReIterator[sources.length];
@@ -33,7 +30,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         }
     }
 
-    private static void processSecondary(NodeIterationState state, ReIterator<KeysStore.Entry>[] secondary, KeysStore destination) {
+    private static void processSecondary(NodeIterationStateFactory.State state, ReIterator<KeysStore.Entry>[] secondary, KeysStore destination) {
         recursiveIteration(0, secondary, state::setSecondaryEntry, () -> state.saveTo(destination));
     }
 
@@ -111,7 +108,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
 
     private void evaluate() {
         KeysStore destination = getDeltaStore();
-        if (nonPlainSources) {
+        if (state.hasNonPlainSources()) {
             processInputsNonPlain(destination);
         } else {
             processInputsPlain(destination);

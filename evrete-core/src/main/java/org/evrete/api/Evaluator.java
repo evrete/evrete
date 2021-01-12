@@ -1,7 +1,5 @@
 package org.evrete.api;
 
-import org.evrete.runtime.builder.FieldReference;
-
 public interface Evaluator extends ValuesPredicate, LogicallyComparable, ComplexityObject {
     /**
      * <p>Describes fields and their ordering to be used during the evaluation</p>

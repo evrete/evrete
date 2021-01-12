@@ -1,26 +1,29 @@
 package org.evrete.runtime.evaluation;
 
 import org.evrete.api.ComplexityObject;
+import org.evrete.api.Copyable;
+import org.evrete.runtime.BetaFieldReference;
 import org.evrete.runtime.FactType;
-import org.evrete.runtime.FactTypeField;
 import org.evrete.util.Bits;
 
 import java.util.*;
 
-public class BetaEvaluatorGroup implements ComplexityObject {
+public class BetaEvaluatorGroup implements ComplexityObject, Copyable<BetaEvaluatorGroup> {
     public static final BetaEvaluatorGroup[] ZERO_ARRAY = new BetaEvaluatorGroup[0];
     private final BetaEvaluator[] evaluators;
-    private final Bits typeMask = new Bits();
+    private final Bits typeMask;
+    ;
     private final Set<FactType> descriptor;
     private final double complexity;
 
     BetaEvaluatorGroup(Collection<BetaEvaluator> collection) {
+        this.typeMask = new Bits();
         this.evaluators = collection.toArray(BetaEvaluator.ZERO_ARRAY);
         Arrays.sort(evaluators, Comparator.comparingDouble(ComplexityObject::getComplexity));
         Set<FactType> factTypes = new HashSet<>();
         double comp = 0.0;
         for (BetaEvaluator ei : evaluators) {
-            for (FactTypeField ref : ei.betaDescriptor()) {
+            for (BetaFieldReference ref : ei.betaDescriptor()) {
                 FactType t = ref.getFactType();
                 factTypes.add(t);
                 typeMask.set(t.getInRuleIndex());
@@ -32,9 +35,18 @@ public class BetaEvaluatorGroup implements ComplexityObject {
     }
 
     protected BetaEvaluatorGroup(BetaEvaluatorGroup other) {
-        this.evaluators = other.evaluators;
+        this.typeMask = other.typeMask;
         this.complexity = other.complexity;
         this.descriptor = other.descriptor;
+        this.evaluators = new BetaEvaluator[other.evaluators.length];
+        for (int i = 0; i < this.evaluators.length; i++) {
+            this.evaluators[i] = other.evaluators[i].copyOf();
+        }
+    }
+
+    @Override
+    public BetaEvaluatorGroup copyOf() {
+        return new BetaEvaluatorGroup(this);
     }
 
     @Override
@@ -48,6 +60,10 @@ public class BetaEvaluatorGroup implements ComplexityObject {
 
     public BetaEvaluator[] getEvaluators() {
         return evaluators;
+    }
+
+    public int getTotalTypesInvolved() {
+        return descriptor.size();
     }
 
     public Bits getTypeMask() {

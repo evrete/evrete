@@ -1,4 +1,7 @@
-package org.evrete.api;
+package org.evrete.runtime;
+
+import org.evrete.api.Type;
+import org.evrete.api.TypeField;
 
 import java.util.Objects;
 

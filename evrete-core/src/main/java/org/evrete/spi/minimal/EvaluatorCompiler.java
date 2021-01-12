@@ -1,9 +1,9 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.Evaluator;
+import org.evrete.api.FieldReference;
 import org.evrete.api.IntToValue;
 import org.evrete.api.LogicallyComparable;
-import org.evrete.runtime.builder.FieldReference;
 import org.evrete.util.NextIntSupplier;
 
 import java.lang.invoke.MethodHandle;

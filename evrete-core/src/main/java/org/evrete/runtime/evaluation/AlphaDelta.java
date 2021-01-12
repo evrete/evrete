@@ -1,6 +1,6 @@
 package org.evrete.runtime.evaluation;
 
-import org.evrete.api.FieldsKey;
+import org.evrete.runtime.FieldsKey;
 
 import java.util.Arrays;
 import java.util.Collection;

@@ -2,6 +2,8 @@ package org.evrete.runtime.memory;
 
 import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
+import org.evrete.runtime.ActiveField;
+import org.evrete.runtime.FieldsKey;
 import org.evrete.runtime.PlainMemory;
 import org.evrete.runtime.RuntimeFactImpl;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;

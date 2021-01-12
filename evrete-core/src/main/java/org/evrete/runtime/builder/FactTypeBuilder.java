@@ -1,5 +1,6 @@
 package org.evrete.runtime.builder;
 
+import org.evrete.api.FieldReference;
 import org.evrete.api.NamedType;
 import org.evrete.api.Type;
 import org.evrete.api.TypeField;

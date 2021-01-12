@@ -9,9 +9,8 @@ interface NodeIterationStateFactory<S extends NodeIterationStateFactory.State, E
      * This method will be called for each batch of evaluation tasks regardless of
      * its size
      */
-    S newIterationState();
+    S newIterationState(BetaConditionNode node);
 
-    boolean hasNonPlainSources();
 
     interface State {
         void saveTo(KeysStore destination);
@@ -21,6 +20,8 @@ interface NodeIterationStateFactory<S extends NodeIterationStateFactory.State, E
         void setEvaluationEntry(KeysStore.Entry entry, int sourceId);
 
         void setSecondaryEntry(KeysStore.Entry entry, int nonPlainIndex);
+
+        boolean hasNonPlainSources();
 
         @ThreadUnsafe
         ReIterator<KeysStore.Entry>[] buildSecondary();

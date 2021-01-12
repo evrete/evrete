@@ -1,9 +1,6 @@
 package org.evrete.runtime.builder;
 
-import org.evrete.api.Evaluator;
-import org.evrete.api.IntToValue;
-import org.evrete.api.LogicallyComparable;
-import org.evrete.api.NamedType;
+import org.evrete.api.*;
 import org.evrete.runtime.AbstractRuntime;
 
 import java.util.Arrays;

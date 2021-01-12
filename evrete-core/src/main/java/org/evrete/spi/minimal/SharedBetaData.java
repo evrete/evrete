@@ -1,6 +1,8 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
+import org.evrete.runtime.ActiveField;
+import org.evrete.runtime.FieldsKey;
 
 import java.util.Arrays;
 import java.util.EnumMap;

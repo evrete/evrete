@@ -3,7 +3,8 @@ package org.evrete.runtime.evaluation;
 import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.AbstractRuntime;
-import org.evrete.runtime.builder.FieldReference;
+import org.evrete.runtime.ActiveField;
+import org.evrete.runtime.FieldsKey;
 
 import java.util.*;
 import java.util.function.Consumer;

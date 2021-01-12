@@ -1,7 +1,6 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
-import org.evrete.runtime.builder.FieldReference;
 import org.evrete.util.BaseConditionClass;
 import org.evrete.util.NextIntSupplier;
 

@@ -1,5 +1,7 @@
 package org.evrete.api;
 
+import org.evrete.runtime.FieldsKey;
+
 public interface MemoryCollections {
 
     KeysStore newKeyStore(int[] factTypeCounts);

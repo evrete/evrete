@@ -1,6 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.api.ActiveField;
 import org.evrete.api.Copyable;
 import org.evrete.api.Type;
 import org.evrete.api.TypeField;

@@ -1,8 +1,8 @@
 package org.evrete.spi.minimal;
 
+import org.evrete.api.FieldReference;
 import org.evrete.api.NamedType;
 import org.evrete.api.TypeField;
-import org.evrete.runtime.builder.FieldReference;
 
 import java.util.Objects;
 

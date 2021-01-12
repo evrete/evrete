@@ -1,15 +1,11 @@
 package org.evrete.runtime.memory;
 
-import org.evrete.runtime.FactType;
 import org.evrete.runtime.evaluation.BetaEvaluatorGroup;
-import org.evrete.util.CollectionUtils;
 
 public class DefaultStateFactory implements NodeIterationStateFactory<NodeIterationState, BetaEvaluatorGroup> {
-    private final BetaConditionNode node;
-    private final int[][][] destinationData;
-    private final boolean nonPlainSources;
 
-    public DefaultStateFactory(BetaConditionNode node) {
+    public DefaultStateFactory() {
+/*
         this.node = node;
 
         int[] nonPlainSourceIndices = node.getNonPlainSourceIndices();
@@ -60,15 +56,11 @@ public class DefaultStateFactory implements NodeIterationStateFactory<NodeIterat
 
             destinationData[level] = locations;
         }
+*/
     }
 
     @Override
-    public boolean hasNonPlainSources() {
-        return nonPlainSources;
-    }
-
-    @Override
-    public NodeIterationState newIterationState() {
-        return new NodeIterationState(node, destinationData);
+    public NodeIterationState newIterationState(BetaConditionNode node) {
+        return new NodeIterationState(node);
     }
 }

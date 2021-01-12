@@ -1,7 +1,7 @@
 package org.evrete.runtime.memory;
 
-import org.evrete.api.ActiveField;
 import org.evrete.api.Type;
+import org.evrete.runtime.ActiveField;
 import org.evrete.runtime.RuntimeAware;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 

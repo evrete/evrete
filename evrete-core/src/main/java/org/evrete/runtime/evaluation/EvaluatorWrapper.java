@@ -1,7 +1,6 @@
 package org.evrete.runtime.evaluation;
 
 import org.evrete.api.*;
-import org.evrete.runtime.builder.FieldReference;
 
 import java.util.HashSet;
 import java.util.Set;

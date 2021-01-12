@@ -125,11 +125,11 @@ public abstract class AbstractLhsDescriptor {
 
         }
 
-        // MinMax complexities
+        // MinMax complexities (times
         Map<BetaEvaluatorGroup, Double> minMaxComplexities = new HashMap<>();
         for (BetaEvaluatorGroup g : evaluators) {
             double newComplexity = 1.0 + (g.getComplexity() - minComplexity) / (maxComplexity - minComplexity);
-            minMaxComplexities.put(g, newComplexity * g.getEvaluators().length);
+            minMaxComplexities.put(g, newComplexity * g.getTotalTypesInvolved());
         }
 
         // Sorting
