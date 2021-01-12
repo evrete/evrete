@@ -2,7 +2,6 @@ package org.evrete.runtime.memory;
 
 import org.evrete.api.KeysStore;
 import org.evrete.api.ReIterator;
-import org.evrete.api.ThreadUnsafe;
 
 interface NodeIterationStateFactory<S extends NodeIterationStateFactory.State, E> {
     /**
@@ -10,7 +9,6 @@ interface NodeIterationStateFactory<S extends NodeIterationStateFactory.State, E
      * its size
      */
     S newIterationState(BetaConditionNode node);
-
 
     interface State {
         void saveTo(KeysStore destination);
@@ -23,7 +21,6 @@ interface NodeIterationStateFactory<S extends NodeIterationStateFactory.State, E
 
         boolean hasNonPlainSources();
 
-        @ThreadUnsafe
         ReIterator<KeysStore.Entry>[] buildSecondary();
     }
 }

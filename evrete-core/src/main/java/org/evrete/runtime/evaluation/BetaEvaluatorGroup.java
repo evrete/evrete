@@ -2,6 +2,7 @@ package org.evrete.runtime.evaluation;
 
 import org.evrete.api.ComplexityObject;
 import org.evrete.api.Copyable;
+import org.evrete.runtime.BetaEvaluationState;
 import org.evrete.runtime.BetaFieldReference;
 import org.evrete.runtime.FactType;
 import org.evrete.util.Bits;
@@ -52,6 +53,15 @@ public class BetaEvaluatorGroup implements ComplexityObject, Copyable<BetaEvalua
     @Override
     public double getComplexity() {
         return this.complexity;
+    }
+
+    public boolean test(BetaEvaluationState state) {
+        for (BetaEvaluator evaluator : evaluators) {
+            if (!evaluator.test(state)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public Set<FactType> descriptor() {

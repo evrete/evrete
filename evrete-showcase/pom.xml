@@ -71,5 +71,6 @@
         <module>evrete-stock-app</module>
         <module>evrete-newton-laws</module>
         <module>evrete-chess-queens</module>
+        <module>evrete-town-emulation</module>
     </modules>
 </project>

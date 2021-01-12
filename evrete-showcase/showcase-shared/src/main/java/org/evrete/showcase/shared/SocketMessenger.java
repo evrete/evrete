@@ -1,6 +1,5 @@
 package org.evrete.showcase.shared;
 
-import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -15,10 +14,11 @@ public class SocketMessenger {
         this.session = session;
     }
 
-    private synchronized void send(String text) throws IOException {
+    private void send(String text) throws IOException {
         if (session.isOpen()) {
-            RemoteEndpoint.Basic endpoint = session.getBasicRemote();
-            endpoint.sendText(text);
+            synchronized (session) {
+                session.getBasicRemote().sendText(text);
+            }
         }
     }
 

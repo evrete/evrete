@@ -22,8 +22,8 @@ public class Utils {
         if (ms <= 0) return;
         try {
             Thread.sleep(ms);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (InterruptedException ignored) {
+
         }
     }
 

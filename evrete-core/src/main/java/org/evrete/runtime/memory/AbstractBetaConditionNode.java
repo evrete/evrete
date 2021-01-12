@@ -97,6 +97,9 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
         return mainStore;
     }
 
+    public RuntimeRuleImpl getRule() {
+        return rule;
+    }
 
     public BetaEvaluatorGroup getExpression() {
         return expression;

@@ -175,7 +175,7 @@ function _drawBoard(svg, board, listener) {
 function _createWebSocket() {
     let url = window.location.href.replace(/[^/]*$/, '') + 'ws/socket';
     url = url.replace('http', 'ws');
-    const webSocket = new WebSocket(url, ['protocolOne', 'protocolTwo']);
+    const webSocket = new WebSocket(url);
     webSocket.onmessage = onMessage;
     webSocket.onerror = function () {
         LOG.append('<li class="ERROR">Network error</li>');
@@ -188,7 +188,7 @@ function _createWebSocket() {
     // Optional. Some browsers (or networks) may not support ping/pong messaging,
     // so we make sure our socket keeps the connection alive
     setInterval(function () {
-        if (webSocket.OPEN) {
+        if (webSocket.readyState === webSocket.OPEN) {
             let ping = {
                 type: 'PING',
                 payload: 'I am alive!'

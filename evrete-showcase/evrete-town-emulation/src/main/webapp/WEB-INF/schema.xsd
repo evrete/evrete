@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <!-- root element -->
+    <xs:element name="config" type="Config"/>
+
+
+    <xs:complexType name="Config">
+        <xs:sequence>
+            <xs:element type="min-timeType" name="min-time">
+            </xs:element>
+            <xs:element type="transitionsType" name="transitions"/>
+        </xs:sequence>
+    </xs:complexType>
+
+
+    <xs:complexType name="stateType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="id" use="required"/>
+                <xs:attribute type="xs:string" name="minutes" use="required"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="min-timeType">
+        <xs:sequence>
+            <xs:element type="stateType" name="state" maxOccurs="unbounded" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="toType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="id" use="required"/>
+                <xs:attribute type="xs:string" name="probability" use="required"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="timeType">
+        <xs:sequence>
+            <xs:element type="toType" name="to" maxOccurs="unbounded" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute type="xs:string" name="hour" use="required"/>
+    </xs:complexType>
+    <xs:complexType name="fromType">
+        <xs:sequence>
+            <xs:element type="timeType" name="time" maxOccurs="unbounded" minOccurs="0">
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute type="xs:string" name="id" use="required"/>
+    </xs:complexType>
+    <xs:complexType name="transitionsType">
+        <xs:sequence>
+            <xs:element type="fromType" name="from" maxOccurs="unbounded" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>

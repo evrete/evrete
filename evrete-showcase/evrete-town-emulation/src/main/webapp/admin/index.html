@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<!--suppress JSSuspiciousNameCombination -->
+<html lang="en">
+<head>
+    <title>Simple Map</title>
+
+    <!-- Foundation CSS -->
+    <!--
+        <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/foundation-sites@6.6.3/dist/css/foundation.min.css"
+      rel="stylesheet">
+    -->
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+    <!-- Icons -->
+    <link href="https://cdn.lineicons.com/2.0/LineIcons.css" rel="stylesheet">
+
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <script defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB5WUH1JJLPWlHDzYirhuDG_8qZ6fnkgAo&callback=initMap&libraries=&v=weekly"></script>
+    <script>
+        let map;
+
+        function initMap() {
+            let mapDiv = document.getElementById("map");
+
+            map = new google.maps.Map(mapDiv, {
+                center: {lat: 42.19460564372644, lng: -87.81816846557618},
+                zoom: 14,
+                disableDefaultUI: false,
+            });
+
+            map.addListener('click', function (event) {
+                console.log(map.getCenter().toJSON());
+                let url = "https://maps.googleapis.com/maps/api/staticmap?key=AIzaSyB5WUH1JJLPWlHDzYirhuDG_8qZ6fnkgAo";
+
+                let center = map.getCenter().toJSON();
+                let zoom = map.getZoom() - 0;
+
+                let dLat = -0.0387;
+                //let latBase = center.lat + 0.02;
+                let latBase = center.lat + 0.020001;
+
+
+                let dLng = 0.0535;
+                //let lngBase = center.lng - 0.031;
+                let lngBase = center.lng - 0.0310001;
+
+
+                for (let y = 0; y < 2; y++) {
+                    let lat = latBase + dLat * y;
+                    for (let x = 0; x < 2; x++) {
+                        let lng = lngBase + dLng * x;
+                        let selectedUrl = url
+                        selectedUrl += "&center=" + lat + "," + lng;
+                        selectedUrl += "&zoom=" + zoom;
+
+                        selectedUrl += "&size=" + 4096 + "x" + 4096;
+                        selectedUrl += "&scale=2";
+                        //selectedUrl += "&map_id=8a1cec56a6acddb3";
+                        document.getElementById("i_" + y + "_" + x).setAttribute("src", selectedUrl + "&map_id=ca537303f7623e79");
+                        document.getElementById("r_" + y + "_" + x).setAttribute("src", selectedUrl + "&map_id=8a1cec56a6acddb3");
+                    }
+                }
+            });
+        }
+
+
+        // Calibrate mapping
+
+        const mapping = [
+            {
+                "pixels": {
+                    "x": 1971,
+                    "y": 1681
+                },
+                "coordinates": {
+                    "lat": 42.171104,
+                    "lng": -87.772210
+                }
+            },
+            {
+                "pixels": {
+                    "x": 1297,
+                    "y": 325
+                },
+                "coordinates": {
+                    "lat": 42.222554,
+                    "lng": -87.806746
+                }
+            },
+            {
+                "pixels": {
+                    "x": 69,
+                    "y": 54
+                },
+                "coordinates": {
+                    "lat": 42.232842,
+                    "lng": -87.869799
+                }
+            },
+            {
+                "pixels": {
+                    "x": 118,
+                    "y": 1592
+                },
+                "coordinates": {
+                    "lat": 42.174380,
+                    "lng": -87.867154
+                }
+            },
+            {
+                "pixels": {
+                    "x": 861,
+                    "y": 1768
+                },
+                "coordinates": {
+                    "lat": 42.167661,
+                    "lng": -87.829067
+                }
+            },
+            {
+                "pixels": {
+                    "x": 396,
+                    "y": 918
+                },
+                "coordinates": {
+                    "lat": 42.200144,
+                    "lng": -87.852955
+                }
+            }
+        ];
+
+
+        /*
+                let sample = [
+                    {
+                        x: 0,
+                        y: 1
+                    },
+                    {
+                        x: 1,
+                        y: 3
+                    },
+                    {
+                        x: 2,
+                        y: 5
+                    },
+                    {
+                        x: 3,
+                        y: 7
+                    },
+                ]
+        */
+
+
+        //console.log('!!!!!', fit(sample));
+
+        let dataX2Lng = [];
+        let dataY2Lat = [];
+        let dataLng2X = [];
+        let dataLat2Y = [];
+
+        mapping.forEach(function (obj) {
+            dataX2Lng.push({
+                x: obj.pixels.x,
+                y: obj.coordinates.lng
+            });
+
+            dataLng2X.push({
+                y: obj.pixels.x,
+                x: obj.coordinates.lng
+            });
+
+            dataY2Lat.push({
+                x: obj.pixels.y,
+                y: obj.coordinates.lat
+            });
+
+            dataLat2Y.push({
+                y: obj.pixels.y,
+                x: obj.coordinates.lat
+            });
+
+
+        })
+
+
+        let x2lng = fit(dataX2Lng);
+        let y2lat = fit(dataY2Lat);
+        let lng2x = fit(dataLng2X)
+        let lat2y = fit(dataLat2Y);
+
+        console.log('X->Lng', x2lng);
+        console.log('Lng->X', lng2x);
+        console.log('Y->Lat', y2lat);
+        console.log('Lat->Y', lat2y);
+
+        // Test
+        let c2pixels = function (o) {
+            return {
+                x: o.lng * lng2x.m + lng2x.b,
+                y: o.lat * lat2y.m + lat2y.b
+            }
+        }
+
+        let pixels2c = function (o) {
+            return {
+                lat: o.y * y2lat.m + y2lat.b,
+                lng: o.x * x2lng.m + x2lng.b
+            }
+        }
+
+
+        mapping.forEach(function (m) {
+            let ll = m.coordinates;
+            let xy = m.pixels;
+
+
+            let ll1 = pixels2c(xy);
+            let xy1 = c2pixels(ll);
+
+            console.log(ll, ll1);
+            console.log(xy, xy1);
+            console.log('------');
+
+
+        })
+
+
+        function fit(data) {
+            let sumX = 0.0;
+            let sumY = 0.0;
+            for (let i = 0; i < data.length; i++) {
+                sumX += data[i].x;
+                sumY += data[i].y;
+            }
+
+            let avgX = sumX / data.length;
+            let avgY = sumY / data.length;
+
+            let xy = 0.0;
+            let xx = 0.0;
+            for (let i = 0; i < data.length; i++) {
+                xy += (data[i].x - avgX) * (data[i].y - avgY);
+                xx += (data[i].x - avgX) * (data[i].x - avgX);
+            }
+
+            let m = xy / xx;
+            let b = avgY - m * avgX;
+            return {
+                b: b,
+                m: m
+            }
+
+        }
+    </script>
+    <style>
+        .r {
+            width: 100%;
+        }
+
+        .c {
+            width: 300px;
+            height: 300px;
+            float: left;
+        }
+
+        .c img {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<div>
+    <h2>Emulation Data</h2>
+    <div id="map" style="width: 640px; height: 640px;"></div>
+    <hr/>
+    <table>
+        <tr>
+            <td class="c">
+                <img alt="0" id="i_0_0" src=""/>
+            </td>
+            <td class="c">
+                <img alt="0" id="i_0_1" src=""/>
+            </td>
+        </tr>
+        <tr>
+            <td class="c">
+                <img alt="0" id="i_1_0" src=""/>
+            </td>
+            <td class="c">
+                <img alt="0" id="i_1_1" src=""/>
+            </td>
+        </tr>
+    </table>
+    <table>
+        <tr>
+            <td class="c">
+                <img alt="0" id="r_0_0" src=""/>
+            </td>
+            <td class="c">
+                <img alt="0" id="r_0_1" src=""/>
+            </td>
+        </tr>
+        <tr>
+            <td class="c">
+                <img alt="0" id="r_1_0" src=""/>
+            </td>
+            <td class="c">
+                <img alt="0" id="r_1_1" src=""/>
+            </td>
+        </tr>
+    </table>
+</div>
+
+
+<!-- jQuery -->
+<script crossorigin="anonymous" src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+<!-- Foundation JavaScript -->
+<script crossorigin="anonymous"
+        src="https://cdn.jsdelivr.net/npm/foundation-sites@6.6.3/dist/js/foundation.min.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>evrete-town-emulation</artifactId>
+    <parent>
+        <artifactId>evrete-showcase</artifactId>
+        <groupId>org.evrete</groupId>
+        <version>1.2.05-SNAPSHOT</version>
+    </parent>
+
+    <packaging>war</packaging>
+    <name>evrete-town-emulation</name>
+    <version>1.2.05-SNAPSHOT</version>
+
+    <build>
+        <plugins>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.evrete</groupId>
+            <artifactId>showcase-shared</artifactId>
+            <version>1.2.05-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.2.18</version>
+            <scope>provided</scope>
+        </dependency>
+
+    </dependencies>
+</project>
