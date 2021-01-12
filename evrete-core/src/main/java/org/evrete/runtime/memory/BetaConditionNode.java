@@ -5,6 +5,7 @@ import org.evrete.api.ReIterator;
 import org.evrete.api.ValueRow;
 import org.evrete.runtime.ConditionNodeDescriptor;
 import org.evrete.runtime.RuntimeRuleImpl;
+import org.evrete.runtime.evaluation.DefaultStateFactory;
 
 import java.util.function.ObjIntConsumer;
 
@@ -15,11 +16,12 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
     private final ReIterator<KeysStore.Entry>[] mainIterators;
     private final ReIterator<KeysStore.Entry>[] deltaIterators;
 
-
     @SuppressWarnings("unchecked")
     BetaConditionNode(RuntimeRuleImpl rule, ConditionNodeDescriptor descriptor, BetaMemoryNode<?>[] sources) {
         super(rule, descriptor, sources);
         this.state = new DefaultStateFactory().newIterationState(this);
+
+        getExpression().setEvaluationState(this.state);
         this.entryData = (ReIterator<KeysStore.Entry>[]) new ReIterator[sources.length];
         this.mainIterators = (ReIterator<KeysStore.Entry>[]) new ReIterator[sources.length];
         this.deltaIterators = (ReIterator<KeysStore.Entry>[]) new ReIterator[sources.length];
@@ -121,7 +123,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
                 entryData,
                 state::setEvaluationEntry,
                 () -> {
-                    if (state.evaluate()) {
+                    if (getExpression().test()) {
                         state.saveTo(destination);
                     }
                 });
@@ -133,7 +135,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
                 entryData,
                 state::setEvaluationEntry,
                 () -> {
-                    if (state.evaluate()) {
+                    if (getExpression().test()) {
                         processSecondary(state, state.buildSecondary(), destination);
                     }
                 });

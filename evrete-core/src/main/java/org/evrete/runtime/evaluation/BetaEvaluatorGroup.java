@@ -55,21 +55,23 @@ public class BetaEvaluatorGroup implements ComplexityObject, Copyable<BetaEvalua
         return this.complexity;
     }
 
-    public boolean test(BetaEvaluationState state) {
+    public boolean test() {
         for (BetaEvaluator evaluator : evaluators) {
-            if (!evaluator.test(state)) {
+            if (!evaluator.test()) {
                 return false;
             }
         }
         return true;
     }
 
-    public Set<FactType> descriptor() {
-        return descriptor;
+    public void setEvaluationState(BetaEvaluationState values) {
+        for (BetaEvaluator evaluator : evaluators) {
+            evaluator.setEvaluationState(values);
+        }
     }
 
-    public BetaEvaluator[] getEvaluators() {
-        return evaluators;
+    public Set<FactType> descriptor() {
+        return descriptor;
     }
 
     public int getTotalTypesInvolved() {

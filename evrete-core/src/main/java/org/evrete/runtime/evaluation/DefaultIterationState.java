@@ -1,24 +1,23 @@
-package org.evrete.runtime.memory;
+package org.evrete.runtime.evaluation;
 
 import org.evrete.api.*;
-import org.evrete.runtime.BetaEvaluationState;
 import org.evrete.runtime.FactType;
-import org.evrete.runtime.evaluation.BetaEvaluatorGroup;
+import org.evrete.runtime.memory.BetaConditionNode;
+import org.evrete.runtime.memory.BetaMemoryNode;
+import org.evrete.runtime.memory.NodeIterationStateFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntFunction;
 
-public class NodeIterationState implements NodeIterationStateFactory.State, BetaEvaluationState {
+public class DefaultIterationState implements NodeIterationStateFactory.State {
     private final ValueRow[] stateValues;
     private final IntFunction<IntToValueRow> destinationValues;
     private final boolean nonPlainSources;
-    private final BetaEvaluatorGroup evaluator;
     private final IterationStateHandler[] stateHandlers;
     private final IterationStateHandlerNonPlain[] nonPlainStateHandlers;
 
-    public NodeIterationState(BetaConditionNode node) {
-        this.evaluator = node.getExpression();
+    public DefaultIterationState(BetaConditionNode node) {
         BetaMemoryNode<?>[] sources = node.getSources();
         this.stateHandlers = new IterationStateHandler[sources.length];
 
@@ -52,11 +51,6 @@ public class NodeIterationState implements NodeIterationStateFactory.State, Beta
     @Override
     public void saveTo(KeysStore destination) {
         destination.save(destinationValues);
-    }
-
-    @Override
-    public boolean evaluate() {
-        return evaluator.test(this);
     }
 
     @Override
