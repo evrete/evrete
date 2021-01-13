@@ -283,13 +283,6 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         return new It();
     }
 
-/*
-    @Override
-    public  <T> ReIterator<T> iterator(Function<E, T> mapper) {
-        return new It1<>(mapper);
-    }
-*/
-
     @SuppressWarnings("unchecked")
     public Stream<E> stream() {
         return intStream().filter(i -> !deletedIndices[i]).mapToObj(value -> (E) data[value]);
@@ -333,58 +326,6 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         int deletes = this.deletes;
         assert indices == size + deletes : "indices: " + indices + " size: " + size + ", deletes: " + deletes;
     }
-
-
-/*
-    private abstract class AbstractIterator<T> implements ReIterator<T> {
-        private int pos;
-        private Object next;
-        private int current = -1;
-
-        AbstractIterator() {
-            reset();
-        }
-
-        final void findNext() {
-            int idx;
-            next = null;
-
-            while (next == null && pos < currentInsertIndex) {
-                current = pos;
-                idx = getAt(pos++);
-                next = deletedIndices[idx] ? null : data[idx];
-            }
-        }
-
-        public final long reset() {
-            pos = 0;
-            findNext();
-            return size;
-        }
-
-        @Override
-        public final void remove() {
-            int idx = getAt(current);
-            markDeleted(idx);
-        }
-
-        @Override
-        public String toString() {
-            return AbstractLinearHash.this.toString();
-        }
-
-        Object nextObject() {
-            Object ret = next;
-            findNext();
-            return ret;
-        }
-
-        public final boolean hasNext() {
-            return next != null;
-        }
-
-    }
-*/
 
     private class It implements ReIterator<E> {
         int pos = 0;
@@ -444,22 +385,4 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
             }
         }
     }
-
-/*
-    private class It1<T> extends AbstractIterator<T> {
-        private final Function<E, T> mapper;
-
-        private It1(Function<E, T> mapper) {
-            super();
-            this.mapper = mapper;
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public T next() {
-            E ret = (E) nextObject();
-            return mapper.apply(ret);
-        }
-    }
-*/
 }

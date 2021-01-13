@@ -11,7 +11,7 @@ public interface Evaluator extends ValuesPredicate, LogicallyComparable, Complex
     /**
      * <p>A convenience method to convert evaluator's arguments to object array.</p>
      *
-     * @param values evaluator's arguments as a functional inteface
+     * @param values evaluator's arguments as a functional interface
      * @return arguments as an array
      */
     default Object[] toArray(IntToValue values) {

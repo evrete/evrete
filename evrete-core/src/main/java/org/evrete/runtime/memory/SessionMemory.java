@@ -63,10 +63,6 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         reSortRules();
     }
 
-    public RuntimeRules getRuleStorage() {
-        return ruleStorage;
-    }
-
     @Override
     protected TypeResolver newTypeResolver() {
         return getParentContext().getTypeResolver().copyOf();
@@ -153,14 +149,6 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         if (!affectedEndNodes.isEmpty()) {
             tasks.add(new RuleMemoryInsertTask(affectedEndNodes, true));
         }
-
-        // Ordered task 2 - update aggregate nodes
-/*
-        Collection<RuntimeAggregateLhsJoined> aggregateGroups = getAggregateLhsGroups();
-        if (!aggregateGroups.isEmpty()) {
-            tasks.add(new AggregateComputeTask(aggregateGroups, true));
-        }
-*/
 
         if (tasks.size() > 0) {
             ForkJoinExecutor executor = getExecutor();

@@ -44,24 +44,6 @@ public class Bits implements Copyable<Bits>, Masked {
         return this;
     }
 
-/*
-    public static <T> Bits of(T[] collection, ToIntFunction<T> mapping) {
-        Bits b = new Bits();
-        for (T o : collection) {
-            b.set(mapping.applyAsInt(o));
-        }
-        return b;
-    }
-*/
-
-/*
-    public static <T> Bits of(T o, ToIntFunction<T> mapping) {
-        Bits b = new Bits();
-        b.set(mapping.applyAsInt(o));
-        return b;
-    }
-*/
-
     public void or(Bits other) {
         delegate.or(other.delegate);
     }
@@ -74,34 +56,6 @@ public class Bits implements Copyable<Bits>, Masked {
     public boolean intersects(Bits other) {
         return delegate.intersects(other.delegate);
     }
-
-/*
-    public boolean containsAll(Bits other) {
-        PrimitiveIterator.OfInt i = other.delegate.stream().iterator();
-        while (i.hasNext()) {
-            int setIndex = i.nextInt();
-            if (!this.delegate.get(setIndex)) {
-                return false;
-            }
-        }
-        return true;
-    }
-*/
-
-/*
-    public IntStream stream() {
-        return delegate.stream();
-    }
-*/
-
-/*
-    public int[] getBitsAsArray() {
-        int[] arr = new int[delegate.cardinality()];
-        AtomicInteger i = new AtomicInteger(0);
-        stream().forEach(value -> arr[i.getAndIncrement()] = value);
-        return arr;
-    }
-*/
 
     public void clear() {
         delegate.clear();

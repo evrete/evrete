@@ -94,14 +94,6 @@ public class AlphaConditions implements Copyable<AlphaConditions>, EvaluationLis
                 '}';
     }
 
-    private static TypeField[] map(FieldReference[] descriptor) {
-        TypeField[] fields = new TypeField[descriptor.length];
-        for (int i = 0; i < descriptor.length; i++) {
-            fields[i] = descriptor[i].field();
-        }
-        return fields;
-    }
-
     private static class EvaluationSide {
         private final AlphaEvaluator condition;
         private final boolean direct;

@@ -14,7 +14,6 @@ class ActivationContext {
         return session;
     }
 
-
     int incrementFireCount() {
         return this.activationCount.getAndIncrement();
     }

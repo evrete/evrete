@@ -19,8 +19,6 @@ public abstract class RuntimeFactType extends FactType {
         }
     }
 
-    abstract boolean isBetaNode();
-
     public abstract Memory getSource();
 
     public SessionMemory getRuntime() {

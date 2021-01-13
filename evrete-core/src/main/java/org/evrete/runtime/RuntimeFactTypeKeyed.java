@@ -35,11 +35,6 @@ public class RuntimeFactTypeKeyed extends RuntimeFactType {
         return keyStorage;
     }
 
-    @Override
-    boolean isBetaNode() {
-        return true;
-    }
-
     public KeyReIterators<ValueRow> getKeyIterators() {
         return keyIterators;
     }

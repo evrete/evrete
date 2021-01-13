@@ -12,8 +12,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContext {
-    //private final Collection<RuntimeAggregateLhsLoose> aggregateLooseGroups = new ArrayList<>();
-    //private final Collection<RuntimeAggregateLhsJoined> aggregateConditionedGroups = new ArrayList<>();
     private final Collection<BetaEndNode> allBetaEndNodes = new ArrayList<>();
     private final Function<String, int[]> name2indices;
     private ActionQueue<Object> buffer;
@@ -28,30 +26,12 @@ public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContex
 
     static RuntimeLhs factory(RuntimeRuleImpl rule, LhsDescriptor descriptor) {
         return new RuntimeLhsDefault(rule, descriptor);
-/*
-        Set<AggregateLhsDescriptor> aggregates = descriptor.getAggregateDescriptors();
-        if (aggregates.isEmpty()) {
-            return new RuntimeLhsDefault(rule, descriptor);
-        } else {
-            return new RuntimeLhsAggregate(rule, descriptor, aggregates);
-        }
-*/
     }
 
     @Override
     public RuntimeRuleImpl getRule() {
         return rule;
     }
-
-/*
-    protected void addEndNodes(Collection<BetaEndNode> endNodes) {
-        this.allBetaEndNodes.addAll(endNodes);
-    }
-*/
-
-/*
-    public abstract Collection<RuntimeAggregateLhsJoined> getAggregateConditionedGroups();
-*/
 
     abstract void forEach(Consumer<RhsContext> rhs);
 

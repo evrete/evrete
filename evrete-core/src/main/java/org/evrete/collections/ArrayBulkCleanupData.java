@@ -44,18 +44,6 @@ class ArrayBulkCleanupData {
         return applyTo(data, indices.length);
     }
 
-/*
-    <T> int clean(T[] data, Predicate<T> predicate) {
-        for (int i = 0; i < indices.length; i++) {
-            if (predicate.test(data[i])) {
-                this.add(i);
-            }
-        }
-        return applyTo(data, indices.length);
-    }
-*/
-
-
     @SuppressWarnings("SuspiciousSystemArraycopy")
     private int applyTo(Object array, int initialSize) {
         int totalDeleted = 0;

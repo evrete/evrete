@@ -37,10 +37,6 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         this(ruleBuilder, null);
     }
 
-    AbstractLhsBuilder(AbstractLhsBuilder<C, ?> parent) {
-        this(parent.ruleBuilder, parent);
-    }
-
     protected abstract G self();
 
     private TypeResolver getTypeResolver() {
@@ -259,7 +255,6 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
                         AbstractLhsBuilder<?, ?> group = lhsBuilder.locateLhsGroup(ref.type());
                         if (group == lhsBuilder) {
                             throw new UnsupportedOperationException("Aggregate groups are currently not supported");
-                            //aggregateConditions.add(expression);
                         }
                     }
                 }
@@ -273,11 +268,6 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
 
         public Set<EvaluatorWrapper> getBetaConditions() {
             return betaConditions;
-        }
-
-        public Set<EvaluatorWrapper> getAggregateConditions() {
-            throw new UnsupportedOperationException("Aggregate groups are currently not supported");
-            //return aggregateConditions;
         }
     }
 }

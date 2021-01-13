@@ -6,13 +6,11 @@ import java.util.Objects;
 
 public final class BetaFieldReference {
     private final FactType factType;
-    private final int index;
     private final int fieldIndex;
 
-    public BetaFieldReference(int index, FactType factType, TypeField field) {
+    public BetaFieldReference(FactType factType, TypeField field) {
         this.factType = factType;
         this.fieldIndex = factType.findFieldPosition(field);
-        this.index = index;
     }
 
     public FactType getFactType() {

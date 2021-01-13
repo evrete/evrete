@@ -79,26 +79,6 @@ public class FieldsMemory implements Memory {
         }
     }
 
-    /*
-        void insert(RuntimeFact fact) {
-            for (FieldsMemoryBucket bucket : alphaBuckets.data) {
-                bucket.insert(fact);
-            }
-        }
-
-        void retract(Collection<RuntimeFact> facts) {
-            for (FieldsMemoryBucket bucket : alphaBuckets.data) {
-                bucket.delete(facts);
-            }
-        }
-
-
-        void retract(RuntimeFact fact) {
-            for (FieldsMemoryBucket bucket : alphaBuckets.data) {
-                bucket.delete(fact);
-            }
-        }
-    */
     public void retract(ReIterable<? extends RuntimeFact> facts) {
         for (FieldsMemoryBucket bucket : alphaBuckets.data) {
             bucket.delete(facts);

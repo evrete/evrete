@@ -193,22 +193,6 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         }
     }
 
-/*
-    protected void queueTask(Completer task) {
-        this.tasksQueue.add(task);
-    }
-*/
-
-/*
-    protected void processAllTasks() {
-        Completer task;
-        ForkJoinExecutor executor = getExecutor();
-        while ((task = tasksQueue.poll()) != null) {
-            executor.invoke(task);
-        }
-    }
-*/
-
     @Override
     public Comparator<Rule> getRuleComparator() {
         return ruleComparator;
@@ -223,24 +207,12 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         return service.getExecutor();
     }
 
-    public LazyInstance<LiteralRhsCompiler> getRhsCompiler() {
-        return rhsCompiler;
-    }
-
     public Evaluator compile(String expression, Function<String, NamedType> resolver) {
         return getExpressionResolver().buildExpression(expression, resolver);
     }
 
     public ActiveField getCreateActiveField(TypeField field) {
         return activeFields.getCreate(field, this::onNewActiveField);
-    }
-
-    public ActiveField[] getCreateActiveFields(TypeField[] fields) {
-        ActiveField[] activeFields = new ActiveField[fields.length];
-        for (int i = 0; i < fields.length; i++) {
-            activeFields[i] = getCreateActiveField(fields[i]);
-        }
-        return activeFields;
     }
 
     public Set<ActiveField> getCreateActiveFields(Set<TypeField> fields) {
@@ -321,10 +293,6 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         return collectionsService.get().newKeyStore(grouping);
     }
 
-    public KeysStore newKeysStore(int[] factTypeCounts) {
-        return collectionsService.get().newKeyStore(factTypeCounts);
-    }
-
     public SharedPlainFactStorage newSharedPlainStorage() {
         return collectionsService.get().newPlainStorage();
     }
@@ -350,7 +318,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     }
 
     Consumer<RhsContext> compile(String literalRhs, Collection<FactType> factTypes, Collection<String> imports) {
-        return getRhsCompiler().get().compileRhs(this, literalRhs, factTypes, imports);
+        return rhsCompiler.get().compileRhs(this, literalRhs, factTypes, imports);
     }
 
     public ExpressionResolver getExpressionResolver() {

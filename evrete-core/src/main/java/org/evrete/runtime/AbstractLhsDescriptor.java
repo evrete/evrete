@@ -150,10 +150,6 @@ public abstract class AbstractLhsDescriptor {
         return allFactGroups;
     }
 
-    public int getLevel() {
-        return level;
-    }
-
     public Set<FactType> getGroupFactTypes() {
         return groupFactTypes;
     }

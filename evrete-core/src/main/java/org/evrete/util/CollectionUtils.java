@@ -2,10 +2,8 @@ package org.evrete.util;
 
 import java.lang.reflect.Array;
 import java.util.*;
-import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 public final class CollectionUtils {
@@ -17,33 +15,6 @@ public final class CollectionUtils {
                 .filter(predicate).map(t -> (Z) t)
                 .collect(Collectors.toList());
         return list.toArray(array(type, 0));
-    }
-
-    public static <T> T[] appendToArray(T[] old, T newValue) {
-        T[] newArr = Arrays.copyOf(old, old.length + 1);
-        newArr[newArr.length - 1] = newValue;
-        return newArr;
-    }
-
-    public static <T> void fillIfNull(T[] arr, T newValue) {
-        for (int i = 0; i < arr.length; i++) {
-            if (arr[i] == null) {
-                arr[i] = newValue;
-            }
-        }
-    }
-
-    public static <S, T> int[] locate2(S subject, T[][] scope, BiPredicate<S, T> matchFunction) {
-        for (int x = 0; x < scope.length; x++) {
-            T[] sub = scope[x];
-            for (int y = 0; y < sub.length; y++) {
-                T o = sub[y];
-                if (matchFunction.test(subject, o)) {
-                    return new int[]{x, y};
-                }
-            }
-        }
-        return null;
     }
 
     public static <T> boolean deleteFrom(Collection<T> collection, Predicate<T> predicate) {
@@ -223,15 +194,6 @@ public final class CollectionUtils {
                 System.arraycopy(array, fromIndex, array, i + fromIndex, Math.min((len - i), i));
             }
         }
-    }
-
-    public static <Z> int[] toIntArray(Collection<Z> collection, ToIntFunction<Z> mapper) {
-        int[] arr = new int[collection.size()];
-        int i = 0;
-        for (Z o : collection) {
-            arr[i++] = mapper.applyAsInt(o);
-        }
-        return arr;
     }
 
     private static void fillBooleans(boolean[] a, int fromIndex, int toIndex, boolean val) {

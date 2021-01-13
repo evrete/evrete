@@ -13,7 +13,6 @@ public class BetaEvaluatorGroup implements ComplexityObject, Copyable<BetaEvalua
     public static final BetaEvaluatorGroup[] ZERO_ARRAY = new BetaEvaluatorGroup[0];
     private final BetaEvaluator[] evaluators;
     private final Bits typeMask;
-    ;
     private final Set<FactType> descriptor;
     private final double complexity;
 

@@ -42,12 +42,6 @@ class FieldsMemoryBucket implements Memory {
         }
     }
 
-/*
-    void delete(Collection<RuntimeFact> facts) {
-        fieldData.delete(facts, alphaMask);
-    }
-*/
-
     void delete(ReIterable<? extends RuntimeFact> facts) {
         ReIterator<? extends RuntimeFact> it = facts.iterator();
 

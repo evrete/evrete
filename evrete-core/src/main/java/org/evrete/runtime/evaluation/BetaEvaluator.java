@@ -21,7 +21,7 @@ public class BetaEvaluator extends EvaluatorWrapper implements Copyable<BetaEval
             FieldReference fieldReference = evaluatorDescriptor[i];
             FactType factType = typeFunction.apply(fieldReference.type());
             TypeField field = fieldReference.field();
-            this.descriptor[i] = new BetaFieldReference(i, factType, field);
+            this.descriptor[i] = new BetaFieldReference(factType, field);
         }
     }
 
@@ -48,14 +48,7 @@ public class BetaEvaluator extends EvaluatorWrapper implements Copyable<BetaEval
             arguments[i] = new Argument(values, ref.getFactType(), ref.getFieldIndex());
         }
 
-        this.stateValues = new IntToValue() {
-            @Override
-            public Object apply(int value) {
-                //BetaFieldReference ref = descriptor[value];
-                //return values.apply(ref.getFactType(), ref.getFieldIndex());
-                return arguments[value].getValue();
-            }
-        };
+        this.stateValues = value -> arguments[value].getValue();
     }
 
     public boolean test() {

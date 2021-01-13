@@ -11,11 +11,6 @@ public final class RuntimeFactTypePlain extends RuntimeFactType {
     }
 
     @Override
-    boolean isBetaNode() {
-        return false;
-    }
-
-    @Override
     public boolean isInsertDeltaAvailable() {
         return plainMemory.hasChanges();
     }

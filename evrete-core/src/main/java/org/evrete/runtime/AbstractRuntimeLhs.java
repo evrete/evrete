@@ -13,20 +13,18 @@ public abstract class AbstractRuntimeLhs {
     final RuntimeFact[][] factState;
     private final Collection<BetaEndNode> endNodes = new ArrayList<>();
     private final AbstractLhsDescriptor descriptor;
-    private final AbstractRuntimeLhs parent;
-    private final RhsFactGroup[] rhsFactGroups;
     private final RhsFactGroupAlpha alphaFactGroup;
     private final RhsFactGroupBeta[] betaFactGroups;
-    private final ValueRow[][] keyState;
 
     AbstractRuntimeLhs(RuntimeRuleImpl rule, AbstractRuntimeLhs parent, AbstractLhsDescriptor descriptor) {
         this.descriptor = descriptor;
-        this.parent = parent;
-
+        //this.parent = parent;
+        assert parent == null; // No aggregate groups yet
         // Init end nodes first
         RhsFactGroupDescriptor[] allFactGroups = descriptor.getAllFactGroups();
-        this.rhsFactGroups = new RhsFactGroup[allFactGroups.length];
-        this.keyState = new ValueRow[allFactGroups.length][];
+        //private final AbstractRuntimeLhs parent;
+        RhsFactGroup[] rhsFactGroups = new RhsFactGroup[allFactGroups.length];
+        ValueRow[][] keyState = new ValueRow[allFactGroups.length][];
         this.factState = new RuntimeFact[allFactGroups.length][];
 
         RhsFactGroupAlpha alpha = null;
@@ -48,7 +46,7 @@ public abstract class AbstractRuntimeLhs {
                     factGroup = new RhsFactGroupBeta(groupDescriptor, singleType, keyState, factState);
                 }
             }
-            this.rhsFactGroups[groupIndex] = factGroup;
+            rhsFactGroups[groupIndex] = factGroup;
         }
         this.betaFactGroups = CollectionUtils.filter(RhsFactGroupBeta.class, rhsFactGroups, group -> !group.isAlpha());
         this.alphaFactGroup = alpha;
@@ -66,20 +64,6 @@ public abstract class AbstractRuntimeLhs {
     public RhsFactGroupBeta[] getBetaFactGroups() {
         return betaFactGroups;
     }
-
-    public ValueRow[][] getKeyState() {
-        return keyState;
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T extends RhsFactGroup> T getGroup(RhsFactGroupDescriptor descriptor) {
-        return (T) rhsFactGroups[descriptor.getFactGroupIndex()];
-    }
-
-    public AbstractLhsDescriptor getDescriptor() {
-        return descriptor;
-    }
-
 
     Collection<BetaEndNode> getEndNodes() {
         return endNodes;

@@ -10,6 +10,7 @@ public abstract class Completer extends CountedCompleter<Void> {
 
     Completer(Completer completer) {
         super(completer);
+        this.directInvoke = false;
     }
 
     Completer() {

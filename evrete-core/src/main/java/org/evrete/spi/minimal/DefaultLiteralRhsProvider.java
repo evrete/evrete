@@ -27,14 +27,14 @@ public class DefaultLiteralRhsProvider extends LastServiceProvider implements Li
     }
 
     @SuppressWarnings("unchecked")
-    private Class<? extends AbstractLiteralRhs> buildClass(ClassLoader classLoader, FactType[] types, String literalRhs, Collection<String> imports) {
+    private static Class<? extends AbstractLiteralRhs> buildClass(ClassLoader classLoader, FactType[] types, String literalRhs, Collection<String> imports) {
         JcCompiler compiler = new JcCompiler(classLoader);
         String className = "Rhs" + classCounter.getAndIncrement();
         String source = buildSource(className, types, literalRhs, imports);
         return (Class<? extends AbstractLiteralRhs>) compiler.compile(className, source);
     }
 
-    String buildSource(String className, FactType[] types, String literalRhs, Collection<String> imports) {
+    static String buildSource(String className, FactType[] types, String literalRhs, Collection<String> imports) {
         StringJoiner methodArgs = new StringJoiner(", ");
         StringJoiner args = new StringJoiner(", ");
         for (FactType t : types) {

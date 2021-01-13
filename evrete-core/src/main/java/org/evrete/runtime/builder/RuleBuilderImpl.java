@@ -27,11 +27,6 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
 
     public RuleBuilderImpl<C> compileConditions(AbstractRuntime<?> runtime) {
         lhsBuilder.compileConditions(runtime);
-/*
-        for (AggregateLhsBuilder<C> agg : lhsBuilder.getAggregateGroups()) {
-            agg.compileConditions(runtime);
-        }
-*/
         return this;
     }
 

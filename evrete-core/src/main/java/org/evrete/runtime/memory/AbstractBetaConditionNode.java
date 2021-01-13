@@ -60,12 +60,6 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
         return this.deltaStore;
     }
 
-    @Override
-    public SessionMemory getRuntime() {
-        return rule.getMemory();
-    }
-
-
     public RuntimeFactTypeKeyed[][] getGrouping() {
         return grouping;
     }
@@ -109,8 +103,8 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
 
     @Override
     public void clear() {
-        getDeltaStore().clear();
-        getMainStore().clear();
+        deltaStore.clear();
+        mainStore.clear();
 
         for (BetaMemoryNode<?> source : getSources()) {
             source.clear();

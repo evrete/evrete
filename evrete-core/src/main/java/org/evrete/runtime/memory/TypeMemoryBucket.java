@@ -79,16 +79,6 @@ class TypeMemoryBucket implements PlainMemory {
         }
     }
 
-    //TODO review usage, we might need to setup a background purge process for that
-    void retract(ReIterable<? extends RuntimeFact> facts) {
-        ReIterator<? extends RuntimeFact> it = facts.iterator();
-        while (it.hasNext()) {
-            RuntimeFact fact = it.next();
-            assert fact.isDeleted();
-        }
-    }
-
-
     @Override
     public String toString() {
         return "{" +

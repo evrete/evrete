@@ -49,13 +49,6 @@ public final class EvaluatorFactory {
     }
 
 
-/*
-    public static BetaEvaluatorGroup unionEvaluators(Collection<EvaluatorWrapper> raw, Function<NamedType, FactType> typeFunction) {
-        Collection<BetaEvaluator> collection = convert(raw, typeFunction);
-        return new BetaEvaluatorGroup(collection);
-    }
-*/
-
     private static void validateExpression(Evaluator expression) {
         int refCount = expression.descriptor().length;
         Set<FieldReference> fields = new HashSet<>(Arrays.asList(expression.descriptor()));

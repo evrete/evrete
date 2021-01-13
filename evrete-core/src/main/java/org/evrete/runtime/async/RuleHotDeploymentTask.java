@@ -38,14 +38,7 @@ public class RuleHotDeploymentTask extends Completer {
 
     @Override
     public void onCompletion(CountedCompleter<?> caller) {
-        // Evaluate aggregate nodes, if any
-/*
-        for (RuntimeAggregateLhsJoined agg : rule.getLhs().getAggregateConditionedGroups()) {
-            agg.evaluate(false);
-        }
-*/
-
-        // Merging dnd nodes' deltas
+        // Merging nodes' deltas
         for (BetaEndNode endNode : rule.getLhs().getAllBetaEndNodes()) {
             endNode.mergeDelta();
         }
