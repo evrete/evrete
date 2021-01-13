@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDescriptor> {
-    private final int[] nonPlainSourceIndices;
     private final KeysStore mainStore;
     private final KeysStore deltaStore;
     private final BetaEvaluatorGroup expression;
@@ -37,7 +36,6 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
         this.conditionSources = conditionNodeList.toArray(BetaConditionNode.EMPTY_ARRAY);
         this.rule = rule;
         this.descriptor = descriptor;
-        this.nonPlainSourceIndices = descriptor.getNonPlainSourceIndices();
         SessionMemory memory = rule.getMemory();
         this.mainStore = memory.newKeysStore(descriptor.getEvalGrouping());
         this.deltaStore = memory.newKeysStore(descriptor.getEvalGrouping());
@@ -81,10 +79,6 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
         return descriptor;
     }
 
-    public int[] getNonPlainSourceIndices() {
-        return nonPlainSourceIndices;
-    }
-
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{" +
@@ -122,5 +116,4 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
             source.clear();
         }
     }
-
 }
