@@ -1,6 +1,7 @@
 package org.evrete.api;
 
-public interface EvaluationListenerHolder {
+public interface EvaluationListeners {
+
     void addListener(EvaluationListener listener);
 
     void removeListener(EvaluationListener listener);

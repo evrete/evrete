@@ -1,8 +1,6 @@
 package org.evrete.runtime;
 
-import org.evrete.api.RuntimeRule;
-import org.evrete.api.StatefulSession;
-import org.evrete.api.Type;
+import org.evrete.api.*;
 import org.evrete.runtime.memory.ActionQueue;
 import org.evrete.runtime.memory.BetaEndNode;
 import org.evrete.runtime.memory.SessionMemory;
@@ -12,7 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 
-public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule {
+public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule, EvaluationListeners {
     private final RuntimeFactType[] factSources;
     private final SessionMemory memory;
     private final RuleDescriptor descriptor;
@@ -98,7 +96,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule 
         return descriptor;
     }
 
-    //TODO !! replace with getRuntime call
+    //TODO !!!! rename to getRuntime
     public SessionMemory getMemory() {
         return memory;
     }
@@ -112,6 +110,20 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule 
     public RuntimeRule addImport(String imp) {
         super.addImport(imp);
         return this;
+    }
+
+    @Override
+    public void addListener(EvaluationListener listener) {
+        for (BetaEndNode node : lhs.getAllBetaEndNodes()) {
+            node.forEachConditionNode(n -> n.getExpression().addListener(listener));
+        }
+    }
+
+    @Override
+    public void removeListener(EvaluationListener listener) {
+        for (BetaEndNode node : lhs.getAllBetaEndNodes()) {
+            node.forEachConditionNode(n -> n.getExpression().removeListener(listener));
+        }
     }
 
     public RuntimeLhs getLhs() {

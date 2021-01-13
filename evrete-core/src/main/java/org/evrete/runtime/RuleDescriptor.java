@@ -1,11 +1,13 @@
 package org.evrete.runtime;
 
 import org.evrete.AbstractRule;
+import org.evrete.api.EvaluationListener;
+import org.evrete.api.EvaluationListeners;
 import org.evrete.runtime.builder.RuleBuilderImpl;
 import org.evrete.util.MapFunction;
 import org.evrete.util.NextIntSupplier;
 
-public class RuleDescriptor extends AbstractRuntimeRule {
+public class RuleDescriptor extends AbstractRuntimeRule implements EvaluationListeners {
     private final LhsDescriptor lhsDescriptor;
 
     private RuleDescriptor(AbstractRuntime<?> runtime, AbstractRule other, LhsDescriptor lhsDescriptor) {
@@ -33,5 +35,26 @@ public class RuleDescriptor extends AbstractRuntimeRule {
     public RuleDescriptor addImport(String imp) {
         super.addImport(imp);
         return this;
+    }
+
+
+    @Override
+    public void addListener(EvaluationListener listener) {
+        for (RhsFactGroupDescriptor d : lhsDescriptor.getAllFactGroups()) {
+            ConditionNodeDescriptor finalNode = d.getFinalNode();
+            if (finalNode != null) {
+                finalNode.forEachConditionNode(node -> node.addListener(listener));
+            }
+        }
+    }
+
+    @Override
+    public void removeListener(EvaluationListener listener) {
+        for (RhsFactGroupDescriptor d : lhsDescriptor.getAllFactGroups()) {
+            ConditionNodeDescriptor finalNode = d.getFinalNode();
+            if (finalNode != null) {
+                finalNode.forEachConditionNode(node -> node.removeListener(listener));
+            }
+        }
     }
 }

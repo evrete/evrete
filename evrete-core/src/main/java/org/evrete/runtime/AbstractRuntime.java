@@ -85,6 +85,10 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
 
     protected abstract void onNewAlphaBucket(AlphaDelta alphaDelta);
 
+    protected abstract void addListenerToRules(EvaluationListener listener);
+
+    protected abstract void removeListenerFromRules(EvaluationListener listener);
+
     @Override
     public RuntimeContext<?> addImport(String imp) {
         this.imports.add(imp);
@@ -94,11 +98,13 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     @Override
     public void addListener(EvaluationListener listener) {
         this.alphaConditions.addListener(listener);
+        addListenerToRules(listener);
     }
 
     @Override
     public void removeListener(EvaluationListener listener) {
         this.alphaConditions.removeListener(listener);
+        removeListenerFromRules(listener);
     }
 
     public ActivationMode getAgendaMode() {

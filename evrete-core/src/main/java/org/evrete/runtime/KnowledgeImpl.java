@@ -1,6 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.KnowledgeService;
+import org.evrete.api.EvaluationListener;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
 import org.evrete.api.TypeResolver;
@@ -68,4 +69,18 @@ public class KnowledgeImpl extends AbstractRuntime<Knowledge> implements Knowled
         return session;
     }
 
+
+    @Override
+    protected void addListenerToRules(EvaluationListener listener) {
+        for (RuleDescriptor ruleDescriptor : getRuleDescriptors()) {
+            ruleDescriptor.addListener(listener);
+        }
+    }
+
+    @Override
+    protected void removeListenerFromRules(EvaluationListener listener) {
+        for (RuleDescriptor ruleDescriptor : getRuleDescriptors()) {
+            ruleDescriptor.removeListener(listener);
+        }
+    }
 }

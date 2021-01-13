@@ -45,6 +45,16 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
     }
 
     @Override
+    protected void addListenerToRules(EvaluationListener listener) {
+        this.ruleStorage.addListener(listener);
+    }
+
+    @Override
+    protected void removeListenerFromRules(EvaluationListener listener) {
+        this.ruleStorage.removeListener(listener);
+    }
+
+    @Override
     public Iterator<TypeMemory> iterator() {
         return typedMemories.iterator(TYPE_MEMORY_MAPPING);
     }

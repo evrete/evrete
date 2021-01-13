@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 import static org.evrete.api.LogicallyComparable.*;
 
 //TODO add comments
-public class AlphaConditions implements Copyable<AlphaConditions>, EvaluationListenerHolder {
+public class AlphaConditions implements Copyable<AlphaConditions>, EvaluationListeners {
     private static final ArrayOf<AlphaEvaluator> EMPTY = new ArrayOf<>(new AlphaEvaluator[0]);
     private final Map<Type<?>, ArrayOf<AlphaEvaluator>> alphaPredicates;
     private final Map<Type<?>, TypeAlphas> typeAlphas;

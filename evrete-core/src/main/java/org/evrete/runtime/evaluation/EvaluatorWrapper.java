@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
 
-public class EvaluatorWrapper implements Evaluator, EvaluationListenerHolder {
+public class EvaluatorWrapper implements Evaluator, Listeners {
     private final Evaluator delegate;
     private final Set<EvaluationListener> listeners = new HashSet<>();
     private final Predicate<IntToValue> verboseUnmapped = new Predicate<IntToValue>() {

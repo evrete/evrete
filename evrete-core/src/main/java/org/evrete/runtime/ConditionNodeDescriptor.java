@@ -1,12 +1,15 @@
 package org.evrete.runtime;
 
+import org.evrete.api.EvaluationListener;
+import org.evrete.api.EvaluationListeners;
 import org.evrete.runtime.evaluation.BetaEvaluatorGroup;
 import org.evrete.util.Bits;
 import org.evrete.util.NextIntSupplier;
 
 import java.util.*;
+import java.util.function.Consumer;
 
-public class ConditionNodeDescriptor extends NodeDescriptor {
+public class ConditionNodeDescriptor extends NodeDescriptor implements EvaluationListeners {
     public static final ConditionNodeDescriptor[] ZERO_ARRAY = new ConditionNodeDescriptor[0];
     private final BetaEvaluatorGroup expression;
 
@@ -80,6 +83,30 @@ public class ConditionNodeDescriptor extends NodeDescriptor {
     public BetaEvaluatorGroup getExpression() {
         return expression;
     }
+
+    private static void forEachConditionNode(ConditionNodeDescriptor node, Consumer<ConditionNodeDescriptor> consumer) {
+        consumer.accept(node);
+        for (NodeDescriptor parent : node.getSources()) {
+            if (parent.isConditionNode()) {
+                forEachConditionNode((ConditionNodeDescriptor) parent, consumer);
+            }
+        }
+    }
+
+    @Override
+    public void addListener(EvaluationListener listener) {
+        expression.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(EvaluationListener listener) {
+        expression.removeListener(listener);
+    }
+
+    public void forEachConditionNode(Consumer<ConditionNodeDescriptor> consumer) {
+        forEachConditionNode(this, consumer);
+    }
+
 
     @Override
     public String toString() {

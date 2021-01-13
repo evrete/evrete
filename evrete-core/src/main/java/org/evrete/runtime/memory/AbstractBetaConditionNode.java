@@ -12,6 +12,7 @@ import org.evrete.runtime.evaluation.BetaEvaluatorGroup;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDescriptor> {
     private final KeysStore mainStore;
@@ -100,6 +101,20 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
     public ReIterator<ValueRow[]> deltaIterator() {
         return deltaIterator;
     }
+
+    private static void forEachConditionNode(AbstractBetaConditionNode node, Consumer<AbstractBetaConditionNode> consumer) {
+        consumer.accept(node);
+        for (BetaMemoryNode<?> parent : node.getSources()) {
+            if (parent.isConditionNode()) {
+                forEachConditionNode((AbstractBetaConditionNode) parent, consumer);
+            }
+        }
+    }
+
+    public void forEachConditionNode(Consumer<AbstractBetaConditionNode> consumer) {
+        forEachConditionNode(this, consumer);
+    }
+
 
     @Override
     public void clear() {

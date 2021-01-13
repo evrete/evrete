@@ -2,6 +2,8 @@ package org.evrete.runtime.evaluation;
 
 import org.evrete.api.ComplexityObject;
 import org.evrete.api.Copyable;
+import org.evrete.api.EvaluationListener;
+import org.evrete.api.EvaluationListeners;
 import org.evrete.runtime.BetaEvaluationState;
 import org.evrete.runtime.BetaFieldReference;
 import org.evrete.runtime.FactType;
@@ -9,7 +11,7 @@ import org.evrete.util.Bits;
 
 import java.util.*;
 
-public class BetaEvaluatorGroup implements ComplexityObject, Copyable<BetaEvaluatorGroup> {
+public class BetaEvaluatorGroup implements ComplexityObject, Copyable<BetaEvaluatorGroup>, EvaluationListeners {
     public static final BetaEvaluatorGroup[] ZERO_ARRAY = new BetaEvaluatorGroup[0];
     private final BetaEvaluator[] evaluators;
     private final Bits typeMask;
@@ -47,6 +49,20 @@ public class BetaEvaluatorGroup implements ComplexityObject, Copyable<BetaEvalua
     @Override
     public BetaEvaluatorGroup copyOf() {
         return new BetaEvaluatorGroup(this);
+    }
+
+    @Override
+    public void addListener(EvaluationListener listener) {
+        for (BetaEvaluator e : evaluators) {
+            e.addListener(listener);
+        }
+    }
+
+    @Override
+    public void removeListener(EvaluationListener listener) {
+        for (BetaEvaluator e : evaluators) {
+            e.removeListener(listener);
+        }
     }
 
     @Override
