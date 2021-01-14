@@ -50,9 +50,5 @@ abstract class AbstractKeysStore<E extends KeysStoreEntry> extends AbstractLinea
         return EQ_PREDICATE;
     }
 
-    @Override
-    public final boolean isEmpty() {
-        return size() == 0;
-    }
 
 }

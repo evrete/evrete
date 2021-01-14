@@ -24,6 +24,4 @@ public abstract class RuntimeFactType extends FactType {
     public SessionMemory getRuntime() {
         return runtime;
     }
-
-    public abstract boolean isInsertDeltaAvailable();
 }

@@ -4,6 +4,7 @@ import org.evrete.api.MemoryCollections;
 import org.evrete.api.OrderedServiceProvider;
 import org.evrete.api.RuntimeContext;
 
+@SuppressWarnings("unused")
 public interface MemoryCollectionsProvider extends OrderedServiceProvider {
     /**
      * @param requester - the context from which a new service is requested

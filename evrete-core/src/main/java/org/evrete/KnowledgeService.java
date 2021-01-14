@@ -50,6 +50,7 @@ public class KnowledgeService {
         return classLoader;
     }
 
+    @SuppressWarnings("unused")
     public void setClassLoader(ClassLoader classLoader) {
         this.classLoader = classLoader;
     }

@@ -11,11 +11,6 @@ public final class RuntimeFactTypePlain extends RuntimeFactType {
     }
 
     @Override
-    public boolean isInsertDeltaAvailable() {
-        return plainMemory.hasChanges();
-    }
-
-    @Override
     public PlainMemory getSource() {
         return plainMemory;
     }

@@ -27,10 +27,6 @@ public class Bits implements Copyable<Bits>, Masked {
 
     }
 
-    public static <T extends Masked> Bits or(Collection<T> collection) {
-        return or(collection, Masked::getMask);
-    }
-
     private static <T> Bits or(Collection<T> collection, Function<T, Bits> mapping) {
         Bits b = new Bits();
         for (T o : collection) {
@@ -57,20 +53,12 @@ public class Bits implements Copyable<Bits>, Masked {
         return delegate.intersects(other.delegate);
     }
 
-    public void clear() {
-        delegate.clear();
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Bits bits = (Bits) o;
         return delegate.equals(bits.delegate);
-    }
-
-    public boolean isEmpty() {
-        return delegate.isEmpty();
     }
 
     @Override

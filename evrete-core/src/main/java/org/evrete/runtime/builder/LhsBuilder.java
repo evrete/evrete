@@ -25,12 +25,6 @@ public class LhsBuilder<C extends RuntimeContext<C>> extends AbstractLhsBuilder<
         return getRuleBuilder().build(literalRhs);
     }
 
-    public RuleBuilder<C> setRhs(Consumer<RhsContext> consumer) {
-        RuleBuilderImpl<C> builder = getRuleBuilder();
-        builder.setRhs(consumer);
-        return builder;
-    }
-
     public RuleBuilder<C> setRhs(String literalConsumer) {
         RuleBuilderImpl<C> builder = getRuleBuilder();
         builder.setRhs(literalConsumer);

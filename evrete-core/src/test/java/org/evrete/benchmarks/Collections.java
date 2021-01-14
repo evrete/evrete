@@ -68,6 +68,7 @@ public class Collections {
         final EnumMap<SetImplementation, IterableSet<TypeA>> scanData = new EnumMap<>(SetImplementation.class);
         final EnumMap<SetImplementation, IterableSet<TypeA>> addData = new EnumMap<>(SetImplementation.class);
         final ArrayList<TypeA> objects = new ArrayList<>(objectCount);
+        @SuppressWarnings("unused")
         @Param
         SetImplementation set;
 

@@ -7,9 +7,6 @@ import org.evrete.api.ValueRow;
 import org.evrete.runtime.memory.SessionMemory;
 import org.evrete.util.ValueRowToArray;
 
-import static org.evrete.api.KeyMode.KNOWN_KEYS_NEW_FACTS;
-import static org.evrete.api.KeyMode.NEW_KEYS_NEW_FACTS;
-
 public class RuntimeFactTypeKeyed extends RuntimeFactType {
     private final SharedBetaFactStorage keyStorage;
     private final KeyReIterators<ValueRow> keyIterators;
@@ -41,14 +38,5 @@ public class RuntimeFactTypeKeyed extends RuntimeFactType {
 
     public KeyReIterators<ValueRow[]> getMappedKeyIterators() {
         return mappedKeyIterators;
-    }
-
-    @Override
-    public boolean isInsertDeltaAvailable() {
-        return
-                keyIterators.keyIterator(NEW_KEYS_NEW_FACTS).reset() > 0
-                        ||
-                        keyIterators.keyIterator(KNOWN_KEYS_NEW_FACTS).reset() > 0;
-
     }
 }

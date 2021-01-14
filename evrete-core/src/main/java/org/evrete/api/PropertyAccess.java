@@ -2,6 +2,7 @@ package org.evrete.api;
 
 import java.util.Collection;
 
+@SuppressWarnings("unused")
 public interface PropertyAccess<X> {
     X set(String property, Object value);
 

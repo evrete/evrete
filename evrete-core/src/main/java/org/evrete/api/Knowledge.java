@@ -4,6 +4,7 @@ import org.evrete.runtime.RuleDescriptor;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 public interface Knowledge extends RuntimeContext<Knowledge> {
     StatefulSession createSession();
 

@@ -10,6 +10,7 @@ import java.lang.annotation.Target;
  * requires extensive inline documentation.
  */
 
+@SuppressWarnings("unused")
 @Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
 @Retention(RetentionPolicy.SOURCE)
 public @interface Important {

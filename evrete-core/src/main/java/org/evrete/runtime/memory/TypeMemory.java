@@ -116,15 +116,8 @@ public final class TypeMemory extends TypeMemoryBase {
             impl.setDeleted(true);
         }
 
-        // Step 3: clear the delete buffer
-/*
-        //TODO review usage, we might need to setup a background purge process for that
-
-        for (TypeMemoryBucket bucket : alphaBuckets.data) {
-            bucket.retract(deleteSubject);
-        }
-*/
-
+        // Step 2: clear alpha storage
+        // Step 3: clear beta storage
         for (FieldsMemory fm : betaMemories.values()) {
             fm.retract(deleteSubject);
         }

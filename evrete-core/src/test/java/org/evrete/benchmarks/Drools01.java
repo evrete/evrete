@@ -32,6 +32,7 @@ public class Drools01 extends DroolsBase {
         s.fire();
     }
 
+    @SuppressWarnings("unused")
     @State(Scope.Benchmark)
     public static class BenchmarkState {
         final MapOfList<String, Object> objectMaps = new MapOfList<>();

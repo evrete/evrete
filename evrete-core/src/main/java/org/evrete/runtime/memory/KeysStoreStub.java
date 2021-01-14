@@ -29,11 +29,6 @@ class KeysStoreStub implements KeysStore {
     }
 
     @Override
-    public boolean isEmpty() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public ReIterator<Entry> entries() {
         throw new UnsupportedOperationException("Not implemented in " + getClass().getName());
     }

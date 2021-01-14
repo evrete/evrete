@@ -118,11 +118,6 @@ public class LiteralRhsTests {
         private static final AtomicInteger counter = new AtomicInteger(0);
         private static final Collection<Object> collector = new LinkedList<>();
 
-        public static void out(Object o) {
-            counter.incrementAndGet();
-            collector.add(o);
-        }
-
         static void reset() {
             counter.set(0);
             collector.clear();

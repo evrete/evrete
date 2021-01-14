@@ -3,7 +3,6 @@ package org.evrete.collections;
 import org.evrete.util.CollectionUtils;
 
 import java.util.Arrays;
-import java.util.function.Supplier;
 
 /**
  * A simple array wrapper which allows for faster iteration and
@@ -55,15 +54,6 @@ public class ArrayOf<T> {
                 return t;
             }
         }
-    }
-
-    public T computeIfAbsent(int bucketIndex, Supplier<T> supplier) {
-        T t = data[bucketIndex];
-        if (t == null) {
-            t = supplier.get();
-            data[bucketIndex] = t;
-        }
-        return t;
     }
 
     @Override
