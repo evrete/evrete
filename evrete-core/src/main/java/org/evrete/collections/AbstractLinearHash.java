@@ -121,15 +121,18 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         return findBinIndexFor(hash, data, eqTest);
     }
 
-
-    //TODO !!!! review usage, consider making it void
-    public final boolean add(E element) {
+    public final boolean addVerbose(E element) {
         resize();
         BiPredicate<Object, Object> eq = getEqualsPredicate();
         int hash = getHashFunction().applyAsInt(element);
         int addr = findBinIndexFor(element, hash, eq);
         E old = saveDirect(element, addr);
         return old == null || !eq.test(element, old);
+    }
+
+    public final void addSilent(E element) {
+        resize();
+        addNoResize(element);
     }
 
     public final void addNoResize(E element) {

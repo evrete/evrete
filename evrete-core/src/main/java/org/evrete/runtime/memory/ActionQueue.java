@@ -17,7 +17,7 @@ public class ActionQueue<T> {
 
     public void add(Action action, T o) {
         if (o != null) {
-            data.get(action).add(o);
+            data.get(action).addSilent(o);
         }
     }
 

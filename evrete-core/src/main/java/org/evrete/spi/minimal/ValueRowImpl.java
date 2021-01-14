@@ -31,7 +31,7 @@ class ValueRowImpl implements ValueRow {
     }
 
     void addFact(RuntimeFact fact) {
-        this.facts.add(fact);
+        this.facts.addSilent(fact);
         this.factCount++;
     }
 

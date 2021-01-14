@@ -18,10 +18,6 @@ public abstract class AbstractLinearHashMap<K, V> extends AbstractLinearHashMapB
         super(initialCapacity);
     }
 
-    public ReIterator<K> keyIterator() {
-        return iterator(kvEntry -> kvEntry.key);
-    }
-
     public ReIterator<V> valueIterator() {
         return iterator(kvEntry -> kvEntry.value);
     }

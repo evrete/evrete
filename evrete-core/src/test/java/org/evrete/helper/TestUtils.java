@@ -154,7 +154,7 @@ public final class TestUtils {
 
             @Override
             public boolean add(Z element) {
-                return set.add(element);
+                return set.addVerbose(element);
             }
 
             @Override

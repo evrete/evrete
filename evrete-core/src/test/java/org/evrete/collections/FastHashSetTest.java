@@ -89,16 +89,16 @@ class FastHashSetTest {
         TypeA a2 = new TypeA("A2");
         TypeA a3 = new TypeA("A3");
 
-        set1.add(a1);
-        set1.add(a1);
-        set1.add(a2);
-        set1.add(a3);
+        set1.addSilent(a1);
+        set1.addSilent(a1);
+        set1.addSilent(a2);
+        set1.addSilent(a3);
         set1.assertStructure();
 
         for (int i = 0; i < 640; i++) {
             set1.remove(a3);
             set1.assertStructure();
-            set1.add(a3);
+            set1.addSilent(a3);
             set1.assertStructure();
         }
 
@@ -120,7 +120,7 @@ class FastHashSetTest {
     void remove1() {
         LinearHashSet<String> set = new LinearHashSet<>();
 
-        assert set.add("a");
+        assert set.addVerbose("a");
         assert set.size() == 1;
         set.assertStructure();
         assert set.remove("a");
@@ -143,7 +143,7 @@ class FastHashSetTest {
 
         // Fill
         for (String s : data) {
-            fastSet.add(s);
+            fastSet.addSilent(s);
             fastSet.assertStructure();
         }
 
@@ -213,7 +213,7 @@ class FastHashSetTest {
         int max = 4096;
         for (int i = 0; i < totalEntries; i++) {
             String s = String.valueOf(r.nextInt(max));
-            fastSet.add(s);
+            fastSet.addSilent(s);
             hashSet.add(s);
         }
 
@@ -247,7 +247,7 @@ class FastHashSetTest {
         LinearHashSet<Integer> fastSet = new LinearHashSet<>();
 
         for (int i = 0; i < 100; i++) {
-            fastSet.add(i);
+            fastSet.addSilent(i);
         }
 
         Iterator<Integer> it = fastSet.iterator();

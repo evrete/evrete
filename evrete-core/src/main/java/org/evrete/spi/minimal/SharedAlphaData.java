@@ -36,7 +36,7 @@ public class SharedAlphaData extends AbstractLinearHash<RuntimeFact> implements 
     }
 
     public void insert(RuntimeFact fact) {
-        super.add(fact);
+        super.addSilent(fact);
     }
 
     // TODO check usage
