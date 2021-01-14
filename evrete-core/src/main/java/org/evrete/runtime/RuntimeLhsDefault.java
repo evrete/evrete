@@ -48,9 +48,8 @@ public class RuntimeLhsDefault extends RuntimeLhs {
                 iterator = entry.getValue();
                 if ((mode.isDeltaMode() || hasDelta) && iterator.reset() > 0) {
                     while (iterator.hasNext()) {
-                        if (group.setKey(iterator.next())) {
-                            r.run();
-                        }
+                        group.setKey(iterator.next());
+                        r.run();
                     }
                 }
             }
@@ -61,9 +60,8 @@ public class RuntimeLhsDefault extends RuntimeLhs {
                 iterator = entry.getValue();
                 if (iterator.reset() > 0) {
                     while (iterator.hasNext()) {
-                        if (group.setKey(iterator.next())) {
-                            runDelta(index + 1, lastIndex, mode.isDeltaMode(), groups, r);
-                        }
+                        group.setKey(iterator.next());
+                        runDelta(index + 1, lastIndex, mode.isDeltaMode(), groups, r);
                     }
                 }
             }
@@ -80,9 +78,8 @@ public class RuntimeLhsDefault extends RuntimeLhs {
                 iterator = entry.getValue();
                 if (iterator.reset() > 0) {
                     while (iterator.hasNext()) {
-                        if (group.setKey(iterator.next())) {
-                            r.run();
-                        }
+                        group.setKey(iterator.next());
+                        r.run();
                     }
                 }
             }
@@ -92,9 +89,8 @@ public class RuntimeLhsDefault extends RuntimeLhs {
                 iterator = entry.getValue();
                 if (iterator.reset() > 0) {
                     while (iterator.hasNext()) {
-                        if (group.setKey(iterator.next())) {
-                            runFull(index + 1, lastIndex, groups, r);
-                        }
+                        group.setKey(iterator.next());
+                        runFull(index + 1, lastIndex, groups, r);
                     }
                 }
             }
@@ -114,9 +110,8 @@ public class RuntimeLhsDefault extends RuntimeLhs {
                 //TODO !!!! optimize it, there's only one non-delta iterator!!!
                 if ((!mode.isDeltaMode()) && iterator.reset() > 0) {
                     while (iterator.hasNext()) {
-                        if (group.setKey(iterator.next())) {
-                            r.run();
-                        }
+                        group.setKey(iterator.next());
+                        r.run();
                     }
                 }
             }
@@ -128,9 +123,8 @@ public class RuntimeLhsDefault extends RuntimeLhs {
                 //TODO !!!! optimize it, there's only one non-delta iterator!!!
                 if (iterator.reset() > 0 && (!mode.isDeltaMode())) {
                     while (iterator.hasNext()) {
-                        if (group.setKey(iterator.next())) {
-                            runKnown(index + 1, lastIndex, groups, r);
-                        }
+                        group.setKey(iterator.next());
+                        runKnown(index + 1, lastIndex, groups, r);
                     }
                 }
             }

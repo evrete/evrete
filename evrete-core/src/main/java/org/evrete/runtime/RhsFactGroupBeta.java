@@ -45,15 +45,13 @@ public class RhsFactGroupBeta implements RhsFactGroup, KeyReIterators<ValueRow[]
         }
     }
 
-    boolean setKey(ValueRow[] key) {
+    void setKey(ValueRow[] key) {
         this.keyState[groupIndex] = key;
         // TODO !!! optimize by using setIterators if input nodes are all unique
         this.currentKey = key;
-        return true;
     }
 
     private void runForEachFact(Runnable r) {
-        //TODO !!! the length argument is always known, fix it
         runForEachFact(0, this.currentKey.length, r);
     }
 
