@@ -4,12 +4,11 @@ import org.evrete.api.*;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Predicate;
 
 public class EvaluatorWrapper implements Evaluator, Listeners {
     private final Evaluator delegate;
     private final Set<EvaluationListener> listeners = new HashSet<>();
-    private final Predicate<IntToValue> verboseUnmapped = new Predicate<IntToValue>() {
+    private final ValuesPredicate verboseUnmapped = new ValuesPredicate() {
         @Override
         public boolean test(IntToValue intToValue) {
             boolean b = delegate.test(intToValue);
@@ -20,9 +19,7 @@ public class EvaluatorWrapper implements Evaluator, Listeners {
         }
     };
     private final Set<NamedType> namedTypes = new HashSet<>();
-    private Predicate<IntToValue> active;
-    private int[] indexMapper;
-    private final Predicate<IntToValue> verboseMapped = new Predicate<IntToValue>() {
+    private final ValuesPredicate verboseMapped = new ValuesPredicate() {
         @Override
         public boolean test(IntToValue intToValue) {
             IntToValue mapped = intToValue.remap(indexMapper);
@@ -33,13 +30,15 @@ public class EvaluatorWrapper implements Evaluator, Listeners {
             return b;
         }
     };
-    private final Predicate<IntToValue> muteMapped = new Predicate<IntToValue>() {
+    private int[] indexMapper;
+    private final ValuesPredicate muteMapped = new ValuesPredicate() {
         @Override
         public boolean test(IntToValue intToValue) {
             IntToValue mapped = intToValue.remap(indexMapper);
             return delegate.test(mapped);
         }
     };
+    private ValuesPredicate active;
 
     public EvaluatorWrapper(Evaluator delegate) {
         this.delegate = unwrap(delegate);
