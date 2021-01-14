@@ -17,6 +17,7 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+@SuppressWarnings("ALL")
 class ExpressionsTest {
     private static KnowledgeService service;
     private RuleBuilder<Knowledge> rule;

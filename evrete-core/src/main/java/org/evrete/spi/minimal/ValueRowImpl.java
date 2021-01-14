@@ -20,7 +20,7 @@ class ValueRowImpl implements ValueRow {
         this.addFact(fact);
     }
 
-    ValueRowImpl(Object[] data, int hash) {
+    private ValueRowImpl(Object[] data, int hash) {
         this.data = data;
         this.hash = hash;
         this.delegate = facts.iterator();
