@@ -2,8 +2,6 @@ package org.evrete.runtime;
 
 import org.evrete.api.TypeField;
 
-import java.util.Objects;
-
 public final class BetaFieldReference {
     private final FactType factType;
     private final int fieldIndex;
@@ -32,6 +30,6 @@ public final class BetaFieldReference {
 
     @Override
     public int hashCode() {
-        return Objects.hash(factType, fieldIndex);
+        return factType.hashCode() * 31 + fieldIndex;
     }
 }

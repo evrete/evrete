@@ -4,7 +4,6 @@ import org.evrete.api.*;
 import org.evrete.runtime.AbstractRuntime;
 
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.function.Function;
 
 class PredicateExpression4 extends AbstractExpression {
@@ -60,9 +59,7 @@ class PredicateExpression4 extends AbstractExpression {
 
         @Override
         public int hashCode() {
-            int result = Objects.hash(predicate);
-            result = 31 * result + Arrays.hashCode(descriptor);
-            return result;
+            return 31 * predicate.hashCode() + Arrays.hashCode(descriptor);
         }
 
         @Override

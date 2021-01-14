@@ -4,8 +4,6 @@ import org.evrete.api.FieldReference;
 import org.evrete.api.NamedType;
 import org.evrete.api.TypeField;
 
-import java.util.Objects;
-
 class FieldReferenceImpl implements FieldReference {
     private final NamedType type;
     private final TypeField field;
@@ -41,7 +39,7 @@ class FieldReferenceImpl implements FieldReference {
 
     @Override
     public final int hashCode() {
-        return Objects.hash(type, field);
+        return type.hashCode() + field.hashCode() * 31;
     }
 
     @Override

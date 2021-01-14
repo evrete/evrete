@@ -3,8 +3,6 @@ package org.evrete.runtime;
 import org.evrete.api.Type;
 import org.evrete.api.TypeField;
 
-import java.util.Objects;
-
 /**
  * A wrapper for TypeField that will actually be in use
  * by the runtime. Unused fields will not get wrapped, thus avoiding unnecessary reads.
@@ -58,7 +56,7 @@ public final class ActiveField implements TypeField {
 
     @Override
     public int hashCode() {
-        return Objects.hash(delegate, valueIndex);
+        return delegate.hashCode() + valueIndex;
     }
 
     @Override

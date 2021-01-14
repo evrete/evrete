@@ -24,8 +24,8 @@ public abstract class AbstractLinearHashSet<K> extends AbstractLinearHash<K> {
         return removeEntry(element);
     }
 
-    public final boolean delete(Predicate<K> predicate) {
-        return super.deleteEntries(predicate);
+    public final void delete(Predicate<K> predicate) {
+        super.deleteEntries(predicate);
     }
 
     public final void forEach(Consumer<K> consumer) {

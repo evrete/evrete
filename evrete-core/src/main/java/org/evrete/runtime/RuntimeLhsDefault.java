@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
-public class RuntimeLhsDefault extends RuntimeLhs implements RhsContext {
+public class RuntimeLhsDefault extends RuntimeLhs {
     RuntimeLhsDefault(RuntimeRuleImpl rule, LhsDescriptor descriptor) {
         super(rule, descriptor);
     }
@@ -20,7 +20,7 @@ public class RuntimeLhsDefault extends RuntimeLhs implements RhsContext {
         forEach(() -> rhs.accept(this));
     }
 
-    static void runKeys(ScanMode mode, RhsFactGroupBeta[] groups, Runnable r) {
+    private static void runKeys(ScanMode mode, RhsFactGroupBeta[] groups, Runnable r) {
         switch (mode) {
             case DELTA:
                 runDelta(0, groups.length - 1, false, groups, r);

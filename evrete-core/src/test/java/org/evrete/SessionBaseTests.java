@@ -102,7 +102,7 @@ class SessionBaseTests {
         for (int t = 0; t < allTypes.length; t++) {
             Type<Base> type = allTypes[t];
 
-            int lastDot = type.getName().lastIndexOf(".");
+            int lastDot = type.getName().lastIndexOf('.');
             String factName = type.getName().substring(lastDot + 1);
 
             FactTypeBuilder factType = rootGroup.buildLhs("$" + factName, type);

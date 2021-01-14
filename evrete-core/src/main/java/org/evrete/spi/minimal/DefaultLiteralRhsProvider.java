@@ -34,7 +34,7 @@ public class DefaultLiteralRhsProvider extends LastServiceProvider implements Li
         return (Class<? extends AbstractLiteralRhs>) compiler.compile(className, source);
     }
 
-    static String buildSource(String className, FactType[] types, String literalRhs, Collection<String> imports) {
+    private static String buildSource(String className, FactType[] types, String literalRhs, Collection<String> imports) {
         StringJoiner methodArgs = new StringJoiner(", ");
         StringJoiner args = new StringJoiner(", ");
         for (FactType t : types) {
@@ -42,7 +42,7 @@ public class DefaultLiteralRhsProvider extends LastServiceProvider implements Li
             args.add(t.getVar());
         }
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(2048);
         sb.append("package ").append(classPackage).append(";\n\n");
 
         // Adding imports

@@ -26,11 +26,10 @@ public class ArrayOf<T> {
         this(CollectionUtils.array(type, 0));
     }
 
-    public int append(T element) {
+    public void append(T element) {
         int ret = this.data.length;
         this.data = Arrays.copyOf(this.data, ret + 1);
         this.data[ret] = element;
-        return ret;
     }
 
     public void set(int index, T element) {

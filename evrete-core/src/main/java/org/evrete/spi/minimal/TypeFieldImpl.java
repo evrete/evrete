@@ -3,7 +3,6 @@ package org.evrete.spi.minimal;
 import org.evrete.api.Type;
 import org.evrete.api.TypeField;
 
-import java.util.Objects;
 import java.util.function.Function;
 
 class TypeFieldImpl implements TypeField {
@@ -59,6 +58,6 @@ class TypeFieldImpl implements TypeField {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, declaringType);
+        return name.hashCode() * 31 + declaringType.hashCode();
     }
 }

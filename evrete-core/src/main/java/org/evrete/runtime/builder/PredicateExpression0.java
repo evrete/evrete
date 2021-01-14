@@ -30,7 +30,7 @@ class PredicateExpression0 extends AbstractExpression {
 
     @Override
     public int hashCode() {
-        return Objects.hash(source);
+        return source.hashCode();
     }
 
 

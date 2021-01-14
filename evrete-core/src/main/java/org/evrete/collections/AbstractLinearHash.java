@@ -194,18 +194,15 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         return size;
     }
 
-    final boolean deleteEntries(Predicate<E> predicate) {
+    final void deleteEntries(Predicate<E> predicate) {
         int initialDeletes = this.deletes;
         forEachDataEntry((e, i) -> {
             if (predicate.test(e)) {
                 markDeleted(i);
             }
         });
-        if (initialDeletes == this.deletes) {
-            return false;
-        } else {
+        if (initialDeletes != this.deletes) {
             resize();
-            return true;
         }
     }
 
