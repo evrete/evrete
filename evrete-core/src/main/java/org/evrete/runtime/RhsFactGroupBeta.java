@@ -1,7 +1,6 @@
 package org.evrete.runtime;
 
 import org.evrete.api.*;
-import org.evrete.runtime.memory.BetaEndNode;
 
 import java.util.EnumMap;
 

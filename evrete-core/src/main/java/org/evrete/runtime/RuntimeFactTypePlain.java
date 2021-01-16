@@ -1,7 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.runtime.memory.SessionMemory;
-
 public final class RuntimeFactTypePlain extends RuntimeFactType {
     private final PlainMemory plainMemory;
 

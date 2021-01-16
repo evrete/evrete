@@ -1,9 +1,10 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
-import org.evrete.runtime.memory.ActionQueue;
-import org.evrete.runtime.memory.BetaEndNode;
-import org.evrete.runtime.memory.SessionMemory;
+import org.evrete.api.EvaluationListener;
+import org.evrete.api.EvaluationListeners;
+import org.evrete.api.RuntimeRule;
+import org.evrete.api.Type;
+import org.evrete.util.ActionQueue;
 import org.evrete.util.CollectionUtils;
 
 import java.util.HashSet;
@@ -12,19 +13,19 @@ import java.util.Set;
 
 public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule, EvaluationListeners {
     private final RuntimeFactType[] factSources;
-    private final SessionMemory memory;
+    private final SessionMemory runtime;
     private final RuleDescriptor descriptor;
 
     private final RuntimeLhs lhs;
     private final Set<Type<?>> allTypes = new HashSet<>();
     private int rhsCallCounter = 0;
 
-    public RuntimeRuleImpl(RuleDescriptor rd, SessionMemory memory) {
-        super(memory, rd, rd.getLhs().getGroupFactTypes());
+    public RuntimeRuleImpl(RuleDescriptor rd, SessionMemory runtime) {
+        super(runtime, rd, rd.getLhs().getGroupFactTypes());
         this.descriptor = rd;
-        this.memory = memory;
+        this.runtime = runtime;
         FactType[] allFactTypes = descriptor.getLhs().getAllFactTypes();
-        this.factSources = buildTypes(memory, allFactTypes);
+        this.factSources = buildTypes(runtime, allFactTypes);
 
         for (RuntimeFactType t : factSources) {
             allTypes.add(t.getType());
@@ -41,17 +42,17 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         return factSources;
     }
 
-    public void mergeNodeDeltas() {
+    void mergeNodeDeltas() {
         for (BetaEndNode endNode : lhs.getAllBetaEndNodes()) {
             endNode.mergeDelta();
         }
     }
 
-    public boolean dependsOn(Type<?> type) {
+    boolean dependsOn(Type<?> type) {
         return allTypes.contains(type);
     }
 
-    public final int executeRhs(ActionQueue<Object> destinationBuffer) {
+    final int executeRhs(ActionQueue<Object> destinationBuffer) {
         this.rhsCallCounter = 0;
         this.lhs.setBuffer(destinationBuffer);
         this.lhs.forEach(rhs.andThen(rhsContext -> increaseCallCount()));
@@ -96,14 +97,10 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         return descriptor;
     }
 
-    //TODO !!!! rename to getRuntime
-    public SessionMemory getMemory() {
-        return memory;
-    }
 
     @Override
-    public StatefulSession getRuntime() {
-        return (StatefulSession) memory;
+    public StatefulSessionImpl getRuntime() {
+        return (StatefulSessionImpl) runtime;
     }
 
     @Override

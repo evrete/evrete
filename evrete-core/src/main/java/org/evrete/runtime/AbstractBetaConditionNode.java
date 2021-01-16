@@ -1,13 +1,9 @@
-package org.evrete.runtime.memory;
+package org.evrete.runtime;
 
 import org.evrete.api.KeysStore;
 import org.evrete.api.ReIterator;
 import org.evrete.api.ValueRow;
 import org.evrete.collections.MappedReIterator;
-import org.evrete.runtime.ConditionNodeDescriptor;
-import org.evrete.runtime.FactType;
-import org.evrete.runtime.RuntimeFactTypeKeyed;
-import org.evrete.runtime.RuntimeRuleImpl;
 import org.evrete.runtime.evaluation.BetaEvaluatorGroup;
 
 import java.util.ArrayList;
@@ -37,7 +33,7 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
         this.conditionSources = conditionNodeList.toArray(BetaConditionNode.EMPTY_ARRAY);
         this.rule = rule;
         this.descriptor = descriptor;
-        SessionMemory memory = rule.getMemory();
+        SessionMemory memory = rule.getRuntime();
         this.mainStore = memory.newKeysStore(descriptor.getEvalGrouping());
         this.deltaStore = memory.newKeysStore(descriptor.getEvalGrouping());
         this.expression = descriptor.getExpression().copyOf();
@@ -90,15 +86,15 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
         return rule;
     }
 
-    public BetaEvaluatorGroup getExpression() {
+    BetaEvaluatorGroup getExpression() {
         return expression;
     }
 
-    public ReIterator<ValueRow[]> mainIterator() {
+    ReIterator<ValueRow[]> mainIterator() {
         return mainIterator;
     }
 
-    public ReIterator<ValueRow[]> deltaIterator() {
+    ReIterator<ValueRow[]> deltaIterator() {
         return deltaIterator;
     }
 
@@ -111,7 +107,7 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
         }
     }
 
-    public void forEachConditionNode(Consumer<AbstractBetaConditionNode> consumer) {
+    void forEachConditionNode(Consumer<AbstractBetaConditionNode> consumer) {
         forEachConditionNode(this, consumer);
     }
 

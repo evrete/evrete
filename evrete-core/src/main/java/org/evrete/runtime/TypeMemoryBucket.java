@@ -1,10 +1,9 @@
-package org.evrete.runtime.memory;
+package org.evrete.runtime;
 
 import org.evrete.api.ReIterable;
 import org.evrete.api.ReIterator;
 import org.evrete.api.RuntimeFact;
 import org.evrete.api.SharedPlainFactStorage;
-import org.evrete.runtime.PlainMemory;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
 class TypeMemoryBucket implements PlainMemory {
@@ -32,6 +31,10 @@ class TypeMemoryBucket implements PlainMemory {
                 }
             }
         }
+    }
+
+    public AlphaBucketMeta getAlphaMask() {
+        return alphaMask;
     }
 
     public SharedPlainFactStorage getData() {
@@ -73,7 +76,7 @@ class TypeMemoryBucket implements PlainMemory {
         }
     }
 
-    void insert(RuntimeFact fact) {
+    private void insert(RuntimeFact fact) {
         if (alphaMask.test(fact)) {
             delta.insert(fact);
         }

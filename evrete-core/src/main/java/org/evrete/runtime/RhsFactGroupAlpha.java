@@ -10,7 +10,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
     private final int lastIndex;
     private final RuntimeFact[] state;
 
-    public RhsFactGroupAlpha(RuntimeRuleImpl rule, RhsFactGroupDescriptor descriptor, RuntimeFact[][] factState) {
+    RhsFactGroupAlpha(RuntimeRuleImpl rule, RhsFactGroupDescriptor descriptor, RuntimeFact[][] factState) {
         this.descriptor = descriptor;
         this.types = rule.resolve(RuntimeFactTypePlain.class, descriptor.getTypes());
         this.state = factState[descriptor.getFactGroupIndex()];
@@ -22,7 +22,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
         return true;
     }
 
-    public boolean hasDelta() {
+    boolean hasDelta() {
         for (RuntimeFactTypePlain plain : types) {
             if (plain.getSource().deltaIterator().reset() > 0) return true;
         }

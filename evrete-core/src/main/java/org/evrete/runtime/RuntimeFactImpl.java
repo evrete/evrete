@@ -78,9 +78,10 @@ public final class RuntimeFactImpl implements RuntimeFact {
     }
 
     public String toString() {
-        return "{delegate=" + delegate +
+        return "{value=" + delegate +
                 ", deleted=" + deleted +
-                //", tests=" + Arrays.toString(alphaTests) +
+                ", tests=" + Arrays.toString(alphaTests) +
+                ", hash=" + System.identityHashCode(this) +
                 '}';
     }
 }

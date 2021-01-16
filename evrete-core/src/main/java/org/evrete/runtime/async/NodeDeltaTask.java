@@ -1,7 +1,7 @@
 package org.evrete.runtime.async;
 
-import org.evrete.runtime.memory.BetaConditionNode;
-import org.evrete.runtime.memory.BetaMemoryNode;
+import org.evrete.runtime.BetaConditionNode;
+import org.evrete.runtime.BetaMemoryNode;
 
 import java.util.concurrent.CountedCompleter;
 

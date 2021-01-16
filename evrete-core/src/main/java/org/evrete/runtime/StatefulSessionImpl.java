@@ -1,9 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.*;
-import org.evrete.runtime.memory.ActionQueue;
-import org.evrete.runtime.memory.SessionMemory;
-import org.evrete.runtime.memory.TypeMemory;
+import org.evrete.util.ActionQueue;
 
 import java.util.List;
 import java.util.function.BooleanSupplier;

@@ -1,4 +1,4 @@
-package org.evrete.runtime.memory;
+package org.evrete.util;
 
 import org.evrete.api.Action;
 
@@ -22,13 +22,13 @@ public class ActionCounter {
         return false;
     }
 
-    void reset() {
+    public void reset() {
         for (Action action : Action.values()) {
             reset(action);
         }
     }
 
-    void reset(Action action) {
+    public void reset(Action action) {
         this.counts[action.ordinal()] = 0;
     }
 }

@@ -1,7 +1,7 @@
 package org.evrete.runtime.async;
 
+import org.evrete.runtime.BetaEndNode;
 import org.evrete.runtime.RuntimeRuleImpl;
-import org.evrete.runtime.memory.BetaEndNode;
 
 import java.util.Iterator;
 import java.util.LinkedList;

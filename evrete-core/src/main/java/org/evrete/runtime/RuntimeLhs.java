@@ -3,8 +3,7 @@ package org.evrete.runtime;
 import org.evrete.api.Action;
 import org.evrete.api.RhsContext;
 import org.evrete.api.RuntimeFact;
-import org.evrete.runtime.memory.ActionQueue;
-import org.evrete.runtime.memory.BetaEndNode;
+import org.evrete.util.ActionQueue;
 
 import java.util.ArrayList;
 import java.util.Collection;

@@ -23,4 +23,12 @@ public class AlphaEvaluator extends EvaluatorWrapper implements Copyable<AlphaEv
     public int getUniqueId() {
         return uniqueId;
     }
+
+    @Override
+    public String toString() {
+        return "AlphaEvaluator{" +
+                "id=" + uniqueId +
+                ", delegate=" + getDelegate() +
+                '}';
+    }
 }

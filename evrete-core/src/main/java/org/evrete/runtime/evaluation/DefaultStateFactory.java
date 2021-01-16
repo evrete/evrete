@@ -1,7 +1,7 @@
 package org.evrete.runtime.evaluation;
 
-import org.evrete.runtime.memory.BetaConditionNode;
-import org.evrete.runtime.memory.NodeIterationStateFactory;
+import org.evrete.runtime.BetaConditionNode;
+import org.evrete.util.NodeIterationStateFactory;
 
 public class DefaultStateFactory implements NodeIterationStateFactory<DefaultIterationState> {
 

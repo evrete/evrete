@@ -1,6 +1,6 @@
 package org.evrete.runtime.async;
 
-import org.evrete.runtime.memory.BetaEndNode;
+import org.evrete.runtime.BetaEndNode;
 
 import java.util.Collection;
 

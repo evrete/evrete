@@ -1,7 +1,6 @@
-package org.evrete.runtime.memory;
+package org.evrete.runtime;
 
 import org.evrete.api.*;
-import org.evrete.runtime.FieldsKey;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
 class FieldsMemoryBucket implements Memory {

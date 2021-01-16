@@ -1,7 +1,6 @@
 package org.evrete.runtime;
 
 import org.evrete.api.Memory;
-import org.evrete.runtime.memory.SessionMemory;
 
 public abstract class RuntimeFactType extends FactType {
     private final SessionMemory runtime;

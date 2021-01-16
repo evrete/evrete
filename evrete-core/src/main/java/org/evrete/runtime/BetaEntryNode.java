@@ -1,10 +1,8 @@
-package org.evrete.runtime.memory;
+package org.evrete.runtime;
 
 import org.evrete.api.*;
 import org.evrete.collections.MappedReIterator;
-import org.evrete.runtime.EntryNodeDescriptor;
-import org.evrete.runtime.RuntimeFactType;
-import org.evrete.runtime.RuntimeFactTypeKeyed;
+import org.evrete.util.KeysStoreStub;
 
 public class BetaEntryNode extends RuntimeFactTypeKeyed implements BetaMemoryNode<EntryNodeDescriptor> {
     private final KeysStore mainStore;

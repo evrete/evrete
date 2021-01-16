@@ -1,11 +1,7 @@
-package org.evrete.runtime.memory;
+package org.evrete.runtime;
 
 import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
-import org.evrete.runtime.ActiveField;
-import org.evrete.runtime.FieldsKey;
-import org.evrete.runtime.PlainMemory;
-import org.evrete.runtime.RuntimeFactImpl;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaConditions;
 import org.evrete.runtime.evaluation.AlphaDelta;
@@ -96,7 +92,7 @@ public final class TypeMemory extends TypeMemoryBase {
         }
     }
 
-    public void commitDeltas() {
+    void commitDeltas() {
         for (TypeMemoryBucket bucket : this.alphaBuckets.data) {
             bucket.commitChanges();
         }
@@ -106,7 +102,7 @@ public final class TypeMemory extends TypeMemoryBase {
         }
     }
 
-    public void performDelete() {
+    void performDelete() {
         SharedPlainFactStorage deleteSubject = inputBuffer.get(Action.RETRACT);
 
         // Step 1: Marking facts as deleted
@@ -257,8 +253,20 @@ public final class TypeMemory extends TypeMemoryBase {
 
     @Override
     public String toString() {
+        StringBuilder s = new StringBuilder(1024);
+        for (TypeMemoryBucket b : alphaBuckets.data) {
+
+
+            s.append(b.getAlphaMask()).append("\n");
+            s.append("\tM:").append(b.getData()).append('\n');
+            s.append("\tD:").append(b.getDelta()).append('\n');
+        }
+
+        return s.toString();
+/*
         return "TypeMemory{" +
                 "alphaBuckets=" + alphaBuckets +
                 '}';
+*/
     }
 }

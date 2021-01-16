@@ -1,11 +1,10 @@
-package org.evrete.runtime.memory;
+package org.evrete.runtime;
 
 import org.evrete.api.KeysStore;
 import org.evrete.api.ReIterator;
 import org.evrete.api.ValueRow;
-import org.evrete.runtime.ConditionNodeDescriptor;
-import org.evrete.runtime.RuntimeRuleImpl;
 import org.evrete.runtime.evaluation.DefaultStateFactory;
+import org.evrete.util.NodeIterationStateFactory;
 
 import java.util.function.ObjIntConsumer;
 

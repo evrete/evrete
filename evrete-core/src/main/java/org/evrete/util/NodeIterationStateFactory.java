@@ -1,7 +1,8 @@
-package org.evrete.runtime.memory;
+package org.evrete.util;
 
 import org.evrete.api.KeysStore;
 import org.evrete.api.ReIterator;
+import org.evrete.runtime.BetaConditionNode;
 import org.evrete.runtime.BetaEvaluationState;
 
 public interface NodeIterationStateFactory<S extends NodeIterationStateFactory.State> {

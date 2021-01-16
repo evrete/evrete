@@ -1,8 +1,6 @@
-package org.evrete.runtime.memory;
+package org.evrete.runtime;
 
 import org.evrete.api.KeysStore;
-import org.evrete.runtime.NodeDescriptor;
-import org.evrete.runtime.RuntimeFactType;
 
 public interface BetaMemoryNode<D extends NodeDescriptor> {
 

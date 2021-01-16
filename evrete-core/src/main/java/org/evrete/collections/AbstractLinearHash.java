@@ -32,7 +32,7 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
     int size = 0;
     int deletes = 0;
 
-    protected AbstractLinearHash(int initialCapacity) {
+    AbstractLinearHash(int initialCapacity) {
         super(initialCapacity);
         int capacity = tableSizeFor(initialCapacity);
         this.data = new Object[capacity];
@@ -135,7 +135,7 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         addNoResize(element);
     }
 
-    public final void addNoResize(E element) {
+    private void addNoResize(E element) {
         int hash = getHashFunction().applyAsInt(element);
         int addr = findBinIndexFor(element, hash, getEqualsPredicate());
         saveDirect(element, addr);
@@ -253,7 +253,7 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         return data[addr] != null && !deletedIndices[addr];
     }
 
-    public boolean removeEntry(Object e) {
+    protected boolean removeEntry(Object e) {
         int addr = findBinIndexFor(e, getHashFunction().applyAsInt(e), getEqualsPredicate());
         return removeEntry(addr);
     }
@@ -289,7 +289,7 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
     }
 
 
-    public void resize() {
+    protected void resize() {
         assert currentInsertIndex() == this.size + this.deletes : "indices: " + currentInsertIndex() + " size: " + this.size + ", deletes: " + this.deletes;
         resize(this.size);
     }

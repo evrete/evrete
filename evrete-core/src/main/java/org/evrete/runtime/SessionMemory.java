@@ -1,15 +1,16 @@
-package org.evrete.runtime.memory;
+package org.evrete.runtime;
 
 import org.evrete.api.*;
 import org.evrete.collections.AbstractLinearHashMap;
 import org.evrete.collections.LinearHashMap;
-import org.evrete.runtime.*;
 import org.evrete.runtime.async.Completer;
 import org.evrete.runtime.async.ForkJoinExecutor;
 import org.evrete.runtime.async.RuleHotDeploymentTask;
 import org.evrete.runtime.async.RuleMemoryInsertTask;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaDelta;
+import org.evrete.util.ActionCounter;
+import org.evrete.util.ActionQueue;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -22,7 +23,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
     private final LinearHashMap<Type<?>, TypeMemory> typedMemories;
     private static final Function<AbstractLinearHashMap.Entry<Type<?>, TypeMemory>, TypeMemory> TYPE_MEMORY_MAPPING = AbstractLinearHashMap.Entry::getValue;
     private final ActionCounter actionCounter = new ActionCounter();
-    private boolean active1 = true;
+    private boolean active = true;
 
     protected SessionMemory(KnowledgeImpl parent) {
         super(parent);
@@ -34,12 +35,12 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         }
     }
 
-    protected void invalidateSession() {
-        this.active1 = false;
+    void invalidateSession() {
+        this.active = false;
     }
 
-    protected void _assertActive() {
-        if (!active1) {
+    void _assertActive() {
+        if (!active) {
             throw new IllegalStateException("Session has been closed");
         }
     }
@@ -59,11 +60,11 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         return typedMemories.iterator(TYPE_MEMORY_MAPPING);
     }
 
-    public ReIterator<TypeMemory> typeMemories() {
+    ReIterator<TypeMemory> typeMemories() {
         return typedMemories.valueIterator();
     }
 
-    public void reSortRules() {
+    private void reSortRules() {
         ruleStorage.sort(getRuleComparator());
     }
 
@@ -125,7 +126,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         memoryAction(Action.INSERT, getTypeResolver().getType(factType), fact);
     }
 
-    protected List<RuntimeRule> propagateInsertChanges() {
+    List<RuntimeRule> propagateInsertChanges() {
         // Build beta-deltas
         for (TypeMemory tm : this) {
             tm.propagateBetaDeltas();
@@ -172,7 +173,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         return affectedRules;
     }
 
-    protected void doDeletions() {
+    void doDeletions() {
         for (TypeMemory tm : this) {
             tm.performDelete();
         }
@@ -202,11 +203,11 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         }
     }
 
-    protected boolean hasActions(Action... actions) {
+    boolean hasActions(Action... actions) {
         return actionCounter.hasActions(actions);
     }
 
-    public SharedBetaFactStorage getBetaFactStorage(FactType factType) {
+    SharedBetaFactStorage getBetaFactStorage(FactType factType) {
         Type<?> t = factType.getType();
         FieldsKey fields = factType.getFields();
         AlphaBucketMeta mask = factType.getAlphaMask();
@@ -214,7 +215,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         return get(t).get(fields).get(mask);
     }
 
-    protected void destroy() {
+    void destroy() {
         typedMemories.clear();
     }
 
@@ -287,7 +288,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         }
     }
 
-    public void appendToBuffer(ActionQueue<Object> actions) {
+    void appendToBuffer(ActionQueue<Object> actions) {
         for (Action action : Action.values()) {
             ReIterator<Object> it = actions.get(action);
             while (it.hasNext()) {

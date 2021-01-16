@@ -4,7 +4,6 @@ import org.evrete.api.EvaluationListener;
 import org.evrete.api.EvaluationListeners;
 import org.evrete.api.Rule;
 import org.evrete.api.RuntimeRule;
-import org.evrete.runtime.memory.SessionMemory;
 
 import java.util.*;
 

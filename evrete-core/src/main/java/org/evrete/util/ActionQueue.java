@@ -1,4 +1,4 @@
-package org.evrete.runtime.memory;
+package org.evrete.util;
 
 import org.evrete.api.Action;
 import org.evrete.api.ReIterator;

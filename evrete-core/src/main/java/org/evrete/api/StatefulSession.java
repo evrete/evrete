@@ -56,4 +56,14 @@ public interface StatefulSession extends WorkingMemory, RuntimeContext<StatefulS
         fire();
     }
 
+    default void updateAndFire(Object... objects) {
+        update(objects);
+        fire();
+    }
+
+    default void updateAndFire(Collection<?> objects) {
+        update(objects);
+        fire();
+    }
+
 }

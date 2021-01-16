@@ -1,8 +1,7 @@
-package org.evrete.runtime.memory;
+package org.evrete.runtime;
 
 import org.evrete.api.*;
 import org.evrete.collections.CollectionReIterator;
-import org.evrete.runtime.*;
 
 import java.util.Arrays;
 import java.util.EnumMap;

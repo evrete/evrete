@@ -1,8 +1,6 @@
-package org.evrete.runtime.memory;
+package org.evrete.runtime;
 
 import org.evrete.api.Type;
-import org.evrete.runtime.ActiveField;
-import org.evrete.runtime.RuntimeAware;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 
 abstract class TypeMemoryBase extends RuntimeAware<SessionMemory> {

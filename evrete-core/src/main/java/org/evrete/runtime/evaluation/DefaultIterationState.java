@@ -1,10 +1,10 @@
 package org.evrete.runtime.evaluation;
 
 import org.evrete.api.*;
+import org.evrete.runtime.BetaConditionNode;
+import org.evrete.runtime.BetaMemoryNode;
 import org.evrete.runtime.FactType;
-import org.evrete.runtime.memory.BetaConditionNode;
-import org.evrete.runtime.memory.BetaMemoryNode;
-import org.evrete.runtime.memory.NodeIterationStateFactory;
+import org.evrete.util.NodeIterationStateFactory;
 
 import java.util.ArrayList;
 import java.util.List;

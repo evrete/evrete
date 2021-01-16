@@ -48,7 +48,7 @@ public class EvaluatorWrapper implements Evaluator, Listeners {
         updateActiveEvaluator();
     }
 
-    protected EvaluatorWrapper(EvaluatorWrapper other) {
+    EvaluatorWrapper(EvaluatorWrapper other) {
         this.delegate = unwrap(other.delegate);
         this.listeners.addAll(other.listeners);
         this.namedTypes.addAll(other.namedTypes);
@@ -65,9 +65,13 @@ public class EvaluatorWrapper implements Evaluator, Listeners {
         }
     }
 
-    public final void remap(int[] indexMapper) {
+    final void remap(int[] indexMapper) {
         this.indexMapper = indexMapper;
         updateActiveEvaluator();
+    }
+
+    public Evaluator getDelegate() {
+        return delegate;
     }
 
     @Override
