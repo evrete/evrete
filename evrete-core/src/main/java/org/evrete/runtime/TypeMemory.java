@@ -57,27 +57,6 @@ public final class TypeMemory extends TypeMemoryBase {
         }
         return false;
     }
-/*
-    RuntimeFact doInsert(Object o) {
-        RuntimeFact fact = create(o);
-        inputBuffer1.get(Action.INSERT).insert(fact);
-        return fact;
-    }
-*/
-
-/*
-    RuntimeFact doDelete(Object o) {
-        RuntimeFact fact = find(o);
-        if (fact != null) {
-            inputBuffer1.get(Action.RETRACT).insert(fact);
-            return fact;
-        } else {
-            LOGGER.warning("Object " + o + " hasn't been previously inserted");
-            return null;
-        }
-    }
-*/
-
 
     private RuntimeFactImpl find(Object o) {
         RuntimeFact fact = main0().find(o);
@@ -86,7 +65,6 @@ public final class TypeMemory extends TypeMemoryBase {
         }
         return (RuntimeFactImpl) fact;
     }
-
 
     void clear() {
         for (TypeMemoryBucket bucket : alphaBuckets.data) {

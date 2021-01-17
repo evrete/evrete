@@ -1,12 +1,14 @@
 package org.evrete;
 
-import org.evrete.api.*;
+import org.evrete.api.ActivationMode;
+import org.evrete.api.StatefulSession;
+import org.evrete.api.Type;
+import org.evrete.api.TypeField;
 import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.helper.RhsAssert;
 import org.evrete.runtime.KnowledgeImpl;
-import org.evrete.runtime.StatefulSessionImpl;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,9 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.ToIntFunction;
@@ -551,6 +551,8 @@ class SessionUpdateDeleteTests {
 
     @Test
     void externalUpdate2() {
+        AtomicInteger counter = new AtomicInteger();
+
         StatefulSession session = knowledge
                 .newRule("rule 1")
                 .forEach(
@@ -560,10 +562,10 @@ class SessionUpdateDeleteTests {
                 .where("$a.i == 0")
                 .execute(
                         ctx -> {
-                            System.out.println("\t\tWakeup!!!");
                             TypeA a = ctx.get("$a");
                             a.setI(-1);
                             ctx.update(a);
+                            counter.incrementAndGet();
                         }
                 )
                 .newRule("rule 2")
@@ -575,54 +577,29 @@ class SessionUpdateDeleteTests {
                 .execute(
                         ctx -> {
                             TypeA a = ctx.get("$a");
-                            System.out.println("\t\t!!! Arrived " + a);
                             a.setI(2);
                             ctx.update(a);
+                            counter.incrementAndGet();
                         }
                 )
                 .createSession()
                 .setActivationMode(ActivationMode.DEFAULT);
 
-        session.addListener(new EvaluationListener() {
-            @Override
-            public void fire(Evaluator evaluator, IntToValue values, boolean result) {
-                System.out.println("\t\t" + evaluator + " : " + Arrays.toString(evaluator.toArray(values)) + " = " + result);
-            }
-        });
-
-        session.setActivationManager(new ActivationManager() {
-            @Override
-            public void onAgenda(int sequenceId, List<RuntimeRule> agenda) {
-                System.out.println("\tagenda: " + sequenceId + " : " + agenda.size());
-            }
-
-            @Override
-            public boolean test(RuntimeRule rule) {
-                return true;
-            }
-        });
-
-
         TypeA a = new TypeA();
         a.setAllNumeric(0);
         TypeB b = new TypeB();
         b.setAllNumeric(0);
-        Type<TypeA> typeA = session.getTypeResolver().resolve(a);
 
 
-        System.out.println("Primary");
         session.insertAndFire(a, b);
 
-        System.out.println("Memory:");
-        System.out.println(((StatefulSessionImpl) session).get(typeA).toString());
-/*
-        for (int i = 0; i < 5; i++) {
-            System.out.println("Secondary: " + i);
+        // From now on no rules will be fired
+        for (int i = 0; i < 50; i++) {
             b.setI(b.getI() + 1);
             session.updateAndFire(b);
         }
-*/
 
+        assert counter.get() == 2;
     }
 }
 
