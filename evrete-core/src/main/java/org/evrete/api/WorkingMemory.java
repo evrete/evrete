@@ -38,8 +38,6 @@ public interface WorkingMemory {
 
     void delete(Object fact);
 
-    void insert(String factType, Object fact);
-
     <T> void forEachMemoryObject(String type, Consumer<T> consumer);
 
     default <T> void forEachMemoryObject(Class<T> type, Consumer<T> consumer) {
@@ -51,12 +49,6 @@ public interface WorkingMemory {
     default void insert(Object... objects) {
         for (Object o : objects) {
             insert(o);
-        }
-    }
-
-    default void insertTyped(String factType, Object... objects) {
-        for (Object o : objects) {
-            insert(factType, o);
         }
     }
 

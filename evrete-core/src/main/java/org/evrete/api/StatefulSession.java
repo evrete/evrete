@@ -41,11 +41,6 @@ public interface StatefulSession extends WorkingMemory, RuntimeContext<StatefulS
         fire();
     }
 
-    default void insertTypedAndFire(String factType, Object... objects) {
-        insertTyped(factType, objects);
-        fire();
-    }
-
     default void deleteAndFire(Object... objects) {
         delete(objects);
         fire();
