@@ -1,21 +1,22 @@
 package org.evrete;
 
-import org.evrete.api.ActivationMode;
-import org.evrete.api.StatefulSession;
-import org.evrete.api.Type;
-import org.evrete.api.TypeField;
+import org.evrete.api.*;
 import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.helper.RhsAssert;
 import org.evrete.runtime.KnowledgeImpl;
+import org.evrete.runtime.StatefulSessionImpl;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.ToIntFunction;
@@ -515,5 +516,113 @@ class SessionUpdateDeleteTests {
         s.close();
     }
 
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void externalUpdate1(ActivationMode mode) {
+        AtomicInteger counter = new AtomicInteger();
+        StatefulSession session = knowledge
+                .newRule()
+                .forEach(
+                        "$a", TypeA.class,
+                        "$b", TypeB.class
+                )
+                .where("$a.i > 0")
+                .execute(
+                        ctx -> counter.incrementAndGet()
+                )
+                .createSession()
+                .setActivationMode(mode);
+
+        TypeA a = new TypeA();
+        TypeB b = new TypeB();
+
+        int cnt = 10;
+        a.setAllNumeric(cnt);
+
+        session.insertAndFire(a, b);
+        for (int i = 0; i < cnt * 3; i++) {
+            a.setI(a.getI() - 1);
+            session.updateAndFire(a, b);
+        }
+
+        assert counter.get() == cnt : "Actual: " + counter.get() + ", Expected: " + cnt;
+
+    }
+
+    @Test
+    void externalUpdate2() {
+        StatefulSession session = knowledge
+                .newRule("rule 1")
+                .forEach(
+                        "$a", TypeA.class,
+                        "$b", TypeB.class
+                )
+                .where("$a.i == 0")
+                .execute(
+                        ctx -> {
+                            System.out.println("\t\tWakeup!!!");
+                            TypeA a = ctx.get("$a");
+                            a.setI(-1);
+                            ctx.update(a);
+                        }
+                )
+                .newRule("rule 2")
+                .forEach(
+                        "$a", TypeA.class,
+                        "$b", TypeB.class
+                )
+                .where("$a.i == -1")
+                .execute(
+                        ctx -> {
+                            TypeA a = ctx.get("$a");
+                            System.out.println("\t\t!!! Arrived " + a);
+                            a.setI(2);
+                            ctx.update(a);
+                        }
+                )
+                .createSession()
+                .setActivationMode(ActivationMode.DEFAULT);
+
+        session.addListener(new EvaluationListener() {
+            @Override
+            public void fire(Evaluator evaluator, IntToValue values, boolean result) {
+                System.out.println("\t\t" + evaluator + " : " + Arrays.toString(evaluator.toArray(values)) + " = " + result);
+            }
+        });
+
+        session.setActivationManager(new ActivationManager() {
+            @Override
+            public void onAgenda(int sequenceId, List<RuntimeRule> agenda) {
+                System.out.println("\tagenda: " + sequenceId + " : " + agenda.size());
+            }
+
+            @Override
+            public boolean test(RuntimeRule rule) {
+                return true;
+            }
+        });
+
+
+        TypeA a = new TypeA();
+        a.setAllNumeric(0);
+        TypeB b = new TypeB();
+        b.setAllNumeric(0);
+        Type<TypeA> typeA = session.getTypeResolver().resolve(a);
+
+
+        System.out.println("Primary");
+        session.insertAndFire(a, b);
+
+        System.out.println("Memory:");
+        System.out.println(((StatefulSessionImpl) session).get(typeA).toString());
+/*
+        for (int i = 0; i < 5; i++) {
+            System.out.println("Secondary: " + i);
+            b.setI(b.getI() + 1);
+            session.updateAndFire(b);
+        }
+*/
+
+    }
 }
 

@@ -25,17 +25,7 @@ class FieldsMemoryBucket implements Memory {
         fieldData.commitChanges();
     }
 
-    void insert(ReIterable<? extends RuntimeFact> facts) {
-        ReIterator<? extends RuntimeFact> it = facts.iterator();
-        int size = (int) it.reset();
-        if (size == 0) return;
-        fieldData.ensureDeltaCapacity(size);
-        while (it.hasNext()) {
-            insert(it.next());
-        }
-    }
-
-    private void insert(RuntimeFact fact) {
+    void insert(RuntimeFact fact) {
         if (alphaMask.test(fact)) {
             fieldData.insert(fact);
         }

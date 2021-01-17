@@ -4,7 +4,6 @@ import org.evrete.api.EvaluationListener;
 import org.evrete.api.EvaluationListeners;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.Type;
-import org.evrete.util.ActionQueue;
 import org.evrete.util.CollectionUtils;
 
 import java.util.HashSet;
@@ -52,9 +51,8 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         return allTypes.contains(type);
     }
 
-    final int executeRhs(ActionQueue<Object> destinationBuffer) {
+    final int executeRhs() {
         this.rhsCallCounter = 0;
-        this.lhs.setBuffer(destinationBuffer);
         this.lhs.forEach(rhs.andThen(rhsContext -> increaseCallCount()));
         return this.rhsCallCounter;
     }

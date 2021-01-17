@@ -1,7 +1,6 @@
 package org.evrete.runtime;
 
 import org.evrete.api.*;
-import org.evrete.util.ActionQueue;
 
 import java.util.List;
 import java.util.function.BooleanSupplier;
@@ -10,11 +9,22 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
     private final KnowledgeImpl knowledge;
     private ActivationManager activationManager;
     private BooleanSupplier fireCriteria = () -> true;
+    private boolean active = true;
 
     StatefulSessionImpl(KnowledgeImpl knowledge) {
         super(knowledge);
         this.knowledge = knowledge;
         this.activationManager = newActivationManager();
+    }
+
+    private void invalidateSession() {
+        this.active = false;
+    }
+
+    void _assertActive() {
+        if (!active) {
+            throw new IllegalStateException("Session has been closed");
+        }
     }
 
     @Override
@@ -81,64 +91,68 @@ public class StatefulSessionImpl extends SessionMemory implements StatefulSessio
     }
 
     private void fireContinuous(ActivationContext ctx) {
-        ActionQueue<Object> memoryActions = new ActionQueue<>();
         List<RuntimeRule> agenda;
 
-        while (fireCriteria.getAsBoolean() && hasActions(Action.INSERT, Action.RETRACT)) {
-            _assertActive();
+        while (hasChanges()) {
             // Mark deleted facts first
-            doDeletions();
+            processDeleteBuffer();
+            processInsertBuffer();
             if (!(agenda = propagateInsertChanges()).isEmpty()) {
                 activationManager.onAgenda(ctx.incrementFireCount(), agenda);
-                memoryActions.clear();
                 for (RuntimeRule candidate : agenda) {
                     RuntimeRuleImpl rule = (RuntimeRuleImpl) candidate;
                     if (activationManager.test(candidate)) {
-                        // Activate rule and obtain memory changes caused by its execution
-                        if (rule.executeRhs(memoryActions) > 0) {
+                        if (rule.executeRhs() > 0) {
                             activationManager.onActivation(rule);
                         }
                     }
                 }
-                // processing rule memory changes (inserts, updates, deletes)
                 commitInserts();
-                appendToBuffer(memoryActions);
             }
         }
     }
 
     private void fireDefault(ActivationContext ctx) {
-        ActionQueue<Object> memoryActions = new ActionQueue<>();
         List<RuntimeRule> agenda;
 
-        while (fireCriteria.getAsBoolean() && hasActions(Action.INSERT, Action.RETRACT)) {
-            _assertActive();
+        while (hasChanges()) {
             // Mark deleted facts first
-            doDeletions();
+            processDeleteBuffer();
+            processInsertBuffer();
             if (!(agenda = propagateInsertChanges()).isEmpty()) {
                 activationManager.onAgenda(ctx.incrementFireCount(), agenda);
-                memoryActions.clear();
                 for (RuntimeRule candidate : agenda) {
                     RuntimeRuleImpl rule = (RuntimeRuleImpl) candidate;
                     if (activationManager.test(candidate)) {
                         // Activate rule and obtain memory changes caused by its execution
-                        if (rule.executeRhs(memoryActions) > 0) {
+                        if (rule.executeRhs() > 0) {
                             activationManager.onActivation(rule);
-                            // Apply rule changes immediately
-                            appendToBuffer(memoryActions);
-                            memoryActions.clear();
-                            // Perform deletes (if any)
-                            doDeletions();
                             if (hasActions(Action.INSERT)) {
+                                // Start over
                                 break;
+                            } else {
+                                // Process deletes and continue
+                                processDeleteBuffer();
                             }
                         }
                     }
                 }
-                // processing rule memory changes (inserts, updates, deletes)
                 commitInserts();
             }
         }
+    }
+
+    private boolean hasChanges() {
+        return active && fireCriteria.getAsBoolean() && hasActions(Action.INSERT, Action.RETRACT);
+    }
+
+    private boolean hasActions(Action... actions) {
+        for (TypeMemory tm : this) {
+            if (tm.bufferContains(actions)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void commitInserts() {

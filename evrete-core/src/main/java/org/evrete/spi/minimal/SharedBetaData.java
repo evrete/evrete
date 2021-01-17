@@ -75,12 +75,6 @@ class SharedBetaData implements SharedBetaFactStorage {
     }
 
     @Override
-    public void ensureDeltaCapacity(int insertCount) {
-        deltaNewKeys.resize(deltaNewKeys.size() + insertCount);
-        deltaKnownKeys.resize(deltaKnownKeys.size() + insertCount);
-    }
-
-    @Override
     public void delete(RuntimeFact fact) {
         assert fact.isDeleted();
         int hash = hash(fact);
@@ -112,6 +106,7 @@ class SharedBetaData implements SharedBetaFactStorage {
     }
 
     private void insertTo(int hash, RuntimeFact fact, FieldsFactMap destination) {
+        destination.resize();
         int addr = destination.findBinIndex(reusableValueArr, hash, SHARED_ARRAY_EQ);
         ValueRowImpl key = destination.get(addr);
         if (key == null) {

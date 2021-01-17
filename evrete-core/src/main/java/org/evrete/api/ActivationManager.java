@@ -23,7 +23,6 @@ public interface ActivationManager extends Predicate<RuntimeRule> {
      * @param agenda     rules that are activated by current changes in the working memory.
      */
     default void onAgenda(int sequenceId, List<RuntimeRule> agenda) {
-
     }
 
     /**

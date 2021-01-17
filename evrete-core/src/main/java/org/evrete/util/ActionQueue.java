@@ -5,6 +5,7 @@ import org.evrete.api.ReIterator;
 import org.evrete.collections.LinearIdentityHashSet;
 
 import java.util.EnumMap;
+import java.util.Objects;
 
 public class ActionQueue<T> {
     private final EnumMap<Action, LinearIdentityHashSet<T>> data = new EnumMap<>(Action.class);
@@ -15,15 +16,33 @@ public class ActionQueue<T> {
         }
     }
 
+    public boolean hasData(Action action) {
+        return data.get(action).size() > 0;
+    }
+
     public void add(Action action, T o) {
-        if (o != null) {
-            data.get(action).addSilent(o);
+        Objects.requireNonNull(o);
+        switch (action) {
+            case INSERT:
+                data.get(Action.INSERT).addSilent(o);
+                data.get(Action.RETRACT).remove(o);
+                return;
+            case RETRACT:
+                data.get(Action.INSERT).remove(o);
+                data.get(Action.RETRACT).addSilent(o);
+                return;
+            case UPDATE:
+                data.get(Action.INSERT).addSilent(o);
+                data.get(Action.RETRACT).addSilent(o);
+                return;
+            default:
+                throw new IllegalStateException();
         }
     }
 
     public void clear() {
-        for (Action action : Action.values()) {
-            clear(action);
+        for (LinearIdentityHashSet<T> collection : data.values()) {
+            collection.clear();
         }
     }
 

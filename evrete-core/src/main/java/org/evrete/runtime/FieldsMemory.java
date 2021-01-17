@@ -1,6 +1,9 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
+import org.evrete.api.Memory;
+import org.evrete.api.ReIterator;
+import org.evrete.api.RuntimeFact;
+import org.evrete.api.SharedBetaFactStorage;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
@@ -36,7 +39,7 @@ public class FieldsMemory implements Memory {
         }
     }
 
-    public void commitDeltas() {
+    void commitDeltas() {
         for (FieldsMemoryBucket bucket : alphaBuckets.data) {
             bucket.commitChanges();
         }
@@ -72,15 +75,15 @@ public class FieldsMemory implements Memory {
         }
     }
 
-    void insert(ReIterable<? extends RuntimeFact> facts) {
+    void insert(RuntimeFact fact) {
         for (FieldsMemoryBucket bucket : alphaBuckets.data) {
-            bucket.insert(facts);
+            bucket.insert(fact);
         }
     }
 
-    public void retract(ReIterable<? extends RuntimeFact> facts) {
+    void retract(RuntimeFact fact) {
         for (FieldsMemoryBucket bucket : alphaBuckets.data) {
-            bucket.delete(facts);
+            bucket.delete(fact);
         }
     }
 

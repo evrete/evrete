@@ -9,8 +9,6 @@ import org.evrete.runtime.async.RuleHotDeploymentTask;
 import org.evrete.runtime.async.RuleMemoryInsertTask;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaDelta;
-import org.evrete.util.ActionCounter;
-import org.evrete.util.ActionQueue;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -22,8 +20,6 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
     private final RuntimeRules ruleStorage;
     private final LinearHashMap<Type<?>, TypeMemory> typedMemories;
     private static final Function<AbstractLinearHashMap.Entry<Type<?>, TypeMemory>, TypeMemory> TYPE_MEMORY_MAPPING = AbstractLinearHashMap.Entry::getValue;
-    private final ActionCounter actionCounter = new ActionCounter();
-    private boolean active = true;
 
     protected SessionMemory(KnowledgeImpl parent) {
         super(parent);
@@ -35,15 +31,7 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         }
     }
 
-    void invalidateSession() {
-        this.active = false;
-    }
 
-    void _assertActive() {
-        if (!active) {
-            throw new IllegalStateException("Session has been closed");
-        }
-    }
 
     @Override
     protected void addListenerToRules(EvaluationListener listener) {
@@ -127,12 +115,6 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
     }
 
     List<RuntimeRule> propagateInsertChanges() {
-        // Build beta-deltas
-        for (TypeMemory tm : this) {
-            tm.propagateBetaDeltas();
-        }
-
-
         List<RuntimeRule> affectedRules = new LinkedList<>();
         Set<BetaEndNode> affectedEndNodes = new HashSet<>();
         // Scanning rules first because they are sorted by salience
@@ -167,17 +149,19 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
                 executor.invoke(task);
             }
         }
-
-        actionCounter.reset(Action.INSERT);
-
         return affectedRules;
     }
 
-    void doDeletions() {
+    void processDeleteBuffer() {
         for (TypeMemory tm : this) {
-            tm.performDelete();
+            tm.processDeleteBuffer();
         }
-        actionCounter.reset(Action.RETRACT);
+    }
+
+    void processInsertBuffer() {
+        for (TypeMemory tm : this) {
+            tm.processInsertBuffer();
+        }
     }
 
     @Override
@@ -203,10 +187,6 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         }
     }
 
-    boolean hasActions(Action... actions) {
-        return actionCounter.hasActions(actions);
-    }
-
     SharedBetaFactStorage getBetaFactStorage(FactType factType) {
         Type<?> t = factType.getType();
         FieldsKey fields = factType.getFields();
@@ -219,45 +199,16 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
         typedMemories.clear();
     }
 
-    private void memoryAction(Action action, Object o) {
+    void memoryAction(Action action, Object o) {
         memoryAction(action, getTypeResolver().resolve(o), o);
     }
 
     private void memoryAction(Action action, Type<?> t, Object o) {
-        _assertActive();
         if (t == null) {
             LOGGER.warning("Unknown object type of " + o + ", action " + action + "  skipped");
         } else {
-            memoryAction(action, get(t), o);
+            get(t).memoryAction(action, o);
         }
-    }
-
-    private RuntimeFact memoryAction(Action action, TypeMemory tm, Object o) {
-        RuntimeFact fact;
-        switch (action) {
-            case INSERT:
-                fact = tm.doInsert(o);
-                break;
-            case RETRACT:
-                fact = tm.doDelete(o);
-                break;
-            case UPDATE:
-                RuntimeFact deleted = memoryAction(Action.RETRACT, tm, o);
-                if (deleted == null) {
-                    LOGGER.warning("Unknown object: " + o + ", update skipped....");
-                    fact = null;
-                } else {
-                    fact = memoryAction(Action.INSERT, tm, o);
-                }
-                break;
-            default:
-                throw new IllegalStateException();
-
-        }
-        if (fact != null) {
-            actionCounter.increment(action);
-        }
-        return fact;
     }
 
     @Override
@@ -285,15 +236,6 @@ public class SessionMemory extends AbstractRuntime<StatefulSession> implements W
             throw new IllegalArgumentException("No type memory created for " + t);
         } else {
             return m;
-        }
-    }
-
-    void appendToBuffer(ActionQueue<Object> actions) {
-        for (Action action : Action.values()) {
-            ReIterator<Object> it = actions.get(action);
-            while (it.hasNext()) {
-                memoryAction(action, it.next());
-            }
         }
     }
 

@@ -76,7 +76,7 @@ class TypeMemoryBucket implements PlainMemory {
         }
     }
 
-    private void insert(RuntimeFact fact) {
+    void insert(RuntimeFact fact) {
         if (alphaMask.test(fact)) {
             delta.insert(fact);
         }

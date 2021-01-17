@@ -3,7 +3,6 @@ package org.evrete.runtime;
 import org.evrete.api.Action;
 import org.evrete.api.RhsContext;
 import org.evrete.api.RuntimeFact;
-import org.evrete.util.ActionQueue;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,14 +12,15 @@ import java.util.function.Function;
 public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContext {
     private final Collection<BetaEndNode> allBetaEndNodes = new ArrayList<>();
     private final Function<String, int[]> name2indices;
-    private ActionQueue<Object> buffer;
     private final RuntimeRuleImpl rule;
+    private final StatefulSessionImpl workingMemory;
 
-    protected RuntimeLhs(RuntimeRuleImpl rule, LhsDescriptor descriptor) {
+    RuntimeLhs(RuntimeRuleImpl rule, LhsDescriptor descriptor) {
         super(rule, descriptor);
         this.name2indices = descriptor.getNameIndices();
         this.allBetaEndNodes.addAll(getEndNodes());
         this.rule = rule;
+        this.workingMemory = rule.getRuntime();
     }
 
     static RuntimeLhs factory(RuntimeRuleImpl rule, LhsDescriptor descriptor) {
@@ -33,10 +33,6 @@ public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContex
     }
 
     abstract void forEach(Consumer<RhsContext> rhs);
-
-    public void setBuffer(ActionQueue<Object> buffer) {
-        this.buffer = buffer;
-    }
 
     public final Collection<BetaEndNode> getAllBetaEndNodes() {
         return allBetaEndNodes;
@@ -52,19 +48,19 @@ public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContex
     @Override
     //TODO check if field values have _really_ changed
     public final RhsContext update(Object obj) {
-        buffer.add(Action.UPDATE, obj);
+        workingMemory.memoryAction(Action.UPDATE, obj);
         return this;
     }
 
     @Override
     public final RhsContext delete(Object obj) {
-        buffer.add(Action.RETRACT, obj);
+        workingMemory.memoryAction(Action.RETRACT, obj);
         return this;
     }
 
     @Override
     public final RhsContext insert(Object obj) {
-        buffer.add(Action.INSERT, obj);
+        workingMemory.memoryAction(Action.INSERT, obj);
         return this;
     }
 }

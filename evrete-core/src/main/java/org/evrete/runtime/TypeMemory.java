@@ -6,8 +6,12 @@ import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaConditions;
 import org.evrete.runtime.evaluation.AlphaDelta;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
+import org.evrete.util.ActionQueue;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
@@ -16,13 +20,10 @@ public final class TypeMemory extends TypeMemoryBase {
     private final AlphaConditions alphaConditions;
     private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
     private final ArrayOf<TypeMemoryBucket> alphaBuckets;
-    private final EnumMap<Action, SharedPlainFactStorage> inputBuffer = new EnumMap<>(Action.class);
+    private final ActionQueue<Object> inputBuffer = new ActionQueue<>();
 
     TypeMemory(SessionMemory runtime, Type<?> type) {
         super(runtime, type);
-        for (Action action : Action.values()) {
-            this.inputBuffer.put(action, runtime.newSharedPlainStorage());
-        }
         this.alphaConditions = runtime.getAlphaConditions();
         this.alphaBuckets = new ArrayOf<>(new TypeMemoryBucket[]{new TypeMemoryBucket(runtime, AlphaBucketMeta.NO_FIELDS_NO_CONDITIONS)});
     }
@@ -31,44 +32,59 @@ public final class TypeMemory extends TypeMemoryBase {
         return Collections.unmodifiableSet(betaMemories.keySet());
     }
 
-    public void propagateBetaDeltas() {
-        SharedPlainFactStorage inserts = inputBuffer.get(Action.INSERT);
+    void processInsertBuffer() {
+        ReIterator<Object> inserts = inputBuffer.get(Action.INSERT);
+        while (inserts.hasNext()) {
+            Object o = inserts.next();
+            RuntimeFactImpl fact = create(o);
+            for (TypeMemoryBucket bucket : alphaBuckets.data) {
+                bucket.insert(fact);
+            }
 
-        for (TypeMemoryBucket bucket : alphaBuckets.data) {
-            bucket.insert(inserts);
+            for (FieldsMemory fm : betaMemories.values()) {
+                fm.insert(fact);
+            }
         }
-
-        for (FieldsMemory fm : betaMemories.values()) {
-            fm.insert(inputBuffer.get(Action.INSERT));
-        }
-
-        inserts.clear();
+        inputBuffer.clear(Action.INSERT);
     }
 
-    public RuntimeFact doInsert(Object o) {
+
+    boolean bufferContains(Action... actions) {
+        for (Action action : actions) {
+            if (inputBuffer.hasData(action)) {
+                return true;
+            }
+        }
+        return false;
+    }
+/*
+    RuntimeFact doInsert(Object o) {
         RuntimeFact fact = create(o);
-        inputBuffer.get(Action.INSERT).insert(fact);
+        inputBuffer1.get(Action.INSERT).insert(fact);
         return fact;
     }
+*/
 
-    public RuntimeFact doDelete(Object o) {
+/*
+    RuntimeFact doDelete(Object o) {
         RuntimeFact fact = find(o);
         if (fact != null) {
-            inputBuffer.get(Action.RETRACT).insert(fact);
+            inputBuffer1.get(Action.RETRACT).insert(fact);
             return fact;
         } else {
             LOGGER.warning("Object " + o + " hasn't been previously inserted");
             return null;
         }
     }
+*/
 
 
-    RuntimeFact find(Object o) {
+    private RuntimeFactImpl find(Object o) {
         RuntimeFact fact = main0().find(o);
         if (fact == null) {
             fact = delta0().find(o);
         }
-        return fact;
+        return (RuntimeFactImpl) fact;
     }
 
 
@@ -102,23 +118,27 @@ public final class TypeMemory extends TypeMemoryBase {
         }
     }
 
-    void performDelete() {
-        SharedPlainFactStorage deleteSubject = inputBuffer.get(Action.RETRACT);
+    void processDeleteBuffer() {
+        ReIterator<Object> it = inputBuffer.get(Action.RETRACT);
 
         // Step 1: Marking facts as deleted
-        ReIterator<RuntimeFact> it = deleteSubject.iterator();
+        RuntimeFactImpl impl;
         while (it.hasNext()) {
-            RuntimeFactImpl impl = (RuntimeFactImpl) it.next();
-            impl.setDeleted(true);
-        }
-
-        // Step 2: clear alpha storage
-        // Step 3: clear beta storage
-        for (FieldsMemory fm : betaMemories.values()) {
-            fm.retract(deleteSubject);
+            Object o = it.next();
+            impl = find(o);
+            if (impl == null) {
+                LOGGER.warning("Unknown object " + o + ", DELETE operation skipped");
+            } else {
+                impl.setDeleted(true);
+                // Step 2: clear alpha storage
+                // Step 3: clear beta storage
+                for (FieldsMemory fm : betaMemories.values()) {
+                    fm.retract(impl);
+                }
+            }
         }
         // Step 3: clear the delete buffer
-        deleteSubject.clear();
+        inputBuffer.clear(Action.RETRACT);
     }
 
     public PlainMemory get(AlphaBucketMeta alphaMask) {
@@ -149,7 +169,7 @@ public final class TypeMemory extends TypeMemoryBase {
     }
 
     void onNewAlphaBucket(AlphaDelta delta) {
-        if (inputBuffer.get(Action.INSERT).size() > 0) {
+        if (inputBuffer.get(Action.INSERT).reset() > 0) {
             //TODO develop a strategy
             throw new UnsupportedOperationException("A new condition was created in an uncommitted memory.");
         }
@@ -250,6 +270,9 @@ public final class TypeMemory extends TypeMemoryBase {
         this.cachedActiveFields = getRuntime().getActiveFields(type);
     }
 
+    void memoryAction(Action action, Object o) {
+        inputBuffer.add(action, o);
+    }
 
     @Override
     public String toString() {
