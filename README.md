@@ -24,7 +24,7 @@ Maven Central Repository
 <dependency>
     <groupId>org.evrete</groupId>
     <artifactId>evrete-core</artifactId>
-    <version>1.2.04</version>
+    <version>1.2.05</version>
 </dependency>
 ```
 
