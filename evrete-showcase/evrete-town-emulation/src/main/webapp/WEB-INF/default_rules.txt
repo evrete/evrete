@@ -1,0 +1,101 @@
+
+/**
+ * @rule Compute acceleration, step 1
+ * @select $subject, $time
+ */
+
+$subject.set("acceleration", new Vector());
+
+
+/**
+ * @rule Compute acceleration, step 2
+ * @select $subject, $other, $time
+ * @where $subject.id != $other.id
+ */
+double G = getRuntime().get("G");
+
+Vector d = $other.get("position").minus($subject.get("position"));
+double r = d.size();
+
+// Contribution of $other to subject's acceleration due to gravity force, the absolute value
+double acc = G * $other.mass / (r * r);
+
+// Contribution of $other to subject's acceleration as a vector
+Vector deltaAccel = d.unitVector().multiply(acc);
+Vector acceleration = $subject.get("acceleration");
+
+$subject.set("acceleration", acceleration.plus(deltaAccel));
+
+
+/**
+ * @rule Update position
+ * @select $subject, $time
+ */
+
+double dt = getRuntime().get("time-step");
+
+Vector position = $subject.get("position");
+Vector velocity = $subject.get("velocity");
+
+$subject.set("position", position.plus(velocity.multiply(dt)));
+
+
+/**
+ * @rule Update velocity
+ * @select $subject, $time
+ */
+
+double dt = getRuntime().get("time-step");
+
+Vector acceleration = $subject.get("acceleration");
+Vector velocity = $subject.get("velocity");
+
+$subject.set("velocity", velocity.plus(acceleration.multiply(dt)));
+
+
+/**
+ * @rule Handle collisions
+ * @select $subject, $other, $time
+ * @where $subject.id != $other.id
+ */
+double r1 = Math.pow($subject.mass, 1.0/3);
+double r2 = Math.pow($other.mass, 1.0/3);
+Vector distance = $subject.get("position").minus($other.get("position"));
+if(distance.size() < (r1 + r2) && $other.mass > 0 && $subject.mass > 0) {
+
+    double totalMass = $subject.mass + $other.mass;
+    // New weighted color
+    $subject.color = Particle.mixColors($subject, $other);
+
+    // New weighted velocity
+    Vector v1 = $subject.get("velocity").multiply($subject.mass/totalMass);
+    Vector v2 = $other.get("velocity").multiply($other.mass/totalMass);
+
+    $subject.set("velocity", v1.plus(v2));
+
+    // New weighted coordinates
+    Vector p1 = $subject.get("position").multiply($subject.mass/totalMass);
+    Vector p2 = $other.get("position").multiply($other.mass/totalMass);
+
+    $subject.set("position", p1.plus(p2));
+
+
+    // Deleting one of the colliding particles
+    $subject.mass += $other.mass;
+    $other.mass = 0.0;
+    delete($other);
+}
+
+
+/**
+ * @rule Update time
+ * @select $time
+ */
+
+double dt = getRuntime().get("time-step");
+$time.value  = $time.value + dt;
+// As the time instance is declared in every previous rule,
+// updating it will cause the session to start over
+update($time);
+
+
