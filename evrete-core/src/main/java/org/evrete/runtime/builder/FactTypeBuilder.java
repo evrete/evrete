@@ -13,6 +13,7 @@ public final class FactTypeBuilder implements NamedType {
     private final AbstractLhsBuilder<?, ?> group;
     private final String var;
     private final Type<?> type;
+    //TODO avoid keeping this set inside the builder
     private final Set<TypeField> betaFields = new HashSet<>();
 
     FactTypeBuilder(AbstractLhsBuilder<?, ?> group, String var, Type<?> type) {

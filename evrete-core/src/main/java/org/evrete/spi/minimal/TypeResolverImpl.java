@@ -16,18 +16,15 @@ class TypeResolverImpl implements TypeResolver {
     private final Map<String, ArrayOf<Type<?>>> typesByJavaType = new HashMap<>();
 
     private final Map<String, TypeCacheEntry> typeInheritanceCache = new HashMap<>();
-    private final JcCompiler compiler;
     private final ClassLoader classLoader;
     private int typeCounter = 0;
     private int fieldSetsCounter = 0;
 
-    public TypeResolverImpl(RuntimeContext<?> requester) {
+    TypeResolverImpl(RuntimeContext<?> requester) {
         this.classLoader = requester.getClassLoader();
-        this.compiler = new JcCompiler(classLoader);
     }
 
     private TypeResolverImpl(TypeResolverImpl other) {
-        this.compiler = other.compiler;
         this.classLoader = other.classLoader;
         this.typeCounter = other.typeCounter;
         this.fieldSetsCounter = other.fieldSetsCounter;

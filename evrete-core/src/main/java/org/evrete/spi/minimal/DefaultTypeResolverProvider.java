@@ -4,7 +4,7 @@ import org.evrete.api.RuntimeContext;
 import org.evrete.api.TypeResolver;
 import org.evrete.api.spi.TypeResolverProvider;
 
-public class DefaultTypeResolverProvider extends LastServiceProvider implements TypeResolverProvider {
+public class DefaultTypeResolverProvider extends LeastImportantServiceProvider implements TypeResolverProvider {
 
     @Override
     public TypeResolver instance(RuntimeContext<?> requester) {

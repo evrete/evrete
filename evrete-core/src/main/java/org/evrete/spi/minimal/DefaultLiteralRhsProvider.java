@@ -10,28 +10,28 @@ import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-public class DefaultLiteralRhsProvider extends LastServiceProvider implements LiteralRhsCompiler {
+public class DefaultLiteralRhsProvider extends LeastImportantServiceProvider implements LiteralRhsCompiler {
     private static final AtomicInteger classCounter = new AtomicInteger(0);
     private static final String classPackage = DefaultLiteralRhsProvider.class.getPackage().getName() + ".rhs";
+
+    @SuppressWarnings("unchecked")
+    private static Class<? extends AbstractLiteralRhs> buildClass(JcClassLoader classLoader, FactType[] types, String literalRhs, Collection<String> imports) {
+        JcCompiler compiler = new JcCompiler(classLoader);
+        String className = "Rhs" + classCounter.getAndIncrement();
+        String source = buildSource(className, types, literalRhs, imports);
+        return (Class<? extends AbstractLiteralRhs>) compiler.compile(className, source);
+    }
 
     @Override
     public Consumer<RhsContext> compileRhs(RuntimeContext<?> requester, String literalRhs, Collection<FactType> factTypes, Collection<String> imports) {
         FactType[] types = factTypes.toArray(FactType.ZERO_ARRAY);
 
-        Class<? extends AbstractLiteralRhs> clazz = buildClass(requester.getClassLoader(), types, literalRhs, imports);
+        Class<? extends AbstractLiteralRhs> clazz = buildClass(getCreateClassLoader(requester), types, literalRhs, imports);
         try {
             return clazz.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             throw new IllegalStateException("Unable to initialize RHS", e);
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Class<? extends AbstractLiteralRhs> buildClass(ClassLoader classLoader, FactType[] types, String literalRhs, Collection<String> imports) {
-        JcCompiler compiler = new JcCompiler(classLoader);
-        String className = "Rhs" + classCounter.getAndIncrement();
-        String source = buildSource(className, types, literalRhs, imports);
-        return (Class<? extends AbstractLiteralRhs>) compiler.compile(className, source);
     }
 
     private static String buildSource(String className, FactType[] types, String literalRhs, Collection<String> imports) {

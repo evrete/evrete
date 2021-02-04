@@ -12,8 +12,8 @@ class JcCompiler {
     private final JcClassLoader classLoader;
     private final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
-    public JcCompiler(ClassLoader classLoader) {
-        this.classLoader = new JcClassLoader(classLoader);
+    JcCompiler(JcClassLoader classLoader) {
+        this.classLoader = classLoader;
     }
 
     public Class<?> compile(String className, String source) {

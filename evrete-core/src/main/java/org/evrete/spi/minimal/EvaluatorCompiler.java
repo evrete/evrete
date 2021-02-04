@@ -40,9 +40,9 @@ class EvaluatorCompiler {
 
     private final static NextIntSupplier javaClassCounter = new NextIntSupplier();
 
-    private final ClassLoader classLoader;
+    private final JcClassLoader classLoader;
 
-    EvaluatorCompiler(ClassLoader classLoader) {
+    EvaluatorCompiler(JcClassLoader classLoader) {
         this.classLoader = classLoader;
     }
 

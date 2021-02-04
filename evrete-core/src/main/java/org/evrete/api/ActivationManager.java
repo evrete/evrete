@@ -38,8 +38,9 @@ public interface ActivationManager extends Predicate<RuntimeRule> {
      * This method is called after rule activation. Developers use this method to track activation history.
      * this manager's <code>test()</code> method
      *
-     * @param rule rule
+     * @param rule the rule that has been activated
      */
+    // TODO add count of records processed, that'd be useful for debugging
     default void onActivation(RuntimeRule rule) {
 
     }

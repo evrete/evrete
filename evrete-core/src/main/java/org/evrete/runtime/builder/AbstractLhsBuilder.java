@@ -54,7 +54,7 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         return factTypeMapper::apply;
     }
 
-    public void compileConditions(AbstractRuntime<?> runtime) {
+    void compileConditions(AbstractRuntime<?> runtime) {
         if (compiledData != null) {
             throw new IllegalStateException("Conditions already compiled");
         } else {

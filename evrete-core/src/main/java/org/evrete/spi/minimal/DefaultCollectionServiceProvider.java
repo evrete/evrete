@@ -4,7 +4,7 @@ import org.evrete.api.MemoryCollections;
 import org.evrete.api.RuntimeContext;
 import org.evrete.api.spi.MemoryCollectionsProvider;
 
-public class DefaultCollectionServiceProvider extends LastServiceProvider implements MemoryCollectionsProvider {
+public class DefaultCollectionServiceProvider extends LeastImportantServiceProvider implements MemoryCollectionsProvider {
 
     @Override
     public MemoryCollections instance(RuntimeContext<?> requester) {

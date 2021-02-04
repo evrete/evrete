@@ -22,7 +22,6 @@ public interface SessionWrapper {
                 session.fireAllRules();
             }
 
-
             @Override
             public void close() {
                 session.dispose();
