@@ -11,6 +11,13 @@
     <name>evrete-core</name>
     <version>1.2.06-SNAPSHOT</version>
 
+    <properties>
+        <junit.version>5.7.0</junit.version>
+        <jmh.version>1.27</jmh.version>
+        <drools.version>7.48.0.Final</drools.version>
+        <slf4j.version>1.7.30</slf4j.version>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
@@ -53,56 +60,63 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>5.6.2</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.6.2</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-params</artifactId>
-            <version>5.6.2</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-generator-annprocess</artifactId>
-            <version>1.26</version>
+            <version>${jmh.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.drools</groupId>
             <artifactId>drools-core</artifactId>
-            <version>7.42.0.Final</version>
+            <version>${drools.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.drools</groupId>
+            <artifactId>drools-mvel</artifactId>
+            <version>${drools.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.drools</groupId>
             <artifactId>drools-compiler</artifactId>
-            <version>7.42.0.Final</version>
+            <version>${drools.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.28</version>
+            <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-jdk14</artifactId>
-            <version>1.7.28</version>
+            <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
 

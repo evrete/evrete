@@ -15,8 +15,7 @@ public class DefaultLiteralRhsProvider extends LeastImportantServiceProvider imp
     private static final String classPackage = DefaultLiteralRhsProvider.class.getPackage().getName() + ".rhs";
 
     @SuppressWarnings("unchecked")
-    private static Class<? extends AbstractLiteralRhs> buildClass(JcClassLoader classLoader, FactType[] types, String literalRhs, Collection<String> imports) {
-        JcCompiler compiler = new JcCompiler(classLoader);
+    private static Class<? extends AbstractLiteralRhs> buildClass(JcCompiler compiler, FactType[] types, String literalRhs, Collection<String> imports) {
         String className = "Rhs" + classCounter.getAndIncrement();
         String source = buildSource(className, types, literalRhs, imports);
         return (Class<? extends AbstractLiteralRhs>) compiler.compile(className, source);
@@ -26,7 +25,7 @@ public class DefaultLiteralRhsProvider extends LeastImportantServiceProvider imp
     public Consumer<RhsContext> compileRhs(RuntimeContext<?> requester, String literalRhs, Collection<FactType> factTypes, Collection<String> imports) {
         FactType[] types = factTypes.toArray(FactType.ZERO_ARRAY);
 
-        Class<? extends AbstractLiteralRhs> clazz = buildClass(getCreateClassLoader(requester), types, literalRhs, imports);
+        Class<? extends AbstractLiteralRhs> clazz = buildClass(getCreateJavaCompiler(requester), types, literalRhs, imports);
         try {
             return clazz.getDeclaredConstructor().newInstance();
         } catch (Exception e) {

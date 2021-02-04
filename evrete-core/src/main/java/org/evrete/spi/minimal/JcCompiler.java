@@ -1,32 +1,29 @@
 package org.evrete.spi.minimal;
 
+import org.evrete.api.RuntimeContext;
+
 import javax.tools.*;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 class JcCompiler {
-    private static final Logger LOGGER = Logger.getLogger(JcCompiler.class.getName());
     private final JcClassLoader classLoader;
     private final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
-    JcCompiler(JcClassLoader classLoader) {
-        this.classLoader = classLoader;
+    JcCompiler(RuntimeContext<?> ctx) {
+        this.classLoader = new JcClassLoader(ctx.getClassLoader());
     }
 
-    public Class<?> compile(String className, String source) {
-        long t0 = Calendar.getInstance().getTimeInMillis();
+    JcClassLoader getClassLoader() {
+        return classLoader;
+    }
+
+    Class<?> compile(String className, String source) {
         try {
             byte[] bytes = compileSourceToClassBytes(className, source);
             return classLoader.buildClass(className, bytes);
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Failed to compile source:\n" + source, e);
             throw new JcCompilationException(e);
-        } finally {
-            long t1 = Calendar.getInstance().getTimeInMillis();
-            LOGGER.fine("Compile time: " + (t1 - t0) + "ms, source: " + source);
         }
     }
 

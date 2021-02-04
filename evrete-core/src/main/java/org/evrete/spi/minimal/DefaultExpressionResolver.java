@@ -18,8 +18,8 @@ class DefaultExpressionResolver implements ExpressionResolver {
     private final EvaluatorCompiler evaluatorCompiler;
     private final String conditionBaseClassName;
 
-    DefaultExpressionResolver(RuntimeContext<?> requester, JcClassLoader classLoader) {
-        this.evaluatorCompiler = new EvaluatorCompiler(classLoader);
+    DefaultExpressionResolver(RuntimeContext<?> requester, JcCompiler compiler) {
+        this.evaluatorCompiler = new EvaluatorCompiler(compiler);
         this.conditionBaseClassName = requester.getConfiguration().getProperty(BASE_CLASS_PROPERTY, BaseConditionClass.class.getName());
     }
 

@@ -40,19 +40,18 @@ class EvaluatorCompiler {
 
     private final static NextIntSupplier javaClassCounter = new NextIntSupplier();
 
-    private final JcClassLoader classLoader;
+    private final JcCompiler compiler;
 
-    EvaluatorCompiler(JcClassLoader classLoader) {
-        this.classLoader = classLoader;
+    EvaluatorCompiler(JcCompiler compiler) {
+        this.compiler = compiler;
     }
 
-    public ClassLoader getClassLoader() {
-        return classLoader;
+    ClassLoader getClassLoader() {
+        return compiler.getClassLoader();
     }
 
     private MethodHandle compileExpression(String className, String classJavaSource) {
         try {
-            JcCompiler compiler = new JcCompiler(classLoader);
             Class<?> compiledClass = compiler.compile(className, classJavaSource);
             return (MethodHandle) compiledClass.getDeclaredField("HANDLE").get(null);
         } catch (JcCompilationException e) {

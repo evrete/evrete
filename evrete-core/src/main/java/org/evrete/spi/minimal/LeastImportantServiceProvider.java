@@ -7,10 +7,10 @@ import java.util.WeakHashMap;
 
 abstract class LeastImportantServiceProvider implements OrderedServiceProvider {
     private static final int ORDER = Integer.MAX_VALUE;
-    private final WeakHashMap<RuntimeContext<?>, JcClassLoader> classLoaders = new WeakHashMap<>();
+    private final WeakHashMap<RuntimeContext<?>, JcCompiler> javaCompilers = new WeakHashMap<>();
 
-    final JcClassLoader getCreateClassLoader(RuntimeContext<?> ctx) {
-        return classLoaders.computeIfAbsent(ctx, k -> new JcClassLoader(ctx.getClassLoader()));
+    final JcCompiler getCreateJavaCompiler(RuntimeContext<?> ctx) {
+        return javaCompilers.computeIfAbsent(ctx, JcCompiler::new);
     }
 
     @Override
