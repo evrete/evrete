@@ -82,7 +82,8 @@ class PackageExplorer {
         List<JavaFileObject> result = new ArrayList<>();
 
         Enumeration<URL> urlEnumeration = classLoader.getResources(javaPackageName);
-        while (urlEnumeration.hasMoreElements()) { // one URL for each jar on the classpath that has the given package
+        while (urlEnumeration.hasMoreElements()) {
+            // one URL for each jar on the classpath that has the given package
             URL packageFolderURL = urlEnumeration.nextElement();
             result.addAll(listUnder(packageName, packageFolderURL));
         }
