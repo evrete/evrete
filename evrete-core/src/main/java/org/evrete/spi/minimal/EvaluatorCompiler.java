@@ -15,7 +15,7 @@ import java.util.StringJoiner;
 class EvaluatorCompiler {
     private static final String JAVA_EVALUATOR_TEMPLATE = "package %s;\n" +
             "\n" +
-            "public class %s extends %s {\n" +
+            "public final class %s extends %s {\n" +
             "    public static final java.lang.invoke.MethodHandle HANDLE;\n" +
             "\n" +
             "    static {\n" +
@@ -54,10 +54,10 @@ class EvaluatorCompiler {
         try {
             Class<?> compiledClass = compiler.compile(className, classJavaSource);
             return (MethodHandle) compiledClass.getDeclaredField("HANDLE").get(null);
-        } catch (JcCompilationException e) {
+        } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
-            throw new JcCompilationException(e);
+            throw new IllegalStateException(e);
         }
     }
 

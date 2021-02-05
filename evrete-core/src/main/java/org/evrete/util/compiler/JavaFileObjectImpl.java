@@ -1,4 +1,4 @@
-package org.evrete.spi.minimal;
+package org.evrete.util.compiler;
 
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.NestingKind;
@@ -6,12 +6,12 @@ import javax.tools.JavaFileObject;
 import java.io.*;
 import java.net.URI;
 
-class JcJavaFileObject implements JavaFileObject {
+class JavaFileObjectImpl implements JavaFileObject {
     private final String binaryName;
     private final URI uri;
     private final String name;
 
-    JcJavaFileObject(String binaryName, URI uri) {
+    JavaFileObjectImpl(String binaryName, URI uri) {
         this.uri = uri;
         this.binaryName = binaryName;
         name = uri.getPath() == null ? uri.getSchemeSpecificPart() : uri.getPath(); // for FS based URI the path is not null, for JAR URI the scheme specific part is not null

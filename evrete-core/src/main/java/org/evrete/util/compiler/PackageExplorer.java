@@ -1,4 +1,4 @@
-package org.evrete.spi.minimal;
+package org.evrete.util.compiler;
 
 import javax.tools.JavaFileObject;
 import java.io.File;
@@ -12,21 +12,21 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
 
-class JcPackageInternalsFinder {
+class PackageExplorer {
     private static final String CLASS_FILE_EXTENSION = ".class";
     private final ClassLoader classLoader;
 
-    JcPackageInternalsFinder(ClassLoader classLoader) {
+    PackageExplorer(ClassLoader classLoader) {
         this.classLoader = classLoader;
     }
 
     private static Collection<JavaFileObject> listUnder(String packageName, URL packageFolderURL) {
         File directory = new File(packageFolderURL.getFile());
-        if (directory.isDirectory()) { // browse local .class files - useful for local execution
+        if (directory.isDirectory()) {
             return processDir(packageName, directory);
-        } else { // browse a jar file
+        } else {
             return processJar(packageFolderURL);
-        } // maybe there can be something else for more involved class loaders
+        }
     }
 
     private static List<JavaFileObject> processJar(URL packageFolderURL) {
@@ -47,7 +47,7 @@ class JcPackageInternalsFinder {
                     String binaryName = name.replaceAll("/", ".");
                     binaryName = binaryName.replaceAll(CLASS_FILE_EXTENSION + '$', "");
 
-                    result.add(new JcJavaFileObject(binaryName, uri));
+                    result.add(new JavaFileObjectImpl(binaryName, uri));
                 }
             }
         } catch (Exception e) {
@@ -68,7 +68,7 @@ class JcPackageInternalsFinder {
                     String binaryName = packageName + '.' + childFile.getName();
                     binaryName = binaryName.replaceAll(CLASS_FILE_EXTENSION + '$', "");
 
-                    result.add(new JcJavaFileObject(binaryName, childFile.toURI()));
+                    result.add(new JavaFileObjectImpl(binaryName, childFile.toURI()));
                 }
             }
         }

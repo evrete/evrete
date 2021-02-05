@@ -1,4 +1,4 @@
-package org.evrete.spi.minimal;
+package org.evrete.util.compiler;
 
 import javax.tools.*;
 import java.io.ByteArrayOutputStream;
@@ -8,20 +8,20 @@ import java.util.Set;
 import static javax.tools.StandardLocation.CLASS_PATH;
 import static javax.tools.StandardLocation.SOURCE_PATH;
 
-class JcFileManager<M extends JavaFileManager> extends ForwardingJavaFileManager<M> {
+class FileManager<M extends JavaFileManager> extends ForwardingJavaFileManager<M> {
     private final ByteArrayOutputStream bos;
     private final ClassLoader classLoader;
-    private final JcPackageInternalsFinder finder;
+    private final PackageExplorer finder;
 
-    private JcFileManager(M fileManager, ClassLoader classLoader) {
+    private FileManager(M fileManager, ClassLoader classLoader) {
         super(fileManager);
         this.bos = new ByteArrayOutputStream();
         this.classLoader = classLoader;
-        this.finder = new JcPackageInternalsFinder(classLoader);
+        this.finder = new PackageExplorer(classLoader);
     }
 
-    public static JcFileManager<?> instance(JavaCompiler compiler, ClassLoader classLoader) {
-        return new JcFileManager<>(
+    public static FileManager<?> instance(JavaCompiler compiler, ClassLoader classLoader) {
+        return new FileManager<>(
                 compiler.getStandardFileManager(null, null, null),
                 classLoader
         );
@@ -39,7 +39,7 @@ class JcFileManager<M extends JavaFileManager> extends ForwardingJavaFileManager
     @Override
     public JavaFileObject getJavaFileForOutput(Location location, String className, JavaFileObject.Kind kind, FileObject sibling) throws IOException {
         JavaFileObject o = super.getJavaFileForOutput(location, className, kind, sibling);
-        return new JcBytesJavaFileObject<>(o, bos);
+        return new ClassBytesFileObject<>(o, bos);
     }
 
     @Override
@@ -65,8 +65,8 @@ class JcFileManager<M extends JavaFileManager> extends ForwardingJavaFileManager
 
     @Override
     public String inferBinaryName(Location location, JavaFileObject file) {
-        if (file instanceof JcJavaFileObject) {
-            return ((JcJavaFileObject) file).binaryName();
+        if (file instanceof JavaFileObjectImpl) {
+            return ((JavaFileObjectImpl) file).binaryName();
         } else { // if it's not CustomJavaFileObject, then it's coming from standard file manager - let it handle the file
             return super.inferBinaryName(location, file);
         }
