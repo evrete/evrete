@@ -42,7 +42,7 @@ public class SingleSourceCompiler {
                         errors.add(diagnostic.toString());
                     }
                 }
-                LOGGER.log(Level.SEVERE, "\n--------\n" + source + "\n--------");
+                LOGGER.log(Level.SEVERE, "\n---- UNCOMPILABLE SOURCE START ----\n" + source + "\n----- UNCOMPILABLE SOURCE END -----");
                 throw new CompilationException("Unknown compilation error: " + errors + ". Check with error logs for the source code in question.");
             }
         }

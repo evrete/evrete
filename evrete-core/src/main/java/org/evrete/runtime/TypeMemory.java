@@ -108,25 +108,23 @@ public final class TypeMemory extends MemoryComponent {
     }
 
 
-/*
-    boolean bufferContains(Action... actions) {
-        for (Action action : actions) {
-            if (inputBuffer.hasData(action)) {
-                return true;
-            }
-        }
-        return false;
-    }
-*/
-
     void forEachValidEntry(BiConsumer<FactHandle, Object> consumer) {
-        ReIterator<FactHandleVersioned> it = main0().iterator();
+        forEachValidEntryInner(main0(), new BiConsumer<FactHandleVersioned, FactRecord>() {
+            @Override
+            public void accept(FactHandleVersioned v, FactRecord rec) {
+                consumer.accept(v.getHandle(), rec.instance);
+            }
+        });
+    }
+
+    private void forEachValidEntryInner(SharedPlainFactStorage plainData, BiConsumer<FactHandleVersioned, FactRecord> consumer) {
+        ReIterator<FactHandleVersioned> it = plainData.iterator();
         while (it.hasNext()) {
             FactHandleVersioned v = it.next();
             FactHandle handle = v.getHandle();
             FactRecord record = factStorage.getFact(handle);
             if (record != null && record.getVersion() == v.getVersion()) {
-                consumer.accept(handle, record.instance);
+                consumer.accept(v, record);
             } else {
                 // TODO !!!! uncomment when the rest is tested
                 //it.remove();
@@ -149,7 +147,7 @@ public final class TypeMemory extends MemoryComponent {
             bucket.commitChanges();
         }
 
-        for (FieldsMemory fm : betaMemories.values()) {
+        for (FieldsMemory fm : this.betaMemories.values()) {
             fm.commitDeltas();
         }
     }
@@ -186,6 +184,52 @@ public final class TypeMemory extends MemoryComponent {
     }
 
     void onNewAlphaBucket(AlphaDelta delta) {
+        // 2. Create and fill buckets
+        FieldsKey key = delta.getKey();
+        AlphaBucketMeta meta = delta.getNewAlphaMeta();
+
+
+        AlphaBucketMeta alphaMeta = delta.getNewAlphaMeta();
+        if (key.size() == 0) {
+            // 3. Create new alpha data bucket
+            TypeMemoryBucket newBucket = touchAlphaMemory(alphaMeta);
+            assert newBucket != null;
+            // Fill data
+            forEachValidEntryInner(main0(), new BiConsumer<FactHandleVersioned, FactRecord>() {
+                @Override
+                public void accept(FactHandleVersioned fhv, FactRecord rec) {
+                    if (meta.test(rec)) {
+                        newBucket.getData().insert(fhv);
+                    }
+                }
+            });
+        } else {
+
+            // 3. Process keyed/beta-memory
+            FieldsMemory m = getCreate(key);
+            FieldsMemoryBucket bucket = m.touchMemory(meta);
+            assert bucket != null;
+            forEachValidEntryInner(main0(), new BiConsumer<FactHandleVersioned, FactRecord>() {
+                @Override
+                public void accept(FactHandleVersioned fhv, FactRecord rec) {
+                    if (meta.test(rec)) {
+                        //TODO !!! implement
+                        throw new UnsupportedOperationException();
+                        //bucket.getData().insert(fhv);
+                    }
+                }
+            });
+
+
+
+/*
+            betaMemories
+                    .computeIfAbsent(key, k -> new FieldsMemory(TypeMemory.this, key))
+                    .onNewAlphaBucket(alphaMeta, existingFacts);
+*/
+        }
+
+
 /*
         if (inputBuffer.get(Action.INSERT).reset() > 0) {
             //TODO develop a strategy
@@ -224,41 +268,23 @@ public final class TypeMemory extends MemoryComponent {
 */
     }
 
-    @SuppressWarnings("unchecked")
-    final <T> void forEachMemoryObject(Consumer<T> consumer) {
-        throw new UnsupportedOperationException();
-/*
-        main0().iterator().forEachRemaining(factHandle -> {
-            Object fact = getFact(factHandle);
-            if (fact != null) {
-                consumer.accept((T) fact);
-            }
-        });
-*/
-    }
-
-    final void forEachObjectUnchecked(Consumer<Object> consumer) {
-        throw new UnsupportedOperationException();
-/*
-        main0().iterator().forEachRemaining(factHandle -> {
-            Object fact = getFact(factHandle);
-            if (fact != null) {
-                consumer.accept(fact);
-            }
-        });
-*/
-    }
-
-    public FactStorage<FactRecord> getFactStorage() {
-        return factStorage;
-    }
-
-    SharedPlainFactStorage main0() {
+    private SharedPlainFactStorage main0() {
         return alphaBuckets.data[0].getData();
     }
 
-    SharedPlainFactStorage delta0() {
+    private SharedPlainFactStorage delta0() {
         return alphaBuckets.data[0].getDelta();
+    }
+
+    private FieldsMemory getCreate(FieldsKey key) {
+        synchronized (this.betaMemories) {
+            FieldsMemory m = this.betaMemories.get(key);
+            if (m == null) {
+                m = new FieldsMemory(this, key);
+                this.betaMemories.put(key, m);
+            }
+            return m;
+        }
     }
 
 /*
@@ -291,49 +317,34 @@ public final class TypeMemory extends MemoryComponent {
      * @param newField newly created field
      */
     final void onNewActiveField(ActiveField newField) {
-        throw new UnsupportedOperationException();
-/*
         for (SharedPlainFactStorage storage : new SharedPlainFactStorage[]{main0(), delta0()}) {
-            ReIterator<RuntimeFact> it = storage.iterator();
+            ReIterator<FactHandleVersioned> it = storage.iterator();
             while (it.hasNext()) {
-                RuntimeFactImpl rto = (RuntimeFactImpl) it.next();
-                Object fieldValue = newField.readValue(rto.getDelegate());
-                rto.appendValue(newField, fieldValue);
+                FactHandleVersioned rto = it.next();
+                FactHandle handle = rto.getHandle();
+                FactRecord rec = getFact(handle);
+                if (rec != null) {
+                    Object fieldValue = newField.readValue(rec.instance);
+                    rec.appendValue(newField, fieldValue);
+                    factStorage.update(handle, rec);
+                }
             }
 
         }
-        this.cachedActiveFields = getRuntime().getActiveFields(type);
-*/
     }
-
-/*
-    void memoryAction(Action action, FactHandle handle, Object o) {
-        inputBuffer.add(action, handle, o);
-    }
-*/
 
     @Override
     public String toString() {
         StringBuilder s = new StringBuilder(1024);
         for (TypeMemoryBucket b : alphaBuckets.data) {
-
-
             s.append(b.getAlphaMask()).append("\n");
             s.append("\tM:").append(b.getData()).append('\n');
             s.append("\tD:").append(b.getDelta()).append('\n');
-
             for (FieldsMemory fm : this.betaMemories.values()) {
                 s.append("\t\tFM:").append(fm).append('\n');
-
             }
         }
-
         return s.toString();
-/*
-        return "TypeMemory{" +
-                "alphaBuckets=" + alphaBuckets +
-                '}';
-*/
     }
 
 }

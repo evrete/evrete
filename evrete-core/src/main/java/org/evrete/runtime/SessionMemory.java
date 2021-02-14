@@ -138,14 +138,14 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
 */
 
     //@Override
-    protected synchronized void onNewActiveField(ActiveField newField) {
+    synchronized void onNewActiveField(ActiveField newField) {
         Type<?> t = newField.getDeclaringType();
         TypeMemory tm = get(t);
         tm.onNewActiveField(newField);
     }
 
     //@Override
-    protected void onNewAlphaBucket(AlphaDelta delta) {
+    void onNewAlphaBucket(AlphaDelta delta) {
         Type<?> t = delta.getKey().getType();
         TypeMemory tm = typedMemories.get(t.getId());
         if (tm == null) {

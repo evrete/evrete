@@ -36,34 +36,12 @@ class FieldsMemoryBucket extends MemoryComponent implements InnerFactMemory {
         fieldData.commitChanges();
     }
 
-    void insert(FactHandleVersioned handle, FieldToValue values, boolean[] alphaTests) {
-        if (alphaMask.test(alphaTests)) {
-            fieldData.insert(handle, values);
-        }
-    }
-
     @Override
     public void insert(FactHandleVersioned fact, FieldToValue values) {
         if (alphaMask.test(values)) {
             fieldData.insert(fact, values);
         }
     }
-
-    /*
-    void delete(ReIterable<? extends RuntimeFact> facts) {
-        ReIterator<? extends RuntimeFact> it = facts.iterator();
-
-        while (it.hasNext()) {
-            delete(it.next());
-        }
-    }
-
-    void delete(RuntimeFact fact) {
-        if (alphaMask.test(fact)) {
-            fieldData.delete(fact);
-        }
-    }
-*/
 
     @Override
     public String toString() {

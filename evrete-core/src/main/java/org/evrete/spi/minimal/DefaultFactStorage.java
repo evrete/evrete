@@ -6,6 +6,7 @@ import org.evrete.api.RuntimeContext;
 import org.evrete.api.Type;
 import org.evrete.collections.AbstractLinearHash;
 
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiPredicate;
@@ -87,6 +88,11 @@ class DefaultFactStorage<T> extends AbstractLinearHash<DefaultFactStorage.Tuple<
         if (get(addr) != null) {
             markDeleted(addr);
         }
+    }
+
+    @Override
+    public Iterator<T> it() {
+        return iterator(t -> t.object);
     }
 
     @Override

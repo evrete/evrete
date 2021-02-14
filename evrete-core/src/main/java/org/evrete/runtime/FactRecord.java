@@ -6,7 +6,7 @@ import java.util.Arrays;
 
 class FactRecord implements FieldToValue {
     final Object instance;
-    private final Object[] fieldValues;
+    private Object[] fieldValues;
     private int version = 0;
 
     FactRecord(Object instance, Object[] fieldValues) {
@@ -21,6 +21,12 @@ class FactRecord implements FieldToValue {
 
     public int getVersion() {
         return version;
+    }
+
+    final void appendValue(ActiveField field, Object value) {
+        assert fieldValues.length == field.getValueIndex();
+        this.fieldValues = Arrays.copyOf(this.fieldValues, fieldValues.length + 1);
+        this.fieldValues[field.getValueIndex()] = value;
     }
 
     void updateVersion(int newVersion) {

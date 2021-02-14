@@ -39,6 +39,8 @@ class TypeMemoryBucket extends MemoryComponent implements PlainMemory {
         }
     }
 
+
+
 /*
     <T extends RuntimeFact> void fillMainStorage(ReIterator<T> iterator) {
         //throw new UnsupportedOperationException();

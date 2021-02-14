@@ -1,9 +1,6 @@
 package org.evrete;
 
-import org.evrete.api.ActivationMode;
-import org.evrete.api.RuntimeRule;
-import org.evrete.api.StatefulSession;
-import org.evrete.api.ValuesPredicate;
+import org.evrete.api.*;
 import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
@@ -778,7 +775,7 @@ class HotDeploymentTests {
 
         TypeC c = new TypeC();
 
-        session.insert(c);
+        FactHandle ch = session.insert(c);
         session.fire();
         rhsAssert1.assertCount(30).reset();
 
@@ -808,7 +805,8 @@ class HotDeploymentTests {
         session.fire();
         rhsAssert2.assertCount(0).reset();
 
-        session.deleteAndFire(c);
+        session.delete(ch);
+        session.fire();
         rhsAssert1.assertCount(0).reset();
         rhsAssert2.assertCount(0).reset();
 

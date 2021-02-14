@@ -96,14 +96,27 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
 
     @Override
     protected final void onNewActiveField(ActiveField newField) {
-        //TODO override or provide a message
-        throw new UnsupportedOperationException();
+        memory.onNewActiveField(newField);
+/*
+        Type<?> t = newField.getDeclaringType();
+        TypeMemory tm = memory.get(t);
+        tm.onNewActiveField(newField);
+*/
     }
 
     @Override
-    protected final void onNewAlphaBucket(AlphaDelta alphaDelta) {
-        //TODO override or provide a message
-        throw new UnsupportedOperationException();
+    protected final void onNewAlphaBucket(AlphaDelta delta) {
+        memory.onNewAlphaBucket(delta);
+/*
+        Type<?> t = delta.getKey().getType();
+        TypeMemory tm = memory.get(t.getId());
+        if (tm == null) {
+            tm = new TypeMemory(SessionMemory.this, t);
+            typedMemories.set(t.getId(), tm);
+        } else {
+            tm.onNewAlphaBucket(delta);
+        }
+*/
     }
 
     @Override

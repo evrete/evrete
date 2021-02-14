@@ -115,19 +115,6 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
         }
     }
 
-
-/*
-    @Override
-    protected void addListenerToRules(EvaluationListener listener) {
-        this.ruleStorage.addListener(listener);
-    }
-
-    @Override
-    protected void removeListenerFromRules(EvaluationListener listener) {
-        this.ruleStorage.removeListener(listener);
-    }
-*/
-
     @Override
     public void addListener(EvaluationListener listener) {
         getAlphaConditions().addListener(listener);
