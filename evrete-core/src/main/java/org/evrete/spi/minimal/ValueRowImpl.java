@@ -3,16 +3,16 @@ package org.evrete.spi.minimal;
 import org.evrete.api.FactHandleVersioned;
 import org.evrete.api.ReIterator;
 import org.evrete.api.ValueRow;
-import org.evrete.collections.LinearHashSet;
+import org.evrete.collections.CollectionReIterator;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 
 class ValueRowImpl implements ValueRow {
     final Object[] data;
-    private final LinearHashSet<FactHandleVersioned> facts = new LinearHashSet<>();
+    private final LinkedList<FactHandleVersioned> facts = new LinkedList<>();
     private final int hash;
     private final ReIterator<FactHandleVersioned> delegate;
-    private int factCount = 0;
     private boolean deleted;
 
     ValueRowImpl(Object[] data, int hash, FactHandleVersioned fact) {
@@ -23,16 +23,15 @@ class ValueRowImpl implements ValueRow {
     private ValueRowImpl(Object[] data, int hash) {
         this.data = data;
         this.hash = hash;
-        this.delegate = facts.iterator();
+        this.delegate = new CollectionReIterator<>(facts);
     }
 
     void mergeDataFrom(ValueRowImpl other) {
-        this.facts.bulkAdd(other.facts);
+        this.facts.addAll(other.facts);
     }
 
     void addFact(FactHandleVersioned fact) {
-        this.facts.addSilent(fact);
-        this.factCount++;
+        this.facts.add(fact);
     }
 
     @Override
@@ -66,7 +65,7 @@ class ValueRowImpl implements ValueRow {
 
     @Override
     public ReIterator<FactHandleVersioned> iterator() {
-        return facts.iterator();
+        return new CollectionReIterator<>(facts);
     }
 
     @Override

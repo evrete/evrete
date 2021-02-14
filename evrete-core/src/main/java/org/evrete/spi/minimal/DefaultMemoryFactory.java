@@ -40,7 +40,7 @@ class DefaultMemoryFactory implements MemoryFactory {
 
     @Override
     public <Z> FactStorage<Z> newFactStorage(Type<?> type, Class<Z> storageClass, BiPredicate<Z, Z> identityFunction) {
-        return new DefaultFactStorage<>(ctx, type, identityFunction);
+        return new DefaultFactStorage<>(type, identityFunction);
     }
 
     @Override

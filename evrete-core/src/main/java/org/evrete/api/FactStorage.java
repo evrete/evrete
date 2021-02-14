@@ -16,7 +16,7 @@ public interface FactStorage<T> {
     FactHandle insert(T fact);
 
     //TODO !!!! rename to iterator(), in the implementation avoid extending hash collections
-    Iterator<T> it();
+    Iterator<T> iterator();
 
     void delete(FactHandle handle);
 
