@@ -1,15 +1,15 @@
 package org.evrete.api.spi;
 
-import org.evrete.api.MemoryCollections;
+import org.evrete.api.MemoryFactory;
 import org.evrete.api.OrderedServiceProvider;
 import org.evrete.api.RuntimeContext;
 
 @SuppressWarnings("unused")
-public interface MemoryCollectionsProvider extends OrderedServiceProvider {
+public interface MemoryFactoryProvider extends OrderedServiceProvider {
     /**
      * @param requester - the context from which a new service is requested
      * @return the instance of CollectionsService
      */
-    MemoryCollections instance(RuntimeContext<?> requester);
+    MemoryFactory instance(RuntimeContext<?> requester);
 
 }

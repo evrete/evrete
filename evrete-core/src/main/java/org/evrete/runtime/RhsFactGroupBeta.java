@@ -4,28 +4,28 @@ import org.evrete.api.*;
 
 import java.util.EnumMap;
 
-public class RhsFactGroupBeta implements RhsFactGroup, KeyReIterators<ValueRow[]> {
+
+public class RhsFactGroupBeta extends AbstractRhsFactGroup implements RhsFactGroup, KeyReIterators<ValueRow[]> {
     private final RuntimeFactTypeKeyed[] types;
     private final KeyReIterators<ValueRow[]> keyIterators;
     private final ValueRow[][] keyState;
     private final int groupIndex;
-    private final RuntimeFact[] iterationState;
     private ValueRow[] currentKey;
 
-    private RhsFactGroupBeta(RhsFactGroupDescriptor descriptor, RuntimeFactTypeKeyed[] types, KeyReIterators<ValueRow[]> keyIterators, ValueRow[][] keyState, RuntimeFact[][] factState) {
+    private RhsFactGroupBeta(SessionMemory runtime, RhsFactGroupDescriptor descriptor, RuntimeFactTypeKeyed[] types, KeyReIterators<ValueRow[]> keyIterators, ValueRow[][] keyState, FactIterationState[][] factState) {
+        super(runtime, factState[descriptor.getFactGroupIndex()]);
         this.types = types;
         this.keyIterators = keyIterators;
         this.keyState = keyState;
         this.groupIndex = descriptor.getFactGroupIndex();
-        this.iterationState = factState[this.groupIndex];
     }
 
-    public RhsFactGroupBeta(RhsFactGroupDescriptor descriptor, BetaEndNode endNode, ValueRow[][] keyState, RuntimeFact[][] factState) {
-        this(descriptor, endNode.getEntryNodes(), endNode, keyState, factState);
+    RhsFactGroupBeta(RhsFactGroupDescriptor descriptor, BetaEndNode endNode, ValueRow[][] keyState, FactIterationState[][] factState) {
+        this(endNode.getRuntime().getMemory(), descriptor, endNode.getEntryNodes(), endNode, keyState, factState);
     }
 
-    public RhsFactGroupBeta(RhsFactGroupDescriptor descriptor, RuntimeFactTypeKeyed singleType, ValueRow[][] keyState, RuntimeFact[][] factState) {
-        this(descriptor, new RuntimeFactTypeKeyed[]{singleType}, singleType.getMappedKeyIterators(), keyState, factState);
+    RhsFactGroupBeta(RhsFactGroupDescriptor descriptor, RuntimeFactTypeKeyed singleType, ValueRow[][] keyState, FactIterationState[][] factState) {
+        this(singleType.getRuntime().getMemory(), descriptor, new RuntimeFactTypeKeyed[]{singleType}, singleType.getMappedKeyIterators(), keyState, factState);
     }
 
     static void runCurrentFacts(RhsFactGroupBeta[] groups, Runnable r) {
@@ -55,11 +55,16 @@ public class RhsFactGroupBeta implements RhsFactGroup, KeyReIterators<ValueRow[]
     }
 
     private void runForEachFact(int index, int length, Runnable r) {
-        ReIterator<RuntimeFact> it = this.currentKey[index].iterator();
+        ReIterator<FactHandleVersioned> it = this.currentKey[index].iterator();
+        FactIterationState state = this.state[index];
         if (index == length - 1) {
             // The last
             while (it.hasNext()) {
-                RuntimeFact fact = it.next();
+                if (next(state, it)) {
+                    r.run();
+                }
+/*
+                FactHandle fact = it.next();
                 if (fact.isDeleted()) {
                     // lazy deletion
                     it.remove();
@@ -67,10 +72,15 @@ public class RhsFactGroupBeta implements RhsFactGroup, KeyReIterators<ValueRow[]
                     this.iterationState[index] = fact;
                     r.run();
                 }
+*/
             }
         } else {
             while (it.hasNext()) {
-                RuntimeFact fact = it.next();
+                if (next(state, it)) {
+                    runForEachFact(index + 1, length, r);
+                }
+/*
+                FactHandle fact = it.next();
                 if (fact.isDeleted()) {
                     // lazy deletion
                     it.remove();
@@ -78,6 +88,7 @@ public class RhsFactGroupBeta implements RhsFactGroup, KeyReIterators<ValueRow[]
                     this.iterationState[index] = fact;
                     runForEachFact(index + 1, length, r);
                 }
+*/
             }
         }
     }

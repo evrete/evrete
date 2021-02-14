@@ -10,6 +10,11 @@ public class TypeResolverWrapper implements TypeResolver {
     }
 
     @Override
+    public <T> Type<T> getType(int typeId) {
+        return delegate.getType(typeId);
+    }
+
+    @Override
     public void wrapType(TypeWrapper<?> typeWrapper) {
         delegate.wrapType(typeWrapper);
     }

@@ -1,11 +1,11 @@
 package org.evrete;
 
 import org.evrete.api.ActivationMode;
+import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
 import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.helper.RhsAssert;
-import org.evrete.runtime.KnowledgeImpl;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 class EvaluationListenersTests {
     private static KnowledgeService service;
-    private KnowledgeImpl knowledge;
+    private Knowledge knowledge;
 
     @BeforeAll
     static void setUpClass() {
@@ -30,7 +30,7 @@ class EvaluationListenersTests {
 
     @BeforeEach
     void init() {
-        knowledge = (KnowledgeImpl) service.newKnowledge();
+        knowledge = service.newKnowledge();
     }
 
     @ParameterizedTest
@@ -104,7 +104,7 @@ class EvaluationListenersTests {
         rhsAssert.assertContains("$a", a1_1);
         rhsAssert.assertContains("$b", b1);
 
-        assert sessionListenerCounter.get() == 9;
-        assert sessionListenerCounter.get() == knowledgeListenerCounter.get();
+        assert sessionListenerCounter.get() == 9 : "Actual: " + sessionListenerCounter.get();
+        assert sessionListenerCounter.get() == knowledgeListenerCounter.get() : "Actual " + sessionListenerCounter.get() + " vs " + knowledgeListenerCounter.get();
     }
 }

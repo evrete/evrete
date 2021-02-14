@@ -6,7 +6,7 @@ import org.evrete.api.*;
 import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
-import org.evrete.runtime.KnowledgeImpl;
+import org.evrete.runtime.KnowledgeRuntime;
 import org.evrete.runtime.builder.LhsBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
 class ExpressionsTest {
     private static KnowledgeService service;
     private RuleBuilder<Knowledge> rule;
-    private KnowledgeImpl knowledge;
+    private KnowledgeRuntime knowledge;
 
     @BeforeAll
     static void setUpClass() {
@@ -35,7 +35,7 @@ class ExpressionsTest {
 
     @BeforeEach
     void init() {
-        knowledge = (KnowledgeImpl) service.newKnowledge();
+        knowledge = (KnowledgeRuntime) service.newKnowledge();
         rule = knowledge.newRule();
     }
 

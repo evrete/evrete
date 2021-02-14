@@ -4,9 +4,9 @@ import org.evrete.api.Knowledge;
 import org.evrete.api.OrderedServiceProvider;
 import org.evrete.api.spi.ExpressionResolverProvider;
 import org.evrete.api.spi.LiteralRhsCompiler;
-import org.evrete.api.spi.MemoryCollectionsProvider;
+import org.evrete.api.spi.MemoryFactoryProvider;
 import org.evrete.api.spi.TypeResolverProvider;
-import org.evrete.runtime.KnowledgeImpl;
+import org.evrete.runtime.KnowledgeRuntime;
 import org.evrete.runtime.async.ForkJoinExecutor;
 
 import java.util.*;
@@ -14,7 +14,7 @@ import java.util.*;
 public class KnowledgeService {
     private final Configuration configuration;
     private final ForkJoinExecutor executor = new ForkJoinExecutor();
-    private final MemoryCollectionsProvider collectionsServiceProvider;
+    private final MemoryFactoryProvider collectionsServiceProvider;
     private final ExpressionResolverProvider expressionResolverProvider;
     private final TypeResolverProvider typeResolverProvider;
     private final LiteralRhsCompiler literalRhsProvider;
@@ -23,7 +23,7 @@ public class KnowledgeService {
 
     public KnowledgeService(Configuration configuration) {
         this.configuration = configuration;
-        this.collectionsServiceProvider = loadService(MemoryCollectionsProvider.class);
+        this.collectionsServiceProvider = loadService(MemoryFactoryProvider.class);
         this.expressionResolverProvider = loadService(ExpressionResolverProvider.class);
         this.typeResolverProvider = loadService(TypeResolverProvider.class);
         this.literalRhsProvider = loadService(LiteralRhsCompiler.class);
@@ -56,7 +56,7 @@ public class KnowledgeService {
     }
 
     public Knowledge newKnowledge() {
-        return new KnowledgeImpl(this);
+        return new KnowledgeRuntime(this);
     }
 
     public void shutdown() {
@@ -71,7 +71,7 @@ public class KnowledgeService {
         return configuration;
     }
 
-    public MemoryCollectionsProvider getCollectionsServiceProvider() {
+    public MemoryFactoryProvider getMemoryFactoryProvider() {
         return collectionsServiceProvider;
     }
 

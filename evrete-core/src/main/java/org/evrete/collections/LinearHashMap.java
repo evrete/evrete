@@ -1,3 +1,4 @@
+/*
 package org.evrete.collections;
 
 import java.util.function.BiPredicate;
@@ -24,3 +25,4 @@ public class LinearHashMap<K, V> extends AbstractLinearHashMap<K, V> {
         return DEFAULT_EQUALS::test;
     }
 }
+*/

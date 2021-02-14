@@ -56,15 +56,6 @@ public interface RhsContext {
      */
     RhsContext delete(Object obj);
 
-    /**
-     * <p>
-     * Returns a fact reference by its name, specified in the LHS
-     * </p>
-     *
-     * @param name the fact name
-     * @return current inner fact representation with a reference to the inserted instance
-     */
-    RuntimeFact getFact(String name);
 
     /**
      * <p>
@@ -104,9 +95,7 @@ public interface RhsContext {
      * @param name the fact name
      * @return current instance
      */
-    default Object getObject(String name) {
-        return getFact(name).getDelegate();
-    }
+    Object getObject(String name);
 
     /**
      * <p>

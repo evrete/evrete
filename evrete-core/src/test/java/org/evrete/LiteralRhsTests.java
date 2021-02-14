@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@SuppressWarnings("WeakerAccess")
 public class LiteralRhsTests {
     private static KnowledgeService service;
     private Knowledge knowledge;

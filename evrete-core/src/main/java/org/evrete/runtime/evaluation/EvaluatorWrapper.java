@@ -19,25 +19,6 @@ public class EvaluatorWrapper implements Evaluator, Listeners {
         }
     };
     private final Set<NamedType> namedTypes = new HashSet<>();
-    private final ValuesPredicate verboseMapped = new ValuesPredicate() {
-        @Override
-        public boolean test(IntToValue intToValue) {
-            IntToValue mapped = intToValue.remap(indexMapper);
-            boolean b = delegate.test(mapped);
-            for (EvaluationListener listener : listeners) {
-                listener.fire(delegate, mapped, b);
-            }
-            return b;
-        }
-    };
-    private int[] indexMapper;
-    private final ValuesPredicate muteMapped = new ValuesPredicate() {
-        @Override
-        public boolean test(IntToValue intToValue) {
-            IntToValue mapped = intToValue.remap(indexMapper);
-            return delegate.test(mapped);
-        }
-    };
     private ValuesPredicate active;
 
     public EvaluatorWrapper(Evaluator delegate) {
@@ -52,7 +33,6 @@ public class EvaluatorWrapper implements Evaluator, Listeners {
         this.delegate = unwrap(other.delegate);
         this.listeners.addAll(other.listeners);
         this.namedTypes.addAll(other.namedTypes);
-        this.indexMapper = other.indexMapper;
         updateActiveEvaluator();
     }
 
@@ -63,11 +43,6 @@ public class EvaluatorWrapper implements Evaluator, Listeners {
         } else {
             return e;
         }
-    }
-
-    final void remap(int[] indexMapper) {
-        this.indexMapper = indexMapper;
-        updateActiveEvaluator();
     }
 
     public Evaluator getDelegate() {
@@ -92,17 +67,9 @@ public class EvaluatorWrapper implements Evaluator, Listeners {
 
     private void updateActiveEvaluator() {
         if (listeners.isEmpty()) {
-            if (indexMapper == null) {
-                this.active = delegate;
-            } else {
-                this.active = muteMapped;
-            }
+            this.active = delegate;
         } else {
-            if (indexMapper == null) {
-                this.active = verboseUnmapped;
-            } else {
-                this.active = verboseMapped;
-            }
+            this.active = verboseUnmapped;
         }
     }
 

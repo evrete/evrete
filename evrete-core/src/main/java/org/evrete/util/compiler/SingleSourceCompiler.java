@@ -2,11 +2,13 @@ package org.evrete.util.compiler;
 
 
 import javax.tools.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.StringJoiner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class SingleSourceCompiler {
+    private static final Logger LOGGER = Logger.getLogger(SingleSourceCompiler.class.getName());
     private final JavaCompiler compiler;
 
     public SingleSourceCompiler() {
@@ -34,13 +36,14 @@ public class SingleSourceCompiler {
             if (success) {
                 return fileManager.getBytes();
             } else {
-                List<String> errors = new ArrayList<>();
+                StringJoiner errors = new StringJoiner(", ");
                 for (Diagnostic<?> diagnostic : diagnostics.getDiagnostics()) {
                     if (diagnostic.getKind() == Diagnostic.Kind.ERROR) {
                         errors.add(diagnostic.toString());
                     }
                 }
-                throw new CompilationException("Unknown compilation error: " + errors);
+                LOGGER.log(Level.SEVERE, "\n--------\n" + source + "\n--------");
+                throw new CompilationException("Unknown compilation error: " + errors + ". Check with error logs for the source code in question.");
             }
         }
     }

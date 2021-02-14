@@ -1,18 +1,19 @@
 package org.evrete.runtime.evaluation;
 
-import org.evrete.api.RuntimeFact;
+import org.evrete.api.FieldToValue;
 
 import java.util.Arrays;
-import java.util.function.Predicate;
 
-public abstract class AlphaBucketMeta implements Predicate<RuntimeFact> {
+public abstract class AlphaBucketMeta {
     private static final AlphaEvaluator[] EMPTY_INDICES = new AlphaEvaluator[0];
     private static final boolean[] EMPTY_VALUES = new boolean[0];
     public static final AlphaBucketMeta NO_FIELDS_NO_CONDITIONS = new AlphaBucketMeta(0, EMPTY_INDICES, EMPTY_VALUES) {
+/*
         @Override
         public boolean test(RuntimeFact fact) {
             return true;
         }
+*/
     };
 
     private final int bucketIndex;
@@ -60,12 +61,32 @@ public abstract class AlphaBucketMeta implements Predicate<RuntimeFact> {
         return h;
     }
 
-    @Override
+    //@Override
+/*
     public boolean test(RuntimeFact fact) {
         boolean[] tests = fact.getAlphaTests();
         for (AlphaEvaluator e : alphaEvaluators) {
             int i = e.getUniqueId();
             if (tests[i] != requiredValues[i]) return false;
+        }
+        return true;
+    }
+*/
+
+    public boolean test(boolean[] tests) {
+        int i;
+        for (AlphaEvaluator e : alphaEvaluators) {
+            i = e.getUniqueId();
+            if (tests[i] != requiredValues[i]) return false;
+        }
+        return true;
+    }
+
+    public boolean test(FieldToValue values) {
+        int i;
+        for (AlphaEvaluator e : alphaEvaluators) {
+            i = e.getUniqueId();
+            if (e.test(values) != requiredValues[i]) return false;
         }
         return true;
     }
@@ -114,10 +135,12 @@ public abstract class AlphaBucketMeta implements Predicate<RuntimeFact> {
             return true;
         }
 
+/*
         @Override
         public final boolean test(RuntimeFact fact) {
             return true;
         }
+*/
     }
 
     private static final class Default extends AlphaBucketMeta {

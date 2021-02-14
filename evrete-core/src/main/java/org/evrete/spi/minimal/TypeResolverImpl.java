@@ -13,11 +13,11 @@ class TypeResolverImpl implements TypeResolver {
     private static final Logger LOGGER = Logger.getLogger(TypeResolverImpl.class.getName());
     private static final List<Class<?>> EMPTY_CLASS_LIST = new ArrayList<>();
     private final Map<String, Type<?>> typeDeclarationMap = new HashMap<>();
+    private final Map<Integer, Type<?>> typesById = new HashMap<>();
     private final Map<String, ArrayOf<Type<?>>> typesByJavaType = new HashMap<>();
 
     private final Map<String, TypeCacheEntry> typeInheritanceCache = new HashMap<>();
     private final ClassLoader classLoader;
-    private int typeCounter = 0;
     private int fieldSetsCounter = 0;
 
     TypeResolverImpl(RuntimeContext<?> requester) {
@@ -26,10 +26,18 @@ class TypeResolverImpl implements TypeResolver {
 
     private TypeResolverImpl(TypeResolverImpl other) {
         this.classLoader = other.classLoader;
-        this.typeCounter = other.typeCounter;
         this.fieldSetsCounter = other.fieldSetsCounter;
         for (Map.Entry<String, Type<?>> entry : other.typeDeclarationMap.entrySet()) {
-            this.typeDeclarationMap.put(entry.getKey(), entry.getValue().copyOf());
+            Type<?> clonedType = entry.getValue().copyOf();
+            this.typeDeclarationMap.put(entry.getKey(), clonedType);
+            this.typesById.put(clonedType.getId(), clonedType);
+        }
+
+        for (Type<?> t : this.typeDeclarationMap.values()) {
+            String javaType = t.getJavaType().getName();
+            this.typesByJavaType
+                    .computeIfAbsent(javaType, s -> new ArrayOf<>(new Type<?>[0]))
+                    .append(t);
         }
 
         for (Map.Entry<String, ArrayOf<Type<?>>> entry : other.typesByJavaType.entrySet()) {
@@ -38,13 +46,26 @@ class TypeResolverImpl implements TypeResolver {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public <T> Type<T> getType(int typeId) {
+        return (Type<T>) typesById.get(typeId);
+    }
+
+    @Override
     public synchronized void wrapType(TypeWrapper<?> typeWrapper) {
         Type<?> delegate = typeWrapper.getDelegate();
         String typeName = typeWrapper.getName();
+        int typeId = typeWrapper.getId();
         Type<?> prev = this.typeDeclarationMap.put(typeName, typeWrapper);
         if (prev != delegate) {
             throw new IllegalStateException(typeWrapper + " wraps an unknown type");
         }
+
+        prev = this.typesById.put(typeId, typeWrapper);
+        if (prev != delegate) {
+            throw new IllegalStateException(typeWrapper + " wraps an unknown type");
+        }
+
 
         ArrayOf<Type<?>> byJavaTypes = typesByJavaType.get(typeWrapper.getJavaType().getName());
         if (byJavaTypes == null) {
@@ -96,8 +117,8 @@ class TypeResolverImpl implements TypeResolver {
             throw new IllegalStateException("Type name '" + typeName + "' has been already defined: " + type);
         Class<T> resolvedJavaType = classForName(javaType);
         if (resolvedJavaType == null)
-            throw new IllegalStateException("Unable to resolve Java class name '" + javaType + "'");
-        return saveNewType(typeName, new TypeImpl<>(typeName, resolvedJavaType));
+            throw new IllegalStateException("Unable to resolve Java class '" + javaType + "'");
+        return saveNewType(typeName, new TypeImpl<>(typeName, newId(), resolvedJavaType));
     }
 
     @Override
@@ -105,11 +126,16 @@ class TypeResolverImpl implements TypeResolver {
         Type<T> type = getType(typeName);
         if (type != null)
             throw new IllegalStateException("Type name '" + typeName + "' has been already defined: " + type);
-        return saveNewType(typeName, new TypeImpl<>(typeName, javaType));
+        return saveNewType(typeName, new TypeImpl<>(typeName, newId(), javaType));
+    }
+
+    private int newId() {
+        return typeDeclarationMap.size();
     }
 
     private <T> Type<T> saveNewType(String typeName, Type<T> type) {
         typeDeclarationMap.put(typeName, type);
+        typesById.put(type.getId(), type);
         typesByJavaType.computeIfAbsent(
                 type.getJavaType().getName(),
                 k -> new ArrayOf<Type<?>>(new Type[]{}))
@@ -130,7 +156,6 @@ class TypeResolverImpl implements TypeResolver {
     }
 
     private Type<?> findInSuperClasses(Class<?> type) {
-
         List<Type<?>> matching = new LinkedList<>();
         List<Class<?>> superClasses = superClasses(type);
         for (Class<?> sup : superClasses) {

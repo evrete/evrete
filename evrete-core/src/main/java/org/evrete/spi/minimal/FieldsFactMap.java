@@ -1,7 +1,6 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.ReIterator;
-import org.evrete.api.RuntimeFact;
 import org.evrete.api.ValueRow;
 import org.evrete.collections.AbstractLinearHash;
 
@@ -44,6 +43,7 @@ class FieldsFactMap extends AbstractLinearHash<ValueRowImpl> {
         }
     }
 
+/*
     void remove(RuntimeFact fact, int addr) {
         ValueRowImpl entry = get(addr);
         if (entry != null) {
@@ -54,4 +54,5 @@ class FieldsFactMap extends AbstractLinearHash<ValueRowImpl> {
             }
         }
     }
+*/
 }

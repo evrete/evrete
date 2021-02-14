@@ -1,12 +1,9 @@
 package org.evrete.api;
 
-public interface SharedPlainFactStorage extends BufferedInsert, ReIterable<RuntimeFact> {
+//TODO !!!! javadoc, cleanup
+public interface SharedPlainFactStorage extends BufferedInsert, ReIterable<FactHandleVersioned> {
 
-    void insert(RuntimeFact fact);
-
-    void delete(RuntimeFact fact);
-
-    RuntimeFact find(Object o);
+    void insert(FactHandleVersioned fact);
 
     void clear();
 

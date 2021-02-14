@@ -2,9 +2,9 @@ package org.evrete;
 
 import org.evrete.api.*;
 import org.evrete.classes.*;
+import org.evrete.helper.FactEntry;
 import org.evrete.helper.RhsAssert;
 import org.evrete.helper.TestUtils;
-import org.evrete.runtime.KnowledgeImpl;
 import org.evrete.runtime.StatefulSessionImpl;
 import org.evrete.runtime.builder.FactTypeBuilder;
 import org.evrete.runtime.builder.LhsBuilder;
@@ -21,7 +21,7 @@ import static org.evrete.api.FactBuilder.fact;
 
 class SessionBaseTests {
     private static KnowledgeService service;
-    private KnowledgeImpl knowledge;
+    private Knowledge knowledge;
 
     @BeforeAll
     static void setUpClass() {
@@ -162,11 +162,18 @@ class SessionBaseTests {
         s.fire();
         rhsAssert.assertCount((int) Math.pow(objectCount, 4));
 
-        Collection<Object> sessionObjects = TestUtils.sessionObjects(s);
+        Collection<FactEntry> sessionObjects = TestUtils.sessionObjects(s);
         assert sessionObjects.size() == objectCount * 4 : "Actual: " + sessionObjects.size() + ", expected: " + objectCount * 4;
 
-        s.deleteAndFire(sessionObjects);
-        assert TestUtils.sessionObjects(s).size() == 0;
+
+        int deleted = 0;
+        for (FactEntry e : sessionObjects) {
+            s.delete(e.getHandle());
+            deleted++;
+        }
+        s.fire();
+        sessionObjects = TestUtils.sessionObjects(s);
+        assert sessionObjects.size() == 0 : "Actual: " + sessionObjects.size();
 
         s.close();
 
@@ -174,7 +181,7 @@ class SessionBaseTests {
 
     @BeforeEach
     void init() {
-        knowledge = (KnowledgeImpl) service.newKnowledge();
+        knowledge = service.newKnowledge();
     }
 
     @ParameterizedTest
@@ -1317,7 +1324,7 @@ class SessionBaseTests {
         rhsAssert2.assertCount(4);
         rhsAssert3.assertCount(3);
 
-        assert session.get(aType).knownFieldSets().size() == 0;
+        assert session.getMemory().get(aType).knownFieldSets().size() == 0;
         assert session.getAlphaConditions().size(aType) == 3;
     }
 
@@ -1360,7 +1367,7 @@ class SessionBaseTests {
         rhsAssert2.assertCount(4);
         rhsAssert3.assertCount(5);
 
-        assert s.get(aType).knownFieldSets().size() == 0;
+        assert s.getMemory().get(aType).knownFieldSets().size() == 0;
     }
 
     @ParameterizedTest
@@ -1392,10 +1399,11 @@ class SessionBaseTests {
         StatefulSessionImpl s = (StatefulSessionImpl) knowledge.createSession().setActivationMode(mode);
 
         for (int i = 0; i < 10; i++) {
-            s.insert(new TypeA("A" + i));
+            String id = "A" + i;
+            s.insert(new TypeA(id));
         }
         s.fire();
-        assert s.get(aType).knownFieldSets().size() == 0;
+        assert s.getMemory().get(aType).knownFieldSets().size() == 0;
 
         rhsAssert1.assertCount(1);
         rhsAssert2.assertCount(1);

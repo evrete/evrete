@@ -12,14 +12,14 @@ import java.util.Set;
 
 public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule, EvaluationListeners {
     private final RuntimeFactType[] factSources;
-    private final SessionMemory runtime;
+    private final AbstractKnowledgeSession runtime;
     private final RuleDescriptor descriptor;
 
     private final RuntimeLhs lhs;
     private final Set<Type<?>> allTypes = new HashSet<>();
-    private int rhsCallCounter = 0;
+    private long rhsCallCounter = 0;
 
-    public RuntimeRuleImpl(RuleDescriptor rd, SessionMemory runtime) {
+    public RuntimeRuleImpl(RuleDescriptor rd, AbstractKnowledgeSession runtime) {
         super(runtime, rd, rd.getLhs().getGroupFactTypes());
         this.descriptor = rd;
         this.runtime = runtime;
@@ -32,7 +32,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         this.lhs = RuntimeLhs.factory(this, rd.getLhs());
     }
 
-    private static RuntimeFactType[] buildTypes(SessionMemory runtime, FactType[] allFactTypes) {
+    private static RuntimeFactType[] buildTypes(AbstractKnowledgeSession runtime, FactType[] allFactTypes) {
         RuntimeFactType[] factSources = new RuntimeFactType[allFactTypes.length];
         for (FactType factType : allFactTypes) {
             RuntimeFactType iterable = RuntimeFactType.factory(factType, runtime);
@@ -51,7 +51,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         return allTypes.contains(type);
     }
 
-    final int executeRhs() {
+    final long executeRhs() {
         this.rhsCallCounter = 0;
         this.lhs.forEach(rhs.andThen(rhsContext -> increaseCallCount()));
         return this.rhsCallCounter;
@@ -97,8 +97,8 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
 
 
     @Override
-    public StatefulSessionImpl getRuntime() {
-        return (StatefulSessionImpl) runtime;
+    public AbstractKnowledgeSession getRuntime() {
+        return runtime;
     }
 
     @Override
@@ -128,8 +128,8 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     @Override
     public String toString() {
         return "RuntimeRule{" +
-                "name=" + getName() +
-                '}';
+                "name='" + getName() +
+                "'}";
     }
 
 }

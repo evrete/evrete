@@ -1,13 +1,13 @@
 package org.evrete.runtime;
 
-import org.evrete.api.Memory;
+import org.evrete.api.FactHandleVersioned;
 import org.evrete.api.ReIterator;
-import org.evrete.api.RuntimeFact;
+import org.evrete.api.spi.InnerFactMemory;
 
-public interface PlainMemory extends Memory {
-    ReIterator<RuntimeFact> mainIterator();
+public interface PlainMemory extends InnerFactMemory {
+    ReIterator<FactHandleVersioned> mainIterator();
 
-    ReIterator<RuntimeFact> deltaIterator();
+    ReIterator<FactHandleVersioned> deltaIterator();
 
     boolean hasChanges();
 

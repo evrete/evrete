@@ -9,9 +9,19 @@ import java.util.function.*;
  * into the working memory.
  * </p>
  *
- * @param <T> Java type
+ * @param <T> Java type associated with this type
  */
 public interface Type<T> extends Named, Copyable<Type<T>> {
+
+    /**
+     * <p>
+     * Each type is assigned a unique auto-increment int identifier which developers can use in SPI implementations,
+     * for example in sharding/partitioning data collections.
+     * </p>
+     *
+     * @return unique type identifier.
+     */
+    int getId();
 
     Class<T> getJavaType();
 

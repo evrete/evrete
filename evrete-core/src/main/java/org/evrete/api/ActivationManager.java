@@ -34,14 +34,19 @@ public interface ActivationManager extends Predicate<RuntimeRule> {
         return true;
     }
 
+    @Deprecated
+    default void onActivation(RuntimeRule rule) {
+        throw new UnsupportedOperationException("@Deprecated");
+    }
+
     /**
      * This method is called after rule activation. Developers use this method to track activation history.
      * this manager's <code>test()</code> method
      *
-     * @param rule the rule that has been activated
+     * @param rule  the rule that has been activated
+     * @param count the number of times the rule's RHS part has been called
      */
-    // TODO add count of records processed, that'd be useful for debugging
-    default void onActivation(RuntimeRule rule) {
+    default void onActivation(RuntimeRule rule, long count) {
 
     }
 

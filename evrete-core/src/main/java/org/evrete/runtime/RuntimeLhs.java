@@ -1,11 +1,11 @@
 package org.evrete.runtime;
 
-import org.evrete.api.Action;
 import org.evrete.api.RhsContext;
-import org.evrete.api.RuntimeFact;
+import org.evrete.api.WorkingMemory;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -13,14 +13,16 @@ public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContex
     private final Collection<BetaEndNode> allBetaEndNodes = new ArrayList<>();
     private final Function<String, int[]> name2indices;
     private final RuntimeRuleImpl rule;
-    private final StatefulSessionImpl workingMemory;
+    private final SessionMemory workingMemory;
+    private final WorkingMemory workingMemory1;
 
     RuntimeLhs(RuntimeRuleImpl rule, LhsDescriptor descriptor) {
         super(rule, descriptor);
         this.name2indices = descriptor.getNameIndices();
         this.allBetaEndNodes.addAll(getEndNodes());
         this.rule = rule;
-        this.workingMemory = rule.getRuntime();
+        this.workingMemory = rule.getRuntime().getMemory();
+        this.workingMemory1 = rule.getRuntime();
     }
 
     static RuntimeLhs factory(RuntimeRuleImpl rule, LhsDescriptor descriptor) {
@@ -39,28 +41,45 @@ public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContex
     }
 
     @Override
-    public final RuntimeFact getFact(String name) {
+    public final Object getObject(String name) {
         int[] arr = name2indices.apply(name);
         if (arr == null) throw new IllegalArgumentException("Unknown type reference: " + name);
-        return factState[arr[0]][arr[1]];
+        return factState[arr[0]][arr[1]].getFact();
     }
 
     @Override
     //TODO check if field values have _really_ changed
     public final RhsContext update(Object obj) {
-        workingMemory.memoryAction(Action.UPDATE, obj);
-        return this;
+        Objects.requireNonNull(obj);
+        for (FactIterationState[] arr : factState) {
+            for (FactIterationState state : arr) {
+                if (state.value == obj) {
+                    workingMemory1.update(state.handle, state.value);
+                    return this;
+                }
+            }
+        }
+        throw new IllegalArgumentException("Fact " + obj + " not found in current RHS context");
     }
 
     @Override
     public final RhsContext delete(Object obj) {
-        workingMemory.memoryAction(Action.RETRACT, obj);
-        return this;
+        Objects.requireNonNull(obj);
+        for (FactIterationState[] arr : factState) {
+            for (FactIterationState state : arr) {
+                if (state.value == obj) {
+                    //state.typeMemory.bufferDelete(state.handle);
+                    workingMemory1.delete(state.handle);
+                    return this;
+                }
+            }
+        }
+        throw new IllegalArgumentException("Fact " + obj + " not found in current RHS context");
     }
 
     @Override
     public final RhsContext insert(Object obj) {
-        workingMemory.memoryAction(Action.INSERT, obj);
+        workingMemory.insert(obj);
         return this;
     }
 }

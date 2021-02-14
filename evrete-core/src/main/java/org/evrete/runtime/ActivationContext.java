@@ -4,13 +4,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 class ActivationContext {
     private final AtomicInteger activationCount = new AtomicInteger(0);
-    private final StatefulSessionImpl session;
+    private final AbstractKnowledgeSession<?> session;
 
-    ActivationContext(StatefulSessionImpl session) {
+    ActivationContext(AbstractKnowledgeSession<?> session) {
         this.session = session;
     }
 
-    public StatefulSessionImpl getSession() {
+    public AbstractKnowledgeSession<?> getSession() {
         return session;
     }
 

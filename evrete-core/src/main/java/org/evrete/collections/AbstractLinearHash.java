@@ -13,9 +13,8 @@ import java.util.stream.Stream;
 
 /**
  * A simple implementation of linear probing hash table without fail-fast bells and whistles and alike.
- * Unlike the stock Java's HashMap, this implementation can shrink down its bucket table when necessary
- * thus preserving the _real_ O(N) scan complexity. Compared to the Java's HashMap, this implementation
- * is 2-5 times faster.
+ * Unlike the stock Java's HashMap, this implementation can shrink down its bucket table when necessary,
+ * thus preserving the real O(N) scan complexity. See benchmark tests for performance comparisons.
  *
  * @param <E> Entry type
  */
@@ -27,10 +26,10 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
     private static final int DEFAULT_INITIAL_CAPACITY = 4;
     private static final int MAXIMUM_CAPACITY = 1 << 30;
     private static final int MINIMUM_CAPACITY = 2;
-    Object[] data;
-    boolean[] deletedIndices;
+    private Object[] data;
+    private boolean[] deletedIndices;
     int size = 0;
-    int deletes = 0;
+    private int deletes = 0;
 
     AbstractLinearHash(int initialCapacity) {
         super(initialCapacity);
@@ -70,9 +69,9 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
     private static <K, E> int findBinIndex(K key, int hash, Object[] destination, BiPredicate<E, K> eqTest) {
         int mask = destination.length - 1;
         int addr = hash & mask;
-        E found;
-        while ((found = (E) destination[addr]) != null) {
-            if (eqTest.test(found, key)) {
+        Object found;
+        while ((found = destination[addr]) != null) {
+            if (eqTest.test((E) found, key)) {
                 return addr;
             } else {
                 addr = (addr + 1) & mask;
@@ -81,6 +80,7 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         return addr;
     }
 
+/*
     private static int findBinIndexFor(int hash, Object[] destination, Predicate<Object> eqTest) {
         int mask = destination.length - 1;
         int addr = hash & mask;
@@ -94,6 +94,7 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         }
         return addr;
     }
+*/
 
     /**
      * Returns a power of two size for the given target capacity.
@@ -117,9 +118,11 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         return findBinIndex(key, hash, data, eqTest);
     }
 
+/*
     int findBinIndexFor(int hash, Predicate<Object> eqTest) {
         return findBinIndexFor(hash, data, eqTest);
     }
+*/
 
     public final boolean addVerbose(E element) {
         resize();
@@ -135,10 +138,21 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         addNoResize(element);
     }
 
+    public final E add(E element) {
+        resize();
+        return addGetPrevious(element);
+    }
+
     private void addNoResize(E element) {
         int hash = getHashFunction().applyAsInt(element);
         int addr = findBinIndexFor(element, hash, getEqualsPredicate());
         saveDirect(element, addr);
+    }
+
+    private E addGetPrevious(E element) {
+        int hash = getHashFunction().applyAsInt(element);
+        int addr = findBinIndexFor(element, hash, getEqualsPredicate());
+        return saveDirect(element, addr);
     }
 
     public final <Z extends AbstractLinearHash<E>> void bulkAdd(Z other) {
@@ -227,10 +241,13 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         }
     }
 
-    protected void markDeleted(int addr) {
-        deletedIndices[addr] = true;
-        deletes++;
-        size--;
+    //TODO !!! very unsafe public method
+    public void markDeleted(int addr) {
+        if (!deletedIndices[addr]) {
+            deletedIndices[addr] = true;
+            deletes++;
+            size--;
+        }
     }
 
     @Override
@@ -294,7 +311,7 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         resize(this.size);
     }
 
-    public void resize(int targetSize) {
+    protected void resize(int targetSize) {
         boolean expand = 2 * (targetSize + deletes) >= data.length;
         boolean shrink = deletes > 0 && targetSize < deletes;
         if (expand || shrink) {

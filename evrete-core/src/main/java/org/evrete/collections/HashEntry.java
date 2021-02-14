@@ -1,3 +1,4 @@
+/*
 package org.evrete.collections;
 
 class HashEntry<K1> {
@@ -7,3 +8,4 @@ class HashEntry<K1> {
         this.key = key;
     }
 }
+*/

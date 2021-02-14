@@ -9,7 +9,7 @@ import org.evrete.api.RuleBuilder;
 import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
-import org.evrete.runtime.KnowledgeImpl;
+import org.evrete.runtime.KnowledgeRuntime;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
@@ -63,7 +63,7 @@ public class Expressions {
         @Setup(Level.Trial)
         public void initAll() {
             service = new KnowledgeService(new Configuration());
-            KnowledgeImpl knowledge = (KnowledgeImpl) service.newKnowledge();
+            KnowledgeRuntime knowledge = (KnowledgeRuntime) service.newKnowledge();
             RuleBuilder<Knowledge> rule = knowledge.newRule();
             rule.forEach().buildLhs("$a", TypeA.class);
             rule.forEach().buildLhs("$b", TypeB.class.getName());

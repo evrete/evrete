@@ -6,6 +6,8 @@ public interface TypeResolver extends Copyable<TypeResolver> {
 
     <T> Type<T> getType(String name);
 
+    <T> Type<T> getType(int typeId);
+
     Collection<Type<?>> getKnownTypes();
 
     void wrapType(TypeWrapper<?> typeWrapper);
@@ -42,6 +44,11 @@ public interface TypeResolver extends Copyable<TypeResolver> {
         return declare(type.getName(), type);
     }
 
+    /**
+     * @param o   object to resolve
+     * @param <T> type parameter
+     * @return Type of the argument or null if object's type is unknown
+     */
     <T> Type<T> resolve(Object o);
 
 }

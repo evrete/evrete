@@ -1,18 +1,31 @@
 package org.evrete.runtime.evaluation;
 
-import org.evrete.api.Copyable;
+import org.evrete.api.*;
+import org.evrete.runtime.ActiveField;
 
-public class AlphaEvaluator extends EvaluatorWrapper implements Copyable<AlphaEvaluator> {
+public class AlphaEvaluator implements Copyable<AlphaEvaluator>, EvaluationListeners, LogicallyComparable {
     private final int uniqueId;
+    private final ActiveField[] activeDescriptor;
+    private final EvaluatorWrapper delegate;
 
-    AlphaEvaluator(int uniqueId, EvaluatorWrapper e) {
-        super(e);
+    AlphaEvaluator(int uniqueId, EvaluatorWrapper e, ActiveField[] activeFields) {
+        //super(e);
         this.uniqueId = uniqueId;
+        this.activeDescriptor = activeFields;
+        this.delegate = e;
     }
 
     private AlphaEvaluator(AlphaEvaluator other) {
-        super(other);
         this.uniqueId = other.uniqueId;
+        this.activeDescriptor = other.activeDescriptor;
+        this.delegate = other.delegate;
+    }
+
+    public boolean test(FieldToValue values) {
+        return delegate.test((IntToValue) i -> {
+            ActiveField f = activeDescriptor[i];
+            return values.apply(f);
+        });
     }
 
     @Override
@@ -20,15 +33,34 @@ public class AlphaEvaluator extends EvaluatorWrapper implements Copyable<AlphaEv
         return new AlphaEvaluator(this);
     }
 
-    public int getUniqueId() {
+    int getUniqueId() {
         return uniqueId;
+    }
+
+    @Override
+    public int compare(LogicallyComparable other) {
+        if (other instanceof AlphaEvaluator) {
+            return delegate.compare(((AlphaEvaluator) other).delegate);
+        } else {
+            return delegate.compare(other);
+        }
+    }
+
+    @Override
+    public void addListener(EvaluationListener listener) {
+        delegate.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(EvaluationListener listener) {
+        delegate.removeListener(listener);
     }
 
     @Override
     public String toString() {
         return "AlphaEvaluator{" +
                 "id=" + uniqueId +
-                ", delegate=" + getDelegate() +
+                ", delegate=" + delegate +
                 '}';
     }
 }

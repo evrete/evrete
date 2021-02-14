@@ -1,9 +1,9 @@
 package org.evrete.helper;
 
+import org.evrete.api.FactHandle;
 import org.evrete.api.ReIterator;
 import org.evrete.api.StatefulSession;
 import org.evrete.collections.CollectionReIterator;
-import org.evrete.collections.LinearHashMap;
 import org.evrete.collections.LinearHashSet;
 import org.evrete.util.CollectionUtils;
 import org.kie.api.KieBase;
@@ -18,11 +18,9 @@ import org.kie.internal.utils.KieHelper;
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -43,16 +41,25 @@ public final class TestUtils {
         }
     }
 
-    public static Collection<Object> sessionObjects(StatefulSession s) {
-        Collection<Object> col = new LinkedList<>();
-        s.forEachMemoryObject(col::add);
+    public static Collection<FactEntry> sessionObjects(StatefulSession s) {
+        Collection<FactEntry> col = new LinkedList<>();
+        s.forEachFactEntry(new BiConsumer<FactHandle, Object>() {
+            @Override
+            public void accept(FactHandle handle, Object fact) {
+                col.add(new FactEntry(handle, fact));
+            }
+        });
         return col;
     }
 
-    public static <T> Collection<T> sessionObjects(StatefulSession s, Class<T> type) {
-        Collection<T> col = new LinkedList<>();
-        s.forEachMemoryObject(type.getName(), col::add);
-        return col;
+    public static <T> Collection<FactEntry> sessionObjects(StatefulSession s, Class<T> type) {
+        Collection<FactEntry> collection = new LinkedList<>();
+        s.forEachFactEntry((handle, fact) -> {
+            if (fact.getClass().equals(type)) {
+                collection.add(new FactEntry(handle, fact));
+            }
+        });
+        return collection;
     }
 
     public static KieContainer droolsKnowledge(String file) {
@@ -189,6 +196,7 @@ public final class TestUtils {
         };
     }
 
+/*
     public static <K1, V1> Mapping<K1, V1> map(Map<K1, V1> map) {
         return new Mapping<K1, V1>() {
             @Override
@@ -238,7 +246,9 @@ public final class TestUtils {
 
         };
     }
+*/
 
+/*
     public static <K1, V1> Mapping<K1, V1> map(LinearHashMap<K1, V1> map) {
         return new Mapping<K1, V1>() {
             @Override
@@ -288,5 +298,6 @@ public final class TestUtils {
 
         };
     }
+*/
 
 }

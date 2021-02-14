@@ -1,14 +1,11 @@
 package org.evrete;
 
-import org.evrete.api.ActivationMode;
-import org.evrete.api.StatefulSession;
-import org.evrete.api.Type;
-import org.evrete.api.TypeField;
+import org.evrete.api.*;
 import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
+import org.evrete.helper.FactEntry;
 import org.evrete.helper.RhsAssert;
-import org.evrete.runtime.KnowledgeImpl;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +23,7 @@ import static org.evrete.helper.TestUtils.sessionObjects;
 
 class SessionUpdateDeleteTests {
     private static KnowledgeService service;
-    private KnowledgeImpl knowledge;
+    private Knowledge knowledge;
 
     @BeforeAll
     static void setUpClass() {
@@ -40,7 +37,7 @@ class SessionUpdateDeleteTests {
 
     @BeforeEach
     void init() {
-        knowledge = (KnowledgeImpl) service.newKnowledge();
+        knowledge = service.newKnowledge();
     }
 
     @ParameterizedTest
@@ -59,6 +56,7 @@ class SessionUpdateDeleteTests {
                     counter.incrementAndGet();
                 });
         StatefulSession s = knowledge.createSession().setActivationMode(mode);
+
         s.insertAndFire(a);
         assert counter.get() == 10 : "Actual: " + counter.get();
         assert a.getI() == 10;
@@ -107,7 +105,7 @@ class SessionUpdateDeleteTests {
         AtomicReference<TypeA> ref = new AtomicReference<>(new TypeA());
 
         knowledge.createSession().setActivationMode(mode).insertAndFire(ref.get());
-        assert counter.get() == 10;
+        assert counter.get() == 10 : "Actual " + counter.get() + " vs expected " + 10;
         assert ref.get().getStr().equals("0123456789");
     }
 
@@ -140,10 +138,10 @@ class SessionUpdateDeleteTests {
         }
         s.fire();
 
-        Collection<Object> allObjects = sessionObjects(s);
+        Collection<FactEntry> allObjects = sessionObjects(s);
 
         // Retract ALL objects
-        allObjects.forEach(s::delete);
+        allObjects.forEach(e -> s.delete(e.getHandle()));
         s.fire();
     }
 
@@ -164,7 +162,7 @@ class SessionUpdateDeleteTests {
                 .execute(rhsAssert);
         StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
-        Collection<Object> allObjects = sessionObjects(s);
+        Collection<FactEntry> allObjects = sessionObjects(s);
         assert allObjects.size() == 0;
 
         final int size = 1000;
@@ -173,6 +171,8 @@ class SessionUpdateDeleteTests {
         Runnable multiActions = () -> {
             TypeA[] instancesA = new TypeA[size];
             TypeB[] instancesB = new TypeB[size];
+            FactHandle[] handlesA = new FactHandle[size];
+            FactHandle[] handlesB = new FactHandle[size];
 
             for (int i = 0; i < size; i++) {
                 TypeA a = new TypeA("A" + i);
@@ -180,14 +180,15 @@ class SessionUpdateDeleteTests {
                 TypeB b = new TypeB("B" + i);
                 b.setAllNumeric(-1);
                 instancesA[i] = a;
+                handlesA[i] = s.insert(a);
                 instancesB[i] = b;
-                s.insert(a, b);
+                handlesB[i] = s.insert(b);
             }
             s.fire();
 
             // No matching conditions exist at the moment, the rule hasn't fired
             rhsAssert.assertCount(0).reset();
-            Collection<Object> allObjects1 = sessionObjects(s);
+            Collection<FactEntry> allObjects1 = sessionObjects(s);
             // checking the session memory
             assert allObjects1.size() == size * 2 : "Actual: " + allObjects1.size();
             assert sessionObjects(s, TypeA.class).size() == size;
@@ -197,10 +198,11 @@ class SessionUpdateDeleteTests {
             // Updating a single instance of B to match the condition
             TypeB single = instancesB[0];
             single.setAllNumeric(5); // Matches TypeA.i = 5
-            s.update(single);
-            for (TypeB b : instancesB) {
+            s.update(handlesB[0], single);
+            for (int i = 0; i < instancesB.length; i++) {
+                TypeB b = instancesB[i];
                 if (b != single) {
-                    s.delete(b);
+                    s.delete(handlesB[i]);
                 }
             }
             s.fire();
@@ -215,7 +217,9 @@ class SessionUpdateDeleteTests {
             assert allObjects1.size() == size + 1;
 
             // Delete all
-            s.delete(allObjects1);
+            for (FactEntry fe : allObjects1) {
+                s.delete(fe.getHandle());
+            }
             s.fire();
             allObjects1 = sessionObjects(s);
             assert allObjects1.size() == 0;
@@ -244,7 +248,7 @@ class SessionUpdateDeleteTests {
                 .execute(ctx -> counter.getAndIncrement());
         StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
-        Collection<Object> allObjects = sessionObjects(s);
+        Collection<FactEntry> allObjects = sessionObjects(s);
         assert allObjects.size() == 0;
 
 
@@ -273,15 +277,18 @@ class SessionUpdateDeleteTests {
             assert counter.get() == count * (count - 1) : counter.get() + " vs " + count * (count - 1);
 
 
-            Collection<TypeC> col = sessionObjects(s, TypeC.class);
+            Collection<FactEntry> col = sessionObjects(s, TypeC.class);
             assert col.size() == count;
 
-            for (TypeC c : col) {
+            for (FactEntry entry : col) {
+                TypeC c = (TypeC) entry.getFact();
                 c.setI(-1);
             }
 
             counter.set(0);
-            s.update(col);
+            for (FactEntry entry : col) {
+                s.update(entry.getHandle(), entry.getFact());
+            }
             s.fire();
 
             allObjects = sessionObjects(s);
@@ -290,10 +297,10 @@ class SessionUpdateDeleteTests {
             assert counter.get() == count * count : counter.get() + " vs " + (count * count);
             counter.set(0);
 
-            TypeC single = col.iterator().next();
-            for (TypeC c : col) {
+            FactEntry single = col.iterator().next();
+            for (FactEntry c : col) {
                 if (c != single) {
-                    s.delete(c);
+                    s.delete(c.getHandle());
                 }
             }
 
@@ -303,7 +310,7 @@ class SessionUpdateDeleteTests {
             assert allObjects.size() == 2 * count + 1;
 
             // Retract ALL objects
-            allObjects.forEach(s::delete);
+            allObjects.forEach(o -> s.delete(o.getHandle()));
             s.fire();
 
             allObjects = sessionObjects(s);
@@ -328,7 +335,7 @@ class SessionUpdateDeleteTests {
         StatefulSession s = knowledge.createSession().setActivationMode(mode);
         //RuntimeRule rule = s.getRules().iterator().next();
 
-        Collection<Object> allObjects = sessionObjects(s);
+        Collection<FactEntry> allObjects = sessionObjects(s);
         assert allObjects.size() == 0;
 
 
@@ -347,8 +354,8 @@ class SessionUpdateDeleteTests {
         assert allObjects.size() == count * 2;
 
         // Retracting all
-        for (Object o : allObjects) {
-            s.delete(o);
+        for (FactEntry e : allObjects) {
+            s.delete(e.getHandle());
         }
         s.fire();
 
@@ -388,7 +395,7 @@ class SessionUpdateDeleteTests {
         StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         // Initial state, zero objects
-        Collection<Object> allObjects = sessionObjects(s);
+        Collection<FactEntry> allObjects = sessionObjects(s);
         assert allObjects.size() == 0;
 
         TypeA a1 = new TypeA("A1");
@@ -413,16 +420,18 @@ class SessionUpdateDeleteTests {
         allObjects = sessionObjects(s);
         assert allObjects.size() == 6;
 
-        Collection<TypeC> cObjects = sessionObjects(s, TypeC.class);
-        assert cObjects.size() == 2;
+        Collection<FactEntry> cObjects = sessionObjects(s, TypeC.class);
+        assert cObjects.size() == 2 : "All: " + allObjects;
         //assert endNodeData.size() == 2;
 
-        for (TypeC c : cObjects) {
-            c.setI(-1);
+        for (FactEntry c : cObjects) {
+            ((TypeC) c.getFact()).setI(-1);
         }
 
         counter.set(0);
-        s.update(cObjects);
+        for (FactEntry e : cObjects) {
+            s.update(e.getHandle(), e.getFact());
+        }
         s.fire();
 
         allObjects = sessionObjects(s);
@@ -431,10 +440,10 @@ class SessionUpdateDeleteTests {
         assert counter.get() == 4 : counter.get() + " vs 4";
         counter.set(0);
 
-        TypeC single = cObjects.iterator().next();
-        for (TypeC c : cObjects) {
+        FactEntry single = cObjects.iterator().next();
+        for (FactEntry c : cObjects) {
             if (c != single) {
-                s.delete(c);
+                s.delete(c.getHandle());
             }
         }
 
@@ -444,7 +453,7 @@ class SessionUpdateDeleteTests {
         assert allObjects.size() == 2 * 2 + 1;
 
         // Retract ALL objects
-        allObjects.forEach(s::delete);
+        allObjects.forEach(h -> s.delete(h.getHandle()));
         s.fire();
 
         allObjects = sessionObjects(s);
@@ -478,7 +487,7 @@ class SessionUpdateDeleteTests {
         s.fire();
 
         AtomicInteger primeCounter = new AtomicInteger();
-        s.forEachMemoryObject(o -> primeCounter.incrementAndGet());
+        s.forEachFactEntry((h, o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25 : "Actual: " + primeCounter.get(); // There are 25 prime numbers in the range [2...100]
         s.close();
@@ -510,7 +519,7 @@ class SessionUpdateDeleteTests {
         s.fire();
 
         AtomicInteger primeCounter = new AtomicInteger();
-        s.forEachMemoryObject(o -> primeCounter.incrementAndGet());
+        s.forEachFactEntry((h, o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25 : "Actual: " + primeCounter.get(); // There are 25 prime numbers in the range [2...100]
         s.close();
@@ -528,7 +537,50 @@ class SessionUpdateDeleteTests {
                 )
                 .where("$a.i > 0")
                 .execute(
-                        ctx -> counter.incrementAndGet()
+                        ctx -> {
+                            counter.incrementAndGet();
+                        }
+                )
+                .createSession()
+                .setActivationMode(mode);
+
+        TypeA a = new TypeA();
+        TypeB b1 = new TypeB();
+        TypeB b2 = new TypeB();
+
+        int cnt = 3;
+        a.setAllNumeric(cnt);
+
+        FactHandle handleA = session.insert(a);
+        session.insert(b1);
+        session.insert(b2);
+        session.fire();
+
+        for (int i = 0; i < cnt * 3; i++) {
+            a.setI(a.getI() - 1);
+            session.update(handleA, a);
+            session.fire();
+        }
+
+        assert counter.get() == cnt * 2 : "Actual: " + counter.get() + ", Expected: " + cnt * 2;
+
+    }
+
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void externalUpdate2(ActivationMode mode) {
+        AtomicInteger counter = new AtomicInteger();
+        StatefulSession session = knowledge
+                .newRule()
+                .forEach(
+                        "$a", TypeA.class,
+                        "$b", TypeB.class
+                )
+                .where("$a.i > 0")
+                .execute(
+                        ctx -> {
+                            counter.incrementAndGet();
+                        }
                 )
                 .createSession()
                 .setActivationMode(mode);
@@ -536,13 +588,18 @@ class SessionUpdateDeleteTests {
         TypeA a = new TypeA();
         TypeB b = new TypeB();
 
-        int cnt = 10;
+        int cnt = 3;
         a.setAllNumeric(cnt);
 
-        session.insertAndFire(a, b);
+        FactHandle handleA = session.insert(a);
+        FactHandle handleB = session.insert(b);
+        session.fire();
+
         for (int i = 0; i < cnt * 3; i++) {
             a.setI(a.getI() - 1);
-            session.updateAndFire(a, b);
+            session.update(handleA, a);
+            session.update(handleB, b);
+            session.fire();
         }
 
         assert counter.get() == cnt : "Actual: " + counter.get() + ", Expected: " + cnt;
@@ -550,7 +607,7 @@ class SessionUpdateDeleteTests {
     }
 
     @Test
-    void externalUpdate2() {
+    void externalUpdate3() {
         AtomicInteger counter = new AtomicInteger();
 
         StatefulSession session = knowledge
@@ -591,15 +648,19 @@ class SessionUpdateDeleteTests {
         b.setAllNumeric(0);
 
 
-        session.insertAndFire(a, b);
+        session.insert(a);
+        FactHandle handleB = session.insert(b);
+        session.fire();
+        ;
 
         // From now on no rules will be fired
         for (int i = 0; i < 50; i++) {
             b.setI(b.getI() + 1);
-            session.updateAndFire(b);
+            session.update(handleB, b);
+            session.fire();
         }
 
-        assert counter.get() == 2;
+        assert counter.get() == 2 : "Actual : " + counter.get();
     }
 }
 

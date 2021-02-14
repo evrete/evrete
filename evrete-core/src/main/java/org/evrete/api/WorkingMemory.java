@@ -2,9 +2,18 @@ package org.evrete.api;
 
 
 import java.util.Collection;
-import java.util.function.Consumer;
 
 public interface WorkingMemory {
+
+    FactHandle insert(Object fact);
+
+    Object getFact(FactHandle handle);
+
+    FactHandle insert(String type, Object fact);
+
+    void update(FactHandle handle, Object newValue);
+
+    void delete(FactHandle handle);
 
     default void insert(String factType, Collection<?> objects) {
         for (Object o : objects) {
@@ -18,33 +27,11 @@ public interface WorkingMemory {
         }
     }
 
-    default void delete(Collection<?> objects) {
-        for (Object o : objects) {
-            delete(o);
+    default void delete(Collection<FactHandle> factHandles) {
+        for (FactHandle handle : factHandles) {
+            delete(handle);
         }
     }
-
-    default void update(Collection<?> objects) {
-        for (Object o : objects) {
-            update(o);
-        }
-    }
-
-    void clear();
-
-    void insert(Object fact);
-
-    void update(Object fact);
-
-    void delete(Object fact);
-
-    <T> void forEachMemoryObject(String type, Consumer<T> consumer);
-
-    default <T> void forEachMemoryObject(Class<T> type, Consumer<T> consumer) {
-        forEachMemoryObject(type.getName(), consumer);
-    }
-
-    void forEachMemoryObject(Consumer<Object> consumer);
 
     default void insert(Object... objects) {
         for (Object o : objects) {
@@ -52,15 +39,5 @@ public interface WorkingMemory {
         }
     }
 
-    default void delete(Object... objects) {
-        for (Object o : objects) {
-            delete(o);
-        }
-    }
 
-    default void update(Object... objects) {
-        for (Object o : objects) {
-            update(o);
-        }
-    }
 }

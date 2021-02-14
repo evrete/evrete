@@ -1,3 +1,4 @@
+/*
 package org.evrete.api;
 
 public interface RuntimeFact extends FieldToValue {
@@ -15,3 +16,4 @@ public interface RuntimeFact extends FieldToValue {
         return (T) getValues()[i];
     }
 }
+*/

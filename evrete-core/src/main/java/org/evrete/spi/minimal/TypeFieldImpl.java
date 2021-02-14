@@ -10,12 +10,19 @@ class TypeFieldImpl implements TypeField {
     private final Function<Object, ?> function;
     private final Class<?> valueType;
     private final TypeImpl<?> declaringType;
+    private final int id;
 
-    TypeFieldImpl(TypeImpl<?> declaringType, String name, Class<?> valueType, Function<Object, ?> function) {
+    TypeFieldImpl(int id, TypeImpl<?> declaringType, String name, Class<?> valueType, Function<Object, ?> function) {
+        this.id = id;
         this.name = name;
         this.valueType = valueType;
         this.function = function;
         this.declaringType = declaringType;
+    }
+
+    @Override
+    public int getId() {
+        return id;
     }
 
     @Override

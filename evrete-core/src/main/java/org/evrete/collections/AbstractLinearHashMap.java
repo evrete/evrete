@@ -1,3 +1,4 @@
+/*
 package org.evrete.collections;
 
 import org.evrete.api.MapEntry;
@@ -96,3 +97,4 @@ public abstract class AbstractLinearHashMap<K, V> extends AbstractLinearHashMapB
         }
     }
 }
+*/

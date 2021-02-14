@@ -1,3 +1,4 @@
+/*
 package org.evrete.runtime;
 
 import org.evrete.api.RuntimeFact;
@@ -7,22 +8,22 @@ import java.util.Arrays;
 
 public final class RuntimeFactImpl implements RuntimeFact {
     private static final boolean[] EMPTY_ALPHA_TESTS = new boolean[0];
-    private final Object delegate;
+    private final FactHandleTuple delegate;
     private Object[] values;
     private boolean[] alphaTests;
     private boolean deleted = false;
 
-    private RuntimeFactImpl(Object o, Object[] values) {
+    private RuntimeFactImpl(FactHandleTuple o, Object[] values) {
         this(o, values, EMPTY_ALPHA_TESTS);
     }
 
-    private RuntimeFactImpl(Object o, Object[] values, boolean[] alphaTests) {
+    private RuntimeFactImpl(FactHandleTuple o, Object[] values, boolean[] alphaTests) {
         this.values = values;
         this.delegate = o;
         this.alphaTests = alphaTests;
     }
 
-    public static RuntimeFactImpl factory(Object o, Object[] values, boolean[] alphaTests) {
+    public static RuntimeFactImpl factory(FactHandleTuple o, Object[] values, boolean[] alphaTests) {
         return new RuntimeFactImpl(o, values, alphaTests);
     }
 
@@ -35,7 +36,7 @@ public final class RuntimeFactImpl implements RuntimeFact {
         this.deleted = deleted;
     }
 
-    public static RuntimeFactImpl factory(Object o, Object[] values) {
+    public static RuntimeFactImpl factory(FactHandleTuple o, Object[] values) {
         return new RuntimeFactImpl(o, values);
     }
 
@@ -85,3 +86,4 @@ public final class RuntimeFactImpl implements RuntimeFact {
                 '}';
     }
 }
+*/

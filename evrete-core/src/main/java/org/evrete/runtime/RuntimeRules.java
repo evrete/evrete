@@ -9,18 +9,24 @@ import java.util.*;
 
 public class RuntimeRules implements Iterable<RuntimeRuleImpl>, EvaluationListeners {
     private final List<RuntimeRuleImpl> list = new ArrayList<>();
-    private final SessionMemory runtime;
+    //private final SessionMemory runtime;
 
     public RuntimeRules(SessionMemory runtime) {
-        this.runtime = runtime;
+        throw new UnsupportedOperationException();
+        //this.runtime = runtime;
+    }
+
+    public RuntimeRules() {
+        //throw new UnsupportedOperationException();
+        //this.runtime = runtime;
     }
 
     private void add(RuntimeRuleImpl rule) {
         this.list.add(rule);
     }
 
-    public RuntimeRuleImpl addRule(RuleDescriptor ruleDescriptor) {
-        RuntimeRuleImpl r = new RuntimeRuleImpl(ruleDescriptor, runtime);
+    public RuntimeRuleImpl addRule(RuleDescriptor ruleDescriptor, AbstractKnowledgeSession session) {
+        RuntimeRuleImpl r = new RuntimeRuleImpl(ruleDescriptor, session);
         this.add(r);
         return r;
     }

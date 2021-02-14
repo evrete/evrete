@@ -1,16 +1,16 @@
 package org.evrete.runtime;
 
-import org.evrete.api.Memory;
+import org.evrete.api.spi.InnerFactMemory;
 
 public abstract class RuntimeFactType extends FactType {
-    private final SessionMemory runtime;
+    private final AbstractKnowledgeSession runtime;
 
-    RuntimeFactType(SessionMemory runtime, FactType other) {
+    RuntimeFactType(AbstractKnowledgeSession runtime, FactType other) {
         super(other);
         this.runtime = runtime;
     }
 
-    public static RuntimeFactType factory(FactType type, SessionMemory runtime) {
+    public static RuntimeFactType factory(FactType type, AbstractKnowledgeSession runtime) {
         if (type.getFields().size() > 0) {
             return new RuntimeFactTypeKeyed(runtime, type);
         } else {
@@ -18,9 +18,9 @@ public abstract class RuntimeFactType extends FactType {
         }
     }
 
-    public abstract Memory getSource();
+    public abstract InnerFactMemory getSource();
 
-    public SessionMemory getRuntime() {
+    public AbstractKnowledgeSession getRuntime() {
         return runtime;
     }
 }

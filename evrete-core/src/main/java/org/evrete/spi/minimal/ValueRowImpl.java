@@ -1,21 +1,21 @@
 package org.evrete.spi.minimal;
 
+import org.evrete.api.FactHandleVersioned;
 import org.evrete.api.ReIterator;
-import org.evrete.api.RuntimeFact;
 import org.evrete.api.ValueRow;
-import org.evrete.collections.LinearIdentityHashSet;
+import org.evrete.collections.LinearHashSet;
 
 import java.util.Arrays;
 
 class ValueRowImpl implements ValueRow {
     final Object[] data;
-    private final LinearIdentityHashSet<RuntimeFact> facts = new LinearIdentityHashSet<>();
+    private final LinearHashSet<FactHandleVersioned> facts = new LinearHashSet<>();
     private final int hash;
-    private final ReIterator<RuntimeFact> delegate;
+    private final ReIterator<FactHandleVersioned> delegate;
     private int factCount = 0;
     private boolean deleted;
 
-    ValueRowImpl(Object[] data, int hash, RuntimeFact fact) {
+    ValueRowImpl(Object[] data, int hash, FactHandleVersioned fact) {
         this(data, hash);
         this.addFact(fact);
     }
@@ -30,16 +30,18 @@ class ValueRowImpl implements ValueRow {
         this.facts.bulkAdd(other.facts);
     }
 
-    void addFact(RuntimeFact fact) {
+    void addFact(FactHandleVersioned fact) {
         this.facts.addSilent(fact);
         this.factCount++;
     }
 
+/*
     long removeFact(RuntimeFact fact) {
         assert fact.isDeleted();
         this.factCount--;
         return this.factCount;
     }
+*/
 
     @Override
     public boolean isDeleted() {
@@ -61,7 +63,7 @@ class ValueRowImpl implements ValueRow {
     }
 
     @Override
-    public RuntimeFact next() {
+    public FactHandleVersioned next() {
         return delegate.next();
     }
 
@@ -71,7 +73,7 @@ class ValueRowImpl implements ValueRow {
     }
 
     @Override
-    public ReIterator<RuntimeFact> iterator() {
+    public ReIterator<FactHandleVersioned> iterator() {
         return facts.iterator();
     }
 

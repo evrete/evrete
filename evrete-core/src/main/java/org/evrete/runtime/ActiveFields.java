@@ -3,30 +3,41 @@ package org.evrete.runtime;
 import org.evrete.api.Copyable;
 import org.evrete.api.Type;
 import org.evrete.api.TypeField;
+import org.evrete.collections.ArrayOf;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Consumer;
 
 public class ActiveFields implements Copyable<ActiveFields> {
-    private final Map<String, TypeData> typeData = new HashMap<>();
+    private final ArrayOf<TypeData> typeData;
 
-    public ActiveFields() {
+    ActiveFields() {
+        this.typeData = new ArrayOf<>(TypeData.class);
     }
 
     private ActiveFields(ActiveFields other) {
-        for (Map.Entry<String, TypeData> entry : other.typeData.entrySet()) {
-            this.typeData.put(entry.getKey(), entry.getValue().copyOf());
+        // Copying array
+        this.typeData = new ArrayOf<>(other.typeData);
+        for (int i = 0; i < this.typeData.data.length; i++) {
+            TypeData otherData = other.typeData.get(i);
+            if (otherData != null) {
+                this.typeData.set(i, otherData.copyOf());
+            }
         }
     }
 
-    public synchronized ActiveField getCreate(TypeField field, Consumer<ActiveField> listener) {
-        return typeData.computeIfAbsent(field.getDeclaringType().getName(), v -> new TypeData()).getCreate(field, listener);
+    synchronized ActiveField getCreate(TypeField field, Consumer<ActiveField> listener) {
+        int id = field.getDeclaringType().getId();
+        TypeData td = this.typeData.get(id);
+        if (td == null) {
+            td = new TypeData();
+            this.typeData.set(id, td);
+        }
+        return td.getCreate(field, listener);
     }
 
-    public ActiveField[] getActiveFields(Type<?> t) {
-        TypeData d = typeData.get(t.getName());
+    ActiveField[] getActiveFields(Type<?> t) {
+        TypeData d = typeData.get(t.getId());
         return d == null ? ActiveField.ZERO_ARRAY : d.fieldsInUse;
     }
 

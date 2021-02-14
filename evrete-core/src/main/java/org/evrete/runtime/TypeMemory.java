@@ -1,54 +1,114 @@
 package org.evrete.runtime;
 
+import org.evrete.Configuration;
 import org.evrete.api.*;
+import org.evrete.api.spi.InnerFactMemory;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
-import org.evrete.runtime.evaluation.AlphaConditions;
 import org.evrete.runtime.evaluation.AlphaDelta;
-import org.evrete.runtime.evaluation.AlphaEvaluator;
-import org.evrete.util.ActionQueue;
+import org.evrete.util.NextIntSupplier;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
-public final class TypeMemory extends TypeMemoryBase {
+public final class TypeMemory extends MemoryComponent {
     private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
-    private final AlphaConditions alphaConditions;
+    //private final AlphaConditions alphaConditions;
     private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
     private final ArrayOf<TypeMemoryBucket> alphaBuckets;
-    private final ActionQueue<Object> inputBuffer = new ActionQueue<>();
+    //private final ActionQueue inputBuffer = new ActionQueue();
+    private final FactStorage<FactRecord> factStorage;
+    private final Type<?> type;
 
-    TypeMemory(SessionMemory runtime, Type<?> type) {
-        super(runtime, type);
-        this.alphaConditions = runtime.getAlphaConditions();
-        this.alphaBuckets = new ArrayOf<>(new TypeMemoryBucket[]{new TypeMemoryBucket(runtime, AlphaBucketMeta.NO_FIELDS_NO_CONDITIONS)});
+    TypeMemory(SessionMemory sessionMemory, Type<?> type) {
+        super(sessionMemory);
+        this.type = type;
+        this.alphaBuckets = new ArrayOf<>(new TypeMemoryBucket[]{new TypeMemoryBucket(TypeMemory.this, AlphaBucketMeta.NO_FIELDS_NO_CONDITIONS)});
+
+        String identityMethod = configuration.getOrDefault(Configuration.OBJECT_COMPARE_METHOD, Configuration.IDENTITY_METHOD_IDENTITY).toString();
+        switch (identityMethod) {
+            case Configuration.IDENTITY_METHOD_EQUALS:
+                this.factStorage = memoryFactory.newFactStorage(type, FactRecord.class, (o1, o2) -> Objects.equals(o1.instance, o2.instance));
+                break;
+            case Configuration.IDENTITY_METHOD_IDENTITY:
+                this.factStorage = memoryFactory.newFactStorage(type, FactRecord.class, (o1, o2) -> o1.instance == o2.instance);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid identity method '" + identityMethod + "' in the configuration. Expected values are '" + Configuration.IDENTITY_METHOD_EQUALS + "' or '" + Configuration.IDENTITY_METHOD_IDENTITY + "'");
+        }
+
+    }
+
+    //TODO !!! rename
+    FactHandle registerNewFact(FactRecord innerFact) {
+        return this.factStorage.insert(innerFact);
+    }
+
+    public Type<?> getType() {
+        return type;
+    }
+
+    @Override
+    protected void forEachChildComponent(Consumer<MemoryComponent> consumer) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected void clearLocalData() {
+        factStorage.clear();
     }
 
     public final Set<FieldsKey> knownFieldSets() {
         return Collections.unmodifiableSet(betaMemories.keySet());
     }
 
-    void processInsertBuffer() {
-        ReIterator<Object> inserts = inputBuffer.get(Action.INSERT);
-        while (inserts.hasNext()) {
-            Object o = inserts.next();
-            RuntimeFactImpl fact = create(o);
-            for (TypeMemoryBucket bucket : alphaBuckets.data) {
-                bucket.insert(fact);
-            }
-
-            for (FieldsMemory fm : betaMemories.values()) {
-                fm.insert(fact);
-            }
+    void processMemoryChange(Action action, FactHandle handle, FactRecord factRecord, NextIntSupplier insertCounter) {
+        switch (action) {
+            case RETRACT:
+                factStorage.delete(handle);
+                return;
+            case INSERT:
+                performInsert(new FactHandleVersioned(handle), factRecord, insertCounter);
+                return;
+            case UPDATE:
+                performUpdate(handle, factRecord, insertCounter);
+                return;
+            default:
+                throw new IllegalStateException();
         }
-        inputBuffer.clear(Action.INSERT);
+    }
+
+    private void forEachSubComponent(Consumer<InnerFactMemory> consumer) {
+        alphaBuckets.forEach(consumer);
+        betaMemories.values().forEach(consumer);
+    }
+
+    // TODO !!!! optimize
+    private void performInsert(FactHandleVersioned handle, FactRecord factRecord, NextIntSupplier insertCounter) {
+        forEachSubComponent(im -> {
+            im.insert(handle, factRecord);
+            insertCounter.next();
+        });
+    }
+
+    private void performUpdate(FactHandle handle, FactRecord factRecord, NextIntSupplier insertCounter) {
+        // Reading the previous version
+        FactRecord previous = factStorage.getFact(handle);
+        if (previous == null) {
+            LOGGER.warning("Unknown fact handle " + handle + ". Update operation skipped.");
+        } else {
+            int newVersion = previous.getVersion() + 1;
+            factRecord.updateVersion(newVersion);
+            factStorage.update(handle, factRecord);
+            FactHandleVersioned versioned = new FactHandleVersioned(handle, newVersion);
+            performInsert(versioned, factRecord, insertCounter);
+        }
     }
 
 
+/*
     boolean bufferContains(Action... actions) {
         for (Action action : actions) {
             if (inputBuffer.hasData(action)) {
@@ -57,25 +117,23 @@ public final class TypeMemory extends TypeMemoryBase {
         }
         return false;
     }
+*/
 
-    private RuntimeFactImpl find(Object o) {
-        RuntimeFact fact = main0().find(o);
-        if (fact == null) {
-            fact = delta0().find(o);
+    void forEachValidEntry(BiConsumer<FactHandle, Object> consumer) {
+        ReIterator<FactHandleVersioned> it = main0().iterator();
+        while (it.hasNext()) {
+            FactHandleVersioned v = it.next();
+            FactHandle handle = v.getHandle();
+            FactRecord record = factStorage.getFact(handle);
+            if (record != null && record.getVersion() == v.getVersion()) {
+                consumer.accept(handle, record.instance);
+            } else {
+                // TODO !!!! uncomment when the rest is tested
+                //it.remove();
+            }
         }
-        return (RuntimeFactImpl) fact;
     }
 
-    void clear() {
-        for (TypeMemoryBucket bucket : alphaBuckets.data) {
-            bucket.clear();
-        }
-
-        for (FieldsMemory fm : betaMemories.values()) {
-            fm.clear();
-        }
-        inputBuffer.clear();
-    }
 
     public final FieldsMemory get(FieldsKey fields) {
         FieldsMemory fm = betaMemories.get(fields);
@@ -96,28 +154,10 @@ public final class TypeMemory extends TypeMemoryBase {
         }
     }
 
-    void processDeleteBuffer() {
-        ReIterator<Object> it = inputBuffer.get(Action.RETRACT);
-
-        // Step 1: Marking facts as deleted
-        RuntimeFactImpl impl;
-        while (it.hasNext()) {
-            Object o = it.next();
-            impl = find(o);
-            if (impl == null) {
-                LOGGER.warning("Unknown object " + o + ", DELETE operation skipped");
-            } else {
-                impl.setDeleted(true);
-                // Step 2: clear alpha storage
-                // Step 3: clear beta storage
-                for (FieldsMemory fm : betaMemories.values()) {
-                    fm.retract(impl);
-                }
-            }
-        }
-        // Step 3: clear the delete buffer
-        inputBuffer.clear(Action.RETRACT);
+    FactRecord getFact(FactHandle handle) {
+        return factStorage.getFact(handle);
     }
+
 
     public PlainMemory get(AlphaBucketMeta alphaMask) {
         return alphaBuckets.getChecked(alphaMask.getBucketIndex());
@@ -128,17 +168,16 @@ public final class TypeMemory extends TypeMemoryBase {
             touchAlphaMemory(alphaMeta);
         } else {
             betaMemories
-                    .computeIfAbsent(key, k -> new FieldsMemory(getRuntime(), key))
+                    .computeIfAbsent(key, k -> new FieldsMemory(TypeMemory.this, key))
                     .touchMemory(alphaMeta);
         }
     }
 
     private TypeMemoryBucket touchAlphaMemory(AlphaBucketMeta alphaMeta) {
-        // Alpha storage
         if (!alphaMeta.isEmpty()) {
             int bucketIndex = alphaMeta.getBucketIndex();
             if (alphaBuckets.isEmptyAt(bucketIndex)) {
-                TypeMemoryBucket newBucket = new TypeMemoryBucket(getRuntime(), alphaMeta);
+                TypeMemoryBucket newBucket = new TypeMemoryBucket(TypeMemory.this, alphaMeta);
                 alphaBuckets.set(bucketIndex, newBucket);
                 return newBucket;
             }
@@ -147,12 +186,13 @@ public final class TypeMemory extends TypeMemoryBase {
     }
 
     void onNewAlphaBucket(AlphaDelta delta) {
+/*
         if (inputBuffer.get(Action.INSERT).reset() > 0) {
             //TODO develop a strategy
             throw new UnsupportedOperationException("A new condition was created in an uncommitted memory.");
         }
 
-        ReIterator<RuntimeFact> existingFacts = main0().iterator();
+        ReIterator<FactHandle> existingFacts = main0().iterator();
         // 1. Update all the facts by applying new alpha flags
         AlphaEvaluator[] newEvaluators = delta.getNewEvaluators();
         if (newEvaluators.length > 0 && existingFacts.reset() > 0) {
@@ -181,38 +221,52 @@ public final class TypeMemory extends TypeMemoryBase {
         }
 
         this.cachedAlphaEvaluators = alphaConditions.getPredicates(type).data;
+*/
     }
 
+    @SuppressWarnings("unchecked")
     final <T> void forEachMemoryObject(Consumer<T> consumer) {
-        main0().iterator().forEachRemaining(fact -> {
-            if (!fact.isDeleted()) {
-                consumer.accept(fact.getDelegate());
+        throw new UnsupportedOperationException();
+/*
+        main0().iterator().forEachRemaining(factHandle -> {
+            Object fact = getFact(factHandle);
+            if (fact != null) {
+                consumer.accept((T) fact);
             }
         });
+*/
     }
 
     final void forEachObjectUnchecked(Consumer<Object> consumer) {
-        main0().iterator().forEachRemaining(fact -> {
-            if (!fact.isDeleted()) {
-                consumer.accept(fact.getDelegate());
+        throw new UnsupportedOperationException();
+/*
+        main0().iterator().forEachRemaining(factHandle -> {
+            Object fact = getFact(factHandle);
+            if (fact != null) {
+                consumer.accept(fact);
             }
         });
+*/
     }
 
+    public FactStorage<FactRecord> getFactStorage() {
+        return factStorage;
+    }
 
-    private SharedPlainFactStorage main0() {
+    SharedPlainFactStorage main0() {
         return alphaBuckets.data[0].getData();
     }
 
-    private SharedPlainFactStorage delta0() {
+    SharedPlainFactStorage delta0() {
         return alphaBuckets.data[0].getDelta();
     }
 
-    private RuntimeFactImpl create(Object o) {
+/*
+    private RuntimeFactImpl create(FactHandleTuple tuple) {
         // Read values
         Object[] values = new Object[cachedActiveFields.length];
         for (int i = 0; i < cachedActiveFields.length; i++) {
-            values[i] = cachedActiveFields[i].readValue(o);
+            values[i] = cachedActiveFields[i].readValue(tuple.value);
         }
 
         // Evaluate alpha conditions if necessary
@@ -221,11 +275,12 @@ public final class TypeMemory extends TypeMemoryBase {
             for (AlphaEvaluator alpha : cachedAlphaEvaluators) {
                 alphaTests[alpha.getUniqueId()] = alpha.test(values);
             }
-            return RuntimeFactImpl.factory(o, values, alphaTests);
+            return RuntimeFactImpl.factory(tuple, values, alphaTests);
         } else {
-            return RuntimeFactImpl.factory(o, values);
+            return RuntimeFactImpl.factory(tuple, values);
         }
     }
+*/
 
     /**
      * <p>
@@ -236,6 +291,8 @@ public final class TypeMemory extends TypeMemoryBase {
      * @param newField newly created field
      */
     final void onNewActiveField(ActiveField newField) {
+        throw new UnsupportedOperationException();
+/*
         for (SharedPlainFactStorage storage : new SharedPlainFactStorage[]{main0(), delta0()}) {
             ReIterator<RuntimeFact> it = storage.iterator();
             while (it.hasNext()) {
@@ -246,11 +303,14 @@ public final class TypeMemory extends TypeMemoryBase {
 
         }
         this.cachedActiveFields = getRuntime().getActiveFields(type);
+*/
     }
 
-    void memoryAction(Action action, Object o) {
-        inputBuffer.add(action, o);
+/*
+    void memoryAction(Action action, FactHandle handle, Object o) {
+        inputBuffer.add(action, handle, o);
     }
+*/
 
     @Override
     public String toString() {
@@ -261,6 +321,11 @@ public final class TypeMemory extends TypeMemoryBase {
             s.append(b.getAlphaMask()).append("\n");
             s.append("\tM:").append(b.getData()).append('\n');
             s.append("\tD:").append(b.getDelta()).append('\n');
+
+            for (FieldsMemory fm : this.betaMemories.values()) {
+                s.append("\t\tFM:").append(fm).append('\n');
+
+            }
         }
 
         return s.toString();
@@ -270,4 +335,5 @@ public final class TypeMemory extends TypeMemoryBase {
                 '}';
 */
     }
+
 }

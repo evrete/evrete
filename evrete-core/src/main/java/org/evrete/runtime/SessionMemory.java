@@ -1,93 +1,156 @@
 package org.evrete.runtime;
 
+import org.evrete.Configuration;
 import org.evrete.api.*;
-import org.evrete.collections.AbstractLinearHashMap;
-import org.evrete.collections.LinearHashMap;
+import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaDelta;
 
 import java.util.Iterator;
+import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.logging.Logger;
 
-public abstract class SessionMemory extends AbstractRuntime<StatefulSession> implements WorkingMemory, Iterable<TypeMemory> {
+public class SessionMemory extends MemoryComponent implements Iterable<TypeMemory> {
     private static final Logger LOGGER = Logger.getLogger(SessionMemory.class.getName());
-    private final LinearHashMap<Type<?>, TypeMemory> typedMemories;
-    private static final Function<AbstractLinearHashMap.Entry<Type<?>, TypeMemory>, TypeMemory> TYPE_MEMORY_MAPPING = AbstractLinearHashMap.Entry::getValue;
+    private final ArrayOf<TypeMemory> typedMemories;
+    private final MemoryFactory memoryFactory;
+    private final Configuration configuration;
 
-    protected SessionMemory(KnowledgeImpl parent) {
-        super(parent);
-        this.typedMemories = new LinearHashMap<>(getTypeResolver().getKnownTypes().size());
+    protected SessionMemory(Configuration configuration, MemoryFactory memoryFactory) {
+        super(memoryFactory, configuration);
+        //super(parent);
+        this.configuration = configuration;
+        this.typedMemories = new ArrayOf<>(new TypeMemory[]{});
+        this.memoryFactory = memoryFactory;
     }
 
+    @Override
+    protected void forEachChildComponent(Consumer<MemoryComponent> consumer) {
+        typedMemories.forEach(consumer);
+    }
+
+    @Override
+    protected void clearLocalData() {
+        //TODO override or provide a message
+        throw new UnsupportedOperationException();
+    }
+
+    void forEachFactEntry(BiConsumer<FactHandle, Object> consumer) {
+        typedMemories.forEach(tm -> tm.forEachValidEntry(consumer));
+    }
 
     @Override
     public Iterator<TypeMemory> iterator() {
-        return typedMemories.iterator(TYPE_MEMORY_MAPPING);
+        return typedMemories.iterator();
     }
 
+    void forEachMemory(Consumer<TypeMemory> consumer) {
+        typedMemories.forEach(consumer);
+    }
+
+    //TODO !!! duplicate method
     ReIterator<TypeMemory> typeMemories() {
-        return typedMemories.valueIterator();
+        return typedMemories.iterator();
     }
 
-    @Override
-    protected TypeResolver newTypeResolver() {
-        return getParentContext().getTypeResolver().copyOf();
+
+    <Z> KeysStore newKeysStore(Z[][] grouping) {
+        return memoryFactory.newKeyStore(grouping);
     }
 
-    @Override
-    public final Kind getKind() {
-        return Kind.SESSION;
+    SharedPlainFactStorage newSharedPlainStorage() {
+        return memoryFactory.newPlainStorage();
+    }
+
+    SharedBetaFactStorage newSharedKeyStorage(FieldsKey fieldsKey) {
+        return memoryFactory.newBetaStorage(fieldsKey);
+    }
+
+    FactStorage<FactRecord> newFactStorage(Type<?> type, BiPredicate<FactRecord, FactRecord> identityFunction) {
+        return memoryFactory.newFactStorage(type, FactRecord.class, identityFunction);
     }
 
     void touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
         Type<?> t = key.getType();
-        typedMemories
-                .computeIfAbsent(t, k -> new TypeMemory(this, t))
-                .touchMemory(key, alphaMeta);
+        get(t).touchMemory(key, alphaMeta);
     }
 
-    @Override
-    public void clear() {
-        typedMemories.forEachValue(TypeMemory::clear);
+    //@Override
+    public FactHandle insert(Object fact) {
+        throw new UnsupportedOperationException();
+        //return insert(getTypeResolver().resolve(fact), fact);
     }
 
-    @Override
-    public void insert(Object fact) {
-        memoryAction(Action.INSERT, fact);
+    //@Override
+    public FactHandle insert(String type, Object fact) {
+        throw new UnsupportedOperationException();
+        //return insert(getTypeResolver().getType(type), fact);
+    }
+
+/*
+    private FactHandle insert(Type<?> type, Object fact) {
+        if(type == null) {
+            LOGGER.warning("Unknown type of object " + fact + ", insert skipped.");
+            return null;
+        }
+        TypeMemory tm = get(type);
+        return tm.bufferInsert(fact);
+    }
+*/
+
+    private TypeMemory get(FactHandle handle) {
+        return typedMemories.getChecked(handle.getTypeId());
+    }
+
+    //@Override
+/*
+    public void update(FactHandle handle, Object newValue) {
+        TypeMemory tm = get(handle);
+        tm.bufferUpdate((FactHandle) handle, newValue);
+    }
+
+    //@Override
+    public void delete(FactHandle handle) {
+        TypeMemory tm = get(handle);
+        tm.bufferDelete(handle);
+    }
+*/
+
+/*
+    boolean processBuffer() {
+        boolean hasInserts = false;
+
+
+
+
+        return hasInserts;
     }
 
     void processDeleteBuffer() {
-        for (TypeMemory tm : this) {
-            tm.processDeleteBuffer();
-        }
+        typedMemories.forEach(TypeMemory::processDeleteBuffer);
     }
 
     void processInsertBuffer() {
-        for (TypeMemory tm : this) {
-            tm.processInsertBuffer();
-        }
+        typedMemories.forEach(TypeMemory::processInsertBuffer);
     }
+*/
 
-    @Override
+    //@Override
     protected synchronized void onNewActiveField(ActiveField newField) {
         Type<?> t = newField.getDeclaringType();
-        TypeMemory tm = typedMemories.get(t);
-        if (tm == null) {
-            tm = new TypeMemory(this, t);
-            typedMemories.put(t, tm);
-        }
+        TypeMemory tm = get(t);
         tm.onNewActiveField(newField);
     }
 
-    @Override
+    //@Override
     protected void onNewAlphaBucket(AlphaDelta delta) {
         Type<?> t = delta.getKey().getType();
-        TypeMemory tm = typedMemories.get(t);
+        TypeMemory tm = typedMemories.get(t.getId());
         if (tm == null) {
-            tm = new TypeMemory(this, t);
-            typedMemories.put(t, tm);
+            tm = new TypeMemory(SessionMemory.this, t);
+            typedMemories.set(t.getId(), tm);
         } else {
             tm.onNewAlphaBucket(delta);
         }
@@ -105,49 +168,26 @@ public abstract class SessionMemory extends AbstractRuntime<StatefulSession> imp
         typedMemories.clear();
     }
 
-    void memoryAction(Action action, Object o) {
-        memoryAction(action, getTypeResolver().resolve(o), o);
-    }
-
-    private void memoryAction(Action action, Type<?> t, Object o) {
-        if (t == null) {
-            LOGGER.warning("Unknown object type of " + o + ", action " + action + "  skipped");
-        } else {
-            get(t).memoryAction(action, o);
-        }
-    }
-
-    @Override
-    public <T> void forEachMemoryObject(String type, Consumer<T> consumer) {
-        Type<?> t = getTypeResolver().getType(type);
-        if (t != null) {
-            TypeMemory tm = typedMemories.get(t);
-            tm.forEachMemoryObject(consumer);
-        }
-    }
-
-    @Override
-    public void forEachMemoryObject(Consumer<Object> consumer) {
-        typedMemories.forEachValue(tm -> tm.forEachObjectUnchecked(consumer));
-    }
-
     public TypeMemory get(Type<?> t) {
-        TypeMemory m = typedMemories.get(t);
+        TypeMemory m = typedMemories.get(t.getId());
         if (m == null) {
-            // TODO !!!! touch TypeMemory if a corresponding type has been explicitly declared in TypeResolver
-            throw new IllegalArgumentException("No type memory created for " + t);
-        } else {
-            return m;
+            m = new TypeMemory(this, t);
+            typedMemories.set(t.getId(), m);
         }
+        return m;
     }
 
-    @Override
-    public void update(Object fact) {
-        memoryAction(Action.UPDATE, fact);
+    public TypeMemory get(int typeId) {
+        TypeMemory m = typedMemories.get(typeId);
+        if (m == null) {
+            throw new IllegalStateException("Unknown type id: " + typeId);
+        }
+        return m;
     }
 
-    @Override
-    public void delete(Object fact) {
-        memoryAction(Action.RETRACT, fact);
+
+    //TODO !!!!! delete
+    void debug() {
+        System.out.println(typedMemories.toString());
     }
 }

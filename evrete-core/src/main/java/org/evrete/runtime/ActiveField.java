@@ -17,6 +17,11 @@ public final class ActiveField implements TypeField {
         this.valueIndex = valueIndex;
     }
 
+    @Override
+    public int getId() {
+        return delegate.getId();
+    }
+
     public int getValueIndex() {
         return valueIndex;
     }

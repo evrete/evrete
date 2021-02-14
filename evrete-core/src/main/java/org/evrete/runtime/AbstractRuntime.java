@@ -29,9 +29,10 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     private final AlphaConditions alphaConditions;
     private final KnowledgeService service;
     private final ActiveFields activeFields;
-    private final LazyInstance<MemoryCollections> collectionsService = new LazyInstance<>(this::newCollectionsService);
+    //private final LazyInstance<MemoryCollections<?>> collectionsService = new LazyInstance<>(this::newCollectionsService);
     private final LazyInstance<ExpressionResolver> expressionResolver = new LazyInstance<>(this::newExpressionResolver);
     private final LazyInstance<TypeResolver> typeResolver = new LazyInstance<>(this::newTypeResolver);
+    //private TypeResolver typeResolver;
     private final LazyInstance<LiteralRhsCompiler> rhsCompiler = new LazyInstance<>(this::newLiteralLhsProvider);
     private final Map<String, Object> properties;
     private final AbstractRuntime<?> parent;
@@ -85,29 +86,13 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
 
     protected abstract void onNewAlphaBucket(AlphaDelta alphaDelta);
 
-    protected abstract void addListenerToRules(EvaluationListener listener);
-
-    protected abstract void removeListenerFromRules(EvaluationListener listener);
-
     @Override
     public RuntimeContext<?> addImport(String imp) {
         this.imports.add(imp);
         return this;
     }
 
-    @Override
-    public void addListener(EvaluationListener listener) {
-        this.alphaConditions.addListener(listener);
-        addListenerToRules(listener);
-    }
-
-    @Override
-    public void removeListener(EvaluationListener listener) {
-        this.alphaConditions.removeListener(listener);
-        removeListenerFromRules(listener);
-    }
-
-    public ActivationMode getAgendaMode() {
+    ActivationMode getAgendaMode() {
         return agendaMode;
     }
 
@@ -151,7 +136,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         this.classLoader = classLoader;
     }
 
-    protected KnowledgeService getService() {
+    KnowledgeService getService() {
         return service;
     }
 
@@ -162,7 +147,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
 
     @Override
     public final void wrapTypeResolver(TypeResolverWrapper wrapper) {
-        typeResolver.set(wrapper);
+        this.typeResolver.set(wrapper);
     }
 
     @Override
@@ -221,7 +206,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         return activeFields.getCreate(field, this::onNewActiveField);
     }
 
-    public Set<ActiveField> getCreateActiveFields(Set<TypeField> fields) {
+    private Set<ActiveField> getCreateActiveFields(Set<TypeField> fields) {
         Set<ActiveField> activeFields = new HashSet<>();
         for (TypeField field : fields) {
             activeFields.add(getCreateActiveField(field));
@@ -229,11 +214,11 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         return activeFields;
     }
 
-    public ActiveField[] getActiveFields(Type<?> type) {
+    ActiveField[] getActiveFields(Type<?> type) {
         return activeFields.getActiveFields(type);
     }
 
-    AlphaBucketMeta getCreateAlphaMask(FieldsKey fields, boolean beta, Set<EvaluatorWrapper> typePredicates) {
+    private AlphaBucketMeta getCreateAlphaMask(FieldsKey fields, boolean beta, Set<EvaluatorWrapper> typePredicates) {
         return alphaConditions.register(this, fields, beta, typePredicates, this::onNewAlphaBucket);
     }
 
@@ -283,8 +268,8 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         return service.getConfiguration();
     }
 
-    private MemoryCollections newCollectionsService() {
-        return service.getCollectionsServiceProvider().instance(this);
+    private MemoryFactory newCollectionsService() {
+        return service.getMemoryFactoryProvider().instance(this);
     }
 
     private ExpressionResolver newExpressionResolver() {
@@ -295,17 +280,24 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         return service.getLiteralRhsProvider();
     }
 
-    public <Z> KeysStore newKeysStore(Z[][] grouping) {
+/*
+    <Z> KeysStore newKeysStore(Z[][] grouping) {
         return collectionsService.get().newKeyStore(grouping);
     }
 
-    public SharedPlainFactStorage newSharedPlainStorage() {
+    SharedPlainFactStorage newSharedPlainStorage() {
         return collectionsService.get().newPlainStorage();
     }
 
-    public SharedBetaFactStorage newSharedKeyStorage(FieldsKey fieldsKey) {
+    SharedBetaFactStorage newSharedKeyStorage(FieldsKey fieldsKey) {
         return collectionsService.get().newBetaStorage(fieldsKey);
     }
+
+    @SuppressWarnings("unchecked")
+    <H extends FactHandle> FactStorage<InnerFact, H> newFactStorage(Type<?> type, BiPredicate<InnerFact, InnerFact> identityFunction) {
+        return (FactStorage<InnerFact, H>) collectionsService.get().newFactStorage(type, InnerFact.class, identityFunction);
+    }
+*/
 
     @Override
     public final synchronized RuleDescriptor compileRule(RuleBuilder<?> ruleBuilder) {

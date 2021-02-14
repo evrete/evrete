@@ -1,21 +1,39 @@
 package org.evrete.runtime;
 
-import org.evrete.api.Memory;
-import org.evrete.api.ReIterator;
-import org.evrete.api.RuntimeFact;
+import org.evrete.api.FactHandleVersioned;
+import org.evrete.api.FieldToValue;
 import org.evrete.api.SharedBetaFactStorage;
+import org.evrete.api.spi.InnerFactMemory;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
-public class FieldsMemory implements Memory {
+import java.util.function.Consumer;
+
+public class FieldsMemory extends MemoryComponent implements InnerFactMemory {
     private final FieldsKey typeFields;
-    private final SessionMemory runtime;
+    //private final SessionMemory runtime;
     private final ArrayOf<FieldsMemoryBucket> alphaBuckets;
 
-    FieldsMemory(SessionMemory runtime, FieldsKey typeFields) {
-        this.runtime = runtime;
+    FieldsMemory(MemoryComponent runtime, FieldsKey typeFields) {
+        super(runtime);
+        //this.runtime = runtime;
         this.typeFields = typeFields;
         this.alphaBuckets = new ArrayOf<>(FieldsMemoryBucket.class);
+    }
+
+    @Override
+    protected void forEachChildComponent(Consumer<MemoryComponent> consumer) {
+        alphaBuckets.forEach(consumer);
+    }
+
+    @Override
+    protected void clearLocalData() {
+        // Only child data present
+    }
+
+    @Override
+    public void insert(FactHandleVersioned fact, FieldToValue values) {
+        alphaBuckets.forEach(bucket -> bucket.insert(fact, values));
     }
 
     public SharedBetaFactStorage get(AlphaBucketMeta mask) {
@@ -48,13 +66,14 @@ public class FieldsMemory implements Memory {
     FieldsMemoryBucket touchMemory(AlphaBucketMeta alphaMeta) {
         int bucketIndex = alphaMeta.getBucketIndex();
         if (alphaBuckets.isEmptyAt(bucketIndex)) {
-            FieldsMemoryBucket newBucket = new FieldsMemoryBucket(runtime, typeFields, alphaMeta);
+            FieldsMemoryBucket newBucket = new FieldsMemoryBucket(FieldsMemory.this, typeFields, alphaMeta);
             alphaBuckets.set(bucketIndex, newBucket);
             return newBucket;
         }
         return null;
     }
 
+/*
     <T extends RuntimeFact> void onNewAlphaBucket(AlphaBucketMeta alphaMeta, ReIterator<T> existingFacts) {
         FieldsMemoryBucket newBucket = touchMemory(alphaMeta);
         assert newBucket != null;
@@ -68,24 +87,24 @@ public class FieldsMemory implements Memory {
             }
         }
     }
+*/
 
-    void clear() {
+
+/*
+    void insert(FactHandle handle, FieldToValue values, boolean[] alphaTests) {
         for (FieldsMemoryBucket bucket : alphaBuckets.data) {
-            bucket.clear();
+            bucket.insert(handle, values, alphaTests);
         }
     }
+*/
 
-    void insert(RuntimeFact fact) {
-        for (FieldsMemoryBucket bucket : alphaBuckets.data) {
-            bucket.insert(fact);
-        }
-    }
-
+/*
     void retract(RuntimeFact fact) {
         for (FieldsMemoryBucket bucket : alphaBuckets.data) {
             bucket.delete(fact);
         }
     }
+*/
 
     @Override
     public String toString() {

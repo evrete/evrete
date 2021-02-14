@@ -1,7 +1,6 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.RhsContext;
-import org.evrete.api.RuntimeFact;
 import org.evrete.api.RuntimeRule;
 
 import java.util.function.Consumer;
@@ -9,6 +8,7 @@ import java.util.function.Consumer;
 public abstract class AbstractLiteralRhs implements Consumer<RhsContext>, RhsContext {
     private RhsContext ctx;
 
+    @SuppressWarnings("WeakerAccess")
     protected abstract void doRhs();
 
     @Override
@@ -18,8 +18,8 @@ public abstract class AbstractLiteralRhs implements Consumer<RhsContext>, RhsCon
     }
 
     @Override
-    public RuntimeFact getFact(String name) {
-        return ctx.getFact(name);
+    public Object getObject(String name) {
+        return ctx.getObject(name);
     }
 
     @Override

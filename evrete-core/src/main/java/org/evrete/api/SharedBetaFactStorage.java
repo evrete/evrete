@@ -1,10 +1,13 @@
 package org.evrete.api;
 
-public interface SharedBetaFactStorage extends Memory, KeyReIterables<ValueRow> {
+import org.evrete.api.spi.InnerFactMemory;
 
-    void delete(RuntimeFact fact);
+public interface SharedBetaFactStorage extends InnerFactMemory, KeyReIterables<ValueRow> {
 
-    void insert(RuntimeFact fact);
+    //void delete(RuntimeFact fact);
 
+    //void insert(FactHandle fact, FieldToValue values);
+
+    //TODO !!! remove from this interface
     void clear();
 }

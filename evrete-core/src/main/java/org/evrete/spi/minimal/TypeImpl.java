@@ -14,24 +14,28 @@ import java.util.function.Function;
 
 class TypeImpl<T> implements Type<T> {
     static final String THIS_FIELD_NAME = "this";
+    private final int id;
     private final String name;
     private final Class<T> javaType;
     private final Map<String, TypeFieldImpl> fields = new HashMap<>();
 
-    TypeImpl(String name, Class<T> javaType) {
+    TypeImpl(String name, int id, Class<T> javaType) {
         Objects.requireNonNull(name);
         Objects.requireNonNull(javaType);
         this.javaType = javaType;
         this.name = name;
-
-
-        this.fields.put(THIS_FIELD_NAME, new TypeFieldImpl(this, name, javaType, o -> o));
-
+        this.id = id;
+        this.fields.put(THIS_FIELD_NAME, new TypeFieldImpl(0, this, name, javaType, o -> o));
     }
 
     private TypeImpl(TypeImpl<T> other) {
-        this(other.name, other.javaType);
+        this(other.name, other.id, other.javaType);
         this.fields.putAll(other.fields);
+    }
+
+    @Override
+    public int getId() {
+        return this.id;
     }
 
     private static ValueReader resolve(MethodHandles.Lookup lookup, Class<?> clazz, String prop) {
@@ -150,7 +154,7 @@ class TypeImpl<T> implements Type<T> {
             synchronized (fields) {
                 field = fields.get(name);
                 if (field == null) {
-                    field = new TypeFieldImpl(this, name, type, function);
+                    field = new TypeFieldImpl(fields.size(), this, name, type, function);
                     this.fields.put(name, field);
                 }
             }

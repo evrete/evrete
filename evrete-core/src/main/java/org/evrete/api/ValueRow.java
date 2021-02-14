@@ -1,6 +1,6 @@
 package org.evrete.api;
 
-public interface ValueRow extends ReIterable<RuntimeFact>, ReIterator<RuntimeFact> {
+public interface ValueRow extends ReIterable<FactHandleVersioned>, ReIterator<FactHandleVersioned> {
 
     boolean isDeleted();
 

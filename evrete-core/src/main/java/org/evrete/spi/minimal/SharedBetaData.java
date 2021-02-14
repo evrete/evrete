@@ -74,6 +74,7 @@ class SharedBetaData implements SharedBetaFactStorage {
         return hash;
     }
 
+/*
     @Override
     public void delete(RuntimeFact fact) {
         assert fact.isDeleted();
@@ -81,6 +82,7 @@ class SharedBetaData implements SharedBetaFactStorage {
         int addr = main.findBinIndex(reusableValueArr, hash, SHARED_ARRAY_EQ);
         main.remove(fact, addr);
     }
+*/
 
     @Override
     public void commitChanges() {
@@ -91,8 +93,8 @@ class SharedBetaData implements SharedBetaFactStorage {
         deltaKnownKeys.clear();
     }
 
-    private void insertInner(RuntimeFact fact) {
-        int hash = hash(fact);
+    private void insertInner(FactHandleVersioned fact, FieldToValue values) {
+        int hash = hash(values);
         int addr = main.findBinIndex(reusableValueArr, hash, SHARED_ARRAY_EQ);
         ValueRowImpl key = main.get(addr);
         if (key == null) {
@@ -105,7 +107,7 @@ class SharedBetaData implements SharedBetaFactStorage {
         }
     }
 
-    private void insertTo(int hash, RuntimeFact fact, FieldsFactMap destination) {
+    private void insertTo(int hash, FactHandleVersioned fact, FieldsFactMap destination) {
         destination.resize();
         int addr = destination.findBinIndex(reusableValueArr, hash, SHARED_ARRAY_EQ);
         ValueRowImpl key = destination.get(addr);
@@ -118,8 +120,8 @@ class SharedBetaData implements SharedBetaFactStorage {
     }
 
     @Override
-    public void insert(RuntimeFact fact) {
-        insertInner(fact);
+    public void insert(FactHandleVersioned fact, FieldToValue values) {
+        insertInner(fact, values);
     }
 
     @Override

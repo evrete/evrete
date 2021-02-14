@@ -1,6 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.KeysStore;
+import org.evrete.api.MemoryFactory;
 import org.evrete.api.ReIterator;
 import org.evrete.api.ValueRow;
 import org.evrete.collections.MappedReIterator;
@@ -33,9 +34,9 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
         this.conditionSources = conditionNodeList.toArray(BetaConditionNode.EMPTY_ARRAY);
         this.rule = rule;
         this.descriptor = descriptor;
-        SessionMemory memory = rule.getRuntime();
-        this.mainStore = memory.newKeysStore(descriptor.getEvalGrouping());
-        this.deltaStore = memory.newKeysStore(descriptor.getEvalGrouping());
+        MemoryFactory memoryFactory = rule.getRuntime().getMemoryFactory();
+        this.mainStore = memoryFactory.newKeyStore(descriptor.getEvalGrouping());
+        this.deltaStore = memoryFactory.newKeyStore(descriptor.getEvalGrouping());
         this.expression = descriptor.getExpression().copyOf();
 
         FactType[][] descGrouping = descriptor.getEvalGrouping();
@@ -46,6 +47,10 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
 
         this.mainIterator = new MappedReIterator<>(mainStore.entries(), KeysStore.Entry::key);
         this.deltaIterator = new MappedReIterator<>(deltaStore.entries(), KeysStore.Entry::key);
+    }
+
+    public AbstractKnowledgeSession getRuntime() {
+        return rule.getRuntime();
     }
 
     public BetaConditionNode[] getConditionSources() {

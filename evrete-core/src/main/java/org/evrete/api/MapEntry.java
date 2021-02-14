@@ -1,3 +1,4 @@
+/*
 package org.evrete.api;
 
 public interface MapEntry<K, V> {
@@ -5,3 +6,4 @@ public interface MapEntry<K, V> {
 
     V getValue();
 }
+*/

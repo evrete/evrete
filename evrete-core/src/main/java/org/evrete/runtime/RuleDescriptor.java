@@ -1,13 +1,11 @@
 package org.evrete.runtime;
 
 import org.evrete.AbstractRule;
-import org.evrete.api.EvaluationListener;
-import org.evrete.api.EvaluationListeners;
 import org.evrete.runtime.builder.RuleBuilderImpl;
 import org.evrete.util.MapFunction;
 import org.evrete.util.NextIntSupplier;
 
-public class RuleDescriptor extends AbstractRuntimeRule implements EvaluationListeners {
+public class RuleDescriptor extends AbstractRuntimeRule {
     private final LhsDescriptor lhsDescriptor;
 
     private RuleDescriptor(AbstractRuntime<?> runtime, AbstractRule other, LhsDescriptor lhsDescriptor) {
@@ -38,6 +36,7 @@ public class RuleDescriptor extends AbstractRuntimeRule implements EvaluationLis
     }
 
 
+/*
     @Override
     public void addListener(EvaluationListener listener) {
         for (RhsFactGroupDescriptor d : lhsDescriptor.getAllFactGroups()) {
@@ -57,4 +56,5 @@ public class RuleDescriptor extends AbstractRuntimeRule implements EvaluationLis
             }
         }
     }
+*/
 }

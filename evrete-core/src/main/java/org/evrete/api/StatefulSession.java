@@ -2,26 +2,17 @@ package org.evrete.api;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 
 //TODO javadoc
-public interface StatefulSession extends WorkingMemory, RuntimeContext<StatefulSession> {
+public interface StatefulSession extends KnowledgeSession<StatefulSession> {
 
     StatefulSession setFireCriteria(BooleanSupplier fireCriteria);
 
-    void fire();
-
     void close();
 
-    ActivationManager getActivationManager();
-
-    StatefulSession setActivationManager(ActivationManager activationManager);
-
-    @Override
-    StatefulSession addImport(String imp);
-
-    @Override
-    StatefulSession addImport(Class<?> type);
 
     RuntimeRule getRule(String name);
 
@@ -41,24 +32,70 @@ public interface StatefulSession extends WorkingMemory, RuntimeContext<StatefulS
         fire();
     }
 
+    void clear();
+
+    //TODO !!! rename method
+    void forEachFactEntry(BiConsumer<FactHandle, Object> consumer);
+
+
+    @Deprecated
     default void deleteAndFire(Object... objects) {
-        delete(objects);
-        fire();
+        throw new UnsupportedOperationException();
     }
 
+    @Deprecated
     default void deleteAndFire(Collection<?> objects) {
-        delete(objects);
-        fire();
+        throw new UnsupportedOperationException();
     }
 
+    @Deprecated
     default void updateAndFire(Object... objects) {
-        update(objects);
-        fire();
+        throw new UnsupportedOperationException();
     }
 
+    @Deprecated
     default void updateAndFire(Collection<?> objects) {
-        update(objects);
-        fire();
+        throw new UnsupportedOperationException();
+    }
+
+    @Deprecated
+    default void update(Collection<?> objects) {
+        throw new UnsupportedOperationException("Deprecated");
+    }
+
+    @Deprecated
+    default void update(Object fact) {
+        throw new UnsupportedOperationException("Deprecated");
+    }
+
+    @Deprecated
+    default void delete(Object fact) {
+        throw new UnsupportedOperationException("Deprecated");
+    }
+
+    @Deprecated
+    default <T> void forEachMemoryObject(String type, Consumer<T> consumer) {
+        throw new UnsupportedOperationException("Deprecated");
+    }
+
+    @Deprecated
+    default void delete(Object... objects) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Deprecated
+    default void update(Object... objects) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Deprecated
+    default <T> void forEachMemoryObject(Class<T> type, Consumer<T> consumer) {
+        throw new UnsupportedOperationException("Deprecated");
+    }
+
+    @Deprecated
+    default void forEachMemoryObject(Consumer<Object> consumer) {
+        throw new UnsupportedOperationException("Deprecated");
     }
 
 }

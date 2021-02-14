@@ -1,18 +1,29 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
+import org.evrete.api.FactHandleVersioned;
+import org.evrete.api.FieldToValue;
+import org.evrete.api.SharedBetaFactStorage;
+import org.evrete.api.spi.InnerFactMemory;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
-class FieldsMemoryBucket implements Memory {
+import java.util.function.Consumer;
+
+class FieldsMemoryBucket extends MemoryComponent implements InnerFactMemory {
     private final SharedBetaFactStorage fieldData;
     private final AlphaBucketMeta alphaMask;
 
-    FieldsMemoryBucket(SessionMemory runtime, FieldsKey typeFields, AlphaBucketMeta alphaMask) {
+    FieldsMemoryBucket(MemoryComponent runtime, FieldsKey typeFields, AlphaBucketMeta alphaMask) {
+        super(runtime);
         this.alphaMask = alphaMask;
-        this.fieldData = runtime.newSharedKeyStorage(typeFields);
+        this.fieldData = memoryFactory.newBetaStorage(typeFields);
     }
 
-    public void clear() {
+    @Override
+    protected void forEachChildComponent(Consumer<MemoryComponent> consumer) {
+    }
+
+    @Override
+    protected void clearLocalData() {
         fieldData.clear();
     }
 
@@ -25,12 +36,20 @@ class FieldsMemoryBucket implements Memory {
         fieldData.commitChanges();
     }
 
-    void insert(RuntimeFact fact) {
-        if (alphaMask.test(fact)) {
-            fieldData.insert(fact);
+    void insert(FactHandleVersioned handle, FieldToValue values, boolean[] alphaTests) {
+        if (alphaMask.test(alphaTests)) {
+            fieldData.insert(handle, values);
         }
     }
 
+    @Override
+    public void insert(FactHandleVersioned fact, FieldToValue values) {
+        if (alphaMask.test(values)) {
+            fieldData.insert(fact, values);
+        }
+    }
+
+    /*
     void delete(ReIterable<? extends RuntimeFact> facts) {
         ReIterator<? extends RuntimeFact> it = facts.iterator();
 
@@ -44,6 +63,7 @@ class FieldsMemoryBucket implements Memory {
             fieldData.delete(fact);
         }
     }
+*/
 
     @Override
     public String toString() {

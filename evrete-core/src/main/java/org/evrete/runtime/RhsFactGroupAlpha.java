@@ -1,20 +1,18 @@
 package org.evrete.runtime;
 
+import org.evrete.api.FactHandleVersioned;
 import org.evrete.api.ReIterator;
-import org.evrete.api.RuntimeFact;
 
-//TODO !!!! optimize by preconfiguring main and delta iterators
-public class RhsFactGroupAlpha implements RhsFactGroup {
+//TODO optimize by preconfiguring main and delta iterators
+//TODO !!!! use RuntimeAware as parent class
+public class RhsFactGroupAlpha extends AbstractRhsFactGroup implements RhsFactGroup {
     private final RhsFactGroupDescriptor descriptor;
     private final RuntimeFactTypePlain[] types;
-    private final int lastIndex;
-    private final RuntimeFact[] state;
 
-    RhsFactGroupAlpha(RuntimeRuleImpl rule, RhsFactGroupDescriptor descriptor, RuntimeFact[][] factState) {
+    RhsFactGroupAlpha(SessionMemory runtime, RhsFactGroupDescriptor descriptor, RuntimeFactTypePlain[] types, FactIterationState[][] factState) {
+        super(runtime, factState[descriptor.getFactGroupIndex()]);
         this.descriptor = descriptor;
-        this.types = rule.resolve(RuntimeFactTypePlain.class, descriptor.getTypes());
-        this.state = factState[descriptor.getFactGroupIndex()];
-        this.lastIndex = types.length - 1;
+        this.types = types;
     }
 
     @Override
@@ -56,7 +54,8 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
         }
     }
 
-    private boolean next(int index, ReIterator<RuntimeFact> it) {
+/*
+    private boolean next(int index, ReIterator<FactHandle> it) {
         RuntimeFact fact = it.next();
         if (fact.isDeleted()) {
             it.remove();
@@ -66,18 +65,20 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
             return true;
         }
     }
+*/
+
 
     private void runDelta(int index, boolean hasDelta, Runnable r) {
         PlainMemory memory = types[index].getSource();
-        ReIterator<RuntimeFact> it;
-
+        ReIterator<FactHandleVersioned> it;
+        FactIterationState state = this.state[index];
         if (index == lastIndex) {
             //Last
             // Main iterator
             it = memory.mainIterator();
             if (hasDelta && it.reset() > 0) {
                 while (it.hasNext()) {
-                    if (next(index, it)) {
+                    if (next(state, it)) {
                         r.run();
                     }
                 }
@@ -87,7 +88,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
             it = memory.deltaIterator();
             if (it.reset() > 0) {
                 while (it.hasNext()) {
-                    if (next(index, it)) {
+                    if (next(state, it)) {
                         r.run();
                     }
                 }
@@ -97,7 +98,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
             it = memory.mainIterator();
             if (it.reset() > 0) {
                 while (it.hasNext()) {
-                    if (next(index, it)) {
+                    if (next(state, it)) {
                         runDelta(index + 1, hasDelta, r);
                     }
                 }
@@ -107,7 +108,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
             it = memory.deltaIterator();
             if (it.reset() > 0) {
                 while (it.hasNext()) {
-                    if (next(index, it)) {
+                    if (next(state, it)) {
                         runDelta(index + 1, true, r);
                     }
                 }
@@ -117,7 +118,8 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
 
     private void runFull(int index, Runnable r) {
         PlainMemory memory = types[index].getSource();
-        ReIterator<RuntimeFact> it;
+        ReIterator<FactHandleVersioned> it;
+        FactIterationState state = this.state[index];
 
         if (index == lastIndex) {
             //Last
@@ -125,7 +127,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
             it = memory.mainIterator();
             if (it.reset() > 0) {
                 while (it.hasNext()) {
-                    if (next(index, it)) {
+                    if (next(state, it)) {
                         r.run();
                     }
                 }
@@ -135,7 +137,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
             it = memory.deltaIterator();
             if (it.reset() > 0) {
                 while (it.hasNext()) {
-                    if (next(index, it)) {
+                    if (next(state, it)) {
                         r.run();
                     }
                 }
@@ -145,7 +147,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
             it = memory.mainIterator();
             if (it.reset() > 0) {
                 while (it.hasNext()) {
-                    if (next(index, it)) {
+                    if (next(state, it)) {
                         runFull(index + 1, r);
                     }
                 }
@@ -155,7 +157,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
             it = memory.deltaIterator();
             if (it.reset() > 0) {
                 while (it.hasNext()) {
-                    if (next(index, it)) {
+                    if (next(state, it)) {
                         runFull(index + 1, r);
                     }
                 }
@@ -165,14 +167,15 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
 
     private void runKnown(int index, Runnable r) {
         PlainMemory memory = types[index].getSource();
-        final ReIterator<RuntimeFact> it = memory.mainIterator();
+        final ReIterator<FactHandleVersioned> it = memory.mainIterator();
+        FactIterationState state = this.state[index];
 
         if (index == lastIndex) {
             //Last
             // Main iterator
             if (it.reset() > 0) {
                 while (it.hasNext()) {
-                    if (next(index, it)) {
+                    if (next(state, it)) {
                         r.run();
                     }
                 }
@@ -181,7 +184,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
             // Main iterator
             if (it.reset() > 0) {
                 while (it.hasNext()) {
-                    if (next(index, it)) {
+                    if (next(state, it)) {
                         runKnown(index + 1, r);
                     }
                 }

@@ -4,5 +4,5 @@ public interface RuntimeRule extends Rule {
 
     RuntimeRule addImport(String imp);
 
-    StatefulSession getRuntime();
+    KnowledgeSession<?> getRuntime();
 }

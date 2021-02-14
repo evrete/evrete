@@ -1,5 +1,6 @@
 package org.evrete;
 
+import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
 import org.evrete.api.ValuesPredicate;
 import org.evrete.classes.TypeA;
@@ -7,8 +8,6 @@ import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.classes.TypeD;
 import org.evrete.helper.RhsAssert;
-import org.evrete.runtime.KnowledgeImpl;
-import org.evrete.runtime.StatefulSessionImpl;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +25,7 @@ import static org.evrete.api.FactBuilder.fact;
 
 class PredicatesTests {
     private static KnowledgeService service;
-    private KnowledgeImpl knowledge;
+    private Knowledge knowledge;
 
     @BeforeAll
     static void setUpClass() {
@@ -40,7 +39,7 @@ class PredicatesTests {
 
     @BeforeEach
     void init() {
-        knowledge = (KnowledgeImpl) service.newKnowledge();
+        knowledge = service.newKnowledge();
     }
 
     @Test
@@ -148,7 +147,7 @@ class PredicatesTests {
                 .where(p3, "$c.i", "$a.l")
                 .execute();
 
-        StatefulSessionImpl s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession();
 
         TypeA a = new TypeA("A");
         a.setI(1);
@@ -371,7 +370,7 @@ class PredicatesTests {
                 .where(rule2_3, "$b.f")
                 .execute(rhsAssert2);
 
-        StatefulSessionImpl s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession();
 
         TypeA a = new TypeA("A");
         a.setAllNumeric(0);
@@ -436,7 +435,7 @@ class PredicatesTests {
                         }
                 );
 
-        StatefulSessionImpl s = knowledge.createSession();
+        StatefulSession s = knowledge.createSession();
 
         TypeA a1 = new TypeA("A3");
         a1.setI(3);

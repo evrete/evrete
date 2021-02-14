@@ -134,18 +134,17 @@ public class AlphaConditions implements Copyable<AlphaConditions>, EvaluationLis
                 //Unknown condition
                 FieldReference[] descriptor = alphaPredicate.descriptor();
 
-
-                int[] valueIndices = new int[descriptor.length];
-                for (int i = 0; i < valueIndices.length; i++) {
+                ActiveField[] activeDescriptor = new ActiveField[descriptor.length];
+                for (int i = 0; i < descriptor.length; i++) {
                     FieldReference ref = descriptor[i];
                     ActiveField af = runtime.getCreateActiveField(ref.field());
                     assert af.getDelegate().equals(ref.field());
-                    valueIndices[i] = af.getValueIndex();
+                    activeDescriptor[i] = af;
                 }
 
 
-                found = new AlphaEvaluator(existing.data.length, alphaPredicate);
-                found.remap(valueIndices);
+                found = new AlphaEvaluator(existing.data.length, alphaPredicate, activeDescriptor);
+                //found.remap(valueIndices);
                 existing.append(found);
                 listener.accept(found);
             }

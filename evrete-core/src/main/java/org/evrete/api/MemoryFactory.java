@@ -2,13 +2,17 @@ package org.evrete.api;
 
 import org.evrete.runtime.FieldsKey;
 
-public interface MemoryCollections {
+import java.util.function.BiPredicate;
+
+public interface MemoryFactory {
 
     KeysStore newKeyStore(int[] factTypeCounts);
 
     SharedBetaFactStorage newBetaStorage(FieldsKey typeFields);
 
     SharedPlainFactStorage newPlainStorage();
+
+    <Z> FactStorage<Z> newFactStorage(Type<?> type, Class<Z> storageClass, BiPredicate<Z, Z> identityFunction);
 
     default <Z> KeysStore newKeyStore(Z[][] grouping) {
         int[] factTypeCounts = new int[grouping.length];

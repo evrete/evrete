@@ -170,7 +170,7 @@ public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
     }
 
     public RhsAssert assertCount(int total) {
-        assert callCounter.get() == total : "Actual: " + callCounter.get();
+        assert callCounter.get() == total : "Actual: " + callCounter.get() + " vs expected " + total;
         return this;
     }
 

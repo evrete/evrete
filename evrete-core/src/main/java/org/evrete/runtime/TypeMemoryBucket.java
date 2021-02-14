@@ -1,28 +1,47 @@
 package org.evrete.runtime;
 
-import org.evrete.api.ReIterable;
+import org.evrete.api.FactHandleVersioned;
+import org.evrete.api.FieldToValue;
 import org.evrete.api.ReIterator;
-import org.evrete.api.RuntimeFact;
 import org.evrete.api.SharedPlainFactStorage;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
-class TypeMemoryBucket implements PlainMemory {
+import java.util.function.Consumer;
+
+class TypeMemoryBucket extends MemoryComponent implements PlainMemory {
     private final SharedPlainFactStorage data;
     private final SharedPlainFactStorage delta;
     private final AlphaBucketMeta alphaMask;
 
-    TypeMemoryBucket(SessionMemory runtime, AlphaBucketMeta alphaMask) {
-        this.data = runtime.newSharedPlainStorage();
-        this.delta = runtime.newSharedPlainStorage();
+    TypeMemoryBucket(MemoryComponent parent, AlphaBucketMeta alphaMask) {
+        super(parent);
+        this.data = memoryFactory.newPlainStorage();
+        this.delta = memoryFactory.newPlainStorage();
         this.alphaMask = alphaMask;
     }
 
-    void clear() {
-        this.data.clear();
-        this.delta.clear();
+    @Override
+    protected void forEachChildComponent(Consumer<MemoryComponent> consumer) {
+        // No child components
+
     }
 
+    @Override
+    protected void clearLocalData() {
+        data.clear();
+        delta.clear();
+    }
+
+    @Override
+    public void insert(FactHandleVersioned fact, FieldToValue values) {
+        if (alphaMask.test(values)) {
+            delta.insert(fact);
+        }
+    }
+
+/*
     <T extends RuntimeFact> void fillMainStorage(ReIterator<T> iterator) {
+        //throw new UnsupportedOperationException();
         if (iterator.reset() > 0) {
             while (iterator.hasNext()) {
                 RuntimeFact rto = iterator.next();
@@ -32,6 +51,7 @@ class TypeMemoryBucket implements PlainMemory {
             }
         }
     }
+*/
 
     public AlphaBucketMeta getAlphaMask() {
         return alphaMask;
@@ -51,12 +71,12 @@ class TypeMemoryBucket implements PlainMemory {
     }
 
     @Override
-    public ReIterator<RuntimeFact> mainIterator() {
+    public ReIterator<FactHandleVersioned> mainIterator() {
         return data.iterator();
     }
 
     @Override
-    public ReIterator<RuntimeFact> deltaIterator() {
+    public ReIterator<FactHandleVersioned> deltaIterator() {
         return delta.iterator();
     }
 
@@ -68,6 +88,7 @@ class TypeMemoryBucket implements PlainMemory {
         }
     }
 
+/*
     void insert(ReIterable<? extends RuntimeFact> facts) {
         ReIterator<? extends RuntimeFact> it = facts.iterator();
         delta.ensureExtraCapacity((int) it.reset());
@@ -75,12 +96,15 @@ class TypeMemoryBucket implements PlainMemory {
             insert(it.next());
         }
     }
+*/
 
-    void insert(RuntimeFact fact) {
-        if (alphaMask.test(fact)) {
-            delta.insert(fact);
+/*
+    void insert(FactHandle handle, boolean[] alphaTests) {
+        if (alphaMask.test(alphaTests)) {
+            delta.insert(handle);
         }
     }
+*/
 
     @Override
     public String toString() {

@@ -6,6 +6,8 @@ package org.evrete.api;
  */
 public interface TypeField extends Named {
 
+    int getId();
+
     Type<?> getDeclaringType();
 
     Class<?> getValueType();

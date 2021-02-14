@@ -1,9 +1,9 @@
 package org.evrete.runtime;
 
 import org.evrete.api.KeyReIterators;
-import org.evrete.api.Memory;
 import org.evrete.api.SharedBetaFactStorage;
 import org.evrete.api.ValueRow;
+import org.evrete.api.spi.InnerFactMemory;
 import org.evrete.util.ValueRowToArray;
 
 public class RuntimeFactTypeKeyed extends RuntimeFactType {
@@ -11,11 +11,11 @@ public class RuntimeFactTypeKeyed extends RuntimeFactType {
     private final KeyReIterators<ValueRow> keyIterators;
     private final KeyReIterators<ValueRow[]> mappedKeyIterators;
 
-    public RuntimeFactTypeKeyed(SessionMemory runtime, FactType other) {
+    public RuntimeFactTypeKeyed(AbstractKnowledgeSession runtime, FactType other) {
         super(runtime, other);
-        this.keyStorage = runtime.getBetaFactStorage(other);
-        this.keyIterators = runtime.getBetaFactStorage(other).keyIterators();
-        this.mappedKeyIterators = runtime.getBetaFactStorage(other).keyIterators(ValueRowToArray.SUPPLIER);
+        this.keyStorage = runtime.getMemory().getBetaFactStorage(other);
+        this.keyIterators = runtime.getMemory().getBetaFactStorage(other).keyIterators();
+        this.mappedKeyIterators = runtime.getMemory().getBetaFactStorage(other).keyIterators(ValueRowToArray.SUPPLIER);
     }
 
     public RuntimeFactTypeKeyed(RuntimeFactTypeKeyed other) {
@@ -27,7 +27,7 @@ public class RuntimeFactTypeKeyed extends RuntimeFactType {
 
 
     @Override
-    public Memory getSource() {
+    public InnerFactMemory getSource() {
         return keyStorage;
     }
 

@@ -15,6 +15,11 @@ public class TypeWrapper<T> implements Type<T> {
     }
 
     @Override
+    public final int getId() {
+        return this.delegate.getId();
+    }
+
+    @Override
     public final Class<T> getJavaType() {
         return delegate.getJavaType();
     }

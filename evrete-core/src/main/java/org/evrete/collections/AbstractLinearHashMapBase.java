@@ -1,3 +1,4 @@
+/*
 package org.evrete.collections;
 
 import java.util.function.BiPredicate;
@@ -70,3 +71,4 @@ public abstract class AbstractLinearHashMapBase<K, E extends HashEntry<K>> exten
     }
 
 }
+*/

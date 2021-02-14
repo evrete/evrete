@@ -2,10 +2,13 @@ package org.evrete.api;
 
 import org.evrete.runtime.RuleDescriptor;
 
+import java.util.Collection;
 import java.util.List;
 
 @SuppressWarnings("unused")
 public interface Knowledge extends RuntimeContext<Knowledge> {
+    Collection<KnowledgeSession<?>> getSessions();
+
     StatefulSession createSession();
 
     List<RuleDescriptor> getRuleDescriptors();
