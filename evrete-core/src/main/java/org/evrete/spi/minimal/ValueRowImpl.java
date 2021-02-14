@@ -35,14 +35,6 @@ class ValueRowImpl implements ValueRow {
         this.factCount++;
     }
 
-/*
-    long removeFact(RuntimeFact fact) {
-        assert fact.isDeleted();
-        this.factCount--;
-        return this.factCount;
-    }
-*/
-
     @Override
     public boolean isDeleted() {
         return deleted;

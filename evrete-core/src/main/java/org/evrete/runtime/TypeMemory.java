@@ -109,12 +109,7 @@ public final class TypeMemory extends MemoryComponent {
 
 
     void forEachValidEntry(BiConsumer<FactHandle, Object> consumer) {
-        forEachValidEntryInner(main0(), new BiConsumer<FactHandleVersioned, FactRecord>() {
-            @Override
-            public void accept(FactHandleVersioned v, FactRecord rec) {
-                consumer.accept(v.getHandle(), rec.instance);
-            }
-        });
+        forEachValidEntryInner(main0(), (v, rec) -> consumer.accept(v.getHandle(), rec.instance));
     }
 
     private void forEachValidEntryInner(SharedPlainFactStorage plainData, BiConsumer<FactHandleVersioned, FactRecord> consumer) {
@@ -126,8 +121,7 @@ public final class TypeMemory extends MemoryComponent {
             if (record != null && record.getVersion() == v.getVersion()) {
                 consumer.accept(v, record);
             } else {
-                // TODO !!!! uncomment when the rest is tested
-                //it.remove();
+                it.remove();
             }
         }
     }
@@ -219,53 +213,7 @@ public final class TypeMemory extends MemoryComponent {
                     }
                 }
             });
-
-
-
-/*
-            betaMemories
-                    .computeIfAbsent(key, k -> new FieldsMemory(TypeMemory.this, key))
-                    .onNewAlphaBucket(alphaMeta, existingFacts);
-*/
         }
-
-
-/*
-        if (inputBuffer.get(Action.INSERT).reset() > 0) {
-            //TODO develop a strategy
-            throw new UnsupportedOperationException("A new condition was created in an uncommitted memory.");
-        }
-
-        ReIterator<FactHandle> existingFacts = main0().iterator();
-        // 1. Update all the facts by applying new alpha flags
-        AlphaEvaluator[] newEvaluators = delta.getNewEvaluators();
-        if (newEvaluators.length > 0 && existingFacts.reset() > 0) {
-            while (existingFacts.hasNext()) {
-                RuntimeFactImpl fact = (RuntimeFactImpl) existingFacts.next();
-
-                fact.appendAlphaTest(newEvaluators);
-            }
-        }
-
-
-        // 2. Create and fill buckets
-        FieldsKey key = delta.getKey();
-        AlphaBucketMeta alphaMeta = delta.getNewAlphaMeta();
-        if (key.size() == 0) {
-            // 3. Create new alpha data bucket
-            TypeMemoryBucket newBucket = touchAlphaMemory(alphaMeta);
-            assert newBucket != null;
-            // Fill data
-            newBucket.fillMainStorage(existingFacts);
-        } else {
-            // 3. Process keyed/beta-memory
-            betaMemories
-                    .computeIfAbsent(key, k -> new FieldsMemory(getRuntime(), key))
-                    .onNewAlphaBucket(alphaMeta, existingFacts);
-        }
-
-        this.cachedAlphaEvaluators = alphaConditions.getPredicates(type).data;
-*/
     }
 
     private SharedPlainFactStorage main0() {

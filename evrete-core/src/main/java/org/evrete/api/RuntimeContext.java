@@ -4,6 +4,7 @@ import org.evrete.Configuration;
 import org.evrete.runtime.RuleDescriptor;
 
 import java.util.Comparator;
+import java.util.List;
 
 public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, FluentImports<RuntimeContext<?>>, PropertyAccess<C> {
     Comparator<Rule> SALIENCE_COMPARATOR = (rule1, rule2) -> -1 * Integer.compare(rule1.getSalience(), rule2.getSalience());
@@ -13,6 +14,8 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
     void setRuleComparator(Comparator<Rule> comparator);
 
     boolean ruleExists(String name);
+
+    List<RuleDescriptor> getRuleDescriptors();
 
     Kind getKind();
 

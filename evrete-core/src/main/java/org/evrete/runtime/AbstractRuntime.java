@@ -12,6 +12,7 @@ import org.evrete.runtime.evaluation.AlphaConditions;
 import org.evrete.runtime.evaluation.AlphaDelta;
 import org.evrete.runtime.evaluation.EvaluatorWrapper;
 import org.evrete.util.LazyInstance;
+import org.evrete.util.UnconditionalActivationManager;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -176,7 +177,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         }
     }
 
-    protected ActivationManager newActivationManager() {
+    ActivationManager newActivationManager() {
         try {
             return activationManagerFactory.getDeclaredConstructor().newInstance();
         } catch (Throwable e) {
@@ -222,16 +223,17 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         return alphaConditions.register(this, fields, beta, typePredicates, this::onNewAlphaBucket);
     }
 
-
     FactType buildFactType(FactTypeBuilder builder, Set<EvaluatorWrapper> alphaConditions, int inRuleId) {
         Type<?> type = builder.getType();
         Set<ActiveField> activeFields = getCreateActiveFields(builder.getBetaTypeFields());
         FieldsKey fieldsKey = new FieldsKey(builder.getType(), activeFields);
         AlphaBucketMeta alphaMask = getCreateAlphaMask(fieldsKey, builder.isBetaTypeBuilder(), alphaConditions);
+
         return new FactType(builder.getVar(), type, alphaMask, fieldsKey, inRuleId);
     }
 
 
+    @Override
     public List<RuleDescriptor> getRuleDescriptors() {
         return ruleDescriptors;
     }
@@ -280,25 +282,6 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         return service.getLiteralRhsProvider();
     }
 
-/*
-    <Z> KeysStore newKeysStore(Z[][] grouping) {
-        return collectionsService.get().newKeyStore(grouping);
-    }
-
-    SharedPlainFactStorage newSharedPlainStorage() {
-        return collectionsService.get().newPlainStorage();
-    }
-
-    SharedBetaFactStorage newSharedKeyStorage(FieldsKey fieldsKey) {
-        return collectionsService.get().newBetaStorage(fieldsKey);
-    }
-
-    @SuppressWarnings("unchecked")
-    <H extends FactHandle> FactStorage<InnerFact, H> newFactStorage(Type<?> type, BiPredicate<InnerFact, InnerFact> identityFunction) {
-        return (FactStorage<InnerFact, H>) collectionsService.get().newFactStorage(type, InnerFact.class, identityFunction);
-    }
-*/
-
     @Override
     public final synchronized RuleDescriptor compileRule(RuleBuilder<?> ruleBuilder) {
         if (!this.ruleBuilders.remove(ruleBuilder)) {
@@ -321,9 +304,6 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
 
     public ExpressionResolver getExpressionResolver() {
         return expressionResolver.get();
-    }
-
-    static class UnconditionalActivationManager implements ActivationManager {
     }
 
 }
