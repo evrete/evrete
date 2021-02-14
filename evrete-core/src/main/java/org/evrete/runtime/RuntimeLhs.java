@@ -13,16 +13,14 @@ public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContex
     private final Collection<BetaEndNode> allBetaEndNodes = new ArrayList<>();
     private final Function<String, int[]> name2indices;
     private final RuntimeRuleImpl rule;
-    private final SessionMemory workingMemory;
-    private final WorkingMemory workingMemory1;
+    private final WorkingMemory workingMemory;
 
     RuntimeLhs(RuntimeRuleImpl rule, LhsDescriptor descriptor) {
         super(rule, descriptor);
         this.name2indices = descriptor.getNameIndices();
         this.allBetaEndNodes.addAll(getEndNodes());
         this.rule = rule;
-        this.workingMemory = rule.getRuntime().getMemory();
-        this.workingMemory1 = rule.getRuntime();
+        this.workingMemory = rule.getRuntime();
     }
 
     static RuntimeLhs factory(RuntimeRuleImpl rule, LhsDescriptor descriptor) {
@@ -54,7 +52,7 @@ public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContex
         for (FactIterationState[] arr : factState) {
             for (FactIterationState state : arr) {
                 if (state.value == obj) {
-                    workingMemory1.update(state.handle, state.value);
+                    workingMemory.update(state.handle, state.value);
                     return this;
                 }
             }
@@ -69,7 +67,7 @@ public abstract class RuntimeLhs extends AbstractRuntimeLhs implements RhsContex
             for (FactIterationState state : arr) {
                 if (state.value == obj) {
                     //state.typeMemory.bufferDelete(state.handle);
-                    workingMemory1.delete(state.handle);
+                    workingMemory.delete(state.handle);
                     return this;
                 }
             }

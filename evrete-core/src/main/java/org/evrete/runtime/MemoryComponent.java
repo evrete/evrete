@@ -2,10 +2,11 @@ package org.evrete.runtime;
 
 import org.evrete.Configuration;
 import org.evrete.api.MemoryFactory;
+import org.evrete.api.spi.InnerFactMemory;
 
 import java.util.function.Consumer;
 
-abstract class MemoryComponent {
+abstract class MemoryComponent implements InnerFactMemory {
     protected final MemoryFactory memoryFactory;
     protected final Configuration configuration;
 

@@ -43,7 +43,7 @@ public final class TestUtils {
 
     public static Collection<FactEntry> sessionObjects(StatefulSession s) {
         Collection<FactEntry> col = new LinkedList<>();
-        s.forEachFactEntry(new BiConsumer<FactHandle, Object>() {
+        s.forEachFact(new BiConsumer<FactHandle, Object>() {
             @Override
             public void accept(FactHandle handle, Object fact) {
                 col.add(new FactEntry(handle, fact));
@@ -54,7 +54,7 @@ public final class TestUtils {
 
     public static <T> Collection<FactEntry> sessionObjects(StatefulSession s, Class<T> type) {
         Collection<FactEntry> collection = new LinkedList<>();
-        s.forEachFactEntry((handle, fact) -> {
+        s.forEachFact((handle, fact) -> {
             if (fact.getClass().equals(type)) {
                 collection.add(new FactEntry(handle, fact));
             }

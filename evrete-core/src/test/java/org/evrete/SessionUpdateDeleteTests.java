@@ -487,7 +487,7 @@ class SessionUpdateDeleteTests {
         s.fire();
 
         AtomicInteger primeCounter = new AtomicInteger();
-        s.forEachFactEntry((h, o) -> primeCounter.incrementAndGet());
+        s.forEachFact((h, o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25 : "Actual: " + primeCounter.get(); // There are 25 prime numbers in the range [2...100]
         s.close();
@@ -519,7 +519,7 @@ class SessionUpdateDeleteTests {
         s.fire();
 
         AtomicInteger primeCounter = new AtomicInteger();
-        s.forEachFactEntry((h, o) -> primeCounter.incrementAndGet());
+        s.forEachFact((h, o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25 : "Actual: " + primeCounter.get(); // There are 25 prime numbers in the range [2...100]
         s.close();

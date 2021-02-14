@@ -32,8 +32,8 @@ public class FieldsMemory extends MemoryComponent implements InnerFactMemory {
     }
 
     @Override
-    public void insert(FactHandleVersioned fact, FieldToValue values) {
-        alphaBuckets.forEach(bucket -> bucket.insert(fact, values));
+    public void insert(FactHandleVersioned fact, FieldToValue key) {
+        alphaBuckets.forEach(bucket -> bucket.insert(fact, key));
     }
 
     public SharedBetaFactStorage get(AlphaBucketMeta mask) {

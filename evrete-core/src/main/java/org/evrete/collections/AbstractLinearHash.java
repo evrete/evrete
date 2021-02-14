@@ -241,7 +241,6 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         }
     }
 
-    //TODO !!! very unsafe public method
     public void markDeleted(int addr) {
         if (!deletedIndices[addr]) {
             deletedIndices[addr] = true;

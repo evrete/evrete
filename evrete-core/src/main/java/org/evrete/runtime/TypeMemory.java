@@ -6,7 +6,6 @@ import org.evrete.api.spi.InnerFactMemory;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaDelta;
-import org.evrete.util.NextIntSupplier;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -15,10 +14,8 @@ import java.util.logging.Logger;
 
 public final class TypeMemory extends MemoryComponent {
     private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
-    //private final AlphaConditions alphaConditions;
     private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
     private final ArrayOf<TypeMemoryBucket> alphaBuckets;
-    //private final ActionQueue inputBuffer = new ActionQueue();
     private final FactStorage<FactRecord> factStorage;
     private final Type<?> type;
 
@@ -41,7 +38,6 @@ public final class TypeMemory extends MemoryComponent {
 
     }
 
-    //TODO !!! rename
     FactHandle registerNewFact(FactRecord innerFact) {
         return this.factStorage.insert(innerFact);
     }
@@ -52,7 +48,8 @@ public final class TypeMemory extends MemoryComponent {
 
     @Override
     protected void forEachChildComponent(Consumer<MemoryComponent> consumer) {
-        throw new UnsupportedOperationException();
+        alphaBuckets.forEach(consumer);
+        betaMemories.values().forEach(consumer);
     }
 
     @Override
@@ -64,16 +61,16 @@ public final class TypeMemory extends MemoryComponent {
         return Collections.unmodifiableSet(betaMemories.keySet());
     }
 
-    void processMemoryChange(Action action, FactHandle handle, FactRecord factRecord, NextIntSupplier insertCounter) {
+    void processMemoryChange(Action action, FactHandle handle, FactRecord factRecord) {
         switch (action) {
             case RETRACT:
                 factStorage.delete(handle);
                 return;
             case INSERT:
-                performInsert(new FactHandleVersioned(handle), factRecord, insertCounter);
+                insert(new FactHandleVersioned(handle), factRecord);
                 return;
             case UPDATE:
-                performUpdate(handle, factRecord, insertCounter);
+                performUpdate(handle, factRecord);
                 return;
             default:
                 throw new IllegalStateException();
@@ -85,15 +82,25 @@ public final class TypeMemory extends MemoryComponent {
         betaMemories.values().forEach(consumer);
     }
 
-    // TODO !!!! optimize
-    private void performInsert(FactHandleVersioned handle, FactRecord factRecord, NextIntSupplier insertCounter) {
-        forEachSubComponent(im -> {
-            im.insert(handle, factRecord);
-            insertCounter.next();
-        });
+
+    @Override
+    // TODO !!!! optimize by caching components as an array
+    public void insert(FactHandleVersioned fact, FieldToValue key) {
+        forEachSubComponent(im -> im.insert(fact, key));
     }
 
-    private void performUpdate(FactHandle handle, FactRecord factRecord, NextIntSupplier insertCounter) {
+    @Override
+    public void commitChanges() {
+        for (TypeMemoryBucket bucket : this.alphaBuckets.data) {
+            bucket.commitChanges();
+        }
+
+        for (FieldsMemory fm : this.betaMemories.values()) {
+            fm.commitDeltas();
+        }
+    }
+
+    private void performUpdate(FactHandle handle, FactRecord factRecord) {
         // Reading the previous version
         FactRecord previous = factStorage.getFact(handle);
         if (previous == null) {
@@ -103,7 +110,7 @@ public final class TypeMemory extends MemoryComponent {
             factRecord.updateVersion(newVersion);
             factStorage.update(handle, factRecord);
             FactHandleVersioned versioned = new FactHandleVersioned(handle, newVersion);
-            performInsert(versioned, factRecord, insertCounter);
+            insert(versioned, factRecord);
         }
     }
 
@@ -126,7 +133,6 @@ public final class TypeMemory extends MemoryComponent {
         }
     }
 
-
     public final FieldsMemory get(FieldsKey fields) {
         FieldsMemory fm = betaMemories.get(fields);
         if (fm == null) {
@@ -136,7 +142,7 @@ public final class TypeMemory extends MemoryComponent {
         }
     }
 
-    void commitDeltas() {
+    void commitDeltas1() {
         for (TypeMemoryBucket bucket : this.alphaBuckets.data) {
             bucket.commitChanges();
         }
@@ -189,12 +195,9 @@ public final class TypeMemory extends MemoryComponent {
             TypeMemoryBucket newBucket = touchAlphaMemory(alphaMeta);
             assert newBucket != null;
             // Fill data
-            forEachValidEntryInner(main0(), new BiConsumer<FactHandleVersioned, FactRecord>() {
-                @Override
-                public void accept(FactHandleVersioned fhv, FactRecord rec) {
-                    if (meta.test(rec)) {
-                        newBucket.getData().insert(fhv);
-                    }
+            forEachValidEntryInner(main0(), (fhv, rec) -> {
+                if (meta.test(rec)) {
+                    newBucket.getData().insert(fhv);
                 }
             });
         } else {
@@ -203,14 +206,11 @@ public final class TypeMemory extends MemoryComponent {
             FieldsMemory m = getCreate(key);
             FieldsMemoryBucket bucket = m.touchMemory(meta);
             assert bucket != null;
-            forEachValidEntryInner(main0(), new BiConsumer<FactHandleVersioned, FactRecord>() {
-                @Override
-                public void accept(FactHandleVersioned fhv, FactRecord rec) {
-                    if (meta.test(rec)) {
-                        //TODO !!! implement
-                        throw new UnsupportedOperationException();
-                        //bucket.getData().insert(fhv);
-                    }
+            forEachValidEntryInner(main0(), (fhv, rec) -> {
+                if (meta.test(rec)) {
+                    //TODO !!! implement
+                    throw new UnsupportedOperationException();
+                    //bucket.getData().insert(fhv);
                 }
             });
         }

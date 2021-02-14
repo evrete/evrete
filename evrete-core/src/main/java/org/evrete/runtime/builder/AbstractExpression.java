@@ -6,7 +6,7 @@ import org.evrete.runtime.AbstractRuntime;
 import java.util.function.Function;
 
 
-//TODO !!! implement and test the equals() in subclasses (it affects alpha memory allocation)
+//TODO implement and test the equals() in subclasses (it affects alpha memory allocation)
 public abstract class AbstractExpression implements ComplexityObject {
     private final double complexity;
 

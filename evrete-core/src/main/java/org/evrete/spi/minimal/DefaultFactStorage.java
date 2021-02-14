@@ -2,10 +2,10 @@ package org.evrete.spi.minimal;
 
 import org.evrete.api.FactHandle;
 import org.evrete.api.FactStorage;
+import org.evrete.api.ReIterator;
 import org.evrete.api.Type;
 import org.evrete.collections.AbstractLinearHash;
 
-import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
@@ -45,7 +45,7 @@ class DefaultFactStorage<T> implements FactStorage<T> {
     }
 
     @Override
-    public Iterator<T> iterator() {
+    public ReIterator<T> iterator() {
         return collection.iterator(ITERATOR_MAPPER);
     }
 

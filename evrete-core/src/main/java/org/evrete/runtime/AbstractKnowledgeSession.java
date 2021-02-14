@@ -5,7 +5,6 @@ import org.evrete.runtime.async.Completer;
 import org.evrete.runtime.async.ForkJoinExecutor;
 import org.evrete.runtime.async.RuleHotDeploymentTask;
 import org.evrete.runtime.async.RuleMemoryInsertTask;
-import org.evrete.util.NextIntSupplier;
 
 import java.util.*;
 import java.util.function.BooleanSupplier;
@@ -260,23 +259,18 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
     }
 
 
-    /**
-     * @return count of actual memory inserts (both successful INSERT and UPDATE operations)
-     */
-    private int processBuffer() {
-        NextIntSupplier insertCounter = new NextIntSupplier();
+    private void processBuffer() {
         Iterator<AtomicMemoryAction> it = buffer.actions();
         while (it.hasNext()) {
             AtomicMemoryAction a = it.next();
             int typeId = a.handle.getTypeId();
             TypeMemory tm = getMemory().get(typeId);
-            tm.processMemoryChange(a.action, a.handle, a.factRecord, insertCounter);
+            tm.processMemoryChange(a.action, a.handle, a.factRecord);
         }
         buffer.clear();
-        return insertCounter.get();
     }
 
     private void commitInserts() {
-        memory.forEachMemory(TypeMemory::commitDeltas);
+        memory.forEachMemory(TypeMemory::commitChanges);
     }
 }

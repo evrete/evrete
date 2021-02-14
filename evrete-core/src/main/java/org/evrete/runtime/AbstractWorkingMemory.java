@@ -72,11 +72,7 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
 
     @Override
     public final void delete(FactHandle handle) {
-        //TODO !!!! try without retrieving the fact
-        Object fact = getFact(handle);
-        if (fact != null) {
-            buffer.add(Action.RETRACT, handle, null);
-        }
+        buffer.add(Action.RETRACT, handle, null);
     }
 
     private FactRecord buildFactRecord(Type<?> type, Object instance) {
@@ -89,8 +85,7 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
         return record;
     }
 
-
-    public final void forEachFactEntry(BiConsumer<FactHandle, Object> consumer) {
+    public final void forEachFact(BiConsumer<FactHandle, Object> consumer) {
         memory.forEachFactEntry(consumer);
     }
 

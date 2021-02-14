@@ -34,9 +34,7 @@ public interface StatefulSession extends KnowledgeSession<StatefulSession> {
 
     void clear();
 
-    //TODO !!! rename method
-    void forEachFactEntry(BiConsumer<FactHandle, Object> consumer);
-
+    void forEachFact(BiConsumer<FactHandle, Object> consumer);
 
     @Deprecated
     default void deleteAndFire(Object... objects) {

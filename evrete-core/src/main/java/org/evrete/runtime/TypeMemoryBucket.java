@@ -33,8 +33,8 @@ class TypeMemoryBucket extends MemoryComponent implements PlainMemory {
     }
 
     @Override
-    public void insert(FactHandleVersioned fact, FieldToValue values) {
-        if (alphaMask.test(values)) {
+    public void insert(FactHandleVersioned fact, FieldToValue key) {
+        if (alphaMask.test(key)) {
             delta.insert(fact);
         }
     }
