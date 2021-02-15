@@ -13,7 +13,7 @@ import java.util.function.ToIntFunction;
 
 class DefaultFactStorage<T> implements FactStorage<T> {
     private final TupleCollection<T> collection;
-    private final Function<Tuple<T>, T> ITERATOR_MAPPER = t -> t.object;
+    private final Function<Tuple<T>, FactStorage.Entry<T>> ITERATOR_MAPPER = t -> t;
 
     DefaultFactStorage(Type<?> type, BiPredicate<T, T> identityFunction) {
         this.collection = new TupleCollection<>(type, identityFunction);
@@ -45,7 +45,7 @@ class DefaultFactStorage<T> implements FactStorage<T> {
     }
 
     @Override
-    public ReIterator<T> iterator() {
+    public ReIterator<Entry<T>> iterator() {
         return collection.iterator(ITERATOR_MAPPER);
     }
 
@@ -121,7 +121,7 @@ class DefaultFactStorage<T> implements FactStorage<T> {
         }
     }
 
-    static class Tuple<Z> {
+    static class Tuple<Z> implements FactStorage.Entry<Z> {
         private final FactHandleImpl handle;
         private final Z object;
 
@@ -130,8 +130,14 @@ class DefaultFactStorage<T> implements FactStorage<T> {
             this.object = object;
         }
 
+        @Override
         public FactHandle getHandle() {
             return handle;
+        }
+
+        @Override
+        public Z getInstance() {
+            return object;
         }
 
         public Object getFact() {

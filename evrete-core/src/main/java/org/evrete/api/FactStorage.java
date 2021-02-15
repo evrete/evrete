@@ -1,6 +1,6 @@
 package org.evrete.api;
 
-public interface FactStorage<T> extends ReIterable<T> {
+public interface FactStorage<T> extends ReIterable<FactStorage.Entry<T>> {
 
     /**
      * <p>
@@ -21,4 +21,9 @@ public interface FactStorage<T> extends ReIterable<T> {
 
     void clear();
 
+    interface Entry<Z> {
+        FactHandle getHandle();
+
+        Z getInstance();
+    }
 }

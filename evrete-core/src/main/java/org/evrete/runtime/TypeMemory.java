@@ -91,13 +91,7 @@ public final class TypeMemory extends MemoryComponent {
 
     @Override
     public void commitChanges() {
-        for (TypeMemoryBucket bucket : this.alphaBuckets.data) {
-            bucket.commitChanges();
-        }
-
-        for (FieldsMemory fm : this.betaMemories.values()) {
-            fm.commitChanges();
-        }
+        forEachSubComponent(InnerFactMemory::commitChanges);
     }
 
     private void performUpdate(FactHandle handle, FactRecord factRecord) {
@@ -145,7 +139,6 @@ public final class TypeMemory extends MemoryComponent {
     FactRecord getFact(FactHandle handle) {
         return factStorage.getFact(handle);
     }
-
 
     public PlainMemory get(AlphaBucketMeta alphaMask) {
         return alphaBuckets.getChecked(alphaMask.getBucketIndex());
@@ -210,10 +203,6 @@ public final class TypeMemory extends MemoryComponent {
         return alphaBuckets.data[0].getData();
     }
 
-    private SharedPlainFactStorage delta0() {
-        return alphaBuckets.data[0].getDelta();
-    }
-
     private FieldsMemory getCreate(FieldsKey key) {
         synchronized (this.betaMemories) {
             FieldsMemory m = this.betaMemories.get(key);
@@ -234,19 +223,18 @@ public final class TypeMemory extends MemoryComponent {
      * @param newField newly created field
      */
     final void onNewActiveField(ActiveField newField) {
-        for (SharedPlainFactStorage storage : new SharedPlainFactStorage[]{main0(), delta0()}) {
-            ReIterator<FactHandleVersioned> it = storage.iterator();
-            while (it.hasNext()) {
-                FactHandleVersioned rto = it.next();
-                FactHandle handle = rto.getHandle();
-                FactRecord rec = getFact(handle);
-                if (rec != null) {
-                    Object fieldValue = newField.readValue(rec.instance);
-                    rec.appendValue(newField, fieldValue);
-                    factStorage.update(handle, rec);
-                }
-            }
+        List<FactStorage.Entry<FactRecord>> data = new LinkedList<>();
 
+
+        ReIterator<FactStorage.Entry<FactRecord>> allFacts = factStorage.iterator();
+        while (allFacts.hasNext()) {
+            data.add(allFacts.next());
+        }
+
+        for (FactStorage.Entry<FactRecord> rec : data) {
+            Object fieldValue = newField.readValue(rec.getInstance().instance);
+            rec.getInstance().appendValue(newField, fieldValue);
+            factStorage.update(rec.getHandle(), rec.getInstance());
         }
     }
 }

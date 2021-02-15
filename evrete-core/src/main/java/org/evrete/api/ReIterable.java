@@ -28,6 +28,11 @@ public interface ReIterable<T> {
             public Z next() {
                 return mapper.apply(it.next());
             }
+
+            @Override
+            public String toString() {
+                return it.toString();
+            }
         };
     }
 }
