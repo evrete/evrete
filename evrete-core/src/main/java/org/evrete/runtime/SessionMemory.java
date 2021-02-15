@@ -28,7 +28,7 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
     }
 
     void forEachFactEntry(BiConsumer<FactHandle, Object> consumer) {
-        typedMemories.forEach(tm -> tm.forEachValidEntry(consumer));
+        typedMemories.forEach(tm -> tm.forEachEntry((handle, record) -> consumer.accept(handle, record.instance)));
     }
 
     @Override

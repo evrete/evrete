@@ -8,12 +8,6 @@ public abstract class AlphaBucketMeta {
     private static final AlphaEvaluator[] EMPTY_INDICES = new AlphaEvaluator[0];
     private static final boolean[] EMPTY_VALUES = new boolean[0];
     public static final AlphaBucketMeta NO_FIELDS_NO_CONDITIONS = new AlphaBucketMeta(0, EMPTY_INDICES, EMPTY_VALUES) {
-/*
-        @Override
-        public boolean test(RuntimeFact fact) {
-            return true;
-        }
-*/
     };
 
     private final int bucketIndex;
@@ -60,18 +54,6 @@ public abstract class AlphaBucketMeta {
         }
         return h;
     }
-
-    //@Override
-/*
-    public boolean test(RuntimeFact fact) {
-        boolean[] tests = fact.getAlphaTests();
-        for (AlphaEvaluator e : alphaEvaluators) {
-            int i = e.getUniqueId();
-            if (tests[i] != requiredValues[i]) return false;
-        }
-        return true;
-    }
-*/
 
     public boolean test(boolean[] tests) {
         int i;
@@ -134,13 +116,6 @@ public abstract class AlphaBucketMeta {
         public final boolean isEmpty() {
             return true;
         }
-
-/*
-        @Override
-        public final boolean test(RuntimeFact fact) {
-            return true;
-        }
-*/
     }
 
     private static final class Default extends AlphaBucketMeta {
@@ -148,5 +123,4 @@ public abstract class AlphaBucketMeta {
             super(bucketIndex, alphaEvaluators, requiredValues);
         }
     }
-
 }

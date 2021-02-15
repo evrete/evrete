@@ -35,7 +35,6 @@ public final class TypeMemory extends MemoryComponent {
             default:
                 throw new IllegalArgumentException("Invalid identity method '" + identityMethod + "' in the configuration. Expected values are '" + Configuration.IDENTITY_METHOD_EQUALS + "' or '" + Configuration.IDENTITY_METHOD_IDENTITY + "'");
         }
-
     }
 
     FactHandle registerNewFact(FactRecord innerFact) {
@@ -108,23 +107,10 @@ public final class TypeMemory extends MemoryComponent {
         }
     }
 
-
-    void forEachValidEntry(BiConsumer<FactHandle, Object> consumer) {
-        forEachValidEntryInner(main0(), (v, rec) -> consumer.accept(v.getHandle(), rec.instance));
-    }
-
-    private void forEachValidEntryInner(SharedPlainFactStorage plainData, BiConsumer<FactHandleVersioned, FactRecord> consumer) {
-        ReIterator<FactHandleVersioned> it = plainData.iterator();
-        while (it.hasNext()) {
-            FactHandleVersioned v = it.next();
-            FactHandle handle = v.getHandle();
-            FactRecord record = factStorage.getFact(handle);
-            if (record != null && record.getVersion() == v.getVersion()) {
-                consumer.accept(v, record);
-            } else {
-                it.remove();
-            }
-        }
+    void forEachEntry(BiConsumer<FactHandle, FactRecord> consumer) {
+        factStorage
+                .iterator()
+                .forEachRemaining(entry -> consumer.accept(entry.getHandle(), entry.getInstance()));
     }
 
     public final FieldsMemory get(FieldsKey fields) {
@@ -167,40 +153,32 @@ public final class TypeMemory extends MemoryComponent {
     }
 
     void onNewAlphaBucket(AlphaDelta delta) {
-        // 2. Create and fill buckets
+        // 1. Create and fill buckets
         FieldsKey key = delta.getKey();
         AlphaBucketMeta meta = delta.getNewAlphaMeta();
 
-
         AlphaBucketMeta alphaMeta = delta.getNewAlphaMeta();
         if (key.size() == 0) {
-            // 3. Create new alpha data bucket
+            // 2. Create new alpha data bucket
             TypeMemoryBucket newBucket = touchAlphaMemory(alphaMeta);
             assert newBucket != null;
             // Fill data
-            forEachValidEntryInner(main0(), (fhv, rec) -> {
+            forEachEntry((fh, rec) -> {
                 if (meta.test(rec)) {
-                    newBucket.getData().insert(fhv);
+                    newBucket.getData().insert(new FactHandleVersioned(fh, rec.getVersion()));
                 }
             });
         } else {
-
             // 3. Process keyed/beta-memory
             FieldsMemory m = getCreate(key);
             FieldsMemoryBucket bucket = m.touchMemory(meta);
             assert bucket != null;
-            forEachValidEntryInner(main0(), (fhv, rec) -> {
+            forEachEntry((fhv, rec) -> {
                 if (meta.test(rec)) {
-                    //TODO !!! implement
-                    throw new UnsupportedOperationException();
-                    //bucket.getData().insert(fhv);
+                    bucket.insert(new FactHandleVersioned(fhv, rec.getVersion()), rec);
                 }
             });
         }
-    }
-
-    private SharedPlainFactStorage main0() {
-        return alphaBuckets.data[0].getData();
     }
 
     private FieldsMemory getCreate(FieldsKey key) {
