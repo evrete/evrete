@@ -57,12 +57,6 @@ public class FieldsMemory extends MemoryComponent implements InnerFactMemory {
         }
     }
 
-    void commitDeltas() {
-        for (FieldsMemoryBucket bucket : alphaBuckets.data) {
-            bucket.commitChanges();
-        }
-    }
-
     FieldsMemoryBucket touchMemory(AlphaBucketMeta alphaMeta) {
         int bucketIndex = alphaMeta.getBucketIndex();
         if (alphaBuckets.isEmptyAt(bucketIndex)) {

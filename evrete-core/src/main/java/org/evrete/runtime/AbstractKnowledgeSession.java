@@ -132,12 +132,10 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
         }
     }
 
-    //@Override
     public RuntimeRule getRule(String name) {
         return Named.find(getRules(), name);
     }
 
-    //@Override
     public void close() {
         synchronized (this) {
             invalidateSession();

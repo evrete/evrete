@@ -96,7 +96,7 @@ public final class TypeMemory extends MemoryComponent {
         }
 
         for (FieldsMemory fm : this.betaMemories.values()) {
-            fm.commitDeltas();
+            fm.commitChanges();
         }
     }
 
@@ -139,16 +139,6 @@ public final class TypeMemory extends MemoryComponent {
             throw new IllegalArgumentException("No key memory exists for " + fields);
         } else {
             return fm;
-        }
-    }
-
-    void commitDeltas1() {
-        for (TypeMemoryBucket bucket : this.alphaBuckets.data) {
-            bucket.commitChanges();
-        }
-
-        for (FieldsMemory fm : this.betaMemories.values()) {
-            fm.commitDeltas();
         }
     }
 
@@ -235,27 +225,6 @@ public final class TypeMemory extends MemoryComponent {
         }
     }
 
-/*
-    private RuntimeFactImpl create(FactHandleTuple tuple) {
-        // Read values
-        Object[] values = new Object[cachedActiveFields.length];
-        for (int i = 0; i < cachedActiveFields.length; i++) {
-            values[i] = cachedActiveFields[i].readValue(tuple.value);
-        }
-
-        // Evaluate alpha conditions if necessary
-        if (cachedAlphaEvaluators.length > 0) {
-            boolean[] alphaTests = new boolean[cachedAlphaEvaluators.length];
-            for (AlphaEvaluator alpha : cachedAlphaEvaluators) {
-                alphaTests[alpha.getUniqueId()] = alpha.test(values);
-            }
-            return RuntimeFactImpl.factory(tuple, values, alphaTests);
-        } else {
-            return RuntimeFactImpl.factory(tuple, values);
-        }
-    }
-*/
-
     /**
      * <p>
      * Modifies existing facts by appending value of the newly
@@ -280,19 +249,4 @@ public final class TypeMemory extends MemoryComponent {
 
         }
     }
-
-    @Override
-    public String toString() {
-        StringBuilder s = new StringBuilder(1024);
-        for (TypeMemoryBucket b : alphaBuckets.data) {
-            s.append(b.getAlphaMask()).append("\n");
-            s.append("\tM:").append(b.getData()).append('\n');
-            s.append("\tD:").append(b.getDelta()).append('\n');
-            for (FieldsMemory fm : this.betaMemories.values()) {
-                s.append("\t\tFM:").append(fm).append('\n');
-            }
-        }
-        return s.toString();
-    }
-
 }
