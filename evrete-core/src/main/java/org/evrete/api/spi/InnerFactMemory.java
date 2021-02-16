@@ -5,7 +5,7 @@ import org.evrete.api.FieldToValue;
 
 public interface InnerFactMemory {
 
-    void insert(FactHandleVersioned fact, FieldToValue key);
+    void insert(FactHandleVersioned value, FieldToValue key);
 
     void commitChanges();
 }

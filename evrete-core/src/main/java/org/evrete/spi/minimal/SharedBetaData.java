@@ -120,8 +120,8 @@ class SharedBetaData implements SharedBetaFactStorage {
     }
 
     @Override
-    public void insert(FactHandleVersioned fact, FieldToValue key) {
-        insertInner(fact, key);
+    public void insert(FactHandleVersioned value, FieldToValue key) {
+        insertInner(value, key);
     }
 
     @Override

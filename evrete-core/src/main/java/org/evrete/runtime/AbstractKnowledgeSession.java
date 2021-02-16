@@ -269,6 +269,6 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
     }
 
     private void commitInserts() {
-        memory.forEachMemory(TypeMemory::commitChanges);
+        memory.commitChanges();
     }
 }

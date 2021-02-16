@@ -84,8 +84,8 @@ public final class TypeMemory extends MemoryComponent {
 
     @Override
     // TODO !!!! optimize by caching components as an array
-    public void insert(FactHandleVersioned fact, FieldToValue key) {
-        forEachSubComponent(im -> im.insert(fact, key));
+    public void insert(FactHandleVersioned value, FieldToValue key) {
+        forEachSubComponent(im -> im.insert(value, key));
     }
 
     @Override

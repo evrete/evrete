@@ -9,7 +9,6 @@ public class AlphaEvaluator implements Copyable<AlphaEvaluator>, EvaluationListe
     private final EvaluatorWrapper delegate;
 
     AlphaEvaluator(int uniqueId, EvaluatorWrapper e, ActiveField[] activeFields) {
-        //super(e);
         this.uniqueId = uniqueId;
         this.activeDescriptor = activeFields;
         this.delegate = e;
@@ -22,10 +21,7 @@ public class AlphaEvaluator implements Copyable<AlphaEvaluator>, EvaluationListe
     }
 
     public boolean test(FieldToValue values) {
-        return delegate.test((IntToValue) i -> {
-            ActiveField f = activeDescriptor[i];
-            return values.apply(f);
-        });
+        return delegate.test(i -> values.apply(activeDescriptor[i]));
     }
 
     @Override

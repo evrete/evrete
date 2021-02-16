@@ -36,10 +36,6 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
         return typedMemories.iterator();
     }
 
-    void forEachMemory(Consumer<TypeMemory> consumer) {
-        typedMemories.forEach(consumer);
-    }
-
     void touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
         Type<?> t = key.getType();
         get(t).touchMemory(key, alphaMeta);
@@ -88,14 +84,12 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
     }
 
     @Override
-    public void insert(FactHandleVersioned fact, FieldToValue key) {
-        //TODO override or provide a message
-        throw new UnsupportedOperationException();
+    public void insert(FactHandleVersioned value, FieldToValue key) {
+        throw new UnsupportedOperationException("Direct insert not supported");
     }
 
     @Override
     public void commitChanges() {
-        //TODO override or provide a message
-        throw new UnsupportedOperationException();
+        forEachChildComponent(MemoryComponent::commitChanges);
     }
 }

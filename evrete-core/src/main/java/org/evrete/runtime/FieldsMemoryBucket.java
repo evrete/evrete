@@ -37,9 +37,9 @@ class FieldsMemoryBucket extends MemoryComponent implements InnerFactMemory {
     }
 
     @Override
-    public void insert(FactHandleVersioned fact, FieldToValue key) {
+    public void insert(FactHandleVersioned value, FieldToValue key) {
         if (alphaMask.test(key)) {
-            fieldData.insert(fact, key);
+            fieldData.insert(value, key);
         }
     }
 

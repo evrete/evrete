@@ -55,15 +55,6 @@ public abstract class AlphaBucketMeta {
         return h;
     }
 
-    public boolean test(boolean[] tests) {
-        int i;
-        for (AlphaEvaluator e : alphaEvaluators) {
-            i = e.getUniqueId();
-            if (tests[i] != requiredValues[i]) return false;
-        }
-        return true;
-    }
-
     public boolean test(FieldToValue values) {
         int i;
         for (AlphaEvaluator e : alphaEvaluators) {
