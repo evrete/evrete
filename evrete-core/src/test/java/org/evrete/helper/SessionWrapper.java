@@ -27,6 +27,7 @@ public interface SessionWrapper {
                 session.dispose();
             }
 
+/*
             @Override
             public void retractAll() {
                 Collection<FactHandle> col = session.getFactHandles();
@@ -35,7 +36,9 @@ public interface SessionWrapper {
                     session.delete(fh);
                 }
                 session.fireAllRules();
+                //session.dispose();
             }
+*/
 
             @Override
             public Collection<Object> getMemoryObjects() {
@@ -66,17 +69,20 @@ public interface SessionWrapper {
                 session.close();
             }
 
+/*
             @Override
             public void retractAll() {
-                session.forEachMemoryObject(session::delete);
+                session.forEachFact((handle, o) -> session.delete(handle));
                 session.fire();
-                //session.clear();
             }
+*/
 
             @Override
             public Collection<Object> getMemoryObjects() {
+                Collection<FactEntry> entries = TestUtils.sessionObjects(session);
+
                 Collection<Object> collection = new LinkedList<>();
-                session.forEachMemoryObject(collection::add);
+                entries.forEach(factEntry -> collection.add(factEntry.getFact()));
                 return collection;
             }
         };
@@ -95,7 +101,7 @@ public interface SessionWrapper {
 
     void close();
 
-    void retractAll();
+    //void retractAll();
 
     Collection<Object> getMemoryObjects();
 }

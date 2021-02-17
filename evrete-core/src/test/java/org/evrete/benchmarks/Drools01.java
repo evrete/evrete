@@ -30,6 +30,7 @@ public class Drools01 extends DroolsBase {
             s.insert(o);
         }
         s.fire();
+        s.close();
     }
 
     @SuppressWarnings("unused")
@@ -48,6 +49,7 @@ public class Drools01 extends DroolsBase {
 
         private KnowledgeService service;
         private KieContainer dKnowledge;
+        private Knowledge eKnowledge;
         private SessionWrapper droolsSession;
         private SessionWrapper evreteSession;
 
@@ -57,6 +59,7 @@ public class Drools01 extends DroolsBase {
                     return droolsSession;
                 case Evrete:
                     return evreteSession;
+
                 default:
                     throw new IllegalStateException();
             }
@@ -64,8 +67,11 @@ public class Drools01 extends DroolsBase {
 
         @Setup(Level.Invocation)
         public void resetSessions() {
-            droolsSession.retractAll();
-            evreteSession.retractAll();
+            //droolsSession.retractAll();
+            //evreteSession.retractAll();
+            droolsSession = SessionWrapper.of(dKnowledge.newKieSession());
+            evreteSession = SessionWrapper.of(eKnowledge.createSession());
+
         }
 
         @Setup(Level.Iteration)
@@ -99,7 +105,7 @@ public class Drools01 extends DroolsBase {
         @Setup(Level.Trial)
         public void initKnowledge() {
             service = new KnowledgeService();
-            Knowledge eKnowledge = service.newKnowledge();
+            eKnowledge = service.newKnowledge();
             eKnowledge.newRule("sample01")
                     .forEach(
                             fact("$a", TypeA.class),

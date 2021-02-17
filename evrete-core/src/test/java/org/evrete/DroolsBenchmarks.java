@@ -2,6 +2,7 @@ package org.evrete;
 
 import org.evrete.benchmarks.Drools01;
 import org.junit.jupiter.api.Test;
+import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
@@ -16,8 +17,8 @@ class DroolsBenchmarks {
         Options opt = new OptionsBuilder()
                 .include(Drools01.class.getSimpleName())
                 .jvmArgsPrepend("-Djava.util.logging.config.file=src/test/resources/logging.properties")
-                //.result("benchmark.csv")
-                //.resultFormat(ResultFormatType.CSV)
+                .result("benchmark.csv")
+                .resultFormat(ResultFormatType.CSV)
                 .warmupIterations(iterations)
                 .warmupTime(duration)
                 .measurementIterations(iterations)
