@@ -30,7 +30,6 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     private final AlphaConditions alphaConditions;
     private final KnowledgeService service;
     private final ActiveFields activeFields;
-    //private final LazyInstance<MemoryCollections<?>> collectionsService = new LazyInstance<>(this::newCollectionsService);
     private final LazyInstance<ExpressionResolver> expressionResolver = new LazyInstance<>(this::newExpressionResolver);
     private final LazyInstance<TypeResolver> typeResolver = new LazyInstance<>(this::newTypeResolver);
     //private TypeResolver typeResolver;
@@ -195,7 +194,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         this.ruleComparator = ruleComparator;
     }
 
-    protected ForkJoinExecutor getExecutor() {
+    ForkJoinExecutor getExecutor() {
         return service.getExecutor();
     }
 
@@ -268,10 +267,6 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     @Override
     public Configuration getConfiguration() {
         return service.getConfiguration();
-    }
-
-    private MemoryFactory newCollectionsService() {
-        return service.getMemoryFactoryProvider().instance(this);
     }
 
     private ExpressionResolver newExpressionResolver() {
