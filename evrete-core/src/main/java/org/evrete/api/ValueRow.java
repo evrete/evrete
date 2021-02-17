@@ -4,6 +4,6 @@ public interface ValueRow extends ReIterable<FactHandleVersioned>, ReIterator<Fa
 
     boolean isDeleted();
 
-    Object get(int fieldIndex);
+    ValueHandle get1(int fieldIndex);
 
 }

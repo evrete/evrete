@@ -84,7 +84,7 @@ public final class TypeMemory extends MemoryComponent {
 
     @Override
     // TODO !!!! optimize by caching components as an array
-    public void insert(FactHandleVersioned value, FieldToValue key) {
+    public void insert(FactHandleVersioned value, FieldToValueHandle key) {
         forEachSubComponent(im -> im.insert(value, key));
     }
 
@@ -153,6 +153,8 @@ public final class TypeMemory extends MemoryComponent {
     }
 
     void onNewAlphaBucket(AlphaDelta delta) {
+        ValueResolver valueResolver = memoryFactory.getValueResolver();
+        ;
         // 1. Create and fill buckets
         FieldsKey key = delta.getKey();
         AlphaBucketMeta meta = delta.getNewAlphaMeta();
@@ -164,7 +166,7 @@ public final class TypeMemory extends MemoryComponent {
             assert newBucket != null;
             // Fill data
             forEachEntry((fh, rec) -> {
-                if (meta.test(rec)) {
+                if (meta.test(valueResolver, rec)) {
                     newBucket.getData().insert(new FactHandleVersioned(fh, rec.getVersion()));
                 }
             });
@@ -174,7 +176,7 @@ public final class TypeMemory extends MemoryComponent {
             FieldsMemoryBucket bucket = m.touchMemory(meta);
             assert bucket != null;
             forEachEntry((fhv, rec) -> {
-                if (meta.test(rec)) {
+                if (meta.test(valueResolver, rec)) {
                     bucket.insert(new FactHandleVersioned(fhv, rec.getVersion()), rec);
                 }
             });
@@ -211,7 +213,8 @@ public final class TypeMemory extends MemoryComponent {
 
         for (FactStorage.Entry<FactRecord> rec : data) {
             Object fieldValue = newField.readValue(rec.getInstance().instance);
-            rec.getInstance().appendValue(newField, fieldValue);
+            ValueHandle valueHandle = memoryFactory.getValueResolver().getValueHandle(newField.getValueType(), fieldValue);
+            rec.getInstance().appendValue(newField, valueHandle);
             factStorage.update(rec.getHandle(), rec.getInstance());
         }
     }

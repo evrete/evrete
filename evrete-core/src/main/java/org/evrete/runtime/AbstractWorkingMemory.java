@@ -77,10 +77,10 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
 
     private FactRecord buildFactRecord(Type<?> type, Object instance) {
         ActiveField[] activeFields = getActiveFields(type);
-        Object[] fieldValues = new Object[activeFields.length];
+        ValueHandle[] fieldValues = new ValueHandle[activeFields.length];
         FactRecord record = new FactRecord(instance, fieldValues);
         for (ActiveField field : activeFields) {
-            fieldValues[field.getValueIndex()] = field.readValue(instance);
+            fieldValues[field.getValueIndex()] = memoryFactory.getValueResolver().getValueHandle(field.getValueType(), field.readValue(instance));
         }
         return record;
     }

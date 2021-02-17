@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.function.BiPredicate;
 
 class SharedBetaData implements SharedBetaFactStorage {
-    private final Object[] reusableValueArr;
+    private final ValueHandle[] reusableValueArr;
     private final FieldsFactMap deltaNewKeys = new FieldsFactMap();
     private final FieldsFactMap deltaKnownKeys = new FieldsFactMap();
     private final FieldsFactMap main = new FieldsFactMap();
@@ -20,13 +20,13 @@ class SharedBetaData implements SharedBetaFactStorage {
     private final BiPredicate<ValueRowImpl, Object[]> SHARED_ARRAY_EQ = new BiPredicate<ValueRowImpl, Object[]>() {
         @Override
         public boolean test(ValueRowImpl entry, Object[] values) {
-            return !entry.isDeleted() && MiscUtils.sameData(entry.data, reusableValueArr);
+            return !entry.isDeleted() && MiscUtils.sameData1(entry.data, reusableValueArr);
         }
     };
 
     SharedBetaData(FieldsKey typeFields) {
         this.fields = typeFields.getFields();
-        this.reusableValueArr = new Object[fields.length];
+        this.reusableValueArr = new ValueHandle[fields.length];
         this.keyIterables = buildKeyIterables();
     }
 
@@ -66,7 +66,7 @@ class SharedBetaData implements SharedBetaFactStorage {
     }
 
     @ThreadUnsafe
-    private int hash(FieldToValue key) {
+    private int hash(FieldToValueHandle key) {
         int hash = 0;
         for (int i = 0; i < fields.length; i++) {
             hash ^= Objects.hashCode(reusableValueArr[i] = key.apply(fields[i]));
@@ -93,7 +93,7 @@ class SharedBetaData implements SharedBetaFactStorage {
         deltaKnownKeys.clear();
     }
 
-    private void insertInner(FactHandleVersioned fact, FieldToValue values) {
+    private void insertInner(FactHandleVersioned fact, FieldToValueHandle values) {
         int hash = hash(values);
         int addr = main.findBinIndex(reusableValueArr, hash, SHARED_ARRAY_EQ);
         ValueRowImpl key = main.get(addr);
@@ -120,7 +120,7 @@ class SharedBetaData implements SharedBetaFactStorage {
     }
 
     @Override
-    public void insert(FactHandleVersioned value, FieldToValue key) {
+    public void insert(FactHandleVersioned value, FieldToValueHandle key) {
         insertInner(value, key);
     }
 

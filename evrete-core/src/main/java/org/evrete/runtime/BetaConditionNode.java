@@ -20,7 +20,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         super(rule, descriptor, sources);
         this.state = new DefaultStateFactory().newIterationState(this);
 
-        getExpression().setEvaluationState(this.state);
+        getExpression().setEvaluationState(rule.getRuntime().memory.memoryFactory.getValueResolver(), this.state);
         this.entryData = (ReIterator<KeysStore.Entry>[]) new ReIterator[sources.length];
         this.mainIterators = (ReIterator<KeysStore.Entry>[]) new ReIterator[sources.length];
         this.deltaIterators = (ReIterator<KeysStore.Entry>[]) new ReIterator[sources.length];

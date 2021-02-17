@@ -1,6 +1,9 @@
 package org.evrete.runtime.evaluation;
 
 import org.evrete.api.FieldToValue;
+import org.evrete.api.FieldToValueHandle;
+import org.evrete.api.MemoryFactory;
+import org.evrete.api.ValueResolver;
 
 import java.util.Arrays;
 
@@ -55,11 +58,23 @@ public abstract class AlphaBucketMeta {
         return h;
     }
 
-    public boolean test(FieldToValue values) {
+    public boolean test(MemoryFactory memoryFactory, FieldToValue values) {
+        throw new UnsupportedOperationException();
+/*
         int i;
         for (AlphaEvaluator e : alphaEvaluators) {
             i = e.getUniqueId();
             if (e.test(values) != requiredValues[i]) return false;
+        }
+        return true;
+*/
+    }
+
+    public boolean test(ValueResolver valueResolver, FieldToValueHandle values) {
+        int i;
+        for (AlphaEvaluator e : alphaEvaluators) {
+            i = e.getUniqueId();
+            if (e.test(valueResolver, values) != requiredValues[i]) return false;
         }
         return true;
     }

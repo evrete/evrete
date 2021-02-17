@@ -12,6 +12,8 @@ public interface MemoryFactory {
 
     SharedPlainFactStorage newPlainStorage();
 
+    ValueResolver getValueResolver();
+
     <Z> FactStorage<Z> newFactStorage(Type<?> type, Class<Z> storageClass, BiPredicate<Z, Z> identityFunction);
 
     default <Z> KeysStore newKeyStore(Z[][] grouping) {

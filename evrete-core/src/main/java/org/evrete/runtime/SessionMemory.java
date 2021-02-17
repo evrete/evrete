@@ -84,7 +84,7 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
     }
 
     @Override
-    public void insert(FactHandleVersioned value, FieldToValue key) {
+    public void insert(FactHandleVersioned value, FieldToValueHandle key) {
         throw new UnsupportedOperationException("Direct insert not supported");
     }
 

@@ -6,6 +6,7 @@ import org.evrete.api.ReIterator;
 import org.evrete.api.ValueRow;
 import org.evrete.collections.AbstractLinearHash;
 
+import java.util.Arrays;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
@@ -18,7 +19,8 @@ abstract class AbstractKeysStore<E extends KeysStoreEntry> extends AbstractLinea
     };
 
     static final ToIntFunction<Object> HASH_FUNCTION = value -> ((KeysStoreEntry) value).hash;
-    static final BiPredicate<KeysStoreEntry, ValueRow[]> EQ_FUNCTION = (entry, rows) -> MiscUtils.sameData(entry.key, rows);
+    //static final BiPredicate<KeysStoreEntry, ValueRow[]> EQ_FUNCTION_OLD = (entry, rows) -> MiscUtils.sameData1(entry.key, rows);
+    static final BiPredicate<KeysStoreEntry, ValueRow[]> EQ_FUNCTION = (entry, rows) -> Arrays.equals(entry.key, rows);
     private static final BiPredicate<KeysStoreEntry, IntToValueRow> EQ_FUNCTION1 = (entry, intToValueRow) -> MiscUtils.eqEquals(intToValueRow, entry.key);
     private static final Function<KeysStoreEntry, Entry> KEY_MAPPER = entry -> entry;
     final int arrSize;

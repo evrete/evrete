@@ -2,6 +2,7 @@ package org.evrete.spi.minimal;
 
 import org.evrete.api.FactHandleVersioned;
 import org.evrete.api.ReIterator;
+import org.evrete.api.ValueHandle;
 import org.evrete.api.ValueRow;
 import org.evrete.collections.CollectionReIterator;
 
@@ -9,18 +10,18 @@ import java.util.Arrays;
 import java.util.LinkedList;
 
 class ValueRowImpl implements ValueRow {
-    final Object[] data;
+    final ValueHandle[] data;
     private final LinkedList<FactHandleVersioned> facts = new LinkedList<>();
     private final int hash;
     private final ReIterator<FactHandleVersioned> delegate;
     private boolean deleted;
 
-    ValueRowImpl(Object[] data, int hash, FactHandleVersioned fact) {
+    ValueRowImpl(ValueHandle[] data, int hash, FactHandleVersioned fact) {
         this(data, hash);
         this.addFact(fact);
     }
 
-    private ValueRowImpl(Object[] data, int hash) {
+    private ValueRowImpl(ValueHandle[] data, int hash) {
         this.data = data;
         this.hash = hash;
         this.delegate = new CollectionReIterator<>(facts);
@@ -78,7 +79,7 @@ class ValueRowImpl implements ValueRow {
     }
 
     @Override
-    public Object get(int i) {
+    public ValueHandle get1(int i) {
         return data[i];
     }
 
@@ -87,7 +88,7 @@ class ValueRowImpl implements ValueRow {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ValueRowImpl other = (ValueRowImpl) o;
-        return MiscUtils.sameData(other.data, data);
+        return MiscUtils.sameData1(other.data, data);
     }
 
     @Override

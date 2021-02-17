@@ -1,7 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.FactHandleVersioned;
-import org.evrete.api.FieldToValue;
+import org.evrete.api.FieldToValueHandle;
 import org.evrete.api.ReIterator;
 import org.evrete.api.SharedPlainFactStorage;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
@@ -33,8 +33,8 @@ class TypeMemoryBucket extends MemoryComponent implements PlainMemory {
     }
 
     @Override
-    public void insert(FactHandleVersioned value, FieldToValue key) {
-        if (alphaMask.test(key)) {
+    public void insert(FactHandleVersioned value, FieldToValueHandle key) {
+        if (alphaMask.test(memoryFactory.getValueResolver(), key)) {
             delta.insert(value);
         }
     }

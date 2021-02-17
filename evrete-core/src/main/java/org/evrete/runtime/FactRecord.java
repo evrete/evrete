@@ -1,21 +1,36 @@
 package org.evrete.runtime;
 
 import org.evrete.api.FieldToValue;
+import org.evrete.api.FieldToValueHandle;
+import org.evrete.api.ValueHandle;
+import org.evrete.api.ValueResolver;
 
 import java.util.Arrays;
 
-class FactRecord implements FieldToValue {
+class FactRecord implements FieldToValueHandle {
     final Object instance;
-    private Object[] fieldValues;
+    private Object[] fieldValues1;
+    private ValueHandle[] fieldValues;
     private int version = 0;
 
-    FactRecord(Object instance, Object[] fieldValues) {
+    FactRecord(Object instance, ValueHandle[] fieldValues) {
         this.instance = instance;
         this.fieldValues = fieldValues;
     }
 
+    FieldToValue values(ValueResolver valueResolver) {
+        return new FieldToValue() {
+            @Override
+            public Object apply(ActiveField activeField) {
+                ValueHandle handle = fieldValues[activeField.getValueIndex()];
+                return valueResolver.getValue(handle);
+            }
+        };
+    }
+
+
     @Override
-    public Object apply(ActiveField activeField) {
+    public ValueHandle apply(ActiveField activeField) {
         return fieldValues[activeField.getValueIndex()];
     }
 
@@ -23,7 +38,7 @@ class FactRecord implements FieldToValue {
         return version;
     }
 
-    final void appendValue(ActiveField field, Object value) {
+    final void appendValue(ActiveField field, ValueHandle value) {
         assert fieldValues.length == field.getValueIndex();
         this.fieldValues = Arrays.copyOf(this.fieldValues, fieldValues.length + 1);
         this.fieldValues[field.getValueIndex()] = value;

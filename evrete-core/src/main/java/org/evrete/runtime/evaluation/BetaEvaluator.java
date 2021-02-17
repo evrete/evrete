@@ -10,8 +10,10 @@ import java.util.function.Function;
 public class BetaEvaluator extends EvaluatorWrapper implements Copyable<BetaEvaluator> {
     public static final BetaEvaluator[] ZERO_ARRAY = new BetaEvaluator[0];
     private final BetaFieldReference[] descriptor;
-    private IntToValue stateValues;
+    //private IntToValueHandle stateValues2;
+    private IntToValue stateValues1;
     private BetaEvaluationState values;
+    private ValueResolver valueResolver = null;
 
     public BetaEvaluator(EvaluatorWrapper delegate, Function<NamedType, FactType> typeFunction) {
         super(delegate);
@@ -28,8 +30,10 @@ public class BetaEvaluator extends EvaluatorWrapper implements Copyable<BetaEval
     private BetaEvaluator(BetaEvaluator other) {
         super(other);
         this.descriptor = other.descriptor;
-        this.stateValues = other.stateValues;
+        this.stateValues1 = other.stateValues1;
+        //this.stateValues2 = other.stateValues2;
         this.values = other.values;
+        this.valueResolver = null;
     }
 
     public BetaFieldReference[] betaDescriptor() {
@@ -41,18 +45,25 @@ public class BetaEvaluator extends EvaluatorWrapper implements Copyable<BetaEval
         return new BetaEvaluator(this);
     }
 
-    public void setEvaluationState(BetaEvaluationState values) {
+    void setEvaluationState(final ValueResolver resolver, BetaEvaluationState values) {
         final Argument[] arguments = new Argument[descriptor.length];
         for (int i = 0; i < arguments.length; i++) {
             BetaFieldReference ref = descriptor[i];
             arguments[i] = new Argument(values, ref.getFactType(), ref.getFieldIndex());
         }
 
-        this.stateValues = value -> arguments[value].getValue();
+        //this.stateValues = value -> arguments[value].getValue1();
+        this.stateValues1 = new IntToValue() {
+            @Override
+            public Object apply(int value) {
+                ValueHandle vh = arguments[value].getValue1();
+                return resolver.getValue(vh);
+            }
+        };
     }
 
     public boolean test() {
-        return test(this.stateValues);
+        return test(this.stateValues1);
     }
 
     private static class Argument {
@@ -60,14 +71,14 @@ public class BetaEvaluator extends EvaluatorWrapper implements Copyable<BetaEval
         private final FactType factType;
         private final int index;
 
-        public Argument(BetaEvaluationState values, FactType factType, int index) {
+        Argument(BetaEvaluationState values, FactType factType, int index) {
             this.values = values;
             this.factType = factType;
             this.index = index;
         }
 
-        Object getValue() {
-            return values.apply(factType, index);
+        ValueHandle getValue1() {
+            return values.apply1(factType, index);
         }
     }
 }

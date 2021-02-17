@@ -3,6 +3,8 @@ package org.evrete.spi.minimal;
 import org.evrete.api.KeysStore;
 import org.evrete.api.ValueRow;
 
+import java.util.Arrays;
+
 abstract class KeysStoreEntry implements KeysStore.Entry {
     final ValueRow[] key;
     final int hash;
@@ -18,7 +20,7 @@ abstract class KeysStoreEntry implements KeysStore.Entry {
     }
 
     final boolean eq(KeysStoreEntry other) {
-        return MiscUtils.sameData(key, other.key);
+        return Arrays.equals(key, other.key);
     }
 
     @Override

@@ -1,9 +1,6 @@
 package org.evrete.runtime.evaluation;
 
-import org.evrete.api.ComplexityObject;
-import org.evrete.api.Copyable;
-import org.evrete.api.EvaluationListener;
-import org.evrete.api.EvaluationListeners;
+import org.evrete.api.*;
 import org.evrete.runtime.BetaEvaluationState;
 import org.evrete.runtime.BetaFieldReference;
 import org.evrete.runtime.FactType;
@@ -79,9 +76,9 @@ public class BetaEvaluatorGroup implements ComplexityObject, Copyable<BetaEvalua
         return true;
     }
 
-    public void setEvaluationState(BetaEvaluationState values) {
+    public void setEvaluationState(ValueResolver valueResolver, BetaEvaluationState values) {
         for (BetaEvaluator evaluator : evaluators) {
-            evaluator.setEvaluationState(values);
+            evaluator.setEvaluationState(valueResolver, values);
         }
     }
 

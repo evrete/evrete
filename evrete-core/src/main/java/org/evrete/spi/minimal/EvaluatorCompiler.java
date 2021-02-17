@@ -123,17 +123,17 @@ class EvaluatorCompiler {
         FieldReference[] descriptor = descriptorBuilder.toArray(FieldReference.ZERO_ARRAY);
         if (descriptor.length == 0) throw new IllegalStateException("No field references were resolved.");
         MethodHandle methodHandle = compileExpression(className, classJavaSource);
-        return new EvaluatorImpl(methodHandle, remover.getOriginal(), comparableClassSource, descriptor);
+        return new CompiledEvaluator(methodHandle, remover.getOriginal(), comparableClassSource, descriptor);
 
     }
 
-    private static class EvaluatorImpl implements Evaluator {
+    private static class CompiledEvaluator implements Evaluator {
         private final FieldReference[] descriptor;
         private final MethodHandle methodHandle;
         private final String original;
         private final String comparableClassSource;
 
-        EvaluatorImpl(MethodHandle methodHandle, String original, String comparableClassSource, FieldReference[] descriptor) {
+        CompiledEvaluator(MethodHandle methodHandle, String original, String comparableClassSource, FieldReference[] descriptor) {
             this.descriptor = descriptor;
             this.original = original;
             this.comparableClassSource = comparableClassSource;
@@ -142,8 +142,8 @@ class EvaluatorCompiler {
 
         @Override
         public int compare(LogicallyComparable other) {
-            if (other instanceof EvaluatorImpl) {
-                EvaluatorImpl o = (EvaluatorImpl) other;
+            if (other instanceof CompiledEvaluator) {
+                CompiledEvaluator o = (CompiledEvaluator) other;
                 if (o.descriptor.length == 1 && this.descriptor.length == 1 && o.comparableClassSource.equals(this.comparableClassSource)) {
                     return RELATION_EQUALS;
                 }
@@ -166,7 +166,7 @@ class EvaluatorCompiler {
                 for (int i = 0; i < args.length; i++) {
                     args[i] = values.apply(i);
                 }
-                throw new IllegalStateException("Evaluation exception at '" + original + "': " + Arrays.toString(descriptor) + " -> " + Arrays.toString(args), t);
+                throw new IllegalStateException("Evaluation exception at '" + original + "', arguments: " + Arrays.toString(descriptor) + " -> " + Arrays.toString(args), t);
             }
         }
 

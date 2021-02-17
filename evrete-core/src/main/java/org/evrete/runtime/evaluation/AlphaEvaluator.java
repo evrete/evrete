@@ -20,8 +20,14 @@ public class AlphaEvaluator implements Copyable<AlphaEvaluator>, EvaluationListe
         this.delegate = other.delegate;
     }
 
-    public boolean test(FieldToValue values) {
-        return delegate.test(i -> values.apply(activeDescriptor[i]));
+    public boolean test(ValueResolver valueResolver, FieldToValueHandle values) {
+        return delegate.test(new IntToValue() {
+            @Override
+            public Object apply(int i) {
+                return valueResolver.getValue(values.apply(activeDescriptor[i]));
+            }
+        });
+        //return delegate.test(i -> values.apply(activeDescriptor[i]));
     }
 
     @Override
