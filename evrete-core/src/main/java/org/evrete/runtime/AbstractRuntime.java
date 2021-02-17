@@ -25,10 +25,14 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     private final List<RuleDescriptor> ruleDescriptors;
     private final AtomicInteger ruleCounter;
 
+    //TODO !!! move to type meta data
     private final Set<String> imports;
+    private final TypeMetaData typeMetaData;
 
+    //TODO !!! move to type meta data
     private final AlphaConditions alphaConditions;
     private final KnowledgeService service;
+    //TODO !!! move to type meta data
     private final ActiveFields activeFields;
     private final LazyInstance<ExpressionResolver> expressionResolver = new LazyInstance<>(this::newExpressionResolver);
     private final LazyInstance<TypeResolver> typeResolver = new LazyInstance<>(this::newTypeResolver);
@@ -48,6 +52,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
      */
     AbstractRuntime(KnowledgeService service) {
         this.parent = null;
+        this.typeMetaData = new TypeMetaData();
         this.ruleCounter = new AtomicInteger();
         this.alphaConditions = new AlphaConditions();
         this.ruleDescriptors = new ArrayList<>();
@@ -67,6 +72,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
      */
     protected AbstractRuntime(AbstractRuntime<?> parent) {
         this.parent = parent;
+        this.typeMetaData = parent.typeMetaData.copyOf();
         this.ruleCounter = new AtomicInteger(parent.ruleCounter.intValue());
         this.alphaConditions = parent.alphaConditions.copyOf();
         this.ruleDescriptors = new ArrayList<>(parent.ruleDescriptors);

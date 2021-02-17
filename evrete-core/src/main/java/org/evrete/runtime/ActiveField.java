@@ -22,7 +22,7 @@ public final class ActiveField implements TypeField {
         return delegate.getId();
     }
 
-    public int getValueIndex() {
+    int getValueIndex() {
         return valueIndex;
     }
 

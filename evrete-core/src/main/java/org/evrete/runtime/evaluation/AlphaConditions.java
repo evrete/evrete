@@ -29,7 +29,7 @@ public class AlphaConditions implements Copyable<AlphaConditions>, EvaluationLis
         }
 
         this.typeAlphas = new HashMap<>();
-        other.typeAlphas.forEach((fields, alphas) -> AlphaConditions.this.typeAlphas.put(fields, alphas.copyOf()));
+        other.typeAlphas.forEach((type, alphas) -> AlphaConditions.this.typeAlphas.put(type, alphas.copyOf()));
     }
 
     public AlphaConditions() {
@@ -81,10 +81,6 @@ public class AlphaConditions implements Copyable<AlphaConditions>, EvaluationLis
                         candidate,
                         alphaBucketMeta -> listener.accept(new AlphaDelta(betaFields, alphaBucketMeta, newEvaluators))
                 );
-    }
-
-    public ArrayOf<AlphaEvaluator> getPredicates(Type<?> t) {
-        return alphaPredicates.getOrDefault(t, EMPTY);
     }
 
     @Override

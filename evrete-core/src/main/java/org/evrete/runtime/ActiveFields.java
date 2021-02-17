@@ -65,7 +65,7 @@ public class ActiveFields implements Copyable<ActiveFields> {
 
         private ActiveField getCreate(TypeField field, Consumer<ActiveField> listener) {
             for (ActiveField af : fieldsInUse) {
-                if (af.getDelegate().getName().equals(field.getName())) {
+                if (af.getName().equals(field.getName())) {
                     return af;
                 }
             }
