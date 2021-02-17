@@ -67,6 +67,7 @@ public class Drools01 extends DroolsBase {
 
         @Setup(Level.Invocation)
         public void resetSessions() {
+            //TODO !!! test with these methods as well, make sure the lazy deletion algo is working on a larger scale
             //droolsSession.retractAll();
             //evreteSession.retractAll();
             droolsSession = SessionWrapper.of(dKnowledge.newKieSession());
