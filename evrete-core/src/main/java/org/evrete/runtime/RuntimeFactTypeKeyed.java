@@ -11,31 +11,30 @@ public class RuntimeFactTypeKeyed extends RuntimeFactType {
     private final KeyReIterators<ValueRow> keyIterators;
     private final KeyReIterators<ValueRow[]> mappedKeyIterators;
 
-    public RuntimeFactTypeKeyed(AbstractKnowledgeSession runtime, FactType other) {
+    RuntimeFactTypeKeyed(AbstractKnowledgeSession<?> runtime, FactType other) {
         super(runtime, other);
         this.keyStorage = runtime.getMemory().getBetaFactStorage(other);
         this.keyIterators = runtime.getMemory().getBetaFactStorage(other).keyIterators();
         this.mappedKeyIterators = runtime.getMemory().getBetaFactStorage(other).keyIterators(ValueRowToArray.SUPPLIER);
     }
 
-    public RuntimeFactTypeKeyed(RuntimeFactTypeKeyed other) {
+    RuntimeFactTypeKeyed(RuntimeFactTypeKeyed other) {
         super(other.getRuntime(), other);
         this.keyStorage = other.keyStorage;
         this.keyIterators = other.keyIterators;
         this.mappedKeyIterators = other.mappedKeyIterators;
     }
 
-
     @Override
     public InnerFactMemory getSource() {
         return keyStorage;
     }
 
-    public KeyReIterators<ValueRow> getKeyIterators() {
+    KeyReIterators<ValueRow> getKeyIterators() {
         return keyIterators;
     }
 
-    public KeyReIterators<ValueRow[]> getMappedKeyIterators() {
+    KeyReIterators<ValueRow[]> getMappedKeyIterators() {
         return mappedKeyIterators;
     }
 }

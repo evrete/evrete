@@ -7,6 +7,7 @@ import org.evrete.runtime.ActiveField;
 import org.evrete.runtime.FieldsKey;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static org.evrete.api.LogicallyComparable.*;
@@ -39,18 +40,18 @@ public class AlphaConditions implements Copyable<AlphaConditions>, EvaluationLis
 
     @Override
     public void addListener(EvaluationListener listener) {
-        for (ArrayOf<AlphaEvaluator> evaluators : this.alphaPredicates.values()) {
-            for (AlphaEvaluator e : evaluators.data) {
-                e.addListener(listener);
-            }
-        }
+        forEachAlphaCondition(e -> e.addListener(listener));
     }
 
     @Override
     public void removeListener(EvaluationListener listener) {
+        forEachAlphaCondition(e -> e.removeListener(listener));
+    }
+
+    private void forEachAlphaCondition(Consumer<AlphaEvaluator> consumer) {
         for (ArrayOf<AlphaEvaluator> evaluators : this.alphaPredicates.values()) {
             for (AlphaEvaluator e : evaluators.data) {
-                e.removeListener(listener);
+                consumer.accept(e);
             }
         }
     }
@@ -64,18 +65,12 @@ public class AlphaConditions implements Copyable<AlphaConditions>, EvaluationLis
         return alphaPredicates.getOrDefault(type, EMPTY).data.length;
     }
 
-    public synchronized AlphaBucketMeta register(AbstractRuntime<?> runtime, FieldsKey betaFields, Set<EvaluatorWrapper> typePredicates, Consumer<AlphaDelta> listener) {
-        Collection<AlphaEvaluator> newEvaluators = new LinkedList<>();
-
+    public synchronized AlphaBucketMeta register(AbstractRuntime<?> runtime, FieldsKey betaFields, Set<EvaluatorWrapper> typePredicates, BiConsumer<FieldsKey, AlphaBucketMeta> listener) {
         Type<?> type = betaFields.getType();
-        AlphaMeta candidate = createAlphaMask(runtime, type, typePredicates, newEvaluators::add);
+        AlphaMeta candidate = createAlphaMask(runtime, type, typePredicates);
         return typeAlphas
                 .computeIfAbsent(type, TypeAlphas::new)
-                .getCreate(
-                        betaFields,
-                        candidate,
-                        alphaBucketMeta -> listener.accept(new AlphaDelta(betaFields, alphaBucketMeta, newEvaluators))
-                );
+                .getCreate(betaFields, candidate, listener);
     }
 
     @Override
@@ -95,7 +90,7 @@ public class AlphaConditions implements Copyable<AlphaConditions>, EvaluationLis
         }
     }
 
-    private AlphaMeta createAlphaMask(AbstractRuntime<?> runtime, Type<?> t, Set<EvaluatorWrapper> typePredicates, Consumer<AlphaEvaluator> listener) {
+    private AlphaMeta createAlphaMask(AbstractRuntime<?> runtime, Type<?> t, Set<EvaluatorWrapper> typePredicates) {
         ArrayOf<AlphaEvaluator> existing = alphaPredicates.computeIfAbsent(t, k -> new ArrayOf<>(new AlphaEvaluator[0]));
         List<EvaluationSide> mapping = new LinkedList<>();
 
@@ -133,11 +128,8 @@ public class AlphaConditions implements Copyable<AlphaConditions>, EvaluationLis
                     activeDescriptor[i] = af;
                 }
 
-
                 found = new AlphaEvaluator(existing.data.length, alphaPredicate, activeDescriptor);
-                //found.remap(valueIndices);
                 existing.append(found);
-                listener.accept(found);
             }
 
             mapping.add(new EvaluationSide(found, foundDirect));
@@ -170,7 +162,7 @@ public class AlphaConditions implements Copyable<AlphaConditions>, EvaluationLis
             this.data = new HashMap<>(other.data);
         }
 
-        private AlphaBucketMeta getCreate(FieldsKey betaFields, AlphaMeta candidate, Consumer<AlphaBucketMeta> listener) {
+        private AlphaBucketMeta getCreate(FieldsKey betaFields, AlphaMeta candidate, BiConsumer<FieldsKey, AlphaBucketMeta> listener) {
             return data.computeIfAbsent(betaFields, FieldAlphas::new).getCreate(candidate, listener);
         }
 
@@ -181,28 +173,27 @@ public class AlphaConditions implements Copyable<AlphaConditions>, EvaluationLis
 
         private static class FieldAlphas implements Copyable<FieldAlphas> {
             private final ArrayOf<AlphaBucketMeta> data;
+            private final FieldsKey fields;
 
             FieldAlphas(FieldsKey fields) {
+                this.fields = fields;
                 this.data = new ArrayOf<>(new AlphaBucketMeta[0]);
             }
 
             FieldAlphas(FieldAlphas other) {
                 this.data = new ArrayOf<>(other.data);
+                this.fields = other.fields;
             }
 
-            AlphaBucketMeta getCreate(AlphaMeta candidate, Consumer<AlphaBucketMeta> listener) {
-                AlphaBucketMeta found = null;
+            AlphaBucketMeta getCreate(AlphaMeta candidate, BiConsumer<FieldsKey, AlphaBucketMeta> listener) {
                 for (AlphaBucketMeta mask : data.data) {
                     if (mask.sameData(candidate.alphaEvaluators, candidate.requiredValues)) {
-                        found = mask;
-                        break;
+                        return mask;
                     }
                 }
-                if (found == null) {
-                    found = AlphaBucketMeta.factory(data.data.length, candidate.alphaEvaluators, candidate.requiredValues);
-                    data.append(found);
-                    listener.accept(found);
-                }
+                AlphaBucketMeta found = AlphaBucketMeta.factory(data.data.length, candidate.alphaEvaluators, candidate.requiredValues);
+                data.append(found);
+                listener.accept(fields, found);
 
                 return found;
             }

@@ -2,7 +2,7 @@ package org.evrete.runtime;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
-import org.evrete.runtime.evaluation.AlphaDelta;
+import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
 import java.util.*;
 
@@ -26,7 +26,7 @@ public class KnowledgeRuntime extends AbstractRuntime<Knowledge> implements Know
     }
 
     @Override
-    protected void onNewAlphaBucket(AlphaDelta delta) {
+    protected void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
         // Do nothing
     }
 

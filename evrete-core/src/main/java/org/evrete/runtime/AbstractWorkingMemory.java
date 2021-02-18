@@ -1,7 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.*;
-import org.evrete.runtime.evaluation.AlphaDelta;
+import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
@@ -92,26 +92,11 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
     @Override
     protected final void onNewActiveField(ActiveField newField) {
         memory.onNewActiveField(newField);
-/*
-        Type<?> t = newField.getDeclaringType();
-        TypeMemory tm = memory.get(t);
-        tm.onNewActiveField(newField);
-*/
     }
 
     @Override
-    protected final void onNewAlphaBucket(AlphaDelta delta) {
-        memory.onNewAlphaBucket(delta);
-/*
-        Type<?> t = delta.getKey().getType();
-        TypeMemory tm = memory.get(t.getId());
-        if (tm == null) {
-            tm = new TypeMemory(SessionMemory.this, t);
-            typedMemories.set(t.getId(), tm);
-        } else {
-            tm.onNewAlphaBucket(delta);
-        }
-*/
+    protected final void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
+        memory.onNewAlphaBucket(key, meta);
     }
 
     @Override

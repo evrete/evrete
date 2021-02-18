@@ -9,7 +9,6 @@ import org.evrete.runtime.builder.FactTypeBuilder;
 import org.evrete.runtime.builder.RuleBuilderImpl;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaConditions;
-import org.evrete.runtime.evaluation.AlphaDelta;
 import org.evrete.runtime.evaluation.EvaluatorWrapper;
 import org.evrete.util.LazyInstance;
 import org.evrete.util.UnconditionalActivationManager;
@@ -90,7 +89,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
 
     protected abstract void onNewActiveField(ActiveField newField);
 
-    protected abstract void onNewAlphaBucket(AlphaDelta alphaDelta);
+    protected abstract void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta);
 
     @Override
     public RuntimeContext<?> addImport(String imp) {

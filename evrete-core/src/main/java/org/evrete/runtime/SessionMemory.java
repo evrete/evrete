@@ -4,7 +4,6 @@ import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
-import org.evrete.runtime.evaluation.AlphaDelta;
 
 import java.util.Iterator;
 import java.util.function.BiConsumer;
@@ -47,14 +46,14 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
         tm.onNewActiveField(newField);
     }
 
-    void onNewAlphaBucket(AlphaDelta delta) {
-        Type<?> t = delta.getKey().getType();
+    void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
+        Type<?> t = key.getType();
         TypeMemory tm = typedMemories.get(t.getId());
         if (tm == null) {
             tm = new TypeMemory(SessionMemory.this, t);
             typedMemories.set(t.getId(), tm);
         } else {
-            tm.onNewAlphaBucket(delta);
+            tm.onNewAlphaBucket(key, meta);
         }
     }
 

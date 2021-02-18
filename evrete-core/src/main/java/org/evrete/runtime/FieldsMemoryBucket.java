@@ -3,12 +3,11 @@ package org.evrete.runtime;
 import org.evrete.api.FactHandleVersioned;
 import org.evrete.api.FieldToValueHandle;
 import org.evrete.api.SharedBetaFactStorage;
-import org.evrete.api.spi.InnerFactMemory;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
 import java.util.function.Consumer;
 
-class FieldsMemoryBucket extends MemoryComponent implements InnerFactMemory {
+class FieldsMemoryBucket extends MemoryComponent {
     private final SharedBetaFactStorage fieldData;
     private final AlphaBucketMeta alphaMask;
 

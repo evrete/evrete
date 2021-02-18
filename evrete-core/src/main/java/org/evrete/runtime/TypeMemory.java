@@ -5,7 +5,6 @@ import org.evrete.api.*;
 import org.evrete.api.spi.InnerFactMemory;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
-import org.evrete.runtime.evaluation.AlphaDelta;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -140,54 +139,10 @@ public final class TypeMemory extends MemoryComponent {
         }
     }
 
-    void onNewAlphaBucket(AlphaDelta delta) {
-        ValueResolver valueResolver = memoryFactory.getValueResolver();
-        // 1. Create and fill buckets
-        FieldsKey key = delta.getKey();
-        AlphaBucketMeta meta = delta.getNewAlphaMeta();
-
-/*
+    void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
         MemoryComponent mc = touchMemory(key, meta);
-        forEachEntry((fh, rec) -> {
-            if (meta.test(valueResolver, rec)) {
-                mc.insert(new FactHandleVersioned(fh, rec.getVersion()), rec);
-            }
-        });
-*/
-
-
-        if (key.size() == 0) {
-            // 2. Create new alpha data bucket
-            TypeMemoryBucket newBucket = getCreateAlpha(meta);
-            assert newBucket != null;
-            // Fill data
-            forEachEntry((fh, rec) -> {
-                if (meta.test(valueResolver, rec)) {
-                    newBucket.getData().insert(new FactHandleVersioned(fh, rec.getVersion()), rec);
-                }
-            });
-        } else {
-            // 3. Process keyed/beta-memory
-            FieldsMemory m = getCreate(key);
-            FieldsMemoryBucket bucket = m.getCreate(meta);
-            assert bucket != null;
-            forEachEntry((fhv, rec) -> {
-                if (meta.test(valueResolver, rec)) {
-                    bucket.insert(new FactHandleVersioned(fhv, rec.getVersion()), rec);
-                }
-            });
-        }
-    }
-
-    private FieldsMemory getCreate(FieldsKey key) {
-        synchronized (this.betaMemories) {
-            FieldsMemory m = this.betaMemories.get(key);
-            if (m == null) {
-                m = new FieldsMemory(this, key);
-                this.betaMemories.put(key, m);
-            }
-            return m;
-        }
+        forEachEntry((fh, rec) -> mc.insert(new FactHandleVersioned(fh, rec.getVersion()), rec));
+        mc.commitChanges();
     }
 
     /**
