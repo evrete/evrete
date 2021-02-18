@@ -1,6 +1,8 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
+import org.evrete.api.Masked;
+import org.evrete.api.Type;
+import org.evrete.api.TypeField;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.util.Bits;
 

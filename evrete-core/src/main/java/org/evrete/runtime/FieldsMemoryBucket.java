@@ -31,13 +31,8 @@ class FieldsMemoryBucket extends MemoryComponent {
 
     @Override
     public void insert(FactHandleVersioned value, FieldToValueHandle key) {
-        if (alphaMask.test(memoryFactory.getValueResolver(), key)) {
+        if (alphaMask.test(valueResolver, key)) {
             fieldData.insert(value, key);
         }
-    }
-
-    @Override
-    public String toString() {
-        return fieldData.toString();
     }
 }

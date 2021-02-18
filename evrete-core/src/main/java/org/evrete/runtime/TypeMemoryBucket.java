@@ -26,7 +26,7 @@ class TypeMemoryBucket extends MemoryComponent implements PlainMemory {
 
     @Override
     public void insert(FactHandleVersioned value, FieldToValueHandle key) {
-        if (alphaMask.test(memoryFactory.getValueResolver(), key)) {
+        if (alphaMask.test(valueResolver, key)) {
             delta.insert(value, key);
         }
     }
@@ -47,14 +47,5 @@ class TypeMemoryBucket extends MemoryComponent implements PlainMemory {
             data.insert(delta);
             delta.clear();
         }
-    }
-
-    @Override
-    public String toString() {
-        return "{" +
-                "data=" + data +
-                ", delta=" + delta +
-                ", alphaMask=" + alphaMask +
-                '}';
     }
 }
