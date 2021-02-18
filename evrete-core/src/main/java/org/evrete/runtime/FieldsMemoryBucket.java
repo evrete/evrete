@@ -5,8 +5,6 @@ import org.evrete.api.FieldToValueHandle;
 import org.evrete.api.SharedBetaFactStorage;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
-import java.util.function.Consumer;
-
 class FieldsMemoryBucket extends MemoryComponent {
     private final SharedBetaFactStorage fieldData;
     private final AlphaBucketMeta alphaMask;
@@ -15,10 +13,6 @@ class FieldsMemoryBucket extends MemoryComponent {
         super(runtime);
         this.alphaMask = alphaMask;
         this.fieldData = memoryFactory.newBetaStorage(typeFields);
-    }
-
-    @Override
-    protected void forEachChildComponent(Consumer<MemoryComponent> consumer) {
     }
 
     @Override

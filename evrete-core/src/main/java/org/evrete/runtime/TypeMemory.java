@@ -45,12 +45,6 @@ public final class TypeMemory extends MemoryComponent {
     }
 
     @Override
-    protected void forEachChildComponent(Consumer<MemoryComponent> consumer) {
-        alphaBuckets.forEach(consumer);
-        betaMemories.values().forEach(consumer);
-    }
-
-    @Override
     protected void clearLocalData() {
         factStorage.clear();
     }
@@ -75,21 +69,24 @@ public final class TypeMemory extends MemoryComponent {
         }
     }
 
-    private void forEachSubComponent(Consumer<InnerFactMemory> consumer) {
+    private void forEachSubComponent1(Consumer<InnerFactMemory> consumer) {
         alphaBuckets.forEach(consumer);
         betaMemories.values().forEach(consumer);
     }
 
 
     @Override
-    // TODO !!!! optimize by caching components as an array
     public void insert(FactHandleVersioned value, FieldToValueHandle key) {
-        forEachSubComponent(im -> im.insert(value, key));
+        for (MemoryComponent child : childComponents()) {
+            child.insert(value, key);
+        }
     }
 
     @Override
     public void commitChanges() {
-        forEachSubComponent(InnerFactMemory::commitChanges);
+        for (MemoryComponent child : childComponents()) {
+            child.commitChanges();
+        }
     }
 
     private void performUpdate(FactHandle handle, FactRecord factRecord) {

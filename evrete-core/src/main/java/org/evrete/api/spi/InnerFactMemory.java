@@ -8,4 +8,6 @@ public interface InnerFactMemory {
     void insert(FactHandleVersioned value, FieldToValueHandle key);
 
     void commitChanges();
+
+    void clear();
 }

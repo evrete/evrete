@@ -9,6 +9,4 @@ public interface PlainMemory extends InnerFactMemory {
 
     ReIterator<FactHandleVersioned> deltaIterator();
 
-    boolean hasChanges();
-
 }

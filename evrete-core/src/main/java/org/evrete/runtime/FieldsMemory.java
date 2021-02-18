@@ -7,8 +7,6 @@ import org.evrete.api.spi.InnerFactMemory;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
-import java.util.function.Consumer;
-
 public class FieldsMemory extends MemoryComponent implements InnerFactMemory {
     private final FieldsKey typeFields;
     private final ArrayOf<FieldsMemoryBucket> alphaBuckets;
@@ -19,10 +17,6 @@ public class FieldsMemory extends MemoryComponent implements InnerFactMemory {
         this.alphaBuckets = new ArrayOf<>(FieldsMemoryBucket.class);
     }
 
-    @Override
-    protected void forEachChildComponent(Consumer<MemoryComponent> consumer) {
-        alphaBuckets.forEach(consumer);
-    }
 
     @Override
     protected void clearLocalData() {

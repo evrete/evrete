@@ -8,6 +8,4 @@ public interface SharedBetaFactStorage extends InnerFactMemory, KeyReIterables<V
 
     //void insert(FactHandle fact, FieldToValue values);
 
-    //TODO !!! remove from this interface
-    void clear();
 }

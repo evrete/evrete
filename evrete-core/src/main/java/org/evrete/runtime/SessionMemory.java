@@ -7,7 +7,6 @@ import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
 import java.util.Iterator;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 public class SessionMemory extends MemoryComponent implements Iterable<TypeMemory> {
     private final ArrayOf<TypeMemory> typedMemories;
@@ -15,11 +14,6 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
     SessionMemory(Configuration configuration, MemoryFactory memoryFactory) {
         super(memoryFactory, configuration);
         this.typedMemories = new ArrayOf<>(new TypeMemory[]{});
-    }
-
-    @Override
-    protected void forEachChildComponent(Consumer<MemoryComponent> consumer) {
-        typedMemories.forEach(consumer);
     }
 
     @Override
@@ -89,6 +83,8 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
 
     @Override
     public void commitChanges() {
-        forEachChildComponent(MemoryComponent::commitChanges);
+        for (MemoryComponent child : childComponents()) {
+            child.commitChanges();
+        }
     }
 }
