@@ -5,5 +5,5 @@ import org.evrete.api.ValueHandle;
 @FunctionalInterface
 public interface BetaEvaluationState {
 
-    ValueHandle apply1(FactType factType, int fieldIndex);
+    ValueHandle apply(FactType factType, int fieldIndex);
 }

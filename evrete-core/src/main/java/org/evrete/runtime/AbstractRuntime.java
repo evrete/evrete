@@ -203,27 +203,21 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         return runtimeMeta.getCreate(field, this::onNewActiveField);
     }
 
-    private Set<ActiveField> getCreateActiveFields(Set<TypeField> fields) {
-        Set<ActiveField> activeFields = new HashSet<>();
-        for (TypeField field : fields) {
-            activeFields.add(getCreateActiveField(field));
-        }
-        return activeFields;
-    }
-
     ActiveField[] getActiveFields(Type<?> type) {
         return runtimeMeta.getActiveFields(type);
     }
 
-    private AlphaBucketMeta getCreateAlphaMask(FieldsKey fields, Set<EvaluatorWrapper> typePredicates) {
-        return alphaConditions.register(this, fields, typePredicates, this::onNewAlphaBucket);
-    }
-
-    FactType buildFactType(FactTypeBuilder builder, Set<EvaluatorWrapper> alphaConditions, int inRuleId) {
+    FactType buildFactType(FactTypeBuilder builder, Set<EvaluatorWrapper> alphaEvaluators, int inRuleId) {
         Type<?> type = builder.getType();
-        Set<ActiveField> activeFields = getCreateActiveFields(builder.getBetaTypeFields());
-        FieldsKey fieldsKey = new FieldsKey(builder.getType(), activeFields);
-        AlphaBucketMeta alphaMask = getCreateAlphaMask(fieldsKey, alphaConditions);
+
+        Set<ActiveField> betaActiveFields = new HashSet<>();
+        for (TypeField field : builder.getBetaTypeFields()) {
+            betaActiveFields.add(runtimeMeta.getCreate(field, this::onNewActiveField));
+        }
+
+
+        FieldsKey fieldsKey = new FieldsKey(builder.getType(), betaActiveFields);
+        AlphaBucketMeta alphaMask = alphaConditions.register(this, fieldsKey, alphaEvaluators, this::onNewAlphaBucket);// getCreateAlphaMask(fieldsKey, alphaEvaluators);
 
         return new FactType(builder.getVar(), type, alphaMask, fieldsKey, inRuleId);
     }

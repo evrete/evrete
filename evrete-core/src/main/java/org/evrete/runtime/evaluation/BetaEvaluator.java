@@ -10,12 +10,10 @@ import java.util.function.Function;
 public class BetaEvaluator extends EvaluatorWrapper implements Copyable<BetaEvaluator> {
     public static final BetaEvaluator[] ZERO_ARRAY = new BetaEvaluator[0];
     private final BetaFieldReference[] descriptor;
-    //private IntToValueHandle stateValues2;
-    private IntToValue stateValues1;
+    private IntToValue stateValues;
     private BetaEvaluationState values;
-    private ValueResolver valueResolver = null;
 
-    public BetaEvaluator(EvaluatorWrapper delegate, Function<NamedType, FactType> typeFunction) {
+    BetaEvaluator(EvaluatorWrapper delegate, Function<NamedType, FactType> typeFunction) {
         super(delegate);
         FieldReference[] evaluatorDescriptor = delegate.descriptor();
         this.descriptor = new BetaFieldReference[evaluatorDescriptor.length];
@@ -30,13 +28,11 @@ public class BetaEvaluator extends EvaluatorWrapper implements Copyable<BetaEval
     private BetaEvaluator(BetaEvaluator other) {
         super(other);
         this.descriptor = other.descriptor;
-        this.stateValues1 = other.stateValues1;
-        //this.stateValues2 = other.stateValues2;
+        this.stateValues = other.stateValues;
         this.values = other.values;
-        this.valueResolver = null;
     }
 
-    public BetaFieldReference[] betaDescriptor() {
+    BetaFieldReference[] betaDescriptor() {
         return descriptor;
     }
 
@@ -52,18 +48,11 @@ public class BetaEvaluator extends EvaluatorWrapper implements Copyable<BetaEval
             arguments[i] = new Argument(values, ref.getFactType(), ref.getFieldIndex());
         }
 
-        //this.stateValues = value -> arguments[value].getValue1();
-        this.stateValues1 = new IntToValue() {
-            @Override
-            public Object apply(int value) {
-                ValueHandle vh = arguments[value].getValue1();
-                return resolver.getValue(vh);
-            }
-        };
+        this.stateValues = i -> resolver.getValue(arguments[i].getValue());
     }
 
     public boolean test() {
-        return test(this.stateValues1);
+        return test(this.stateValues);
     }
 
     private static class Argument {
@@ -77,8 +66,8 @@ public class BetaEvaluator extends EvaluatorWrapper implements Copyable<BetaEval
             this.index = index;
         }
 
-        ValueHandle getValue1() {
-            return values.apply1(factType, index);
+        ValueHandle getValue() {
+            return values.apply(factType, index);
         }
     }
 }

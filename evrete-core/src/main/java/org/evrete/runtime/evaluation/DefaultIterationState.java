@@ -54,7 +54,7 @@ public class DefaultIterationState implements NodeIterationStateFactory.State {
     }
 
     @Override
-    public ValueHandle apply1(FactType factType, int fieldIndex) {
+    public ValueHandle apply(FactType factType, int fieldIndex) {
         return stateValues[factType.getInRuleIndex()].get1(fieldIndex);
     }
 
