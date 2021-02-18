@@ -23,7 +23,6 @@ class TypeMemoryBucket extends MemoryComponent implements PlainMemory {
     @Override
     protected void forEachChildComponent(Consumer<MemoryComponent> consumer) {
         // No child components
-
     }
 
     @Override
@@ -35,7 +34,7 @@ class TypeMemoryBucket extends MemoryComponent implements PlainMemory {
     @Override
     public void insert(FactHandleVersioned value, FieldToValueHandle key) {
         if (alphaMask.test(memoryFactory.getValueResolver(), key)) {
-            delta.insert(value);
+            delta.insert(value, key);
         }
     }
 

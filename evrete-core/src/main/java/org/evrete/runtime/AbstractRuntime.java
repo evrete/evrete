@@ -224,15 +224,15 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         return activeFields.getActiveFields(type);
     }
 
-    private AlphaBucketMeta getCreateAlphaMask(FieldsKey fields, boolean beta, Set<EvaluatorWrapper> typePredicates) {
-        return alphaConditions.register(this, fields, beta, typePredicates, this::onNewAlphaBucket);
+    private AlphaBucketMeta getCreateAlphaMask(FieldsKey fields, Set<EvaluatorWrapper> typePredicates) {
+        return alphaConditions.register(this, fields, typePredicates, this::onNewAlphaBucket);
     }
 
     FactType buildFactType(FactTypeBuilder builder, Set<EvaluatorWrapper> alphaConditions, int inRuleId) {
         Type<?> type = builder.getType();
         Set<ActiveField> activeFields = getCreateActiveFields(builder.getBetaTypeFields());
         FieldsKey fieldsKey = new FieldsKey(builder.getType(), activeFields);
-        AlphaBucketMeta alphaMask = getCreateAlphaMask(fieldsKey, builder.isBetaTypeBuilder(), alphaConditions);
+        AlphaBucketMeta alphaMask = getCreateAlphaMask(fieldsKey, alphaConditions);
 
         return new FactType(builder.getVar(), type, alphaMask, fieldsKey, inRuleId);
     }

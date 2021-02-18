@@ -24,13 +24,6 @@ public final class FactTypeBuilder implements NamedType {
         this.type = type;
     }
 
-    /**
-     * @return true if this Type builder is a member of beta condition
-     */
-    public boolean isBetaTypeBuilder() {
-        return betaFields.size() > 0;
-    }
-
     void addBetaField(FieldReference ref) {
         this.betaFields.add(ref.field());
     }

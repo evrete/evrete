@@ -6,6 +6,7 @@ import org.evrete.util.CollectionUtils;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
+import java.util.function.IntFunction;
 
 /**
  * A simple array wrapper which allows for faster iteration and
@@ -67,6 +68,16 @@ public class ArrayOf<T> implements ReIterable<T> {
     public boolean isEmptyAt(int index) {
         if (index >= this.data.length) return true;// No such index
         return this.data[index] == null;
+    }
+
+    public T computeIfAbsent(int idx, IntFunction<T> supplier) {
+        T obj = get(idx);
+        if (obj == null) {
+            obj = supplier.apply(idx);
+            set(idx, obj);
+        }
+
+        return obj;
     }
 
     public T getChecked(int i) {

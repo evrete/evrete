@@ -11,12 +11,10 @@ import java.util.function.Consumer;
 
 public class FieldsMemory extends MemoryComponent implements InnerFactMemory {
     private final FieldsKey typeFields;
-    //private final SessionMemory runtime;
     private final ArrayOf<FieldsMemoryBucket> alphaBuckets;
 
     FieldsMemory(MemoryComponent runtime, FieldsKey typeFields) {
         super(runtime);
-        //this.runtime = runtime;
         this.typeFields = typeFields;
         this.alphaBuckets = new ArrayOf<>(FieldsMemoryBucket.class);
     }
@@ -57,48 +55,10 @@ public class FieldsMemory extends MemoryComponent implements InnerFactMemory {
         }
     }
 
-    FieldsMemoryBucket touchMemory(AlphaBucketMeta alphaMeta) {
-        int bucketIndex = alphaMeta.getBucketIndex();
-        if (alphaBuckets.isEmptyAt(bucketIndex)) {
-            FieldsMemoryBucket newBucket = new FieldsMemoryBucket(FieldsMemory.this, typeFields, alphaMeta);
-            alphaBuckets.set(bucketIndex, newBucket);
-            return newBucket;
-        }
-        return null;
+    FieldsMemoryBucket getCreate(AlphaBucketMeta alphaMeta) {
+        return alphaBuckets.computeIfAbsent(alphaMeta.getBucketIndex(), k -> new FieldsMemoryBucket(FieldsMemory.this, typeFields, alphaMeta));
     }
 
-/*
-    <T extends RuntimeFact> void onNewAlphaBucket(AlphaBucketMeta alphaMeta, ReIterator<T> existingFacts) {
-        FieldsMemoryBucket newBucket = touchMemory(alphaMeta);
-        assert newBucket != null;
-        if (existingFacts.reset() > 0) {
-            while (existingFacts.hasNext()) {
-                RuntimeFact rto = existingFacts.next();
-                if (alphaMeta.test(rto)) {
-                    //TODO !!!!!!! create tests and resolve the situation
-                    throw new UnsupportedOperationException();
-                }
-            }
-        }
-    }
-*/
-
-
-/*
-    void insert(FactHandle handle, FieldToValue values, boolean[] alphaTests) {
-        for (FieldsMemoryBucket bucket : alphaBuckets.data) {
-            bucket.insert(handle, values, alphaTests);
-        }
-    }
-*/
-
-/*
-    void retract(RuntimeFact fact) {
-        for (FieldsMemoryBucket bucket : alphaBuckets.data) {
-            bucket.delete(fact);
-        }
-    }
-*/
 
     @Override
     public String toString() {

@@ -64,11 +64,7 @@ public class AlphaConditions implements Copyable<AlphaConditions>, EvaluationLis
         return alphaPredicates.getOrDefault(type, EMPTY).data.length;
     }
 
-    public synchronized AlphaBucketMeta register(AbstractRuntime<?> runtime, FieldsKey betaFields, boolean beta, Set<EvaluatorWrapper> typePredicates, Consumer<AlphaDelta> listener) {
-        if (typePredicates.isEmpty() && betaFields.size() == 0) {
-            return AlphaBucketMeta.NO_FIELDS_NO_CONDITIONS;
-        }
-
+    public synchronized AlphaBucketMeta register(AbstractRuntime<?> runtime, FieldsKey betaFields, Set<EvaluatorWrapper> typePredicates, Consumer<AlphaDelta> listener) {
         Collection<AlphaEvaluator> newEvaluators = new LinkedList<>();
 
         Type<?> type = betaFields.getType();
@@ -77,7 +73,6 @@ public class AlphaConditions implements Copyable<AlphaConditions>, EvaluationLis
                 .computeIfAbsent(type, TypeAlphas::new)
                 .getCreate(
                         betaFields,
-                        beta,
                         candidate,
                         alphaBucketMeta -> listener.accept(new AlphaDelta(betaFields, alphaBucketMeta, newEvaluators))
                 );
@@ -163,75 +158,61 @@ public class AlphaConditions implements Copyable<AlphaConditions>, EvaluationLis
         return new AlphaMeta(validValues, alphaEvaluators);
     }
 
-    private static class FieldAlphas implements Copyable<FieldAlphas> {
-        private final ArrayOf<AlphaBucketMeta> data;
-
-        FieldAlphas(FieldsKey fields) {
-            if (fields.size() == 0) {
-                // for alpha emory
-                this.data = new ArrayOf<>(new AlphaBucketMeta[]{AlphaBucketMeta.NO_FIELDS_NO_CONDITIONS});
-            } else {
-                // for beta memory
-                this.data = new ArrayOf<>(new AlphaBucketMeta[0]);
-            }
-        }
-
-        FieldAlphas(FieldAlphas other) {
-            this.data = new ArrayOf<>(other.data);
-        }
-
-        AlphaBucketMeta getCreate(AlphaMeta candidate, Consumer<AlphaBucketMeta> listener) {
-            AlphaBucketMeta found = null;
-            for (AlphaBucketMeta mask : data.data) {
-                if (mask.sameData(candidate.alphaEvaluators, candidate.requiredValues)) {
-                    found = mask;
-                    break;
-                }
-            }
-            if (found == null) {
-                found = AlphaBucketMeta.factory(data.data.length, candidate.alphaEvaluators, candidate.requiredValues);
-                data.append(found);
-                listener.accept(found);
-            }
-
-            return found;
-        }
-
-        @Override
-        public FieldAlphas copyOf() {
-            return new FieldAlphas(this);
-        }
-    }
 
     private static class TypeAlphas implements Copyable<TypeAlphas> {
-        private final Map<FieldsKey, FieldAlphas> dataAlpha;
-        private final Map<FieldsKey, FieldAlphas> dataBeta;
+        private final Map<FieldsKey, FieldAlphas> data;
 
         TypeAlphas(Type<?> type) {
-            this.dataAlpha = new HashMap<>();
-            this.dataBeta = new HashMap<>();
+            this.data = new HashMap<>();
         }
 
         TypeAlphas(TypeAlphas other) {
-            this.dataAlpha = new HashMap<>();
-            this.dataBeta = new HashMap<>();
-            this.dataAlpha.putAll(other.dataAlpha);
-            this.dataBeta.putAll(other.dataBeta);
+            this.data = new HashMap<>(other.data);
         }
 
-        private AlphaBucketMeta getCreate(FieldsKey betaFields, boolean beta, AlphaMeta candidate, Consumer<AlphaBucketMeta> listener) {
-            Map<FieldsKey, FieldAlphas> map = beta ?
-                    dataBeta
-                    :
-                    dataAlpha;
-
-            return map.computeIfAbsent(betaFields, FieldAlphas::new).getCreate(candidate, listener);
+        private AlphaBucketMeta getCreate(FieldsKey betaFields, AlphaMeta candidate, Consumer<AlphaBucketMeta> listener) {
+            return data.computeIfAbsent(betaFields, FieldAlphas::new).getCreate(candidate, listener);
         }
 
         @Override
         public TypeAlphas copyOf() {
             return new TypeAlphas(this);
         }
+
+        private static class FieldAlphas implements Copyable<FieldAlphas> {
+            private final ArrayOf<AlphaBucketMeta> data;
+
+            FieldAlphas(FieldsKey fields) {
+                this.data = new ArrayOf<>(new AlphaBucketMeta[0]);
+            }
+
+            FieldAlphas(FieldAlphas other) {
+                this.data = new ArrayOf<>(other.data);
+            }
+
+            AlphaBucketMeta getCreate(AlphaMeta candidate, Consumer<AlphaBucketMeta> listener) {
+                AlphaBucketMeta found = null;
+                for (AlphaBucketMeta mask : data.data) {
+                    if (mask.sameData(candidate.alphaEvaluators, candidate.requiredValues)) {
+                        found = mask;
+                        break;
+                    }
+                }
+                if (found == null) {
+                    found = AlphaBucketMeta.factory(data.data.length, candidate.alphaEvaluators, candidate.requiredValues);
+                    data.append(found);
+                    listener.accept(found);
+                }
+
+                return found;
+            }
+
+            @Override
+            public FieldAlphas copyOf() {
+                return new FieldAlphas(this);
+            }
+        }
+
     }
 
     private static class AlphaMeta {

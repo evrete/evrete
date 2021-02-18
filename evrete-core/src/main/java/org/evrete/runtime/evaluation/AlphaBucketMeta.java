@@ -10,8 +10,6 @@ import java.util.Arrays;
 public abstract class AlphaBucketMeta {
     private static final AlphaEvaluator[] EMPTY_INDICES = new AlphaEvaluator[0];
     private static final boolean[] EMPTY_VALUES = new boolean[0];
-    public static final AlphaBucketMeta NO_FIELDS_NO_CONDITIONS = new AlphaBucketMeta(0, EMPTY_INDICES, EMPTY_VALUES) {
-    };
 
     private final int bucketIndex;
     private final AlphaEvaluator[] alphaEvaluators;

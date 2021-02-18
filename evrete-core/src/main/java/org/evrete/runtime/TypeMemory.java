@@ -22,7 +22,7 @@ public final class TypeMemory extends MemoryComponent {
     TypeMemory(SessionMemory sessionMemory, Type<?> type) {
         super(sessionMemory);
         this.type = type;
-        this.alphaBuckets = new ArrayOf<>(new TypeMemoryBucket[]{new TypeMemoryBucket(TypeMemory.this, AlphaBucketMeta.NO_FIELDS_NO_CONDITIONS)});
+        this.alphaBuckets = new ArrayOf<>(TypeMemoryBucket.class);
 
         String identityMethod = configuration.getOrDefault(Configuration.OBJECT_COMPARE_METHOD, Configuration.IDENTITY_METHOD_IDENTITY).toString();
         switch (identityMethod) {
@@ -126,54 +126,50 @@ public final class TypeMemory extends MemoryComponent {
         return factStorage.getFact(handle);
     }
 
-    public PlainMemory get(AlphaBucketMeta alphaMask) {
-        return alphaBuckets.getChecked(alphaMask.getBucketIndex());
+    TypeMemoryBucket getCreateAlpha(AlphaBucketMeta alphaMask) {
+        return alphaBuckets.computeIfAbsent(alphaMask.getBucketIndex(), i -> new TypeMemoryBucket(TypeMemory.this, alphaMask));
     }
 
-    void touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
+    MemoryComponent touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
         if (key.size() == 0) {
-            touchAlphaMemory(alphaMeta);
+            return getCreateAlpha(alphaMeta);
         } else {
-            betaMemories
+            return betaMemories
                     .computeIfAbsent(key, k -> new FieldsMemory(TypeMemory.this, key))
-                    .touchMemory(alphaMeta);
+                    .getCreate(alphaMeta);
         }
-    }
-
-    private TypeMemoryBucket touchAlphaMemory(AlphaBucketMeta alphaMeta) {
-        if (!alphaMeta.isEmpty()) {
-            int bucketIndex = alphaMeta.getBucketIndex();
-            if (alphaBuckets.isEmptyAt(bucketIndex)) {
-                TypeMemoryBucket newBucket = new TypeMemoryBucket(TypeMemory.this, alphaMeta);
-                alphaBuckets.set(bucketIndex, newBucket);
-                return newBucket;
-            }
-        }
-        return null;
     }
 
     void onNewAlphaBucket(AlphaDelta delta) {
         ValueResolver valueResolver = memoryFactory.getValueResolver();
-        ;
         // 1. Create and fill buckets
         FieldsKey key = delta.getKey();
         AlphaBucketMeta meta = delta.getNewAlphaMeta();
 
-        AlphaBucketMeta alphaMeta = delta.getNewAlphaMeta();
+/*
+        MemoryComponent mc = touchMemory(key, meta);
+        forEachEntry((fh, rec) -> {
+            if (meta.test(valueResolver, rec)) {
+                mc.insert(new FactHandleVersioned(fh, rec.getVersion()), rec);
+            }
+        });
+*/
+
+
         if (key.size() == 0) {
             // 2. Create new alpha data bucket
-            TypeMemoryBucket newBucket = touchAlphaMemory(alphaMeta);
+            TypeMemoryBucket newBucket = getCreateAlpha(meta);
             assert newBucket != null;
             // Fill data
             forEachEntry((fh, rec) -> {
                 if (meta.test(valueResolver, rec)) {
-                    newBucket.getData().insert(new FactHandleVersioned(fh, rec.getVersion()));
+                    newBucket.getData().insert(new FactHandleVersioned(fh, rec.getVersion()), rec);
                 }
             });
         } else {
             // 3. Process keyed/beta-memory
             FieldsMemory m = getCreate(key);
-            FieldsMemoryBucket bucket = m.touchMemory(meta);
+            FieldsMemoryBucket bucket = m.getCreate(meta);
             assert bucket != null;
             forEachEntry((fhv, rec) -> {
                 if (meta.test(valueResolver, rec)) {
@@ -204,7 +200,6 @@ public final class TypeMemory extends MemoryComponent {
      */
     final void onNewActiveField(ActiveField newField) {
         List<FactStorage.Entry<FactRecord>> data = new LinkedList<>();
-
 
         ReIterator<FactStorage.Entry<FactRecord>> allFacts = factStorage.iterator();
         while (allFacts.hasNext()) {

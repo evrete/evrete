@@ -1,18 +1,19 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.FactHandleVersioned;
+import org.evrete.api.FieldToValueHandle;
 import org.evrete.api.ReIterator;
 import org.evrete.api.SharedPlainFactStorage;
 import org.evrete.collections.CollectionReIterator;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class SharedAlphaData implements SharedPlainFactStorage {
-    private final List<FactHandleVersioned> data = new ArrayList<>();
+    private final List<FactHandleVersioned> data = new LinkedList<>();
 
     @Override
-    public void insert(FactHandleVersioned fact) {
+    public void insert(FactHandleVersioned fact, FieldToValueHandle key) {
         data.add(fact);
     }
 
@@ -24,8 +25,7 @@ public class SharedAlphaData implements SharedPlainFactStorage {
             SharedAlphaData sad = (SharedAlphaData) other;
             this.data.addAll(sad.data);
         } else {
-            this.ensureExtraCapacity(size);
-            other.iterator().forEachRemaining(this::insert);
+            throw new IllegalStateException();
         }
     }
 
@@ -42,5 +42,9 @@ public class SharedAlphaData implements SharedPlainFactStorage {
     @Override
     public int size() {
         return data.size();
+    }
+
+    @Override
+    public void commitChanges() {
     }
 }

@@ -1,9 +1,11 @@
 package org.evrete.api;
 
-//TODO !!!! javadoc, cleanup
-public interface SharedPlainFactStorage extends BufferedInsert, ReIterable<FactHandleVersioned> {
+import org.evrete.api.spi.InnerFactMemory;
 
-    void insert(FactHandleVersioned fact);
+//TODO !!!! javadoc, cleanup
+public interface SharedPlainFactStorage extends InnerFactMemory, ReIterable<FactHandleVersioned> {
+
+    //void insert(FactHandleVersioned fact);
 
     void clear();
 
