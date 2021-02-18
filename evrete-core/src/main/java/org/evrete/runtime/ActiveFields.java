@@ -1,3 +1,4 @@
+/*
 package org.evrete.runtime;
 
 import org.evrete.api.Copyable;
@@ -90,3 +91,4 @@ public class ActiveFields implements Copyable<ActiveFields> {
         }
     }
 }
+*/

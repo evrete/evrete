@@ -1,6 +1,9 @@
 package org.evrete.runtime.builder;
 
-import org.evrete.api.*;
+import org.evrete.api.Evaluator;
+import org.evrete.api.FieldReference;
+import org.evrete.api.IntToValue;
+import org.evrete.api.NamedType;
 import org.evrete.runtime.AbstractRuntime;
 
 import java.util.Arrays;
@@ -74,12 +77,6 @@ class PredicateExpression2 extends AbstractExpression {
         @Override
         public double getComplexity() {
             return complexity;
-        }
-
-        @Override
-        public int compare(LogicallyComparable other) {
-            if (other.equals(this)) return LogicallyComparable.RELATION_EQUALS;
-            return LogicallyComparable.RELATION_NONE;
         }
     }
 }

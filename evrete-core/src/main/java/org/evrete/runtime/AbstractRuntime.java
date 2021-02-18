@@ -24,15 +24,11 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     private final List<RuleDescriptor> ruleDescriptors;
     private final AtomicInteger ruleCounter;
 
-    //TODO !!! move to type meta data
-    private final Set<String> imports;
-    private final TypeMetaData typeMetaData;
+    private final RuntimeMetaData runtimeMeta;
 
     //TODO !!! move to type meta data
     private final AlphaConditions alphaConditions;
     private final KnowledgeService service;
-    //TODO !!! move to type meta data
-    private final ActiveFields activeFields;
     private final LazyInstance<ExpressionResolver> expressionResolver = new LazyInstance<>(this::newExpressionResolver);
     private final LazyInstance<TypeResolver> typeResolver = new LazyInstance<>(this::newTypeResolver);
     //private TypeResolver typeResolver;
@@ -51,15 +47,13 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
      */
     AbstractRuntime(KnowledgeService service) {
         this.parent = null;
-        this.typeMetaData = new TypeMetaData();
+        this.runtimeMeta = new RuntimeMetaData();
         this.ruleCounter = new AtomicInteger();
         this.alphaConditions = new AlphaConditions();
         this.ruleDescriptors = new ArrayList<>();
         this.service = service;
-        this.activeFields = new ActiveFields();
         this.activationManagerFactory = UnconditionalActivationManager.class;
         this.classLoader = service.getClassLoader();
-        this.imports = new HashSet<>();
         this.properties = new ConcurrentHashMap<>();
         this.agendaMode = ActivationMode.DEFAULT;
     }
@@ -71,16 +65,14 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
      */
     protected AbstractRuntime(AbstractRuntime<?> parent) {
         this.parent = parent;
-        this.typeMetaData = parent.typeMetaData.copyOf();
+        this.runtimeMeta = parent.runtimeMeta.copyOf();
         this.ruleCounter = new AtomicInteger(parent.ruleCounter.intValue());
         this.alphaConditions = parent.alphaConditions.copyOf();
         this.ruleDescriptors = new ArrayList<>(parent.ruleDescriptors);
         this.service = parent.service;
-        this.activeFields = parent.activeFields.copyOf();
         this.ruleComparator = parent.ruleComparator;
         this.activationManagerFactory = parent.activationManagerFactory;
         this.classLoader = parent.classLoader;
-        this.imports = new HashSet<>(parent.imports);
         this.properties = new ConcurrentHashMap<>(parent.properties);
         this.agendaMode = parent.agendaMode;
     }
@@ -93,7 +85,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
 
     @Override
     public RuntimeContext<?> addImport(String imp) {
-        this.imports.add(imp);
+        this.runtimeMeta.addImport(imp);
         return this;
     }
 
@@ -128,7 +120,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
 
     @Override
     public Set<String> getImports() {
-        return imports;
+        return runtimeMeta.getImports();
     }
 
     @Override
@@ -208,7 +200,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     }
 
     public ActiveField getCreateActiveField(TypeField field) {
-        return activeFields.getCreate(field, this::onNewActiveField);
+        return runtimeMeta.getCreate(field, this::onNewActiveField);
     }
 
     private Set<ActiveField> getCreateActiveFields(Set<TypeField> fields) {
@@ -220,7 +212,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     }
 
     ActiveField[] getActiveFields(Type<?> type) {
-        return activeFields.getActiveFields(type);
+        return runtimeMeta.getActiveFields(type);
     }
 
     private AlphaBucketMeta getCreateAlphaMask(FieldsKey fields, Set<EvaluatorWrapper> typePredicates) {

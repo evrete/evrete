@@ -7,6 +7,7 @@ import org.evrete.util.CollectionUtils;
 import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
+import java.util.function.ObjIntConsumer;
 
 /**
  * A simple array wrapper which allows for faster iteration and
@@ -61,6 +62,15 @@ public class ArrayOf<T> implements ReIterable<T> {
         for (T obj : data) {
             if (obj != null) {
                 consumer.accept(obj);
+            }
+        }
+    }
+
+    public void forEach(ObjIntConsumer<? super T> consumer) {
+        for (int i = 0; i < this.data.length; i++) {
+            T obj = this.data[i];
+            if (obj != null) {
+                consumer.accept(obj, i);
             }
         }
     }

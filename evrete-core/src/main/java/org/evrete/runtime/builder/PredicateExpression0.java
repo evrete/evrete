@@ -53,7 +53,7 @@ class PredicateExpression0 extends AbstractExpression {
                 }
 
                 @Override
-                public int compare(LogicallyComparable other) {
+                public int compare(Evaluator other) {
                     return e.compare(other);
                 }
 

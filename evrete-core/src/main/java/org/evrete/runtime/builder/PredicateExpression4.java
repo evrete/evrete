@@ -66,11 +66,5 @@ class PredicateExpression4 extends AbstractExpression {
         public double getComplexity() {
             return complexity;
         }
-
-        @Override
-        public int compare(LogicallyComparable other) {
-            if (other.equals(this)) return LogicallyComparable.RELATION_EQUALS;
-            return LogicallyComparable.RELATION_NONE;
-        }
     }
 }

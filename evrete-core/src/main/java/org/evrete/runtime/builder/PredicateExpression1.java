@@ -70,12 +70,6 @@ class PredicateExpression1 extends AbstractExpression {
         }
 
         @Override
-        public int compare(LogicallyComparable other) {
-            if (other.equals(this)) return LogicallyComparable.RELATION_EQUALS;
-            return LogicallyComparable.RELATION_NONE;
-        }
-
-        @Override
         public String toString() {
             return "{" +
                     "descriptor=" + Arrays.toString(descriptor) +

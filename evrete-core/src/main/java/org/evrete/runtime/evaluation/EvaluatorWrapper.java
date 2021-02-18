@@ -89,8 +89,7 @@ public class EvaluatorWrapper implements Evaluator, Listeners {
     }
 
     @Override
-    public final int compare(LogicallyComparable other) {
-        // TODO check instances
-        return delegate.compare(other);
+    public final int compare(Evaluator other) {
+        return delegate.compare(unwrap(other));
     }
 }

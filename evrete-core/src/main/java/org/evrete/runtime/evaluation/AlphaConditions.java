@@ -10,7 +10,6 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import static org.evrete.api.LogicallyComparable.*;
 
 //TODO add comments
 public class AlphaConditions implements Copyable<AlphaConditions>, EvaluationListeners {
@@ -99,17 +98,17 @@ public class AlphaConditions implements Copyable<AlphaConditions>, EvaluationLis
             boolean foundDirect = true;
 
             for (AlphaEvaluator ia : existing.data) {
-                int cmp = alphaPredicate.compare(ia);
+                int cmp = alphaPredicate.compare(ia.getDelegate());
                 switch (cmp) {
-                    case RELATION_EQUALS:
+                    case Evaluator.RELATION_EQUALS:
                         found = ia;
                         foundDirect = true;
                         break;
-                    case RELATION_INVERSE:
+                    case Evaluator.RELATION_INVERSE:
                         found = ia;
                         foundDirect = false;
                         break;
-                    case RELATION_NONE:
+                    case Evaluator.RELATION_NONE:
                         break;
                     default:
                         throw new IllegalStateException();

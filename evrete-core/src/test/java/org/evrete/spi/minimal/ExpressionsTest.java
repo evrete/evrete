@@ -69,7 +69,7 @@ class ExpressionsTest {
         assert root.buildLhs("$a", TypeA.class).getVar().equals("$a");
         Evaluator ev1 = knowledge.compile("$a.i == 1", root.getFactTypeMapper());
         Evaluator ev2 = knowledge.compile("   $a.i ==     1     ", root.getFactTypeMapper());
-        assert ev1.compare(ev2) == LogicallyComparable.RELATION_EQUALS;
+        assert ev1.compare(ev2) == Evaluator.RELATION_EQUALS;
     }
 
     @Test

@@ -3,7 +3,6 @@ package org.evrete.spi.minimal;
 import org.evrete.api.Evaluator;
 import org.evrete.api.FieldReference;
 import org.evrete.api.IntToValue;
-import org.evrete.api.LogicallyComparable;
 import org.evrete.util.NextIntSupplier;
 
 import java.lang.invoke.MethodHandle;
@@ -141,7 +140,7 @@ class EvaluatorCompiler {
         }
 
         @Override
-        public int compare(LogicallyComparable other) {
+        public int compare(Evaluator other) {
             if (other instanceof CompiledEvaluator) {
                 CompiledEvaluator o = (CompiledEvaluator) other;
                 if (o.descriptor.length == 1 && this.descriptor.length == 1 && o.comparableClassSource.equals(this.comparableClassSource)) {
@@ -149,7 +148,7 @@ class EvaluatorCompiler {
                 }
             }
 
-            return LogicallyComparable.RELATION_NONE;
+            return Evaluator.super.compare(other);
         }
 
         @Override

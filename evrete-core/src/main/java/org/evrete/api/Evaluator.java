@@ -1,12 +1,31 @@
 package org.evrete.api;
 
-public interface Evaluator extends ValuesPredicate, LogicallyComparable, ComplexityObject {
+public interface Evaluator extends ValuesPredicate, ComplexityObject {
+    int RELATION_NONE = 0;
+    int RELATION_EQUALS = 1;
+    int RELATION_INVERSE = -1;
+
     /**
      * <p>Describes fields and their ordering to be used during the evaluation</p>
      *
      * @return fields in correct order
      */
     FieldReference[] descriptor();
+
+    /**
+     * @param other predicate
+     * @return positive integer (&gt;0) if predicates are logically the same,
+     * negative integer (&lt;0) if predicates are logically inverted  (like a == 2 and a != 2)
+     * zero (0) if there is no knowledge about the two or if they are independent
+     */
+    default int compare(Evaluator other) {
+        if (this.equals(other)) {
+            return RELATION_EQUALS;
+        } else {
+            return RELATION_NONE;
+        }
+    }
+
 
     /**
      * <p>A convenience method to convert evaluator's arguments to object array.</p>

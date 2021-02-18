@@ -43,7 +43,6 @@ public class Expressions {
     }
 
 
-    @SuppressWarnings("WeakerAccess")
     @State(Scope.Thread)
     public static class BenchState {
         static final AtomicLong counter = new AtomicLong();

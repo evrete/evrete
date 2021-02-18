@@ -3,7 +3,7 @@ package org.evrete.runtime.evaluation;
 import org.evrete.api.*;
 import org.evrete.runtime.ActiveField;
 
-public class AlphaEvaluator implements Copyable<AlphaEvaluator>, EvaluationListeners, LogicallyComparable {
+public class AlphaEvaluator implements Copyable<AlphaEvaluator>, EvaluationListeners {
     private final int uniqueId;
     private final ActiveField[] activeDescriptor;
     private final EvaluatorWrapper delegate;
@@ -18,6 +18,10 @@ public class AlphaEvaluator implements Copyable<AlphaEvaluator>, EvaluationListe
         this.uniqueId = other.uniqueId;
         this.activeDescriptor = other.activeDescriptor;
         this.delegate = other.delegate;
+    }
+
+    public EvaluatorWrapper getDelegate() {
+        return delegate;
     }
 
     public boolean test(ValueResolver valueResolver, FieldToValueHandle values) {
@@ -39,6 +43,7 @@ public class AlphaEvaluator implements Copyable<AlphaEvaluator>, EvaluationListe
         return uniqueId;
     }
 
+/*
     @Override
     public int compare(LogicallyComparable other) {
         if (other instanceof AlphaEvaluator) {
@@ -47,6 +52,7 @@ public class AlphaEvaluator implements Copyable<AlphaEvaluator>, EvaluationListe
             return delegate.compare(other);
         }
     }
+*/
 
     @Override
     public void addListener(EvaluationListener listener) {
