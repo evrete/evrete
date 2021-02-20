@@ -73,15 +73,6 @@ public class ConditionNodeDescriptor extends NodeDescriptor {
         return finalNodes;
     }
 
-    @Override
-    public boolean isConditionNode() {
-        return true;
-    }
-
-    public BetaEvaluatorGroup getExpression() {
-        return expression;
-    }
-
     private static void forEachConditionNode(ConditionNodeDescriptor node, Consumer<ConditionNodeDescriptor> consumer) {
         consumer.accept(node);
         for (NodeDescriptor parent : node.getSources()) {
@@ -91,6 +82,14 @@ public class ConditionNodeDescriptor extends NodeDescriptor {
         }
     }
 
+    @Override
+    public boolean isConditionNode() {
+        return true;
+    }
+
+    public BetaEvaluatorGroup getExpression() {
+        return expression;
+    }
 
     void forEachConditionNode(Consumer<ConditionNodeDescriptor> consumer) {
         forEachConditionNode(this, consumer);

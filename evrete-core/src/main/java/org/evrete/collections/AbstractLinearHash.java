@@ -26,9 +26,9 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
     private static final int DEFAULT_INITIAL_CAPACITY = 4;
     private static final int MAXIMUM_CAPACITY = 1 << 30;
     private static final int MINIMUM_CAPACITY = 2;
+    int size = 0;
     private Object[] data;
     private boolean[] deletedIndices;
-    int size = 0;
     private int deletes = 0;
 
     AbstractLinearHash(int initialCapacity) {

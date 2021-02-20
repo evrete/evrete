@@ -13,8 +13,7 @@ public class StatefulSessionImpl extends AbstractKnowledgeSession<StatefulSessio
 
     @Override
     public StatefulSession addImport(String imp) {
-        super.addImport(imp);
-        return this;
+        return (StatefulSession) super.addImport(imp);
     }
 
     @Override

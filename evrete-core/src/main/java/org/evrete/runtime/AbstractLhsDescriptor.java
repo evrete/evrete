@@ -62,28 +62,24 @@ public abstract class AbstractLhsDescriptor {
 
         ConditionNodeDescriptor[] finalNodes = findBestAllocation(compiledConditions, typeMapping);
 
-        //this.rhsKeyedFactGroups = new ArrayList<>();
         List<RhsFactGroupDescriptor> allFactGroups = new ArrayList<>();
         int factGroupCounter = 0;
-        int keyGroupIndex = 0;
 
         for (ConditionNodeDescriptor finalNode : finalNodes) {
-            RhsFactGroupDescriptor descriptor = new RhsFactGroupDescriptor(this, factGroupCounter, keyGroupIndex, finalNode);
+            RhsFactGroupDescriptor descriptor = new RhsFactGroupDescriptor(factGroupCounter, finalNode);
             allFactGroups.add(descriptor);
             factGroupCounter++;
-            keyGroupIndex++;
             keyedFactTypes.removeAll(Arrays.asList(descriptor.getTypes()));
         }
 
         for (FactType keyedType : keyedFactTypes) {
-            RhsFactGroupDescriptor descriptor = new RhsFactGroupDescriptor(this, factGroupCounter, keyGroupIndex, keyedType);
+            RhsFactGroupDescriptor descriptor = new RhsFactGroupDescriptor(factGroupCounter, keyedType);
             allFactGroups.add(descriptor);
             factGroupCounter++;
-            keyGroupIndex++;
         }
 
         if (!plainFactTypes.isEmpty()) {
-            allFactGroups.add(new RhsFactGroupDescriptor(this, factGroupCounter, plainFactTypes));
+            allFactGroups.add(new RhsFactGroupDescriptor(factGroupCounter, plainFactTypes));
         }
 
         for (RhsFactGroupDescriptor descriptor : allFactGroups) {

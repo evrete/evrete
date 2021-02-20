@@ -45,6 +45,21 @@ class TypeResolverImpl implements TypeResolver {
         }
     }
 
+    //TODO scan interfaces as well
+    private static List<Class<?>> superClasses(Class<?> subject) {
+        if (subject.isArray() || subject.isPrimitive() || subject.equals(Object.class)) return EMPTY_CLASS_LIST;
+
+        List<Class<?>> l = new ArrayList<>();
+
+        Class<?> current = subject.getSuperclass();
+        while (!current.equals(Object.class)) {
+            l.add(current);
+            current = current.getSuperclass();
+        }
+
+        return l;
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public <T> Type<T> getType(int typeId) {
@@ -84,21 +99,6 @@ class TypeResolverImpl implements TypeResolver {
         if (!changed) {
             throw new IllegalStateException();
         }
-    }
-
-    //TODO scan interfaces as well
-    private static List<Class<?>> superClasses(Class<?> subject) {
-        if (subject.isArray() || subject.isPrimitive() || subject.equals(Object.class)) return EMPTY_CLASS_LIST;
-
-        List<Class<?>> l = new ArrayList<>();
-
-        Class<?> current = subject.getSuperclass();
-        while (!current.equals(Object.class)) {
-            l.add(current);
-            current = current.getSuperclass();
-        }
-
-        return l;
     }
 
     @SuppressWarnings("unchecked")

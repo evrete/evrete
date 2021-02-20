@@ -1,15 +1,12 @@
 package org.evrete.runtime;
 
-import org.evrete.api.FieldToValue;
 import org.evrete.api.FieldToValueHandle;
 import org.evrete.api.ValueHandle;
-import org.evrete.api.ValueResolver;
 
 import java.util.Arrays;
 
 class FactRecord implements FieldToValueHandle {
     final Object instance;
-    private Object[] fieldValues1;
     private ValueHandle[] fieldValues;
     private int version = 0;
 
@@ -17,17 +14,6 @@ class FactRecord implements FieldToValueHandle {
         this.instance = instance;
         this.fieldValues = fieldValues;
     }
-
-    FieldToValue values(ValueResolver valueResolver) {
-        return new FieldToValue() {
-            @Override
-            public Object apply(ActiveField activeField) {
-                ValueHandle handle = fieldValues[activeField.getValueIndex()];
-                return valueResolver.getValue(handle);
-            }
-        };
-    }
-
 
     @Override
     public ValueHandle apply(ActiveField activeField) {
@@ -46,6 +32,10 @@ class FactRecord implements FieldToValueHandle {
 
     void updateVersion(int newVersion) {
         this.version = newVersion;
+    }
+
+    public ValueHandle[] getFieldValues() {
+        return fieldValues;
     }
 
     @Override

@@ -26,7 +26,7 @@ public class KnowledgeRuntime extends AbstractRuntime<Knowledge> implements Know
     }
 
     @Override
-    protected void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
+    public void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
         // Do nothing
     }
 
@@ -37,8 +37,7 @@ public class KnowledgeRuntime extends AbstractRuntime<Knowledge> implements Know
 
     @Override
     public Knowledge addImport(String imp) {
-        super.addImport(imp);
-        return this;
+        return (Knowledge) super.addImport(imp);
     }
 
     @Override

@@ -32,6 +32,10 @@ public class ArrayOf<T> implements ReIterable<T> {
         this.nonNullSize = computeSize();
     }
 
+    public ArrayOf(Class<T> type) {
+        this(CollectionUtils.array(type, 0));
+    }
+
     //TODO !!!! keep track of current size
     private int computeSize() {
         int size = 0;
@@ -39,10 +43,6 @@ public class ArrayOf<T> implements ReIterable<T> {
             if (o != null) size++;
         }
         return size;
-    }
-
-    public ArrayOf(Class<T> type) {
-        this(CollectionUtils.array(type, 0));
     }
 
     public void append(T element) {

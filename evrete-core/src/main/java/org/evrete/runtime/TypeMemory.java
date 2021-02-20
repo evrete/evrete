@@ -2,13 +2,11 @@ package org.evrete.runtime;
 
 import org.evrete.Configuration;
 import org.evrete.api.*;
-import org.evrete.api.spi.InnerFactMemory;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 public final class TypeMemory extends MemoryComponent {
@@ -36,8 +34,8 @@ public final class TypeMemory extends MemoryComponent {
         }
     }
 
-    FactHandle registerNewFact(FactRecord innerFact) {
-        return this.factStorage.insert(innerFact);
+    FactHandle registerNewFact(LazyInsertState insertState) {
+        return this.factStorage.insert(insertState.record);
     }
 
     public Type<?> getType() {
@@ -53,7 +51,7 @@ public final class TypeMemory extends MemoryComponent {
         return Collections.unmodifiableSet(betaMemories.keySet());
     }
 
-    void processMemoryChange(Action action, FactHandle handle, FactRecord factRecord) {
+    void processMemoryChange(Action action, FactHandle handle, LazyInsertState factRecord) {
         switch (action) {
             case RETRACT:
                 factStorage.delete(handle);
@@ -69,16 +67,21 @@ public final class TypeMemory extends MemoryComponent {
         }
     }
 
-    private void forEachSubComponent1(Consumer<InnerFactMemory> consumer) {
-        alphaBuckets.forEach(consumer);
-        betaMemories.values().forEach(consumer);
-    }
 
-
-    @Override
+    //@Override
     public void insert(FactHandleVersioned value, FieldToValueHandle key) {
+        throw new UnsupportedOperationException();
+/*
         for (MemoryComponent child : childComponents()) {
             child.insert(value, key);
+        }
+*/
+    }
+
+    @Override
+    void insert(FactHandleVersioned value, LazyInsertState insertState) {
+        for (MemoryComponent child : childComponents()) {
+            child.insert(value, insertState);
         }
     }
 
@@ -89,8 +92,9 @@ public final class TypeMemory extends MemoryComponent {
         }
     }
 
-    private void performUpdate(FactHandle handle, FactRecord factRecord) {
+    private void performUpdate(FactHandle handle, LazyInsertState state) {
         // Reading the previous version
+        FactRecord factRecord = state.record;
         FactRecord previous = factStorage.getFact(handle);
         if (previous == null) {
             LOGGER.warning("Unknown fact handle " + handle + ". Update operation skipped.");
@@ -99,7 +103,7 @@ public final class TypeMemory extends MemoryComponent {
             factRecord.updateVersion(newVersion);
             factStorage.update(handle, factRecord);
             FactHandleVersioned versioned = new FactHandleVersioned(handle, newVersion);
-            insert(versioned, factRecord);
+            insert(versioned, state);
         }
     }
 
@@ -138,7 +142,7 @@ public final class TypeMemory extends MemoryComponent {
 
     void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
         MemoryComponent mc = touchMemory(key, meta);
-        forEachEntry((fh, rec) -> mc.insert(new FactHandleVersioned(fh, rec.getVersion()), rec));
+        forEachEntry((fh, rec) -> mc.insert(new FactHandleVersioned(fh, rec.getVersion()), new LazyInsertState(valueResolver, rec)));
         mc.commitChanges();
     }
 
@@ -160,7 +164,7 @@ public final class TypeMemory extends MemoryComponent {
 
         for (FactStorage.Entry<FactRecord> rec : data) {
             Object fieldValue = newField.readValue(rec.getInstance().instance);
-            ValueHandle valueHandle = memoryFactory.getValueResolver().getValueHandle(newField.getValueType(), fieldValue);
+            ValueHandle valueHandle = valueResolver.getValueHandle(newField.getValueType(), fieldValue);
             rec.getInstance().appendValue(newField, valueHandle);
             factStorage.update(rec.getHandle(), rec.getInstance());
         }

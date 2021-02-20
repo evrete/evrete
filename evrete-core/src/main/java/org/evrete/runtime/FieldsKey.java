@@ -3,22 +3,21 @@ package org.evrete.runtime;
 import org.evrete.api.Type;
 
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
 
 public final class FieldsKey {
-    private static final Comparator<ActiveField> DEFAULT_COMPARATOR = Comparator.comparing(ActiveField::getValueIndex);
     private final ActiveField[] fields;
     private final Type<?> type;
+    private final int id;
 
-    public FieldsKey(Type<?> type, Collection<ActiveField> collection) {
-        this(type, collection.toArray(ActiveField.ZERO_ARRAY), DEFAULT_COMPARATOR);
+
+    FieldsKey(int id, Type<?> type, ActiveField[] arr) {
+        this.id = id;
+        this.fields = arr;
+        this.type = type;
     }
 
-    private FieldsKey(Type<?> type, ActiveField[] arr, Comparator<ActiveField> comparator) {
-        this.fields = arr;
-        Arrays.sort(this.fields, comparator);
-        this.type = type;
+    public int getId() {
+        return id;
     }
 
     public Type<?> getType() {

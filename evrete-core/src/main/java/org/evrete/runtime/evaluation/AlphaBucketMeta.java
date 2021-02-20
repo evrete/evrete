@@ -1,105 +1,46 @@
 package org.evrete.runtime.evaluation;
 
-import org.evrete.api.FieldToValue;
-import org.evrete.api.FieldToValueHandle;
-import org.evrete.api.MemoryFactory;
-import org.evrete.api.ValueResolver;
-
-import java.util.Arrays;
+import java.util.*;
 
 public abstract class AlphaBucketMeta {
-    private static final AlphaEvaluator[] EMPTY_INDICES = new AlphaEvaluator[0];
-    private static final boolean[] EMPTY_VALUES = new boolean[0];
-
+    private static final Set<AlphaEvaluator.Match> EMPTY_COMPONENTS = new HashSet<>();
+    public final AlphaEvaluator[] alphaEvaluators;
+    public final boolean[] requiredValues;
+    protected final Set<AlphaEvaluator.Match> key;
     private final int bucketIndex;
-    private final AlphaEvaluator[] alphaEvaluators;
-    private final boolean[] requiredValues;
-    private final int hash;
 
-    private AlphaBucketMeta(int bucketIndex, AlphaEvaluator[] alphaEvaluators, boolean[] requiredValues) {
+    private AlphaBucketMeta(int bucketIndex, Set<AlphaEvaluator.Match> matches) {
         this.bucketIndex = bucketIndex;
-        this.alphaEvaluators = alphaEvaluators;
-        this.requiredValues = requiredValues;
-        this.hash = hash(alphaEvaluators, requiredValues);
+        this.key = matches;
+
+        List<AlphaEvaluator.Match> sortedMatches = new ArrayList<>(matches);
+        sortedMatches.sort(Comparator.comparingDouble(o -> o.matched.getDelegate().getComplexity()));
+
+        this.alphaEvaluators = new AlphaEvaluator[sortedMatches.size()];
+        this.requiredValues = new boolean[sortedMatches.size()];
+
+        int i = 0;
+        for (AlphaEvaluator.Match match : sortedMatches) {
+            this.alphaEvaluators[i] = match.matched;
+            this.requiredValues[i] = match.direct;
+            i++;
+        }
     }
 
-    static AlphaBucketMeta factory(int bucketIndex, AlphaEvaluator[] alphaConditions, boolean[] requiredValues) {
-        if (alphaConditions.length == 0) {
+    public static AlphaBucketMeta factory(int bucketIndex, Set<AlphaEvaluator.Match> matches) {
+        if (matches.isEmpty()) {
             return new Empty(bucketIndex);
         } else {
-            return new Default(bucketIndex, alphaConditions, requiredValues);
+            return new Default(bucketIndex, matches);
         }
     }
 
-    private static boolean sameData(AlphaEvaluator[] alphaEvaluators1, boolean[] values1, AlphaEvaluator[] alphaEvaluators2, boolean[] values2) {
-        if (!Arrays.equals(alphaEvaluators1, alphaEvaluators2)) return false;
-        for (int i = 0; i < alphaEvaluators1.length; i++) {
-            int alphaIdx1 = alphaEvaluators1[i].getUniqueId();
-            int alphaIdx2 = alphaEvaluators2[i].getUniqueId();
-            boolean b1 = values1[alphaIdx1];
-            boolean b2 = values2[alphaIdx2];
-            if (b1 != b2) return false;
-        }
-        return true;
-    }
+    public abstract boolean sameKey(Set<AlphaEvaluator.Match> other);
 
-    private static boolean sameData(AlphaBucketMeta ai1, AlphaBucketMeta ai2) {
-        return sameData(ai1.alphaEvaluators, ai1.requiredValues, ai2.alphaEvaluators, ai2.requiredValues);
-    }
-
-    private static int hash(AlphaEvaluator[] alphaIndices, boolean[] requiredValues) {
-        int h = 0;
-        for (AlphaEvaluator e : alphaIndices) {
-            int i = e.getUniqueId();
-            h += Integer.hashCode(i) + Boolean.hashCode(requiredValues[i]);
-        }
-        return h;
-    }
-
-    public boolean test(MemoryFactory memoryFactory, FieldToValue values) {
-        throw new UnsupportedOperationException();
-/*
-        int i;
-        for (AlphaEvaluator e : alphaEvaluators) {
-            i = e.getUniqueId();
-            if (e.test(values) != requiredValues[i]) return false;
-        }
-        return true;
-*/
-    }
-
-    public boolean test(ValueResolver valueResolver, FieldToValueHandle values) {
-        int i;
-        for (AlphaEvaluator e : alphaEvaluators) {
-            i = e.getUniqueId();
-            if (e.test(valueResolver, values) != requiredValues[i]) return false;
-        }
-        return true;
-    }
-
-    public boolean isEmpty() {
-        return alphaEvaluators.length == 0;
-    }
-
-    boolean sameData(AlphaEvaluator[] alphaEvaluators, boolean[] requiredValues) {
-        return sameData(this.alphaEvaluators, this.requiredValues, alphaEvaluators, requiredValues);
-    }
+    public abstract boolean isEmpty();
 
     public final int getBucketIndex() {
         return bucketIndex;
-    }
-
-    @Override
-    public final boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        AlphaBucketMeta that = (AlphaBucketMeta) o;
-        return hash == that.hash && sameData(this, that);
-    }
-
-    @Override
-    public final int hashCode() {
-        return hash;
     }
 
     @Override
@@ -113,18 +54,33 @@ public abstract class AlphaBucketMeta {
     private static final class Empty extends AlphaBucketMeta {
 
         Empty(int bucketIndex) {
-            super(bucketIndex, EMPTY_INDICES, EMPTY_VALUES);
+            super(bucketIndex, EMPTY_COMPONENTS);
         }
 
         @Override
         public final boolean isEmpty() {
             return true;
         }
+
+        @Override
+        public boolean sameKey(Set<AlphaEvaluator.Match> other) {
+            return other.isEmpty();
+        }
     }
 
     private static final class Default extends AlphaBucketMeta {
-        Default(int bucketIndex, AlphaEvaluator[] alphaEvaluators, boolean[] requiredValues) {
-            super(bucketIndex, alphaEvaluators, requiredValues);
+        Default(int bucketIndex, Set<AlphaEvaluator.Match> matches) {
+            super(bucketIndex, matches);
+        }
+
+        @Override
+        public boolean sameKey(Set<AlphaEvaluator.Match> other) {
+            return this.key.equals(other);
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return false;
         }
     }
 }

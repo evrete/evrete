@@ -48,7 +48,7 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
             LOGGER.warning("Can not resolve type for " + fact + ", insert operation skipped.");
             return null;
         } else {
-            FactRecord innerFact = buildFactRecord(type, fact);
+            LazyInsertState innerFact = buildFactRecord(type, fact);
             FactHandle factHandle = memory.get(type).registerNewFact(innerFact);
             if (factHandle == null) {
                 LOGGER.warning("Fact " + fact + " has been already inserted");
@@ -75,14 +75,21 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
         buffer.add(Action.RETRACT, handle, null);
     }
 
-    private FactRecord buildFactRecord(Type<?> type, Object instance) {
+    private LazyInsertState buildFactRecord(Type<?> type, Object instance) {
+        ValueResolver valueResolver = memory.valueResolver;
         ActiveField[] activeFields = getActiveFields(type);
-        ValueHandle[] fieldValues = new ValueHandle[activeFields.length];
-        FactRecord record = new FactRecord(instance, fieldValues);
+        ValueHandle[] valueHandles = new ValueHandle[activeFields.length];
+        // We will need field values for lazy alpha tests thus avoiding
+        // extra calls to ValueResolver
+        Object[] transientFieldValues = new Object[activeFields.length];
+        FactRecord record = new FactRecord(instance, valueHandles);
         for (ActiveField field : activeFields) {
-            fieldValues[field.getValueIndex()] = memoryFactory.getValueResolver().getValueHandle(field.getValueType(), field.readValue(instance));
+            int idx = field.getValueIndex();
+            Object fieldValue = field.readValue(instance);
+            valueHandles[idx] = valueResolver.getValueHandle(field.getValueType(), fieldValue);
+            transientFieldValues[idx] = fieldValue;
         }
-        return record;
+        return new LazyInsertState(record, transientFieldValues);
     }
 
     public final void forEachFact(BiConsumer<FactHandle, Object> consumer) {
@@ -95,7 +102,7 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
     }
 
     @Override
-    protected final void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
+    public final void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
         memory.onNewAlphaBucket(key, meta);
     }
 

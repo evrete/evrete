@@ -49,6 +49,15 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
         this.deltaIterator = new MappedReIterator<>(deltaStore.entries(), KeysStore.Entry::key);
     }
 
+    private static void forEachConditionNode(AbstractBetaConditionNode node, Consumer<AbstractBetaConditionNode> consumer) {
+        consumer.accept(node);
+        for (BetaMemoryNode<?> parent : node.getSources()) {
+            if (parent.isConditionNode()) {
+                forEachConditionNode((AbstractBetaConditionNode) parent, consumer);
+            }
+        }
+    }
+
     public AbstractKnowledgeSession getRuntime() {
         return rule.getRuntime();
     }
@@ -101,15 +110,6 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
 
     ReIterator<ValueRow[]> deltaIterator() {
         return deltaIterator;
-    }
-
-    private static void forEachConditionNode(AbstractBetaConditionNode node, Consumer<AbstractBetaConditionNode> consumer) {
-        consumer.accept(node);
-        for (BetaMemoryNode<?> parent : node.getSources()) {
-            if (parent.isConditionNode()) {
-                forEachConditionNode((AbstractBetaConditionNode) parent, consumer);
-            }
-        }
     }
 
     void forEachConditionNode(Consumer<AbstractBetaConditionNode> consumer) {

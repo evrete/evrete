@@ -1,17 +1,16 @@
 package org.evrete.runtime;
 
 import org.evrete.Configuration;
+import org.evrete.api.FactHandleVersioned;
 import org.evrete.api.MemoryFactory;
 import org.evrete.api.ValueResolver;
-import org.evrete.api.spi.InnerFactMemory;
 import org.evrete.collections.ArrayOf;
 
-abstract class MemoryComponent implements InnerFactMemory {
+abstract class MemoryComponent {
     protected final MemoryFactory memoryFactory;
     protected final Configuration configuration;
     protected final ValueResolver valueResolver;
     private final ArrayOf<MemoryComponent> childComponents = new ArrayOf<>(MemoryComponent.class);
-
 
     MemoryComponent(MemoryFactory memoryFactory, Configuration configuration) {
         this.memoryFactory = memoryFactory;
@@ -25,6 +24,10 @@ abstract class MemoryComponent implements InnerFactMemory {
         this.valueResolver = parent.valueResolver;
         parent.addChild(this);
     }
+
+    abstract void insert(FactHandleVersioned value, LazyInsertState insertState);
+
+    abstract void commitChanges();
 
     private void addChild(MemoryComponent childComponent) {
         this.childComponents.append(childComponent);
@@ -42,4 +45,6 @@ abstract class MemoryComponent implements InnerFactMemory {
             child.clear();
         }
     }
+
+
 }

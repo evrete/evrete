@@ -33,11 +33,6 @@ class TypeImpl<T> implements Type<T> {
         this.fields.putAll(other.fields);
     }
 
-    @Override
-    public int getId() {
-        return this.id;
-    }
-
     private static ValueReader resolve(MethodHandles.Lookup lookup, Class<?> clazz, String prop) {
         MethodHandle handle = null;
 
@@ -85,6 +80,11 @@ class TypeImpl<T> implements Type<T> {
 
     private static String capitalizeFirst(String str) {
         return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+
+    @Override
+    public int getId() {
+        return this.id;
     }
 
     @Override

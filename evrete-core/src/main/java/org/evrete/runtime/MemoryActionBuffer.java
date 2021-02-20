@@ -11,19 +11,15 @@ import java.util.logging.Logger;
 
 class MemoryActionBuffer {
     private static final Logger LOGGER = Logger.getLogger(MemoryActionBuffer.class.getName());
+    private static final BiPredicate<AtomicMemoryAction, FactHandle> SEARCH_FUNCTION = (existing, factHandle) -> existing.handle.equals(factHandle);
     private final LinearHashSet<AtomicMemoryAction> queue = new LinearHashSet<>();
     private final int[] actionCounts = new int[Action.values().length];
     private int totalActions = 0;
 
-    synchronized void add(Action action, FactHandle factHandle, FactRecord factRecord) {
+    synchronized void add(Action action, FactHandle factHandle, LazyInsertState factRecord) {
         queue.resize();
         int hash = factHandle.hashCode();
-        int addr = queue.findBinIndex(factHandle, hash, new BiPredicate<AtomicMemoryAction, FactHandle>() {
-            @Override
-            public boolean test(AtomicMemoryAction existing, FactHandle factHandle) {
-                return existing.handle.equals(factHandle);
-            }
-        });
+        int addr = queue.findBinIndex(factHandle, hash, SEARCH_FUNCTION);
 
         AtomicMemoryAction actionSameHandle = queue.get(addr);
         if (actionSameHandle == null) {
@@ -49,7 +45,6 @@ class MemoryActionBuffer {
                             actionSameHandle.factRecord = factRecord;
                             break;
                     }
-                    ;
                 case RETRACT:
                     switch (actionSameHandle.action) {
                         case RETRACT:
@@ -69,21 +64,16 @@ class MemoryActionBuffer {
                             actionCounts[Action.RETRACT.ordinal()]++;
                             break;
                     }
-                    ;
             }
         }
     }
 
-    public boolean hasData() {
+    boolean hasData() {
         return totalActions > 0;
     }
 
     Iterator<AtomicMemoryAction> actions() {
         return queue.iterator();
-    }
-
-    public int[] getActionCounts() {
-        return actionCounts;
     }
 
     int deltaOperations() {

@@ -21,18 +21,6 @@ public class DefaultLiteralRhsProvider extends LeastImportantServiceProvider imp
         return (Class<? extends AbstractLiteralRhs>) compiler.compile(className, source);
     }
 
-    @Override
-    public Consumer<RhsContext> compileRhs(RuntimeContext<?> requester, String literalRhs, Collection<FactType> factTypes, Collection<String> imports) {
-        FactType[] types = factTypes.toArray(FactType.ZERO_ARRAY);
-
-        Class<? extends AbstractLiteralRhs> clazz = buildClass(getCreateJavaCompiler(requester), types, literalRhs, imports);
-        try {
-            return clazz.getDeclaredConstructor().newInstance();
-        } catch (Exception e) {
-            throw new IllegalStateException("Unable to initialize RHS", e);
-        }
-    }
-
     private static String buildSource(String className, FactType[] types, String literalRhs, Collection<String> imports) {
         StringJoiner methodArgs = new StringJoiner(", ");
         StringJoiner args = new StringJoiner(", ");
@@ -79,5 +67,17 @@ public class DefaultLiteralRhsProvider extends LeastImportantServiceProvider imp
         // End of class
         sb.append("}\n");
         return sb.toString();
+    }
+
+    @Override
+    public Consumer<RhsContext> compileRhs(RuntimeContext<?> requester, String literalRhs, Collection<FactType> factTypes, Collection<String> imports) {
+        FactType[] types = factTypes.toArray(FactType.ZERO_ARRAY);
+
+        Class<? extends AbstractLiteralRhs> clazz = buildClass(getCreateJavaCompiler(requester), types, literalRhs, imports);
+        try {
+            return clazz.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to initialize RHS", e);
+        }
     }
 }

@@ -8,11 +8,6 @@ import java.util.function.BiPredicate;
 class DefaultMemoryFactory implements MemoryFactory {
     private final DefaultValueResolver valueResolver = new DefaultValueResolver();
 
-    @Override
-    public ValueResolver getValueResolver() {
-        return valueResolver;
-    }
-
     private static KeysStore factory(int[] arraySizes, int level) {
         int depth = arraySizes.length;
         int arrSize = arraySizes[level];
@@ -22,6 +17,11 @@ class DefaultMemoryFactory implements MemoryFactory {
         } else {
             return new KeysStoreMap(level, arrSize, () -> factory(arraySizes, level + 1));
         }
+    }
+
+    @Override
+    public ValueResolver getValueResolver() {
+        return valueResolver;
     }
 
     @Override

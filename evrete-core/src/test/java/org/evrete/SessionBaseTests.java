@@ -166,10 +166,8 @@ class SessionBaseTests {
         assert sessionObjects.size() == objectCount * 4 : "Actual: " + sessionObjects.size() + ", expected: " + objectCount * 4;
 
 
-        int deleted = 0;
         for (FactEntry e : sessionObjects) {
             s.delete(e.getHandle());
-            deleted++;
         }
         s.fire();
         sessionObjects = TestUtils.sessionObjects(s);
@@ -1296,6 +1294,15 @@ class SessionBaseTests {
         RhsAssert rhsAssert2 = new RhsAssert("$a", TypeA.class);
         RhsAssert rhsAssert3 = new RhsAssert("$a", TypeA.class);
 
+
+        Set<String> uniqueEvaluators = new HashSet<>();
+        knowledge.addListener(new EvaluationListener() {
+            @Override
+            public void fire(Evaluator evaluator, IntToValue values, boolean result) {
+                uniqueEvaluators.add(evaluator.toString());
+            }
+        });
+
         knowledge.newRule("rule 1")
                 .forEach("$a", TypeA.class)
                 .where("$a.i > 4")
@@ -1325,7 +1332,7 @@ class SessionBaseTests {
         rhsAssert3.assertCount(3);
 
         assert session.getMemory().get(aType).knownFieldSets().size() == 0;
-        assert session.getAlphaConditions().size(aType) == 3;
+        assert uniqueEvaluators.size() == 3;
     }
 
     @ParameterizedTest

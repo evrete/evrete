@@ -30,8 +30,9 @@ class FieldsMemoryBucket extends MemoryComponent {
     }
 
     @Override
-    public void insert(FactHandleVersioned value, FieldToValueHandle key) {
-        if (alphaMask.test(valueResolver, key)) {
+    void insert(FactHandleVersioned value, LazyInsertState insertState) {
+        FieldToValueHandle key = insertState.record;
+        if (insertState.test(alphaMask)) {
             fieldData.insert(value, key);
         }
     }

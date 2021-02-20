@@ -8,32 +8,25 @@ import org.evrete.runtime.async.ForkJoinExecutor;
 import org.evrete.runtime.builder.FactTypeBuilder;
 import org.evrete.runtime.builder.RuleBuilderImpl;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
-import org.evrete.runtime.evaluation.AlphaConditions;
 import org.evrete.runtime.evaluation.EvaluatorWrapper;
 import org.evrete.util.LazyInstance;
 import org.evrete.util.UnconditionalActivationManager;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements RuntimeContext<C> {
+public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends RuntimeMetaData<C> {
     private final List<RuleBuilder<C>> ruleBuilders = new ArrayList<>();
     private final List<RuleDescriptor> ruleDescriptors;
     private final AtomicInteger ruleCounter;
 
-    private final RuntimeMetaData runtimeMeta;
-
-    //TODO !!! move to type meta data
-    private final AlphaConditions alphaConditions;
+    //private final AlphaConditions alphaConditions;
     private final KnowledgeService service;
     private final LazyInstance<ExpressionResolver> expressionResolver = new LazyInstance<>(this::newExpressionResolver);
     private final LazyInstance<TypeResolver> typeResolver = new LazyInstance<>(this::newTypeResolver);
-    //private TypeResolver typeResolver;
     private final LazyInstance<LiteralRhsCompiler> rhsCompiler = new LazyInstance<>(this::newLiteralLhsProvider);
-    private final Map<String, Object> properties;
     private final AbstractRuntime<?> parent;
     private ClassLoader classLoader;
     private Comparator<Rule> ruleComparator = SALIENCE_COMPARATOR;
@@ -46,15 +39,14 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
      * @param service knowledge service
      */
     AbstractRuntime(KnowledgeService service) {
+        super();
         this.parent = null;
-        this.runtimeMeta = new RuntimeMetaData();
         this.ruleCounter = new AtomicInteger();
-        this.alphaConditions = new AlphaConditions();
+        //this.alphaConditions = new AlphaConditions();
         this.ruleDescriptors = new ArrayList<>();
         this.service = service;
         this.activationManagerFactory = UnconditionalActivationManager.class;
         this.classLoader = service.getClassLoader();
-        this.properties = new ConcurrentHashMap<>();
         this.agendaMode = ActivationMode.DEFAULT;
     }
 
@@ -64,30 +56,20 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
      * @param parent parent context
      */
     protected AbstractRuntime(AbstractRuntime<?> parent) {
+        super(parent);
         this.parent = parent;
-        this.runtimeMeta = parent.runtimeMeta.copyOf();
         this.ruleCounter = new AtomicInteger(parent.ruleCounter.intValue());
-        this.alphaConditions = parent.alphaConditions.copyOf();
+        //this.alphaConditions = parent.alphaConditions.copyOf();
         this.ruleDescriptors = new ArrayList<>(parent.ruleDescriptors);
         this.service = parent.service;
         this.ruleComparator = parent.ruleComparator;
         this.activationManagerFactory = parent.activationManagerFactory;
         this.classLoader = parent.classLoader;
-        this.properties = new ConcurrentHashMap<>(parent.properties);
         this.agendaMode = parent.agendaMode;
     }
 
     protected abstract TypeResolver newTypeResolver();
 
-    protected abstract void onNewActiveField(ActiveField newField);
-
-    protected abstract void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta);
-
-    @Override
-    public RuntimeContext<?> addImport(String imp) {
-        this.runtimeMeta.addImport(imp);
-        return this;
-    }
 
     ActivationMode getAgendaMode() {
         return agendaMode;
@@ -98,29 +80,6 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
     public C setActivationMode(ActivationMode agendaMode) {
         this.agendaMode = agendaMode;
         return (C) this;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public C set(String property, Object value) {
-        this.properties.put(property, value);
-        return (C) this;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> T get(String property) {
-        return (T) properties.get(property);
-    }
-
-    @Override
-    public Collection<String> getPropertyNames() {
-        return properties.keySet();
-    }
-
-    @Override
-    public Set<String> getImports() {
-        return runtimeMeta.getImports();
     }
 
     @Override
@@ -199,37 +158,15 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> implements Ru
         return getExpressionResolver().buildExpression(expression, resolver);
     }
 
-    public ActiveField getCreateActiveField(TypeField field) {
-        return runtimeMeta.getCreate(field, this::onNewActiveField);
-    }
-
-    ActiveField[] getActiveFields(Type<?> type) {
-        return runtimeMeta.getActiveFields(type);
-    }
-
     FactType buildFactType(FactTypeBuilder builder, Set<EvaluatorWrapper> alphaEvaluators, int inRuleId) {
-        Type<?> type = builder.getType();
-
-        Set<ActiveField> betaActiveFields = new HashSet<>();
-        for (TypeField field : builder.getBetaTypeFields()) {
-            betaActiveFields.add(runtimeMeta.getCreate(field, this::onNewActiveField));
-        }
-
-
-        FieldsKey fieldsKey = new FieldsKey(builder.getType(), betaActiveFields);
-        AlphaBucketMeta alphaMask = alphaConditions.register(this, fieldsKey, alphaEvaluators, this::onNewAlphaBucket);// getCreateAlphaMask(fieldsKey, alphaEvaluators);
-
-        return new FactType(builder.getVar(), type, alphaMask, fieldsKey, inRuleId);
+        FieldsKey fieldsKey = getCreateMemoryKey(builder);
+        AlphaBucketMeta alphaMask = buildAlphaMask(fieldsKey, alphaEvaluators);
+        return new FactType(builder.getVar(), alphaMask, fieldsKey, inRuleId);
     }
-
 
     @Override
     public List<RuleDescriptor> getRuleDescriptors() {
         return ruleDescriptors;
-    }
-
-    public AlphaConditions getAlphaConditions() {
-        return alphaConditions;
     }
 
     @Override

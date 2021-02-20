@@ -26,7 +26,18 @@ class TypeMemoryBucket extends MemoryComponent implements PlainMemory {
 
     @Override
     public void insert(FactHandleVersioned value, FieldToValueHandle key) {
+        throw new UnsupportedOperationException();
+/*
         if (alphaMask.test(valueResolver, key)) {
+            delta.insert(value, key);
+        }
+*/
+    }
+
+    @Override
+    void insert(FactHandleVersioned value, LazyInsertState insertState) {
+        FieldToValueHandle key = insertState.record;
+        if (insertState.test(alphaMask)) {
             delta.insert(value, key);
         }
     }

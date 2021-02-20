@@ -15,11 +15,6 @@ public class RuntimeLhsDefault extends RuntimeLhs {
         super(rule, descriptor);
     }
 
-    @Override
-    protected void forEach(Consumer<RhsContext> rhs) {
-        forEach(() -> rhs.accept(this));
-    }
-
     private static void runKeys(ScanMode mode, RhsFactGroupBeta[] groups, Runnable r) {
         switch (mode) {
             case DELTA:
@@ -129,6 +124,11 @@ public class RuntimeLhsDefault extends RuntimeLhs {
                 }
             }
         }
+    }
+
+    @Override
+    protected void forEach(Consumer<RhsContext> rhs) {
+        forEach(() -> rhs.accept(this));
     }
 
     private void forEach(Runnable eachFactRunnable) {

@@ -116,13 +116,13 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
 
     @Override
     public void addListener(EvaluationListener listener) {
-        getAlphaConditions().addListener(listener);
+        forEachAlphaCondition(a -> a.addListener(listener));
         this.ruleStorage.addListener(listener);
     }
 
     @Override
     public void removeListener(EvaluationListener listener) {
-        getAlphaConditions().removeListener(listener);
+        forEachAlphaCondition(a -> a.removeListener(listener));
         this.ruleStorage.removeListener(listener);
     }
 

@@ -740,14 +740,30 @@ class HotDeploymentTests {
         session.setActivationMode(mode);
 
         // Rule 1
-        ValuesPredicate p1_1 = v -> {
-            int i1 = (int) v.apply(0);
-            return i1 > 4;
+        ValuesPredicate p1_1 = new ValuesPredicate() {
+            @Override
+            public boolean test(IntToValue v) {
+                int i1 = (int) v.apply(0);
+                return i1 > 4;
+            }
+
+            @Override
+            public String toString() {
+                return "$a.i > 4";
+            }
         };
 
-        ValuesPredicate p1_2 = v -> {
-            int i1 = (int) v.apply(0);
-            return i1 > 3;
+        ValuesPredicate p1_2 = new ValuesPredicate() {
+            @Override
+            public boolean test(IntToValue v) {
+                int i1 = (int) v.apply(0);
+                return i1 > 3;
+            }
+
+            @Override
+            public String toString() {
+                return "$b.i > 3";
+            }
         };
 
         session.newRule("rule 1")
@@ -781,14 +797,31 @@ class HotDeploymentTests {
 
 
         // Adding another rule
-        ValuesPredicate p2_1 = v -> {
-            int i1 = (int) v.apply(0);
-            return i1 > 3;
+
+        ValuesPredicate p2_1 = new ValuesPredicate() {
+            @Override
+            public boolean test(IntToValue v) {
+                int i1 = (int) v.apply(0);
+                return i1 > 3;
+            }
+
+            @Override
+            public String toString() {
+                return "$a.i > 3";
+            }
         };
 
-        ValuesPredicate p2_2 = v -> {
-            int i1 = (int) v.apply(0);
-            return i1 > 2;
+        ValuesPredicate p2_2 = new ValuesPredicate() {
+            @Override
+            public boolean test(IntToValue v) {
+                int i1 = (int) v.apply(0);
+                return i1 > 2;
+            }
+
+            @Override
+            public String toString() {
+                return "$b.i > 2";
+            }
         };
 
         session.newRule("rule 2")

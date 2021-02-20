@@ -58,16 +58,6 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
         return result;
     }
 
-    // TODO !!!!! optimize, create a set of involved types
-    public boolean dependsOn(Type<?> type) {
-        for (RuntimeFactTypeKeyed entry : entryNodes) {
-            if (entry.getType().equals(type)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private static BetaMemoryNode<?> create(RuntimeRuleImpl rule, NodeDescriptor desc) {
         if (desc.isConditionNode()) {
             return new BetaConditionNode(
@@ -78,6 +68,16 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
             EntryNodeDescriptor descriptor = (EntryNodeDescriptor) desc;
             return new BetaEntryNode(descriptor, rule.resolve(descriptor.getFactType()));
         }
+    }
+
+    // TODO !!!!! optimize, create a set of involved types
+    public boolean dependsOn(Type<?> type) {
+        for (RuntimeFactTypeKeyed entry : entryNodes) {
+            if (entry.getType().equals(type)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
