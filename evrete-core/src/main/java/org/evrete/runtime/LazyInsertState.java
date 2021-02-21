@@ -20,19 +20,14 @@ public class LazyInsertState {
         this.record = record;
         this.transientFieldValues = new Object[record.getFieldValues().length];
         final boolean[] fieldReadFlags = new boolean[record.getFieldValues().length];
-        this.values = new FieldToValue() {
-            @Override
-            public Object apply(ActiveField activeField) {
-                int idx = activeField.getValueIndex();
-                if (fieldReadFlags[idx]) {
-                    return transientFieldValues[idx];
-                } else {
-                    Object v = valueResolver.getValue(record.getFieldValues()[idx]);
-                    transientFieldValues[idx] = v;
-                    fieldReadFlags[idx] = true;
-                    return v;
-                }
+        this.values = field -> {
+            int idx = field.getValueIndex();
+            Object v = transientFieldValues[idx];
+            if (!fieldReadFlags[idx]) {
+                v = transientFieldValues[idx] = valueResolver.getValue(record.getFieldValues()[idx]);
+                fieldReadFlags[idx] = true;
             }
+            return v;
         };
     }
 

@@ -41,13 +41,13 @@ class SharedBetaData implements SharedBetaFactStorage {
         for (KeyMode mode : KeyMode.values()) {
             ReIterable<ValueRow> iterator;
             switch (mode) {
-                case KNOWN_KEYS_KNOWN_FACTS:
+                case KNOWN_KNOWN:
                     iterator = main::keyIterator;
                     break;
-                case KNOWN_KEYS_NEW_FACTS:
+                case KNOWN_UNKNOWN:
                     iterator = deltaKnownKeys::keyIterator;
                     break;
-                case NEW_KEYS_NEW_FACTS:
+                case UNKNOWN_UNKNOWN:
                     iterator = deltaNewKeys::keyIterator;
                     break;
                 default:

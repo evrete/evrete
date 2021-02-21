@@ -1,5 +1,6 @@
 package org.evrete.runtime;
 
+import org.evrete.api.KeyMode;
 import org.evrete.api.KeysStore;
 import org.evrete.api.ReIterator;
 import org.evrete.api.ValueRow;
@@ -26,8 +27,8 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         this.deltaIterators = (ReIterator<KeysStore.Entry>[]) new ReIterator[sources.length];
 
         for (int source = 0; source < sources.length; source++) {
-            mainIterators[source] = sources[source].getMainStore().entries();
-            deltaIterators[source] = sources[source].getDeltaStore().entries();
+            mainIterators[source] = sources[source].getStore(KeyMode.KNOWN_KNOWN).entries();
+            deltaIterators[source] = sources[source].getStore(KeyMode.UNKNOWN_UNKNOWN).entries();
         }
     }
 
@@ -108,7 +109,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
     }
 
     private void evaluate() {
-        KeysStore destination = getDeltaStore();
+        KeysStore destination = getStore(KeyMode.UNKNOWN_UNKNOWN);
         if (state.hasNonPlainSources()) {
             processInputsNonPlain(destination);
         } else {

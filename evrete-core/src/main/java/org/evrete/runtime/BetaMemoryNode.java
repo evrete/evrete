@@ -1,16 +1,17 @@
 package org.evrete.runtime;
 
+import org.evrete.api.KeyMode;
 import org.evrete.api.KeysStore;
 
 public interface BetaMemoryNode<D extends NodeDescriptor> {
 
-    KeysStore getMainStore();
-
-    KeysStore getDeltaStore();
+    KeysStore getStore(KeyMode mode);
 
     default void mergeDelta() {
-        getMainStore().append(getDeltaStore());
-        getDeltaStore().clear();
+        KeysStore delta = getStore(KeyMode.UNKNOWN_UNKNOWN);
+        KeysStore main = getStore(KeyMode.KNOWN_KNOWN);
+        main.append(delta);
+        delta.clear();
     }
 
     void clear();

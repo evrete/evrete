@@ -1,11 +1,12 @@
 package org.evrete.api;
 
 public enum KeyMode {
-    NEW_KEYS_NEW_FACTS,
-    KNOWN_KEYS_KNOWN_FACTS,
-    KNOWN_KEYS_NEW_FACTS;
+    UNKNOWN_UNKNOWN, // New key, new Facts
+    KNOWN_KNOWN, // Known key, known facts
+    KNOWN_UNKNOWN // Known key, new facts
+    ;
 
     public boolean isDeltaMode() {
-        return this != KNOWN_KEYS_KNOWN_FACTS;
+        return this != KNOWN_KNOWN;
     }
 }

@@ -1,27 +1,24 @@
 package org.evrete.runtime;
 
-import org.evrete.api.KeysStore;
-import org.evrete.api.MemoryFactory;
-import org.evrete.api.ReIterator;
-import org.evrete.api.ValueRow;
+import org.evrete.api.*;
 import org.evrete.collections.MappedReIterator;
 import org.evrete.runtime.evaluation.BetaEvaluatorGroup;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.function.Consumer;
 
 public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDescriptor> {
-    private final KeysStore mainStore;
-    private final KeysStore deltaStore;
     private final BetaEvaluatorGroup expression;
     private final ConditionNodeDescriptor descriptor;
     private final BetaMemoryNode<?>[] sources;
     private final BetaConditionNode[] conditionSources;
     private final RuntimeFactTypeKeyed[][] grouping;
     private final RuntimeRuleImpl rule;
-    private final ReIterator<ValueRow[]> mainIterator;
-    private final ReIterator<ValueRow[]> deltaIterator;
+
+    private final EnumMap<KeyMode, ReIterator<ValueRow[]>> iterators = new EnumMap<>(KeyMode.class);
+    private final EnumMap<KeyMode, KeysStore> stores = new EnumMap<>(KeyMode.class);
 
     AbstractBetaConditionNode(RuntimeRuleImpl rule, ConditionNodeDescriptor descriptor, BetaMemoryNode<?>[] sources) {
         this.sources = sources;
@@ -35,8 +32,13 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
         this.rule = rule;
         this.descriptor = descriptor;
         MemoryFactory memoryFactory = rule.getRuntime().getMemoryFactory();
-        this.mainStore = memoryFactory.newKeyStore(descriptor.getEvalGrouping());
-        this.deltaStore = memoryFactory.newKeyStore(descriptor.getEvalGrouping());
+
+        for (KeyMode keyMode : KeyMode.values()) {
+            KeysStore store = memoryFactory.newKeyStore(descriptor.getEvalGrouping());
+            ReIterator<ValueRow[]> iterator = new MappedReIterator<>(store.entries(), KeysStore.Entry::key);
+            stores.put(keyMode, store);
+            iterators.put(keyMode, iterator);
+        }
         this.expression = descriptor.getExpression().copyOf();
 
         FactType[][] descGrouping = descriptor.getEvalGrouping();
@@ -44,9 +46,11 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
         for (int i = 0; i < descGrouping.length; i++) {
             this.grouping[i] = rule.resolve(RuntimeFactTypeKeyed.class, descGrouping[i]);
         }
+    }
 
-        this.mainIterator = new MappedReIterator<>(mainStore.entries(), KeysStore.Entry::key);
-        this.deltaIterator = new MappedReIterator<>(deltaStore.entries(), KeysStore.Entry::key);
+    @Override
+    public KeysStore getStore(KeyMode mode) {
+        return stores.get(mode);
     }
 
     private static void forEachConditionNode(AbstractBetaConditionNode node, Consumer<AbstractBetaConditionNode> consumer) {
@@ -58,7 +62,7 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
         }
     }
 
-    public AbstractKnowledgeSession getRuntime() {
+    public AbstractKnowledgeSession<?> getRuntime() {
         return rule.getRuntime();
     }
 
@@ -66,10 +70,6 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
         return conditionSources;
     }
 
-    @Override
-    public KeysStore getDeltaStore() {
-        return this.deltaStore;
-    }
 
     public RuntimeFactTypeKeyed[][] getGrouping() {
         return grouping;
@@ -91,11 +91,6 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
                 '}';
     }
 
-    @Override
-    public KeysStore getMainStore() {
-        return mainStore;
-    }
-
     public RuntimeRuleImpl getRule() {
         return rule;
     }
@@ -104,24 +99,17 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
         return expression;
     }
 
-    ReIterator<ValueRow[]> mainIterator() {
-        return mainIterator;
-    }
-
-    ReIterator<ValueRow[]> deltaIterator() {
-        return deltaIterator;
+    ReIterator<ValueRow[]> iterator(KeyMode mode) {
+        return iterators.get(mode);
     }
 
     void forEachConditionNode(Consumer<AbstractBetaConditionNode> consumer) {
         forEachConditionNode(this, consumer);
     }
 
-
     @Override
     public void clear() {
-        deltaStore.clear();
-        mainStore.clear();
-
+        stores.values().forEach(KeysStore::clear);
         for (BetaMemoryNode<?> source : getSources()) {
             source.clear();
         }

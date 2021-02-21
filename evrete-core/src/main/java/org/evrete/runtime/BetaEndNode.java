@@ -14,7 +14,7 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
     private final EnumMap<KeyMode, ReIterator<ValueRow[]>> keyIterators = new EnumMap<>(KeyMode.class);
     private final RuntimeFactTypeKeyed[] entryNodes;
 
-    public BetaEndNode(RuntimeRuleImpl rule, ConditionNodeDescriptor nodeDescriptor) {
+    BetaEndNode(RuntimeRuleImpl rule, ConditionNodeDescriptor nodeDescriptor) {
         super(rule, nodeDescriptor, create(nodeDescriptor.getSources(), rule));
         FactType[] factTypes = nodeDescriptor.getEvalGrouping()[0];
         assert factTypes.length == nodeDescriptor.getTypes().length;
@@ -23,19 +23,19 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
         for (KeyMode mode : KeyMode.values()) {
             RhsKeyIterator modeIterator;
             switch (mode) {
-                case NEW_KEYS_NEW_FACTS:
+                case UNKNOWN_UNKNOWN:
                     modeIterator = new ModeIteratorDelegate(
                             mode,
-                            deltaIterator()
+                            iterator(KeyMode.UNKNOWN_UNKNOWN)
                     );
                     break;
-                case KNOWN_KEYS_KNOWN_FACTS:
+                case KNOWN_KNOWN:
                     modeIterator = new ModeIteratorDelegate(
                             mode,
-                            mainIterator()
+                            iterator(KeyMode.KNOWN_KNOWN)
                     );
                     break;
-                case KNOWN_KEYS_NEW_FACTS:
+                case KNOWN_UNKNOWN:
                     ReIterator<ValueRow[]> listReIterator = new CollectionReIterator<>(oldKeysNewFacts);
                     modeIterator = new ModeIteratorDelegate(
                             mode,
@@ -71,7 +71,7 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
     }
 
     // TODO !!!!! optimize, create a set of involved types
-    public boolean dependsOn(Type<?> type) {
+    boolean dependsOn(Type<?> type) {
         for (RuntimeFactTypeKeyed entry : entryNodes) {
             if (entry.getType().equals(type)) {
                 return true;
@@ -85,7 +85,7 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
         super.computeDelta(deltaOnly);
         // TODO create a single Terminal node which would keep only delta
         // Cleaning deleted items
-        ReIterator<KeysStore.Entry> deleteIterator = getMainStore().entries();
+        ReIterator<KeysStore.Entry> deleteIterator = getStore(KeyMode.KNOWN_KNOWN).entries();
         if (deleteIterator.reset() > 0) {
             while (deleteIterator.hasNext()) {
                 if (!isEntryNonDeleted(deleteIterator.next())) {
@@ -104,9 +104,9 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
 
     private void computeOldKeysNewFacts(int index, boolean oldKeysNewFactsPresent, ValueRow[] array) {
         KeyReIterators<ValueRow> entry = entryNodes[index].getKeyIterators();
-        ReIterator<ValueRow> knownKeysKnownFacts = entry.keyIterator(KeyMode.KNOWN_KEYS_KNOWN_FACTS);
-        ReIterator<ValueRow> knownKeysNewFacts = entry.keyIterator(KeyMode.KNOWN_KEYS_NEW_FACTS);
-        ReIterator<ValueRow> newKeysNewFacts = entry.keyIterator(KeyMode.NEW_KEYS_NEW_FACTS);
+        ReIterator<ValueRow> knownKeysKnownFacts = entry.keyIterator(KeyMode.KNOWN_KNOWN);
+        ReIterator<ValueRow> knownKeysNewFacts = entry.keyIterator(KeyMode.KNOWN_UNKNOWN);
+        ReIterator<ValueRow> newKeysNewFacts = entry.keyIterator(KeyMode.UNKNOWN_UNKNOWN);
         ReIterator<ValueRow> it;
         if (index == entryNodes.length - 1) {
             // The last entry
@@ -163,8 +163,8 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
 
     //TODO !!! optimize
     private void testAndSave(ValueRow[] array) {
-        KeysStore main = getMainStore();
-        KeysStore delta = getDeltaStore();
+        KeysStore main = getStore(KeyMode.KNOWN_KNOWN);
+        KeysStore delta = getStore(KeyMode.UNKNOWN_UNKNOWN);
         if (main.hasKey(value -> array[value]) || delta.hasKey(value -> array[value])) {
             oldKeysNewFacts.add(Arrays.copyOf(array, array.length));
         }
@@ -180,14 +180,14 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
         return keyIterators;
     }
 
-    public RuntimeFactTypeKeyed[] getEntryNodes() {
+    RuntimeFactTypeKeyed[] getEntryNodes() {
         return getGrouping()[0];
     }
 
     private abstract static class ModeIterator implements RhsKeyIterator {
         private final KeyMode mode;
 
-        public ModeIterator(KeyMode mode) {
+        ModeIterator(KeyMode mode) {
             this.mode = mode;
         }
 
@@ -200,7 +200,7 @@ public class BetaEndNode extends BetaConditionNode implements KeyReIterators<Val
     private static class ModeIteratorDelegate extends ModeIterator {
         private final ReIterator<ValueRow[]> delegate;
 
-        public ModeIteratorDelegate(KeyMode mode, ReIterator<ValueRow[]> delegate) {
+        ModeIteratorDelegate(KeyMode mode, ReIterator<ValueRow[]> delegate) {
             super(mode);
             this.delegate = delegate;
         }

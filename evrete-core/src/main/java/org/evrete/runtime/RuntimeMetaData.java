@@ -202,7 +202,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
 
         private synchronized AlphaEvaluator append(EvaluatorWrapper wrapper, ActiveField[] descriptor) {
             int newId = this.alphaEvaluators.length;
-            AlphaEvaluator alphaEvaluator = new AlphaEvaluator(newId, wrapper, descriptor);
+            AlphaEvaluator alphaEvaluator = new AlphaEvaluator(wrapper, descriptor);
             this.alphaEvaluators = Arrays.copyOf(this.alphaEvaluators, this.alphaEvaluators.length + 1);
             this.alphaEvaluators[newId] = alphaEvaluator;
             return alphaEvaluator;

@@ -7,23 +7,13 @@ import org.evrete.api.FieldToValue;
 import org.evrete.runtime.ActiveField;
 
 public class AlphaEvaluator implements EvaluationListeners {
-    private final int uniqueId;
     private final ActiveField[] activeDescriptor;
     private final EvaluatorWrapper delegate;
 
-    public AlphaEvaluator(int uniqueId, EvaluatorWrapper e, ActiveField[] activeFields) {
-        this.uniqueId = uniqueId;
+    public AlphaEvaluator(EvaluatorWrapper e, ActiveField[] activeFields) {
         this.activeDescriptor = activeFields;
         this.delegate = e;
     }
-
-/*
-    private AlphaEvaluator(AlphaEvaluator other) {
-        this.uniqueId = other.uniqueId;
-        this.activeDescriptor = other.activeDescriptor;
-        this.delegate = other.delegate;
-    }
-*/
 
     public static Match search(AlphaEvaluator[] scope, EvaluatorWrapper subject) {
         for (AlphaEvaluator evaluator : scope) {
@@ -42,47 +32,12 @@ public class AlphaEvaluator implements EvaluationListeners {
         return null;
     }
 
-/*
-    public boolean test(ValueResolver valueResolver, FieldToValueHandle values) {
-        return delegate.test(new IntToValue() {
-            @Override
-            public Object apply(int i) {
-                return valueResolver.getValue(values.apply(activeDescriptor[i]));
-            }
-        });
-        //return delegate.test(i -> values.apply(activeDescriptor[i]));
-    }
-*/
-
     public EvaluatorWrapper getDelegate() {
         return delegate;
     }
 
-
-/*
-    @Override
-    public AlphaEvaluator copyOf() {
-        return new AlphaEvaluator(this);
-    }
-*/
-
     public boolean test(FieldToValue values) {
         return delegate.test(i -> values.apply(activeDescriptor[i]));
-    }
-
-/*
-    @Override
-    public int compare(LogicallyComparable other) {
-        if (other instanceof AlphaEvaluator) {
-            return delegate.compare(((AlphaEvaluator) other).delegate);
-        } else {
-            return delegate.compare(other);
-        }
-    }
-*/
-
-    int getUniqueId() {
-        return uniqueId;
     }
 
     @Override
@@ -93,14 +48,6 @@ public class AlphaEvaluator implements EvaluationListeners {
     @Override
     public void removeListener(EvaluationListener listener) {
         delegate.removeListener(listener);
-    }
-
-    @Override
-    public String toString() {
-        return "AlphaEvaluator{" +
-                "id=" + uniqueId +
-                ", delegate=" + delegate +
-                '}';
     }
 
     public static class Match {
