@@ -3,36 +3,26 @@ package org.evrete.runtime;
 import org.evrete.api.EvaluationListener;
 import org.evrete.api.EvaluationListeners;
 import org.evrete.api.RuntimeRule;
-import org.evrete.api.Type;
 import org.evrete.util.CollectionUtils;
-
-import java.util.HashSet;
-import java.util.Set;
 
 
 public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule, EvaluationListeners {
     private final RuntimeFactType[] factSources;
-    private final AbstractKnowledgeSession runtime;
+    private final AbstractKnowledgeSession<?> runtime;
     private final RuleDescriptor descriptor;
 
     private final RuntimeLhs lhs;
-    private final Set<Type<?>> allTypes = new HashSet<>();
     private long rhsCallCounter = 0;
 
-    public RuntimeRuleImpl(RuleDescriptor rd, AbstractKnowledgeSession runtime) {
-        super(runtime, rd, rd.getLhs().getGroupFactTypes());
+    public RuntimeRuleImpl(RuleDescriptor rd, AbstractKnowledgeSession<?> runtime) {
+        super(runtime, rd, rd.getLhs().getFactTypes());
         this.descriptor = rd;
         this.runtime = runtime;
-        FactType[] allFactTypes = descriptor.getLhs().getAllFactTypes();
-        this.factSources = buildTypes(runtime, allFactTypes);
-
-        for (RuntimeFactType t : factSources) {
-            allTypes.add(t.getType());
-        }
+        this.factSources = buildTypes(runtime, factTypes);
         this.lhs = RuntimeLhs.factory(this, rd.getLhs());
     }
 
-    private static RuntimeFactType[] buildTypes(AbstractKnowledgeSession runtime, FactType[] allFactTypes) {
+    private static RuntimeFactType[] buildTypes(AbstractKnowledgeSession<?> runtime, FactType[] allFactTypes) {
         RuntimeFactType[] factSources = new RuntimeFactType[allFactTypes.length];
         for (FactType factType : allFactTypes) {
             RuntimeFactType iterable = RuntimeFactType.factory(factType, runtime);
@@ -47,13 +37,9 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         }
     }
 
-    boolean dependsOn(Type<?> type) {
-        return allTypes.contains(type);
-    }
-
     final long executeRhs() {
         this.rhsCallCounter = 0;
-        this.lhs.forEach(rhs.andThen(rhsContext -> increaseCallCount()));
+        this.lhs.forEach(rhs.andThen(ctx -> increaseCallCount()));
         return this.rhsCallCounter;
     }
 
@@ -95,9 +81,8 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         return descriptor;
     }
 
-
     @Override
-    public AbstractKnowledgeSession getRuntime() {
+    public AbstractKnowledgeSession<?> getRuntime() {
         return runtime;
     }
 

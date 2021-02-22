@@ -85,7 +85,7 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
     }
 
     private synchronized RuntimeRuleImpl deployRule(RuleDescriptor descriptor, boolean hotDeployment) {
-        for (FactType factType : descriptor.getLhs().getAllFactTypes()) {
+        for (FactType factType : descriptor.getLhs().getFactTypes()) {
             memory.touchMemory(factType.getFields(), factType.getAlphaMask());
         }
         RuntimeRuleImpl rule = ruleStorage.addRule(descriptor, this);

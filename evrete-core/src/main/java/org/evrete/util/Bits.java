@@ -44,6 +44,9 @@ public class Bits implements Copyable<Bits>, Masked {
         delegate.or(other.delegate);
     }
 
+    public boolean get(int index) {
+        return delegate.get(index);
+    }
 
     public void set(int index) {
         delegate.set(index);

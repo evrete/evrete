@@ -9,7 +9,7 @@ public class RuleDescriptor extends AbstractRuntimeRule {
     private final LhsDescriptor lhsDescriptor;
 
     private RuleDescriptor(AbstractRuntime<?> runtime, AbstractRule other, LhsDescriptor lhsDescriptor) {
-        super(runtime, other, lhsDescriptor.getGroupFactTypes());
+        super(runtime, other, lhsDescriptor.getFactTypes());
         this.lhsDescriptor = lhsDescriptor;
     }
 

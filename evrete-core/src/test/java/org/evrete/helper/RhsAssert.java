@@ -17,8 +17,8 @@ import java.util.function.Supplier;
 
 public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
     private static final Function<RuleDescriptor, Entry[]> FROM_DESCRIPTOR = rule -> {
-        Set<FactType> types = rule.getLhs().getGroupFactTypes();
-        Entry[] entries = new Entry[types.size()];
+        FactType[] types = rule.getLhs().getFactTypes();
+        Entry[] entries = new Entry[types.length];
         int i = 0;
         for (FactType t : types) {
             entries[i++] = new Entry(t.getVar(), t.getType().getName());

@@ -20,7 +20,7 @@ import java.util.function.ToDoubleFunction;
 public abstract class AbstractLhsDescriptor {
     private final MapFunction<String, int[]> nameIndices = new MapFunction<>();
     private final int level;
-    private final Set<FactType> groupFactTypes = new HashSet<>();
+    private final FactType[] factTypes;
     private final RhsFactGroupDescriptor[] allFactGroups;
 
     AbstractLhsDescriptor(AbstractRuntime<?> runtime, AbstractLhsDescriptor parent, AbstractLhsBuilder<?, ?> group, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
@@ -31,6 +31,7 @@ public abstract class AbstractLhsDescriptor {
 
         Set<FactType> keyedFactTypes = new HashSet<>();
         Collection<FactType> plainFactTypes = new ArrayList<>();
+        List<FactType> allFactTypes = new LinkedList<>();
         for (FactTypeBuilder builder : declaredTypes) {
             // Building FactType
             FactType factType = runtime.buildFactType(
@@ -46,19 +47,10 @@ public abstract class AbstractLhsDescriptor {
             } else {
                 keyedFactTypes.add(factType);
             }
-
-            // Scan existing types and identify same fields and same alpha address
-            for (FactType existing : groupFactTypes) {
-                boolean sameKeys = existing.getFields().equals(factType.getFields());
-                boolean sameAlpha = existing.getBucketIndex() == factType.getBucketIndex();
-                if (sameKeys && sameAlpha) {
-                    existing.markNonUniqueKeyAndAlpha();
-                    factType.markNonUniqueKeyAndAlpha();
-                }
-            }
-
-            groupFactTypes.add(factType);
+            allFactTypes.add(factType);
         }
+
+        this.factTypes = allFactTypes.toArray(FactType.ZERO_ARRAY);
 
         ConditionNodeDescriptor[] finalNodes = findBestAllocation(compiledConditions, typeMapping);
 
@@ -146,8 +138,8 @@ public abstract class AbstractLhsDescriptor {
         return allFactGroups;
     }
 
-    public Set<FactType> getGroupFactTypes() {
-        return groupFactTypes;
+    public FactType[] getFactTypes() {
+        return factTypes;
     }
 
     @Override

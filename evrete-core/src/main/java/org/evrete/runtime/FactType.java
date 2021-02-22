@@ -18,7 +18,6 @@ public class FactType implements Masked {
     private final FieldsKey fields;
     private final int inRuleIndex;
     private final Bits mask;
-    private boolean uniqueKeyAndAlpha = true;
 
     public FactType(String var, AlphaBucketMeta alphaMask, FieldsKey fields, int inRuleIndex) {
         this.var = var;
@@ -35,7 +34,6 @@ public class FactType implements Masked {
         this.alphaMask = other.alphaMask;
         this.fields = other.fields;
         this.inRuleIndex = other.inRuleIndex;
-        this.uniqueKeyAndAlpha = other.uniqueKeyAndAlpha;
     }
 
     public static FactType[] toArray(Collection<FactType> set) {
@@ -46,14 +44,6 @@ public class FactType implements Masked {
 
     int getBucketIndex() {
         return alphaMask.getBucketIndex();
-    }
-
-    void markNonUniqueKeyAndAlpha() {
-        this.uniqueKeyAndAlpha = false;
-    }
-
-    boolean isUniqueKeyAndAlpha() {
-        return uniqueKeyAndAlpha;
     }
 
     int findFieldPosition(TypeField field) {
