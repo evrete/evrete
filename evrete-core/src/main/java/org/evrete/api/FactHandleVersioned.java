@@ -26,8 +26,8 @@ public class FactHandleVersioned implements Serializable {
 
     @Override
     public String toString() {
-        return "{version=" + version +
-                ", handle=" + handle +
+        return "{v=" + version +
+                ", h=" + handle +
                 '}';
     }
 }

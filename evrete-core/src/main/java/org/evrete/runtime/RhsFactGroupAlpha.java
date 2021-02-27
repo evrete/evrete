@@ -1,195 +1,104 @@
 package org.evrete.runtime;
 
-import org.evrete.api.FactHandleVersioned;
-import org.evrete.api.ReIterator;
+import org.evrete.api.*;
+import org.evrete.collections.CollectionReIterator;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 
 //TODO optimize by preconfiguring main and delta iterators
 //TODO !!!! use RuntimeAware as parent class
 public class RhsFactGroupAlpha extends AbstractRhsFactGroup implements RhsFactGroup {
-    private final RhsFactGroupDescriptor descriptor;
-    private final RuntimeFactTypePlain[] types;
+    private static final VR KEY_MAIN = new VR(KeyMode.MAIN.ordinal());
+    private static final VR KEY_DELTA = new VR(KeyMode.UNKNOWN_UNKNOWN.ordinal());
+    private final FactType[] types;
+    private final ReIterator<ValueRow[]> deltaKeyIterator;
+    private final ReIterator<ValueRow[]> mainKeyIterator;
+    private final SessionMemory memory;
 
-    RhsFactGroupAlpha(SessionMemory runtime, RhsFactGroupDescriptor descriptor, RuntimeFactTypePlain[] types, FactIterationState[][] factState) {
-        super(runtime, factState[descriptor.getFactGroupIndex()]);
-        this.descriptor = descriptor;
-        this.types = types;
-    }
+    RhsFactGroupAlpha(SessionMemory memory, RhsFactGroupDescriptor descriptor) {
+        this.types = descriptor.getTypes();
+        assert types.length > 0;
+        this.memory = memory;
 
-    @Override
-    public boolean isAlpha() {
-        return true;
-    }
+        ValueRow[] dummyMain = new VR[this.types.length];
+        Arrays.fill(dummyMain, KEY_MAIN);
+        this.mainKeyIterator = new CollectionReIterator<>(Collections.singletonList(dummyMain));
 
-    boolean hasDelta() {
-        for (RuntimeFactTypePlain plain : types) {
-            if (plain.getSource().deltaIterator().reset() > 0) return true;
+
+        Collection<VR[]> deltaCollection = new ArrayList<>();
+        int cnt = types.length;
+        //TODO !!! fix it
+        if (cnt > 24) throw new UnsupportedOperationException("Too many alpha nodes, another implementation required");
+        for (int i = 1; i < (1 << cnt); i++) {
+            VR[] arr = new VR[cnt];
+            for (int bit = 0; bit < cnt; bit++) {
+                if ((i & (1 << bit)) == 0) {
+                    arr[bit] = KEY_MAIN;
+                } else {
+                    arr[bit] = KEY_DELTA;
+                }
+            }
+            deltaCollection.add(arr);
         }
-        return false;
+
+        this.deltaKeyIterator = new CollectionReIterator<>(deltaCollection);
+
     }
 
     @Override
-    public int getIndex() {
-        return descriptor.getFactGroupIndex();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public RuntimeFactTypePlain[] getTypes() {
+    public FactType[] types() {
         return types;
     }
 
-    void run(ScanMode mode, Runnable r) {
-        switch (mode) {
-            case DELTA:
-                runDelta(0, false, r);
-                return;
-            case FULL:
-                runFull(0, r);
-                return;
-            case KNOWN:
-                runKnown(0, r);
-                return;
-            default:
-                throw new IllegalStateException();
-        }
-    }
-
-/*
-    private boolean next(int index, ReIterator<FactHandle> it) {
-        RuntimeFact fact = it.next();
-        if (fact.isDeleted()) {
-            it.remove();
-            return false;
+    @Override
+    public ReIterator<FactHandleVersioned> factIterator(FactType type, ValueRow row) {
+        ReIterator<FactHandleVersioned> iterator;
+        if (row == KEY_DELTA) {
+            iterator = memory.get(type.getType()).getCreateAlpha(type.getAlphaMask()).deltaIterator();
+        } else if (row == KEY_MAIN) {
+            iterator = memory.get(type.getType()).getCreateAlpha(type.getAlphaMask()).mainIterator();
         } else {
-            state[index] = fact;
-            return true;
+            throw new IllegalStateException();
         }
-    }
-*/
 
-
-    private void runDelta(int index, boolean hasDelta, Runnable r) {
-        PlainMemory memory = types[index].getSource();
-        ReIterator<FactHandleVersioned> it;
-        FactIterationState state = this.state[index];
-        if (index == lastIndex) {
-            //Last
-            // Main iterator
-            it = memory.mainIterator();
-            if (hasDelta && it.reset() > 0) {
-                while (it.hasNext()) {
-                    if (next(state, it)) {
-                        r.run();
-                    }
-                }
-            }
-
-            // Delta iterator
-            it = memory.deltaIterator();
-            if (it.reset() > 0) {
-                while (it.hasNext()) {
-                    if (next(state, it)) {
-                        r.run();
-                    }
-                }
-            }
-        } else {
-            // Main iterator
-            it = memory.mainIterator();
-            if (it.reset() > 0) {
-                while (it.hasNext()) {
-                    if (next(state, it)) {
-                        runDelta(index + 1, hasDelta, r);
-                    }
-                }
-            }
-
-            // Delta iterator
-            it = memory.deltaIterator();
-            if (it.reset() > 0) {
-                while (it.hasNext()) {
-                    if (next(state, it)) {
-                        runDelta(index + 1, true, r);
-                    }
-                }
-            }
-        }
+        return iterator;
     }
 
-    private void runFull(int index, Runnable r) {
-        PlainMemory memory = types[index].getSource();
-        ReIterator<FactHandleVersioned> it;
-        FactIterationState state = this.state[index];
-
-        if (index == lastIndex) {
-            //Last
-            // Main iterator
-            it = memory.mainIterator();
-            if (it.reset() > 0) {
-                while (it.hasNext()) {
-                    if (next(state, it)) {
-                        r.run();
-                    }
-                }
-            }
-
-            // Delta iterator
-            it = memory.deltaIterator();
-            if (it.reset() > 0) {
-                while (it.hasNext()) {
-                    if (next(state, it)) {
-                        r.run();
-                    }
-                }
-            }
-        } else {
-            // Main iterator
-            it = memory.mainIterator();
-            if (it.reset() > 0) {
-                while (it.hasNext()) {
-                    if (next(state, it)) {
-                        runFull(index + 1, r);
-                    }
-                }
-            }
-
-            // Delta iterator
-            it = memory.deltaIterator();
-            if (it.reset() > 0) {
-                while (it.hasNext()) {
-                    if (next(state, it)) {
-                        runFull(index + 1, r);
-                    }
-                }
-            }
-        }
+    @Override
+    public ReIterator<ValueRow[]> keyIterator(boolean delta) {
+        return delta ? deltaKeyIterator : mainKeyIterator;
     }
 
-    private void runKnown(int index, Runnable r) {
-        PlainMemory memory = types[index].getSource();
-        final ReIterator<FactHandleVersioned> it = memory.mainIterator();
-        FactIterationState state = this.state[index];
+    private static class VR implements ValueRow {
+        private final int transientValue;
 
-        if (index == lastIndex) {
-            //Last
-            // Main iterator
-            if (it.reset() > 0) {
-                while (it.hasNext()) {
-                    if (next(state, it)) {
-                        r.run();
-                    }
-                }
-            }
-        } else {
-            // Main iterator
-            if (it.reset() > 0) {
-                while (it.hasNext()) {
-                    if (next(state, it)) {
-                        runKnown(index + 1, r);
-                    }
-                }
-            }
+        VR(int transientValue) {
+            this.transientValue = transientValue;
+        }
+
+        @Override
+        public ValueHandle get(int fieldIndex) {
+            //TODO override or provide a message
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int getTransient() {
+            return transientValue;
+        }
+
+        @Override
+        public void setTransient(int transientValue) {
+            //TODO override or provide a message
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String toString() {
+            return transientValue == 0 ? "MAIN" : "DELTA";
         }
     }
-
 }

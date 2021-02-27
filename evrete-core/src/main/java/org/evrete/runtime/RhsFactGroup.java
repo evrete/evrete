@@ -1,9 +1,13 @@
 package org.evrete.runtime;
 
+import org.evrete.api.FactHandleVersioned;
+import org.evrete.api.ReIterator;
+import org.evrete.api.ValueRow;
+
 public interface RhsFactGroup {
-    boolean isAlpha();
+    ReIterator<ValueRow[]> keyIterator(boolean delta);
 
-    int getIndex();
+    ReIterator<FactHandleVersioned> factIterator(FactType type, ValueRow row);
 
-    <T extends RuntimeFactType> T[] getTypes();
+    FactType[] types();
 }

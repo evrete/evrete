@@ -28,6 +28,6 @@ class ValueHandleImpl implements ValueHandle {
 
     @Override
     public String toString() {
-        return "ValueHandleImpl" + Arrays.toString(data) + "@" + hashCode();
+        return Arrays.toString(data);
     }
 }

@@ -7,12 +7,7 @@ public interface BetaMemoryNode<D extends NodeDescriptor> {
 
     KeysStore getStore(KeyMode mode);
 
-    default void mergeDelta() {
-        KeysStore delta = getStore(KeyMode.UNKNOWN_UNKNOWN);
-        KeysStore main = getStore(KeyMode.KNOWN_KNOWN);
-        main.append(delta);
-        delta.clear();
-    }
+    void commitDelta();
 
     void clear();
 

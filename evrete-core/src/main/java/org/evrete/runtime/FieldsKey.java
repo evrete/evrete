@@ -47,6 +47,6 @@ public final class FieldsKey {
 
     @Override
     public String toString() {
-        return type.getJavaType().getSimpleName() + Arrays.toString(fields);
+        return Arrays.toString(fields);
     }
 }

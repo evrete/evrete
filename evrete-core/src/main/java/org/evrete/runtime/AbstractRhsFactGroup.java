@@ -1,21 +1,21 @@
 package org.evrete.runtime;
 
-import org.evrete.api.FactHandle;
-import org.evrete.api.FactHandleVersioned;
-import org.evrete.api.ReIterator;
-
 abstract class AbstractRhsFactGroup {
+/*
     final int lastIndex;
     final FactIterationState[] state;
-    private final SessionMemory runtime;
 
-    AbstractRhsFactGroup(SessionMemory runtime, FactIterationState[] state) {
+    AbstractRhsFactGroup(FactIterationState[] state) {
         this.state = state;
-        this.runtime = runtime;
         this.lastIndex = state.length - 1;
     }
 
-    final boolean next(FactIterationState state, ReIterator<FactHandleVersioned> it) {
+    AbstractRhsFactGroup() {
+        this.state = null;
+        this.lastIndex = - 1;
+    }
+
+    static boolean next(FactIterationState state, ReIterator<FactHandleVersioned> it) {
         FactHandleVersioned v = it.next();
         FactHandle handle = v.getHandle();
         FactRecord fact = state.typeMemory.getFact(handle);
@@ -28,5 +28,6 @@ abstract class AbstractRhsFactGroup {
             return true;
         }
     }
+*/
 
 }

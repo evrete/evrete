@@ -15,7 +15,8 @@ public class BetaEntryNode extends RuntimeFactTypeKeyed implements BetaMemoryNod
         super(factType);
         this.descriptor = node;
         for (KeyMode mode : KeyMode.values()) {
-            KeysStore store = new KeysStoreDelegate(getKeyIterators().keyIterator(mode));
+            ReIterator<ValueRow> it = runtime.getMemory().getBetaFactStorage(node.getFactType()).iterator(mode);
+            KeysStore store = new KeysStoreDelegate(mode, it);
             stores.put(mode, store);
         }
         this.grouping = new RuntimeFactType[1][1];
@@ -43,17 +44,23 @@ public class BetaEntryNode extends RuntimeFactTypeKeyed implements BetaMemoryNod
     }
 
     @Override
-    public void mergeDelta() {
+    public void commitDelta() {
+    }
+
+    @Override
+    public String toString() {
+        return descriptor.getFactType().toString();
     }
 
     static class KeysStoreDelegate extends KeysStoreStub {
         private final ReIterator<Entry> entryReIterator;
 
-        KeysStoreDelegate(ReIterator<ValueRow> storage) {
-            final DummyEntry entry = new DummyEntry();
 
-            this.entryReIterator = new MappedReIterator<>(storage, valueRows -> {
-                entry.arr[0] = valueRows;
+        KeysStoreDelegate(KeyMode keyMode, ReIterator<ValueRow> storage) {
+            final DummyEntry entry = new DummyEntry();
+            this.entryReIterator = new MappedReIterator<>(storage, row -> {
+                row.setTransient(keyMode.ordinal());
+                entry.arr[0] = row;
                 return entry;
             });
         }

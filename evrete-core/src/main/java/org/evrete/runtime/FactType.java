@@ -42,9 +42,6 @@ public class FactType implements Masked {
         return arr;
     }
 
-    int getBucketIndex() {
-        return alphaMask.getBucketIndex();
-    }
 
     int findFieldPosition(TypeField field) {
         ActiveField[] arr = fields.getFields();
@@ -78,5 +75,13 @@ public class FactType implements Masked {
     @Override
     public Bits getMask() {
         return mask;
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "var='" + var + '\'' +
+                ", type='" + fields.getType().getName() +
+                "'}";
     }
 }

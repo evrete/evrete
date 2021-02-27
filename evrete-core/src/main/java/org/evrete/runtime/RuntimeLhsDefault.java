@@ -1,20 +1,13 @@
 package org.evrete.runtime;
 
-import org.evrete.api.KeyMode;
-import org.evrete.api.ReIterator;
-import org.evrete.api.RhsContext;
-import org.evrete.api.ValueRow;
+class RuntimeLhsDefault extends RuntimeLhs {
 
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.logging.Logger;
 
-public class RuntimeLhsDefault extends RuntimeLhs {
     RuntimeLhsDefault(RuntimeRuleImpl rule, LhsDescriptor descriptor) {
         super(rule, descriptor);
     }
 
+/*
     private static void runKeys(ScanMode mode, RhsFactGroupBeta[] groups, Runnable r) {
         switch (mode) {
             case DELTA:
@@ -30,7 +23,9 @@ public class RuntimeLhsDefault extends RuntimeLhs {
                 throw new UnsupportedOperationException();
         }
     }
+*/
 
+/*
     private static void runDelta(int index, int lastIndex, boolean hasDelta, RhsFactGroupBeta[] groups, Runnable r) {
         RhsFactGroupBeta group = groups[index];
         Set<Map.Entry<KeyMode, ReIterator<ValueRow[]>>> entries = group.keyIterators().entrySet();
@@ -125,12 +120,16 @@ public class RuntimeLhsDefault extends RuntimeLhs {
             }
         }
     }
+*/
 
+/*
     @Override
     protected void forEach(Consumer<RhsContext> rhs) {
-        forEach(() -> rhs.accept(this));
+        //forEach(() -> rhs.accept(this));
     }
+*/
 
+/*
     private void forEach(Runnable eachFactRunnable) {
         RhsFactGroupAlpha alphaGroup = getAlphaFactGroup();
         RhsFactGroupBeta[] betaGroups = getBetaFactGroups();
@@ -201,5 +200,6 @@ public class RuntimeLhsDefault extends RuntimeLhs {
             }
         }
     }
+*/
 
 }

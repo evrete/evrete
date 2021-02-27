@@ -104,7 +104,8 @@ class EvaluationListenersTests {
         rhsAssert.assertContains("$a", a1_1);
         rhsAssert.assertContains("$b", b1);
 
-        assert sessionListenerCounter.get() == 9 : "Actual: " + sessionListenerCounter.get();
+        int expected = 8 + 3; // 8 first fire (4 alpha + 4 beta)  + 3 second fire (1 alpha + 2 beta)
         assert sessionListenerCounter.get() == knowledgeListenerCounter.get() : "Actual " + sessionListenerCounter.get() + " vs " + knowledgeListenerCounter.get();
+        assert sessionListenerCounter.get() == expected : "Actual " + sessionListenerCounter.get() + " vs expected " + expected;
     }
 }

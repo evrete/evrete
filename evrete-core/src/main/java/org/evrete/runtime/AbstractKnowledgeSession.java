@@ -49,6 +49,8 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
             boolean ruleAdded = false;
 
             for (TypeMemory tm : memory) {
+                //TODO !!! remove all commented System.out
+                //System.out.println("TM: " + tm);
                 Type<?> t = tm.getType();
                 if (!ruleAdded && rule.dependsOn(t)) {
                     affectedRules.add(rule);

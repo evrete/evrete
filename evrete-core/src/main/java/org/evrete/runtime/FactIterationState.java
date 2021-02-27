@@ -1,3 +1,4 @@
+/*
 package org.evrete.runtime;
 
 import org.evrete.api.FactHandle;
@@ -19,3 +20,4 @@ public class FactIterationState {
         return value;
     }
 }
+*/

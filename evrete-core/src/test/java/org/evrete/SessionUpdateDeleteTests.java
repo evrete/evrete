@@ -6,6 +6,7 @@ import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.helper.FactEntry;
 import org.evrete.helper.RhsAssert;
+import org.evrete.helper.TestUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.ToIntFunction;
 
 import static org.evrete.api.FactBuilder.fact;
-import static org.evrete.helper.TestUtils.sessionObjects;
+import static org.evrete.helper.TestUtils.sessionFacts;
 
 class SessionUpdateDeleteTests {
     private static KnowledgeService service;
@@ -138,7 +139,7 @@ class SessionUpdateDeleteTests {
         }
         s.fire();
 
-        Collection<FactEntry> allObjects = sessionObjects(s);
+        Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
 
         // Retract ALL objects
         allObjects.forEach(e -> s.delete(e.getHandle()));
@@ -147,7 +148,7 @@ class SessionUpdateDeleteTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void updateBeta1(ActivationMode mode) {
+    void statefulBetaUpdateDelete1(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
                 "$b", TypeB.class
@@ -162,10 +163,11 @@ class SessionUpdateDeleteTests {
                 .execute(rhsAssert);
         StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
-        Collection<FactEntry> allObjects = sessionObjects(s);
+        Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
         assert allObjects.size() == 0;
 
-        final int size = 1000;
+        //final int size = 1000;
+        final int size = 10;
 
 
         Runnable multiActions = () -> {
@@ -184,15 +186,16 @@ class SessionUpdateDeleteTests {
                 instancesB[i] = b;
                 handlesB[i] = s.insert(b);
             }
+            rhsAssert.reset();
             s.fire();
+            Collection<FactEntry> facts = TestUtils.sessionFacts(s);
 
+            // checking the session memory
+            assert facts.size() == size * 2 : "Actual: " + facts.size();
+            assert sessionFacts(s, TypeA.class).size() == size;
+            assert sessionFacts(s, TypeB.class).size() == size;
             // No matching conditions exist at the moment, the rule hasn't fired
             rhsAssert.assertCount(0).reset();
-            Collection<FactEntry> allObjects1 = sessionObjects(s);
-            // checking the session memory
-            assert allObjects1.size() == size * 2 : "Actual: " + allObjects1.size();
-            assert sessionObjects(s, TypeA.class).size() == size;
-            assert sessionObjects(s, TypeB.class).size() == size;
 
 
             // Updating a single instance of B to match the condition
@@ -213,16 +216,16 @@ class SessionUpdateDeleteTests {
                     .assertContains("$a", instancesA[5])
                     .assertContains("$b", single)
                     .reset();
-            allObjects1 = sessionObjects(s);
-            assert allObjects1.size() == size + 1;
+            facts = TestUtils.sessionFacts(s);
+            assert facts.size() == size + 1;
 
             // Delete all
-            for (FactEntry fe : allObjects1) {
+            for (FactEntry fe : facts) {
                 s.delete(fe.getHandle());
             }
             s.fire();
-            allObjects1 = sessionObjects(s);
-            assert allObjects1.size() == 0;
+            facts = TestUtils.sessionFacts(s);
+            assert facts.size() == 0;
 
         };
 
@@ -248,17 +251,16 @@ class SessionUpdateDeleteTests {
                 .execute(ctx -> counter.getAndIncrement());
         StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
-        Collection<FactEntry> allObjects = sessionObjects(s);
+        Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
         assert allObjects.size() == 0;
 
 
-        int session = 0;
+        int fireCount = 0;
 
-        while (session < 10) {
-
+        int objectCount = 3;
+        while (fireCount < 10) {
             counter.set(0);
-            int count = 20;
-            for (int i = 0; i < count; i++) {
+            for (int i = 0; i < objectCount; i++) {
                 TypeA a = new TypeA("A" + i);
                 a.setI(i);
                 TypeB b = new TypeB("B" + i);
@@ -269,16 +271,18 @@ class SessionUpdateDeleteTests {
                 s.insert(a, b, c);
             }
 
+            System.out.println("*** " + fireCount + " main start");
             s.fire();
+            System.out.println("*** " + fireCount + " main end");
 
-            allObjects = sessionObjects(s);
-            assert allObjects.size() == count * 3;
+            allObjects = TestUtils.sessionFacts(s);
+            assert allObjects.size() == objectCount * 3;
 
-            assert counter.get() == count * (count - 1) : counter.get() + " vs " + count * (count - 1);
+            assert counter.get() == objectCount * (objectCount - 1) : counter.get() + " vs expected " + objectCount * (objectCount - 1);
 
 
-            Collection<FactEntry> col = sessionObjects(s, TypeC.class);
-            assert col.size() == count;
+            Collection<FactEntry> col = sessionFacts(s, TypeC.class);
+            assert col.size() == objectCount;
 
             for (FactEntry entry : col) {
                 TypeC c = (TypeC) entry.getFact();
@@ -291,10 +295,10 @@ class SessionUpdateDeleteTests {
             }
             s.fire();
 
-            allObjects = sessionObjects(s);
-            assert allObjects.size() == 3 * count : allObjects.size() + " vs " + (3 * count);
+            allObjects = TestUtils.sessionFacts(s);
+            assert allObjects.size() == 3 * objectCount : allObjects.size() + " vs " + (3 * objectCount);
 
-            assert counter.get() == count * count : counter.get() + " vs " + (count * count);
+            assert counter.get() == objectCount * objectCount : "Actual " + counter.get() + " vs expectd " + (objectCount * objectCount);
             counter.set(0);
 
             FactEntry single = col.iterator().next();
@@ -306,17 +310,17 @@ class SessionUpdateDeleteTests {
 
             s.fire();
 
-            allObjects = sessionObjects(s);
-            assert allObjects.size() == 2 * count + 1;
+            allObjects = TestUtils.sessionFacts(s);
+            assert allObjects.size() == 2 * objectCount + 1;
 
             // Retract ALL objects
             allObjects.forEach(o -> s.delete(o.getHandle()));
             s.fire();
 
-            allObjects = sessionObjects(s);
+            allObjects = TestUtils.sessionFacts(s);
             assert allObjects.size() == 0;
 
-            session++;
+            fireCount++;
         }
     }
 
@@ -335,7 +339,7 @@ class SessionUpdateDeleteTests {
         StatefulSession s = knowledge.createSession().setActivationMode(mode);
         //RuntimeRule rule = s.getRules().iterator().next();
 
-        Collection<FactEntry> allObjects = sessionObjects(s);
+        Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
         assert allObjects.size() == 0;
 
 
@@ -350,7 +354,7 @@ class SessionUpdateDeleteTests {
 
         s.fire();
 
-        allObjects = sessionObjects(s);
+        allObjects = TestUtils.sessionFacts(s);
         assert allObjects.size() == count * 2;
 
         // Retracting all
@@ -371,7 +375,7 @@ class SessionUpdateDeleteTests {
 
         s.fire();
 
-        allObjects = sessionObjects(s);
+        allObjects = TestUtils.sessionFacts(s);
         assert allObjects.size() == count * 2;
 
 
@@ -395,7 +399,7 @@ class SessionUpdateDeleteTests {
         StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         // Initial state, zero objects
-        Collection<FactEntry> allObjects = sessionObjects(s);
+        Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
         assert allObjects.size() == 0;
 
         TypeA a1 = new TypeA("A1");
@@ -417,10 +421,10 @@ class SessionUpdateDeleteTests {
         s.fire();
 
         assert counter.get() == 2;
-        allObjects = sessionObjects(s);
+        allObjects = TestUtils.sessionFacts(s);
         assert allObjects.size() == 6;
 
-        Collection<FactEntry> cObjects = sessionObjects(s, TypeC.class);
+        Collection<FactEntry> cObjects = sessionFacts(s, TypeC.class);
         assert cObjects.size() == 2 : "All: " + allObjects;
         //assert endNodeData.size() == 2;
 
@@ -434,7 +438,7 @@ class SessionUpdateDeleteTests {
         }
         s.fire();
 
-        allObjects = sessionObjects(s);
+        allObjects = TestUtils.sessionFacts(s);
         assert allObjects.size() == 6 : "Actual: " + allObjects.size() + " vs 6";
 
         assert counter.get() == 4 : counter.get() + " vs 4";
@@ -449,14 +453,14 @@ class SessionUpdateDeleteTests {
 
         s.fire();
 
-        allObjects = sessionObjects(s);
+        allObjects = TestUtils.sessionFacts(s);
         assert allObjects.size() == 2 * 2 + 1;
 
         // Retract ALL objects
         allObjects.forEach(h -> s.delete(h.getHandle()));
         s.fire();
 
-        allObjects = sessionObjects(s);
+        allObjects = TestUtils.sessionFacts(s);
         assert allObjects.size() == 0;
 
     }
@@ -588,14 +592,17 @@ class SessionUpdateDeleteTests {
         TypeA a = new TypeA();
         TypeB b = new TypeB();
 
-        int cnt = 3;
+        int cnt = 2;
         a.setAllNumeric(cnt);
 
         FactHandle handleA = session.insert(a);
         FactHandle handleB = session.insert(b);
+
+        System.out.println("****** Initial");
         session.fire();
 
-        for (int i = 0; i < cnt * 3; i++) {
+        for (int i = 0; i < cnt; i++) {
+            System.out.println("****** " + i);
             a.setI(a.getI() - 1);
             session.update(handleA, a);
             session.update(handleB, b);

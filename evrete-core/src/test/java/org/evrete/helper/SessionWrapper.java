@@ -79,7 +79,7 @@ public interface SessionWrapper {
 
             @Override
             public Collection<Object> getMemoryObjects() {
-                Collection<FactEntry> entries = TestUtils.sessionObjects(session);
+                Collection<FactEntry> entries = TestUtils.sessionFacts(session);
 
                 Collection<Object> collection = new LinkedList<>();
                 entries.forEach(factEntry -> collection.add(factEntry.getFact()));

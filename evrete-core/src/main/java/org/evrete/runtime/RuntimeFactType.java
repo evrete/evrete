@@ -3,7 +3,7 @@ package org.evrete.runtime;
 import org.evrete.api.spi.InnerFactMemory;
 
 public abstract class RuntimeFactType extends FactType {
-    private final AbstractKnowledgeSession<?> runtime;
+    protected final AbstractKnowledgeSession<?> runtime;
 
     RuntimeFactType(AbstractKnowledgeSession<?> runtime, FactType other) {
         super(other);

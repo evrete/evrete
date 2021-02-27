@@ -33,7 +33,7 @@ public class BetaEvaluatorGroup implements ComplexityObject, Copyable<BetaEvalua
         this.descriptor = Collections.unmodifiableSet(factTypes);
     }
 
-    protected BetaEvaluatorGroup(BetaEvaluatorGroup other) {
+    private BetaEvaluatorGroup(BetaEvaluatorGroup other) {
         this.typeMask = other.typeMask;
         this.complexity = other.complexity;
         this.descriptor = other.descriptor;
@@ -96,9 +96,6 @@ public class BetaEvaluatorGroup implements ComplexityObject, Copyable<BetaEvalua
 
     @Override
     public String toString() {
-        return "EvaluatorGroup{" +
-                "evaluators=" + Arrays.toString(evaluators) +
-                ", complexity=" + complexity +
-                '}';
+        return Arrays.toString(evaluators);
     }
 }

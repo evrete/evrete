@@ -40,7 +40,7 @@ public class RuleHotDeploymentTask extends Completer {
     public void onCompletion(CountedCompleter<?> caller) {
         // Merging nodes' deltas
         for (BetaEndNode endNode : rule.getLhs().getAllBetaEndNodes()) {
-            endNode.mergeDelta();
+            endNode.commitDelta();
         }
     }
 

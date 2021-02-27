@@ -47,7 +47,7 @@ public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
         this(supplier.get());
     }
 
-    public RhsAssert(RuntimeRuleImpl rule) {
+    private RhsAssert(RuntimeRuleImpl rule) {
         this(() -> FROM_RULE.apply(rule));
         rule.chainRhs(this);
     }
@@ -170,7 +170,7 @@ public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
     }
 
     public RhsAssert assertCount(int total) {
-        assert callCounter.get() == total : "Actual: " + callCounter.get() + " vs expected " + total;
+        assert callCounter.get() == total : "Actual " + callCounter.get() + " vs expected " + total;
         return this;
     }
 
@@ -194,7 +194,7 @@ public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
     public RhsAssert assertUniqueCount(String var, int count) {
         Collection<Object> list = collector.get(var);
         if (list == null) throw new IllegalStateException("Unknown var '" + var + "'");
-        assert list.size() == count : "Actual size for '" + var + "' : " + list.size();
+        assert list.size() == count : "Actual size for '" + var + "' is " + list.size() + ", expected value: " + count;
         return this;
     }
 

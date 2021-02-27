@@ -169,4 +169,31 @@ public final class TypeMemory extends MemoryComponent {
             factStorage.update(rec.getHandle(), rec.getInstance());
         }
     }
+
+    @Override
+    public String toString() {
+        String facts = "\n" + factStorage.toString();
+        facts = facts.replaceAll("\n", "\n\t\t");
+
+        StringJoiner betaJ = new StringJoiner("\n");
+        betaMemories.forEach(new BiConsumer<FieldsKey, FieldsMemory>() {
+            @Override
+            public void accept(FieldsKey fieldsKey, FieldsMemory fieldsMemory) {
+                String s = "\n" + fieldsKey + "\n\t" + fieldsMemory;
+                betaJ.add(s);
+            }
+        });
+
+        String beta = betaJ.toString();
+        beta = beta.replaceAll("\n\t\n", "\n");
+        beta = beta.replaceAll("\n", "\n\t\t");
+
+
+        String ts = "type=" + type.getJavaType().getSimpleName() +
+                "\n\tbeta=" + beta +
+                "\n\talpha=" + alphaBuckets +
+                "\n\tfacts=" + facts;
+
+        return ts;
+    }
 }

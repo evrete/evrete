@@ -1,3 +1,4 @@
+/*
 package org.evrete.api;
 
 import java.util.EnumMap;
@@ -10,3 +11,4 @@ public interface KeyReIterators<K> {
         return keyIterators().get(mode);
     }
 }
+*/

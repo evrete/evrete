@@ -59,4 +59,12 @@ class TypeMemoryBucket extends MemoryComponent implements PlainMemory {
             delta.clear();
         }
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "data=" + data +
+                ", delta=" + delta +
+                '}';
+    }
 }

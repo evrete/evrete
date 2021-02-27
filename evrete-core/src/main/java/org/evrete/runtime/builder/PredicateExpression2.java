@@ -78,5 +78,10 @@ class PredicateExpression2 extends AbstractExpression {
         public double getComplexity() {
             return complexity;
         }
+
+        @Override
+        public String toString() {
+            return predicate.toString();
+        }
     }
 }

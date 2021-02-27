@@ -1,9 +1,13 @@
 package org.evrete.api;
 
-public interface ValueRow extends ReIterable<FactHandleVersioned>, ReIterator<FactHandleVersioned> {
 
-    boolean isDeleted();
+//TODO !!!! rename to FactKey
+public interface ValueRow {
 
-    ValueHandle get1(int fieldIndex);
+    ValueHandle get(int fieldIndex);
+
+    int getTransient();
+
+    void setTransient(int transientValue);
 
 }

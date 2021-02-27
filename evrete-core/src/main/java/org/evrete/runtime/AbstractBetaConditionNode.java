@@ -9,7 +9,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDescriptor> {
+public abstract class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDescriptor> {
     private final BetaEvaluatorGroup expression;
     private final ConditionNodeDescriptor descriptor;
     private final BetaMemoryNode<?>[] sources;
@@ -17,7 +17,7 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
     private final RuntimeFactTypeKeyed[][] grouping;
     private final RuntimeRuleImpl rule;
 
-    private final EnumMap<KeyMode, ReIterator<ValueRow[]>> iterators = new EnumMap<>(KeyMode.class);
+    //private final EnumMap<KeyMode, ReIterator<ValueRow[]>> iterators = new EnumMap<>(KeyMode.class);
     private final EnumMap<KeyMode, KeysStore> stores = new EnumMap<>(KeyMode.class);
 
     AbstractBetaConditionNode(RuntimeRuleImpl rule, ConditionNodeDescriptor descriptor, BetaMemoryNode<?>[] sources) {
@@ -35,9 +35,7 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
 
         for (KeyMode keyMode : KeyMode.values()) {
             KeysStore store = memoryFactory.newKeyStore(descriptor.getEvalGrouping());
-            ReIterator<ValueRow[]> iterator = new MappedReIterator<>(store.entries(), KeysStore.Entry::key);
             stores.put(keyMode, store);
-            iterators.put(keyMode, iterator);
         }
         this.expression = descriptor.getExpression().copyOf();
 
@@ -70,7 +68,6 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
         return conditionSources;
     }
 
-
     public RuntimeFactTypeKeyed[][] getGrouping() {
         return grouping;
     }
@@ -86,8 +83,8 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "{" +
-                "condition=" + expression +
+        return "{" +
+                "node=" + expression +
                 '}';
     }
 
@@ -100,7 +97,7 @@ public class AbstractBetaConditionNode implements BetaMemoryNode<ConditionNodeDe
     }
 
     ReIterator<ValueRow[]> iterator(KeyMode mode) {
-        return iterators.get(mode);
+        return new MappedReIterator<>(getStore(mode).entries(), KeysStore.Entry::key);
     }
 
     void forEachConditionNode(Consumer<AbstractBetaConditionNode> consumer) {

@@ -36,4 +36,9 @@ class FieldsMemoryBucket extends MemoryComponent {
             fieldData.insert(value, key);
         }
     }
+
+    @Override
+    public String toString() {
+        return fieldData.toString();
+    }
 }

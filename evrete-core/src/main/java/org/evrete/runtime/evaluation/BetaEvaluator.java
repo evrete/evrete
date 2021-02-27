@@ -37,6 +37,11 @@ public class BetaEvaluator extends EvaluatorWrapper implements Copyable<BetaEval
     }
 
     @Override
+    public String toString() {
+        return getDelegate().toString();
+    }
+
+    @Override
     public BetaEvaluator copyOf() {
         return new BetaEvaluator(this);
     }

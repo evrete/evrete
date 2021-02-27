@@ -47,4 +47,9 @@ public class SharedAlphaData implements SharedPlainFactStorage {
     @Override
     public void commitChanges() {
     }
+
+    @Override
+    public String toString() {
+        return data.toString();
+    }
 }

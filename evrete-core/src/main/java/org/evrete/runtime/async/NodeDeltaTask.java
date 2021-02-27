@@ -1,7 +1,6 @@
 package org.evrete.runtime.async;
 
 import org.evrete.runtime.BetaConditionNode;
-import org.evrete.runtime.BetaMemoryNode;
 
 import java.util.concurrent.CountedCompleter;
 
@@ -36,11 +35,5 @@ public class NodeDeltaTask extends Completer {
     // Compute this node's delta
     public void onCompletion(CountedCompleter<?> caller) {
         node.computeDelta(deltaOnly);
-
-        // Once this node's delta is computed, it's safe
-        // to merge parent nodes' deltas
-        for (BetaMemoryNode<?> node : sources) {
-            node.mergeDelta();
-        }
     }
 }

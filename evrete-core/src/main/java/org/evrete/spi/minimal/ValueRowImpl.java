@@ -1,85 +1,38 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.FactHandleVersioned;
-import org.evrete.api.ReIterator;
 import org.evrete.api.ValueHandle;
 import org.evrete.api.ValueRow;
-import org.evrete.collections.CollectionReIterator;
 
 import java.util.Arrays;
-import java.util.LinkedList;
 
 class ValueRowImpl implements ValueRow {
-    final ValueHandle[] data;
-    private final LinkedList<FactHandleVersioned> facts = new LinkedList<>();
+    private final ValueHandle[] data;
     private final int hash;
-    private final ReIterator<FactHandleVersioned> delegate;
-    private boolean deleted;
+    //TODO try excluding the 'volatile' keyword, it looks like it's safe
+    private volatile transient int transientValue;
 
-    ValueRowImpl(ValueHandle[] data, int hash, FactHandleVersioned fact) {
-        this(data, hash);
-        this.addFact(fact);
-    }
-
-    private ValueRowImpl(ValueHandle[] data, int hash) {
+    ValueRowImpl(ValueHandle[] data, int hash) {
         this.data = data;
         this.hash = hash;
-        this.delegate = new CollectionReIterator<>(facts);
-    }
-
-    void mergeDataFrom(ValueRowImpl other) {
-        this.facts.addAll(other.facts);
-    }
-
-    void addFact(FactHandleVersioned fact) {
-        this.facts.add(fact);
     }
 
     @Override
-    public boolean isDeleted() {
-        return deleted;
-    }
-
-    public void setDeleted(boolean deleted) {
-        this.deleted = deleted;
+    public int getTransient() {
+        return transientValue;
     }
 
     @Override
-    public long reset() {
-        return delegate.reset();
-    }
-
-    @Override
-    public boolean hasNext() {
-        return delegate.hasNext();
-    }
-
-    @Override
-    public FactHandleVersioned next() {
-        return delegate.next();
-    }
-
-    @Override
-    public void remove() {
-        delegate.remove();
-    }
-
-    @Override
-    public ReIterator<FactHandleVersioned> iterator() {
-        return new CollectionReIterator<>(facts);
+    public void setTransient(int transientValue) {
+        this.transientValue = transientValue;
     }
 
     @Override
     public String toString() {
-        if (deleted) {
-            return Arrays.toString(data) + " -X-> " + facts;
-        } else {
-            return Arrays.toString(data) + " ---> " + facts;
-        }
+        return Arrays.toString(data) + "/" + transientValue;
     }
 
     @Override
-    public ValueHandle get1(int i) {
+    public ValueHandle get(int i) {
         return data[i];
     }
 
@@ -88,7 +41,7 @@ class ValueRowImpl implements ValueRow {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ValueRowImpl other = (ValueRowImpl) o;
-        return MiscUtils.sameData1(other.data, data);
+        return other.transientValue == this.transientValue && MiscUtils.sameData1(other.data, data);
     }
 
     @Override

@@ -11,10 +11,12 @@ import org.evrete.runtime.builder.LhsBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.evrete.api.FactBuilder.fact;
@@ -162,7 +164,7 @@ class SessionBaseTests {
         s.fire();
         rhsAssert.assertCount((int) Math.pow(objectCount, 4));
 
-        Collection<FactEntry> sessionObjects = TestUtils.sessionObjects(s);
+        Collection<FactEntry> sessionObjects = TestUtils.sessionFacts(s);
         assert sessionObjects.size() == objectCount * 4 : "Actual: " + sessionObjects.size() + ", expected: " + objectCount * 4;
 
 
@@ -170,7 +172,7 @@ class SessionBaseTests {
             s.delete(e.getHandle());
         }
         s.fire();
-        sessionObjects = TestUtils.sessionObjects(s);
+        sessionObjects = TestUtils.sessionFacts(s);
         assert sessionObjects.size() == 0 : "Actual: " + sessionObjects.size();
 
         s.close();
@@ -259,40 +261,31 @@ class SessionBaseTests {
         StatefulSession s = knowledge.createSession().setActivationMode(mode);
         RhsAssert rhsAssert = new RhsAssert(s);
         TypeA a = new TypeA("A");
-        a.setI(1);
-        a.setL(1);
+        a.setAllNumeric(1);
 
         TypeA aa = new TypeA("AA");
-        aa.setI(11);
-        aa.setL(11);
+        aa.setAllNumeric(11);
 
         TypeA aaa = new TypeA("AAA");
-        aaa.setI(111);
-        aaa.setL(111);
+        aaa.setAllNumeric(111);
 
         TypeB b = new TypeB("B");
-        b.setI(2);
-        b.setL(2);
+        b.setAllNumeric(2);
 
         TypeB bb = new TypeB("BB");
-        bb.setI(22);
-        bb.setL(22);
+        bb.setAllNumeric(22);
 
         TypeB bbb = new TypeB("BBB");
-        bbb.setI(222);
-        bbb.setL(222);
+        bbb.setAllNumeric(222);
 
         TypeC c = new TypeC("C");
-        c.setI(3);
-        c.setL(3);
+        c.setAllNumeric(3);
 
         TypeC cc = new TypeC("CC");
-        cc.setI(33);
-        cc.setL(33);
+        cc.setAllNumeric(33);
 
         TypeC ccc = new TypeC("CCC");
-        ccc.setI(333);
-        ccc.setL(333);
+        ccc.setAllNumeric(333);
 
         s.insertAndFire(a, aa, aaa, b, bb, bbb, c, cc, ccc);
         rhsAssert.assertCount(27);
@@ -379,10 +372,18 @@ class SessionBaseTests {
 
         RhsAssert rhsAssert = new RhsAssert(s);
 
+        //TODO !!! uncomment
+/*
         int ai = new Random().nextInt(10) + 1;
         int bi = new Random().nextInt(10) + 1;
         int ci = new Random().nextInt(10) + 1;
         int di = new Random().nextInt(10) + 1;
+*/
+
+        int ai = 2;
+        int bi = 2;
+        int ci = 2;
+        int di = 2;
 
         int id = 0;
 
@@ -417,11 +418,12 @@ class SessionBaseTests {
         s.fire();
 
         rhsAssert
+                .assertCount(ai * bi * ci * di)
                 .assertUniqueCount("$a", ai)
                 .assertUniqueCount("$b", bi)
                 .assertUniqueCount("$c", ci)
                 .assertUniqueCount("$d", di)
-                .assertCount(ai * bi * ci * di);
+        ;
     }
 
     @ParameterizedTest
@@ -1199,7 +1201,7 @@ class SessionBaseTests {
                 "$c", TypeC.class
         );
 
-        knowledge.newRule()
+        knowledge.newRule("test rule 1")
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -1220,9 +1222,9 @@ class SessionBaseTests {
             s.insert(a, b);
         }
         s.fire();
+        rhsAssert.assertCount(0).reset();
         TypeC c1 = new TypeC("C");
         TypeC c2 = new TypeC("C");
-        rhsAssert.assertCount(0).reset();
         s.insert(c1);
         s.fire();
         rhsAssert
@@ -1528,6 +1530,60 @@ class SessionBaseTests {
         TypeD d2 = new TypeD("D2");
         s.insertAndFire(d2);
         rhsAssert.assertCount(2 * 4 * 4);
+
+    }
+
+    //TODO !!!! use multi-mode
+    //@ParameterizedTest
+    //@EnumSource(ActivationMode.class)
+    @Test
+    void statefulBeta1() {
+
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a", TypeA.class,
+                "$b", TypeB.class
+        );
+        knowledge.newRule("test alpha 1")
+                .forEach(
+                        "$a", TypeA.class,
+                        "$b", TypeB.class
+                )
+                .where("$a.i != $b.i")
+                .execute(rhsAssert.andThen(new Consumer<RhsContext>() {
+                    @Override
+                    public void accept(RhsContext ctx) {
+                        TypeA $a = ctx.get("$a");
+                        TypeB $b = ctx.get("$b");
+                        System.out.println("EV: " + $a.getId() + " : " + $b.getId());
+                    }
+                }));
+
+        StatefulSession s = knowledge.createSession().setActivationMode(ActivationMode.DEFAULT);
+
+
+        TypeA a1 = new TypeA();
+        a1.setAllNumeric(-1);
+        a1.setId("a1");
+
+        TypeB b1 = new TypeB();
+        b1.setAllNumeric(2);
+        b1.setId("b1");
+
+        s.insertAndFire(b1, a1);
+        rhsAssert.assertCount(1).reset();
+
+        System.out.println("-----------------------");
+
+        TypeA a2 = new TypeA();
+        a2.setAllNumeric(-1);
+        a2.setId("a2");
+
+        TypeB b2 = new TypeB();
+        b2.setAllNumeric(3);
+        b2.setId("b2");
+
+        s.insertAndFire(b2, a2);
+        rhsAssert.assertCount(3).reset();
 
     }
 }
