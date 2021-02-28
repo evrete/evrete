@@ -7,6 +7,7 @@ public class Configuration extends Properties {
     public static final String IDENTITY_METHOD_EQUALS = "equals";
     public static final String IDENTITY_METHOD_IDENTITY = "identity";
     private static final boolean DEFAULT_WARN_UNKNOWN_TYPES = true;
+    private static final long serialVersionUID = -9015471049604658637L;
     private boolean warnUnknownTypes = DEFAULT_WARN_UNKNOWN_TYPES;
 
     @SuppressWarnings("unused")

@@ -55,6 +55,7 @@ class SharedAlphaData implements SharedBetaFactStorage {
 
     private static class DataWrapper extends LinkedList<FactHandleVersioned> {
 
+        private static final long serialVersionUID = -2837913574833795126L;
     }
 
     private static class KeyIterator implements ReIterator<ValueRow> {

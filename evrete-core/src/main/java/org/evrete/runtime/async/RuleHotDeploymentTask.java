@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.concurrent.CountedCompleter;
 
 public class RuleHotDeploymentTask extends Completer {
-    private final RuntimeRuleImpl rule;
+    private static final long serialVersionUID = 2586111817691770826L;
+    private final transient RuntimeRuleImpl rule;
 
     public RuleHotDeploymentTask(RuntimeRuleImpl rule) {
         this.rule = rule;
@@ -19,7 +20,7 @@ public class RuleHotDeploymentTask extends Completer {
     protected void execute() {
         // Terminal nodes for each beta graph should be evaluated
         List<NodeDeltaTask> deltaTasks = new LinkedList<>();
-        for (BetaEndNode endNode : rule.getLhs().getAllBetaEndNodes()) {
+        for (BetaEndNode endNode : rule.getEndNodes()) {
             NodeDeltaTask dt = new NodeDeltaTask(this, endNode, false);
             deltaTasks.add(dt);
         }
@@ -39,7 +40,7 @@ public class RuleHotDeploymentTask extends Completer {
     @Override
     public void onCompletion(CountedCompleter<?> caller) {
         // Merging nodes' deltas
-        for (BetaEndNode endNode : rule.getLhs().getAllBetaEndNodes()) {
+        for (BetaEndNode endNode : rule.getEndNodes()) {
             endNode.commitDelta();
         }
     }

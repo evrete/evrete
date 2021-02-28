@@ -1,6 +1,5 @@
 package org.evrete.collections;
 
-import org.evrete.api.BufferedInsert;
 import org.evrete.api.ReIterable;
 import org.evrete.api.ReIterator;
 import org.evrete.util.CollectionUtils;
@@ -18,8 +17,8 @@ import java.util.stream.Stream;
  *
  * @param <E> Entry type
  */
-public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements ReIterable<E>, BufferedInsert {
-    protected static final BiPredicate<Object, Object> IDENTITY_EQUALS = (o1, o2) -> o1 == o2;
+public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements ReIterable<E> {
+    static final BiPredicate<Object, Object> IDENTITY_EQUALS = (o1, o2) -> o1 == o2;
     static final ToIntFunction<Object> DEFAULT_HASH = Object::hashCode;
     static final ToIntFunction<Object> IDENTITY_HASH = System::identityHashCode;
     static final BiPredicate<Object, Object> DEFAULT_EQUALS = Object::equals;
@@ -152,7 +151,6 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
     }
 
 
-    @Override
     public final void ensureExtraCapacity(int insertCount) {
         resize(size + insertCount);
     }

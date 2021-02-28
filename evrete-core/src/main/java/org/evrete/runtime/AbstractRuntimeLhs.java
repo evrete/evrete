@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 
-public abstract class AbstractRuntimeLhs {
+abstract class AbstractRuntimeLhs {
     private final Collection<BetaEndNode> endNodes = new ArrayList<>();
     private final AbstractLhsDescriptor descriptor;
     private final RhsFactGroup[] rhsFactGroups;

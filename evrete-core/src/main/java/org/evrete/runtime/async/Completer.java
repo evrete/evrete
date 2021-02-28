@@ -6,6 +6,7 @@ import java.util.concurrent.CountedCompleter;
 import java.util.function.Function;
 
 public abstract class Completer extends CountedCompleter<Void> {
+    private static final long serialVersionUID = -1753467515874328504L;
     private boolean directInvoke = false;
 
     Completer(Completer completer) {
@@ -99,6 +100,7 @@ public abstract class Completer extends CountedCompleter<Void> {
     }
 
     private static class MultiRunnableCompleter extends Completer {
+        private static final long serialVersionUID = -243409304205835246L;
         private final Collection<? extends Runnable> collection;
 
         MultiRunnableCompleter(Completer completer, Collection<? extends Runnable> collection) {
@@ -125,6 +127,7 @@ public abstract class Completer extends CountedCompleter<Void> {
     }
 
     static class RunnableCompleter extends Completer {
+        private static final long serialVersionUID = -3448763603811865456L;
         private final Runnable runnable;
 
         RunnableCompleter(Completer completer, Runnable runnable) {

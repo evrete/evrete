@@ -12,13 +12,13 @@ import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
 abstract class AbstractKeysStore<E extends KeysStoreEntry> extends AbstractLinearHash<E> implements KeysStore {
-    static final BiPredicate<Object, Object> EQ_PREDICATE = (o1, o2) -> {
+    private static final BiPredicate<Object, Object> EQ_PREDICATE = (o1, o2) -> {
         KeysStoreEntry e1 = (KeysStoreEntry) o1;
         KeysStoreEntry e2 = (KeysStoreEntry) o2;
         return e1.eq(e2);
     };
 
-    static final ToIntFunction<Object> HASH_FUNCTION = value -> ((KeysStoreEntry) value).hash;
+    private static final ToIntFunction<Object> HASH_FUNCTION = value -> ((KeysStoreEntry) value).hash;
     //static final BiPredicate<KeysStoreEntry, ValueRow[]> EQ_FUNCTION_OLD = (entry, rows) -> MiscUtils.sameData1(entry.key, rows);
     static final BiPredicate<KeysStoreEntry, ValueRow[]> EQ_FUNCTION = (entry, rows) -> Arrays.equals(entry.key, rows);
     private static final BiPredicate<KeysStoreEntry, IntToValueRow> EQ_FUNCTION1 = (entry, intToValueRow) -> MiscUtils.eqEquals(intToValueRow, entry.key);
@@ -26,7 +26,7 @@ abstract class AbstractKeysStore<E extends KeysStoreEntry> extends AbstractLinea
     final int arrSize;
     final int level;
 
-    public AbstractKeysStore(int level, int arrSize) {
+    AbstractKeysStore(int level, int arrSize) {
         this.level = level;
         this.arrSize = arrSize;
     }

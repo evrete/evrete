@@ -21,7 +21,7 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
 
     RuleDescriptor compileRule(RuleBuilder<?> builder);
 
-    RuntimeRule deployRule(RuleDescriptor descriptor);
+    void deployRule(RuleDescriptor descriptor);
 
     RuleBuilder<C> newRule(String name);
 

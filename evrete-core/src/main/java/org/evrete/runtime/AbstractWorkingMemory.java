@@ -12,6 +12,8 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
     final SessionMemory memory;
     final MemoryActionBuffer buffer = new MemoryActionBuffer();
     private final MemoryFactory memoryFactory;
+    private boolean active = true;
+
 
     AbstractWorkingMemory(KnowledgeRuntime knowledge) {
         super(knowledge);
@@ -20,8 +22,18 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
         this.memory = new SessionMemory(knowledge.getConfiguration(), memoryFactory);
     }
 
+    void invalidateSession() {
+        this.active = false;
+    }
+
     final MemoryFactory getMemoryFactory() {
         return memoryFactory;
+    }
+
+    private void _assertActive() {
+        if (!active) {
+            throw new IllegalStateException("Session has been closed");
+        }
     }
 
     public final SessionMemory getMemory() {
@@ -30,11 +42,13 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
 
     @Override
     public final FactHandle insert(Object fact) {
+        _assertActive();
         return insert(getTypeResolver().resolve(fact), fact);
     }
 
     @Override
     public final FactHandle insert(String type, Object fact) {
+        _assertActive();
         return insert(getTypeResolver().getType(type), fact);
     }
 
@@ -61,6 +75,7 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
 
     @Override
     public final void update(FactHandle handle, Object newValue) {
+        _assertActive();
         Type<?> type = getTypeResolver().getType(handle.getTypeId());
         if (type == null) {
             LOGGER.warning("Can not resolve type for fact handle " + handle + ", update operation skipped.");
@@ -72,6 +87,7 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
 
     @Override
     public final void delete(FactHandle handle) {
+        _assertActive();
         buffer.add(Action.RETRACT, handle, null);
     }
 
@@ -112,7 +128,7 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
     }
 
 
-    public void clear() {
+    void clear() {
         memory.clear();
     }
 

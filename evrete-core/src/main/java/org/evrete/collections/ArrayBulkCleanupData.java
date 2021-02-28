@@ -10,7 +10,7 @@ class ArrayBulkCleanupData {
     private final int[] lengths;
     private int currentIndex;
 
-    public ArrayBulkCleanupData(int size) {
+    ArrayBulkCleanupData(int size) {
         indices = new int[size];
         lengths = new int[size];
         CollectionUtils.systemFill(indices, NULL_VALUE);

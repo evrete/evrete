@@ -10,7 +10,6 @@ import java.util.function.Consumer;
 
 public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule, EvaluationListeners {
     private static final boolean[] BOOLEANS = new boolean[]{true, false};
-    //private final RuntimeFactType[] factSources;
     private final AbstractKnowledgeSession<?> runtime;
     private final RuleDescriptor descriptor;
     private final RuntimeLhs lhs;
@@ -19,6 +18,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     private final Map<String, Integer> nameMapping = new HashMap<>();
     private final RhsContext rhsContext;
     private long rhsCallCounter = 0;
+    private final BetaEndNode[] endNodes;
 
     public RuntimeRuleImpl(RuleDescriptor rd, AbstractKnowledgeSession<?> runtime) {
         super(runtime, rd, rd.getLhs().getFactTypes());
@@ -44,11 +44,13 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
             }
         }
 
+        this.endNodes = lhs.getEndNodes().toArray(new BetaEndNode[0]);
         this.rhsContext = new RhsContextImpl();
+
     }
 
     void mergeNodeDeltas() {
-        for (BetaEndNode endNode : lhs.getAllBetaEndNodes()) {
+        for (BetaEndNode endNode : lhs.getEndNodes()) {
             endNode.commitDelta();
         }
     }
@@ -57,6 +59,10 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         this.rhsCallCounter = 0;
         this.forEachMode(0, false, rhs.andThen(ctx -> increaseCallCount()));
         return this.rhsCallCounter;
+    }
+
+    public BetaEndNode[] getEndNodes() {
+        return endNodes;
     }
 
     private void forEachMode(int group, boolean hasDelta, Consumer<RhsContext> consumer) {
@@ -131,7 +137,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     }
 
     public void clear() {
-        for (BetaEndNode endNode : lhs.getAllBetaEndNodes()) {
+        for (BetaEndNode endNode : lhs.getEndNodes()) {
             endNode.clear();
         }
     }
@@ -167,14 +173,14 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
 
     @Override
     public void addListener(EvaluationListener listener) {
-        for (BetaEndNode node : lhs.getAllBetaEndNodes()) {
+        for (BetaEndNode node : lhs.getEndNodes()) {
             node.forEachConditionNode(n -> n.getExpression().addListener(listener));
         }
     }
 
     @Override
     public void removeListener(EvaluationListener listener) {
-        for (BetaEndNode node : lhs.getAllBetaEndNodes()) {
+        for (BetaEndNode node : lhs.getEndNodes()) {
             node.forEachConditionNode(n -> n.getExpression().removeListener(listener));
         }
     }

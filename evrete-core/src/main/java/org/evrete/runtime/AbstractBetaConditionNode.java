@@ -51,7 +51,7 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode<Condit
         return stores.get(mode);
     }
 
-    public AbstractKnowledgeSession<?> getRuntime() {
+    AbstractKnowledgeSession<?> getRuntime() {
         return rule.getRuntime();
     }
 
@@ -59,7 +59,7 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode<Condit
         return conditionSources;
     }
 
-    public BetaMemoryNode<?>[] getSources() {
+    BetaMemoryNode<?>[] getSources() {
         return sources;
     }
 

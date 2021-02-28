@@ -57,7 +57,7 @@ public abstract class AbstractRule implements Rule {
         return imports;
     }
 
-    public String getLiteralRhs() {
+    protected String getLiteralRhs() {
         return literalRhs;
     }
 

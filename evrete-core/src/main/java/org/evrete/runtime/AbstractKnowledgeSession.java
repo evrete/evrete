@@ -13,7 +13,6 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
     private final RuntimeRules ruleStorage;
     private ActivationManager activationManager;
     private BooleanSupplier fireCriteria = () -> true;
-    private boolean active = true;
 
     AbstractKnowledgeSession(KnowledgeRuntime knowledge) {
         super(knowledge);
@@ -31,9 +30,6 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
         return getParentContext().getTypeResolver().copyOf();
     }
 
-    private void invalidateSession() {
-        this.active = false;
-    }
 
     private void reSortRules() {
         ruleStorage.sort(getRuleComparator());
@@ -56,7 +52,7 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
                     ruleAdded = true;
                 }
 
-                for (BetaEndNode endNode : rule.getLhs().getAllBetaEndNodes()) {
+                for (BetaEndNode endNode : rule.getLhs().getEndNodes()) {
                     if (endNode.dependsOn(t)) {
                         affectedEndNodes.add(endNode);
                     }
@@ -85,7 +81,7 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
         reSortRules();
     }
 
-    private synchronized RuntimeRuleImpl deployRule(RuleDescriptor descriptor, boolean hotDeployment) {
+    private synchronized void deployRule(RuleDescriptor descriptor, boolean hotDeployment) {
         for (FactType factType : descriptor.getLhs().getFactTypes()) {
             memory.touchMemory(factType.getFields(), factType.getAlphaMask());
         }
@@ -94,14 +90,12 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
             getExecutor().invoke(new RuleHotDeploymentTask(rule));
         }
         reSortRules();
-        return rule;
     }
 
     @Override
-    public RuntimeRule deployRule(RuleDescriptor descriptor) {
-        return deployRule(descriptor, true);
+    public void deployRule(RuleDescriptor descriptor) {
+        deployRule(descriptor, true);
     }
-
 
     public List<RuntimeRule> getRules() {
         return ruleStorage.asList();
@@ -127,11 +121,6 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
         this.ruleStorage.removeListener(listener);
     }
 
-    void _assertActive() {
-        if (!active) {
-            throw new IllegalStateException("Session has been closed");
-        }
-    }
 
     public RuntimeRule getRule(String name) {
         return Named.find(getRules(), name);
@@ -182,7 +171,7 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
 
     private void fireContinuous(ActivationContext ctx) {
         List<RuntimeRule> agenda;
-        while (active && fireCriteria.getAsBoolean() && buffer.hasData()) {
+        while (fireCriteria.getAsBoolean() && buffer.hasData()) {
             processBuffer();
             if (!(agenda = propagateInsertChanges()).isEmpty()) {
                 activationManager.onAgenda(ctx.incrementFireCount(), agenda);
@@ -199,7 +188,7 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
 
     private void fireDefault(ActivationContext ctx) {
         List<RuntimeRule> agenda;
-        while (active && fireCriteria.getAsBoolean() && buffer.hasData()) {
+        while (fireCriteria.getAsBoolean() && buffer.hasData()) {
             processBuffer();
             if (!(agenda = propagateInsertChanges()).isEmpty()) {
                 activationManager.onAgenda(ctx.incrementFireCount(), agenda);

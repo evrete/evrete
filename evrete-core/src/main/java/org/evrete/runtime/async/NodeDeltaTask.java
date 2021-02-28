@@ -7,11 +7,12 @@ import java.util.concurrent.CountedCompleter;
 
 //TODO input mask
 public class NodeDeltaTask extends Completer {
-    private final BetaConditionNode node;
-    private final BetaConditionNode[] sources;
+    private static final long serialVersionUID = -9061292058914410992L;
+    private final transient BetaConditionNode node;
+    private final transient BetaConditionNode[] sources;
     private final boolean deltaOnly;
 
-    public NodeDeltaTask(Completer completer, BetaConditionNode node, boolean deltaOnly) {
+    NodeDeltaTask(Completer completer, BetaConditionNode node, boolean deltaOnly) {
         super(completer);
         this.node = node;
         this.sources = node.getConditionSources();

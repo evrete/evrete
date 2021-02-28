@@ -22,7 +22,7 @@ public interface Knowledge extends RuntimeContext<Knowledge> {
     }
 
     @Override
-    default RuntimeRule deployRule(RuleDescriptor descriptor) {
+    default void deployRule(RuleDescriptor descriptor) {
         throw new UnsupportedOperationException("Rules can not be deployed in knowledge context.");
     }
 }

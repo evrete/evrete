@@ -2,7 +2,8 @@ package org.evrete.api;
 
 import java.io.Serializable;
 
-public class FactHandleVersioned implements Serializable {
+public final class FactHandleVersioned implements Serializable {
+    private static final long serialVersionUID = 7190204658108518551L;
     private final int version;
     private final FactHandle handle;
 

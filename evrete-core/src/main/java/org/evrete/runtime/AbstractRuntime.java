@@ -55,7 +55,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
      *
      * @param parent parent context
      */
-    protected AbstractRuntime(AbstractRuntime<?> parent) {
+    AbstractRuntime(AbstractRuntime<?> parent) {
         super(parent);
         this.parent = parent;
         this.ruleCounter = new AtomicInteger(parent.ruleCounter.intValue());

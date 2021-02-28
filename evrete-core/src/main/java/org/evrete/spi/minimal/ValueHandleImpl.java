@@ -5,6 +5,7 @@ import org.evrete.api.ValueHandle;
 import java.util.Arrays;
 
 class ValueHandleImpl implements ValueHandle {
+    private static final long serialVersionUID = 4019004009002813739L;
     final int[] data;
     private final int hash;
 

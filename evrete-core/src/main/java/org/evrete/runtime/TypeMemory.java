@@ -110,12 +110,6 @@ public final class TypeMemory extends MemoryComponent {
         return factStorage.getFact(handle);
     }
 
-/*
-    TypeMemoryBucket getCreateAlpha(AlphaBucketMeta alphaMask) {
-        return alphaBuckets.computeIfAbsent(alphaMask.getBucketIndex(), i -> new TypeMemoryBucket(TypeMemory.this, alphaMask));
-    }
-*/
-
     MemoryComponent touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
         return betaMemories
                 .computeIfAbsent(key, k -> new FieldsMemory(TypeMemory.this, key))
