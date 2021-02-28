@@ -27,19 +27,6 @@ public interface SessionWrapper {
                 session.dispose();
             }
 
-/*
-            @Override
-            public void retractAll() {
-                Collection<FactHandle> col = session.getFactHandles();
-                if (col == null) return;
-                for (FactHandle fh : col) {
-                    session.delete(fh);
-                }
-                session.fireAllRules();
-                //session.dispose();
-            }
-*/
-
             @Override
             public Collection<Object> getMemoryObjects() {
                 Collection<FactHandle> handles = session.getFactHandles();
@@ -68,14 +55,6 @@ public interface SessionWrapper {
             public void close() {
                 session.close();
             }
-
-/*
-            @Override
-            public void retractAll() {
-                session.forEachFact((handle, o) -> session.delete(handle));
-                session.fire();
-            }
-*/
 
             @Override
             public Collection<Object> getMemoryObjects() {

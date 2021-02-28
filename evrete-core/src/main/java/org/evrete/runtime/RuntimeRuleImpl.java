@@ -47,18 +47,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         this.rhsContext = new RhsContextImpl();
     }
 
-/*
-    private static RuntimeFactType[] buildTypes(AbstractKnowledgeSession<?> runtime, FactType[] allFactTypes) {
-        RuntimeFactType[] factSources = new RuntimeFactType[allFactTypes.length];
-        for (FactType factType : allFactTypes) {
-            RuntimeFactType iterable = RuntimeFactType.factory(factType, runtime);
-            factSources[iterable.getInRuleIndex()] = iterable;
-        }
-        return factSources;
-    }
-*/
-
-
     void mergeNodeDeltas() {
         for (BetaEndNode endNode : lhs.getAllBetaEndNodes()) {
             endNode.commitDelta();
@@ -154,23 +142,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         return this;
     }
 
-/*
-    @SuppressWarnings("unchecked")
-    public <T extends RuntimeFactType> T resolve(FactType type) {
-        return (T) this.factSources[type.getInRuleIndex()];
-    }
-*/
-
-/*
-    public <Z extends RuntimeFactType> Z[] resolve(Class<Z> type, FactType[] types) {
-        Z[] resolved = CollectionUtils.array(type, types.length);// new RuntimeFactType[types.length];
-        for (int i = 0; i < types.length; i++) {
-            resolved[i] = resolve(types[i]);
-        }
-        return resolved;
-    }
-*/
-
     private void copyKeyState(ValueRow[] valueRows, FactType[] types) {
         for (int i = 0; i < types.length; i++) {
             ValueRow row = valueRows[i];
@@ -218,12 +189,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
                 "name='" + getName() +
                 "'}";
     }
-
-/*
-    RuntimeFactType[] getAllFactTypes() {
-        return this.factSources;
-    }
-*/
 
     private static class RhsGroupNode {
         final RhsFactGroup group;

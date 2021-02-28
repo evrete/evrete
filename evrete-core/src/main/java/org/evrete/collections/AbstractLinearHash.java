@@ -80,22 +80,6 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         return addr;
     }
 
-/*
-    private static int findBinIndexFor(int hash, Object[] destination, Predicate<Object> eqTest) {
-        int mask = destination.length - 1;
-        int addr = hash & mask;
-        Object found;
-        while ((found = destination[addr]) != null) {
-            if (eqTest.test(found)) {
-                return addr;
-            } else {
-                addr = (addr + 1) & mask;
-            }
-        }
-        return addr;
-    }
-*/
-
     /**
      * Returns a power of two size for the given target capacity.
      */
@@ -118,12 +102,6 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         return findBinIndex(key, hash, data, eqTest);
     }
 
-/*
-    int findBinIndexFor(int hash, Predicate<Object> eqTest) {
-        return findBinIndexFor(hash, data, eqTest);
-    }
-*/
-
     public final boolean addVerbose(E element) {
         resize();
         BiPredicate<Object, Object> eq = getEqualsPredicate();
@@ -133,7 +111,7 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         return old == null || !eq.test(element, old);
     }
 
-    public final void addSilent(E element) {
+    final void addSilent(E element) {
         resize();
         addNoResize(element);
     }

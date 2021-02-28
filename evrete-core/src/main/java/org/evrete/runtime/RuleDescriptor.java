@@ -34,27 +34,4 @@ public class RuleDescriptor extends AbstractRuntimeRule {
         super.addImport(imp);
         return this;
     }
-
-
-/*
-    @Override
-    public void addListener(EvaluationListener listener) {
-        for (RhsFactGroupDescriptor d : lhsDescriptor.getAllFactGroups()) {
-            ConditionNodeDescriptor finalNode = d.getFinalNode();
-            if (finalNode != null) {
-                finalNode.forEachConditionNode(node -> node.addListener(listener));
-            }
-        }
-    }
-
-    @Override
-    public void removeListener(EvaluationListener listener) {
-        for (RhsFactGroupDescriptor d : lhsDescriptor.getAllFactGroups()) {
-            ConditionNodeDescriptor finalNode = d.getFinalNode();
-            if (finalNode != null) {
-                finalNode.forEachConditionNode(node -> node.removeListener(listener));
-            }
-        }
-    }
-*/
 }

@@ -71,11 +71,6 @@ final class MiscUtils {
         return true;
     }
 
-    /*
-        static boolean sameData1(Object[] arr1, Object[] arr2) {
-            return Arrays.equals(arr1, arr2);
-        }
-    */
     static boolean sameData1(ValueHandle[] arr1, ValueHandle[] arr2) {
         return Arrays.equals(arr1, arr2);
     }

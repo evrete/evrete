@@ -62,44 +62,6 @@ class FieldsFactMap {
         }
     }
 
-    /*
-    private static final ToIntFunction<Object> HASH_FUNCTION = Object::hashCode;
-    private static final BiPredicate<ValueRowImpl, ValueRowImpl> EQ_FUNCTION_TYPED = ValueRowImpl::equals;
-    private static final Function<ValueRowImpl, ValueRow> IMPL_MAPPING = v -> v;
-
-    ReIterator<ValueRow> keyIterator() {
-        return iterator(IMPL_MAPPING);
-    }
-
-    @Override
-    protected ToIntFunction<Object> getHashFunction() {
-        return HASH_FUNCTION;
-    }
-
-    public void addAll(FieldsFactMap other) {
-        resize(this.size() + other.size() + 1);
-        other.forEachDataEntry(this::insertOtherNoResize);
-    }
-
-    @Override
-    protected BiPredicate<Object, Object> getEqualsPredicate() {
-        return IDENTITY_EQUALS;
-    }
-
-    private void insertOtherNoResize(ValueRowImpl other) {
-        int hash = other.hashCode();
-        int addr = findBinIndex(other, hash, EQ_FUNCTION_TYPED);
-        ValueRowImpl found = get(addr);
-        if (found == null) {
-            saveDirect(other, addr);
-        } else {
-            //TODO !!!!!
-            throw new UnsupportedOperationException();
-            //found.mergeDataFrom(other);
-        }
-    }
-*/
-
     @Override
     public String toString() {
         return data.toString();

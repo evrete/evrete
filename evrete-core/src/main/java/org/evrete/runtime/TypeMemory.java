@@ -67,17 +67,6 @@ public final class TypeMemory extends MemoryComponent {
         }
     }
 
-
-    //@Override
-    public void insert(FactHandleVersioned value, FieldToValueHandle key) {
-        throw new UnsupportedOperationException();
-/*
-        for (MemoryComponent child : childComponents()) {
-            child.insert(value, key);
-        }
-*/
-    }
-
     @Override
     void insert(FactHandleVersioned value, LazyInsertState insertState) {
         for (MemoryComponent child : childComponents()) {
@@ -176,12 +165,9 @@ public final class TypeMemory extends MemoryComponent {
         facts = facts.replaceAll("\n", "\n\t\t");
 
         StringJoiner betaJ = new StringJoiner("\n");
-        betaMemories.forEach(new BiConsumer<FieldsKey, FieldsMemory>() {
-            @Override
-            public void accept(FieldsKey fieldsKey, FieldsMemory fieldsMemory) {
-                String s = "\n" + fieldsKey + "\n\t" + fieldsMemory;
-                betaJ.add(s);
-            }
+        betaMemories.forEach((fieldsKey, fieldsMemory) -> {
+            String s = "\n" + fieldsKey + "\n\t" + fieldsMemory;
+            betaJ.add(s);
         });
 
         String beta = betaJ.toString();
@@ -189,11 +175,9 @@ public final class TypeMemory extends MemoryComponent {
         beta = beta.replaceAll("\n", "\n\t\t");
 
 
-        String ts = "type=" + type.getJavaType().getSimpleName() +
+        return "type=" + type.getJavaType().getSimpleName() +
                 "\n\tbeta=" + beta +
                 "\n\talpha=" + alphaBuckets +
                 "\n\tfacts=" + facts;
-
-        return ts;
     }
 }

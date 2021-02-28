@@ -370,18 +370,10 @@ class SessionBaseTests {
 
         RhsAssert rhsAssert = new RhsAssert(s);
 
-        //TODO !!! uncomment
-/*
         int ai = new Random().nextInt(10) + 1;
         int bi = new Random().nextInt(10) + 1;
         int ci = new Random().nextInt(10) + 1;
         int di = new Random().nextInt(10) + 1;
-*/
-
-        int ai = 2;
-        int bi = 2;
-        int ci = 2;
-        int di = 2;
 
         int id = 0;
 
@@ -1296,12 +1288,7 @@ class SessionBaseTests {
 
 
         Set<String> uniqueEvaluators = new HashSet<>();
-        knowledge.addListener(new EvaluationListener() {
-            @Override
-            public void fire(Evaluator evaluator, IntToValue values, boolean result) {
-                uniqueEvaluators.add(evaluator.toString());
-            }
-        });
+        knowledge.addListener((evaluator, values, result) -> uniqueEvaluators.add(evaluator.toString()));
 
         knowledge.newRule("rule 1")
                 .forEach("$a", TypeA.class)

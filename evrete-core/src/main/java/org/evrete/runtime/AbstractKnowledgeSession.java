@@ -222,40 +222,6 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
                 commitInserts();
             }
         }
-
-/*
-        List<RuntimeRule> agenda;
-
-        while (hasChanges()) {
-            // Mark deleted facts first
-            processDeleteBuffer();
-            processInsertBuffer();
-            //debug();
-            if (!(agenda = propagateInsertChanges()).isEmpty()) {
-                activationManager.onAgenda(ctx.incrementFireCount(), agenda);
-                for (RuntimeRule candidate : agenda) {
-                    RuntimeRuleImpl rule = (RuntimeRuleImpl) candidate;
-                    if (activationManager.test(candidate)) {
-                        // Activate rule and obtain memory changes caused by its execution
-                        //System.out.println("Executing RHS");
-                        if (rule.executeRhs() > 0) {
-                            activationManager.onActivation(rule);
-                            if (hasActions(Action.INSERT)) {
-                                // Start over
-                                break;
-                            } else {
-                                // Process deletes and continue
-                                processDeleteBuffer();
-                            }
-                        }
-                    }
-                }
-                commitInserts();
-            } else {
-                System.out.println("No agenda");
-            }
-        }
-*/
     }
 
 

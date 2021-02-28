@@ -11,27 +11,18 @@ public class RuntimeRules implements Iterable<RuntimeRuleImpl>, EvaluationListen
     private final List<RuntimeRuleImpl> list = new ArrayList<>();
     //private final SessionMemory runtime;
 
-    public RuntimeRules(SessionMemory runtime) {
-        throw new UnsupportedOperationException();
-        //this.runtime = runtime;
-    }
-
-    public RuntimeRules() {
-        //throw new UnsupportedOperationException();
-        //this.runtime = runtime;
-    }
 
     private void add(RuntimeRuleImpl rule) {
         this.list.add(rule);
     }
 
-    public RuntimeRuleImpl addRule(RuleDescriptor ruleDescriptor, AbstractKnowledgeSession session) {
+    RuntimeRuleImpl addRule(RuleDescriptor ruleDescriptor, AbstractKnowledgeSession<?> session) {
         RuntimeRuleImpl r = new RuntimeRuleImpl(ruleDescriptor, session);
         this.add(r);
         return r;
     }
 
-    public void sort(Comparator<Rule> comparator) {
+    void sort(Comparator<Rule> comparator) {
         this.list.sort(comparator);
     }
 
