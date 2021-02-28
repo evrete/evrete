@@ -18,7 +18,6 @@ import java.util.function.ToDoubleFunction;
  * not involved in any join conditions.
  */
 public abstract class AbstractLhsDescriptor {
-    private final MapFunction<String, int[]> nameIndices = new MapFunction<>();
     private final int level;
     private final FactType[] factTypes;
     private final RhsFactGroupDescriptor[] allFactGroups;
@@ -64,22 +63,10 @@ public abstract class AbstractLhsDescriptor {
             keyedFactTypes.removeAll(Arrays.asList(descriptor.getTypes()));
         }
 
-        for (FactType keyedType : keyedFactTypes) {
-            RhsFactGroupDescriptor descriptor = new RhsFactGroupDescriptor(factGroupCounter, keyedType);
-            allFactGroups.add(descriptor);
-            factGroupCounter++;
-        }
+        assert keyedFactTypes.isEmpty();
 
         if (!plainFactTypes.isEmpty()) {
             allFactGroups.add(new RhsFactGroupDescriptor(factGroupCounter, plainFactTypes));
-        }
-
-        for (RhsFactGroupDescriptor descriptor : allFactGroups) {
-            FactType[] types = descriptor.getTypes();
-            int factGroupIndex = descriptor.getFactGroupIndex();
-            for (int i = 0; i < types.length; i++) {
-                nameIndices.putNew(types[i].getVar(), new int[]{factGroupIndex, i});
-            }
         }
 
         this.allFactGroups = allFactGroups.toArray(RhsFactGroupDescriptor.ZERO_ARRAY);
@@ -128,10 +115,6 @@ public abstract class AbstractLhsDescriptor {
         return finalNodes.toArray(ConditionNodeDescriptor.ZERO_ARRAY);
 
 
-    }
-
-    MapFunction<String, int[]> getNameIndices() {
-        return nameIndices;
     }
 
     RhsFactGroupDescriptor[] getAllFactGroups() {

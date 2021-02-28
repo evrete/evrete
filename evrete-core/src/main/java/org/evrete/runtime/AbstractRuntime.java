@@ -221,10 +221,6 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
         }
     }
 
-    Consumer<RhsContext> compile(String literalRhs, Collection<FactType> factTypes, Collection<String> imports) {
-        return rhsCompiler.get().compileRhs(this, literalRhs, factTypes, imports);
-    }
-
     Consumer<RhsContext> compile(String literalRhs, FactType[] factTypes, Collection<String> imports) {
         return rhsCompiler.get().compileRhs(this, literalRhs, Arrays.asList(factTypes), imports);
     }

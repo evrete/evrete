@@ -31,7 +31,6 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
         return getParentContext().getTypeResolver().copyOf();
     }
 
-
     private void invalidateSession() {
         this.active = false;
     }

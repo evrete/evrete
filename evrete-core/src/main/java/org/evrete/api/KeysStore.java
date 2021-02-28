@@ -10,10 +10,6 @@ public interface KeysStore {
 
     Entry get(IntToValueRow key);
 
-    default boolean hasKey(IntToValueRow key) {
-        return get(key) != null;
-    }
-
     void append(KeysStore other);
 
     ReIterator<Entry> entries();

@@ -9,7 +9,7 @@ import java.util.*;
 public class KnowledgeRuntime extends AbstractRuntime<Knowledge> implements Knowledge {
     private final WeakHashMap<KnowledgeSession<?>, Object> sessions = new WeakHashMap<>();
     private final Object VALUE = new Object();
-    private Set<EvaluationListener> evaluationListeners = new HashSet<>();
+    private final Set<EvaluationListener> evaluationListeners = new HashSet<>();
 
     public KnowledgeRuntime(KnowledgeService service) {
         super(service);

@@ -9,8 +9,4 @@ package org.evrete.api;
 public interface ValuesPredicate {
 
     boolean test(IntToValue t);
-
-    default boolean test(final Object[] array) {
-        return test(IntToValue.of(array));
-    }
 }

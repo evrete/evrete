@@ -5,7 +5,6 @@ import org.evrete.util.Bits;
 import org.evrete.util.NextIntSupplier;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 public class ConditionNodeDescriptor extends NodeDescriptor {
     public static final ConditionNodeDescriptor[] ZERO_ARRAY = new ConditionNodeDescriptor[0];
@@ -73,28 +72,14 @@ public class ConditionNodeDescriptor extends NodeDescriptor {
         return finalNodes;
     }
 
-    private static void forEachConditionNode(ConditionNodeDescriptor node, Consumer<ConditionNodeDescriptor> consumer) {
-        consumer.accept(node);
-        for (NodeDescriptor parent : node.getSources()) {
-            if (parent.isConditionNode()) {
-                forEachConditionNode((ConditionNodeDescriptor) parent, consumer);
-            }
-        }
-    }
-
     @Override
     public boolean isConditionNode() {
         return true;
     }
 
-    public BetaEvaluatorGroup getExpression() {
+    BetaEvaluatorGroup getExpression() {
         return expression;
     }
-
-    void forEachConditionNode(Consumer<ConditionNodeDescriptor> consumer) {
-        forEachConditionNode(this, consumer);
-    }
-
 
     @Override
     public String toString() {

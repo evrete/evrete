@@ -166,14 +166,10 @@ class SessionUpdateDeleteTests {
         Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
         assert allObjects.size() == 0;
 
-        //final int size = 1000;
-        final int size = 10;
-
-
+        final int size = 128;
         Runnable multiActions = () -> {
             TypeA[] instancesA = new TypeA[size];
             TypeB[] instancesB = new TypeB[size];
-            FactHandle[] handlesA = new FactHandle[size];
             FactHandle[] handlesB = new FactHandle[size];
 
             for (int i = 0; i < size; i++) {
@@ -182,7 +178,7 @@ class SessionUpdateDeleteTests {
                 TypeB b = new TypeB("B" + i);
                 b.setAllNumeric(-1);
                 instancesA[i] = a;
-                handlesA[i] = s.insert(a);
+                s.insert(a);
                 instancesB[i] = b;
                 handlesB[i] = s.insert(b);
             }
@@ -296,7 +292,7 @@ class SessionUpdateDeleteTests {
             allObjects = TestUtils.sessionFacts(s);
             assert allObjects.size() == 3 * objectCount : allObjects.size() + " vs " + (3 * objectCount);
 
-            assert counter.get() == objectCount * objectCount : "Actual " + counter.get() + " vs expectd " + (objectCount * objectCount);
+            assert counter.get() == objectCount * objectCount : "Actual " + counter.get() + " vs expected " + (objectCount * objectCount);
             counter.set(0);
 
             FactEntry single = col.iterator().next();
@@ -539,9 +535,7 @@ class SessionUpdateDeleteTests {
                 )
                 .where("$a.i > 0")
                 .execute(
-                        ctx -> {
-                            counter.incrementAndGet();
-                        }
+                        ctx -> counter.incrementAndGet()
                 )
                 .createSession()
                 .setActivationMode(mode);
@@ -580,9 +574,7 @@ class SessionUpdateDeleteTests {
                 )
                 .where("$a.i > 0")
                 .execute(
-                        ctx -> {
-                            counter.incrementAndGet();
-                        }
+                        ctx -> counter.incrementAndGet()
                 )
                 .createSession()
                 .setActivationMode(mode);
@@ -654,7 +646,6 @@ class SessionUpdateDeleteTests {
         session.insert(a);
         FactHandle handleB = session.insert(b);
         session.fire();
-        ;
 
         // From now on no rules will be fired
         for (int i = 0; i < 50; i++) {

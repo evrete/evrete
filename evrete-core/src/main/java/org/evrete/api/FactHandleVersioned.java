@@ -3,8 +3,8 @@ package org.evrete.api;
 import java.io.Serializable;
 
 public class FactHandleVersioned implements Serializable {
-    private int version;
-    private FactHandle handle;
+    private final int version;
+    private final FactHandle handle;
 
 
     public FactHandleVersioned(FactHandle handle, int version) {

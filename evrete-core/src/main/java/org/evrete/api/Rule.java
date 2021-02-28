@@ -13,5 +13,6 @@ public interface Rule extends PropertyAccess<Rule>, Named, FluentImports<Rule> {
 
     void setSalience(int value);
 
+    //TODO add to tests
     void chainRhs(Consumer<RhsContext> consumer);
 }

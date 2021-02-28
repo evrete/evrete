@@ -5,7 +5,7 @@ import org.evrete.api.FactHandle;
 
 class AtomicMemoryAction {
     Action action;
-    FactHandle handle;
+    final FactHandle handle;
     LazyInsertState factRecord;
 
     AtomicMemoryAction(Action action, FactHandle handle, LazyInsertState factRecord) {

@@ -1,6 +1,5 @@
 package org.evrete.helper;
 
-import org.evrete.api.FactHandle;
 import org.evrete.api.ReIterator;
 import org.evrete.api.StatefulSession;
 import org.evrete.collections.CollectionReIterator;
@@ -19,7 +18,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -43,12 +41,7 @@ public final class TestUtils {
 
     public static Collection<FactEntry> sessionFacts(StatefulSession s) {
         Collection<FactEntry> col = new LinkedList<>();
-        s.forEachFact(new BiConsumer<FactHandle, Object>() {
-            @Override
-            public void accept(FactHandle handle, Object fact) {
-                col.add(new FactEntry(handle, fact));
-            }
-        });
+        s.forEachFact((handle, fact) -> col.add(new FactEntry(handle, fact)));
         return col;
     }
 

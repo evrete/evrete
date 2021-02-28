@@ -7,8 +7,6 @@ public enum KeyMode {
     KNOWN_UNKNOWN // Known key, new facts
     ;
 
-    public static final KeyMode[] DELTA_MODES = new KeyMode[]{UNKNOWN_UNKNOWN, KNOWN_UNKNOWN};
-
     static {
         if (MAIN.ordinal() != 0) {
             throw new IllegalStateException("There is contract that the " + MAIN + " key storage always comes first");

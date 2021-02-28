@@ -75,10 +75,6 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode<Condit
                 '}';
     }
 
-    public RuntimeRuleImpl getRule() {
-        return rule;
-    }
-
     BetaEvaluatorGroup getExpression() {
         return expression;
     }

@@ -20,16 +20,13 @@ public class ArrayOf<T> implements ReIterable<T> {
     private final static int NULL_INDEX = -1;
     //TODO !!! make private
     public T[] data;
-    private int nonNullSize = 0;
 
     public ArrayOf(T[] data) {
         this.data = data;
-        this.nonNullSize = computeSize();
     }
 
     public ArrayOf(ArrayOf<T> other) {
         this.data = Arrays.copyOf(other.data, other.data.length);
-        this.nonNullSize = computeSize();
     }
 
     public ArrayOf(Class<T> type) {
@@ -73,11 +70,6 @@ public class ArrayOf<T> implements ReIterable<T> {
                 consumer.accept(obj, i);
             }
         }
-    }
-
-    public boolean isEmptyAt(int index) {
-        if (index >= this.data.length) return true;// No such index
-        return this.data[index] == null;
     }
 
     public T computeIfAbsent(int idx, IntFunction<T> supplier) {

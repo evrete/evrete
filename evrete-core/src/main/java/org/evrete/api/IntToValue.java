@@ -13,8 +13,4 @@ public interface IntToValue extends IntFunction<Object> {
     static IntToValue of(Object[] array) {
         return i -> array[i];
     }
-
-    default IntToValue remap(final int[] mapping) {
-        return value -> IntToValue.this.apply(mapping[value]);
-    }
 }

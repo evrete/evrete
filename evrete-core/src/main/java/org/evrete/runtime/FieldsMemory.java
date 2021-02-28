@@ -8,7 +8,6 @@ import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
 import java.util.StringJoiner;
-import java.util.function.Consumer;
 
 public class FieldsMemory extends MemoryComponent implements InnerFactMemory {
     private final FieldsKey typeFields;
@@ -66,12 +65,7 @@ public class FieldsMemory extends MemoryComponent implements InnerFactMemory {
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner("\n");
-        alphaBuckets.forEach(new Consumer<FieldsMemoryBucket>() {
-            @Override
-            public void accept(FieldsMemoryBucket bucket) {
-                sj.add(bucket.toString());
-            }
-        });
+        alphaBuckets.forEach(bucket -> sj.add(bucket.toString()));
         return sj.toString();
     }
 }

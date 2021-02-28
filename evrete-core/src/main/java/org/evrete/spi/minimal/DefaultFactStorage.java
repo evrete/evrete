@@ -9,7 +9,6 @@ import org.evrete.collections.AbstractLinearHash;
 import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiPredicate;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
@@ -49,12 +48,7 @@ class DefaultFactStorage<T> implements FactStorage<T> {
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner("\n");
-        collection.forEachDataEntry(new Consumer<Tuple<T>>() {
-            @Override
-            public void accept(Tuple<T> t) {
-                sj.add(t.toString());
-            }
-        });
+        collection.forEachDataEntry(t -> sj.add(t.toString()));
         return sj.toString();
     }
 
@@ -151,10 +145,6 @@ class DefaultFactStorage<T> implements FactStorage<T> {
 
         @Override
         public Z getInstance() {
-            return object;
-        }
-
-        public Object getFact() {
             return object;
         }
 

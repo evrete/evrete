@@ -12,7 +12,6 @@ import static org.evrete.api.FactBuilder.fact;
  *
  * @param <T> the return type for fact selectors
  */
-@SuppressWarnings("ALL")
 public interface LhsFactSelector<T> {
     /**
      * <p>

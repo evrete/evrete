@@ -47,11 +47,6 @@ class DefaultValueResolver implements ValueResolver {
         return typeDataArr[typeIdx].getHandle(value);
     }
 
-
-    private Object getValueInner1(ValueHandleImpl impl) {
-        return typeDataArr[impl.data[0]].values[impl.data[1]];
-    }
-
     private static class TypeData {
         private static final int INITIAL_VALUE_DATA_SIZE = 1024;
         private final Map<Object, ValueHandleImpl> idMap = new HashMap<>();
@@ -73,15 +68,12 @@ class DefaultValueResolver implements ValueResolver {
                 handle = new ValueHandleImpl(new int[]{id, valueId});
                 idMap.put(value, handle);
 
-
                 if (valueId >= values.length) {
                     values = Arrays.copyOf(values, values.length * 2);
                 }
                 values[valueId] = value;
-                return handle;
-            } else {
-                return handle;
             }
+            return handle;
         }
     }
 }

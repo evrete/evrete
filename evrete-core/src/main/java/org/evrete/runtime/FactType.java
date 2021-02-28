@@ -28,14 +28,6 @@ public class FactType implements Masked {
         this.mask.set(this.inRuleIndex);
     }
 
-    FactType(FactType other) {
-        this.mask = other.mask;
-        this.var = other.var;
-        this.alphaMask = other.alphaMask;
-        this.fields = other.fields;
-        this.inRuleIndex = other.inRuleIndex;
-    }
-
     public static FactType[] toArray(Collection<FactType> set) {
         FactType[] arr = set.toArray(FactType.ZERO_ARRAY);
         Arrays.sort(arr, COMPARATOR);
