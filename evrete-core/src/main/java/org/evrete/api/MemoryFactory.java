@@ -10,7 +10,7 @@ public interface MemoryFactory {
 
     SharedBetaFactStorage newBetaStorage(FieldsKey typeFields);
 
-    SharedPlainFactStorage newPlainStorage();
+    SharedPlainFactStorage newPlainStorage(TypeField[] fields);
 
     ValueResolver getValueResolver();
 

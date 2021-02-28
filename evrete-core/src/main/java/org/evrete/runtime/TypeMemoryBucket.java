@@ -1,9 +1,6 @@
 package org.evrete.runtime;
 
-import org.evrete.api.FactHandleVersioned;
-import org.evrete.api.FieldToValueHandle;
-import org.evrete.api.ReIterator;
-import org.evrete.api.SharedPlainFactStorage;
+import org.evrete.api.*;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
 class TypeMemoryBucket extends MemoryComponent implements PlainMemory {
@@ -13,8 +10,8 @@ class TypeMemoryBucket extends MemoryComponent implements PlainMemory {
 
     TypeMemoryBucket(MemoryComponent parent, AlphaBucketMeta alphaMask) {
         super(parent);
-        this.data = memoryFactory.newPlainStorage();
-        this.delta = memoryFactory.newPlainStorage();
+        this.data = memoryFactory.newPlainStorage(TypeField.ZERO_ARRAY);
+        this.delta = memoryFactory.newPlainStorage(TypeField.ZERO_ARRAY);
         this.alphaMask = alphaMask;
     }
 
@@ -25,16 +22,10 @@ class TypeMemoryBucket extends MemoryComponent implements PlainMemory {
     }
 
     @Override
-    //TODO !!!! WTF?
-    public void insert(FactHandleVersioned value, FieldToValueHandle key) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     void insert(FactHandleVersioned value, LazyInsertState insertState) {
         FieldToValueHandle key = insertState.record;
         if (insertState.test(alphaMask)) {
-            delta.insert(value, key);
+            delta.insert(key, value);
         }
     }
 

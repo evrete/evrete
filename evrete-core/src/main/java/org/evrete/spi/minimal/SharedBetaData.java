@@ -58,7 +58,7 @@ class SharedBetaData implements SharedBetaFactStorage {
 
 
     @Override
-    public void insert(FactHandleVersioned value, FieldToValueHandle key) {
+    public void insert(FieldToValueHandle key, FactHandleVersioned value) {
         int hash = hash(key);
         ValueHandle[] data = new ValueHandle[fields.length];
         for (int i = 0; i < fields.length; i++) {

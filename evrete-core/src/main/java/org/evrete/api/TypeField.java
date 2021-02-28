@@ -5,6 +5,7 @@ package org.evrete.api;
  * to implement equals() and hashCode() methods as well.
  */
 public interface TypeField extends Named {
+    TypeField[] ZERO_ARRAY = new TypeField[0];
 
     int getId();
 

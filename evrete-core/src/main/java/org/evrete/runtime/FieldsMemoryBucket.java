@@ -33,7 +33,7 @@ class FieldsMemoryBucket extends MemoryComponent {
     void insert(FactHandleVersioned value, LazyInsertState insertState) {
         FieldToValueHandle key = insertState.record;
         if (insertState.test(alphaMask)) {
-            fieldData.insert(value, key);
+            fieldData.insert(key, value);
         }
     }
 

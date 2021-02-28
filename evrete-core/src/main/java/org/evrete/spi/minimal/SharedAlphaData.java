@@ -13,7 +13,7 @@ public class SharedAlphaData implements SharedPlainFactStorage {
     private final List<FactHandleVersioned> data = new LinkedList<>();
 
     @Override
-    public void insert(FactHandleVersioned fact, FieldToValueHandle key) {
+    public void insert(FieldToValueHandle key, FactHandleVersioned fact) {
         data.add(fact);
     }
 

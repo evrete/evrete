@@ -40,7 +40,7 @@ class DefaultMemoryFactory implements MemoryFactory {
     }
 
     @Override
-    public SharedPlainFactStorage newPlainStorage() {
+    public SharedPlainFactStorage newPlainStorage(TypeField[] fields) {
         return new SharedAlphaData();
     }
 
