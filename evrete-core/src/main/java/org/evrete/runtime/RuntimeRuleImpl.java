@@ -14,13 +14,9 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     private final RuntimeFactType[] factSources;
     private final AbstractKnowledgeSession<?> runtime;
     private final RuleDescriptor descriptor;
-
     private final RuntimeLhs lhs;
     private long rhsCallCounter = 0;
-    //private final RhsFactGroup[] rhsFactGroups;
     private final RhsGroupNode[] rhsGroupNodes;
-    //private final boolean[][] rhsGroupDeltaModes;
-    //private final ReIterator<ValueRow[]>[] keyIterators;
     final private FactTypeNode[] factTypeNodes;
     private final Map<String, Integer> nameMapping = new HashMap<>();
     private final RhsContext rhsContext;
@@ -30,19 +26,12 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         this.descriptor = rd;
         this.runtime = runtime;
         this.factSources = buildTypes(runtime, factTypes);
-        this.lhs = RuntimeLhs.factory(this, rd.getLhs());
+        this.lhs = new RuntimeLhs(this, rd.getLhs());
         RhsFactGroup[] rhsFactGroups = lhs.getFactGroups();
-        //this.keyIterators = (ReIterator<ValueRow[]>[]) new ReIterator[this.rhsFactGroups.length];
         this.rhsGroupNodes = new RhsGroupNode[rhsFactGroups.length];
         for (int i = 0; i < rhsFactGroups.length; i++) {
             this.rhsGroupNodes[i] = new RhsGroupNode(rhsFactGroups[i]);
         }
-/*
-        this.rhsGroupDeltaModes = new boolean[rhsFactGroups.length][2];
-        for (int g = 0; g < rhsFactGroups.length; g++) {
-            this.rhsGroupDeltaModes[g] = BOOLEANS;
-        }
-*/
 
         FactType[] allTypes = getAllFactTypes();
         this.factTypeNodes = new FactTypeNode[allTypes.length];
@@ -69,13 +58,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         return factSources;
     }
 
-    private static String tabs(int count) {
-        StringBuilder sb = new StringBuilder(count);
-        for (int i = 0; i < count; i++) {
-            sb.append("\t");
-        }
-        return sb.toString();
-    }
 
     void mergeNodeDeltas() {
         for (BetaEndNode endNode : lhs.getAllBetaEndNodes()) {
@@ -85,7 +67,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
 
     final long executeRhs() {
         this.rhsCallCounter = 0;
-        //this.lhs.forEach(rhs.andThen(ctx -> increaseCallCount()));
         this.forEachMode(0, false, rhs.andThen(ctx -> increaseCallCount()));
         return this.rhsCallCounter;
     }
@@ -98,7 +79,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
             boolean newHasDelta = b || hasDelta;
             if (last) {
                 if (newHasDelta) {
-                    //System.out.println("---- " + Arrays.toString(this.rhsGroupNodes));
                     iterateKeys(0, consumer);
                 }
             } else {
@@ -110,18 +90,14 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     private void iterateKeys(int group, Consumer<RhsContext> consumer) {
         RhsGroupNode factGroup = this.rhsGroupNodes[group];
         FactType[] types = factGroup.types;
-        //System.out.println("\tGGG : " + factGroup + ", types: " + Arrays.toString(types));
         ReIterator<ValueRow[]> iterator = factGroup.keyIterator;
-        iterator.reset();
-        //if (iterator.reset() == 0) return;
+        if (iterator.reset() == 0) return;
         boolean last = group == this.rhsGroupNodes.length - 1;
 
         while (iterator.hasNext()) {
             ValueRow[] valueRows = iterator.next();
-            //System.out.println(tabs(group) + "\t" + Arrays.toString(valueRows));
             copyKeyState(valueRows, types);
             if (last) {
-                //System.out.println("\t\t\t Facts for " + Arrays.toString(this.factTypeNodes));
                 iterateFacts(0, consumer);
             } else {
                 iterateKeys(group + 1, consumer);
@@ -133,9 +109,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         boolean last = type == factTypeNodes.length - 1;
         FactTypeNode entry = this.factTypeNodes[type];
         ReIterator<FactHandleVersioned> it = entry.factIterator;
-        //TODO !!!!
-        //if (it.reset() == 0) return;
-        it.reset();
+        if (it.reset() == 0) return;
         while (it.hasNext()) {
             FactHandleVersioned handle = it.next();
             if (setFactState(entry, handle)) {
@@ -169,7 +143,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     }
 
     public void clear() {
-        //TODO don't forget aggregate nodes once they're back
         for (BetaEndNode endNode : lhs.getAllBetaEndNodes()) {
             endNode.clear();
         }

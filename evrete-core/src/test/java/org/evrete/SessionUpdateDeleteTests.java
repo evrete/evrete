@@ -271,9 +271,7 @@ class SessionUpdateDeleteTests {
                 s.insert(a, b, c);
             }
 
-            System.out.println("*** " + fireCount + " main start");
             s.fire();
-            System.out.println("*** " + fireCount + " main end");
 
             allObjects = TestUtils.sessionFacts(s);
             assert allObjects.size() == objectCount * 3;
@@ -598,11 +596,9 @@ class SessionUpdateDeleteTests {
         FactHandle handleA = session.insert(a);
         FactHandle handleB = session.insert(b);
 
-        System.out.println("****** Initial");
         session.fire();
 
         for (int i = 0; i < cnt; i++) {
-            System.out.println("****** " + i);
             a.setI(a.getI() - 1);
             session.update(handleA, a);
             session.update(handleB, b);

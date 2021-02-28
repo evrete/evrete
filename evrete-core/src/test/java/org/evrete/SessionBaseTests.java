@@ -11,12 +11,10 @@ import org.evrete.runtime.builder.LhsBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.evrete.api.FactBuilder.fact;
@@ -1533,11 +1531,9 @@ class SessionBaseTests {
 
     }
 
-    //TODO !!!! use multi-mode
-    //@ParameterizedTest
-    //@EnumSource(ActivationMode.class)
-    @Test
-    void statefulBeta1() {
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void statefulBeta1(ActivationMode mode) {
 
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
@@ -1549,16 +1545,9 @@ class SessionBaseTests {
                         "$b", TypeB.class
                 )
                 .where("$a.i != $b.i")
-                .execute(rhsAssert.andThen(new Consumer<RhsContext>() {
-                    @Override
-                    public void accept(RhsContext ctx) {
-                        TypeA $a = ctx.get("$a");
-                        TypeB $b = ctx.get("$b");
-                        System.out.println("EV: " + $a.getId() + " : " + $b.getId());
-                    }
-                }));
+                .execute(rhsAssert);
 
-        StatefulSession s = knowledge.createSession().setActivationMode(ActivationMode.DEFAULT);
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
 
         TypeA a1 = new TypeA();
@@ -1572,7 +1561,7 @@ class SessionBaseTests {
         s.insertAndFire(b1, a1);
         rhsAssert.assertCount(1).reset();
 
-        System.out.println("-----------------------");
+        // Second batch
 
         TypeA a2 = new TypeA();
         a2.setAllNumeric(-1);

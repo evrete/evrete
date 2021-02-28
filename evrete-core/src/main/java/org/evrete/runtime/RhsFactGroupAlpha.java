@@ -10,7 +10,7 @@ import java.util.Collections;
 
 //TODO optimize by preconfiguring main and delta iterators
 //TODO !!!! use RuntimeAware as parent class
-public class RhsFactGroupAlpha extends AbstractRhsFactGroup implements RhsFactGroup {
+public class RhsFactGroupAlpha implements RhsFactGroup {
     private static final VR KEY_MAIN = new VR(KeyMode.MAIN.ordinal());
     private static final VR KEY_DELTA = new VR(KeyMode.UNKNOWN_UNKNOWN.ordinal());
     private final FactType[] types;

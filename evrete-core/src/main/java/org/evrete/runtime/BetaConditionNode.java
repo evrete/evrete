@@ -7,21 +7,19 @@ import java.util.function.IntFunction;
 
 public class BetaConditionNode extends AbstractBetaConditionNode {
     static final BetaConditionNode[] EMPTY_ARRAY = new BetaConditionNode[0];
-    private final ReIterator<KeysStore.Entry>[] primaryKeyIterators;
     private final ReIterator<KeysStore.Entry>[] secondaryKeyIterators;
     private final ValueRow[] evaluationState;
     private final SourceMeta[] sourceMetas;
     private final IntFunction<IntToValueRow> saveFunction;
     private final FactType[][] secondaryTypes;
-    private final KeyMode[] currentSourceModes;
     private final int[] secondary2source;
+    private boolean mergeToMain = true;
 
 
     @SuppressWarnings("unchecked")
     BetaConditionNode(RuntimeRuleImpl rule, ConditionNodeDescriptor descriptor, BetaMemoryNode<?>[] sources) {
         super(rule, descriptor, sources);
         this.evaluationState = new ValueRow[rule.getAllFactTypes().length];
-        this.currentSourceModes = new KeyMode[getSources().length];
         //TODO !!! optimize
         this.saveFunction = level -> {
             FactType[] levelTypes = getGrouping()[level];
@@ -48,7 +46,6 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
                 sourceMetas[s.getSourceIndex()] = new SourceMeta(s, -1);
             }
         }
-        this.primaryKeyIterators = (ReIterator<KeysStore.Entry>[]) new ReIterator[sourceMetas.length];
         this.secondaryKeyIterators = (ReIterator<KeysStore.Entry>[]) new ReIterator[nonPlainIndex];
 
         getExpression().setEvaluationState(rule.getRuntime().memory.memoryFactory.getValueResolver(), (factType, fieldIndex) -> evaluationState[factType.getInRuleIndex()].get(fieldIndex));
@@ -65,9 +62,11 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
             if (hasNext) {
                 resetTransientFlag(grouping, key.getNext().entries(), groupIndex + 1);
             }
-
-
         }
+    }
+
+    public void setMergeToMain(boolean mergeToMain) {
+        this.mergeToMain = mergeToMain;
     }
 
     @Override
@@ -76,44 +75,50 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
     }
 
     void commitDelta1() {
-        KeysStore delta = getStore(KeyMode.UNKNOWN_UNKNOWN);
-        KeysStore main = getStore(KeyMode.MAIN);
-
-
-        FactType[][] grouping = getGrouping();
-        ReIterator<KeysStore.Entry> it = delta.entries();
-        resetTransientFlag(grouping, it, 0);
-        main.append(delta);
-        delta.clear();
-        getStore(KeyMode.KNOWN_UNKNOWN).clear();
+        KeysStore delta1 = getStore(KeyMode.UNKNOWN_UNKNOWN);
+        KeysStore delta2 = getStore(KeyMode.KNOWN_UNKNOWN);
+        if (mergeToMain) {
+            KeysStore main = getStore(KeyMode.MAIN);
+            FactType[][] grouping = getGrouping();
+            ReIterator<KeysStore.Entry> it = delta1.entries();
+            resetTransientFlag(grouping, it, 0);
+            main.append(delta1);
+        }
+        delta1.clear();
+        delta2.clear();
     }
 
     public void computeDelta(boolean deltaOnly) {
-        // TODO !!!! remove these checks
-        if (getStore(KeyMode.UNKNOWN_UNKNOWN).entries().reset() > 0) throw new IllegalStateException();
-        if (getStore(KeyMode.KNOWN_UNKNOWN).entries().reset() > 0) throw new IllegalStateException();
-
-
-        // This is a two-phase operation
-        // 1. We compute delta as a result of MAIN vs NEW KEYS
-        // 2. We compute delta as a result of MAIN vs KNOWN KEYS
-        KeyMode[][] sourceModes = new KeyMode[getSources().length][2];
-
-        // Zero index always means MAIN data
-        for (BetaMemoryNode<?> sourceNode : getSources()) {
-            sourceModes[sourceNode.getSourceIndex()][0] = KeyMode.MAIN;
-        }
-
-        for (KeyMode deltaMode : KeyMode.DELTA_MODES) {
-            for (BetaMemoryNode<?> sourceNode : getSources()) {
-                sourceModes[sourceNode.getSourceIndex()][1] = deltaMode;
-            }
-            computeDelta(sourceModes, getStore(deltaMode), deltaOnly);
-        }
-
-        debug();
+        computeDelta1(0, false, false, new KeyMode[this.sourceMetas.length], deltaOnly);
+        //debug();
     }
 
+
+    private void computeDelta1(int sourceIndex, boolean hasDelta, boolean hasKnownKeys, KeyMode[] modes, boolean deltaOnly) {
+        for (KeyMode mode : KeyMode.values()) {
+            boolean newHasDelta = hasDelta || mode.isDeltaMode();
+            boolean newHasKnownKeys = hasKnownKeys || (mode == KeyMode.KNOWN_UNKNOWN);
+            modes[sourceIndex] = mode;
+            if (sourceIndex == sourceMetas.length - 1) {
+                if (newHasDelta || (!deltaOnly)) {
+                    KeysStore destination = newHasKnownKeys ?
+                            getStore(KeyMode.KNOWN_UNKNOWN)
+                            :
+                            getStore(KeyMode.UNKNOWN_UNKNOWN);
+
+                    // Initializing key sources
+                    for (int i = 0; i < sourceMetas.length; i++) {
+                        sourceMetas[i].setIterator(modes[i]);
+                    }
+                    // Evaluate current modes
+                    evaluate(destination, 0);
+                }
+            } else {
+                computeDelta1(sourceIndex + 1, newHasDelta, newHasKnownKeys, modes, deltaOnly);
+            }
+
+        }
+    }
 
     private void debug() {
         System.out.println("Node:\t" + this + "\tsources: " + Arrays.toString(getSources()));
@@ -130,49 +135,22 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         }
     }
 
-
-    private void computeDelta(KeyMode[][] sourceModes, KeysStore destination, boolean deltaOnly) {
-        computeDelta(sourceModes, destination, deltaOnly, 0, false);
-    }
-
-    private void computeDelta(KeyMode[][] sourceModes, KeysStore destination, boolean deltaOnly, int sourceId, boolean hasDelta) {
-        boolean lastSource = sourceId == sourceModes.length - 1;
-        BetaMemoryNode<?> source = getSources()[sourceId];
-        KeyMode[] modes = sourceModes[sourceId];
-        for (int i = 0; i < modes.length; i++) {
-            boolean newHasDelta = hasDelta || (i != 0); // Remember that zero index always refers to a non-delta source
-            KeyMode mode = modes[i];
-            ReIterator<KeysStore.Entry> iterator = source.getStore(mode).entries();
-            if (lastSource) {
-                if ((newHasDelta || (!deltaOnly)) && iterator.reset() > 0) {
-                    this.primaryKeyIterators[sourceId] = iterator;
-                    this.currentSourceModes[sourceId] = mode;
-                    evaluate(destination, 0);
-                }
-            } else {
-                if (iterator.reset() > 0) {
-                    this.primaryKeyIterators[sourceId] = iterator;
-                    this.currentSourceModes[sourceId] = mode;
-                    computeDelta(sourceModes, destination, deltaOnly, sourceId + 1, newHasDelta);
-                }
-            }
-        }
-    }
-
     private void evaluate(KeysStore destination, int sourceIndex) {
-        ReIterator<KeysStore.Entry> it = this.primaryKeyIterators[sourceIndex];
-        KeyMode mode = this.currentSourceModes[sourceIndex];
+        SourceMeta meta = this.sourceMetas[sourceIndex];
+
+        ReIterator<KeysStore.Entry> it = meta.currentIterator; //this.primaryKeyIterators[sourceIndex];
+        KeyMode mode = meta.currentMode;//this.currentSourceModes[sourceIndex];
         if (it.reset() == 0) return;
-        SourceMeta sourceMeta = this.sourceMetas[sourceIndex];
-        FactType[] types = sourceMeta.evaluationFacts;
+        //SourceMeta sourceMeta = this.sourceMetas[sourceIndex];
+        FactType[] types = meta.evaluationFacts;
         KeysStore.Entry entry;
-        boolean last = sourceIndex == this.primaryKeyIterators.length - 1;
+        boolean last = sourceIndex == this.sourceMetas.length - 1;
 
         while (it.hasNext()) {
             entry = it.next();
             setState(entry.key(), types, mode == KeyMode.MAIN);
-            if (sourceMeta.secondaryFacts != null) {
-                this.secondaryKeyIterators[sourceMeta.nonPlainIndex] = entry.getNext().entries();
+            if (meta.secondaryFacts != null) {
+                this.secondaryKeyIterators[meta.nonPlainIndex] = entry.getNext().entries();
             }
             if (last) {
                 testAndSaveCurrentState(destination);
@@ -196,7 +174,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         ReIterator<KeysStore.Entry> iterator = secondaryKeyIterators[index];
         if (iterator.reset() == 0) return;
         FactType[] types = secondaryTypes[index];
-        KeyMode sourceMode = this.currentSourceModes[secondary2source[index]];
+        KeyMode sourceMode = this.sourceMetas[secondary2source[index]].currentMode;
         boolean last = index == secondaryKeyIterators.length - 1;
         while (iterator.hasNext()) {
             ValueRow[] rows = iterator.next().key();
@@ -224,12 +202,19 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         final int nonPlainIndex;
         final FactType[] evaluationFacts;
         final FactType[] secondaryFacts;
+        ReIterator<KeysStore.Entry> currentIterator;
+        KeyMode currentMode;
 
         SourceMeta(BetaMemoryNode<?> source, int nonPlainIndex) {
             this.source = source;
             this.nonPlainIndex = nonPlainIndex;
             this.evaluationFacts = source.getGrouping()[0];
             this.secondaryFacts = nonPlainIndex < 0 ? null : source.getGrouping()[1];
+        }
+
+        void setIterator(KeyMode mode) {
+            this.currentMode = mode;
+            this.currentIterator = source.getStore(mode).entries();
         }
     }
 }

@@ -1,16 +1,38 @@
 package org.evrete.runtime;
 
-import org.evrete.api.Type;
+import org.evrete.api.*;
+import org.evrete.collections.JoinReIterator;
 
 //TODO !!! optimize by sharing the value array and pre-built functions
-public class BetaEndNode extends BetaConditionNode {
+public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
     private final FactType[] entryNodes;
 
-    BetaEndNode(RuntimeRuleImpl rule, ConditionNodeDescriptor nodeDescriptor) {
+    BetaEndNode(RuntimeRuleImpl rule, ConditionNodeDescriptor nodeDescriptor, boolean singleGroup) {
         super(rule, nodeDescriptor, create(nodeDescriptor.getSources(), rule));
         FactType[] factTypes = nodeDescriptor.getEvalGrouping()[0];
         assert factTypes.length == nodeDescriptor.getTypes().length;
         this.entryNodes = nodeDescriptor.getEvalGrouping()[0];
+        setMergeToMain(!singleGroup);
+    }
+
+    @Override
+    public ReIterator<ValueRow[]> keyIterator(boolean delta) {
+        return delta ?
+                JoinReIterator.of(iterator(KeyMode.UNKNOWN_UNKNOWN), iterator(KeyMode.KNOWN_UNKNOWN))
+                :
+                iterator(KeyMode.MAIN);
+    }
+
+    @Override
+    public ReIterator<FactHandleVersioned> factIterator(FactType type, ValueRow row) {
+        KeyMode mode = KeyMode.values()[row.getTransient()];
+        SessionMemory memory = getRuntime().memory;
+        return memory.get(type.getType()).get(type.getFields()).get(type.getAlphaMask()).iterator(mode, row);
+    }
+
+    @Override
+    public FactType[] types() {
+        return entryNodes;
     }
 
     private static BetaMemoryNode<?>[] create(NodeDescriptor[] sources, RuntimeRuleImpl rule) {
