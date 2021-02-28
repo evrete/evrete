@@ -11,7 +11,9 @@ public interface BetaMemoryNode<D extends NodeDescriptor> {
 
     void clear();
 
-    RuntimeFactType[][] getGrouping();
+    default FactType[][] getGrouping() {
+        return getDescriptor().getEvalGrouping();
+    }
 
     D getDescriptor();
 

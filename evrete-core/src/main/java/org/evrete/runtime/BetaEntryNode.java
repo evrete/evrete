@@ -6,21 +6,17 @@ import org.evrete.util.KeysStoreStub;
 
 import java.util.EnumMap;
 
-public class BetaEntryNode extends RuntimeFactTypeKeyed implements BetaMemoryNode<EntryNodeDescriptor> {
+public class BetaEntryNode implements BetaMemoryNode<EntryNodeDescriptor> {
     private final EntryNodeDescriptor descriptor;
-    private final RuntimeFactType[][] grouping;
     private final EnumMap<KeyMode, KeysStore> stores = new EnumMap<>(KeyMode.class);
 
-    BetaEntryNode(EntryNodeDescriptor node, RuntimeFactTypeKeyed factType) {
-        super(factType);
+    BetaEntryNode(AbstractKnowledgeSession<?> runtime, EntryNodeDescriptor node) {
         this.descriptor = node;
         for (KeyMode mode : KeyMode.values()) {
             ReIterator<ValueRow> it = runtime.getMemory().getBetaFactStorage(node.getFactType()).iterator(mode);
             KeysStore store = new KeysStoreDelegate(mode, it);
             stores.put(mode, store);
         }
-        this.grouping = new RuntimeFactType[1][1];
-        this.grouping[0][0] = this;
     }
 
     @Override
@@ -29,15 +25,9 @@ public class BetaEntryNode extends RuntimeFactTypeKeyed implements BetaMemoryNod
     }
 
     @Override
-    public RuntimeFactType[][] getGrouping() {
-        return grouping;
-    }
-
-    @Override
     public EntryNodeDescriptor getDescriptor() {
         return descriptor;
     }
-
 
     @Override
     public void clear() {

@@ -45,6 +45,4 @@ abstract class MemoryComponent {
             child.clear();
         }
     }
-
-
 }

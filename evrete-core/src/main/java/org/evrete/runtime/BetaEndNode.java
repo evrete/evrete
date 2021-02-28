@@ -15,6 +15,18 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
         setMergeToMain(!singleGroup);
     }
 
+    private static BetaMemoryNode<?> create(RuntimeRuleImpl rule, NodeDescriptor desc) {
+        if (desc.isConditionNode()) {
+            return new BetaConditionNode(
+                    rule, (ConditionNodeDescriptor) desc,
+                    create(desc.getSources(), rule)
+            );
+        } else {
+            EntryNodeDescriptor descriptor = (EntryNodeDescriptor) desc;
+            return new BetaEntryNode(rule.getRuntime(), descriptor);
+        }
+    }
+
     @Override
     public ReIterator<ValueRow[]> keyIterator(boolean delta) {
         return delta ?
@@ -30,11 +42,6 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
         return memory.get(type.getType()).get(type.getFields()).get(type.getAlphaMask()).iterator(mode, row);
     }
 
-    @Override
-    public FactType[] types() {
-        return entryNodes;
-    }
-
     private static BetaMemoryNode<?>[] create(NodeDescriptor[] sources, RuntimeRuleImpl rule) {
         BetaMemoryNode<?>[] result = new BetaMemoryNode<?>[sources.length];
         for (int i = 0; i < sources.length; i++) {
@@ -43,16 +50,9 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
         return result;
     }
 
-    private static BetaMemoryNode<?> create(RuntimeRuleImpl rule, NodeDescriptor desc) {
-        if (desc.isConditionNode()) {
-            return new BetaConditionNode(
-                    rule, (ConditionNodeDescriptor) desc,
-                    create(desc.getSources(), rule)
-            );
-        } else {
-            EntryNodeDescriptor descriptor = (EntryNodeDescriptor) desc;
-            return new BetaEntryNode(descriptor, rule.resolve(descriptor.getFactType()));
-        }
+    @Override
+    public FactType[] types() {
+        return entryNodes;
     }
 
     private static void cmd(BetaConditionNode node) {

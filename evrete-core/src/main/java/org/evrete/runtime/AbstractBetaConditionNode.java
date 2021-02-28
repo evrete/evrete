@@ -14,7 +14,7 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode<Condit
     private final ConditionNodeDescriptor descriptor;
     private final BetaMemoryNode<?>[] sources;
     private final BetaConditionNode[] conditionSources;
-    private final RuntimeFactTypeKeyed[][] grouping;
+    //private final FactType[][] grouping;
     private final RuntimeRuleImpl rule;
 
     //private final EnumMap<KeyMode, ReIterator<ValueRow[]>> iterators = new EnumMap<>(KeyMode.class);
@@ -40,10 +40,12 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode<Condit
         this.expression = descriptor.getExpression().copyOf();
 
         FactType[][] descGrouping = descriptor.getEvalGrouping();
+/*
         this.grouping = new RuntimeFactTypeKeyed[descGrouping.length][];
         for (int i = 0; i < descGrouping.length; i++) {
             this.grouping[i] = rule.resolve(RuntimeFactTypeKeyed.class, descGrouping[i]);
         }
+*/
     }
 
     @Override
@@ -68,9 +70,11 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode<Condit
         return conditionSources;
     }
 
+/*
     public RuntimeFactTypeKeyed[][] getGrouping() {
         return grouping;
     }
+*/
 
     public BetaMemoryNode<?>[] getSources() {
         return sources;

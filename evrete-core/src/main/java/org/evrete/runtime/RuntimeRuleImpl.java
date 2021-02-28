@@ -1,7 +1,6 @@
 package org.evrete.runtime;
 
 import org.evrete.api.*;
-import org.evrete.util.CollectionUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +10,7 @@ import java.util.function.Consumer;
 
 public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule, EvaluationListeners {
     private static final boolean[] BOOLEANS = new boolean[]{true, false};
-    private final RuntimeFactType[] factSources;
+    //private final RuntimeFactType[] factSources;
     private final AbstractKnowledgeSession<?> runtime;
     private final RuleDescriptor descriptor;
     private final RuntimeLhs lhs;
@@ -25,7 +24,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         super(runtime, rd, rd.getLhs().getFactTypes());
         this.descriptor = rd;
         this.runtime = runtime;
-        this.factSources = buildTypes(runtime, factTypes);
+        //this.factSources = buildTypes(runtime, factTypes);
         this.lhs = new RuntimeLhs(this, rd.getLhs());
         RhsFactGroup[] rhsFactGroups = lhs.getFactGroups();
         this.rhsGroupNodes = new RhsGroupNode[rhsFactGroups.length];
@@ -33,8 +32,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
             this.rhsGroupNodes[i] = new RhsGroupNode(rhsFactGroups[i]);
         }
 
-        FactType[] allTypes = getAllFactTypes();
-        this.factTypeNodes = new FactTypeNode[allTypes.length];
+        this.factTypeNodes = new FactTypeNode[rd.factTypes.length];
         for (RhsFactGroup group : rhsFactGroups) {
             for (FactType factType : group.types()) {
                 int idx = factType.getInRuleIndex();
@@ -49,6 +47,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         this.rhsContext = new RhsContextImpl();
     }
 
+/*
     private static RuntimeFactType[] buildTypes(AbstractKnowledgeSession<?> runtime, FactType[] allFactTypes) {
         RuntimeFactType[] factSources = new RuntimeFactType[allFactTypes.length];
         for (FactType factType : allFactTypes) {
@@ -57,6 +56,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         }
         return factSources;
     }
+*/
 
 
     void mergeNodeDeltas() {
@@ -154,11 +154,14 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         return this;
     }
 
+/*
     @SuppressWarnings("unchecked")
     public <T extends RuntimeFactType> T resolve(FactType type) {
         return (T) this.factSources[type.getInRuleIndex()];
     }
+*/
 
+/*
     public <Z extends RuntimeFactType> Z[] resolve(Class<Z> type, FactType[] types) {
         Z[] resolved = CollectionUtils.array(type, types.length);// new RuntimeFactType[types.length];
         for (int i = 0; i < types.length; i++) {
@@ -166,6 +169,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         }
         return resolved;
     }
+*/
 
     private void copyKeyState(ValueRow[] valueRows, FactType[] types) {
         for (int i = 0; i < types.length; i++) {
@@ -215,9 +219,11 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
                 "'}";
     }
 
+/*
     RuntimeFactType[] getAllFactTypes() {
         return this.factSources;
     }
+*/
 
     private static class RhsGroupNode {
         final RhsFactGroup group;

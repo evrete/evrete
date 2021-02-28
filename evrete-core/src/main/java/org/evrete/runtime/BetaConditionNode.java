@@ -19,7 +19,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
     @SuppressWarnings("unchecked")
     BetaConditionNode(RuntimeRuleImpl rule, ConditionNodeDescriptor descriptor, BetaMemoryNode<?>[] sources) {
         super(rule, descriptor, sources);
-        this.evaluationState = new ValueRow[rule.getAllFactTypes().length];
+        this.evaluationState = new ValueRow[rule.getDescriptor().factTypes.length];
         //TODO !!! optimize
         this.saveFunction = level -> {
             FactType[] levelTypes = getGrouping()[level];
