@@ -1,7 +1,7 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
-import org.evrete.runtime.FieldsKey;
+import org.evrete.runtime.ActiveField;
 
 import java.util.function.BiPredicate;
 
@@ -30,19 +30,17 @@ class DefaultMemoryFactory implements MemoryFactory {
     }
 
     @Override
-    public SharedBetaFactStorage newBetaStorage(FieldsKey typeFields) {
-        return new SharedBetaData(typeFields);
+    public SharedBetaFactStorage newBetaStorage(ActiveField[] fields) {
+        if (fields.length == 0) {
+            return new SharedAlphaData();
+        } else {
+            return new SharedBetaData(fields);
+        }
     }
 
     @Override
     public KeysStore newKeyStore(int[] factTypeCounts) {
         return factory(factTypeCounts, 0);
     }
-
-    @Override
-    public SharedPlainFactStorage newPlainStorage(TypeField[] fields) {
-        return new SharedAlphaData();
-    }
-
 
 }

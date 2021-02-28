@@ -1304,7 +1304,6 @@ class SessionBaseTests {
                 .execute(rhsAssert3);
 
 
-        Type<TypeA> aType = knowledge.getTypeResolver().getType(TypeA.class.getName());
         StatefulSessionImpl session = (StatefulSessionImpl) knowledge.createSession().setActivationMode(mode);
 
         // This insert cycle will result in 5 matching As
@@ -1318,7 +1317,6 @@ class SessionBaseTests {
         rhsAssert2.assertCount(4);
         rhsAssert3.assertCount(3);
 
-        assert session.getMemory().get(aType).knownFieldSets().size() == 0;
         assert uniqueEvaluators.size() == 3;
     }
 
@@ -1347,7 +1345,6 @@ class SessionBaseTests {
                 .execute(rhsAssert3);
 
 
-        Type<TypeA> aType = knowledge.getTypeResolver().getType(TypeA.class.getName());
         StatefulSessionImpl s = (StatefulSessionImpl) knowledge.createSession().setActivationMode(mode);
 
         // This insert cycle will result in 5 matching As
@@ -1360,8 +1357,6 @@ class SessionBaseTests {
         rhsAssert1.assertCount(5);
         rhsAssert2.assertCount(4);
         rhsAssert3.assertCount(5);
-
-        assert s.getMemory().get(aType).knownFieldSets().size() == 0;
     }
 
     @ParameterizedTest
@@ -1389,7 +1384,6 @@ class SessionBaseTests {
                 .where("!$a.id.equals('A5')") // Inverse to rule 1
                 .execute(rhsAssert3);
 
-        Type<TypeA> aType = knowledge.getTypeResolver().getType(TypeA.class.getName());
         StatefulSessionImpl s = (StatefulSessionImpl) knowledge.createSession().setActivationMode(mode);
 
         for (int i = 0; i < 10; i++) {
@@ -1397,7 +1391,6 @@ class SessionBaseTests {
             s.insert(new TypeA(id));
         }
         s.fire();
-        assert s.getMemory().get(aType).knownFieldSets().size() == 0;
 
         rhsAssert1.assertCount(1);
         rhsAssert2.assertCount(1);

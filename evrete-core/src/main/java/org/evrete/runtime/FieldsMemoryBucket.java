@@ -12,7 +12,7 @@ class FieldsMemoryBucket extends MemoryComponent {
     FieldsMemoryBucket(MemoryComponent runtime, FieldsKey typeFields, AlphaBucketMeta alphaMask) {
         super(runtime);
         this.alphaMask = alphaMask;
-        this.fieldData = memoryFactory.newBetaStorage(typeFields);
+        this.fieldData = memoryFactory.newBetaStorage(typeFields.getFields());
     }
 
     @Override

@@ -2,7 +2,6 @@ package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
 import org.evrete.runtime.ActiveField;
-import org.evrete.runtime.FieldsKey;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -12,8 +11,8 @@ class SharedBetaData implements SharedBetaFactStorage {
     private final ActiveField[] fields;
     private final FieldsFactMap[] maps = new FieldsFactMap[KeyMode.values().length];
 
-    SharedBetaData(FieldsKey typeFields) {
-        this.fields = typeFields.getFields();
+    SharedBetaData(ActiveField[] fields) {
+        this.fields = fields;
         for (KeyMode mode : KeyMode.values()) {
             this.maps[mode.ordinal()] = new FieldsFactMap(mode);
         }

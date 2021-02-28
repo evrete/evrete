@@ -12,7 +12,7 @@ import java.util.Collections;
 //TODO !!!! use RuntimeAware as parent class
 public class RhsFactGroupAlpha implements RhsFactGroup {
     private static final VR KEY_MAIN = new VR(KeyMode.MAIN.ordinal());
-    private static final VR KEY_DELTA = new VR(KeyMode.UNKNOWN_UNKNOWN.ordinal());
+    private static final VR KEY_DELTA = new VR(KeyMode.KNOWN_UNKNOWN.ordinal());
     private final FactType[] types;
     private final ReIterator<ValueRow[]> deltaKeyIterator;
     private final ReIterator<ValueRow[]> mainKeyIterator;
@@ -55,16 +55,8 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
 
     @Override
     public ReIterator<FactHandleVersioned> factIterator(FactType type, ValueRow row) {
-        ReIterator<FactHandleVersioned> iterator;
-        if (row == KEY_DELTA) {
-            iterator = memory.get(type.getType()).getCreateAlpha(type.getAlphaMask()).deltaIterator();
-        } else if (row == KEY_MAIN) {
-            iterator = memory.get(type.getType()).getCreateAlpha(type.getAlphaMask()).mainIterator();
-        } else {
-            throw new IllegalStateException();
-        }
-
-        return iterator;
+        KeyMode mode = KeyMode.values()[row.getTransient()];
+        return memory.get(type.getType()).get(type.getFields()).get(type.getAlphaMask()).iterator(mode, row);
     }
 
     @Override

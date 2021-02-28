@@ -14,11 +14,11 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     private final AbstractKnowledgeSession<?> runtime;
     private final RuleDescriptor descriptor;
     private final RuntimeLhs lhs;
-    private long rhsCallCounter = 0;
     private final RhsGroupNode[] rhsGroupNodes;
     final private FactTypeNode[] factTypeNodes;
     private final Map<String, Integer> nameMapping = new HashMap<>();
     private final RhsContext rhsContext;
+    private long rhsCallCounter = 0;
 
     public RuntimeRuleImpl(RuleDescriptor rd, AbstractKnowledgeSession<?> runtime) {
         super(runtime, rd, rd.getLhs().getFactTypes());

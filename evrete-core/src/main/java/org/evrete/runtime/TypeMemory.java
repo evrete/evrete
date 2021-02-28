@@ -2,7 +2,6 @@ package org.evrete.runtime;
 
 import org.evrete.Configuration;
 import org.evrete.api.*;
-import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
 import java.util.*;
@@ -12,14 +11,14 @@ import java.util.logging.Logger;
 public final class TypeMemory extends MemoryComponent {
     private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
     private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
-    private final ArrayOf<TypeMemoryBucket> alphaBuckets;
+    //private final ArrayOf<TypeMemoryBucket> alphaBuckets;
     private final FactStorage<FactRecord> factStorage;
     private final Type<?> type;
 
     TypeMemory(SessionMemory sessionMemory, Type<?> type) {
         super(sessionMemory);
         this.type = type;
-        this.alphaBuckets = new ArrayOf<>(TypeMemoryBucket.class);
+        //this.alphaBuckets = new ArrayOf<>(TypeMemoryBucket.class);
 
         String identityMethod = configuration.getOrDefault(Configuration.OBJECT_COMPARE_METHOD, Configuration.IDENTITY_METHOD_IDENTITY).toString();
         switch (identityMethod) {
@@ -45,10 +44,6 @@ public final class TypeMemory extends MemoryComponent {
     @Override
     protected void clearLocalData() {
         factStorage.clear();
-    }
-
-    public final Set<FieldsKey> knownFieldSets() {
-        return Collections.unmodifiableSet(betaMemories.keySet());
     }
 
     void processMemoryChange(Action action, FactHandle handle, LazyInsertState factRecord) {
@@ -115,18 +110,16 @@ public final class TypeMemory extends MemoryComponent {
         return factStorage.getFact(handle);
     }
 
+/*
     TypeMemoryBucket getCreateAlpha(AlphaBucketMeta alphaMask) {
         return alphaBuckets.computeIfAbsent(alphaMask.getBucketIndex(), i -> new TypeMemoryBucket(TypeMemory.this, alphaMask));
     }
+*/
 
     MemoryComponent touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
-        if (key.size() == 0) {
-            return getCreateAlpha(alphaMeta);
-        } else {
-            return betaMemories
-                    .computeIfAbsent(key, k -> new FieldsMemory(TypeMemory.this, key))
-                    .getCreate(alphaMeta);
-        }
+        return betaMemories
+                .computeIfAbsent(key, k -> new FieldsMemory(TypeMemory.this, key))
+                .getCreate(alphaMeta);
     }
 
     void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
@@ -177,7 +170,6 @@ public final class TypeMemory extends MemoryComponent {
 
         return "type=" + type.getJavaType().getSimpleName() +
                 "\n\tbeta=" + beta +
-                "\n\talpha=" + alphaBuckets +
                 "\n\tfacts=" + facts;
     }
 }

@@ -8,9 +8,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 public abstract class AbstractRuntimeRule extends AbstractRule {
-    private final AbstractRuntime<?> runtime;
     protected final FactType[] factTypes;
-
+    private final AbstractRuntime<?> runtime;
     private final Bits typeMask = new Bits();
 
     AbstractRuntimeRule(AbstractRuntime<?> runtime, AbstractRule other, FactType[] factTypes) {

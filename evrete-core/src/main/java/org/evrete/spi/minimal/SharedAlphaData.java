@@ -1,55 +1,91 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.FactHandleVersioned;
-import org.evrete.api.FieldToValueHandle;
-import org.evrete.api.ReIterator;
-import org.evrete.api.SharedPlainFactStorage;
+import org.evrete.api.*;
 import org.evrete.collections.CollectionReIterator;
 
 import java.util.LinkedList;
-import java.util.List;
+import java.util.NoSuchElementException;
 
-public class SharedAlphaData implements SharedPlainFactStorage {
-    private final List<FactHandleVersioned> data = new LinkedList<>();
+class SharedAlphaData implements SharedBetaFactStorage {
+    private final DataWrapper[] dataWrappers;
+    private final KeyIterator[] keyIterators;
 
-    @Override
-    public void insert(FieldToValueHandle key, FactHandleVersioned fact) {
-        data.add(fact);
-    }
-
-    @Override
-    public void insert(SharedPlainFactStorage other) {
-        int size = other.size();
-        if (size == 0) return;
-        if (other instanceof SharedAlphaData) {
-            SharedAlphaData sad = (SharedAlphaData) other;
-            this.data.addAll(sad.data);
-        } else {
-            throw new IllegalStateException();
+    SharedAlphaData() {
+        this.dataWrappers = new DataWrapper[KeyMode.values().length];
+        this.keyIterators = new KeyIterator[KeyMode.values().length];
+        for (KeyMode mode : KeyMode.values()) {
+            int idx = mode.ordinal();
+            this.dataWrappers[idx] = new DataWrapper();
+            this.keyIterators[idx] = new KeyIterator(mode);
         }
     }
 
     @Override
-    public ReIterator<FactHandleVersioned> iterator() {
-        return new CollectionReIterator<>(data);
+    public void insert(FieldToValueHandle key, FactHandleVersioned fact) {
+        get(KeyMode.KNOWN_UNKNOWN).add(fact);
+    }
+
+    private DataWrapper get(KeyMode mode) {
+        return dataWrappers[mode.ordinal()];
+    }
+
+    @Override
+    public ReIterator<ValueRow> iterator(KeyMode mode) {
+        return this.keyIterators[mode.ordinal()];
+    }
+
+    @Override
+    public ReIterator<FactHandleVersioned> iterator(KeyMode mode, ValueRow row) {
+        return new CollectionReIterator<>(get(mode));
     }
 
     @Override
     public void clear() {
-        data.clear();
-    }
-
-    @Override
-    public int size() {
-        return data.size();
+        for (DataWrapper wrapper : this.dataWrappers) {
+            wrapper.clear();
+        }
     }
 
     @Override
     public void commitChanges() {
+        DataWrapper delta = get(KeyMode.KNOWN_UNKNOWN);
+        get(KeyMode.MAIN).addAll(delta);
+        delta.clear();
     }
 
-    @Override
-    public String toString() {
-        return data.toString();
+    private static class DataWrapper extends LinkedList<FactHandleVersioned> {
+
+    }
+
+    private static class KeyIterator implements ReIterator<ValueRow> {
+        private static final ValueHandle[] EMPTY = new ValueHandle[0];
+        private final ValueRowImpl row;
+        private boolean hasNext = true;
+
+        KeyIterator(KeyMode mode) {
+            this.row = new ValueRowImpl(EMPTY, 0);
+            this.row.setTransient(mode.ordinal());
+        }
+
+        @Override
+        public long reset() {
+            hasNext = true;
+            return 1L;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return hasNext;
+        }
+
+        @Override
+        public ValueRow next() {
+            if (hasNext) {
+                hasNext = false;
+                return row;
+            } else {
+                throw new NoSuchElementException();
+            }
+        }
     }
 }

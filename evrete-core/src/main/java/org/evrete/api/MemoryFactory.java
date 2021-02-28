@@ -1,16 +1,15 @@
 package org.evrete.api;
 
-import org.evrete.runtime.FieldsKey;
+import org.evrete.runtime.ActiveField;
 
 import java.util.function.BiPredicate;
 
+//TODO !!! Javadoc
 public interface MemoryFactory {
 
     KeysStore newKeyStore(int[] factTypeCounts);
 
-    SharedBetaFactStorage newBetaStorage(FieldsKey typeFields);
-
-    SharedPlainFactStorage newPlainStorage(TypeField[] fields);
+    SharedBetaFactStorage newBetaStorage(ActiveField[] fields);
 
     ValueResolver getValueResolver();
 

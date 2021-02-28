@@ -37,11 +37,6 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode<Condit
         this.expression = descriptor.getExpression().copyOf();
     }
 
-    @Override
-    public KeysStore getStore(KeyMode mode) {
-        return stores.get(mode);
-    }
-
     private static void forEachConditionNode(AbstractBetaConditionNode node, Consumer<AbstractBetaConditionNode> consumer) {
         consumer.accept(node);
         for (BetaMemoryNode<?> parent : node.getSources()) {
@@ -49,6 +44,11 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode<Condit
                 forEachConditionNode((AbstractBetaConditionNode) parent, consumer);
             }
         }
+    }
+
+    @Override
+    public KeysStore getStore(KeyMode mode) {
+        return stores.get(mode);
     }
 
     public AbstractKnowledgeSession<?> getRuntime() {

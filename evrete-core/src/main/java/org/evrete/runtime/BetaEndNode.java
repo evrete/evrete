@@ -27,6 +27,23 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
         }
     }
 
+    private static BetaMemoryNode<?>[] create(NodeDescriptor[] sources, RuntimeRuleImpl rule) {
+        BetaMemoryNode<?>[] result = new BetaMemoryNode<?>[sources.length];
+        for (int i = 0; i < sources.length; i++) {
+            result[i] = create(rule, sources[i]);
+        }
+        return result;
+    }
+
+    private static void cmd(BetaConditionNode node) {
+        node.commitDelta1();
+        for (BetaMemoryNode<?> source : node.getSources()) {
+            if (source instanceof BetaConditionNode) {
+                cmd((BetaConditionNode) source);
+            }
+        }
+    }
+
     @Override
     public ReIterator<ValueRow[]> keyIterator(boolean delta) {
         return delta ?
@@ -42,26 +59,9 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
         return memory.get(type.getType()).get(type.getFields()).get(type.getAlphaMask()).iterator(mode, row);
     }
 
-    private static BetaMemoryNode<?>[] create(NodeDescriptor[] sources, RuntimeRuleImpl rule) {
-        BetaMemoryNode<?>[] result = new BetaMemoryNode<?>[sources.length];
-        for (int i = 0; i < sources.length; i++) {
-            result[i] = create(rule, sources[i]);
-        }
-        return result;
-    }
-
     @Override
     public FactType[] types() {
         return entryNodes;
-    }
-
-    private static void cmd(BetaConditionNode node) {
-        node.commitDelta1();
-        for (BetaMemoryNode<?> source : node.getSources()) {
-            if (source instanceof BetaConditionNode) {
-                cmd((BetaConditionNode) source);
-            }
-        }
     }
 
     // TODO !!!!! optimize, create a set of involved types

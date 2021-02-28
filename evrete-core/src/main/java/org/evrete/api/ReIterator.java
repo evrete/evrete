@@ -4,13 +4,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 public interface ReIterator<T> extends Iterator<T> {
-    /**
-     * Resets the iterator to its initial position
-     *
-     * @return size of the underlying data
-     */
-    long reset();
-
     static <Z> ReIterator<Z> emptyIterator() {
         return new ReIterator<Z>() {
             @Override
@@ -29,4 +22,11 @@ public interface ReIterator<T> extends Iterator<T> {
             }
         };
     }
+
+    /**
+     * Resets the iterator to its initial position
+     *
+     * @return size of the underlying data
+     */
+    long reset();
 }
