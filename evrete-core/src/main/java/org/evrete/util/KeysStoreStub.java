@@ -24,11 +24,6 @@ public class KeysStoreStub implements KeysStore {
     }
 
     @Override
-    public Entry get(IntToValueRow key) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public ReIterator<Entry> entries() {
         throw new UnsupportedOperationException("Not implemented in " + getClass().getName());
     }

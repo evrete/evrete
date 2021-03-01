@@ -1,5 +1,6 @@
 package org.evrete.runtime;
 
+import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
@@ -46,6 +47,7 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
         return insert(getTypeResolver().resolve(fact), fact);
     }
 
+    @SuppressWarnings("unused")
     @Override
     public final FactHandle insert(String type, Object fact) {
         _assertActive();
@@ -54,12 +56,14 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
 
     @Override
     public Object getFact(FactHandle handle) {
-        return memory.get(handle.getTypeId()).getFact(handle);
+        return memory.get(handle.getTypeId()).getFact(handle).instance;
     }
 
     private FactHandle insert(Type<?> type, Object fact) {
         if (type == null) {
-            LOGGER.warning("Can not resolve type for " + fact + ", insert operation skipped.");
+            if (getConfiguration().getAsBoolean(Configuration.WARN_UNKNOWN_TYPES)) {
+                LOGGER.warning("Can not resolve type for " + fact + ", insert operation skipped.");
+            }
             return null;
         } else {
             LazyInsertState innerFact = buildFactRecord(type, fact);
@@ -78,7 +82,9 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
         _assertActive();
         Type<?> type = getTypeResolver().getType(handle.getTypeId());
         if (type == null) {
-            LOGGER.warning("Can not resolve type for fact handle " + handle + ", update operation skipped.");
+            if (getConfiguration().getAsBoolean(Configuration.WARN_UNKNOWN_TYPES)) {
+                LOGGER.warning("Can not resolve type for fact handle " + handle + ", update operation skipped.");
+            }
         } else {
             buffer.add(Action.UPDATE, handle, buildFactRecord(type, newValue));
         }
@@ -128,7 +134,8 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
     }
 
 
-    void clear() {
+    @Override
+    public void clear() {
         memory.clear();
     }
 

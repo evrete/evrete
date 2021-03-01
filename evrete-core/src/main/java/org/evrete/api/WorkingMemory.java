@@ -27,17 +27,9 @@ public interface WorkingMemory {
         }
     }
 
-    default void delete(Collection<FactHandle> factHandles) {
-        for (FactHandle handle : factHandles) {
-            delete(handle);
-        }
-    }
-
     default void insert(Object... objects) {
         for (Object o : objects) {
             insert(o);
         }
     }
-
-
 }

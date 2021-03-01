@@ -84,11 +84,6 @@ public abstract class AbstractRule implements Rule {
     }
 
     @Override
-    public final Consumer<RhsContext> getRhs() {
-        return rhs;
-    }
-
-    @Override
     public void setRhs(Consumer<RhsContext> rhs) {
         this.rhs = rhs == null ? nullRhs : rhs;
         this.literalRhs = null;

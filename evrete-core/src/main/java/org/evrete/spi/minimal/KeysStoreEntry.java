@@ -1,21 +1,21 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.KeysStore;
-import org.evrete.api.ValueRow;
+import org.evrete.api.MemoryKey;
 
 import java.util.Arrays;
 
 abstract class KeysStoreEntry implements KeysStore.Entry {
-    final ValueRow[] key;
+    final MemoryKey[] key;
     final int hash;
 
-    KeysStoreEntry(ValueRow[] key, int hash) {
+    KeysStoreEntry(MemoryKey[] key, int hash) {
         this.key = key;
         this.hash = hash;
     }
 
     @Override
-    final public ValueRow[] key() {
+    final public MemoryKey[] key() {
         return key;
     }
 

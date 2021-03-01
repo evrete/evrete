@@ -3,7 +3,6 @@ package org.evrete.runtime;
 import org.evrete.api.*;
 import org.evrete.collections.JoinReIterator;
 
-//TODO !!! optimize by sharing the value array and pre-built functions
 public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
     private final FactType[] entryNodes;
 
@@ -45,7 +44,7 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
     }
 
     @Override
-    public ReIterator<ValueRow[]> keyIterator(boolean delta) {
+    public ReIterator<MemoryKey[]> keyIterator(boolean delta) {
         return delta ?
                 JoinReIterator.of(iterator(KeyMode.UNKNOWN_UNKNOWN), iterator(KeyMode.KNOWN_UNKNOWN))
                 :
@@ -53,8 +52,8 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
     }
 
     @Override
-    public ReIterator<FactHandleVersioned> factIterator(FactType type, ValueRow row) {
-        KeyMode mode = KeyMode.values()[row.getTransient()];
+    public ReIterator<FactHandleVersioned> factIterator(FactType type, MemoryKey row) {
+        KeyMode mode = KeyMode.values()[row.getMetaValue()];
         SessionMemory memory = getRuntime().memory;
         return memory.get(type.getType()).get(type.getFields()).get(type.getAlphaMask()).iterator(mode, row);
     }

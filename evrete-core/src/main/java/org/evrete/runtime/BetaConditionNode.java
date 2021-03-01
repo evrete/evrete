@@ -8,7 +8,7 @@ import java.util.function.IntFunction;
 public class BetaConditionNode extends AbstractBetaConditionNode {
     static final BetaConditionNode[] EMPTY_ARRAY = new BetaConditionNode[0];
     private final ReIterator<KeysStore.Entry>[] secondaryKeyIterators;
-    private final ValueRow[] evaluationState;
+    private final MemoryKey[] evaluationState;
     private final SourceMeta[] sourceMetas;
     private final IntFunction<IntToValueRow> saveFunction;
     private final FactType[][] secondaryTypes;
@@ -19,13 +19,13 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
     @SuppressWarnings("unchecked")
     BetaConditionNode(RuntimeRuleImpl rule, ConditionNodeDescriptor descriptor, BetaMemoryNode<?>[] sources) {
         super(rule, descriptor, sources);
-        this.evaluationState = new ValueRow[rule.getDescriptor().factTypes.length];
+        this.evaluationState = new MemoryKey[rule.getDescriptor().factTypes.length];
         //TODO !!! optimize
         this.saveFunction = level -> {
             FactType[] levelTypes = getGrouping()[level];
             return new IntToValueRow() {
                 @Override
-                public ValueRow apply(int value) {
+                public MemoryKey apply(int value) {
                     return evaluationState[levelTypes[value].getInRuleIndex()];
                 }
             };
@@ -55,9 +55,9 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         boolean hasNext = groupIndex < grouping.length - 1;
         while (it.hasNext()) {
             KeysStore.Entry key = it.next();
-            ValueRow[] rows = key.key();
-            for (ValueRow row : rows) {
-                row.setTransient(KeyMode.MAIN.ordinal());
+            MemoryKey[] rows = key.key();
+            for (MemoryKey row : rows) {
+                row.setMetaValue(KeyMode.MAIN.ordinal());
             }
             if (hasNext) {
                 resetTransientFlag(grouping, key.getNext().entries(), groupIndex + 1);
@@ -65,7 +65,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         }
     }
 
-    public void setMergeToMain(boolean mergeToMain) {
+    void setMergeToMain(boolean mergeToMain) {
         this.mergeToMain = mergeToMain;
     }
 
@@ -120,21 +120,6 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         }
     }
 
-    private void debug() {
-        System.out.println("Node:\t" + this + "\tsources: " + Arrays.toString(getSources()));
-        for (KeyMode keyMode : KeyMode.values()) {
-            System.out.println("\tMode:\t" + keyMode);
-            ReIterator<ValueRow[]> it = iterator(keyMode);
-            it.reset();
-            int counter = 0;
-            while (it.hasNext()) {
-                ValueRow[] rows = it.next();
-                System.out.println("\t\t" + counter + "\t" + Arrays.toString(rows));
-                counter++;
-            }
-        }
-    }
-
     private void evaluate(KeysStore destination, int sourceIndex) {
         SourceMeta meta = this.sourceMetas[sourceIndex];
 
@@ -177,7 +162,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         KeyMode sourceMode = this.sourceMetas[secondary2source[index]].currentMode;
         boolean last = index == secondaryKeyIterators.length - 1;
         while (iterator.hasNext()) {
-            ValueRow[] rows = iterator.next().key();
+            MemoryKey[] rows = iterator.next().key();
             setState(rows, types, sourceMode == KeyMode.MAIN);
             if (last) {
                 destination.save(saveFunction);
@@ -187,11 +172,11 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         }
     }
 
-    private void setState(ValueRow[] rows, FactType[] types, boolean reset) {
+    private void setState(MemoryKey[] rows, FactType[] types, boolean reset) {
         for (int i = 0; i < types.length; i++) {
-            ValueRow row = rows[i];
+            MemoryKey row = rows[i];
             if (reset) {
-                row.setTransient(KeyMode.MAIN.ordinal());
+                row.setMetaValue(KeyMode.MAIN.ordinal());
             }
             this.evaluationState[types[i].getInRuleIndex()] = row;
         }

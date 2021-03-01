@@ -2,7 +2,6 @@ package org.evrete.api;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
@@ -10,9 +9,6 @@ import java.util.function.Consumer;
 public interface StatefulSession extends KnowledgeSession<StatefulSession> {
 
     StatefulSession setFireCriteria(BooleanSupplier fireCriteria);
-
-    void close();
-
 
     RuntimeRule getRule(String name);
 
@@ -32,9 +28,6 @@ public interface StatefulSession extends KnowledgeSession<StatefulSession> {
         fire();
     }
 
-    void clear();
-
-    void forEachFact(BiConsumer<FactHandle, Object> consumer);
 
     @Deprecated
     default void deleteAndFire(Object... objects) {

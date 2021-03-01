@@ -17,7 +17,7 @@ import java.util.function.Supplier;
 
 public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
     private static final Function<RuleDescriptor, Entry[]> FROM_DESCRIPTOR = rule -> {
-        FactType[] types = rule.getLhs().getFactTypes();
+        FactType[] types = rule.getFactTypes();
         Entry[] entries = new Entry[types.length];
         int i = 0;
         for (FactType t : types) {
@@ -52,20 +52,13 @@ public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
         rule.chainRhs(this);
     }
 
-    public RhsAssert(RuleDescriptor rule) {
-        this(() -> FROM_DESCRIPTOR.apply(rule));
-        rule.chainRhs(this);
-    }
-
     public RhsAssert(StatefulSession statefulSession, String name) {
         this((RuntimeRuleImpl) statefulSession.getRule(name));
     }
 
-
     public RhsAssert(StatefulSession statefulSession) {
         this(getSingleRule(statefulSession));
     }
-
 
     public RhsAssert(String var, Class<?> type) {
         this(new Entry[]{
@@ -97,6 +90,7 @@ public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
         });
     }
 
+    @SuppressWarnings("unused")
     public RhsAssert(String var1, Class<?> type1, String var2, Class<?> type2, String var3, Class<?> type3, String var4, Class<?> type4, String var5, Class<?> type5) {
         this(new Entry[]{
                 new Entry(var1, type1),

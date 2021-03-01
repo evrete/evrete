@@ -1,18 +1,14 @@
 package org.evrete.runtime;
 
+import org.evrete.api.ActiveField;
 import org.evrete.api.Type;
 import org.evrete.api.TypeField;
 
-/**
- * A wrapper for TypeField that will actually be in use
- * by the runtime. Unused fields will not get wrapped, thus avoiding unnecessary reads.
- */
-public final class ActiveField implements TypeField {
-    public static final ActiveField[] ZERO_ARRAY = new ActiveField[0];
+final class ActiveFieldImpl implements ActiveField {
     private final TypeField delegate;
     private final int valueIndex;
 
-    public ActiveField(TypeField delegate, int valueIndex) {
+    ActiveFieldImpl(TypeField delegate, int valueIndex) {
         this.delegate = delegate;
         this.valueIndex = valueIndex;
     }
@@ -22,7 +18,8 @@ public final class ActiveField implements TypeField {
         return delegate.getId();
     }
 
-    int getValueIndex() {
+    @Override
+    public int getValueIndex() {
         return valueIndex;
     }
 
@@ -54,7 +51,7 @@ public final class ActiveField implements TypeField {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ActiveField that = (ActiveField) o;
+        ActiveFieldImpl that = (ActiveFieldImpl) o;
         return valueIndex == that.valueIndex &&
                 delegate.equals(that.delegate);
     }

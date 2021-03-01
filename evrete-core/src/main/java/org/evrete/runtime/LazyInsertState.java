@@ -5,7 +5,7 @@ import org.evrete.api.ValueResolver;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 
-public class LazyInsertState {
+class LazyInsertState {
     final FactRecord record;
     private final Object[] transientFieldValues;
     private final FieldToValue values;

@@ -1,7 +1,6 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
-import org.evrete.runtime.ActiveField;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -19,12 +18,12 @@ class SharedBetaData implements SharedBetaFactStorage {
     }
 
     @Override
-    public ReIterator<ValueRow> iterator(KeyMode keyMode) {
+    public ReIterator<MemoryKey> iterator(KeyMode keyMode) {
         return maps[keyMode.ordinal()].keys();
     }
 
     @Override
-    public ReIterator<FactHandleVersioned> iterator(KeyMode mode, ValueRow row) {
+    public ReIterator<FactHandleVersioned> iterator(KeyMode mode, MemoryKey row) {
         return get(mode).values((ValueRowImpl) row);
     }
 

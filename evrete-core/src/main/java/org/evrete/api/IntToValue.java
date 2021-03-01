@@ -9,8 +9,4 @@ import java.util.function.IntFunction;
  */
 @FunctionalInterface
 public interface IntToValue extends IntFunction<Object> {
-
-    static IntToValue of(Object[] array) {
-        return i -> array[i];
-    }
 }

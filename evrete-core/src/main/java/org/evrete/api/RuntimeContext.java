@@ -45,8 +45,6 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
 
     TypeResolver getTypeResolver();
 
-    RuleDescriptor getRuleDescriptor(String name);
-
     Configuration getConfiguration();
 
     enum Kind {

@@ -33,6 +33,7 @@ public interface Evaluator extends ValuesPredicate, ComplexityObject {
      * @param values evaluator's arguments as a functional interface
      * @return arguments as an array
      */
+    @SuppressWarnings("unused")
     default Object[] toArray(IntToValue values) {
         Object[] array = new Object[descriptor().length];
         for (int i = 0; i < array.length; i++) {

@@ -8,12 +8,12 @@ import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
 import java.util.stream.IntStream;
 
-public class UnsignedIntArray {
+class UnsignedIntArray {
     private static final int NULL_VALUE = -1;
-    protected int currentInsertIndex;
+    int currentInsertIndex;
     private int[] unsignedIndices;
 
-    public UnsignedIntArray(int initialSize) {
+    UnsignedIntArray(int initialSize) {
         this.unsignedIndices = (int[]) Array.newInstance(int.class, Math.max(initialSize, 1));
         CollectionUtils.systemFill(this.unsignedIndices, NULL_VALUE);
         this.currentInsertIndex = 0;
@@ -33,14 +33,14 @@ public class UnsignedIntArray {
         }
     }
 
-    public void addNew(int value) {
+    void addNew(int value) {
         if (currentInsertIndex == unsignedIndices.length - 1) {
             expand();
         }
         unsignedIndices[currentInsertIndex++] = value;
     }
 
-    protected int getAt(int pos) {
+    int getAt(int pos) {
         return unsignedIndices[pos];
     }
 
@@ -48,7 +48,7 @@ public class UnsignedIntArray {
         this.currentInsertIndex = 0;
     }
 
-    public int currentInsertIndex() {
+    int currentInsertIndex() {
         return currentInsertIndex;
     }
 
@@ -61,7 +61,7 @@ public class UnsignedIntArray {
         this.currentInsertIndex = other.currentInsertIndex;
     }
 
-    public void forEachInt(IntConsumer consumer) {
+    void forEachInt(IntConsumer consumer) {
         int i, idx;
         for (i = 0; i < currentInsertIndex; i++) {
             idx = unsignedIndices[i];

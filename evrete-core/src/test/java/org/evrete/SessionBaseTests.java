@@ -15,6 +15,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 import static org.evrete.api.FactBuilder.fact;
@@ -190,10 +191,17 @@ class SessionBaseTests {
                 .forEach("$n", Integer.class)
                 .execute(rhsAssert);
 
+
         StatefulSession session = knowledge.createSession();
+        // Chaining RHS
+        RuntimeRule rule = session.getRules().iterator().next();
+        AtomicInteger counter = new AtomicInteger();
+        rule.chainRhs(ctx -> counter.incrementAndGet());
+
         session.setActivationMode(mode);
         session.insertAndFire(1, 2);
         rhsAssert.assertCount(2).reset();
+        assert counter.get() == 2;
         session.insertAndFire(3);
         rhsAssert.assertCount(1).assertContains("$n", 3);
         session.close();
@@ -224,6 +232,7 @@ class SessionBaseTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void createDestroy1(ActivationMode mode) {
+        knowledge.setClassLoader(Thread.currentThread().getContextClassLoader()); // Shouldn't make a difference
         knowledge.newRule("test")
                 .forEach(
                         fact("$a1", TypeA.class.getName()),
@@ -241,6 +250,36 @@ class SessionBaseTests {
         session2.close(); // Second close has no effect
         session1.close();
         assert knowledge.getSessions().isEmpty();
+    }
+
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void factHandles(ActivationMode mode) {
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a", TypeA.class
+        );
+        knowledge.newRule("test")
+                .forEach(
+                        "$a", TypeA.class
+                )
+                .execute(rhsAssert);
+
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
+
+        TypeA a = new TypeA();
+        FactHandle ah = s.insert(a);
+        assert s.getFact(ah) == a;
+
+
+        s.fire();
+        rhsAssert.assertCount(1).reset();
+        s.insert(new TypeA());
+        s.setFireCriteria(() -> false);
+        s.fire();
+        rhsAssert.assertCount(0);
+
+        assert TestUtils.sessionFacts(s).size() == 2;
+
     }
 
     @ParameterizedTest
@@ -1280,8 +1319,8 @@ class SessionBaseTests {
     @EnumSource(ActivationMode.class)
     void testAlpha3(ActivationMode mode) {
         Configuration conf = knowledge.getConfiguration();
-        conf.setWarnUnknownTypes(false);
-        assert !knowledge.getConfiguration().isWarnUnknownTypes();
+        conf.setProperty(Configuration.WARN_UNKNOWN_TYPES, "false");
+        assert !knowledge.getConfiguration().getAsBoolean(Configuration.WARN_UNKNOWN_TYPES);
         RhsAssert rhsAssert1 = new RhsAssert("$a", TypeA.class);
         RhsAssert rhsAssert2 = new RhsAssert("$a", TypeA.class);
         RhsAssert rhsAssert3 = new RhsAssert("$a", TypeA.class);
@@ -1323,10 +1362,6 @@ class SessionBaseTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void testAlpha4(ActivationMode mode) {
-        Configuration conf = knowledge.getConfiguration();
-        conf.setWarnUnknownTypes(false);
-        assert !knowledge.getConfiguration().isWarnUnknownTypes();
-
         RhsAssert rhsAssert1 = new RhsAssert("$a", TypeA.class);
         RhsAssert rhsAssert2 = new RhsAssert("$a", TypeA.class);
         RhsAssert rhsAssert3 = new RhsAssert("$a", TypeA.class);
@@ -1362,10 +1397,6 @@ class SessionBaseTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void testAlpha5(ActivationMode mode) {
-        Configuration conf = knowledge.getConfiguration();
-        conf.setWarnUnknownTypes(false);
-        assert !knowledge.getConfiguration().isWarnUnknownTypes();
-
         RhsAssert rhsAssert1 = new RhsAssert("$a", TypeA.class);
         RhsAssert rhsAssert2 = new RhsAssert("$a", TypeA.class);
         RhsAssert rhsAssert3 = new RhsAssert("$a", TypeA.class);

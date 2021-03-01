@@ -115,10 +115,12 @@ public class LiteralRhsTests {
     }
 
 
+    @SuppressWarnings("unused")
     public static class SystemOut {
         private static final AtomicInteger counter = new AtomicInteger(0);
         private static final Collection<Object> collector = new LinkedList<>();
 
+        @SuppressWarnings("unused")
         public static void out(Object o) {
             counter.incrementAndGet();
             collector.add(o);
@@ -129,6 +131,7 @@ public class LiteralRhsTests {
             collector.clear();
         }
 
+        @SuppressWarnings("SameParameterValue")
         static void assertSize(int i) {
             assert collector.size() == i;
         }

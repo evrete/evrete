@@ -27,21 +27,9 @@ public class Bits implements Copyable<Bits>, Masked {
 
     }
 
-    private static <T> Bits or(Collection<T> collection, Function<T, Bits> mapping) {
-        Bits b = new Bits();
-        for (T o : collection) {
-            b.or(mapping.apply(o));
-        }
-        return b;
-    }
-
     @Override
     public Bits getMask() {
         return this;
-    }
-
-    public void or(Bits other) {
-        delegate.or(other.delegate);
     }
 
     public boolean get(int index) {
@@ -52,7 +40,7 @@ public class Bits implements Copyable<Bits>, Masked {
         delegate.set(index);
     }
 
-    public boolean intersects(Bits other) {
+    private boolean intersects(Bits other) {
         return delegate.intersects(other.delegate);
     }
 

@@ -45,7 +45,7 @@ public class EvaluatorWrapper implements Evaluator, Listeners {
         }
     }
 
-    public Evaluator getDelegate() {
+    Evaluator getDelegate() {
         return delegate;
     }
 

@@ -12,29 +12,14 @@ import java.util.function.Predicate;
 public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends AbstractLhsBuilder<C, ?>> {
     private final RuleBuilderImpl<C> ruleBuilder;
     private final Map<String, FactTypeBuilder> declaredLhsTypes;
-    //private final int level;
     private final Set<AbstractExpression> conditions = new HashSet<>();
     private final Function<String, FactTypeBuilder> factTypeMapper;
     private Compiled compiledData;
 
-    private AbstractLhsBuilder(RuleBuilderImpl<C> ruleBuilder, AbstractLhsBuilder<C, ?> parent) {
-        this.ruleBuilder = ruleBuilder;
-        //this.level = level;
-        this.declaredLhsTypes = new HashMap<>();
-        this.factTypeMapper = new Function<String, FactTypeBuilder>() {
-            @Override
-            public FactTypeBuilder apply(String s) {
-                FactTypeBuilder found = declaredLhsTypes.get(s);
-                if (found == null && parent != null) {
-                    found = parent.factTypeMapper.apply(s);
-                }
-                return found;
-            }
-        };
-    }
-
     AbstractLhsBuilder(RuleBuilderImpl<C> ruleBuilder) {
-        this(ruleBuilder, null);
+        this.ruleBuilder = ruleBuilder;
+        this.declaredLhsTypes = new HashMap<>();
+        this.factTypeMapper = declaredLhsTypes::get;
     }
 
     protected abstract G self();

@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @Fork(value = 1, warmups = 1)
-@SuppressWarnings("MethodMayBeStatic")
+@SuppressWarnings({"MethodMayBeStatic", "unused"})
 public class Collections {
     private static final AtomicLong counter = new AtomicLong();
 

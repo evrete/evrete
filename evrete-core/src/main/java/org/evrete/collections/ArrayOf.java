@@ -15,10 +15,10 @@ import java.util.function.ObjIntConsumer;
  *
  * @param <T> type parameter
  */
-//TODO !!!! create tests
+//TODO create tests
 public class ArrayOf<T> implements ReIterable<T> {
     private final static int NULL_INDEX = -1;
-    //TODO !!! make private
+    //TODO make private
     public T[] data;
 
     public ArrayOf(T[] data) {
@@ -33,7 +33,7 @@ public class ArrayOf<T> implements ReIterable<T> {
         this(CollectionUtils.array(type, 0));
     }
 
-    //TODO !!!! keep track of current size
+    //TODO keep track of current size
     private int computeSize() {
         int size = 0;
         for (T o : data) {

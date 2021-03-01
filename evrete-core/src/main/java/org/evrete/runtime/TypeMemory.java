@@ -11,14 +11,12 @@ import java.util.logging.Logger;
 public final class TypeMemory extends MemoryComponent {
     private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
     private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
-    //private final ArrayOf<TypeMemoryBucket> alphaBuckets;
     private final FactStorage<FactRecord> factStorage;
     private final Type<?> type;
 
     TypeMemory(SessionMemory sessionMemory, Type<?> type) {
         super(sessionMemory);
         this.type = type;
-        //this.alphaBuckets = new ArrayOf<>(TypeMemoryBucket.class);
 
         String identityMethod = configuration.getOrDefault(Configuration.OBJECT_COMPARE_METHOD, Configuration.IDENTITY_METHOD_IDENTITY).toString();
         switch (identityMethod) {

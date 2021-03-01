@@ -1,7 +1,6 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
-import org.evrete.runtime.ActiveField;
 
 import java.util.function.BiPredicate;
 

@@ -7,9 +7,9 @@ import org.evrete.api.ValueResolver;
 import org.evrete.collections.ArrayOf;
 
 abstract class MemoryComponent {
-    protected final MemoryFactory memoryFactory;
-    protected final Configuration configuration;
-    protected final ValueResolver valueResolver;
+    final MemoryFactory memoryFactory;
+    final Configuration configuration;
+    final ValueResolver valueResolver;
     private final ArrayOf<MemoryComponent> childComponents = new ArrayOf<>(MemoryComponent.class);
 
     MemoryComponent(MemoryFactory memoryFactory, Configuration configuration) {

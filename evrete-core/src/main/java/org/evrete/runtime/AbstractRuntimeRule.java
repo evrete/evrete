@@ -26,6 +26,10 @@ public abstract class AbstractRuntimeRule extends AbstractRule {
         return typeMask.get(type.getId());
     }
 
+    public FactType[] getFactTypes() {
+        return factTypes;
+    }
+
     @Override
     public final void setRhs(String literalRhs) {
         if (literalRhs != null) {

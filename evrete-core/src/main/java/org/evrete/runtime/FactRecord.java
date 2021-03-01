@@ -1,5 +1,6 @@
 package org.evrete.runtime;
 
+import org.evrete.api.ActiveField;
 import org.evrete.api.FieldToValueHandle;
 import org.evrete.api.ValueHandle;
 
@@ -34,7 +35,7 @@ class FactRecord implements FieldToValueHandle {
         this.version = newVersion;
     }
 
-    public ValueHandle[] getFieldValues() {
+    ValueHandle[] getFieldValues() {
         return fieldValues;
     }
 

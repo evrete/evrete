@@ -188,11 +188,6 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
     }
 
     @Override
-    public RuleDescriptor getRuleDescriptor(String name) {
-        return Named.find(ruleDescriptors, name);
-    }
-
-    @Override
     public Configuration getConfiguration() {
         return service.getConfiguration();
     }

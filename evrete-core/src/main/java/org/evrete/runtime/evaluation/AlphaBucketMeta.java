@@ -6,7 +6,7 @@ public abstract class AlphaBucketMeta {
     private static final Set<AlphaEvaluator.Match> EMPTY_COMPONENTS = new HashSet<>();
     public final AlphaEvaluator[] alphaEvaluators;
     public final boolean[] requiredValues;
-    protected final Set<AlphaEvaluator.Match> key;
+    final Set<AlphaEvaluator.Match> key;
     private final int bucketIndex;
 
     private AlphaBucketMeta(int bucketIndex, Set<AlphaEvaluator.Match> matches) {

@@ -3,12 +3,11 @@ package org.evrete;
 import java.util.Properties;
 
 public class Configuration extends Properties {
-    public static final String OBJECT_COMPARE_METHOD = "evrete.compare.objects";
+    public static final String OBJECT_COMPARE_METHOD = "evrete.core.facts-comparison";
+    public static final String WARN_UNKNOWN_TYPES = "evrete.core.warn-unknown-types";
     public static final String IDENTITY_METHOD_EQUALS = "equals";
     public static final String IDENTITY_METHOD_IDENTITY = "identity";
-    private static final boolean DEFAULT_WARN_UNKNOWN_TYPES = true;
     private static final long serialVersionUID = -9015471049604658637L;
-    private boolean warnUnknownTypes = DEFAULT_WARN_UNKNOWN_TYPES;
 
     @SuppressWarnings("unused")
     public Configuration(Properties defaults) {
@@ -17,14 +16,11 @@ public class Configuration extends Properties {
 
     public Configuration() {
         super();
+        setProperty(WARN_UNKNOWN_TYPES, Boolean.TRUE.toString());
     }
 
-    public boolean isWarnUnknownTypes() {
-        return warnUnknownTypes;
+    public boolean getAsBoolean(String property) {
+        return Boolean.parseBoolean(getProperty(property));
     }
 
-    public Configuration setWarnUnknownTypes(boolean warnUnknownTypes) {
-        this.warnUnknownTypes = warnUnknownTypes;
-        return this;
-    }
 }

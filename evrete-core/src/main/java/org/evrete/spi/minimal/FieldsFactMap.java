@@ -2,8 +2,8 @@ package org.evrete.spi.minimal;
 
 import org.evrete.api.FactHandleVersioned;
 import org.evrete.api.KeyMode;
+import org.evrete.api.MemoryKey;
 import org.evrete.api.ReIterator;
-import org.evrete.api.ValueRow;
 import org.evrete.collections.CollectionReIterator;
 import org.evrete.collections.MappedReIterator;
 import org.evrete.util.MapOfList;
@@ -27,7 +27,7 @@ class FieldsFactMap {
     void addAll(FieldsFactMap other) {
         for (Map.Entry<ValueRowImpl, List<FactHandleVersioned>> entry : other.data.entrySet()) {
             ValueRowImpl key = entry.getKey();
-            key.setTransient(myModeOrdinal);
+            key.setMetaValue(myModeOrdinal);
             Collection<FactHandleVersioned> col = entry.getValue();
             for (FactHandleVersioned v : col) {
                 this.data.add(key, v);
@@ -35,7 +35,7 @@ class FieldsFactMap {
         }
     }
 
-    ReIterator<ValueRow> keys() {
+    ReIterator<MemoryKey> keys() {
         ReIterator<ValueRowImpl> it = new CollectionReIterator<>(data.keySet());
         return new MappedReIterator<>(it, row -> row);
     }

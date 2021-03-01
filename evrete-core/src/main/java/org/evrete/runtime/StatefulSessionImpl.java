@@ -1,8 +1,11 @@
 package org.evrete.runtime;
 
 import org.evrete.api.ActivationManager;
+import org.evrete.api.Named;
+import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
 
+import java.util.List;
 import java.util.function.BooleanSupplier;
 
 public class StatefulSessionImpl extends AbstractKnowledgeSession<StatefulSession> implements StatefulSession {
@@ -34,5 +37,14 @@ public class StatefulSessionImpl extends AbstractKnowledgeSession<StatefulSessio
         return this;
     }
 
+    @Override
+    public List<RuntimeRule> getRules() {
+        return ruleStorage.asList();
+    }
 
+    @Override
+    public RuntimeRule getRule(String name) {
+        //TODO !!! create a map for that
+        return Named.find(getRules(), name);
+    }
 }

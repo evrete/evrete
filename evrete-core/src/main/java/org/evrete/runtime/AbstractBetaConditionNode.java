@@ -79,7 +79,7 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode<Condit
         return expression;
     }
 
-    ReIterator<ValueRow[]> iterator(KeyMode mode) {
+    ReIterator<MemoryKey[]> iterator(KeyMode mode) {
         return new MappedReIterator<>(getStore(mode).entries(), KeysStore.Entry::key);
     }
 

@@ -2,7 +2,7 @@ package org.evrete.spi.minimal;
 
 import org.evrete.api.IntToValueRow;
 import org.evrete.api.KeysStore;
-import org.evrete.api.ValueRow;
+import org.evrete.api.MemoryKey;
 
 import java.util.Arrays;
 import java.util.function.IntFunction;
@@ -19,7 +19,7 @@ class KeysStoreMap extends AbstractKeysStore<KeysStoreMap.MapEntry> {
     @Override
     public final void save(IntFunction<IntToValueRow> values) {
         resize();
-        ValueRow[] key = MiscUtils.toArray(values.apply(level), arrSize);
+        MemoryKey[] key = MiscUtils.toArray(values.apply(level), arrSize);
         int hash = MiscUtils.hash(key);
         int addr = findBinIndex(key, hash, EQ_FUNCTION);
         MapEntry found = get(addr);
@@ -38,7 +38,7 @@ class KeysStoreMap extends AbstractKeysStore<KeysStoreMap.MapEntry> {
     final static class MapEntry extends KeysStoreEntry {
         final KeysStore next;
 
-        MapEntry(ValueRow[] key, int hash, KeysStore next) {
+        MapEntry(MemoryKey[] key, int hash, KeysStore next) {
             super(key, hash);
             this.next = next;
         }

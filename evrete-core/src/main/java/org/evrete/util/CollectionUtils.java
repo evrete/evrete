@@ -4,18 +4,8 @@ import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public final class CollectionUtils {
-
-    @SuppressWarnings("unchecked")
-    public static <T, Z extends T> Z[] filter(Class<Z> type, T[] input, Predicate<T> predicate) {
-        List<Z> list = Arrays
-                .stream(input)
-                .filter(predicate).map(t -> (Z) t)
-                .collect(Collectors.toList());
-        return list.toArray(array(type, 0));
-    }
 
     public static <T> boolean deleteFrom(Collection<T> collection, Predicate<T> predicate) {
         LinkedList<T> selected = new LinkedList<>();
@@ -86,7 +76,7 @@ public final class CollectionUtils {
         return result;
     }
 
-    public static <K, V, C extends Collection<V>> List<Map<K, V>> combinations(Map<K, C> sources, Supplier<Map<K, V>> emptyMapSupplier) {
+    private static <K, V, C extends Collection<V>> List<Map<K, V>> combinations(Map<K, C> sources, Supplier<Map<K, V>> emptyMapSupplier) {
         Iterator<Map.Entry<K, C>> it = sources.entrySet().iterator();
         if (!it.hasNext()) return Collections.emptyList();
 
@@ -125,31 +115,30 @@ public final class CollectionUtils {
     }
 
     public static void systemFill(boolean[] array, boolean value) {
-        systemFill(array, 0, array.length, value);
+        systemFill(array, array.length, value);
     }
 
     public static <T> void systemFill(T[] array, T value) {
-        systemFill(array, 0, array.length, value);
+        systemFill(array, array.length, value);
     }
 
     /**
      * This method is an alternative to Arrays.fill() with the same
      * method signature
      *
-     * @param array     the array to be filled
-     * @param fromIndex the index of the first element (inclusive)
-     * @param toIndex   toIndex the index of the last element (exclusive)
-     * @param value     value to be stored
-     * @param <T>       type parameter
+     * @param <T>     type parameter
+     * @param array   the array to be filled
+     * @param toIndex toIndex the index of the last element (exclusive)
+     * @param value   value to be stored
      */
-    private static <T> void systemFill(T[] array, int fromIndex, int toIndex, T value) {
+    private static <T> void systemFill(T[] array, int toIndex, T value) {
         int len;
-        if ((len = toIndex - fromIndex) < 64) {
-            fillObjects(array, fromIndex, toIndex, value);
+        if ((len = toIndex) < 64) {
+            fillObjects(array, toIndex, value);
         } else {
-            array[fromIndex] = value;
+            array[0] = value;
             for (int i = 1; i < len; i += i) {
-                System.arraycopy(array, fromIndex, array, i + fromIndex, Math.min((len - i), i));
+                System.arraycopy(array, 0, array, i, Math.min((len - i), i));
             }
         }
     }
@@ -179,33 +168,32 @@ public final class CollectionUtils {
      * This method is an alternative to Arrays.fill() with the same
      * method signature
      *
-     * @param array     the array to be filled
-     * @param fromIndex the index of the first element (inclusive)
-     * @param toIndex   toIndex the index of the last element (exclusive)
-     * @param value     value to be stored
+     * @param array   the array to be filled
+     * @param toIndex toIndex the index of the last element (exclusive)
+     * @param value   value to be stored
      */
-    private static void systemFill(boolean[] array, int fromIndex, int toIndex, boolean value) {
+    private static void systemFill(boolean[] array, int toIndex, boolean value) {
         int len;
-        if ((len = toIndex - fromIndex) < 64) {
-            fillBooleans(array, fromIndex, toIndex, value);
+        if ((len = toIndex) < 64) {
+            fillBooleans(array, toIndex, value);
         } else {
-            array[fromIndex] = value;
+            array[0] = value;
             for (int i = 1; i < len; i += i) {
-                System.arraycopy(array, fromIndex, array, i + fromIndex, Math.min((len - i), i));
+                System.arraycopy(array, 0, array, i, Math.min((len - i), i));
             }
         }
     }
 
-    private static void fillBooleans(boolean[] a, int fromIndex, int toIndex, boolean val) {
-        for (int i = fromIndex; i < toIndex; i++) a[i] = val;
+    private static void fillBooleans(boolean[] a, int toIndex, boolean val) {
+        for (int i = 0; i < toIndex; i++) a[i] = val;
     }
 
     private static void fillInts(int[] a, int fromIndex, int toIndex, int val) {
         for (int i = fromIndex; i < toIndex; i++) a[i] = val;
     }
 
-    private static <T> void fillObjects(T[] a, int fromIndex, int toIndex, T val) {
-        for (int i = fromIndex; i < toIndex; i++) a[i] = val;
+    private static <T> void fillObjects(T[] a, int toIndex, T val) {
+        for (int i = 0; i < toIndex; i++) a[i] = val;
     }
 
 }

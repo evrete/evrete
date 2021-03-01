@@ -6,7 +6,7 @@ class FactHandleImpl implements FactHandle {
     private static final long serialVersionUID = -7110831365624326343L;
     final long id;
     final int hash;
-    final int type;
+    private final int type;
 
     FactHandleImpl(long id, int hash, int typeId) {
         this.id = id;

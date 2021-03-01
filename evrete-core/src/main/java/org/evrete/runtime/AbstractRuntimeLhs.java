@@ -15,8 +15,9 @@ abstract class AbstractRuntimeLhs {
         RhsFactGroupDescriptor[] allFactGroups = descriptor.getAllFactGroups();
         this.rhsFactGroups = new RhsFactGroup[allFactGroups.length];
 
+        int groupIndex = 0;
         for (RhsFactGroupDescriptor groupDescriptor : allFactGroups) {
-            int groupIndex = groupDescriptor.getFactGroupIndex();
+            //int groupIndex = groupDescriptor.getFactGroupIndex();
             RhsFactGroup factGroup;
             if (groupDescriptor.isLooseGroup()) {
                 factGroup = new RhsFactGroupAlpha(rule.getRuntime().getMemory(), groupDescriptor);
@@ -28,7 +29,7 @@ abstract class AbstractRuntimeLhs {
                 endNodes.add(endNode);
                 factGroup = endNode;
             }
-            rhsFactGroups[groupIndex] = factGroup;
+            rhsFactGroups[groupIndex++] = factGroup;
         }
     }
 

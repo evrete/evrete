@@ -1,10 +1,6 @@
 package org.evrete.runtime.evaluation;
 
-import org.evrete.api.EvaluationListener;
-import org.evrete.api.EvaluationListeners;
-import org.evrete.api.Evaluator;
-import org.evrete.api.FieldToValue;
-import org.evrete.runtime.ActiveField;
+import org.evrete.api.*;
 
 public class AlphaEvaluator implements EvaluationListeners {
     private final ActiveField[] activeDescriptor;

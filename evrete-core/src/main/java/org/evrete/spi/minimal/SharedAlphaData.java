@@ -30,12 +30,12 @@ class SharedAlphaData implements SharedBetaFactStorage {
     }
 
     @Override
-    public ReIterator<ValueRow> iterator(KeyMode mode) {
+    public ReIterator<MemoryKey> iterator(KeyMode mode) {
         return this.keyIterators[mode.ordinal()];
     }
 
     @Override
-    public ReIterator<FactHandleVersioned> iterator(KeyMode mode, ValueRow row) {
+    public ReIterator<FactHandleVersioned> iterator(KeyMode mode, MemoryKey row) {
         return new CollectionReIterator<>(get(mode));
     }
 
@@ -58,14 +58,14 @@ class SharedAlphaData implements SharedBetaFactStorage {
         private static final long serialVersionUID = -2837913574833795126L;
     }
 
-    private static class KeyIterator implements ReIterator<ValueRow> {
+    private static class KeyIterator implements ReIterator<MemoryKey> {
         private static final ValueHandle[] EMPTY = new ValueHandle[0];
         private final ValueRowImpl row;
         private boolean hasNext = true;
 
         KeyIterator(KeyMode mode) {
             this.row = new ValueRowImpl(EMPTY, 0);
-            this.row.setTransient(mode.ordinal());
+            this.row.setMetaValue(mode.ordinal());
         }
 
         @Override
@@ -80,7 +80,7 @@ class SharedAlphaData implements SharedBetaFactStorage {
         }
 
         @Override
-        public ValueRow next() {
+        public MemoryKey next() {
             if (hasNext) {
                 hasNext = false;
                 return row;

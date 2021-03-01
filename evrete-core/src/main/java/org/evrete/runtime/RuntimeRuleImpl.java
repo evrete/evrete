@@ -17,8 +17,8 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     final private FactTypeNode[] factTypeNodes;
     private final Map<String, Integer> nameMapping = new HashMap<>();
     private final RhsContext rhsContext;
-    private long rhsCallCounter = 0;
     private final BetaEndNode[] endNodes;
+    private long rhsCallCounter = 0;
 
     public RuntimeRuleImpl(RuleDescriptor rd, AbstractKnowledgeSession<?> runtime) {
         super(runtime, rd, rd.getLhs().getFactTypes());
@@ -48,6 +48,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         this.rhsContext = new RhsContextImpl();
 
     }
+
 
     void mergeNodeDeltas() {
         for (BetaEndNode endNode : lhs.getEndNodes()) {
@@ -84,12 +85,12 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     private void iterateKeys(int group, Consumer<RhsContext> consumer) {
         RhsGroupNode factGroup = this.rhsGroupNodes[group];
         FactType[] types = factGroup.types;
-        ReIterator<ValueRow[]> iterator = factGroup.keyIterator;
+        ReIterator<MemoryKey[]> iterator = factGroup.keyIterator;
         if (iterator.reset() == 0) return;
         boolean last = group == this.rhsGroupNodes.length - 1;
 
         while (iterator.hasNext()) {
-            ValueRow[] valueRows = iterator.next();
+            MemoryKey[] valueRows = iterator.next();
             copyKeyState(valueRows, types);
             if (last) {
                 iterateFacts(0, consumer);
@@ -148,9 +149,9 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         return this;
     }
 
-    private void copyKeyState(ValueRow[] valueRows, FactType[] types) {
+    private void copyKeyState(MemoryKey[] valueRows, FactType[] types) {
         for (int i = 0; i < types.length; i++) {
-            ValueRow row = valueRows[i];
+            MemoryKey row = valueRows[i];
             FactType type = types[i];
             this.factTypeNodes[type.getInRuleIndex()].setCurrentKey(row);
         }
@@ -199,7 +200,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     private static class RhsGroupNode {
         final RhsFactGroup group;
         final FactType[] types;
-        ReIterator<ValueRow[]> keyIterator;
+        ReIterator<MemoryKey[]> keyIterator;
         boolean currentDelta;
 
         RhsGroupNode(RhsFactGroup group) {
@@ -227,14 +228,14 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         FactHandle handle;
         Object value;
         private ReIterator<FactHandleVersioned> factIterator;
-        private ValueRow currentKey;
+        private MemoryKey currentKey;
 
         FactTypeNode(FactType type, RhsFactGroup group) {
             this.type = type;
             this.group = group;
         }
 
-        void setCurrentKey(ValueRow currentKey) {
+        void setCurrentKey(MemoryKey currentKey) {
             this.currentKey = currentKey;
             this.factIterator = group.factIterator(type, currentKey);
         }

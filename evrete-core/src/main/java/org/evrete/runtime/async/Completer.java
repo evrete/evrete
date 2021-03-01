@@ -18,18 +18,15 @@ public abstract class Completer extends CountedCompleter<Void> {
         super();
     }
 
-    public static Completer of(Collection<? extends Runnable> collection) {
-        return of(null, collection);
-    }
 
-    private static Completer of(Completer parent, Collection<? extends Runnable> collection) {
+    public static Completer of(Collection<? extends Runnable> collection) {
         switch (collection.size()) {
             case 0:
                 throw new IllegalArgumentException();
             case 1:
-                return new RunnableCompleter(parent, collection.iterator().next());
+                return new RunnableCompleter(null, collection.iterator().next());
             default:
-                return new MultiRunnableCompleter(parent, collection);
+                return new MultiRunnableCompleter(collection);
         }
     }
 
@@ -103,8 +100,8 @@ public abstract class Completer extends CountedCompleter<Void> {
         private static final long serialVersionUID = -243409304205835246L;
         private final Collection<? extends Runnable> collection;
 
-        MultiRunnableCompleter(Completer completer, Collection<? extends Runnable> collection) {
-            super(completer);
+        MultiRunnableCompleter(Collection<? extends Runnable> collection) {
+            super(null);
             assert collection.size() > 1;
             this.collection = collection;
         }

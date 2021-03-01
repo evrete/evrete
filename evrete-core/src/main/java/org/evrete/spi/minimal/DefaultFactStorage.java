@@ -32,7 +32,7 @@ class DefaultFactStorage<T> implements FactStorage<T> {
 
     @Override
     public void update(FactHandle handle, T newInstance) {
-        this.collection.add(new Tuple<>((FactHandleImpl) handle, newInstance));
+        this.collection.addSilent(new Tuple<>((FactHandleImpl) handle, newInstance));
     }
 
     @Override
@@ -97,7 +97,7 @@ class DefaultFactStorage<T> implements FactStorage<T> {
             return EQ_PREDICATE;
         }
 
-        public FactHandleImpl insert(T fact) {
+        FactHandleImpl insert(T fact) {
             resize();
             int hash = HASH_FUNCTION.applyAsInt(fact);
             int addr = findBinIndex(fact, hash, searchByFact);
@@ -113,7 +113,7 @@ class DefaultFactStorage<T> implements FactStorage<T> {
             }
         }
 
-        public void delete(FactHandle handle) {
+        void delete(FactHandle handle) {
             FactHandleImpl impl = (FactHandleImpl) handle;
             int addr = findBinIndex(impl, impl.hash, searchByHandle);
             if (get(addr) != null) {
@@ -121,7 +121,7 @@ class DefaultFactStorage<T> implements FactStorage<T> {
             }
         }
 
-        public T getFact(FactHandle handle) {
+        T getFact(FactHandle handle) {
             FactHandleImpl impl = (FactHandleImpl) handle;
             int addr = findBinIndex(impl, impl.hash, searchByHandle);
             Tuple<T> t = get(addr);

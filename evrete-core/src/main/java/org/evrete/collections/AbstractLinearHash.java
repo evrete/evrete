@@ -18,9 +18,7 @@ import java.util.stream.Stream;
  * @param <E> Entry type
  */
 public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements ReIterable<E> {
-    static final BiPredicate<Object, Object> IDENTITY_EQUALS = (o1, o2) -> o1 == o2;
     static final ToIntFunction<Object> DEFAULT_HASH = Object::hashCode;
-    static final ToIntFunction<Object> IDENTITY_HASH = System::identityHashCode;
     static final BiPredicate<Object, Object> DEFAULT_EQUALS = Object::equals;
     private static final int DEFAULT_INITIAL_CAPACITY = 4;
     private static final int MAXIMUM_CAPACITY = 1 << 30;
@@ -110,11 +108,12 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         return old == null || !eq.test(element, old);
     }
 
-    final void addSilent(E element) {
+    public final void addSilent(E element) {
         resize();
         addNoResize(element);
     }
 
+    @SuppressWarnings("unused")
     public final E add(E element) {
         resize();
         return addGetPrevious(element);
@@ -132,7 +131,7 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         return saveDirect(element, addr);
     }
 
-    public final <Z extends AbstractLinearHash<E>> void bulkAdd(Z other) {
+    protected final <Z extends AbstractLinearHash<E>> void bulkAdd(Z other) {
         resize(size + other.size);
 
         ToIntFunction<Object> hashFunc = getHashFunction();
@@ -150,10 +149,6 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         }
     }
 
-
-    public final void ensureExtraCapacity(int insertCount) {
-        resize(size + insertCount);
-    }
 
     @SuppressWarnings("unchecked")
     public final E saveDirect(E element, int addr) {
@@ -245,7 +240,7 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         return data[addr] != null && !deletedIndices[addr];
     }
 
-    protected boolean removeEntry(Object e) {
+    boolean removeEntry(Object e) {
         int addr = findBinIndexFor(e, getHashFunction().applyAsInt(e), getEqualsPredicate());
         return removeEntry(addr);
     }
@@ -286,7 +281,7 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         resize(this.size);
     }
 
-    protected void resize(int targetSize) {
+    private void resize(int targetSize) {
         boolean expand = 2 * (targetSize + deletes) >= data.length;
         boolean shrink = deletes > 0 && targetSize < deletes;
         if (expand || shrink) {

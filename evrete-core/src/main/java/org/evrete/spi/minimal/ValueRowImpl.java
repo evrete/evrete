@@ -1,11 +1,11 @@
 package org.evrete.spi.minimal;
 
+import org.evrete.api.MemoryKey;
 import org.evrete.api.ValueHandle;
-import org.evrete.api.ValueRow;
 
 import java.util.Arrays;
 
-class ValueRowImpl implements ValueRow {
+class ValueRowImpl implements MemoryKey {
     private final ValueHandle[] data;
     private final int hash;
     //TODO try excluding the 'volatile' keyword, it looks like it's safe
@@ -17,13 +17,13 @@ class ValueRowImpl implements ValueRow {
     }
 
     @Override
-    public int getTransient() {
+    public int getMetaValue() {
         return transientValue;
     }
 
     @Override
-    public void setTransient(int transientValue) {
-        this.transientValue = transientValue;
+    public void setMetaValue(int i) {
+        this.transientValue = i;
     }
 
     @Override
@@ -41,7 +41,7 @@ class ValueRowImpl implements ValueRow {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ValueRowImpl other = (ValueRowImpl) o;
-        return other.transientValue == this.transientValue && MiscUtils.sameData1(other.data, data);
+        return other.transientValue == this.transientValue && MiscUtils.sameData(other.data, data);
     }
 
     @Override

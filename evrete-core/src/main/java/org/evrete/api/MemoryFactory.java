@@ -1,7 +1,5 @@
 package org.evrete.api;
 
-import org.evrete.runtime.ActiveField;
-
 import java.util.function.BiPredicate;
 
 //TODO !!! Javadoc
@@ -13,6 +11,7 @@ public interface MemoryFactory {
 
     ValueResolver getValueResolver();
 
+    @SuppressWarnings("unused")
     <Z> FactStorage<Z> newFactStorage(Type<?> type, Class<Z> storageClass, BiPredicate<Z, Z> identityFunction);
 
     default <Z> KeysStore newKeyStore(Z[][] grouping) {

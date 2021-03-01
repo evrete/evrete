@@ -3,7 +3,6 @@ package org.evrete.api;
 import java.util.function.Consumer;
 
 public interface Rule extends PropertyAccess<Rule>, Named, FluentImports<Rule> {
-    Consumer<RhsContext> getRhs();
 
     void setRhs(String literalRhs);
 
@@ -13,6 +12,5 @@ public interface Rule extends PropertyAccess<Rule>, Named, FluentImports<Rule> {
 
     void setSalience(int value);
 
-    //TODO add to tests
     void chainRhs(Consumer<RhsContext> consumer);
 }

@@ -14,8 +14,8 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
     private static final VR KEY_MAIN = new VR(KeyMode.MAIN.ordinal());
     private static final VR KEY_DELTA = new VR(KeyMode.KNOWN_UNKNOWN.ordinal());
     private final FactType[] types;
-    private final ReIterator<ValueRow[]> deltaKeyIterator;
-    private final ReIterator<ValueRow[]> mainKeyIterator;
+    private final ReIterator<MemoryKey[]> deltaKeyIterator;
+    private final ReIterator<MemoryKey[]> mainKeyIterator;
     private final SessionMemory memory;
 
     RhsFactGroupAlpha(SessionMemory memory, RhsFactGroupDescriptor descriptor) {
@@ -23,14 +23,14 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
         assert types.length > 0;
         this.memory = memory;
 
-        ValueRow[] dummyMain = new VR[this.types.length];
+        MemoryKey[] dummyMain = new VR[this.types.length];
         Arrays.fill(dummyMain, KEY_MAIN);
         this.mainKeyIterator = new CollectionReIterator<>(Collections.singletonList(dummyMain));
 
 
         Collection<VR[]> deltaCollection = new ArrayList<>();
         int cnt = types.length;
-        //TODO !!! fix it
+        //TODO !!! fix this restriction
         if (cnt > 24) throw new UnsupportedOperationException("Too many alpha nodes, another implementation required");
         for (int i = 1; i < (1 << cnt); i++) {
             VR[] arr = new VR[cnt];
@@ -54,17 +54,17 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
     }
 
     @Override
-    public ReIterator<FactHandleVersioned> factIterator(FactType type, ValueRow row) {
-        KeyMode mode = KeyMode.values()[row.getTransient()];
+    public ReIterator<FactHandleVersioned> factIterator(FactType type, MemoryKey row) {
+        KeyMode mode = KeyMode.values()[row.getMetaValue()];
         return memory.get(type.getType()).get(type.getFields()).get(type.getAlphaMask()).iterator(mode, row);
     }
 
     @Override
-    public ReIterator<ValueRow[]> keyIterator(boolean delta) {
+    public ReIterator<MemoryKey[]> keyIterator(boolean delta) {
         return delta ? deltaKeyIterator : mainKeyIterator;
     }
 
-    private static class VR implements ValueRow {
+    private static class VR implements MemoryKey {
         private final int transientValue;
 
         VR(int transientValue) {
@@ -73,18 +73,16 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
 
         @Override
         public ValueHandle get(int fieldIndex) {
-            //TODO override or provide a message
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public int getTransient() {
+        public int getMetaValue() {
             return transientValue;
         }
 
         @Override
-        public void setTransient(int transientValue) {
-            //TODO override or provide a message
+        public void setMetaValue(int i) {
             throw new UnsupportedOperationException();
         }
 

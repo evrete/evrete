@@ -1,5 +1,6 @@
 package org.evrete.runtime;
 
+import org.evrete.api.ActiveField;
 import org.evrete.api.Masked;
 import org.evrete.api.Type;
 import org.evrete.api.TypeField;
@@ -38,7 +39,7 @@ public class FactType implements Masked {
     int findFieldPosition(TypeField field) {
         ActiveField[] arr = fields.getFields();
         for (int i = 0; i < arr.length; i++) {
-            ActiveField f = arr[i];
+            ActiveFieldImpl f = (ActiveFieldImpl) arr[i];
             if (f.getDelegate().equals(field)) return i;
         }
         throw new IllegalStateException("Field not found");

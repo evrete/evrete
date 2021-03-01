@@ -262,4 +262,32 @@ class FastHashSetTest {
         assert fastSet.size == 50;
 
     }
+
+    @Test
+    void stream1() {
+        LinearHashSet<String> fastSet = new LinearHashSet<>();
+        HashSet<String> hashSet = new HashSet<>();
+
+        // Fill first
+        int totalEntries = 4096;
+        Random r = new Random(System.nanoTime());
+        int max = 4096;
+        for (int i = 0; i < totalEntries; i++) {
+            String s = String.valueOf(r.nextInt(max));
+            fastSet.addSilent(s);
+            hashSet.add(s);
+        }
+
+        assert fastSet.size() == hashSet.size();
+
+        AtomicInteger counter = new AtomicInteger();
+
+        TestUtils.setOf(fastSet).stream().forEach(s -> {
+            counter.incrementAndGet();
+            assert hashSet.contains(s);
+        });
+
+        assert counter.get() == hashSet.size();
+    }
+
 }

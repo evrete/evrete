@@ -181,6 +181,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         return (T) properties.get(property);
     }
 
+    @SuppressWarnings("unused")
     @Override
     public final Collection<String> getPropertyNames() {
         return properties.keySet();
@@ -221,7 +222,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
             }
             // Create and store new instance
             int id = activeFields.length;
-            ActiveField af = new ActiveField(field, id);
+            ActiveField af = new ActiveFieldImpl(field, id);
             this.activeFields = Arrays.copyOf(this.activeFields, id + 1);
             this.activeFields[id] = af;
             listener.accept(af);

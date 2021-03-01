@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.function.BooleanSupplier;
 
 abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends AbstractWorkingMemory<S> {
-    private final RuntimeRules ruleStorage;
+    final RuntimeRules ruleStorage;
     private ActivationManager activationManager;
     private BooleanSupplier fireCriteria = () -> true;
 
@@ -97,11 +97,7 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
         deployRule(descriptor, true);
     }
 
-    public List<RuntimeRule> getRules() {
-        return ruleStorage.asList();
-    }
-
-    //@Override
+    @Override
     public void clear() {
         super.clear();
         for (RuntimeRuleImpl rule : ruleStorage) {
@@ -121,11 +117,6 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
         this.ruleStorage.removeListener(listener);
     }
 
-
-    public RuntimeRule getRule(String name) {
-        return Named.find(getRules(), name);
-    }
-
     public void close() {
         synchronized (this) {
             invalidateSession();
@@ -133,7 +124,6 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
             knowledge.close(this);
         }
     }
-
 
     @Override
     public ActivationManager getActivationManager() {
@@ -159,10 +149,10 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
     public void fire() {
         switch (getAgendaMode()) {
             case DEFAULT:
-                fireDefault(new ActivationContext(this));
+                fireDefault(new ActivationContext());
                 break;
             case CONTINUOUS:
-                fireContinuous(new ActivationContext(this));
+                fireContinuous(new ActivationContext());
                 break;
             default:
                 throw new IllegalStateException("Unknown mode " + getAgendaMode());

@@ -13,7 +13,7 @@ public class BetaEntryNode implements BetaMemoryNode<EntryNodeDescriptor> {
     BetaEntryNode(AbstractKnowledgeSession<?> runtime, EntryNodeDescriptor node) {
         this.descriptor = node;
         for (KeyMode mode : KeyMode.values()) {
-            ReIterator<ValueRow> it = runtime.getMemory().getBetaFactStorage(node.getFactType()).iterator(mode);
+            ReIterator<MemoryKey> it = runtime.getMemory().getBetaFactStorage(node.getFactType()).iterator(mode);
             KeysStore store = new KeysStoreDelegate(mode, it);
             stores.put(mode, store);
         }
@@ -46,10 +46,10 @@ public class BetaEntryNode implements BetaMemoryNode<EntryNodeDescriptor> {
         private final ReIterator<Entry> entryReIterator;
 
 
-        KeysStoreDelegate(KeyMode keyMode, ReIterator<ValueRow> storage) {
+        KeysStoreDelegate(KeyMode keyMode, ReIterator<MemoryKey> storage) {
             final DummyEntry entry = new DummyEntry();
             this.entryReIterator = new MappedReIterator<>(storage, row -> {
-                row.setTransient(keyMode.ordinal());
+                row.setMetaValue(keyMode.ordinal());
                 entry.arr[0] = row;
                 return entry;
             });
@@ -63,10 +63,10 @@ public class BetaEntryNode implements BetaMemoryNode<EntryNodeDescriptor> {
     }
 
     private static class DummyEntry implements KeysStore.Entry {
-        final ValueRow[] arr = new ValueRow[1];
+        final MemoryKey[] arr = new MemoryKey[1];
 
         @Override
-        public ValueRow[] key() {
+        public MemoryKey[] key() {
             return arr;
         }
 

@@ -17,14 +17,11 @@ import java.util.function.ToDoubleFunction;
  * (fact types and conditions they participate in) and alpha fact types,
  * not involved in any join conditions.
  */
-public abstract class AbstractLhsDescriptor {
-    private final int level;
+abstract class AbstractLhsDescriptor {
     private final FactType[] factTypes;
     private final RhsFactGroupDescriptor[] allFactGroups;
 
-    AbstractLhsDescriptor(AbstractRuntime<?> runtime, AbstractLhsDescriptor parent, AbstractLhsBuilder<?, ?> group, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
-        this.level = parent == null ? 0 : parent.level + 1;
-
+    AbstractLhsDescriptor(AbstractRuntime<?> runtime, AbstractLhsBuilder<?, ?> group, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
         Set<FactTypeBuilder> declaredTypes = group.getDeclaredFactTypes();
         AbstractLhsBuilder.Compiled compiledConditions = group.getCompiledData();
 
@@ -54,19 +51,17 @@ public abstract class AbstractLhsDescriptor {
         ConditionNodeDescriptor[] finalNodes = findBestAllocation(compiledConditions, typeMapping);
 
         List<RhsFactGroupDescriptor> allFactGroups = new ArrayList<>();
-        int factGroupCounter = 0;
 
         for (ConditionNodeDescriptor finalNode : finalNodes) {
-            RhsFactGroupDescriptor descriptor = new RhsFactGroupDescriptor(factGroupCounter, finalNode);
+            RhsFactGroupDescriptor descriptor = new RhsFactGroupDescriptor(finalNode);
             allFactGroups.add(descriptor);
-            factGroupCounter++;
             keyedFactTypes.removeAll(Arrays.asList(descriptor.getTypes()));
         }
 
         assert keyedFactTypes.isEmpty();
 
         if (!plainFactTypes.isEmpty()) {
-            allFactGroups.add(new RhsFactGroupDescriptor(factGroupCounter, plainFactTypes));
+            allFactGroups.add(new RhsFactGroupDescriptor(plainFactTypes));
         }
 
         this.allFactGroups = allFactGroups.toArray(RhsFactGroupDescriptor.ZERO_ARRAY);
