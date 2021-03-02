@@ -1,7 +1,7 @@
 package org.evrete.api;
 
 
-public interface MemoryKey {
+public interface MemoryKey extends FieldToValueHandle {
 
     ValueHandle get(int fieldIndex);
 
@@ -9,4 +9,8 @@ public interface MemoryKey {
 
     void setMetaValue(int i);
 
+    @Override
+    default ValueHandle apply(ActiveField activeField) {
+        return get(activeField.getValueIndex());
+    }
 }

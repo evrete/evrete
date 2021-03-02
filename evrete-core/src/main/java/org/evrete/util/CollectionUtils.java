@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 
 public final class CollectionUtils {
 
+    //TODO !!! review usage
     public static <T> boolean deleteFrom(Collection<T> collection, Predicate<T> predicate) {
         LinkedList<T> selected = new LinkedList<>();
         for (T obj : collection) {

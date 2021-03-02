@@ -19,6 +19,7 @@ public class RuleHotDeploymentTask extends Completer {
     @Override
     protected void execute() {
         // Terminal nodes for each beta graph should be evaluated
+        //TODO !!! why creating a new List ????
         List<NodeDeltaTask> deltaTasks = new LinkedList<>();
         for (BetaEndNode endNode : rule.getEndNodes()) {
             NodeDeltaTask dt = new NodeDeltaTask(this, endNode, false);

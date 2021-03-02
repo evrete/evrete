@@ -1,4 +1,4 @@
-package org.evrete.api.spi;
+package org.evrete.api;
 
 public interface InnerFactMemory {
 

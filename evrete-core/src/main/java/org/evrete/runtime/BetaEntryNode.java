@@ -13,7 +13,7 @@ public class BetaEntryNode implements BetaMemoryNode<EntryNodeDescriptor> {
     BetaEntryNode(AbstractKnowledgeSession<?> runtime, EntryNodeDescriptor node) {
         this.descriptor = node;
         for (KeyMode mode : KeyMode.values()) {
-            ReIterator<MemoryKey> it = runtime.getMemory().getBetaFactStorage(node.getFactType()).iterator(mode);
+            ReIterator<MemoryKey> it = runtime.getMemory().getBetaFactStorage(node.getFactType()).keys(mode);
             KeysStore store = new KeysStoreDelegate(mode, it);
             stores.put(mode, store);
         }

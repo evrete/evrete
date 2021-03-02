@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @Fork(value = 1, warmups = 1)
 @SuppressWarnings({"MethodMayBeStatic", "unused"})
-public class Collections {
+public class HashCollections {
     private static final AtomicLong counter = new AtomicLong();
 
     @Benchmark
@@ -57,7 +57,7 @@ public class Collections {
     }
 
     public enum SetImplementation {
-        FastSet,
+        LinearHash,
         HashSet
     }
 
@@ -74,9 +74,9 @@ public class Collections {
 
         public BenchState() {
             scanData.put(SetImplementation.HashSet, TestUtils.setOf(new HashSet<>(initialSize)));
-            scanData.put(SetImplementation.FastSet, TestUtils.setOf(new LinearHashSet<>(initialSize)));
+            scanData.put(SetImplementation.LinearHash, TestUtils.setOf(new LinearHashSet<>(initialSize)));
             addData.put(SetImplementation.HashSet, TestUtils.setOf(new HashSet<>(initialSize)));
-            addData.put(SetImplementation.FastSet, TestUtils.setOf(new LinearHashSet<>(initialSize)));
+            addData.put(SetImplementation.LinearHash, TestUtils.setOf(new LinearHashSet<>(initialSize)));
         }
 
         @Setup(Level.Iteration)

@@ -34,15 +34,6 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
         return result;
     }
 
-    private static void cmd(BetaConditionNode node) {
-        node.commitDelta1();
-        for (BetaMemoryNode<?> source : node.getSources()) {
-            if (source instanceof BetaConditionNode) {
-                cmd((BetaConditionNode) source);
-            }
-        }
-    }
-
     @Override
     public ReIterator<MemoryKey[]> keyIterator(boolean delta) {
         return delta ?
@@ -52,10 +43,10 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
     }
 
     @Override
-    public ReIterator<FactHandleVersioned> factIterator(FactType type, MemoryKey row) {
-        KeyMode mode = KeyMode.values()[row.getMetaValue()];
+    public ReIterator<FactHandleVersioned> factIterator(FactType type, MemoryKey key) {
+        KeyMode mode = KeyMode.values()[key.getMetaValue()];
         SessionMemory memory = getRuntime().memory;
-        return memory.get(type.getType()).get(type.getFields()).get(type.getAlphaMask()).iterator(mode, row);
+        return memory.get(type.getType()).get(type.getFields()).get(type.getAlphaMask()).values(mode, key);
     }
 
     @Override
@@ -76,6 +67,6 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
     @Override
     //TODO !!!! bad interfaces/abstract methods
     public void commitDelta() {
-        cmd(this);
+        forEachConditionNode(AbstractBetaConditionNode::commitDelta1);
     }
 }

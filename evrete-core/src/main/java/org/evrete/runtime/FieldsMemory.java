@@ -1,8 +1,8 @@
 package org.evrete.runtime;
 
 import org.evrete.api.FactHandleVersioned;
+import org.evrete.api.InnerFactMemory;
 import org.evrete.api.SharedBetaFactStorage;
-import org.evrete.api.spi.InnerFactMemory;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 

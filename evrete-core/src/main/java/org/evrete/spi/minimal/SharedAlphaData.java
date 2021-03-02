@@ -1,9 +1,8 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
-import org.evrete.collections.CollectionReIterator;
+import org.evrete.collections.LinkedData;
 
-import java.util.LinkedList;
 import java.util.NoSuchElementException;
 
 class SharedAlphaData implements SharedBetaFactStorage {
@@ -30,13 +29,13 @@ class SharedAlphaData implements SharedBetaFactStorage {
     }
 
     @Override
-    public ReIterator<MemoryKey> iterator(KeyMode mode) {
+    public ReIterator<MemoryKey> keys(KeyMode mode) {
         return this.keyIterators[mode.ordinal()];
     }
 
     @Override
-    public ReIterator<FactHandleVersioned> iterator(KeyMode mode, MemoryKey row) {
-        return new CollectionReIterator<>(get(mode));
+    public ReIterator<FactHandleVersioned> values(KeyMode mode, FieldToValueHandle key) {
+        return get(mode).iterator();
     }
 
     @Override
@@ -49,13 +48,11 @@ class SharedAlphaData implements SharedBetaFactStorage {
     @Override
     public void commitChanges() {
         DataWrapper delta = get(KeyMode.KNOWN_UNKNOWN);
-        get(KeyMode.MAIN).addAll(delta);
-        delta.clear();
+        get(KeyMode.MAIN).consume(delta);
     }
 
-    private static class DataWrapper extends LinkedList<FactHandleVersioned> {
+    private static class DataWrapper extends LinkedData<FactHandleVersioned> {
 
-        private static final long serialVersionUID = -2837913574833795126L;
     }
 
     private static class KeyIterator implements ReIterator<MemoryKey> {

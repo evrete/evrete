@@ -56,7 +56,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
     @Override
     public ReIterator<FactHandleVersioned> factIterator(FactType type, MemoryKey row) {
         KeyMode mode = KeyMode.values()[row.getMetaValue()];
-        return memory.get(type.getType()).get(type.getFields()).get(type.getAlphaMask()).iterator(mode, row);
+        return memory.get(type.getType()).get(type.getFields()).get(type.getAlphaMask()).values(mode, row);
     }
 
     @Override

@@ -5,15 +5,15 @@ import org.evrete.api.KeyMode;
 import org.evrete.api.MemoryKey;
 import org.evrete.api.ReIterator;
 import org.evrete.collections.CollectionReIterator;
+import org.evrete.collections.LinkedData;
 import org.evrete.collections.MappedReIterator;
-import org.evrete.util.MapOfList;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 class FieldsFactMap {
-    private final MapOfList<ValueRowImpl, FactHandleVersioned> data = new MapOfList<>();
+    //TODO !!! replace implementation
+    private final Map<ValueRowImpl, DataWrapper> data = new HashMap<>();
     private final int myModeOrdinal;
 
     FieldsFactMap(KeyMode myMode) {
@@ -25,13 +25,18 @@ class FieldsFactMap {
     }
 
     void addAll(FieldsFactMap other) {
-        for (Map.Entry<ValueRowImpl, List<FactHandleVersioned>> entry : other.data.entrySet()) {
+        for (Map.Entry<ValueRowImpl, DataWrapper> entry : other.data.entrySet()) {
             ValueRowImpl key = entry.getKey();
             key.setMetaValue(myModeOrdinal);
+
+            this.data.computeIfAbsent(key, k -> new DataWrapper()).consume(entry.getValue());
+
+/*
             Collection<FactHandleVersioned> col = entry.getValue();
             for (FactHandleVersioned v : col) {
                 this.data.add(key, v);
             }
+*/
         }
     }
 
@@ -41,20 +46,21 @@ class FieldsFactMap {
     }
 
     ReIterator<FactHandleVersioned> values(ValueRowImpl row) {
-        Collection<FactHandleVersioned> col = get(row);
-        return col == null ? ReIterator.emptyIterator() : new CollectionReIterator<>(col);
+        // TODO !!!! analyze usage, return null and call remove() on the corresponding key iterator
+        DataWrapper col = get(row);
+        return col == null ? ReIterator.emptyIterator() : col.iterator();
     }
 
     public void add(ValueRowImpl valueRow, FactHandleVersioned factHandleVersioned) {
-        data.add(valueRow, factHandleVersioned);
+        this.data.computeIfAbsent(valueRow, k -> new DataWrapper()).add(factHandleVersioned);
     }
 
-    Collection<FactHandleVersioned> get(ValueRowImpl key) {
+    DataWrapper get(ValueRowImpl key) {
 
-        List<FactHandleVersioned> col = data.get(key);
+        DataWrapper col = data.get(key);
         if (col == null) {
             return null;
-        } else if (col.isEmpty()) {
+        } else if (col.size() == 0) {
             data.remove(key);
             return null;
         } else {
@@ -66,4 +72,9 @@ class FieldsFactMap {
     public String toString() {
         return data.toString();
     }
+
+    static class DataWrapper extends LinkedData<FactHandleVersioned> {
+
+    }
+
 }

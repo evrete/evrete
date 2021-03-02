@@ -131,6 +131,7 @@ public final class TypeMemory extends MemoryComponent {
     final void onNewActiveField(ActiveField newField) {
         List<FactStorage.Entry<FactRecord>> data = new LinkedList<>();
 
+        //TODO !!! why creating a new list???
         ReIterator<FactStorage.Entry<FactRecord>> allFacts = factStorage.iterator();
         while (allFacts.hasNext()) {
             data.add(allFacts.next());

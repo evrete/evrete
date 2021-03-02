@@ -16,6 +16,7 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode<Condit
     private final BetaConditionNode[] conditionSources;
     private final RuntimeRuleImpl rule;
     private final EnumMap<KeyMode, KeysStore> stores = new EnumMap<>(KeyMode.class);
+    private boolean mergeToMain = true;
 
     AbstractBetaConditionNode(RuntimeRuleImpl rule, ConditionNodeDescriptor descriptor, BetaMemoryNode<?>[] sources) {
         this.sources = sources;
@@ -45,6 +46,39 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode<Condit
             }
         }
     }
+
+    private static void resetTransientFlag(FactType[][] grouping, ReIterator<KeysStore.Entry> it, int groupIndex) {
+        boolean hasNext = groupIndex < grouping.length - 1;
+        while (it.hasNext()) {
+            KeysStore.Entry key = it.next();
+            MemoryKey[] rows = key.key();
+            for (MemoryKey row : rows) {
+                row.setMetaValue(KeyMode.MAIN.ordinal());
+            }
+            if (hasNext) {
+                resetTransientFlag(grouping, key.getNext().entries(), groupIndex + 1);
+            }
+        }
+    }
+
+    void commitDelta1() {
+        KeysStore delta1 = getStore(KeyMode.UNKNOWN_UNKNOWN);
+        KeysStore delta2 = getStore(KeyMode.KNOWN_UNKNOWN);
+        if (mergeToMain) {
+            KeysStore main = getStore(KeyMode.MAIN);
+            FactType[][] grouping = getGrouping();
+            ReIterator<KeysStore.Entry> it = delta1.entries();
+            resetTransientFlag(grouping, it, 0);
+            main.append(delta1);
+        }
+        delta1.clear();
+        delta2.clear();
+    }
+
+    void setMergeToMain(boolean mergeToMain) {
+        this.mergeToMain = mergeToMain;
+    }
+
 
     @Override
     public KeysStore getStore(KeyMode mode) {

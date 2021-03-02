@@ -1,11 +1,9 @@
 package org.evrete.api;
 
-import org.evrete.api.spi.InnerFactMemory;
-
 public interface SharedBetaFactStorage extends InnerFactMemory {
-    ReIterator<MemoryKey> iterator(KeyMode keyMode);
+    ReIterator<MemoryKey> keys(KeyMode keyMode);
 
-    ReIterator<FactHandleVersioned> iterator(KeyMode mode, MemoryKey row);
+    ReIterator<FactHandleVersioned> values(KeyMode mode, FieldToValueHandle key);
 
     void insert(FieldToValueHandle key, FactHandleVersioned value);
 }
