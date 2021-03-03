@@ -12,6 +12,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 @SuppressWarnings("AssertWithSideEffects")
 class FastHashSetTest {
 
+    private static final int DEFAULT_MIN_CAPACITY = 4;
+
     private static void fill(Collection<String> data, IterableSet<String> fastSet, IterableSet<String> hashSet) {
         for (String s : data) {
             boolean b1 = fastSet.add(s);
@@ -118,7 +120,7 @@ class FastHashSetTest {
 
     @Test
     void remove1() {
-        LinearHashSet<String> set = new LinearHashSet<>();
+        LinearHashSet<String> set = new LinearHashSet<>(DEFAULT_MIN_CAPACITY);
 
         assert set.addVerbose("a");
         assert set.size() == 1;
@@ -199,7 +201,7 @@ class FastHashSetTest {
 
     @Test
     void iterator1() {
-        LinearHashSet<String> fastSet = new LinearHashSet<>();
+        LinearHashSet<String> fastSet = new LinearHashSet<>(DEFAULT_MIN_CAPACITY);
         HashSet<String> hashSet = new HashSet<>();
 
 
@@ -244,7 +246,7 @@ class FastHashSetTest {
 
     @Test
     void iterator2() {
-        LinearHashSet<Integer> fastSet = new LinearHashSet<>();
+        LinearHashSet<Integer> fastSet = new LinearHashSet<>(DEFAULT_MIN_CAPACITY);
 
         for (int i = 0; i < 100; i++) {
             fastSet.addSilent(i);
@@ -265,7 +267,7 @@ class FastHashSetTest {
 
     @Test
     void stream1() {
-        LinearHashSet<String> fastSet = new LinearHashSet<>();
+        LinearHashSet<String> fastSet = new LinearHashSet<>(DEFAULT_MIN_CAPACITY);
         HashSet<String> hashSet = new HashSet<>();
 
         // Fill first

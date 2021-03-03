@@ -11,7 +11,9 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
     private static final Logger LOGGER = Logger.getLogger(AbstractWorkingMemory.class.getName());
     final KnowledgeRuntime knowledge;
     final SessionMemory memory;
-    final MemoryActionBuffer buffer = new MemoryActionBuffer();
+
+    //TODO !!!! set in configuration
+    final MemoryActionBuffer buffer = new MemoryActionBuffer(4096);
     private final MemoryFactory memoryFactory;
     private boolean active = true;
 

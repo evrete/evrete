@@ -12,9 +12,13 @@ import java.util.logging.Logger;
 class MemoryActionBuffer {
     private static final Logger LOGGER = Logger.getLogger(MemoryActionBuffer.class.getName());
     private static final BiPredicate<AtomicMemoryAction, FactHandle> SEARCH_FUNCTION = (existing, factHandle) -> existing.handle.equals(factHandle);
-    private final LinearHashSet<AtomicMemoryAction> queue = new LinearHashSet<>();
+    private final LinearHashSet<AtomicMemoryAction> queue;
     private final int[] actionCounts = new int[Action.values().length];
     private int totalActions = 0;
+
+    MemoryActionBuffer(int minCapacity) {
+        this.queue = new LinearHashSet<>(minCapacity);
+    }
 
     synchronized void add(Action action, FactHandle factHandle, LazyInsertState factRecord) {
         queue.resize();

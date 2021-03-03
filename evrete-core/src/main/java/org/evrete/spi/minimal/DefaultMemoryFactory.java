@@ -6,15 +6,17 @@ import java.util.function.BiPredicate;
 
 class DefaultMemoryFactory implements MemoryFactory {
     private final DefaultValueResolver valueResolver = new DefaultValueResolver();
+    private static final int MIN_KEYS_STORE_CAPACITY = 8;
+    private static final int MIN_FACT_STORAGE_CAPACITY = 1024;
 
     private static KeysStore factory(int[] arraySizes, int level) {
         int depth = arraySizes.length;
         int arrSize = arraySizes[level];
         assert arrSize > 0;
         if (level == depth - 1) {
-            return new KeysStorePlain(level, arrSize);
+            return new KeysStorePlain(MIN_KEYS_STORE_CAPACITY, level, arrSize);
         } else {
-            return new KeysStoreMap(level, arrSize, () -> factory(arraySizes, level + 1));
+            return new KeysStoreMap(MIN_KEYS_STORE_CAPACITY, level, arrSize, () -> factory(arraySizes, level + 1));
         }
     }
 
@@ -25,7 +27,7 @@ class DefaultMemoryFactory implements MemoryFactory {
 
     @Override
     public <Z> FactStorage<Z> newFactStorage(Type<?> type, Class<Z> storageClass, BiPredicate<Z, Z> identityFunction) {
-        return new DefaultFactStorage<>(type, identityFunction);
+        return new DefaultFactStorage<>(type, identityFunction, MIN_FACT_STORAGE_CAPACITY);
     }
 
     @Override

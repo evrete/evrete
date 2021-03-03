@@ -6,14 +6,8 @@ import java.util.function.Predicate;
 
 public abstract class AbstractLinearHashSet<K> extends AbstractLinearHash<K> {
 
-    private static final int DEFAULT_INITIAL_SIZE = 16;
-
-    AbstractLinearHashSet(int initialCapacity) {
-        super(initialCapacity);
-    }
-
-    AbstractLinearHashSet() {
-        this(DEFAULT_INITIAL_SIZE);
+    AbstractLinearHashSet(int minimumCapacity) {
+        super(minimumCapacity);
     }
 
     public final boolean contains(K element) {

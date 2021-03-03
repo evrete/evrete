@@ -11,8 +11,8 @@ import java.util.function.Supplier;
 class KeysStoreMap extends AbstractKeysStore<KeysStoreMap.MapEntry> {
     private final Supplier<KeysStore> storeSupplier;
 
-    KeysStoreMap(int level, int arrSize, Supplier<KeysStore> storeSupplier) {
-        super(level, arrSize);
+    KeysStoreMap(int minCapacity, int level, int arrSize, Supplier<KeysStore> storeSupplier) {
+        super(minCapacity, level, arrSize);
         this.storeSupplier = storeSupplier;
     }
 

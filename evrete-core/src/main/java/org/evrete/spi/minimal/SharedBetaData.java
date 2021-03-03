@@ -11,7 +11,8 @@ class SharedBetaData implements SharedBetaFactStorage {
     SharedBetaData(ActiveField[] fields) {
         this.fields = fields;
         for (KeyMode mode : KeyMode.values()) {
-            this.maps[mode.ordinal()] = new FieldsFactMap(mode);
+            //TODO !!!! set in configuration
+            this.maps[mode.ordinal()] = new FieldsFactMap(mode, 4096);
         }
     }
 

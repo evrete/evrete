@@ -10,8 +10,8 @@ import java.util.function.IntFunction;
 
 class KeysStorePlain extends AbstractKeysStore<KeysStorePlain.MapEntry> {
 
-    KeysStorePlain(int level, int arrSize) {
-        super(level, arrSize);
+    KeysStorePlain(int minCapacity, int level, int arrSize) {
+        super(minCapacity, level, arrSize);
     }
 
     @Override

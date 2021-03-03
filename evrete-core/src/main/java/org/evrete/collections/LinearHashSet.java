@@ -5,12 +5,8 @@ import java.util.function.ToIntFunction;
 
 public class LinearHashSet<K> extends AbstractLinearHashSet<K> {
 
-    public LinearHashSet(int initialCapacity) {
-        super(initialCapacity);
-    }
-
-    public LinearHashSet() {
-        super();
+    public LinearHashSet(int minimalCapacity) {
+        super(minimalCapacity);
     }
 
     @Override

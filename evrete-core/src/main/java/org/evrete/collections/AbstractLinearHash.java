@@ -5,9 +5,11 @@ import org.evrete.api.ReIterator;
 import org.evrete.util.CollectionUtils;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.StringJoiner;
 import java.util.function.*;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -18,27 +20,39 @@ import java.util.stream.Stream;
  * @param <E> Entry type
  */
 //TODO !!! implement minimal size
-public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements ReIterable<E> {
+public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     static final ToIntFunction<Object> DEFAULT_HASH = Object::hashCode;
     static final BiPredicate<Object, Object> DEFAULT_EQUALS = Object::equals;
-    private static final int DEFAULT_INITIAL_CAPACITY = 4;
     private static final int MAXIMUM_CAPACITY = 1 << 30;
     private static final int MINIMUM_CAPACITY = 2;
     int size = 0;
     private Object[] data;
     private boolean[] deletedIndices;
     private int deletes = 0;
+    private static final int NULL_VALUE = -1;
+    private final int minCapacity;
+    int currentInsertIndex;
+    private int[] unsignedIndices;
 
-    AbstractLinearHash(int initialCapacity) {
-        super(initialCapacity);
-        int capacity = tableSizeFor(initialCapacity);
+
+    protected AbstractLinearHash(int minCapacity) {
+        //super(tableSizeFor(minCapacity));
+        int capacity = tableSizeFor(minCapacity);
+
+        this.unsignedIndices = new int[capacity];
+        CollectionUtils.systemFill(this.unsignedIndices, NULL_VALUE);
+        this.currentInsertIndex = 0;
+
+        this.minCapacity = minCapacity;
         this.data = new Object[capacity];
         this.deletedIndices = new boolean[capacity];
     }
 
+/*
     protected AbstractLinearHash() {
         this(DEFAULT_INITIAL_CAPACITY);
     }
+*/
 
     private static int findBinIndexFor(Object key, int hash, Object[] destination, BiPredicate<Object, Object> eqTest) {
         int mask = destination.length - 1;
@@ -84,7 +98,9 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
     private static int tableSizeFor(int capacity) {
         int cap = Math.max(capacity, MINIMUM_CAPACITY);
         int n = -1 >>> Integer.numberOfLeadingZeros(cap - 1);
-        return (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
+        int ret = (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
+        assert ret >= capacity;
+        return ret;
     }
 
     @SuppressWarnings("unchecked")
@@ -168,6 +184,37 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         return (E) old;
     }
 
+    private static int optimalArrayLen(int dataSize) {
+        switch (dataSize) {
+            case 0:
+            case 1:
+                return 2;
+            case 2:
+                return 3;
+            case 3:
+                return 5;
+            default:
+                return (dataSize + 1) * 3 / 2;
+        }
+    }
+
+    void addNew(int value) {
+        //if (currentInsertIndex == unsignedIndices.length - 1) {
+        //    expand();
+        // }
+        unsignedIndices[currentInsertIndex++] = value;
+    }
+
+    int getAt(int pos) {
+        return unsignedIndices[pos];
+    }
+
+    private void expand() {
+        int newLen = optimalArrayLen(this.unsignedIndices.length);
+        this.unsignedIndices = Arrays.copyOf(this.unsignedIndices, newLen);
+        CollectionUtils.systemFill(unsignedIndices, currentInsertIndex, newLen, NULL_VALUE);
+    }
+
     protected abstract ToIntFunction<Object> getHashFunction();
 
     protected abstract BiPredicate<Object, Object> getEqualsPredicate();
@@ -193,9 +240,8 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
     }
 
     public void forEachDataEntry(Consumer<E> consumer) {
-        int i;
         E obj;
-        for (i = 0; i < currentInsertIndex; i++) {
+        for (int i = 0; i < currentInsertIndex; i++) {
             if ((obj = get(getAt(i))) != null) {
                 consumer.accept(obj);
             }
@@ -229,11 +275,15 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
     }
 
     public void clear() {
-        super.clear();
+        clearTmp();
         CollectionUtils.systemFill(this.data, null);
         CollectionUtils.systemFill(this.deletedIndices, false);
         this.size = 0;
         this.deletes = 0;
+    }
+
+    void clearTmp() {
+        this.currentInsertIndex = 0;
     }
 
     boolean containsEntry(E e) {
@@ -276,22 +326,88 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         return intStream().filter(i -> !deletedIndices[i]).mapToObj(value -> (E) data[value]);
     }
 
+    int currentInsertIndex() {
+        return currentInsertIndex;
+    }
 
     public void resize() {
         assert currentInsertIndex() == this.size + this.deletes : "indices: " + currentInsertIndex() + " size: " + this.size + ", deletes: " + this.deletes;
         resize(this.size);
     }
 
+    IntStream intStream() {
+        return Arrays.stream(unsignedIndices, 0, currentInsertIndex);
+    }
+
+    void copyFrom(AbstractLinearHash other) {
+        this.unsignedIndices = other.unsignedIndices;
+        this.currentInsertIndex = other.currentInsertIndex;
+    }
+
     public void resize(int targetSize) {
+        if (targetSize < 0) throw new IllegalArgumentException();
         boolean expand = 2 * (targetSize + deletes) >= data.length;
         boolean shrink = deletes > 0 && targetSize < deletes;
-        if (expand || shrink) {
-            int newSize = tableSizeFor(Math.max(MINIMUM_CAPACITY, targetSize * 2 + 1));
+        if (expand) {
+            int newSize = tableSizeFor(Math.max(minCapacity, targetSize * 2 + 1));
             if (newSize > MAXIMUM_CAPACITY) throw new OutOfMemoryError();
 
             Object[] newData = (Object[]) Array.newInstance(data.getClass().getComponentType(), newSize);
-            UnsignedIntArray newIndices = new UnsignedIntArray(newSize);
+            int[] newUnsignedIndices = new int[newSize];
+            int newCurrentInsertIndex = 0;
 
+            ToIntFunction<Object> hashFunction = getHashFunction();
+            E obj;
+            for (int i = 0; i < currentInsertIndex; i++) {
+                if ((obj = get(getAt(i))) != null) {
+                    int addr = findEmptyBinIndex(hashFunction.applyAsInt(obj), newData);
+                    newData[addr] = obj;
+                    newUnsignedIndices[newCurrentInsertIndex++] = addr;
+                    //consumer.accept(obj);
+                }
+            }
+
+            //if (targetSize > 0) {
+/*
+                forEachDataEntry(e -> {
+                    int addr = findEmptyBinIndex(hashFunction.applyAsInt(e), newData);
+                    newData[addr] = e;
+                    newIndices.addNew(addr);
+                });
+*/
+            //}
+
+            this.data = newData;
+            //this.copyFrom(newIndices);
+            this.deletes = 0;
+            this.deletedIndices = new boolean[newSize];
+            this.currentInsertIndex = newCurrentInsertIndex;
+            this.unsignedIndices = newUnsignedIndices;
+            return;
+        }
+
+        if (shrink) {
+            int newSize = tableSizeFor(Math.max(minCapacity, targetSize * 2 + 1));
+            if (newSize <= minCapacity) return;
+            if (newSize > MAXIMUM_CAPACITY) throw new OutOfMemoryError();
+
+            Object[] newData = (Object[]) Array.newInstance(data.getClass().getComponentType(), newSize);
+            //UnsignedIntArray newIndices = new UnsignedIntArray(newSize);
+            int[] newUnsignedIndices = new int[newSize];
+            int newCurrentInsertIndex = 0;
+
+            ToIntFunction<Object> hashFunction = getHashFunction();
+            E obj;
+            for (int i = 0; i < currentInsertIndex; i++) {
+                if ((obj = get(getAt(i))) != null) {
+                    int addr = findEmptyBinIndex(hashFunction.applyAsInt(obj), newData);
+                    newData[addr] = obj;
+                    newUnsignedIndices[newCurrentInsertIndex++] = addr;
+                    //consumer.accept(obj);
+                }
+            }
+
+/*
             if (targetSize > 0) {
                 ToIntFunction<Object> hashFunction = getHashFunction();
                 forEachDataEntry(e -> {
@@ -300,11 +416,14 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
                     newIndices.addNew(addr);
                 });
             }
+*/
 
             this.data = newData;
-            this.copyFrom(newIndices);
             this.deletes = 0;
             this.deletedIndices = new boolean[newSize];
+            this.currentInsertIndex = newCurrentInsertIndex;
+            this.unsignedIndices = newUnsignedIndices;
+
         }
 
     }

@@ -16,8 +16,8 @@ class DefaultFactStorage<T> implements FactStorage<T> {
     private final TupleCollection<T> collection;
     private final Function<Tuple<T>, FactStorage.Entry<T>> ITERATOR_MAPPER = t -> t;
 
-    DefaultFactStorage(Type<?> type, BiPredicate<T, T> identityFunction) {
-        this.collection = new TupleCollection<>(type, identityFunction);
+    DefaultFactStorage(Type<?> type, BiPredicate<T, T> identityFunction, int minCapacity) {
+        this.collection = new TupleCollection<>(minCapacity, type, identityFunction);
     }
 
     @Override
@@ -82,7 +82,8 @@ class DefaultFactStorage<T> implements FactStorage<T> {
 
         private final Type<?> type;
 
-        TupleCollection(Type<?> type, BiPredicate<T, T> identityFunction) {
+        TupleCollection(int minCapacity, Type<?> type, BiPredicate<T, T> identityFunction) {
+            super(minCapacity);
             this.identityFunction = identityFunction;
             this.type = type;
         }

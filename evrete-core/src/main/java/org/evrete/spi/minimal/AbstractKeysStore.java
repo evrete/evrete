@@ -22,7 +22,8 @@ abstract class AbstractKeysStore<E extends KeysStoreEntry> extends AbstractLinea
     final int arrSize;
     final int level;
 
-    AbstractKeysStore(int level, int arrSize) {
+    AbstractKeysStore(int minCapacity, int level, int arrSize) {
+        super(minCapacity);
         this.level = level;
         this.arrSize = arrSize;
     }

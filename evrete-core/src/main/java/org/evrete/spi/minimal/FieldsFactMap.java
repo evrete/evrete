@@ -13,10 +13,11 @@ class FieldsFactMap {
     private static final BiPredicate<MapEntry, MemoryKeyImpl> SEARCH_PREDICATE = (entry, memoryKey) -> entry.key.equals(memoryKey);
     private final int myModeOrdinal;
     private static final Function<MapEntry, MemoryKey> ENTRY_MAPPER = entry -> entry.key;
-    private final LinearHashSet<MapEntry> data = new LinearHashSet<>();
+    private final LinearHashSet<MapEntry> data;
 
-    FieldsFactMap(KeyMode myMode) {
+    FieldsFactMap(KeyMode myMode, int minCapacity) {
         this.myModeOrdinal = myMode.ordinal();
+        this.data = new LinearHashSet<>(minCapacity);
     }
 
     public void clear() {
