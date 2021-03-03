@@ -5,7 +5,6 @@ import org.evrete.util.CollectionUtils;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.function.IntConsumer;
-import java.util.function.IntPredicate;
 import java.util.stream.IntStream;
 
 class UnsignedIntArray {
@@ -73,21 +72,6 @@ class UnsignedIntArray {
         return Arrays.stream(unsignedIndices, 0, currentInsertIndex);
     }
 
-    public boolean delete(IntPredicate predicate) {
-        if (currentInsertIndex == 0) return false;
-        ArrayBulkCleanupData rs = new ArrayBulkCleanupData(currentInsertIndex);
-
-        int deletedEntries = rs.clean(unsignedIndices, predicate);
-        if (deletedEntries > 0) {
-            CollectionUtils.systemFill(unsignedIndices, currentInsertIndex - deletedEntries, currentInsertIndex, -1);
-            currentInsertIndex -= deletedEntries;
-            shrink();
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     private void expand() {
         int newLen = optimalArrayLen(this.unsignedIndices.length);
         this.unsignedIndices = Arrays.copyOf(this.unsignedIndices, newLen);
@@ -100,12 +84,4 @@ class UnsignedIntArray {
                 ", currentIndex=" + currentInsertIndex +
                 '}';
     }
-
-    private void shrink() {
-        int optimal = optimalArrayLen(currentInsertIndex);
-        if (currentInsertIndex < optimal) {
-            this.unsignedIndices = Arrays.copyOf(this.unsignedIndices, optimal);
-        }
-    }
-
 }

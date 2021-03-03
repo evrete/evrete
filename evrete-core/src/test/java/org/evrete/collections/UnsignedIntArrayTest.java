@@ -1,10 +1,7 @@
 package org.evrete.collections;
 
-import org.evrete.util.CollectionUtils;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class UnsignedIntArrayTest {
@@ -43,6 +40,7 @@ class UnsignedIntArrayTest {
         assert counter.get() == arr.currentInsertIndex();
     }
 
+/*
     @Test
     void delete1() {
         UnsignedIntArray arr1 = new UnsignedIntArray(10);
@@ -76,4 +74,5 @@ class UnsignedIntArrayTest {
         assert arr1.currentInsertIndex() == 0;
         assert arr1.dataSize() < 10;
     }
+*/
 }

@@ -44,10 +44,11 @@ class FieldsFactMap {
         return data.iterator(ENTRY_MAPPER);
     }
 
-    ReIterator<FactHandleVersioned> values(MemoryKeyImpl row) {
+    ReIterator<FactHandleVersioned> values(MemoryKeyImpl key) {
         // TODO !!!! analyze usage, return null and call remove() on the corresponding key iterator
-        LinkedFactHandles col = get(row);
-        return col == null ? ReIterator.emptyIterator() : col.iterator();
+        int addr = addr(key);
+        MapEntry entry = data.get(addr);
+        return entry == null ? ReIterator.emptyIterator() : entry.facts.iterator();
     }
 
     public void add(MemoryKeyImpl key, FactHandleVersioned factHandleVersioned) {
@@ -64,7 +65,7 @@ class FieldsFactMap {
         entry.facts.add(factHandleVersioned);
     }
 
-    LinkedFactHandles get(MemoryKeyImpl key) {
+    private LinkedFactHandles get1(MemoryKeyImpl key) {
         int addr = addr(key);
         MapEntry entry = data.get(addr);
         return entry == null ? null : entry.facts;
