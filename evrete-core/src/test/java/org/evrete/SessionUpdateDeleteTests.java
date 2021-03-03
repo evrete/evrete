@@ -166,16 +166,18 @@ class SessionUpdateDeleteTests {
         Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
         assert allObjects.size() == 0;
 
-        final int size = 128;
-        Runnable multiActions = () -> {
+        final int size = 3;
+        int count = 3;
+
+        for (int k = 0; k < count; k++) {
             TypeA[] instancesA = new TypeA[size];
             TypeB[] instancesB = new TypeB[size];
             FactHandle[] handlesB = new FactHandle[size];
 
             for (int i = 0; i < size; i++) {
-                TypeA a = new TypeA("A" + i);
+                TypeA a = new TypeA("A" + i + "/" + k);
                 a.setAllNumeric(i);
-                TypeB b = new TypeB("B" + i);
+                TypeB b = new TypeB("B" + i + "/" + k);
                 b.setAllNumeric(-1);
                 instancesA[i] = a;
                 s.insert(a);
@@ -196,7 +198,7 @@ class SessionUpdateDeleteTests {
 
             // Updating a single instance of B to match the condition
             TypeB single = instancesB[0];
-            single.setAllNumeric(5); // Matches TypeA.i = 5
+            single.setAllNumeric(0); // Matches TypeA.i = 0
             s.update(handlesB[0], single);
             for (int i = 0; i < instancesB.length; i++) {
                 TypeB b = instancesB[i];
@@ -209,7 +211,7 @@ class SessionUpdateDeleteTests {
             // Assert execution && memory state
             rhsAssert
                     .assertCount(1)
-                    .assertContains("$a", instancesA[5])
+                    .assertContains("$a", instancesA[0])
                     .assertContains("$b", single)
                     .reset();
             facts = TestUtils.sessionFacts(s);
@@ -222,13 +224,7 @@ class SessionUpdateDeleteTests {
             s.fire();
             facts = TestUtils.sessionFacts(s);
             assert facts.size() == 0;
-
-        };
-
-
-        multiActions.run();
-        multiActions.run();
-        multiActions.run();
+        }
     }
 
     @ParameterizedTest
@@ -253,8 +249,8 @@ class SessionUpdateDeleteTests {
 
         int fireCount = 0;
 
-        int objectCount = 3;
-        while (fireCount < 10) {
+        int objectCount = 16;
+        while (fireCount++ < 10) {
             counter.set(0);
             for (int i = 0; i < objectCount; i++) {
                 TypeA a = new TypeA("A" + i);
@@ -313,8 +309,6 @@ class SessionUpdateDeleteTests {
 
             allObjects = TestUtils.sessionFacts(s);
             assert allObjects.size() == 0;
-
-            fireCount++;
         }
     }
 

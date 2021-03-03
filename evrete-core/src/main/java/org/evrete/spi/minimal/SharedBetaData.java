@@ -3,7 +3,6 @@ package org.evrete.spi.minimal;
 import org.evrete.api.*;
 
 import java.util.Objects;
-import java.util.StringJoiner;
 
 class SharedBetaData implements SharedBetaFactStorage {
     private final ActiveField[] fields;
@@ -18,12 +17,13 @@ class SharedBetaData implements SharedBetaFactStorage {
 
     @Override
     public ReIterator<MemoryKey> keys(KeyMode keyMode) {
-        return maps[keyMode.ordinal()].keys();
+        return get(keyMode).keys();
     }
 
     @Override
     public ReIterator<FactHandleVersioned> values(KeyMode mode, FieldToValueHandle key) {
-        return get(mode).values((ValueRowImpl) key);
+        MemoryKeyImpl k = (MemoryKeyImpl) key;
+        return get(mode).values(k);
     }
 
     @Override
@@ -44,15 +44,9 @@ class SharedBetaData implements SharedBetaFactStorage {
     @Override
     public void commitChanges() {
         FieldsFactMap main = get(KeyMode.MAIN);
-        FieldsFactMap delta1 = get(KeyMode.UNKNOWN_UNKNOWN);
-        FieldsFactMap delta2 = get(KeyMode.KNOWN_UNKNOWN);
-        main.addAll(delta1);
-        main.addAll(delta2);
-
-        delta1.clear();
-        delta2.clear();
+        main.merge(get(KeyMode.UNKNOWN_UNKNOWN));
+        main.merge(get(KeyMode.KNOWN_UNKNOWN));
     }
-
 
     @Override
     public void insert(FieldToValueHandle key, FactHandleVersioned value) {
@@ -62,32 +56,18 @@ class SharedBetaData implements SharedBetaFactStorage {
             ActiveField field = fields[i];
             data[i] = key.apply(field);
         }
-        ValueRowImpl row = new ValueRowImpl(data, hash);
+        MemoryKeyImpl memoryKey = new MemoryKeyImpl(data, hash);
 
-        //TODO !!!! replace with a hasNonEmptyKey call
-        FieldsFactMap.DataWrapper found = get(KeyMode.MAIN).get(row);
-        if (found != null) {
-            // Existing key, saving as such
-            get(KeyMode.KNOWN_UNKNOWN).add(row, value);
+        if (get(KeyMode.MAIN).hasKey(memoryKey)) {
+            // Existing key
+            get(KeyMode.KNOWN_UNKNOWN).add(memoryKey, value);
         } else {
-            get(KeyMode.UNKNOWN_UNKNOWN).add(row, value);
+            // New key
+            get(KeyMode.UNKNOWN_UNKNOWN).add(memoryKey, value);
         }
-
-
     }
 
     private FieldsFactMap get(KeyMode mode) {
         return maps[mode.ordinal()];
-    }
-
-    @Override
-    public String toString() {
-        StringJoiner s = new StringJoiner("\n");
-
-        for (KeyMode mode : KeyMode.values()) {
-            String m = mode + "\n\t" + get(mode);
-            s.add(m);
-        }
-        return "\n" + s.toString();
     }
 }

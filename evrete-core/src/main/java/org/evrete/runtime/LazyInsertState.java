@@ -10,13 +10,13 @@ class LazyInsertState {
     private final Object[] transientFieldValues;
     private final FieldToValue values;
 
-    public LazyInsertState(FactRecord record, Object[] transientFieldValues) {
+    LazyInsertState(FactRecord record, Object[] transientFieldValues) {
         this.record = record;
         this.transientFieldValues = transientFieldValues;
         this.values = activeField -> transientFieldValues[activeField.getValueIndex()];
     }
 
-    public LazyInsertState(ValueResolver valueResolver, FactRecord record) {
+    LazyInsertState(ValueResolver valueResolver, FactRecord record) {
         this.record = record;
         this.transientFieldValues = new Object[record.getFieldValues().length];
         final boolean[] fieldReadFlags = new boolean[record.getFieldValues().length];
@@ -40,5 +40,10 @@ class LazyInsertState {
             }
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return record.toString();
     }
 }

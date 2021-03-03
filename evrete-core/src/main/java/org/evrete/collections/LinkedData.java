@@ -4,18 +4,17 @@ import org.evrete.api.ReIterable;
 import org.evrete.api.ReIterator;
 
 import java.util.NoSuchElementException;
+import java.util.StringJoiner;
 
+//TODO make it fully thread-safe
 public class LinkedData<T> implements ReIterable<T> {
-    private long size;
+    private volatile long size;
     private Node<T> first;
     private Node<T> last;
 
     public LinkedData<T> add(T object) {
         Node<T> node;
         if (last == null) {
-            //TODO !!! remove assertions
-            assert first == null;
-            assert size == 0;
             // First entry
             node = new Node<>(object, null);
             this.first = node;
@@ -26,8 +25,22 @@ public class LinkedData<T> implements ReIterable<T> {
             node.prev = last;
         }
         this.last = node;
-        this.size++;
+        updateSize(1);
         return this;
+    }
+
+    private void updateSize(long delta) {
+        synchronized (this) {
+            this.size += delta;
+        }
+    }
+
+
+    @Override
+    public String toString() {
+        StringJoiner sj = new StringJoiner(",", "[", "]");
+        iterator().forEachRemaining(t -> sj.add(t == null ? "null" : t.toString()));
+        return sj.toString();
     }
 
     /**
@@ -44,8 +57,6 @@ public class LinkedData<T> implements ReIterable<T> {
         }
         if (this.last == null) {
             // This collection is empty
-            assert this.first == null;
-            assert this.size == 0 : "Actual: " + this.size;
             this.first = other.first();
             this.last = other.last();
             this.size = other.size;
@@ -54,7 +65,7 @@ public class LinkedData<T> implements ReIterable<T> {
             other.first.prev = this.last;
             this.last = other.last;
         }
-        this.size += other.size;
+        updateSize(other.size);
         other.clear();
     }
 
@@ -158,14 +169,15 @@ public class LinkedData<T> implements ReIterable<T> {
         @Override
         public void remove() {
             if (last == null) throw new IllegalStateException("Iterator: remove() without next()");
-            LinkedData.this.size--;
+            // TODO move this to the enclosing class
+            updateSize(-1);
             if (last.prev == null) {
                 // Last was the first node
-                LinkedData.this.setFirst(last.next);
+                setFirst(last.next);
                 last.clearRefs();
             } else if (last.next == null) {
                 // Last was the last node
-                LinkedData.this.setLast(last.prev);
+                setLast(last.prev);
                 last.clearRefs();
             } else {
                 last.drop();

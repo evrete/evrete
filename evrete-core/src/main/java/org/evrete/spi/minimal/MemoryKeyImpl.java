@@ -5,13 +5,13 @@ import org.evrete.api.ValueHandle;
 
 import java.util.Arrays;
 
-class ValueRowImpl implements MemoryKey {
+class MemoryKeyImpl implements MemoryKey {
     private final ValueHandle[] data;
     private final int hash;
     //TODO try excluding the 'volatile' keyword, it looks like it's safe
     private volatile transient int transientValue;
 
-    ValueRowImpl(ValueHandle[] data, int hash) {
+    MemoryKeyImpl(ValueHandle[] data, int hash) {
         this.data = data;
         this.hash = hash;
     }
@@ -40,7 +40,7 @@ class ValueRowImpl implements MemoryKey {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ValueRowImpl other = (ValueRowImpl) o;
+        MemoryKeyImpl other = (MemoryKeyImpl) o;
         return other.transientValue == this.transientValue && MiscUtils.sameData(other.data, data);
     }
 

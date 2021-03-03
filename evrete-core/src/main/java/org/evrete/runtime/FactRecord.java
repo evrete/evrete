@@ -41,9 +41,9 @@ class FactRecord implements FieldToValueHandle {
 
     @Override
     public String toString() {
-        return "{instance=" + instance +
-                ", version=" + version +
-                ", values=" + Arrays.toString(fieldValues) +
+        return "{obj=" + instance +
+                ", ver=" + version +
+                ", data=" + Arrays.toString(fieldValues) +
                 '}';
     }
 }

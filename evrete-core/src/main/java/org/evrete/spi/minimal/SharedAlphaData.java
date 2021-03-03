@@ -1,20 +1,19 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
-import org.evrete.collections.LinkedData;
 
 import java.util.NoSuchElementException;
 
 class SharedAlphaData implements SharedBetaFactStorage {
-    private final DataWrapper[] dataWrappers;
+    private final LinkedFactHandles[] dataWrappers;
     private final KeyIterator[] keyIterators;
 
     SharedAlphaData() {
-        this.dataWrappers = new DataWrapper[KeyMode.values().length];
+        this.dataWrappers = new LinkedFactHandles[KeyMode.values().length];
         this.keyIterators = new KeyIterator[KeyMode.values().length];
         for (KeyMode mode : KeyMode.values()) {
             int idx = mode.ordinal();
-            this.dataWrappers[idx] = new DataWrapper();
+            this.dataWrappers[idx] = new LinkedFactHandles();
             this.keyIterators[idx] = new KeyIterator(mode);
         }
     }
@@ -24,7 +23,7 @@ class SharedAlphaData implements SharedBetaFactStorage {
         get(KeyMode.KNOWN_UNKNOWN).add(fact);
     }
 
-    private DataWrapper get(KeyMode mode) {
+    private LinkedFactHandles get(KeyMode mode) {
         return dataWrappers[mode.ordinal()];
     }
 
@@ -40,28 +39,24 @@ class SharedAlphaData implements SharedBetaFactStorage {
 
     @Override
     public void clear() {
-        for (DataWrapper wrapper : this.dataWrappers) {
+        for (LinkedFactHandles wrapper : this.dataWrappers) {
             wrapper.clear();
         }
     }
 
     @Override
     public void commitChanges() {
-        DataWrapper delta = get(KeyMode.KNOWN_UNKNOWN);
+        LinkedFactHandles delta = get(KeyMode.KNOWN_UNKNOWN);
         get(KeyMode.MAIN).consume(delta);
-    }
-
-    private static class DataWrapper extends LinkedData<FactHandleVersioned> {
-
     }
 
     private static class KeyIterator implements ReIterator<MemoryKey> {
         private static final ValueHandle[] EMPTY = new ValueHandle[0];
-        private final ValueRowImpl row;
+        private final MemoryKeyImpl row;
         private boolean hasNext = true;
 
         KeyIterator(KeyMode mode) {
-            this.row = new ValueRowImpl(EMPTY, 0);
+            this.row = new MemoryKeyImpl(EMPTY, 0);
             this.row.setMetaValue(mode.ordinal());
         }
 

@@ -119,10 +119,10 @@ class HotDeploymentTests {
 
         RhsAssert rhsAssert = new RhsAssert(session);
 
-        int ai = new Random().nextInt(20) + 1;
-        int bi = new Random().nextInt(20) + 1;
-        int ci = new Random().nextInt(20) + 1;
-        int di = new Random().nextInt(20) + 1;
+        int ai = new Random().nextInt(10) + 1;
+        int bi = new Random().nextInt(10) + 1;
+        int ci = new Random().nextInt(10) + 1;
+        int di = new Random().nextInt(10) + 1;
 
         AtomicInteger id = new AtomicInteger(0);
 

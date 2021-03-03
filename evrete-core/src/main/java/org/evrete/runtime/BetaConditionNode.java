@@ -63,6 +63,23 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         //debug();
     }
 
+/*
+    private void debug() {
+        System.out.println("Node:\t" + this + "\tsources:\t" + Arrays.toString(getSources()));
+        System.out.println("\t\t\t\t\t\t\t\ttypes:\t\t" + Arrays.toString(getGrouping()[0]));
+        for (KeyMode keyMode : KeyMode.values()) {
+            System.out.println("\t" + keyMode);
+            ReIterator<MemoryKey[]> it = iterator(keyMode);
+            it.reset();
+            int counter = 0;
+            while (it.hasNext()) {
+                MemoryKey[] rows = it.next();
+                System.out.println("\t\t" + counter + "\t" + Arrays.toString(rows));
+                counter++;
+            }
+        }
+    }
+*/
 
     private void computeDelta(int sourceIndex, boolean hasDelta, boolean hasKnownKeys, KeyMode[] modes, boolean deltaOnly) {
         for (KeyMode mode : KeyMode.values()) {

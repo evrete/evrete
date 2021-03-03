@@ -17,6 +17,7 @@ import java.util.stream.Stream;
  *
  * @param <E> Entry type
  */
+//TODO !!! implement minimal size
 public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements ReIterable<E> {
     static final ToIntFunction<Object> DEFAULT_HASH = Object::hashCode;
     static final BiPredicate<Object, Object> DEFAULT_EQUALS = Object::equals;
@@ -281,7 +282,7 @@ public abstract class AbstractLinearHash<E> extends UnsignedIntArray implements 
         resize(this.size);
     }
 
-    private void resize(int targetSize) {
+    public void resize(int targetSize) {
         boolean expand = 2 * (targetSize + deletes) >= data.length;
         boolean shrink = deletes > 0 && targetSize < deletes;
         if (expand || shrink) {
