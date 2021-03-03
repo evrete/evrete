@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @SuppressWarnings("AssertWithSideEffects")
 class FastHashSetTest {
 
-    private static final int DEFAULT_MIN_CAPACITY = 4;
+    private static final int DEFAULT_MIN_CAPACITY = 64;
 
     private static void fill(Collection<String> data, IterableSet<String> fastSet, IterableSet<String> hashSet) {
         for (String s : data) {

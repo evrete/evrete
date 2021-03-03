@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.StringJoiner;
 import java.util.function.*;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -36,9 +35,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
 
 
     protected AbstractLinearHash(int minCapacity) {
-        //super(tableSizeFor(minCapacity));
         int capacity = tableSizeFor(minCapacity);
-
         this.unsignedIndices = new int[capacity];
         CollectionUtils.systemFill(this.unsignedIndices, NULL_VALUE);
         this.currentInsertIndex = 0;
@@ -47,12 +44,6 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         this.data = new Object[capacity];
         this.deletedIndices = new boolean[capacity];
     }
-
-/*
-    protected AbstractLinearHash() {
-        this(DEFAULT_INITIAL_CAPACITY);
-    }
-*/
 
     private static int findBinIndexFor(Object key, int hash, Object[] destination, BiPredicate<Object, Object> eqTest) {
         int mask = destination.length - 1;
@@ -98,8 +89,9 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     private static int tableSizeFor(int capacity) {
         int cap = Math.max(capacity, MINIMUM_CAPACITY);
         int n = -1 >>> Integer.numberOfLeadingZeros(cap - 1);
-        int ret = (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
+        int ret = n + 1;
         assert ret >= capacity;
+        if (ret > MAXIMUM_CAPACITY) throw new OutOfMemoryError();
         return ret;
     }
 
@@ -172,7 +164,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         Object old = data[addr];
         data[addr] = element;
         if (old == null) {
-            addNew(addr);
+            unsignedIndices[currentInsertIndex++] = addr;
             size++;
         } else {
             if (deletedIndices[addr]) {
@@ -184,35 +176,8 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         return (E) old;
     }
 
-    private static int optimalArrayLen(int dataSize) {
-        switch (dataSize) {
-            case 0:
-            case 1:
-                return 2;
-            case 2:
-                return 3;
-            case 3:
-                return 5;
-            default:
-                return (dataSize + 1) * 3 / 2;
-        }
-    }
-
-    void addNew(int value) {
-        //if (currentInsertIndex == unsignedIndices.length - 1) {
-        //    expand();
-        // }
-        unsignedIndices[currentInsertIndex++] = value;
-    }
-
     int getAt(int pos) {
         return unsignedIndices[pos];
-    }
-
-    private void expand() {
-        int newLen = optimalArrayLen(this.unsignedIndices.length);
-        this.unsignedIndices = Arrays.copyOf(this.unsignedIndices, newLen);
-        CollectionUtils.systemFill(unsignedIndices, currentInsertIndex, newLen, NULL_VALUE);
     }
 
     protected abstract ToIntFunction<Object> getHashFunction();
@@ -275,15 +240,12 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     }
 
     public void clear() {
-        clearTmp();
+        this.currentInsertIndex = 0;
         CollectionUtils.systemFill(this.data, null);
         CollectionUtils.systemFill(this.deletedIndices, false);
+        CollectionUtils.systemFill(this.unsignedIndices, NULL_VALUE);
         this.size = 0;
         this.deletes = 0;
-    }
-
-    void clearTmp() {
-        this.currentInsertIndex = 0;
     }
 
     boolean containsEntry(E e) {
@@ -323,34 +285,24 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
 
     @SuppressWarnings("unchecked")
     public Stream<E> stream() {
-        return intStream().filter(i -> !deletedIndices[i]).mapToObj(value -> (E) data[value]);
-    }
-
-    int currentInsertIndex() {
-        return currentInsertIndex;
+        return Arrays.stream(unsignedIndices, 0, currentInsertIndex)
+                .filter(i -> !deletedIndices[i])
+                .mapToObj(value -> (E) data[value]);
     }
 
     public void resize() {
-        assert currentInsertIndex() == this.size + this.deletes : "indices: " + currentInsertIndex() + " size: " + this.size + ", deletes: " + this.deletes;
+        assert currentInsertIndex == this.size + this.deletes : "indices: " + currentInsertIndex + " size: " + this.size + ", deletes: " + this.deletes;
         resize(this.size);
     }
 
-    IntStream intStream() {
-        return Arrays.stream(unsignedIndices, 0, currentInsertIndex);
-    }
-
-    void copyFrom(AbstractLinearHash other) {
-        this.unsignedIndices = other.unsignedIndices;
-        this.currentInsertIndex = other.currentInsertIndex;
-    }
-
+    //TODO !!! fix the mess
     public void resize(int targetSize) {
         if (targetSize < 0) throw new IllegalArgumentException();
         boolean expand = 2 * (targetSize + deletes) >= data.length;
         boolean shrink = deletes > 0 && targetSize < deletes;
         if (expand) {
-            int newSize = tableSizeFor(Math.max(minCapacity, targetSize * 2 + 1));
-            if (newSize > MAXIMUM_CAPACITY) throw new OutOfMemoryError();
+            int newSize = tableSizeFor(targetSize * 2 + 1);
+            if (newSize <= minCapacity) return;
 
             Object[] newData = (Object[]) Array.newInstance(data.getClass().getComponentType(), newSize);
             int[] newUnsignedIndices = new int[newSize];
@@ -363,36 +315,24 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
                     int addr = findEmptyBinIndex(hashFunction.applyAsInt(obj), newData);
                     newData[addr] = obj;
                     newUnsignedIndices[newCurrentInsertIndex++] = addr;
-                    //consumer.accept(obj);
                 }
             }
 
-            //if (targetSize > 0) {
-/*
-                forEachDataEntry(e -> {
-                    int addr = findEmptyBinIndex(hashFunction.applyAsInt(e), newData);
-                    newData[addr] = e;
-                    newIndices.addNew(addr);
-                });
-*/
-            //}
-
             this.data = newData;
-            //this.copyFrom(newIndices);
             this.deletes = 0;
             this.deletedIndices = new boolean[newSize];
             this.currentInsertIndex = newCurrentInsertIndex;
             this.unsignedIndices = newUnsignedIndices;
+
+            assert this.data.length >= minCapacity;
             return;
         }
 
         if (shrink) {
-            int newSize = tableSizeFor(Math.max(minCapacity, targetSize * 2 + 1));
+            int newSize = tableSizeFor(targetSize * 2 + 1);
             if (newSize <= minCapacity) return;
-            if (newSize > MAXIMUM_CAPACITY) throw new OutOfMemoryError();
 
             Object[] newData = (Object[]) Array.newInstance(data.getClass().getComponentType(), newSize);
-            //UnsignedIntArray newIndices = new UnsignedIntArray(newSize);
             int[] newUnsignedIndices = new int[newSize];
             int newCurrentInsertIndex = 0;
 
@@ -403,35 +343,26 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
                     int addr = findEmptyBinIndex(hashFunction.applyAsInt(obj), newData);
                     newData[addr] = obj;
                     newUnsignedIndices[newCurrentInsertIndex++] = addr;
-                    //consumer.accept(obj);
                 }
             }
-
-/*
-            if (targetSize > 0) {
-                ToIntFunction<Object> hashFunction = getHashFunction();
-                forEachDataEntry(e -> {
-                    int addr = findEmptyBinIndex(hashFunction.applyAsInt(e), newData);
-                    newData[addr] = e;
-                    newIndices.addNew(addr);
-                });
-            }
-*/
 
             this.data = newData;
             this.deletes = 0;
             this.deletedIndices = new boolean[newSize];
             this.currentInsertIndex = newCurrentInsertIndex;
             this.unsignedIndices = newUnsignedIndices;
+
+            assert this.data.length >= minCapacity;
 
         }
 
     }
 
     void assertStructure() {
-        int indices = currentInsertIndex();
+        int indices = currentInsertIndex;
         int deletes = this.deletes;
         assert indices == size + deletes : "indices: " + indices + " size: " + size + ", deletes: " + deletes;
+        assert this.data.length >= minCapacity;
     }
 
     private class It implements ReIterator<E> {
@@ -443,7 +374,6 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
             // Initial advance
             nextIndex = computeNextIndex();
         }
-
 
         @Override
         public long reset() {

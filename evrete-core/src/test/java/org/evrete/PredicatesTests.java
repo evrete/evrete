@@ -67,10 +67,10 @@ class PredicatesTests {
         StatefulSession s = knowledge.createSession();
         RhsAssert rhsAssert = new RhsAssert(s);
 
-        int ai = new Random().nextInt(20) + 1;
-        int bi = new Random().nextInt(20) + 1;
-        int ci = new Random().nextInt(20) + 1;
-        int di = new Random().nextInt(20) + 1;
+        int ai = new Random().nextInt(10) + 1;
+        int bi = new Random().nextInt(10) + 1;
+        int ci = new Random().nextInt(10) + 1;
+        int di = new Random().nextInt(10) + 1;
 
         AtomicInteger id = new AtomicInteger(0);
 

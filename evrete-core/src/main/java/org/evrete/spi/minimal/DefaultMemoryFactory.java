@@ -6,8 +6,8 @@ import java.util.function.BiPredicate;
 
 class DefaultMemoryFactory implements MemoryFactory {
     private final DefaultValueResolver valueResolver = new DefaultValueResolver();
-    private static final int MIN_KEYS_STORE_CAPACITY = 8;
-    private static final int MIN_FACT_STORAGE_CAPACITY = 1024;
+    private static final int MIN_KEYS_STORE_CAPACITY = 64;
+    private static final int MIN_FACT_STORAGE_CAPACITY = 4098;
 
     private static KeysStore factory(int[] arraySizes, int level) {
         int depth = arraySizes.length;
