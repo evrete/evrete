@@ -4,7 +4,6 @@ import org.evrete.api.ReIterable;
 import org.evrete.api.ReIterator;
 import org.evrete.util.CollectionUtils;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.StringJoiner;
@@ -18,21 +17,20 @@ import java.util.stream.Stream;
  *
  * @param <E> Entry type
  */
-//TODO !!! implement minimal size
 public abstract class AbstractLinearHash<E> implements ReIterable<E> {
+    private static final float loadFactor = 0.75f;
     static final ToIntFunction<Object> DEFAULT_HASH = Object::hashCode;
     static final BiPredicate<Object, Object> DEFAULT_EQUALS = Object::equals;
     private static final int MAXIMUM_CAPACITY = 1 << 30;
-    private static final int MINIMUM_CAPACITY = 2;
+    private static final int MINIMUM_CAPACITY = 1 << 1;
     int size = 0;
     private Object[] data;
     private boolean[] deletedIndices;
     private int deletes = 0;
     private static final int NULL_VALUE = -1;
-    private final int minCapacity;
+    private final int minDataSize;
     int currentInsertIndex;
-    private int[] unsignedIndices;
-
+    int[] unsignedIndices;
 
     protected AbstractLinearHash(int minCapacity) {
         int capacity = tableSizeFor(minCapacity);
@@ -40,7 +38,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         CollectionUtils.systemFill(this.unsignedIndices, NULL_VALUE);
         this.currentInsertIndex = 0;
 
-        this.minCapacity = minCapacity;
+        this.minDataSize = capacity;
         this.data = new Object[capacity];
         this.deletedIndices = new boolean[capacity];
     }
@@ -86,7 +84,8 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     /**
      * Returns a power of two size for the given target capacity.
      */
-    private static int tableSizeFor(int capacity) {
+    private static int tableSizeFor(int dataSize) {
+        int capacity = (int) (dataSize / loadFactor);
         int cap = Math.max(capacity, MINIMUM_CAPACITY);
         int n = -1 >>> Integer.numberOfLeadingZeros(cap - 1);
         int ret = n + 1;
@@ -141,7 +140,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     }
 
     protected final <Z extends AbstractLinearHash<E>> void bulkAdd(Z other) {
-        resize(size + other.size);
+        ensureExtraCapacity(other.size);
 
         ToIntFunction<Object> hashFunc = getHashFunction();
         BiPredicate<Object, Object> eqPredicate = getEqualsPredicate();
@@ -149,7 +148,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         int i, idx;
         E o;
         for (i = 0; i < other.currentInsertIndex; i++) {
-            idx = other.getAt(i);
+            idx = other.unsignedIndices[i];
             if ((o = other.get(idx)) != null) {
                 int hash = hashFunc.applyAsInt(o);
                 int addr = findBinIndexFor(o, hash, eqPredicate);
@@ -176,17 +175,9 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         return (E) old;
     }
 
-    int getAt(int pos) {
-        return unsignedIndices[pos];
-    }
-
     protected abstract ToIntFunction<Object> getHashFunction();
 
     protected abstract BiPredicate<Object, Object> getEqualsPredicate();
-
-    final int dataSize() {
-        return data.length;
-    }
 
     public final int size() {
         return size;
@@ -207,7 +198,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     public void forEachDataEntry(Consumer<E> consumer) {
         E obj;
         for (int i = 0; i < currentInsertIndex; i++) {
-            if ((obj = get(getAt(i))) != null) {
+            if ((obj = get(unsignedIndices[i])) != null) {
                 consumer.accept(obj);
             }
         }
@@ -217,7 +208,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         int i, idx;
         E obj;
         for (i = 0; i < currentInsertIndex; i++) {
-            idx = getAt(i);
+            idx = unsignedIndices[i];
             if ((obj = get(idx)) != null) {
                 consumer.accept(obj, idx);
             }
@@ -240,10 +231,10 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     }
 
     public void clear() {
-        this.currentInsertIndex = 0;
         CollectionUtils.systemFill(this.data, null);
         CollectionUtils.systemFill(this.deletedIndices, false);
         CollectionUtils.systemFill(this.unsignedIndices, NULL_VALUE);
+        this.currentInsertIndex = 0;
         this.size = 0;
         this.deletes = 0;
     }
@@ -267,15 +258,10 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
                 // Nothing to delete
                 return false;
             } else {
-                removeNonEmpty(addr);
+                markDeleted(addr);
                 return true;
             }
         }
-    }
-
-    private void removeNonEmpty(int addr) {
-        markDeleted(addr);
-        resize();
     }
 
     @Override
@@ -291,78 +277,85 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     }
 
     public void resize() {
-        assert currentInsertIndex == this.size + this.deletes : "indices: " + currentInsertIndex + " size: " + this.size + ", deletes: " + this.deletes;
-        resize(this.size);
+
+        int upperBound = (int) (data.length * loadFactor);
+        int lowerBound = (int) (data.length * loadFactor / 4);
+        if (size > upperBound) {
+            // Resize up
+            int newDataSize = data.length * 2;
+            rebuild(newDataSize);
+            return;
+        } else if (size < lowerBound) {
+            // Resize down
+            int newDataSize = Math.max(minDataSize, tableSizeFor(lowerBound * 2));
+            if (newDataSize != data.length) {
+                rebuild(newDataSize);
+                return;
+            }
+        }
+        purgeIfNecessary();
     }
 
-    //TODO !!! fix the mess
-    public void resize(int targetSize) {
-        if (targetSize < 0) throw new IllegalArgumentException();
-        boolean expand = 2 * (targetSize + deletes) >= data.length;
-        boolean shrink = deletes > 0 && targetSize < deletes;
-        if (expand) {
-            int newSize = tableSizeFor(targetSize * 2 + 1);
-            if (newSize <= minCapacity) return;
 
-            Object[] newData = (Object[]) Array.newInstance(data.getClass().getComponentType(), newSize);
-            int[] newUnsignedIndices = new int[newSize];
+    private void rebuild(int newArrSize) {
+        if (newArrSize == this.data.length) {
+            throw new IllegalStateException();
+        } else {
+            Object[] newData = new Object[newArrSize];
+            int[] newUnsignedIndices = new int[newArrSize];
             int newCurrentInsertIndex = 0;
-
             ToIntFunction<Object> hashFunction = getHashFunction();
             E obj;
             for (int i = 0; i < currentInsertIndex; i++) {
-                if ((obj = get(getAt(i))) != null) {
+                if ((obj = get(unsignedIndices[i])) != null) {
                     int addr = findEmptyBinIndex(hashFunction.applyAsInt(obj), newData);
                     newData[addr] = obj;
                     newUnsignedIndices[newCurrentInsertIndex++] = addr;
                 }
             }
-
             this.data = newData;
             this.deletes = 0;
-            this.deletedIndices = new boolean[newSize];
+            this.deletedIndices = new boolean[newArrSize];
             this.currentInsertIndex = newCurrentInsertIndex;
             this.unsignedIndices = newUnsignedIndices;
-
-            assert this.data.length >= minCapacity;
-            return;
         }
+    }
 
-        if (shrink) {
-            int newSize = tableSizeFor(targetSize * 2 + 1);
-            if (newSize <= minCapacity) return;
-
-            Object[] newData = (Object[]) Array.newInstance(data.getClass().getComponentType(), newSize);
-            int[] newUnsignedIndices = new int[newSize];
+    private void purgeIfNecessary() {
+        if (size > 4 && deletes > size) {
+            int[] newUnsignedIndices = new int[this.data.length];
             int newCurrentInsertIndex = 0;
-
-            ToIntFunction<Object> hashFunction = getHashFunction();
-            E obj;
             for (int i = 0; i < currentInsertIndex; i++) {
-                if ((obj = get(getAt(i))) != null) {
-                    int addr = findEmptyBinIndex(hashFunction.applyAsInt(obj), newData);
-                    newData[addr] = obj;
+                int addr = unsignedIndices[i];
+                if (deletedIndices[addr]) {
+                    this.data[addr] = null;
+                } else {
                     newUnsignedIndices[newCurrentInsertIndex++] = addr;
                 }
             }
-
-            this.data = newData;
             this.deletes = 0;
-            this.deletedIndices = new boolean[newSize];
+            this.deletedIndices = new boolean[this.data.length];
             this.currentInsertIndex = newCurrentInsertIndex;
             this.unsignedIndices = newUnsignedIndices;
-
-            assert this.data.length >= minCapacity;
-
         }
+    }
 
+
+    public void ensureExtraCapacity(int expectedNewObjectCount) {
+        int expectedNewSize = this.size + expectedNewObjectCount;
+        int newArrSize = tableSizeFor((int) (2 * expectedNewSize / loadFactor));
+        if (newArrSize != this.data.length) {
+            rebuild(newArrSize);
+        } else {
+            purgeIfNecessary();
+        }
     }
 
     void assertStructure() {
         int indices = currentInsertIndex;
         int deletes = this.deletes;
         assert indices == size + deletes : "indices: " + indices + " size: " + size + ", deletes: " + deletes;
-        assert this.data.length >= minCapacity;
+        assert this.data.length >= minDataSize;
     }
 
     private class It implements ReIterator<E> {
@@ -389,7 +382,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
 
         private int computeNextIndex() {
             while (pos < currentInsertIndex) {
-                int idx = getAt(pos);
+                int idx = unsignedIndices[pos];
                 if (deletedIndices[idx]) {
                     pos++;
                 } else {

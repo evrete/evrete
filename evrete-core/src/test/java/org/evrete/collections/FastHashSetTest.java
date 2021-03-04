@@ -107,18 +107,6 @@ class FastHashSetTest {
     }
 
     @Test
-    void sizeTest() {
-        LinearHashSet<String> set1 = new LinearHashSet<>(5);
-        assert set1.dataSize() == 8;
-
-        LinearHashSet<String> set2 = new LinearHashSet<>(0);
-        assert set2.dataSize() == 2;
-
-        LinearHashSet<String> set3 = new LinearHashSet<>(32);
-        assert set3.dataSize() == 32;
-    }
-
-    @Test
     void remove1() {
         LinearHashSet<String> set = new LinearHashSet<>(DEFAULT_MIN_CAPACITY);
 

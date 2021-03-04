@@ -25,7 +25,8 @@ class FieldsFactMap {
     }
 
     void merge(FieldsFactMap other) {
-        this.data.resize(this.data.size() + other.data.size());
+
+        this.data.ensureExtraCapacity(other.data.size());
         other.data.forEachDataEntry(this::merge);
         other.data.clear();
     }
