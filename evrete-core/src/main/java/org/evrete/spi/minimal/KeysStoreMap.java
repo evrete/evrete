@@ -5,6 +5,7 @@ import org.evrete.api.KeysStore;
 import org.evrete.api.MemoryKey;
 
 import java.util.Arrays;
+import java.util.function.Consumer;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
@@ -32,7 +33,16 @@ class KeysStoreMap extends AbstractKeysStore<KeysStoreMap.MapEntry> {
 
     @Override
     public final void append(KeysStore other) {
-        this.bulkAdd((KeysStoreMap) other);
+        KeysStoreMap o = (KeysStoreMap) other;
+        o.forEachDataEntry(new Consumer<MapEntry>() {
+            @Override
+            public void accept(MapEntry mapEntry) {
+                KeysStoreMap.this.add(mapEntry);
+                //TODO override or provide a message
+                //throw new UnsupportedOperationException();
+            }
+        });
+        //this.bulkAdd((KeysStoreMap) other);
     }
 
     final static class MapEntry extends KeysStoreEntry {

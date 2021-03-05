@@ -5,7 +5,6 @@ import org.evrete.api.StatefulSession;
 import org.evrete.collections.CollectionReIterator;
 import org.evrete.collections.LinearHashSet;
 import org.evrete.collections.LinkedData;
-import org.evrete.util.CollectionUtils;
 import org.kie.api.KieBase;
 import org.kie.api.KieServices;
 import org.kie.api.builder.*;
@@ -30,6 +29,17 @@ public final class TestUtils {
         long t0 = System.nanoTime();
         r.run();
         return System.nanoTime() - t0;
+    }
+
+    private static <T> void deleteFrom(Collection<T> collection, Predicate<T> predicate) {
+        LinkedList<T> selected = new LinkedList<>();
+        for (T obj : collection) {
+            if (predicate.test(obj)) selected.add(obj);
+        }
+
+        for (T o : selected) {
+            collection.remove(o);
+        }
     }
 
     public static void sleep(long ms) {
@@ -116,7 +126,7 @@ public final class TestUtils {
 
             @Override
             public void delete(Predicate<Z> predicate) {
-                CollectionUtils.deleteFrom(set, predicate);
+                deleteFrom(set, predicate);
             }
 
             @Override

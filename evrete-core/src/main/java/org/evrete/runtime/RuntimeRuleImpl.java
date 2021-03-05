@@ -14,7 +14,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     private final RuleDescriptor descriptor;
     private final RuntimeLhs lhs;
     private final RhsGroupNode[] rhsGroupNodes;
-    final private FactTypeNode[] factTypeNodes;
+    final private RhsFactType[] factTypeNodes;
     private final Map<String, Integer> nameMapping = new HashMap<>();
     private final RhsContext rhsContext;
     private final BetaEndNode[] endNodes;
@@ -32,12 +32,12 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
             this.rhsGroupNodes[i] = new RhsGroupNode(rhsFactGroups[i]);
         }
 
-        this.factTypeNodes = new FactTypeNode[rd.factTypes.length];
+        this.factTypeNodes = new RhsFactType[rd.factTypes.length];
         for (RhsFactGroup group : rhsFactGroups) {
             for (FactType factType : group.types()) {
                 int idx = factType.getInRuleIndex();
                 assert factTypeNodes[idx] == null;
-                this.factTypeNodes[idx] = new FactTypeNode(factType, group);
+                this.factTypeNodes[idx] = new RhsFactType(runtime.getMemory(), factType, group);
                 if (nameMapping.put(factType.getVar(), idx) != null) {
                     throw new IllegalStateException();
                 }
@@ -58,7 +58,11 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
 
     final long executeRhs() {
         this.rhsCallCounter = 0;
-        this.forEachMode(0, false, rhs.andThen(ctx -> increaseCallCount()));
+        // Reset state if any
+        for (RhsFactType type : this.factTypeNodes) {
+            type.resetState();
+        }
+        this.forEachFactGroup(0, false, rhs.andThen(ctx -> increaseCallCount()));
         return this.rhsCallCounter;
     }
 
@@ -66,7 +70,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         return endNodes;
     }
 
-    private void forEachMode(int group, boolean hasDelta, Consumer<RhsContext> consumer) {
+    private void forEachFactGroup(int group, boolean hasDelta, Consumer<RhsContext> consumer) {
         boolean last = group == this.rhsGroupNodes.length - 1;
         RhsGroupNode factGroup = this.rhsGroupNodes[group];
         for (boolean b : BOOLEANS) {
@@ -74,15 +78,15 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
             boolean newHasDelta = b || hasDelta;
             if (last) {
                 if (newHasDelta) {
-                    iterateKeys(0, consumer);
+                    forEachKey(0, consumer);
                 }
             } else {
-                forEachMode(group + 1, newHasDelta, consumer);
+                forEachFactGroup(group + 1, newHasDelta, consumer);
             }
         }
     }
 
-    private void iterateKeys(int group, Consumer<RhsContext> consumer) {
+    private void forEachKey(int group, Consumer<RhsContext> consumer) {
         RhsGroupNode factGroup = this.rhsGroupNodes[group];
         FactType[] types = factGroup.types;
         ReIterator<MemoryKey[]> iterator = factGroup.keyIterator;
@@ -93,45 +97,31 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
             MemoryKey[] valueRows = iterator.next();
             copyKeyState(valueRows, types);
             if (last) {
-                iterateFacts(0, consumer);
+                forEachFact(0, consumer);
             } else {
-                iterateKeys(group + 1, consumer);
+                forEachKey(group + 1, consumer);
             }
         }
     }
 
-    private void iterateFacts(int type, Consumer<RhsContext> consumer) {
+    private void forEachFact(int type, Consumer<RhsContext> consumer) {
         boolean last = type == factTypeNodes.length - 1;
-        FactTypeNode entry = this.factTypeNodes[type];
+        RhsFactType entry = this.factTypeNodes[type];
         ReIterator<FactHandleVersioned> it = entry.factIterator;
         if (it.reset() == 0) return;
         while (it.hasNext()) {
             FactHandleVersioned handle = it.next();
-            if (setFactState(entry, handle)) {
+            if (entry.setCurrentFact(handle)) {
                 if (last) {
                     consumer.accept(rhsContext);
                 } else {
-                    iterateFacts(type + 1, consumer);
+                    forEachFact(type + 1, consumer);
                 }
             } else {
                 it.remove();
             }
         }
     }
-
-    private boolean setFactState(FactTypeNode state, FactHandleVersioned v) {
-        FactHandle handle = v.getHandle();
-        FactRecord fact = runtime.getMemory().get(state.type.getType().getId()).getFact(handle);
-        if (fact == null || fact.getVersion() != v.getVersion()) {
-            return false;
-        } else {
-            state.handle = handle;
-            state.value = fact.instance;
-            return true;
-        }
-
-    }
-
 
     private void increaseCallCount() {
         this.rhsCallCounter++;
@@ -186,7 +176,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         }
     }
 
-    public RuntimeLhs getLhs() {
+    RuntimeLhs getLhs() {
         return lhs;
     }
 
@@ -222,30 +212,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         }
     }
 
-    private static class FactTypeNode {
-        final FactType type;
-        final RhsFactGroup group;
-        FactHandle handle;
-        Object value;
-        private ReIterator<FactHandleVersioned> factIterator;
-        private MemoryKey currentKey;
-
-        FactTypeNode(FactType type, RhsFactGroup group) {
-            this.type = type;
-            this.group = group;
-        }
-
-        void setCurrentKey(MemoryKey currentKey) {
-            this.currentKey = currentKey;
-            this.factIterator = group.factIterator(type, currentKey);
-        }
-
-        @Override
-        public String toString() {
-            return currentKey.toString();
-        }
-    }
-
     private class RhsContextImpl implements RhsContext {
 
         @Override
@@ -258,7 +224,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         //TODO check if field values have _really_ changed
         public final RhsContext update(Object obj) {
             Objects.requireNonNull(obj);
-            for (FactTypeNode state : factTypeNodes) {
+            for (RhsFactType state : factTypeNodes) {
                 if (state.value == obj) {
                     runtime.update(state.handle, state.value);
                     return this;
@@ -270,7 +236,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         @Override
         public final RhsContext delete(Object obj) {
             Objects.requireNonNull(obj);
-            for (FactTypeNode state : factTypeNodes) {
+            for (RhsFactType state : factTypeNodes) {
                 if (state.value == obj) {
                     //state.typeMemory.bufferDelete(state.handle);
                     runtime.delete(state.handle);

@@ -14,7 +14,7 @@ class DefaultMemoryFactory implements MemoryFactory {
         int arrSize = arraySizes[level];
         assert arrSize > 0;
         if (level == depth - 1) {
-            return new KeysStorePlain(MIN_KEYS_STORE_CAPACITY, level, arrSize);
+            return new KeysStorePlain(level, arrSize);
         } else {
             return new KeysStoreMap(MIN_KEYS_STORE_CAPACITY, level, arrSize, () -> factory(arraySizes, level + 1));
         }

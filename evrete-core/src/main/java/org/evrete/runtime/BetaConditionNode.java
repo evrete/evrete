@@ -19,16 +19,9 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
     BetaConditionNode(RuntimeRuleImpl rule, ConditionNodeDescriptor descriptor, BetaMemoryNode<?>[] sources) {
         super(rule, descriptor, sources);
         this.evaluationState = new MemoryKey[rule.getDescriptor().factTypes.length];
-        //TODO !!! optimize
-        this.saveFunction = level -> {
-            FactType[] levelTypes = getGrouping()[level];
-            return new IntToValueRow() {
-                @Override
-                public MemoryKey apply(int value) {
-                    return evaluationState[levelTypes[value].getInRuleIndex()];
-                }
-            };
-        };
+
+
+        this.saveFunction = new SaveFunction(getGrouping(), evaluationState);
         this.sourceMetas = new SourceMeta[sources.length];
         this.secondary2source = new int[sources.length];
         Arrays.fill(secondary2source, -1);
@@ -185,6 +178,38 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         void setIterator(KeyMode mode) {
             this.currentMode = mode;
             this.currentIterator = source.getStore(mode).entries();
+        }
+    }
+
+
+    private static class SaveFunction implements IntFunction<IntToValueRow> {
+        private final IVR[] functions;
+
+        SaveFunction(FactType[][] grouping, MemoryKey[] evaluationState) {
+            this.functions = new IVR[grouping.length];
+            for (int i = 0; i < grouping.length; i++) {
+                this.functions[i] = new IVR(evaluationState, grouping[i]);
+            }
+        }
+
+        @Override
+        public IntToValueRow apply(int level) {
+            return functions[level];
+        }
+
+        private static class IVR implements IntToValueRow {
+            private final MemoryKey[] evaluationState;
+            private final FactType[] types;
+
+            IVR(MemoryKey[] evaluationState, FactType[] types) {
+                this.evaluationState = evaluationState;
+                this.types = types;
+            }
+
+            @Override
+            public MemoryKey apply(int value) {
+                return evaluationState[types[value].getInRuleIndex()];
+            }
         }
     }
 }

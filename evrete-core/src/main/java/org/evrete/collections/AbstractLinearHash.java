@@ -29,8 +29,8 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     private int deletes = 0;
     private static final int NULL_VALUE = -1;
     private final int minDataSize;
-    int currentInsertIndex;
-    int[] unsignedIndices;
+    private int currentInsertIndex;
+    private int[] unsignedIndices;
 
     protected AbstractLinearHash(int minCapacity) {
         int capacity = tableSizeFor(minCapacity);
@@ -138,25 +138,6 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         int addr = findBinIndexFor(element, hash, getEqualsPredicate());
         return saveDirect(element, addr);
     }
-
-    protected final <Z extends AbstractLinearHash<E>> void bulkAdd(Z other) {
-        ensureExtraCapacity(other.size);
-
-        ToIntFunction<Object> hashFunc = getHashFunction();
-        BiPredicate<Object, Object> eqPredicate = getEqualsPredicate();
-
-        int i, idx;
-        E o;
-        for (i = 0; i < other.currentInsertIndex; i++) {
-            idx = other.unsignedIndices[i];
-            if ((o = other.get(idx)) != null) {
-                int hash = hashFunc.applyAsInt(o);
-                int addr = findBinIndexFor(o, hash, eqPredicate);
-                saveDirect(o, addr);
-            }
-        }
-    }
-
 
     @SuppressWarnings("unchecked")
     public final E saveDirect(E element, int addr) {
@@ -277,25 +258,20 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     }
 
     public void resize() {
-
         int upperBound = (int) (data.length * loadFactor);
         int lowerBound = (int) (data.length * loadFactor / 4);
         if (size > upperBound) {
             // Resize up
             int newDataSize = data.length * 2;
             rebuild(newDataSize);
-            return;
         } else if (size < lowerBound) {
             // Resize down
             int newDataSize = Math.max(minDataSize, tableSizeFor(lowerBound * 2));
             if (newDataSize != data.length) {
                 rebuild(newDataSize);
-                return;
             }
         }
-        purgeIfNecessary();
     }
-
 
     private void rebuild(int newArrSize) {
         if (newArrSize == this.data.length) {
@@ -318,36 +294,6 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
             this.deletedIndices = new boolean[newArrSize];
             this.currentInsertIndex = newCurrentInsertIndex;
             this.unsignedIndices = newUnsignedIndices;
-        }
-    }
-
-    private void purgeIfNecessary() {
-        if (size > 4 && deletes > size) {
-            int[] newUnsignedIndices = new int[this.data.length];
-            int newCurrentInsertIndex = 0;
-            for (int i = 0; i < currentInsertIndex; i++) {
-                int addr = unsignedIndices[i];
-                if (deletedIndices[addr]) {
-                    this.data[addr] = null;
-                } else {
-                    newUnsignedIndices[newCurrentInsertIndex++] = addr;
-                }
-            }
-            this.deletes = 0;
-            this.deletedIndices = new boolean[this.data.length];
-            this.currentInsertIndex = newCurrentInsertIndex;
-            this.unsignedIndices = newUnsignedIndices;
-        }
-    }
-
-
-    public void ensureExtraCapacity(int expectedNewObjectCount) {
-        int expectedNewSize = this.size + expectedNewObjectCount;
-        int newArrSize = tableSizeFor((int) (2 * expectedNewSize / loadFactor));
-        if (newArrSize != this.data.length) {
-            rebuild(newArrSize);
-        } else {
-            purgeIfNecessary();
         }
     }
 

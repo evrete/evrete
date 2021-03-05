@@ -250,7 +250,7 @@ class SessionUpdateDeleteTests {
         int fireCount = 0;
 
         int objectCount = 16;
-        while (fireCount++ < 10) {
+        while (fireCount++ < 32) {
             counter.set(0);
             for (int i = 0; i < objectCount; i++) {
                 TypeA a = new TypeA("A" + i);
@@ -267,9 +267,7 @@ class SessionUpdateDeleteTests {
 
             allObjects = TestUtils.sessionFacts(s);
             assert allObjects.size() == objectCount * 3;
-
             assert counter.get() == objectCount * (objectCount - 1) : counter.get() + " vs expected " + objectCount * (objectCount - 1);
-
 
             Collection<FactEntry> col = sessionFacts(s, TypeC.class);
             assert col.size() == objectCount;
@@ -584,7 +582,7 @@ class SessionUpdateDeleteTests {
 
         session.fire();
 
-        for (int i = 0; i < cnt; i++) {
+        for (int i = 0; i < cnt * 6; i++) {
             a.setI(a.getI() - 1);
             session.update(handleA, a);
             session.update(handleB, b);

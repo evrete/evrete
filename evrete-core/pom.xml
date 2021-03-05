@@ -13,8 +13,6 @@
     <version>1.2.06-SNAPSHOT</version>
 
     <properties>
-        <junit.version>5.7.0</junit.version>
-        <jmh.version>1.27</jmh.version>
         <drools.version>7.48.0.Final</drools.version>
         <slf4j.version>1.7.30</slf4j.version>
     </properties>

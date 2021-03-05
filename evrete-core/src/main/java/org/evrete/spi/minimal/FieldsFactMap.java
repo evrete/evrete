@@ -26,7 +26,7 @@ class FieldsFactMap {
 
     void merge(FieldsFactMap other) {
 
-        this.data.ensureExtraCapacity(other.data.size());
+        //this.data.resize(this.data.size() + other.data.size());
         other.data.forEachDataEntry(this::merge);
         other.data.clear();
     }
@@ -36,7 +36,7 @@ class FieldsFactMap {
         int addr = addr(otherEntry.key);
         MapEntry found = data.get(addr);
         if (found == null) {
-            this.data.saveDirect(otherEntry, addr);
+            this.data.add(otherEntry);
         } else {
             found.facts.consume(otherEntry.facts);
         }
@@ -67,11 +67,13 @@ class FieldsFactMap {
         entry.facts.add(factHandleVersioned);
     }
 
+/*
     private LinkedFactHandles get1(MemoryKeyImpl key) {
         int addr = addr(key);
         MapEntry entry = data.get(addr);
         return entry == null ? null : entry.facts;
     }
+*/
 
     boolean hasKey(MemoryKeyImpl key) {
         int addr = addr(key);

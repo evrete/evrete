@@ -3,17 +3,50 @@ package org.evrete.spi.minimal;
 import org.evrete.api.IntToValueRow;
 import org.evrete.api.KeysStore;
 import org.evrete.api.MemoryKey;
+import org.evrete.api.ReIterator;
+import org.evrete.collections.CollectionReIterator;
+import org.evrete.collections.MappedReIterator;
 
 import java.util.Arrays;
-import java.util.StringJoiner;
+import java.util.LinkedList;
 import java.util.function.IntFunction;
 
-class KeysStorePlain extends AbstractKeysStore<KeysStorePlain.MapEntry> {
+class KeysStorePlain implements KeysStore {
+    private final LinkedList<KeysStorePlain.MapEntry> data = new LinkedList<>();
+    private final int level, arrSize;
 
-    KeysStorePlain(int minCapacity, int level, int arrSize) {
-        super(minCapacity, level, arrSize);
+    KeysStorePlain(int level, int arrSize) {
+        //super(minCapacity, level, arrSize);
+        this.level = level;
+        this.arrSize = arrSize;
     }
 
+    @Override
+    public void clear() {
+        this.data.clear();
+    }
+
+    @Override
+    public void save(IntFunction<IntToValueRow> values) {
+        MemoryKey[] key = MiscUtils.toArray(values.apply(level), arrSize);
+        KeysStorePlain.MapEntry entry = new MapEntry(key);
+        this.data.add(entry);
+    }
+
+    @Override
+    public void append(KeysStore other) {
+        KeysStorePlain o = (KeysStorePlain) other;
+        this.data.addAll(o.data);
+    }
+
+    @Override
+    public ReIterator<Entry> entries() {
+        ReIterator<MapEntry> it = new CollectionReIterator<>(this.data);
+        return new MappedReIterator<>(it, mapEntry -> mapEntry);
+    }
+
+
+    /*
     @Override
     public void save(IntFunction<IntToValueRow> values) {
         resize();
@@ -39,12 +72,18 @@ class KeysStorePlain extends AbstractKeysStore<KeysStorePlain.MapEntry> {
         forEachDataEntry(arr -> j.add(Arrays.toString(arr.key)));
         return j.toString();
     }
+*/
 
 
-    final static class MapEntry extends KeysStoreEntry {
+    final static class MapEntry implements KeysStore.Entry {
+        final MemoryKey[] key;
 
-        MapEntry(MemoryKey[] key, int hash) {
-            super(key, hash);
+        MapEntry(MemoryKey[] key) {
+            this.key = key;
+        }
+
+        public MemoryKey[] key() {
+            return key;
         }
 
         @Override

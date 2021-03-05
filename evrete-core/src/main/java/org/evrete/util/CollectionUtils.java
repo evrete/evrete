@@ -2,27 +2,9 @@ package org.evrete.util;
 
 import java.lang.reflect.Array;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public final class CollectionUtils {
-
-    //TODO !!! review usage
-    public static <T> boolean deleteFrom(Collection<T> collection, Predicate<T> predicate) {
-        LinkedList<T> selected = new LinkedList<>();
-        for (T obj : collection) {
-            if (predicate.test(obj)) selected.add(obj);
-        }
-
-        if (selected.isEmpty()) {
-            return false;
-        } else {
-            for (T o : selected) {
-                collection.remove(o);
-            }
-            return true;
-        }
-    }
 
     @SuppressWarnings("unchecked")
     public static <T> T[] array(Class<T> type, int size) {
