@@ -262,39 +262,43 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         int lowerBound = (int) (data.length * loadFactor / 4);
         if (size > upperBound) {
             // Resize up
-            int newDataSize = data.length * 2;
-            rebuild(newDataSize);
-        } else if (size < lowerBound) {
+            rebuild(data.length * 2);
+            return;
+        }
+
+        if (size < lowerBound) {
             // Resize down
             int newDataSize = Math.max(minDataSize, tableSizeFor(lowerBound * 2));
             if (newDataSize != data.length) {
                 rebuild(newDataSize);
+                return;
             }
+        }
+
+        if (deletes > size && size > MINIMUM_CAPACITY) {
+            // Purge deleted data and indices
+            rebuild(this.data.length);
         }
     }
 
     private void rebuild(int newArrSize) {
-        if (newArrSize == this.data.length) {
-            throw new IllegalStateException();
-        } else {
-            Object[] newData = new Object[newArrSize];
-            int[] newUnsignedIndices = new int[newArrSize];
-            int newCurrentInsertIndex = 0;
-            ToIntFunction<Object> hashFunction = getHashFunction();
-            E obj;
-            for (int i = 0; i < currentInsertIndex; i++) {
-                if ((obj = get(unsignedIndices[i])) != null) {
-                    int addr = findEmptyBinIndex(hashFunction.applyAsInt(obj), newData);
-                    newData[addr] = obj;
-                    newUnsignedIndices[newCurrentInsertIndex++] = addr;
-                }
+        Object[] newData = new Object[newArrSize];
+        int[] newUnsignedIndices = new int[newArrSize];
+        int newCurrentInsertIndex = 0;
+        ToIntFunction<Object> hashFunction = getHashFunction();
+        E obj;
+        for (int i = 0; i < currentInsertIndex; i++) {
+            if ((obj = get(unsignedIndices[i])) != null) {
+                int addr = findEmptyBinIndex(hashFunction.applyAsInt(obj), newData);
+                newData[addr] = obj;
+                newUnsignedIndices[newCurrentInsertIndex++] = addr;
             }
-            this.data = newData;
-            this.deletes = 0;
-            this.deletedIndices = new boolean[newArrSize];
-            this.currentInsertIndex = newCurrentInsertIndex;
-            this.unsignedIndices = newUnsignedIndices;
         }
+        this.data = newData;
+        this.deletes = 0;
+        this.deletedIndices = new boolean[newArrSize];
+        this.currentInsertIndex = newCurrentInsertIndex;
+        this.unsignedIndices = newUnsignedIndices;
     }
 
     void assertStructure() {

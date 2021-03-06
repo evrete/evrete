@@ -20,7 +20,7 @@ public class FactType implements Masked {
     private final int inRuleIndex;
     private final Bits mask;
 
-    public FactType(String var, AlphaBucketMeta alphaMask, FieldsKey fields, int inRuleIndex) {
+    FactType(String var, AlphaBucketMeta alphaMask, FieldsKey fields, int inRuleIndex) {
         this.var = var;
         this.alphaMask = alphaMask;
         this.fields = fields;
