@@ -9,8 +9,8 @@ import org.evrete.runtime.builder.FactTypeBuilder;
 import org.evrete.runtime.builder.RuleBuilderImpl;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.EvaluatorWrapper;
+import org.evrete.util.DefaultActivationManager;
 import org.evrete.util.LazyInstance;
-import org.evrete.util.UnconditionalActivationManager;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,7 +45,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
         //this.alphaConditions = new AlphaConditions();
         this.ruleDescriptors = new ArrayList<>();
         this.service = service;
-        this.activationManagerFactory = UnconditionalActivationManager.class;
+        this.activationManagerFactory = DefaultActivationManager.class;
         this.classLoader = service.getClassLoader();
         this.agendaMode = ActivationMode.DEFAULT;
     }
