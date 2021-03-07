@@ -5,7 +5,7 @@ import org.evrete.api.MemoryKey;
 import org.evrete.api.ReIterator;
 
 public interface ZStoreI {
-    ReIterator<MemoryKey[]> entries();
+    ReIterator<MemoryKey> entries();
 
     void clear();
 

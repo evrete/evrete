@@ -9,14 +9,14 @@ import java.util.LinkedList;
 
 class ZStore implements ZStoreI {
     private final FactType[] mapping;
-    private final LinkedList<MemoryKey[]> data = new LinkedList<>();
+    private final LinkedList<MemoryKey> data = new LinkedList<>();
 
     ZStore(FactType[] mapping) {
         this.mapping = mapping;
     }
 
     @Override
-    public ReIterator<MemoryKey[]> entries() {
+    public ReIterator<MemoryKey> entries() {
         return new CollectionReIterator<>(data);
     }
 
@@ -32,11 +32,9 @@ class ZStore implements ZStoreI {
 
     @Override
     public void save(IntToMemoryKey key) {
-        MemoryKey[] k = new MemoryKey[mapping.length];
         for (int i = 0; i < mapping.length; i++) {
-            k[i] = key.apply(i);
+            this.data.add(key.apply(i));
         }
-        this.data.add(k);
     }
 
     @Override

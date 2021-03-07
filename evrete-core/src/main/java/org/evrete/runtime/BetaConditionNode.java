@@ -99,7 +99,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
 
     private void forEachMemoryKey(int sourceIndex, ZStoreI destination) {
         SourceMeta meta = this.sourceMetas[sourceIndex];
-        ReIterator<MemoryKey[]> it = meta.currentIterator;
+        ReIterator<MemoryKey> it = meta.currentIterator;
         if (it.reset() == 0) return;
         FactType[] types = meta.factTypes;
         boolean last = sourceIndex == this.sourceMetas.length - 1;
@@ -116,11 +116,10 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         }
     }
 
-    private void setState(ReIterator<MemoryKey[]> it, FactType[] types) {
-        MemoryKey[] keys = it.next();
-        for (int i = 0; i < types.length; i++) {
-            MemoryKey row = keys[i];
-            this.evaluationState[types[i].getInRuleIndex()] = row;
+    private void setState(ReIterator<MemoryKey> it, FactType[] types) {
+        for (FactType type : types) {
+            //MemoryKey row = it.next();
+            this.evaluationState[type.getInRuleIndex()] = it.next();
         }
     }
 
@@ -142,7 +141,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
     private static class SourceMeta {
         final BetaMemoryNode source;
         final FactType[] factTypes;
-        ReIterator<MemoryKey[]> currentIterator;
+        ReIterator<MemoryKey> currentIterator;
         KeyMode currentMode;
 
         SourceMeta(BetaMemoryNode source) {

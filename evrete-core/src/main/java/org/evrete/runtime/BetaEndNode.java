@@ -33,7 +33,7 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
     }
 
     @Override
-    public ReIterator<MemoryKey[]> keyIterator(boolean delta) {
+    public ReIterator<MemoryKey> keyIterator(boolean delta) {
         return delta ?
                 JoinReIterator.of(iterator(KeyMode.UNKNOWN_UNKNOWN), iterator(KeyMode.KNOWN_UNKNOWN))
                 :

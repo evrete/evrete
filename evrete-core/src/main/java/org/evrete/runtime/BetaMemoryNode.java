@@ -6,7 +6,7 @@ import org.evrete.api.ReIterator;
 
 interface BetaMemoryNode {
 
-    ReIterator<MemoryKey[]> iterator(KeyMode mode);
+    ReIterator<MemoryKey> iterator(KeyMode mode);
 
     void commitDelta();
 

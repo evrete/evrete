@@ -4,48 +4,44 @@ import org.evrete.api.*;
 import org.evrete.collections.CollectionReIterator;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 
-//TODO optimize by preconfiguring main and delta iterators
 //TODO !!!! use RuntimeAware as parent class
 public class RhsFactGroupAlpha implements RhsFactGroup {
     private static final VR KEY_MAIN = new VR(KeyMode.MAIN.ordinal());
     private static final VR KEY_DELTA = new VR(KeyMode.KNOWN_UNKNOWN.ordinal());
     private final FactType[] types;
-    private final ReIterator<MemoryKey[]> deltaKeyIterator;
-    private final ReIterator<MemoryKey[]> mainKeyIterator;
+    private final ReIterator<MemoryKey> deltaKeyIterator;
+    private final ReIterator<MemoryKey> mainKeyIterator;
     private final SessionMemory memory;
 
     RhsFactGroupAlpha(SessionMemory memory, RhsFactGroupDescriptor descriptor) {
         this.types = descriptor.getTypes();
         assert types.length > 0;
+        if (types.length > 24)
+            throw new UnsupportedOperationException("Too many alpha nodes, another implementation required");
         this.memory = memory;
 
-        MemoryKey[] dummyMain = new VR[this.types.length];
-        Arrays.fill(dummyMain, KEY_MAIN);
-        this.mainKeyIterator = new CollectionReIterator<>(Collections.singletonList(dummyMain));
+        // Main dummy iterator
+        Collection<MemoryKey> mainCollection = new ArrayList<>();
+        for (int i = 0; i < types.length; i++) {
+            mainCollection.add(KEY_MAIN);
+        }
+        this.mainKeyIterator = new CollectionReIterator<>(mainCollection);
 
 
-        Collection<VR[]> deltaCollection = new ArrayList<>();
-        int cnt = types.length;
-        //TODO !!! fix this restriction
-        if (cnt > 24) throw new UnsupportedOperationException("Too many alpha nodes, another implementation required");
-        for (int i = 1; i < (1 << cnt); i++) {
-            VR[] arr = new VR[cnt];
-            for (int bit = 0; bit < cnt; bit++) {
+        // Delta dummy iterator
+        Collection<MemoryKey> deltaCollection = new ArrayList<>();
+        for (int i = 1; i < (1 << types.length); i++) {
+            for (int bit = 0; bit < types.length; bit++) {
                 if ((i & (1 << bit)) == 0) {
-                    arr[bit] = KEY_MAIN;
+                    deltaCollection.add(KEY_MAIN);
                 } else {
-                    arr[bit] = KEY_DELTA;
+                    deltaCollection.add(KEY_DELTA);
                 }
             }
-            deltaCollection.add(arr);
         }
-
         this.deltaKeyIterator = new CollectionReIterator<>(deltaCollection);
-
     }
 
     @Override
@@ -60,7 +56,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
     }
 
     @Override
-    public ReIterator<MemoryKey[]> keyIterator(boolean delta) {
+    public ReIterator<MemoryKey> keyIterator(boolean delta) {
         return delta ? deltaKeyIterator : mainKeyIterator;
     }
 

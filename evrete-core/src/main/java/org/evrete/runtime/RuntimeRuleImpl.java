@@ -89,13 +89,12 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     private void forEachKey(int group, Consumer<RhsContext> consumer) {
         RhsGroupNode factGroup = this.rhsGroupNodes[group];
         FactType[] types = factGroup.types;
-        ReIterator<MemoryKey[]> iterator = factGroup.keyIterator;
+        ReIterator<MemoryKey> iterator = factGroup.keyIterator;
         if (iterator.reset() == 0) return;
         boolean last = group == this.rhsGroupNodes.length - 1;
 
         while (iterator.hasNext()) {
-            MemoryKey[] valueRows = iterator.next();
-            copyKeyState(valueRows, types);
+            copyKeyState(iterator, types);
             if (last) {
                 forEachFact(0, consumer);
             } else {
@@ -139,11 +138,9 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         return this;
     }
 
-    private void copyKeyState(MemoryKey[] valueRows, FactType[] types) {
-        for (int i = 0; i < types.length; i++) {
-            MemoryKey row = valueRows[i];
-            FactType type = types[i];
-            this.factTypeNodes[type.getInRuleIndex()].setCurrentKey(row);
+    private void copyKeyState(ReIterator<MemoryKey> iterator, FactType[] types) {
+        for (FactType type : types) {
+            this.factTypeNodes[type.getInRuleIndex()].setCurrentKey(iterator.next());
         }
     }
 
@@ -190,7 +187,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     private static class RhsGroupNode {
         final RhsFactGroup group;
         final FactType[] types;
-        ReIterator<MemoryKey[]> keyIterator;
+        ReIterator<MemoryKey> keyIterator;
         boolean currentDelta;
 
         RhsGroupNode(RhsFactGroup group) {
