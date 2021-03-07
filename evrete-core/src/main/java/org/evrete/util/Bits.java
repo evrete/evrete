@@ -1,7 +1,6 @@
 package org.evrete.util;
 
 import org.evrete.api.Copyable;
-import org.evrete.api.Masked;
 
 import java.util.BitSet;
 import java.util.Collection;
@@ -9,7 +8,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class Bits implements Copyable<Bits>, Masked {
+public class Bits implements Copyable<Bits> {
     private final BitSet delegate;
 
     private Bits(BitSet delegate) {
@@ -25,11 +24,6 @@ public class Bits implements Copyable<Bits>, Masked {
                 .filter(node -> maskFunction.apply(node).intersects(mask))
                 .collect(Collectors.toSet());
 
-    }
-
-    @Override
-    public Bits getMask() {
-        return this;
     }
 
     public boolean get(int index) {

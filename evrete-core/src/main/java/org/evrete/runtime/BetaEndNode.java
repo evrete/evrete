@@ -8,13 +8,11 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
 
     BetaEndNode(RuntimeRuleImpl rule, ConditionNodeDescriptor nodeDescriptor, boolean singleGroup) {
         super(rule, nodeDescriptor, create(nodeDescriptor.getSources(), rule));
-        FactType[] factTypes = nodeDescriptor.getEvalGrouping()[0];
-        assert factTypes.length == nodeDescriptor.getTypes().length;
-        this.entryNodes = nodeDescriptor.getEvalGrouping()[0];
+        this.entryNodes = nodeDescriptor.getTypes();
         setMergeToMain(!singleGroup);
     }
 
-    private static BetaMemoryNode<?> create(RuntimeRuleImpl rule, NodeDescriptor desc) {
+    private static BetaMemoryNode create(RuntimeRuleImpl rule, NodeDescriptor desc) {
         if (desc.isConditionNode()) {
             return new BetaConditionNode(
                     rule, (ConditionNodeDescriptor) desc,
@@ -26,8 +24,8 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
         }
     }
 
-    private static BetaMemoryNode<?>[] create(NodeDescriptor[] sources, RuntimeRuleImpl rule) {
-        BetaMemoryNode<?>[] result = new BetaMemoryNode<?>[sources.length];
+    private static BetaMemoryNode[] create(NodeDescriptor[] sources, RuntimeRuleImpl rule) {
+        BetaMemoryNode[] result = new BetaMemoryNode[sources.length];
         for (int i = 0; i < sources.length; i++) {
             result[i] = create(rule, sources[i]);
         }

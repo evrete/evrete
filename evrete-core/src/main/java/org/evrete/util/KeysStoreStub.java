@@ -1,6 +1,6 @@
 package org.evrete.util;
 
-import org.evrete.api.IntToValueRow;
+import org.evrete.api.IntToMemoryKey;
 import org.evrete.api.KeysStore;
 import org.evrete.api.ReIterator;
 
@@ -9,7 +9,7 @@ import java.util.function.IntFunction;
 public class KeysStoreStub implements KeysStore {
 
     @Override
-    public void save(IntFunction<IntToValueRow> values) {
+    public void save(IntFunction<IntToMemoryKey> values) {
         throw new UnsupportedOperationException();
     }
 

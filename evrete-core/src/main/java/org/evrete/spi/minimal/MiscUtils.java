@@ -1,6 +1,6 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.IntToValueRow;
+import org.evrete.api.IntToMemoryKey;
 import org.evrete.api.MemoryKey;
 import org.evrete.api.ValueHandle;
 
@@ -47,7 +47,7 @@ final class MiscUtils {
         return h;
     }
 
-    static MemoryKey[] toArray(IntToValueRow v, int size) {
+    static MemoryKey[] toArray(IntToMemoryKey v, int size) {
         MemoryKey[] arr = new MemoryKey[size];
         for (int i = 0; i < size; i++) {
             arr[i] = v.apply(i);

@@ -6,7 +6,7 @@ public interface KeysStore {
 
     void clear();
 
-    void save(IntFunction<IntToValueRow> values);
+    void save(IntFunction<IntToMemoryKey> values);
 
     void append(KeysStore other);
 

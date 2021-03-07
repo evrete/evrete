@@ -1,6 +1,6 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.IntToValueRow;
+import org.evrete.api.IntToMemoryKey;
 import org.evrete.api.KeysStore;
 import org.evrete.api.MemoryKey;
 import org.evrete.api.ReIterator;
@@ -27,7 +27,7 @@ class KeysStorePlain implements KeysStore {
     }
 
     @Override
-    public void save(IntFunction<IntToValueRow> values) {
+    public void save(IntFunction<IntToMemoryKey> values) {
         MemoryKey[] key = MiscUtils.toArray(values.apply(level), arrSize);
         KeysStorePlain.MapEntry entry = new MapEntry(key);
         this.data.add(entry);

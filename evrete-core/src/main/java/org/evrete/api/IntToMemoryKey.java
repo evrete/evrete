@@ -1,7 +1,7 @@
 package org.evrete.api;
 
 @FunctionalInterface
-public interface IntToValueRow {
+public interface IntToMemoryKey {
 
     MemoryKey apply(int value);
 }

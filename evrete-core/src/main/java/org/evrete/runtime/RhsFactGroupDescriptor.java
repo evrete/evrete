@@ -1,17 +1,13 @@
 package org.evrete.runtime;
 
-import org.evrete.api.Masked;
-import org.evrete.util.Bits;
-
 import java.util.Arrays;
 import java.util.Collection;
 
-public class RhsFactGroupDescriptor implements Masked {
+public class RhsFactGroupDescriptor {
     static final RhsFactGroupDescriptor[] ZERO_ARRAY = new RhsFactGroupDescriptor[0];
     private final FactType[] types;
     private final boolean looseGroup;
     private final ConditionNodeDescriptor finalNode;
-    private final Bits mask = new Bits();
 
     private RhsFactGroupDescriptor(ConditionNodeDescriptor finalNode, FactType[] types, boolean looseGroup) {
         this.types = types;
@@ -20,7 +16,7 @@ public class RhsFactGroupDescriptor implements Masked {
     }
 
     RhsFactGroupDescriptor(ConditionNodeDescriptor finalNode) {
-        this(finalNode, finalNode.getEvalGrouping()[0], false);
+        this(finalNode, finalNode.getTypes(), false);
     }
 
     RhsFactGroupDescriptor(Collection<FactType> looseTypes) {
@@ -30,11 +26,6 @@ public class RhsFactGroupDescriptor implements Masked {
                 throw new IllegalStateException();
             }
         }
-    }
-
-    @Override
-    public Bits getMask() {
-        return mask;
     }
 
     ConditionNodeDescriptor getFinalNode() {

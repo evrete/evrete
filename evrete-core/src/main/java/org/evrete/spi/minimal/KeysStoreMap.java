@@ -1,6 +1,6 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.IntToValueRow;
+import org.evrete.api.IntToMemoryKey;
 import org.evrete.api.KeysStore;
 import org.evrete.api.MemoryKey;
 
@@ -18,7 +18,7 @@ class KeysStoreMap extends AbstractKeysStore<KeysStoreMap.MapEntry> {
     }
 
     @Override
-    public final void save(IntFunction<IntToValueRow> values) {
+    public final void save(IntFunction<IntToMemoryKey> values) {
         resize();
         MemoryKey[] key = MiscUtils.toArray(values.apply(level), arrSize);
         int hash = MiscUtils.hash(key);

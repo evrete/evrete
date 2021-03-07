@@ -1,26 +1,31 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
+import org.evrete.api.KeyMode;
+import org.evrete.api.MemoryKey;
+import org.evrete.api.ReIterator;
 import org.evrete.collections.MappedReIterator;
-import org.evrete.util.KeysStoreStub;
 
 import java.util.EnumMap;
 
-public class BetaEntryNode implements BetaMemoryNode<EntryNodeDescriptor> {
+public class BetaEntryNode implements BetaMemoryNode {
     private final EntryNodeDescriptor descriptor;
-    private final EnumMap<KeyMode, KeysStore> stores = new EnumMap<>(KeyMode.class);
+    private final EnumMap<KeyMode, ReIterator<MemoryKey[]>> stores = new EnumMap<>(KeyMode.class);
 
     BetaEntryNode(AbstractKnowledgeSession<?> runtime, EntryNodeDescriptor node) {
         this.descriptor = node;
         for (KeyMode mode : KeyMode.values()) {
             ReIterator<MemoryKey> it = runtime.getMemory().getBetaFactStorage(node.getFactType()).keys(mode);
-            KeysStore store = new KeysStoreDelegate(mode, it);
-            stores.put(mode, store);
+            final MemoryKey[] dummyArray = new MemoryKey[1];
+            stores.put(mode, new MappedReIterator<>(it, key -> {
+                key.setMetaValue(mode.ordinal());
+                dummyArray[0] = key;
+                return dummyArray;
+            }));
         }
     }
 
     @Override
-    public KeysStore getStore(KeyMode mode) {
+    public ReIterator<MemoryKey[]> iterator(KeyMode mode) {
         return stores.get(mode);
     }
 
@@ -42,37 +47,4 @@ public class BetaEntryNode implements BetaMemoryNode<EntryNodeDescriptor> {
         return descriptor.getFactType().toString();
     }
 
-    static class KeysStoreDelegate extends KeysStoreStub {
-        private final ReIterator<Entry> entryReIterator;
-
-
-        KeysStoreDelegate(KeyMode keyMode, ReIterator<MemoryKey> storage) {
-            final DummyEntry entry = new DummyEntry();
-            this.entryReIterator = new MappedReIterator<>(storage, row -> {
-                row.setMetaValue(keyMode.ordinal());
-                entry.arr[0] = row;
-                return entry;
-            });
-        }
-
-        @Override
-        @ThreadUnsafe
-        public ReIterator<Entry> entries() {
-            return entryReIterator;
-        }
-    }
-
-    private static class DummyEntry implements KeysStore.Entry {
-        final MemoryKey[] arr = new MemoryKey[1];
-
-        @Override
-        public MemoryKey[] key() {
-            return arr;
-        }
-
-        @Override
-        public KeysStore getNext() {
-            throw new UnsupportedOperationException();
-        }
-    }
 }

@@ -1,12 +1,10 @@
 package org.evrete.runtime;
 
-import org.evrete.util.NextIntSupplier;
-
 public class EntryNodeDescriptor extends NodeDescriptor {
     private final FactType factType;
 
-    EntryNodeDescriptor(NextIntSupplier idSupplier, FactType factType) {
-        super(idSupplier, factType);
+    EntryNodeDescriptor(FactType factType) {
+        super(factType);
         this.factType = factType;
     }
 
@@ -22,7 +20,6 @@ public class EntryNodeDescriptor extends NodeDescriptor {
     @Override
     public String toString() {
         return "Entry{fact=" + factType +
-                ", hash=" + hashCode() +
                 '}';
     }
 }

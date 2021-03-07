@@ -1,32 +1,27 @@
 package org.evrete.runtime;
 
 import org.evrete.api.ActiveField;
-import org.evrete.api.Masked;
 import org.evrete.api.Type;
 import org.evrete.api.TypeField;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
-import org.evrete.util.Bits;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 
-public class FactType implements Masked {
+public class FactType {
     public static final FactType[] ZERO_ARRAY = new FactType[0];
     private static final Comparator<FactType> COMPARATOR = Comparator.comparingInt(FactType::getInRuleIndex);
     private final String var;
     private final AlphaBucketMeta alphaMask;
     private final FieldsKey fields;
     private final int inRuleIndex;
-    private final Bits mask;
 
     FactType(String var, AlphaBucketMeta alphaMask, FieldsKey fields, int inRuleIndex) {
         this.var = var;
         this.alphaMask = alphaMask;
         this.fields = fields;
         this.inRuleIndex = inRuleIndex;
-        this.mask = new Bits();
-        this.mask.set(this.inRuleIndex);
     }
 
     public static FactType[] toArray(Collection<FactType> set) {
@@ -63,11 +58,6 @@ public class FactType implements Masked {
 
     public int getInRuleIndex() {
         return inRuleIndex;
-    }
-
-    @Override
-    public Bits getMask() {
-        return mask;
     }
 
     @Override
