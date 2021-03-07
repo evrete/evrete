@@ -52,14 +52,8 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
         return entryNodes;
     }
 
-    // TODO !!!!! optimize, create a set of involved types
     boolean dependsOn(Type<?> type) {
-        for (FactType entry : entryNodes) {
-            if (entry.getType().equals(type)) {
-                return true;
-            }
-        }
-        return false;
+        return getDescriptor().getTypeMask().get(type.getId());
     }
 
     @Override

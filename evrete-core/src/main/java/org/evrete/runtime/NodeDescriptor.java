@@ -7,7 +7,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 public abstract class NodeDescriptor {
-    private final Bits mask = new Bits();
+    private final Bits factTypeMask = new Bits();
+    private final Bits typeMask = new Bits();
     private final NodeDescriptor[] sources;
     private final FactType[] factTypes;
 
@@ -23,20 +24,29 @@ public abstract class NodeDescriptor {
         this.factTypes = FactType.toArray(types);
 
         for (FactType t : factTypes) {
-            mask.set(t.getInRuleIndex());
+            setMaskBits(t);
         }
     }
 
     NodeDescriptor(FactType entryType) {
         this.sources = new NodeDescriptor[0];
         this.factTypes = new FactType[]{entryType};
-        this.mask.set(entryType.getInRuleIndex());
+        setMaskBits(entryType);
+    }
+
+    private void setMaskBits(FactType t) {
+        this.factTypeMask.set(t.getInRuleIndex());
+        this.typeMask.set(t.getType().getId());
     }
 
     public abstract boolean isConditionNode();
 
     Bits getFactTypeMask() {
-        return mask;
+        return factTypeMask;
+    }
+
+    Bits getTypeMask() {
+        return typeMask;
     }
 
     public FactType[] getTypes() {
