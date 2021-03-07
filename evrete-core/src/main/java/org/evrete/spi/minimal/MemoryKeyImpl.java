@@ -8,8 +8,7 @@ import java.util.Arrays;
 class MemoryKeyImpl implements MemoryKey {
     private final ValueHandle[] data;
     private final int hash;
-    //TODO try excluding the 'volatile' keyword, it looks like it's safe
-    private volatile transient int transientValue;
+    private transient int transientValue;
 
     MemoryKeyImpl(ValueHandle[] data, int hash) {
         this.data = data;

@@ -7,9 +7,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.*;
 
-class LinkedDataTest {
+class LinkedDataRWDTest {
 
-    private static <T> boolean sameData(LinkedData<T> data1, LinkedList<T> data2) {
+    private static <T> boolean sameData(LinkedDataRWD<T> data1, LinkedList<T> data2) {
         if (data1.size() != data2.size()) return false;
         Iterator<T> it1 = data1.iterator();
         Iterator<T> it2 = data2.iterator();
@@ -31,7 +31,7 @@ class LinkedDataTest {
 
     @Test
     void test1() {
-        LinkedData<String> ld = new LinkedData<>();
+        LinkedDataRWD<String> ld = new LinkedDataRWD<>();
         ld.add("a").add("b").add("c");
 
         ReIterator<String> it = ld.iterator();
@@ -45,7 +45,7 @@ class LinkedDataTest {
 
     @Test
     void test2() {
-        LinkedData<String> ld = new LinkedData<>();
+        LinkedDataRWD<String> ld = new LinkedDataRWD<>();
         ld.add("a").add("b").add("c").add("d");
 
         ReIterator<String> it = ld.iterator();
@@ -64,7 +64,7 @@ class LinkedDataTest {
 
     @Test
     void test3() {
-        LinkedData<String> ld = new LinkedData<>();
+        LinkedDataRWD<String> ld = new LinkedDataRWD<>();
         ld.add("a").add("b").add("c").add("d");
 
 
@@ -89,7 +89,7 @@ class LinkedDataTest {
     @ParameterizedTest
     @ValueSource(strings = {"a", "b", "c", "d"})
     void remove1(String match) {
-        LinkedData<String> ld = new LinkedData<>();
+        LinkedDataRWD<String> ld = new LinkedDataRWD<>();
         ld.add("a").add("b").add("c").add("d");
         ReIterator<String> it = ld.iterator();
 
@@ -106,7 +106,7 @@ class LinkedDataTest {
 
     @Test
     void remove2() {
-        LinkedData<String> ld = new LinkedData<>();
+        LinkedDataRWD<String> ld = new LinkedDataRWD<>();
         ld.add("a").add("b").add("c").add("d");
 
         LinkedList<String> ll = new LinkedList<>();
@@ -138,7 +138,7 @@ class LinkedDataTest {
 
     @Test
     void remove3() {
-        LinkedData<String> ld = new LinkedData<>();
+        LinkedDataRWD<String> ld = new LinkedDataRWD<>();
         ld.add("a").add("b").add("c").add("d");
 
         LinkedList<String> ll = new LinkedList<>();
@@ -179,7 +179,7 @@ class LinkedDataTest {
 
     @Test
     void remove4() {
-        LinkedData<Integer> ld = new LinkedData<>();
+        LinkedDataRWD<Integer> ld = new LinkedDataRWD<>();
         LinkedList<Integer> ll = new LinkedList<>();
 
         // Fill collections
@@ -214,8 +214,8 @@ class LinkedDataTest {
 
     @Test
     void consume1() {
-        LinkedData<Integer> main = new LinkedData<>();
-        LinkedData<Integer> delta = new LinkedData<>();
+        LinkedDataRWD<Integer> main = new LinkedDataRWD<>();
+        LinkedDataRWD<Integer> delta = new LinkedDataRWD<>();
 
         int count = 2048;
         // Fill collections

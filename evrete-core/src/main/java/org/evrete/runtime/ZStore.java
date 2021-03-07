@@ -3,13 +3,11 @@ package org.evrete.runtime;
 import org.evrete.api.IntToMemoryKey;
 import org.evrete.api.MemoryKey;
 import org.evrete.api.ReIterator;
-import org.evrete.collections.CollectionReIterator;
-
-import java.util.LinkedList;
+import org.evrete.collections.LinkedDataRW;
 
 class ZStore implements ZStoreI {
     private final FactType[] mapping;
-    private final LinkedList<MemoryKey> data = new LinkedList<>();
+    private final LinkedDataRW<MemoryKey> data = new LinkedDataRW<>();
 
     ZStore(FactType[] mapping) {
         this.mapping = mapping;
@@ -17,7 +15,7 @@ class ZStore implements ZStoreI {
 
     @Override
     public ReIterator<MemoryKey> entries() {
-        return new CollectionReIterator<>(data);
+        return data.iterator();
     }
 
     @Override
@@ -27,7 +25,7 @@ class ZStore implements ZStoreI {
 
     @Override
     public void append(ZStoreI other) {
-        this.data.addAll(((ZStore) other).data);
+        this.data.append(((ZStore) other).data);
     }
 
     @Override

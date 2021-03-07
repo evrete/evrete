@@ -6,23 +6,21 @@ import org.evrete.api.ReIterator;
 import java.util.NoSuchElementException;
 import java.util.StringJoiner;
 
-//TODO make it fully thread-safe
-public class LinkedData<T> implements ReIterable<T> {
-    private volatile long size;
+public class LinkedDataRWD<T> implements ReIterable<T> {
+    private long size;
     private Node<T> first;
     private Node<T> last;
 
-    public LinkedData<T> add(T object) {
+    public LinkedDataRWD<T> add(T object) {
         Node<T> node;
         if (last == null) {
             // First entry
             node = new Node<>(object, null);
             this.first = node;
-            this.last = node;
         } else {
             node = new Node<>(object, last);
-            last.next = node;
-            node.prev = last;
+            this.last.next = node;
+            node.prev = this.last;
         }
         this.last = node;
         updateSize(1);
@@ -30,9 +28,7 @@ public class LinkedData<T> implements ReIterable<T> {
     }
 
     private void updateSize(long delta) {
-        synchronized (this) {
-            this.size += delta;
-        }
+        this.size += delta;
     }
 
 
@@ -50,7 +46,7 @@ public class LinkedData<T> implements ReIterable<T> {
      *
      * @param other target data to consume and clear
      */
-    public void consume(LinkedData<T> other) {
+    public void consume(LinkedDataRWD<T> other) {
         if (other.last == null) {
             assert other.first == null && other.size == 0;
             return; // Nothing to append

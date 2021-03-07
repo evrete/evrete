@@ -4,7 +4,7 @@ import org.evrete.api.ReIterator;
 import org.evrete.api.StatefulSession;
 import org.evrete.collections.CollectionReIterator;
 import org.evrete.collections.LinearHashSet;
-import org.evrete.collections.LinkedData;
+import org.evrete.collections.LinkedDataRWD;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -151,7 +151,7 @@ public final class TestUtils {
         };
     }
 
-    public static <Z> IterableCollection<Z> collectionOf(final LinkedData<Z> list) {
+    public static <Z> IterableCollection<Z> collectionOf(final LinkedDataRWD<Z> list) {
         return new IterableCollection<Z>() {
             @Override
             public boolean add(Z element) {
