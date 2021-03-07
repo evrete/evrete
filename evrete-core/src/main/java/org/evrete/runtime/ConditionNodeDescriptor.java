@@ -26,7 +26,7 @@ public class ConditionNodeDescriptor extends NodeDescriptor {
         // Loop through the expressions one by one
         // The initial order of expressions defines the outcome.
         for (BetaEvaluatorGroup evaluator : evaluatorSequence) {
-            Set<NodeDescriptor> matching = Bits.matchesOR(evaluator.getTypeMask(), unallocatedNodes, NodeDescriptor::getFactTypeMask);
+            Set<NodeDescriptor> matching = Bits.matchesOR(evaluator.getFactTypeMask(), unallocatedNodes, NodeDescriptor::getFactTypeMask);
             assert !matching.isEmpty();
             // replace the matching nodes with a new one
             unallocatedNodes.removeAll(matching);

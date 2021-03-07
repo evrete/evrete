@@ -1,7 +1,7 @@
 package org.evrete.runtime.evaluation;
 
 import org.evrete.api.*;
-import org.evrete.runtime.BetaEvaluationState;
+import org.evrete.runtime.BetaEvaluationValues;
 import org.evrete.runtime.BetaFieldReference;
 import org.evrete.runtime.FactType;
 
@@ -11,7 +11,6 @@ public class BetaEvaluator extends EvaluatorWrapper implements Copyable<BetaEval
     public static final BetaEvaluator[] ZERO_ARRAY = new BetaEvaluator[0];
     private final BetaFieldReference[] descriptor;
     private IntToValue stateValues;
-    private BetaEvaluationState values;
 
     BetaEvaluator(EvaluatorWrapper delegate, Function<NamedType, FactType> typeFunction) {
         super(delegate);
@@ -29,7 +28,6 @@ public class BetaEvaluator extends EvaluatorWrapper implements Copyable<BetaEval
         super(other);
         this.descriptor = other.descriptor;
         this.stateValues = other.stateValues;
-        this.values = other.values;
     }
 
     BetaFieldReference[] betaDescriptor() {
@@ -46,33 +44,11 @@ public class BetaEvaluator extends EvaluatorWrapper implements Copyable<BetaEval
         return new BetaEvaluator(this);
     }
 
-    void setEvaluationState(final ValueResolver resolver, BetaEvaluationState values) {
-        final Argument[] arguments = new Argument[descriptor.length];
-        for (int i = 0; i < arguments.length; i++) {
-            BetaFieldReference ref = descriptor[i];
-            arguments[i] = new Argument(values, ref.getFactType(), ref.getFieldIndex());
-        }
-
-        this.stateValues = i -> resolver.getValue(arguments[i].getValue());
+    void setEvaluationState(BetaEvaluationValues values) {
+        this.stateValues = i -> values.apply(descriptor[i]);
     }
 
     public boolean test() {
         return test(this.stateValues);
-    }
-
-    private static class Argument {
-        private final BetaEvaluationState values;
-        private final FactType factType;
-        private final int index;
-
-        Argument(BetaEvaluationState values, FactType factType, int index) {
-            this.values = values;
-            this.factType = factType;
-            this.index = index;
-        }
-
-        ValueHandle getValue() {
-            return values.apply(factType, index);
-        }
     }
 }

@@ -1,16 +1,14 @@
 package org.evrete.runtime;
 
-import org.evrete.api.IntToMemoryKey;
-import org.evrete.api.KeyMode;
-import org.evrete.api.MemoryKey;
-import org.evrete.api.ReIterator;
+import org.evrete.api.*;
 import org.evrete.runtime.evaluation.BetaEvaluatorGroup;
 
+import java.util.Arrays;
 import java.util.function.Consumer;
 
 public class BetaConditionNode extends AbstractBetaConditionNode {
     static final BetaConditionNode[] EMPTY_ARRAY = new BetaConditionNode[0];
-    private final MemoryKey[] evaluationState;
+    private final MemoryKeyMeta[] evaluationState;
     private final SourceMeta[] sourceMetas;
     private final IntToMemoryKey saveFunction;
     private final BetaEvaluatorGroup expression;
@@ -18,17 +16,31 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
 
     BetaConditionNode(RuntimeRuleImpl rule, ConditionNodeDescriptor descriptor, BetaMemoryNode[] sources) {
         super(rule, descriptor, sources);
-        this.evaluationState = new MemoryKey[rule.getDescriptor().factTypes.length];
+        this.expression = descriptor.getExpression().copyOf();
+        ValueResolver valueResolver = rule.getRuntime().memory.memoryFactory.getValueResolver();
+        FactType[] allFactTypes = rule.getFactTypes();
+        this.evaluationState = new MemoryKeyMeta[allFactTypes.length];
+        for (FactType type : allFactTypes) {
+            MemoryKeyMeta keyMeta;
+            if (expression.getFactTypeMask().get(type.getInRuleIndex())) {
+                // This fact type is a part of condition evaluation
+                keyMeta = new MemoryKeyMetaWithValues(type, valueResolver);
+            } else {
+                // This is a pass-through type, no field value reads are required
+                keyMeta = new MemoryKeyMeta();
+            }
+            this.evaluationState[type.getInRuleIndex()] = keyMeta;
+        }
 
         FactType[] myTypes = descriptor.getTypes();
-        this.saveFunction = value -> evaluationState[myTypes[value].getInRuleIndex()];
+        this.saveFunction = value -> evaluationState[myTypes[value].getInRuleIndex()].currentKey;
         this.sourceMetas = new SourceMeta[sources.length];
         for (int i = 0; i < sources.length; i++) {
             sourceMetas[i] = new SourceMeta(sources[i]);
         }
 
-        this.expression = descriptor.getExpression().copyOf();
-        this.expression.setEvaluationState(rule.getRuntime().memory.memoryFactory.getValueResolver(), (factType, fieldIndex) -> evaluationState[factType.getInRuleIndex()].get(fieldIndex));
+        BetaEvaluationValues conditionValues = ref -> evaluationState[ref.getFactType().getInRuleIndex()].value(ref.getFieldIndex());
+        this.expression.setEvaluationState(conditionValues);
     }
 
     @Override
@@ -93,6 +105,10 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
                 return;
             }
         }
+        // Reset cached states
+        for (MemoryKeyMeta meta : evaluationState) {
+            meta.clear();
+        }
         // Evaluate current mode selection
         forEachMemoryKey(0, destination);
     }
@@ -119,7 +135,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
     private void setState(ReIterator<MemoryKey> it, FactType[] types) {
         for (FactType type : types) {
             //MemoryKey row = it.next();
-            this.evaluationState[type.getInRuleIndex()] = it.next();
+            this.evaluationState[type.getInRuleIndex()].setKey(it.next());
         }
     }
 
@@ -153,6 +169,64 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
             this.currentMode = mode;
             this.currentIterator = source.iterator(mode);
             return this.currentIterator.reset() > 0;
+        }
+    }
+
+    private static class MemoryKeyMeta {
+        MemoryKey currentKey;
+
+        MemoryKeyMeta() {
+        }
+
+        void clear() {
+            this.currentKey = null;
+        }
+
+        public void setKey(MemoryKey key) {
+            this.currentKey = key;
+        }
+
+        Object value(int fieldIndex) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private static class MemoryKeyMetaWithValues extends MemoryKeyMeta {
+        private final ActiveField[] fields;
+        private final ValueHandle[] cachedValueHandles;
+        private final Object[] cachedFieldValues;
+        private final ValueResolver valueResolver;
+
+        MemoryKeyMetaWithValues(FactType type, ValueResolver valueResolver) {
+            this.fields = type.getFields().getFields();
+            this.valueResolver = valueResolver;
+            this.cachedValueHandles = new ValueHandle[this.fields.length];
+            this.cachedFieldValues = new Object[this.fields.length];
+        }
+
+        void clear() {
+            super.clear();
+            Arrays.fill(this.cachedValueHandles, null);
+            Arrays.fill(this.cachedFieldValues, null);
+        }
+
+        Object value(int fieldIndex) {
+            return cachedFieldValues[fieldIndex];
+        }
+
+        public void setKey(MemoryKey key) {
+            if (key != this.currentKey) {
+                for (int i = 0; i < fields.length; i++) {
+                    ValueHandle argHandle = key.get(i);
+                    ValueHandle saved = cachedValueHandles[i];
+                    if (argHandle != saved) {
+                        // Reading field value
+                        cachedFieldValues[i] = valueResolver.getValue(argHandle);
+                        cachedValueHandles[i] = argHandle;
+                    }
+                }
+                this.currentKey = key;
+            }
         }
     }
 

@@ -15,7 +15,7 @@ public final class BetaFieldReference {
         return factType;
     }
 
-    public int getFieldIndex() {
+    int getFieldIndex() {
         return fieldIndex;
     }
 
