@@ -1,12 +1,19 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
+import org.evrete.runtime.FactType;
+import org.evrete.runtime.MemoryKeyCollection;
 
 import java.util.function.BiPredicate;
 
 class DefaultMemoryFactory implements MemoryFactory {
     private final DefaultValueResolver valueResolver = new DefaultValueResolver();
     private static final int MIN_FACT_STORAGE_CAPACITY = 4098;
+
+    @Override
+    public MemoryKeyCollection newMemoryKeyCollection(FactType[] types) {
+        return new DefaultMemoryKeyCollection();
+    }
 
     @Override
     public ValueResolver getValueResolver() {

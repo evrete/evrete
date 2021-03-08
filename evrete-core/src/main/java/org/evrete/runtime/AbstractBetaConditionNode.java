@@ -12,7 +12,7 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode {
     private final BetaMemoryNode[] sources;
     private final BetaConditionNode[] conditionSources;
     private final RuntimeRuleImpl rule;
-    private final ZStoreI[] stores = new ZStoreI[KeyMode.values().length];
+    private final MemoryKeyCollection[] stores = new MemoryKeyCollection[KeyMode.values().length];
 
     private boolean mergeToMain = true;
 
@@ -28,22 +28,23 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode {
         this.rule = rule;
         this.descriptor = descriptor;
         for (KeyMode keyMode : KeyMode.values()) {
-            stores[keyMode.ordinal()] = new ZStore(descriptor.getTypes());
+            stores[keyMode.ordinal()] = rule.getRuntime().memory.memoryFactory.newMemoryKeyCollection(descriptor.getTypes());
         }
     }
 
 
     void commitDelta1() {
-        ZStoreI delta1 = getStore(KeyMode.UNKNOWN_UNKNOWN);
-        ZStoreI delta2 = getStore(KeyMode.KNOWN_UNKNOWN);
+        MemoryKeyCollection delta1 = getStore(KeyMode.UNKNOWN_UNKNOWN);
+        MemoryKeyCollection delta2 = getStore(KeyMode.KNOWN_UNKNOWN);
         if (mergeToMain) {
-            ZStoreI main = getStore(KeyMode.MAIN);
-            ReIterator<MemoryKey> it = delta1.entries();
+            MemoryKeyCollection main = getStore(KeyMode.MAIN);
+            ReIterator<MemoryKey> it = delta1.iterator();
             while (it.hasNext()) {
                 MemoryKey key = it.next();
                 key.setMetaValue(KeyMode.MAIN.ordinal());
+                main.add(key);
             }
-            main.append(delta1);
+            //main.append(delta1);
         }
         delta1.clear();
         delta2.clear();
@@ -53,7 +54,7 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode {
         this.mergeToMain = mergeToMain;
     }
 
-    ZStoreI getStore(KeyMode mode) {
+    MemoryKeyCollection getStore(KeyMode mode) {
         return stores[mode.ordinal()];
     }
 
@@ -76,13 +77,13 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode {
 
 
     public ReIterator<MemoryKey> iterator(KeyMode mode) {
-        return getStore(mode).entries();
+        return getStore(mode).iterator();
     }
 
 
     @Override
     public void clear() {
-        for (ZStoreI s : stores) {
+        for (MemoryKeyCollection s : stores) {
             s.clear();
         }
         for (BetaMemoryNode source : getSources()) {

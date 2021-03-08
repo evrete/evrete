@@ -2,23 +2,21 @@ package org.evrete.util;
 
 import org.evrete.api.Copyable;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 public class NextIntSupplier implements Copyable<NextIntSupplier> {
-    private final AtomicInteger counter = new AtomicInteger(0);
+    private int counter = 0;
 
     public int next() {
-        return counter.getAndIncrement();
+        return counter++;
     }
 
     public int get() {
-        return counter.get();
+        return counter;
     }
 
     @Override
     public NextIntSupplier copyOf() {
         NextIntSupplier copy = new NextIntSupplier();
-        copy.counter.set(this.counter.get());
+        copy.counter = this.counter;
         return copy;
     }
 }

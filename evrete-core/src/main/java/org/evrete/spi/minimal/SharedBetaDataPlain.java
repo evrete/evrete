@@ -20,7 +20,7 @@ class SharedBetaDataPlain implements SharedBetaFactStorage {
     }
 
     @Override
-    public ReIterator<FactHandleVersioned> values(KeyMode mode, FieldToValueHandle key) {
+    public ReIterator<FactHandleVersioned> values(KeyMode mode, MemoryKey key) {
         MemoryKeyImplPlain k = (MemoryKeyImplPlain) key;
         return get(mode).values(k);
     }

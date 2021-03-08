@@ -22,9 +22,8 @@ class SharedBetaData implements SharedBetaFactStorage {
     }
 
     @Override
-    public ReIterator<FactHandleVersioned> values(KeyMode mode, FieldToValueHandle key) {
-        MemoryKeyImpl k = (MemoryKeyImpl) key;
-        return get(mode).values(k);
+    public ReIterator<FactHandleVersioned> values(KeyMode mode, MemoryKey key) {
+        return get(mode).values((MemoryKeyImpl) key);
     }
 
     @Override

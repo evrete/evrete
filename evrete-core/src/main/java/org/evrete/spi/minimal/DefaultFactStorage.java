@@ -7,7 +7,6 @@ import org.evrete.api.Type;
 import org.evrete.collections.AbstractLinearHash;
 
 import java.util.StringJoiner;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
@@ -60,7 +59,7 @@ class DefaultFactStorage<T> implements FactStorage<T> {
     static class TupleCollection<T> extends AbstractLinearHash<DefaultFactStorage.Tuple<T>> {
         private static final ToIntFunction<Object> HASH_FUNCTION = Object::hashCode;
         private final BiPredicate<T, T> identityFunction;
-        private final AtomicLong handleId = new AtomicLong(0);
+        private long handleId = 0L;
 
         private final BiPredicate<Object, Object> EQ_PREDICATE = new BiPredicate<Object, Object>() {
             @Override
@@ -105,7 +104,7 @@ class DefaultFactStorage<T> implements FactStorage<T> {
             Tuple<T> tuple = get(addr);
             if (tuple == null) {
                 // Object id unknown, creating new handle...
-                FactHandleImpl handle = new FactHandleImpl(handleId.getAndIncrement(), hash, this.type.getId());
+                FactHandleImpl handle = new FactHandleImpl(handleId++, hash, this.type.getId());
                 tuple = new Tuple<>(handle, fact);
                 saveDirect(tuple, addr);
                 return handle;

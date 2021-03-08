@@ -33,7 +33,7 @@ class SharedAlphaData implements SharedBetaFactStorage {
     }
 
     @Override
-    public ReIterator<FactHandleVersioned> values(KeyMode mode, FieldToValueHandle key) {
+    public ReIterator<FactHandleVersioned> values(KeyMode mode, MemoryKey key) {
         return get(mode).iterator();
     }
 

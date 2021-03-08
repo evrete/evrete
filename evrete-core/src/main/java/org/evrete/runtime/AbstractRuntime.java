@@ -11,16 +11,16 @@ import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.EvaluatorWrapper;
 import org.evrete.util.DefaultActivationManager;
 import org.evrete.util.LazyInstance;
+import org.evrete.util.NextIntSupplier;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends RuntimeMetaData<C> {
     private final List<RuleBuilder<C>> ruleBuilders = new ArrayList<>();
     private final List<RuleDescriptor> ruleDescriptors;
-    private final AtomicInteger ruleCounter;
+    private final NextIntSupplier ruleCounter;
 
     //private final AlphaConditions alphaConditions;
     private final KnowledgeService service;
@@ -41,7 +41,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
     AbstractRuntime(KnowledgeService service) {
         super();
         this.parent = null;
-        this.ruleCounter = new AtomicInteger();
+        this.ruleCounter = new NextIntSupplier();
         //this.alphaConditions = new AlphaConditions();
         this.ruleDescriptors = new ArrayList<>();
         this.service = service;
@@ -58,8 +58,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
     AbstractRuntime(AbstractRuntime<?> parent) {
         super(parent);
         this.parent = parent;
-        this.ruleCounter = new AtomicInteger(parent.ruleCounter.intValue());
-        //this.alphaConditions = parent.alphaConditions.copyOf();
+        this.ruleCounter = parent.ruleCounter.copyOf();
         this.ruleDescriptors = new ArrayList<>(parent.ruleDescriptors);
         this.service = parent.service;
         this.ruleComparator = parent.ruleComparator;
@@ -176,7 +175,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
 
     @Override
     public RuleBuilderImpl<C> newRule(String name) {
-        RuleBuilderImpl<C> rb = new RuleBuilderImpl<>(this, name, -1 * ruleCounter.getAndIncrement());
+        RuleBuilderImpl<C> rb = new RuleBuilderImpl<>(this, name, -1 * ruleCounter.next());
         this.ruleBuilders.add(rb);
         return rb;
     }

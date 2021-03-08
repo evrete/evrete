@@ -1,10 +1,15 @@
 package org.evrete.api;
 
+import org.evrete.runtime.FactType;
+import org.evrete.runtime.MemoryKeyCollection;
+
 import java.util.function.BiPredicate;
 
 public interface MemoryFactory {
 
     SharedBetaFactStorage newBetaStorage(ActiveField[] fields);
+
+    MemoryKeyCollection newMemoryKeyCollection(FactType[] types);
 
     ValueResolver getValueResolver();
 

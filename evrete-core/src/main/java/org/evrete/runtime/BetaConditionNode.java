@@ -19,6 +19,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         ValueResolver valueResolver = rule.getRuntime().memory.memoryFactory.getValueResolver();
         FactType[] allFactTypes = rule.getFactTypes();
         this.evaluationState = new MemoryKeyMeta[allFactTypes.length];
+
         for (FactType type : allFactTypes) {
             MemoryKeyMeta keyMeta;
             if (expression.getFactTypeMask().get(type.getInRuleIndex())) {
@@ -32,7 +33,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         }
 
         FactType[] myTypes = descriptor.getTypes();
-        this.saveFunction = value -> evaluationState[myTypes[value].getInRuleIndex()].currentKey;
+        this.saveFunction = i -> evaluationState[myTypes[i].getInRuleIndex()].currentKey;
         this.sourceMetas = new SourceMeta[sources.length];
         for (int i = 0; i < sources.length; i++) {
             sourceMetas[i] = new SourceMeta(sources[i]);
@@ -98,7 +99,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
     }
 
     private void forEachModeSelection(KeyMode destinationMode, KeyMode[] sourceModes) {
-        ZStoreI destination = getStore(destinationMode);
+        MemoryKeyCollection destination = getStore(destinationMode);
         for (int i = 0; i < sourceMetas.length; i++) {
             if (!sourceMetas[i].setIterator(sourceModes[i])) {
                 return;
@@ -112,7 +113,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         forEachMemoryKey(0, destination);
     }
 
-    private void forEachMemoryKey(int sourceIndex, ZStoreI destination) {
+    private void forEachMemoryKey(int sourceIndex, MemoryKeyCollection destination) {
         SourceMeta meta = this.sourceMetas[sourceIndex];
         ReIterator<MemoryKey> it = meta.currentIterator;
         if (it.reset() == 0) return;
@@ -123,7 +124,10 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
             setState(it, types);
             if (last) {
                 if (expression.test()) {
-                    destination.save(saveFunction);
+                    for (FactType type : getDescriptor().getTypes()) {
+                        destination.add(evaluationState[type.getInRuleIndex()].currentKey);
+                    }
+                    //destination.save(saveFunction);
                 }
             } else {
                 forEachMemoryKey(sourceIndex + 1, destination);

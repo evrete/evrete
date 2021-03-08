@@ -9,6 +9,7 @@ import org.evrete.collections.LinearHashSet;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 
+//TODO !!! create a base class for plain- and non-plain maps
 class FieldsFactMapPlain {
     private static final BiPredicate<MapEntry, MemoryKeyImplPlain> SEARCH_PREDICATE = (entry, memoryKey) -> entry.key.equals(memoryKey);
     private static final Function<MapEntry, MemoryKey> ENTRY_MAPPER = entry -> entry.key;
