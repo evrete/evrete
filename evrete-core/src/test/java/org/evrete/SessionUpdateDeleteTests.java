@@ -7,6 +7,7 @@ import org.evrete.classes.TypeC;
 import org.evrete.helper.FactEntry;
 import org.evrete.helper.RhsAssert;
 import org.evrete.helper.TestUtils;
+import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,7 +16,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.Collection;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.ToIntFunction;
 
@@ -44,7 +44,7 @@ class SessionUpdateDeleteTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void updateAlpha1(ActivationMode mode) {
-        AtomicInteger counter = new AtomicInteger();
+        NextIntSupplier counter = new NextIntSupplier();
         TypeA a = new TypeA();
 
         knowledge.newRule("test1")
@@ -54,7 +54,7 @@ class SessionUpdateDeleteTests {
                     TypeA $a = ctx.get("$a");
                     $a.setI($a.getI() + 1);
                     ctx.update($a);
-                    counter.incrementAndGet();
+                    counter.next();
                 });
         StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
@@ -66,7 +66,7 @@ class SessionUpdateDeleteTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void updateAlpha2(ActivationMode mode) {
-        AtomicInteger counter = new AtomicInteger();
+        NextIntSupplier counter = new NextIntSupplier();
         TypeA ref = new TypeA();
         ref.setAllNumeric(0);
         knowledge.newRule()
@@ -76,7 +76,7 @@ class SessionUpdateDeleteTests {
                     TypeA $a = ctx.get("$a");
                     $a.setD($a.getD() + 1.01);
                     ctx.update($a);
-                    counter.incrementAndGet();
+                    counter.next();
                 });
         StatefulSession s = knowledge.createSession().setActivationMode(mode);
         s.insertAndFire(ref);
@@ -87,7 +87,7 @@ class SessionUpdateDeleteTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void updateAlpha3(ActivationMode mode) {
-        AtomicInteger counter = new AtomicInteger();
+        NextIntSupplier counter = new NextIntSupplier();
 
         Type<TypeA> t = knowledge.getTypeResolver().declare(TypeA.class);
         TypeField field = t.declareField("length", (ToIntFunction<TypeA>) value -> value.getStr().length());
@@ -99,7 +99,7 @@ class SessionUpdateDeleteTests {
                 .where("$a.length < 10")
                 .execute(ctx -> {
                     TypeA $a = ctx.get("$a");
-                    int i = counter.getAndIncrement();
+                    int i = counter.next();
                     ctx.update($a.setStr($a.getStr() + i));
                 });
 
@@ -230,7 +230,7 @@ class SessionUpdateDeleteTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void updateBeta2(ActivationMode mode) {
-        AtomicInteger counter = new AtomicInteger();
+        NextIntSupplier counter = new NextIntSupplier();
 
         knowledge.newRule("update2")
                 .forEach(
@@ -240,7 +240,7 @@ class SessionUpdateDeleteTests {
                 )
                 .where("$a.i == $b.i", 2.0)
                 .where("$a.i != $c.i", 10.0)
-                .execute(ctx -> counter.getAndIncrement());
+                .execute(ctx -> counter.next());
         StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
@@ -313,7 +313,7 @@ class SessionUpdateDeleteTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void retractMemoryTest(ActivationMode mode) {
-        AtomicInteger counter = new AtomicInteger();
+        NextIntSupplier counter = new NextIntSupplier();
 
         knowledge.newRule()
                 .forEach(
@@ -321,7 +321,7 @@ class SessionUpdateDeleteTests {
                         fact("$b", TypeB.class)
                 )
                 .where("$a.i == $b.i")
-                .execute(ctx -> counter.getAndIncrement());
+                .execute(ctx -> counter.next());
         StatefulSession s = knowledge.createSession().setActivationMode(mode);
         //RuntimeRule rule = s.getRules().iterator().next();
 
@@ -371,7 +371,7 @@ class SessionUpdateDeleteTests {
     @EnumSource(ActivationMode.class)
     void retractBeta(ActivationMode mode) {
 
-        AtomicInteger counter = new AtomicInteger();
+        NextIntSupplier counter = new NextIntSupplier();
 
         knowledge.newRule()
                 .forEach(
@@ -381,7 +381,7 @@ class SessionUpdateDeleteTests {
                 )
                 .where("$a.i == $b.i")
                 .where("$a.i != $c.i")
-                .execute(ctx -> counter.getAndIncrement());
+                .execute(ctx -> counter.next());
         StatefulSession s = knowledge.createSession().setActivationMode(mode);
 
         // Initial state, zero objects
@@ -476,8 +476,8 @@ class SessionUpdateDeleteTests {
 
         s.fire();
 
-        AtomicInteger primeCounter = new AtomicInteger();
-        s.forEachFact((h, o) -> primeCounter.incrementAndGet());
+        NextIntSupplier primeCounter = new NextIntSupplier();
+        s.forEachFact((h, o) -> primeCounter.next());
 
         assert primeCounter.get() == 25 : "Actual: " + primeCounter.get(); // There are 25 prime numbers in the range [2...100]
         s.close();
@@ -508,8 +508,8 @@ class SessionUpdateDeleteTests {
 
         s.fire();
 
-        AtomicInteger primeCounter = new AtomicInteger();
-        s.forEachFact((h, o) -> primeCounter.incrementAndGet());
+        NextIntSupplier primeCounter = new NextIntSupplier();
+        s.forEachFact((h, o) -> primeCounter.next());
 
         assert primeCounter.get() == 25 : "Actual: " + primeCounter.get(); // There are 25 prime numbers in the range [2...100]
         s.close();
@@ -518,7 +518,7 @@ class SessionUpdateDeleteTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void externalUpdate1(ActivationMode mode) {
-        AtomicInteger counter = new AtomicInteger();
+        NextIntSupplier counter = new NextIntSupplier();
         StatefulSession session = knowledge
                 .newRule()
                 .forEach(
@@ -527,7 +527,7 @@ class SessionUpdateDeleteTests {
                 )
                 .where("$a.i > 0")
                 .execute(
-                        ctx -> counter.incrementAndGet()
+                        ctx -> counter.next()
                 )
                 .createSession()
                 .setActivationMode(mode);
@@ -557,7 +557,7 @@ class SessionUpdateDeleteTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void externalUpdate2(ActivationMode mode) {
-        AtomicInteger counter = new AtomicInteger();
+        NextIntSupplier counter = new NextIntSupplier();
         StatefulSession session = knowledge
                 .newRule()
                 .forEach(
@@ -566,7 +566,7 @@ class SessionUpdateDeleteTests {
                 )
                 .where("$a.i > 0")
                 .execute(
-                        ctx -> counter.incrementAndGet()
+                        ctx -> counter.next()
                 )
                 .createSession()
                 .setActivationMode(mode);
@@ -595,7 +595,7 @@ class SessionUpdateDeleteTests {
 
     @Test
     void externalUpdate3() {
-        AtomicInteger counter = new AtomicInteger();
+        NextIntSupplier counter = new NextIntSupplier();
 
         StatefulSession session = knowledge
                 .newRule("rule 1")
@@ -609,7 +609,7 @@ class SessionUpdateDeleteTests {
                             TypeA a = ctx.get("$a");
                             a.setI(-1);
                             ctx.update(a);
-                            counter.incrementAndGet();
+                            counter.next();
                         }
                 )
                 .newRule("rule 2")
@@ -623,7 +623,7 @@ class SessionUpdateDeleteTests {
                             TypeA a = ctx.get("$a");
                             a.setI(2);
                             ctx.update(a);
-                            counter.incrementAndGet();
+                            counter.next();
                         }
                 )
                 .createSession()

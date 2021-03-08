@@ -6,6 +6,7 @@ import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.classes.TypeD;
 import org.evrete.helper.RhsAssert;
+import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -16,7 +17,6 @@ import org.junit.jupiter.params.provider.EnumSource;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
 import static org.evrete.api.FactBuilder.fact;
@@ -124,31 +124,31 @@ class HotDeploymentTests {
         int ci = new Random().nextInt(10) + 1;
         int di = new Random().nextInt(10) + 1;
 
-        AtomicInteger id = new AtomicInteger(0);
+        NextIntSupplier id = new NextIntSupplier();
 
         for (int i = 0; i < ai; i++) {
-            int n = id.incrementAndGet();
+            int n = id.next();
             TypeA obj = new TypeA(String.valueOf(n));
             obj.setI(n);
             session.insert(obj);
         }
 
         for (int i = 0; i < bi; i++) {
-            int n = id.incrementAndGet();
+            int n = id.next();
             TypeB obj = new TypeB(String.valueOf(n));
             obj.setI(n);
             session.insert(obj);
         }
 
         for (int i = 0; i < ci; i++) {
-            int n = id.incrementAndGet();
+            int n = id.next();
             TypeC obj = new TypeC(String.valueOf(n));
             obj.setI(n);
             session.insert(obj);
         }
 
         for (int i = 0; i < di; i++) {
-            int n = id.incrementAndGet();
+            int n = id.next();
             TypeD obj = new TypeD(String.valueOf(n));
             obj.setI(n);
             session.insert(obj);
@@ -883,12 +883,12 @@ class HotDeploymentTests {
     void testAlpha6(ActivationMode mode) {
         session.setActivationMode(mode);
 
-        AtomicInteger ruleCounter1 = new AtomicInteger();
+        NextIntSupplier ruleCounter1 = new NextIntSupplier();
 
         session.newRule("rule 1")
                 .forEach("$i", Integer.class)
                 .execute(
-                        ctx -> ruleCounter1.incrementAndGet()
+                        ctx -> ruleCounter1.next()
                 );
 
         for (int i = 0; i < 10; i++) {
@@ -898,12 +898,12 @@ class HotDeploymentTests {
         assert ruleCounter1.get() == 10;
 
         // Another rule w/o alpha
-        AtomicInteger ruleCounter2 = new AtomicInteger();
+        NextIntSupplier ruleCounter2 = new NextIntSupplier();
         session.newRule("rule 2")
                 .forEach("$i", Integer.class)
                 .where("$i.intValue > 2")
                 .execute(
-                        ctx -> ruleCounter2.incrementAndGet()
+                        ctx -> ruleCounter2.next()
                 );
         session.fire();
         assert ruleCounter2.get() == 0; //3,4,5,6,7,8,9

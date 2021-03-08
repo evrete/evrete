@@ -2,17 +2,17 @@ package org.evrete.spi.minimal;
 
 import org.evrete.api.ValueHandle;
 import org.evrete.api.ValueResolver;
+import org.evrete.util.NextIntSupplier;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 class DefaultValueResolver implements ValueResolver {
     private static final ValueHandle NULL_HANDLE = new ValueHandleImpl(new int[]{-1, -1});
     private static final int INITIAL_TYPE_DATA_SIZE = 128;
     private final Map<String, Integer> typeIndices = new HashMap<>();
-    private final AtomicInteger typeIdCounter = new AtomicInteger(0);
+    private final NextIntSupplier typeIdCounter = new NextIntSupplier();
     private TypeData[] typeDataArr;
 
     DefaultValueResolver() {
@@ -35,7 +35,7 @@ class DefaultValueResolver implements ValueResolver {
         Integer typeIdx = typeIndices.get(typeKey);
         TypeData typeData;
         if (typeIdx == null) {
-            typeIdx = typeIdCounter.getAndIncrement();
+            typeIdx = typeIdCounter.next();
             typeData = new TypeData(typeIdx);
             if (typeIdx >= typeDataArr.length) {
                 typeDataArr = Arrays.copyOf(typeDataArr, typeDataArr.length * 2);
@@ -50,7 +50,7 @@ class DefaultValueResolver implements ValueResolver {
     private static class TypeData {
         private static final int INITIAL_VALUE_DATA_SIZE = 1024;
         private final Map<Object, ValueHandleImpl> idMap = new HashMap<>();
-        private final AtomicInteger idCounter = new AtomicInteger();
+        private final NextIntSupplier idCounter = new NextIntSupplier();
         private final int id;
         private Object[] values;
 
@@ -62,7 +62,7 @@ class DefaultValueResolver implements ValueResolver {
         ValueHandleImpl getHandle(Object value) {
             ValueHandleImpl handle = idMap.get(value);
             if (handle == null) {
-                int valueId = idCounter.getAndIncrement();
+                int valueId = idCounter.next();
                 handle = new ValueHandleImpl(new int[]{id, valueId});
                 idMap.put(value, handle);
 

@@ -6,6 +6,7 @@ import org.evrete.api.StatefulSession;
 import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.helper.RhsAssert;
+import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,8 +37,8 @@ class EvaluationListenersTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void plainTest(ActivationMode mode) {
-        AtomicInteger knowledgeListenerCounter = new AtomicInteger(0);
-        AtomicInteger sessionListenerCounter = new AtomicInteger(0);
+        NextIntSupplier knowledgeListenerCounter = new NextIntSupplier();
+        NextIntSupplier sessionListenerCounter = new NextIntSupplier();
 
         RhsAssert rhsAssert = new RhsAssert("$n", Integer.class);
         knowledge.newRule()
@@ -45,10 +46,10 @@ class EvaluationListenersTests {
                 .where("$n.intValue > 1")
                 .execute(rhsAssert);
 
-        knowledge.addListener((evaluator, values, result) -> knowledgeListenerCounter.incrementAndGet());
+        knowledge.addListener((evaluator, values, result) -> knowledgeListenerCounter.next());
 
         StatefulSession session = knowledge.createSession().setActivationMode(mode);
-        session.addListener((evaluator, values, result) -> sessionListenerCounter.incrementAndGet());
+        session.addListener((evaluator, values, result) -> sessionListenerCounter.next());
         session.insertAndFire(1, 2, 3);
         rhsAssert.assertCount(2).reset();
         assert knowledgeListenerCounter.get() == 3;

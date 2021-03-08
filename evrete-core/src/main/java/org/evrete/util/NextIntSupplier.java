@@ -3,10 +3,22 @@ package org.evrete.util;
 import org.evrete.api.Copyable;
 
 public class NextIntSupplier implements Copyable<NextIntSupplier> {
-    private int counter = 0;
+    private int counter;
+
+    public NextIntSupplier(int counter) {
+        this.counter = counter;
+    }
+
+    public NextIntSupplier() {
+        this(0);
+    }
 
     public int next() {
         return counter++;
+    }
+
+    public void set(int value) {
+        this.counter = value;
     }
 
     public int get() {
@@ -15,8 +27,6 @@ public class NextIntSupplier implements Copyable<NextIntSupplier> {
 
     @Override
     public NextIntSupplier copyOf() {
-        NextIntSupplier copy = new NextIntSupplier();
-        copy.counter = this.counter;
-        return copy;
+        return new NextIntSupplier(this.counter);
     }
 }

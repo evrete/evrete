@@ -4,6 +4,7 @@ import org.evrete.api.ReIterator;
 import org.evrete.classes.TypeA;
 import org.evrete.helper.IterableSet;
 import org.evrete.helper.TestUtils;
+import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -70,9 +71,9 @@ class FastHashSetTest {
         assert set1.size() == 3;
 
         Set<TypeA> javaSet = new HashSet<>();
-        AtomicInteger counter = new AtomicInteger(0);
+        NextIntSupplier counter = new NextIntSupplier();
         set1.forEach(a -> {
-            counter.incrementAndGet();
+            counter.next();
             javaSet.add(a);
         });
 

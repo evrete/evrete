@@ -1,12 +1,12 @@
 package org.evrete.runtime;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import org.evrete.util.NextIntSupplier;
 
 class ActivationContext {
-    private final AtomicInteger activationCount = new AtomicInteger(0);
+    private final NextIntSupplier activationCount = new NextIntSupplier();
 
 
     int incrementFireCount() {
-        return this.activationCount.getAndIncrement();
+        return this.activationCount.next();
     }
 }

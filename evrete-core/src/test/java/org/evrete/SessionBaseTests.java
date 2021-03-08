@@ -8,6 +8,7 @@ import org.evrete.helper.TestUtils;
 import org.evrete.runtime.StatefulSessionImpl;
 import org.evrete.runtime.builder.FactTypeBuilder;
 import org.evrete.runtime.builder.LhsBuilder;
+import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,7 +16,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 import static org.evrete.api.FactBuilder.fact;
@@ -195,8 +195,8 @@ class SessionBaseTests {
         StatefulSession session = knowledge.createSession();
         // Chaining RHS
         RuntimeRule rule = session.getRules().iterator().next();
-        AtomicInteger counter = new AtomicInteger();
-        rule.chainRhs(ctx -> counter.incrementAndGet());
+        NextIntSupplier counter = new NextIntSupplier();
+        rule.chainRhs(ctx -> counter.next());
 
         session.setActivationMode(mode);
         session.insertAndFire(1, 2);
