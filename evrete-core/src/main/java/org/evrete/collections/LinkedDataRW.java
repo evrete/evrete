@@ -26,11 +26,6 @@ public class LinkedDataRW<T> implements ReIterable<T> {
         return this;
     }
 
-    //TODO !!! the usage can be optimized
-    public void append(LinkedDataRW<T> other) {
-        other.iterator().forEachRemaining(LinkedDataRW.this::add);
-    }
-
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(",", "[", "]");

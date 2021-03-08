@@ -8,21 +8,21 @@ import java.util.StringJoiner;
 
 public class LinkedDataRWD<T> implements ReIterable<T> {
     private long size;
-    private Node<T> first;
-    private Node<T> last;
+    private Node<T> firstNode;
+    private Node<T> lastNode;
 
     public LinkedDataRWD<T> add(T object) {
         Node<T> node;
-        if (last == null) {
+        if (lastNode == null) {
             // First entry
             node = new Node<>(object, null);
-            this.first = node;
+            this.firstNode = node;
         } else {
-            node = new Node<>(object, last);
-            this.last.next = node;
-            node.prev = this.last;
+            node = new Node<>(object, lastNode);
+            this.lastNode.next = node;
+            node.prev = this.lastNode;
         }
-        this.last = node;
+        this.lastNode = node;
         updateSize(1);
         return this;
     }
@@ -47,19 +47,19 @@ public class LinkedDataRWD<T> implements ReIterable<T> {
      * @param other target data to consume and clear
      */
     public void consume(LinkedDataRWD<T> other) {
-        if (other.last == null) {
-            assert other.first == null && other.size == 0;
+        if (other.lastNode == null) {
+            assert other.firstNode == null && other.size == 0;
             return; // Nothing to append
         }
-        if (this.last == null) {
+        if (this.lastNode == null) {
             // This collection is empty
-            this.first = other.first();
-            this.last = other.last();
+            this.firstNode = other.first();
+            this.lastNode = other.last();
             this.size = other.size;
         } else {
-            this.last.next = other.first;
-            other.first.prev = this.last;
-            this.last = other.last;
+            this.lastNode.next = other.firstNode;
+            other.firstNode.prev = this.lastNode;
+            this.lastNode = other.lastNode;
         }
         updateSize(other.size);
         other.clear();
@@ -70,37 +70,52 @@ public class LinkedDataRWD<T> implements ReIterable<T> {
     }
 
     Node<T> first() {
-        return first;
+        return firstNode;
     }
 
     Node<T> last() {
-        return last;
+        return lastNode;
     }
 
     private void setFirst(Node<T> node) {
-        this.first = node;
+        this.firstNode = node;
         if (node == null) {
-            this.last = null;
+            this.lastNode = null;
             this.size = 0;
         } else {
-            this.first.prev = null;
+            this.firstNode.prev = null;
         }
     }
 
     private void setLast(Node<T> node) {
-        this.last = node;
+        this.lastNode = node;
         if (node == null) {
-            this.first = null;
+            this.firstNode = null;
             this.size = 0;
         } else {
-            this.last.next = null;
+            this.lastNode.next = null;
         }
     }
 
     public void clear() {
-        this.first = null;
-        this.last = null;
+        this.firstNode = null;
+        this.lastNode = null;
         this.size = 0;
+    }
+
+    private void removeNode(Node<T> last) {
+        updateSize(-1);
+        if (last.prev == null) {
+            // Last was the first node
+            setFirst(last.next);
+            last.clearRefs();
+        } else if (last.next == null) {
+            // Last was the last node
+            setLast(last.prev);
+            last.clearRefs();
+        } else {
+            last.drop();
+        }
     }
 
     @Override
@@ -128,6 +143,7 @@ public class LinkedDataRWD<T> implements ReIterable<T> {
             this.next = null;
             this.prev = null;
         }
+
     }
 
 
@@ -136,12 +152,12 @@ public class LinkedDataRWD<T> implements ReIterable<T> {
         Node<T> last;
 
         It() {
-            this.next = first;
+            this.next = firstNode;
         }
 
         @Override
         public long reset() {
-            this.next = first;
+            this.next = firstNode;
             this.last = null;
             return size;
         }
@@ -156,28 +172,16 @@ public class LinkedDataRWD<T> implements ReIterable<T> {
             if (next == null) {
                 throw new NoSuchElementException();
             } else {
-                last = next;
-                next = last.next;
-                return last.data;
+                this.last = this.next;
+                this.next = this.last.next;
+                return this.last.data;
             }
         }
 
         @Override
         public void remove() {
             if (last == null) throw new IllegalStateException("Iterator: remove() without next()");
-            // TODO move this to the enclosing class
-            updateSize(-1);
-            if (last.prev == null) {
-                // Last was the first node
-                setFirst(last.next);
-                last.clearRefs();
-            } else if (last.next == null) {
-                // Last was the last node
-                setLast(last.prev);
-                last.clearRefs();
-            } else {
-                last.drop();
-            }
+            removeNode(last);
         }
     }
 }

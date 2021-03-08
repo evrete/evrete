@@ -4,7 +4,10 @@ import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
@@ -129,15 +132,9 @@ public final class TypeMemory extends MemoryComponent {
      * @param newField newly created field
      */
     final void onNewActiveField(ActiveField newField) {
-        List<FactStorage.Entry<FactRecord>> data = new LinkedList<>();
-
-        //TODO !!! why creating a new list???
         ReIterator<FactStorage.Entry<FactRecord>> allFacts = factStorage.iterator();
         while (allFacts.hasNext()) {
-            data.add(allFacts.next());
-        }
-
-        for (FactStorage.Entry<FactRecord> rec : data) {
+            FactStorage.Entry<FactRecord> rec = allFacts.next();
             Object fieldValue = newField.readValue(rec.getInstance().instance);
             ValueHandle valueHandle = valueResolver.getValueHandle(newField.getValueType(), fieldValue);
             rec.getInstance().appendValue(newField, valueHandle);
