@@ -52,9 +52,7 @@ class DefaultValueResolver implements ValueResolver {
         private final Map<Object, ValueHandleImpl> idMap = new HashMap<>();
         private final AtomicInteger idCounter = new AtomicInteger();
         private final int id;
-        //private ValueHandleImpl[] values;
         private Object[] values;
-
 
         TypeData(int id) {
             this.id = id;

@@ -34,6 +34,10 @@ public class Bits implements Copyable<Bits> {
         delegate.set(index);
     }
 
+    public void or(Bits other) {
+        delegate.or(other.delegate);
+    }
+
     private boolean intersects(Bits other) {
         return delegate.intersects(other.delegate);
     }

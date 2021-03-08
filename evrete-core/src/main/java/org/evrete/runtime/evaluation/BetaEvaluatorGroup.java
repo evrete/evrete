@@ -1,35 +1,29 @@
 package org.evrete.runtime.evaluation;
 
 import org.evrete.api.ComplexityObject;
-import org.evrete.api.Copyable;
 import org.evrete.api.EvaluationListener;
-import org.evrete.api.EvaluationListeners;
 import org.evrete.runtime.BetaEvaluationValues;
-import org.evrete.runtime.BetaFieldReference;
 import org.evrete.runtime.FactType;
 import org.evrete.util.Bits;
 
 import java.util.*;
 
-public class BetaEvaluatorGroup implements ComplexityObject, Copyable<BetaEvaluatorGroup>, EvaluationListeners {
+public class BetaEvaluatorGroup implements BetaEvaluator {
     public static final BetaEvaluatorGroup[] ZERO_ARRAY = new BetaEvaluatorGroup[0];
-    private final BetaEvaluator[] evaluators;
+    private final BetaEvaluatorSingle[] evaluators;
     private final Bits factTypeMask;
     private final Set<FactType> descriptor;
     private final double complexity;
 
-    BetaEvaluatorGroup(Collection<BetaEvaluator> collection) {
+    BetaEvaluatorGroup(Collection<BetaEvaluatorSingle> collection) {
         this.factTypeMask = new Bits();
-        this.evaluators = collection.toArray(BetaEvaluator.ZERO_ARRAY);
+        this.evaluators = collection.toArray(BetaEvaluatorSingle.ZERO_ARRAY);
         Arrays.sort(evaluators, Comparator.comparingDouble(ComplexityObject::getComplexity));
         Set<FactType> factTypes = new HashSet<>();
         double comp = 0.0;
-        for (BetaEvaluator ei : evaluators) {
-            for (BetaFieldReference ref : ei.betaDescriptor()) {
-                FactType t = ref.getFactType();
-                factTypes.add(t);
-                factTypeMask.set(t.getInRuleIndex());
-            }
+        for (BetaEvaluatorSingle ei : evaluators) {
+            factTypes.addAll(ei.factTypes());
+            factTypeMask.or(ei.getFactTypeMask());
             comp += ei.getComplexity();
         }
         this.complexity = comp;
@@ -40,7 +34,7 @@ public class BetaEvaluatorGroup implements ComplexityObject, Copyable<BetaEvalua
         this.factTypeMask = other.factTypeMask;
         this.complexity = other.complexity;
         this.descriptor = other.descriptor;
-        this.evaluators = new BetaEvaluator[other.evaluators.length];
+        this.evaluators = new BetaEvaluatorSingle[other.evaluators.length];
         for (int i = 0; i < this.evaluators.length; i++) {
             this.evaluators[i] = other.evaluators[i].copyOf();
         }
@@ -53,14 +47,14 @@ public class BetaEvaluatorGroup implements ComplexityObject, Copyable<BetaEvalua
 
     @Override
     public void addListener(EvaluationListener listener) {
-        for (BetaEvaluator e : evaluators) {
+        for (BetaEvaluatorSingle e : evaluators) {
             e.addListener(listener);
         }
     }
 
     @Override
     public void removeListener(EvaluationListener listener) {
-        for (BetaEvaluator e : evaluators) {
+        for (BetaEvaluatorSingle e : evaluators) {
             e.removeListener(listener);
         }
     }
@@ -71,7 +65,7 @@ public class BetaEvaluatorGroup implements ComplexityObject, Copyable<BetaEvalua
     }
 
     public boolean test() {
-        for (BetaEvaluator evaluator : evaluators) {
+        for (BetaEvaluatorSingle evaluator : evaluators) {
             if (!evaluator.test()) {
                 return false;
             }
@@ -80,19 +74,17 @@ public class BetaEvaluatorGroup implements ComplexityObject, Copyable<BetaEvalua
     }
 
     public void setEvaluationState(BetaEvaluationValues betaEvaluationValues) {
-        for (BetaEvaluator evaluator : evaluators) {
+        for (BetaEvaluatorSingle evaluator : evaluators) {
             evaluator.setEvaluationState(betaEvaluationValues);
         }
     }
 
-    public Set<FactType> descriptor() {
+    @Override
+    public Set<FactType> factTypes() {
         return descriptor;
     }
 
-    public int getTotalTypesInvolved() {
-        return descriptor.size();
-    }
-
+    @Override
     public Bits getFactTypeMask() {
         return factTypeMask;
     }

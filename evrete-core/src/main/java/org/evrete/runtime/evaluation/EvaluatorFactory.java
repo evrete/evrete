@@ -13,37 +13,41 @@ import java.util.stream.Collectors;
 
 public final class EvaluatorFactory {
 
-    public static Collection<BetaEvaluatorGroup> flattenEvaluators(Collection<EvaluatorWrapper> rawEvaluators, Function<NamedType, FactType> typeFunction) {
-        Collection<BetaEvaluator> evaluators = convert(rawEvaluators, typeFunction);
+    public static Collection<BetaEvaluator> flattenEvaluators(Collection<EvaluatorWrapper> rawEvaluators, Function<NamedType, FactType> typeFunction) {
+        Collection<BetaEvaluatorSingle> evaluators = convert(rawEvaluators, typeFunction);
 
-        MapOfSet<Set<FactType>, BetaEvaluator> groupedConditions = new MapOfSet<>();
+        MapOfSet<Set<FactType>, BetaEvaluatorSingle> groupedConditions = new MapOfSet<>();
 
         // Group conditions by involved fact type builders
-        for (BetaEvaluator e : evaluators) {
+        for (BetaEvaluatorSingle e : evaluators) {
             Set<FactType> set = Arrays.stream(e.betaDescriptor()).map(BetaFieldReference::getFactType).collect(Collectors.toSet());
             groupedConditions.computeIfAbsent(set, k -> new HashSet<>()).add(e);
         }
 
         // Union conditions if they share the same set of fact types
-        Collection<BetaEvaluatorGroup> result = new ArrayList<>(groupedConditions.size());
-        for (Map.Entry<Set<FactType>, Set<BetaEvaluator>> entry : groupedConditions.entrySet()) {
+        Collection<BetaEvaluator> result = new ArrayList<>(groupedConditions.size());
+        for (Map.Entry<Set<FactType>, Set<BetaEvaluatorSingle>> entry : groupedConditions.entrySet()) {
             // FactType.toArray(entry.getKey(), typeFunction);
-            Collection<BetaEvaluator> collection = entry.getValue();
-            result.add(flattenEvaluators(collection));
+            Collection<BetaEvaluatorSingle> collection = entry.getValue();
+            if (collection.size() == 1) {
+                result.add(collection.iterator().next());
+            } else {
+                result.add(flattenEvaluators(collection));
+            }
         }
         return result;
     }
 
-    private static Collection<BetaEvaluator> convert(Collection<EvaluatorWrapper> rawEvaluators, Function<NamedType, FactType> typeFunction) {
-        Collection<BetaEvaluator> evaluators = new ArrayList<>(rawEvaluators.size());
+    private static Collection<BetaEvaluatorSingle> convert(Collection<EvaluatorWrapper> rawEvaluators, Function<NamedType, FactType> typeFunction) {
+        Collection<BetaEvaluatorSingle> evaluators = new ArrayList<>(rawEvaluators.size());
         for (EvaluatorWrapper e : rawEvaluators) {
             validateExpression(e);
-            evaluators.add(new BetaEvaluator(e, typeFunction));
+            evaluators.add(new BetaEvaluatorSingle(e, typeFunction));
         }
         return evaluators;
     }
 
-    private static BetaEvaluatorGroup flattenEvaluators(Collection<BetaEvaluator> collection) {
+    private static BetaEvaluatorGroup flattenEvaluators(Collection<BetaEvaluatorSingle> collection) {
         assert collection.size() > 0;
         return new BetaEvaluatorGroup(collection);
     }

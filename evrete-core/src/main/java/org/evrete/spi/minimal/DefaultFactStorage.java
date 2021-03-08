@@ -37,7 +37,7 @@ class DefaultFactStorage<T> implements FactStorage<T> {
 
     @Override
     public T getFact(FactHandle handle) {
-        return this.collection.getFact(handle);
+        return this.collection.getFact((FactHandleImpl) handle);
     }
 
     @Override
@@ -122,10 +122,8 @@ class DefaultFactStorage<T> implements FactStorage<T> {
             }
         }
 
-        T getFact(FactHandle handle) {
-            FactHandleImpl impl = (FactHandleImpl) handle;
-            int addr = findBinIndex(impl, impl.hash, searchByHandle);
-            Tuple<T> t = get(addr);
+        T getFact(FactHandleImpl impl) {
+            Tuple<T> t = get(findBinIndex(impl, impl.hash, searchByHandle));
             return t == null ? null : t.object;
         }
     }

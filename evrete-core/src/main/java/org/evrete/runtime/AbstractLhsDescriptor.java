@@ -3,7 +3,7 @@ package org.evrete.runtime;
 import org.evrete.api.NamedType;
 import org.evrete.runtime.builder.AbstractLhsBuilder;
 import org.evrete.runtime.builder.FactTypeBuilder;
-import org.evrete.runtime.evaluation.BetaEvaluatorGroup;
+import org.evrete.runtime.evaluation.BetaEvaluator;
 import org.evrete.runtime.evaluation.EvaluatorFactory;
 import org.evrete.runtime.evaluation.EvaluatorWrapper;
 import org.evrete.util.MapFunction;
@@ -72,14 +72,14 @@ abstract class AbstractLhsDescriptor {
         Set<EvaluatorWrapper> betaConditions = new HashSet<>(lhsBuilder.getBetaConditions());
         if (betaConditions.isEmpty()) return ConditionNodeDescriptor.ZERO_ARRAY;
 
-        final List<BetaEvaluatorGroup> evaluators = new ArrayList<>(EvaluatorFactory.flattenEvaluators(betaConditions, mapping));
+        final List<BetaEvaluator> evaluators = new ArrayList<>(EvaluatorFactory.flattenEvaluators(betaConditions, mapping));
         if (evaluators.isEmpty()) throw new IllegalStateException();
 
         double maxComplexity = Double.MIN_VALUE;
         double minComplexity = Double.MAX_VALUE;
         Set<FactType> betaTypes = new HashSet<>();
 
-        for (BetaEvaluatorGroup g : evaluators) {
+        for (BetaEvaluator g : evaluators) {
             double complexity = g.getComplexity();
             if (complexity <= 0.0) throw new IllegalStateException("Complexity must be a positive value");
 
@@ -91,20 +91,20 @@ abstract class AbstractLhsDescriptor {
                 minComplexity = complexity;
             }
 
-            betaTypes.addAll(g.descriptor());
+            betaTypes.addAll(g.factTypes());
 
         }
 
         // MinMax complexities (times
-        Map<BetaEvaluatorGroup, Double> minMaxComplexities = new HashMap<>();
-        for (BetaEvaluatorGroup g : evaluators) {
+        Map<BetaEvaluator, Double> minMaxComplexities = new HashMap<>();
+        for (BetaEvaluator g : evaluators) {
             double newComplexity = 1.0 + (g.getComplexity() - minComplexity) / (maxComplexity - minComplexity);
             minMaxComplexities.put(g, newComplexity * g.getTotalTypesInvolved());
         }
 
         // Sorting
         // Same complexity
-        evaluators.sort(Comparator.comparingDouble((ToDoubleFunction<BetaEvaluatorGroup>) minMaxComplexities::get).thenComparing(BetaEvaluatorGroup::toString));
+        evaluators.sort(Comparator.comparingDouble((ToDoubleFunction<BetaEvaluator>) minMaxComplexities::get).thenComparing(BetaEvaluator::toString));
 
         Collection<ConditionNodeDescriptor> finalNodes = ConditionNodeDescriptor.allocateConditions(betaTypes, evaluators);
         return finalNodes.toArray(ConditionNodeDescriptor.ZERO_ARRAY);

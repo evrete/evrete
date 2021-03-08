@@ -1,7 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.*;
-import org.evrete.runtime.evaluation.BetaEvaluatorGroup;
+import org.evrete.runtime.evaluation.BetaEvaluator;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -11,8 +11,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
     private final MemoryKeyMeta[] evaluationState;
     private final SourceMeta[] sourceMetas;
     private final IntToMemoryKey saveFunction;
-    private final BetaEvaluatorGroup expression;
-
+    private final BetaEvaluator expression;
 
     BetaConditionNode(RuntimeRuleImpl rule, ConditionNodeDescriptor descriptor, BetaMemoryNode[] sources) {
         super(rule, descriptor, sources);
@@ -139,7 +138,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         }
     }
 
-    BetaEvaluatorGroup getExpression() {
+    BetaEvaluator getExpression() {
         return expression;
     }
 
