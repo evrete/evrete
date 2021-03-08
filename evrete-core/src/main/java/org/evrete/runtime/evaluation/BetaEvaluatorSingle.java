@@ -1,9 +1,6 @@
 package org.evrete.runtime.evaluation;
 
-import org.evrete.api.FieldReference;
-import org.evrete.api.IntToValue;
-import org.evrete.api.NamedType;
-import org.evrete.api.TypeField;
+import org.evrete.api.*;
 import org.evrete.runtime.BetaEvaluationValues;
 import org.evrete.runtime.BetaFieldReference;
 import org.evrete.runtime.FactType;
@@ -21,10 +18,12 @@ public class BetaEvaluatorSingle extends EvaluatorWrapper implements BetaEvaluat
     private final Bits factTypeMask;
     private final Set<FactType> descriptor1;
     private IntToValue stateValues;
+    private final Set<ActiveField> fields;
 
     BetaEvaluatorSingle(EvaluatorWrapper delegate, Function<NamedType, FactType> typeFunction) {
         super(delegate);
         this.factTypeMask = new Bits();
+        this.fields = new HashSet<>();
         FieldReference[] evaluatorDescriptor = delegate.descriptor();
         this.descriptor = new BetaFieldReference[evaluatorDescriptor.length];
         Set<FactType> factTypes = new HashSet<>();
@@ -32,8 +31,10 @@ public class BetaEvaluatorSingle extends EvaluatorWrapper implements BetaEvaluat
             FieldReference fieldReference = evaluatorDescriptor[i];
             FactType factType = typeFunction.apply(fieldReference.type());
             TypeField field = fieldReference.field();
-            this.descriptor[i] = new BetaFieldReference(factType, field);
+            BetaFieldReference bfr = new BetaFieldReference(factType, field);
+            this.descriptor[i] = bfr;
             factTypeMask.set(factType.getInRuleIndex());
+            fields.add(bfr.getActiveField());
             factTypes.add(factType);
         }
 
@@ -46,6 +47,12 @@ public class BetaEvaluatorSingle extends EvaluatorWrapper implements BetaEvaluat
         this.descriptor = other.descriptor;
         this.stateValues = other.stateValues;
         this.descriptor1 = other.descriptor1;
+        this.fields = other.fields;
+    }
+
+    @Override
+    public boolean evaluatesField(ActiveField field) {
+        return this.fields.contains(field);
     }
 
     @Override

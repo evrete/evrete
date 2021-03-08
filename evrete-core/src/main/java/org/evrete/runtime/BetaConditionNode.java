@@ -3,37 +3,37 @@ package org.evrete.runtime;
 import org.evrete.api.*;
 import org.evrete.runtime.evaluation.BetaEvaluator;
 
-import java.util.Arrays;
 import java.util.function.Consumer;
 
 public class BetaConditionNode extends AbstractBetaConditionNode {
     static final BetaConditionNode[] EMPTY_ARRAY = new BetaConditionNode[0];
-    private final MemoryKeyMeta[] evaluationState;
+    private final MemoryKeyNode[] evaluationState;
     private final SourceMeta[] sourceMetas;
-    private final IntToMemoryKey saveFunction;
     private final BetaEvaluator expression;
+    private final CachingEvaluator cachingEvaluator;
 
     BetaConditionNode(RuntimeRuleImpl rule, ConditionNodeDescriptor descriptor, BetaMemoryNode[] sources) {
         super(rule, descriptor, sources);
         this.expression = descriptor.getExpression().copyOf();
         ValueResolver valueResolver = rule.getRuntime().memory.memoryFactory.getValueResolver();
         FactType[] allFactTypes = rule.getFactTypes();
-        this.evaluationState = new MemoryKeyMeta[allFactTypes.length];
+        this.evaluationState = new MemoryKeyNode[allFactTypes.length];
+
+        this.cachingEvaluator = new CachingEvaluator(this.expression);
 
         for (FactType type : allFactTypes) {
-            MemoryKeyMeta keyMeta;
+            MemoryKeyNode keyMeta;
             if (expression.getFactTypeMask().get(type.getInRuleIndex())) {
                 // This fact type is a part of condition evaluation
-                keyMeta = new MemoryKeyMetaWithValues(type, valueResolver);
+                keyMeta = new ConditionMemoryKeyNode(type, valueResolver, expression, cachingEvaluator);
             } else {
                 // This is a pass-through type, no field value reads are required
-                keyMeta = new MemoryKeyMeta();
+                keyMeta = new MemoryKeyNode();
             }
             this.evaluationState[type.getInRuleIndex()] = keyMeta;
         }
 
-        FactType[] myTypes = descriptor.getTypes();
-        this.saveFunction = i -> evaluationState[myTypes[i].getInRuleIndex()].currentKey;
+
         this.sourceMetas = new SourceMeta[sources.length];
         for (int i = 0; i < sources.length; i++) {
             sourceMetas[i] = new SourceMeta(sources[i]);
@@ -57,29 +57,8 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         }
     }
 
-
-/*
-    private void debug() {
-        System.out.println("Node:\t" + this + "\tsources:\t" + Arrays.toString(getSources()));
-        System.out.println("\t\t\t\t\t\t\t\ttypes:\t\t" + Arrays.toString(getDescriptor().getTypes()));
-        for (KeyMode keyMode : KeyMode.values()) {
-            System.out.println("\t" + keyMode);
-            ReIterator<MemoryKey[]> it = iterator(keyMode);
-            it.reset();
-            int counter = 0;
-            while (it.hasNext()) {
-                MemoryKey[] rows = it.next();
-                System.out.println("\t\t" + counter + "\t" + Arrays.toString(rows));
-                counter++;
-            }
-        }
-        System.out.println("\n");
-    }
-*/
-
     public void computeDelta(boolean deltaOnly) {
         forEachKeyMode(0, false, false, new KeyMode[this.sourceMetas.length], deltaOnly);
-        //debug();
     }
 
     private void forEachKeyMode(int sourceIndex, boolean hasDelta, boolean hasKnownKeys, KeyMode[] modes, boolean deltaOnly) {
@@ -106,7 +85,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
             }
         }
         // Reset cached states
-        for (MemoryKeyMeta meta : evaluationState) {
+        for (MemoryKeyNode meta : evaluationState) {
             meta.clear();
         }
         // Evaluate current mode selection
@@ -123,11 +102,10 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         while (it.hasNext()) {
             setState(it, types);
             if (last) {
-                if (expression.test()) {
+                if (cachingEvaluator.test()) {
                     for (FactType type : getDescriptor().getTypes()) {
                         destination.add(evaluationState[type.getInRuleIndex()].currentKey);
                     }
-                    //destination.save(saveFunction);
                 }
             } else {
                 forEachMemoryKey(sourceIndex + 1, destination);
@@ -137,7 +115,6 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
 
     private void setState(ReIterator<MemoryKey> it, FactType[] types) {
         for (FactType type : types) {
-            //MemoryKey row = it.next();
             this.evaluationState[type.getInRuleIndex()].setKey(it.next());
         }
     }
@@ -175,10 +152,10 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         }
     }
 
-    private static class MemoryKeyMeta {
+    private static class MemoryKeyNode {
         MemoryKey currentKey;
 
-        MemoryKeyMeta() {
+        MemoryKeyNode() {
         }
 
         void clear() {
@@ -194,43 +171,102 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         }
     }
 
-    private static class MemoryKeyMetaWithValues extends MemoryKeyMeta {
-        private final ActiveField[] fields;
-        private final ValueHandle[] cachedValueHandles;
-        private final Object[] cachedFieldValues;
-        private final ValueResolver valueResolver;
+    private static class ConditionMemoryKeyNode extends MemoryKeyNode {
+        private final FieldNode[] fieldNodes;
 
-        MemoryKeyMetaWithValues(FactType type, ValueResolver valueResolver) {
-            this.fields = type.getFields().getFields();
-            this.valueResolver = valueResolver;
-            this.cachedValueHandles = new ValueHandle[this.fields.length];
-            this.cachedFieldValues = new Object[this.fields.length];
+        ConditionMemoryKeyNode(FactType type, ValueResolver valueResolver, BetaEvaluator evaluator, CachingEvaluator cachingEvaluator) {
+            ActiveField[] fields = type.getFields().getFields();
+            this.fieldNodes = new FieldNode[fields.length];
+
+            for (int i = 0; i < fields.length; i++) {
+                ActiveField field = fields[i];
+                FieldNode fieldNode;
+                if (evaluator.evaluatesField(field)) {
+                    fieldNode = new ConditionFieldNode(valueResolver, cachingEvaluator);
+                } else {
+                    fieldNode = new FieldNode(valueResolver);
+                }
+                this.fieldNodes[i] = fieldNode;
+            }
         }
 
         void clear() {
             super.clear();
-            Arrays.fill(this.cachedValueHandles, null);
-            Arrays.fill(this.cachedFieldValues, null);
+            for (FieldNode fn : fieldNodes) fn.clear();
         }
 
         Object value(int fieldIndex) {
-            return cachedFieldValues[fieldIndex];
+            return fieldNodes[fieldIndex].value;
         }
 
         public void setKey(MemoryKey key) {
             if (key != this.currentKey) {
-                for (int i = 0; i < fields.length; i++) {
-                    ValueHandle argHandle = key.get(i);
-                    ValueHandle saved = cachedValueHandles[i];
-                    if (argHandle != saved) {
-                        // Reading field value
-                        cachedFieldValues[i] = valueResolver.getValue(argHandle);
-                        cachedValueHandles[i] = argHandle;
-                    }
+                for (int i = 0; i < fieldNodes.length; i++) {
+                    fieldNodes[i].update(key.get(i));
                 }
                 this.currentKey = key;
             }
         }
     }
 
+    private static class FieldNode {
+        final ValueResolver valueResolver;
+        protected Object value;
+        ValueHandle lastHandle;
+
+        FieldNode(ValueResolver valueResolver) {
+            this.valueResolver = valueResolver;
+        }
+
+        final void clear() {
+            this.lastHandle = null;
+            this.value = null;
+        }
+
+        void update(ValueHandle handle) {
+            if (handle != lastHandle) {
+                value = valueResolver.getValue(handle);
+                lastHandle = handle;
+            }
+        }
+    }
+
+    private static class ConditionFieldNode extends FieldNode {
+        private final CachingEvaluator evaluator;
+
+        ConditionFieldNode(ValueResolver valueResolver, CachingEvaluator evaluator) {
+            super(valueResolver);
+            this.evaluator = evaluator;
+        }
+
+        void update(ValueHandle handle) {
+            if (handle != lastHandle) {
+                value = valueResolver.getValue(handle);
+                lastHandle = handle;
+                evaluator.valuesChanged();
+            }
+        }
+    }
+
+    private static class CachingEvaluator {
+        private final BetaEvaluator delegate;
+        private boolean cached = false;
+        private boolean lastResponse;
+
+        CachingEvaluator(BetaEvaluator delegate) {
+            this.delegate = delegate;
+        }
+
+        void valuesChanged() {
+            cached = false;
+        }
+
+        boolean test() {
+            if (!cached) {
+                lastResponse = delegate.test();
+                cached = true;
+            }
+            return lastResponse;
+        }
+    }
 }

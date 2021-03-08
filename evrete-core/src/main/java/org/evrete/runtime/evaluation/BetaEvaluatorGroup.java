@@ -1,5 +1,6 @@
 package org.evrete.runtime.evaluation;
 
+import org.evrete.api.ActiveField;
 import org.evrete.api.ComplexityObject;
 import org.evrete.api.EvaluationListener;
 import org.evrete.runtime.BetaEvaluationValues;
@@ -38,6 +39,17 @@ public class BetaEvaluatorGroup implements BetaEvaluator {
         for (int i = 0; i < this.evaluators.length; i++) {
             this.evaluators[i] = other.evaluators[i].copyOf();
         }
+    }
+
+
+    @Override
+    public boolean evaluatesField(ActiveField field) {
+        for (BetaEvaluatorSingle e : this.evaluators) {
+            if (e.evaluatesField(field)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

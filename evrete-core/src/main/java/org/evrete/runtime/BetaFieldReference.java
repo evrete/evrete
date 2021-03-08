@@ -1,14 +1,17 @@
 package org.evrete.runtime;
 
+import org.evrete.api.ActiveField;
 import org.evrete.api.TypeField;
 
 public final class BetaFieldReference {
     private final FactType factType;
     private final int fieldIndex;
+    private final ActiveField activeField;
 
     public BetaFieldReference(FactType factType, TypeField field) {
         this.factType = factType;
         this.fieldIndex = factType.findFieldPosition(field);
+        this.activeField = factType.getFields().getFields()[this.fieldIndex];
     }
 
     public FactType getFactType() {
@@ -17,6 +20,10 @@ public final class BetaFieldReference {
 
     int getFieldIndex() {
         return fieldIndex;
+    }
+
+    public ActiveField getActiveField() {
+        return activeField;
     }
 
     @Override
