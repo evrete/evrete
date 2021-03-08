@@ -6,19 +6,7 @@ import java.util.function.BiPredicate;
 
 class DefaultMemoryFactory implements MemoryFactory {
     private final DefaultValueResolver valueResolver = new DefaultValueResolver();
-    private static final int MIN_KEYS_STORE_CAPACITY = 64;
     private static final int MIN_FACT_STORAGE_CAPACITY = 4098;
-
-    private static KeysStore factory(int[] arraySizes, int level) {
-        int depth = arraySizes.length;
-        int arrSize = arraySizes[level];
-        assert arrSize > 0;
-        if (level == depth - 1) {
-            return new KeysStorePlain(level, arrSize);
-        } else {
-            return new KeysStoreMap(MIN_KEYS_STORE_CAPACITY, level, arrSize, () -> factory(arraySizes, level + 1));
-        }
-    }
 
     @Override
     public ValueResolver getValueResolver() {
@@ -35,13 +23,11 @@ class DefaultMemoryFactory implements MemoryFactory {
         if (fields.length == 0) {
             return new SharedAlphaData();
         } else {
-            return new SharedBetaData(fields);
+            return fields.length == 1 ?
+                    new SharedBetaDataPlain(fields[0])
+                    :
+                    new SharedBetaData(fields)
+                    ;
         }
     }
-
-    @Override
-    public KeysStore newKeyStore(int[] factTypeCounts) {
-        return factory(factTypeCounts, 0);
-    }
-
 }
