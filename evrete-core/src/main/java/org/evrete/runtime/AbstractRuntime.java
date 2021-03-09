@@ -32,6 +32,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
     private Comparator<Rule> ruleComparator = SALIENCE_COMPARATOR;
     private Class<? extends ActivationManager> activationManagerFactory;
     private ActivationMode agendaMode;
+    private final Configuration configuration;
 
     /**
      * Constructor for a Knowledge object
@@ -40,6 +41,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
      */
     AbstractRuntime(KnowledgeService service) {
         super();
+        this.configuration = service.getConfiguration().copyOf();
         this.parent = null;
         this.ruleCounter = new NextIntSupplier();
         //this.alphaConditions = new AlphaConditions();
@@ -58,6 +60,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
     AbstractRuntime(AbstractRuntime<?> parent) {
         super(parent);
         this.parent = parent;
+        this.configuration = parent.getConfiguration().copyOf();
         this.ruleCounter = parent.ruleCounter.copyOf();
         this.ruleDescriptors = new ArrayList<>(parent.ruleDescriptors);
         this.service = parent.service;

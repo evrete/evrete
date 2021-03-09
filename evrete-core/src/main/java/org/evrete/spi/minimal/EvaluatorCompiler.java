@@ -49,9 +49,9 @@ class EvaluatorCompiler {
         return compiler.getClassLoader();
     }
 
-    private MethodHandle compileExpression(String className, String classJavaSource) {
+    private MethodHandle compileExpression(String classJavaSource) {
         try {
-            Class<?> compiledClass = compiler.compile(className, classJavaSource);
+            Class<?> compiledClass = compiler.compile(classJavaSource);
             return (MethodHandle) compiledClass.getDeclaredField("HANDLE").get(null);
         } catch (RuntimeException e) {
             throw e;
@@ -102,7 +102,6 @@ class EvaluatorCompiler {
 
         String pkg = this.getClass().getPackage().getName() + ".compiled";
         String clazz = "Condition" + javaClassCounter.next();
-        String className = pkg + "." + clazz;
         String classJavaSource = String.format(
                 JAVA_EVALUATOR_TEMPLATE,
                 pkg,
@@ -121,7 +120,7 @@ class EvaluatorCompiler {
 
         FieldReference[] descriptor = descriptorBuilder.toArray(FieldReference.ZERO_ARRAY);
         if (descriptor.length == 0) throw new IllegalStateException("No field references were resolved.");
-        MethodHandle methodHandle = compileExpression(className, classJavaSource);
+        MethodHandle methodHandle = compileExpression(classJavaSource);
         return new CompiledEvaluator(methodHandle, remover.getOriginal(), comparableClassSource, descriptor);
 
     }

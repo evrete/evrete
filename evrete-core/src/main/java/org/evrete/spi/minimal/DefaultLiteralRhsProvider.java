@@ -16,9 +16,9 @@ public class DefaultLiteralRhsProvider extends LeastImportantServiceProvider imp
 
     @SuppressWarnings("unchecked")
     private static Class<? extends AbstractLiteralRhs> buildClass(JcCompiler compiler, FactType[] types, String literalRhs, Collection<String> imports) {
-        String className = "Rhs" + classCounter.getAndIncrement();
-        String source = buildSource(className, types, literalRhs, imports);
-        return (Class<? extends AbstractLiteralRhs>) compiler.compile(className, source);
+        String simpleName = "Rhs" + classCounter.getAndIncrement();
+        String source = buildSource(simpleName, types, literalRhs, imports);
+        return (Class<? extends AbstractLiteralRhs>) compiler.compile(source);
     }
 
     private static String buildSource(String className, FactType[] types, String literalRhs, Collection<String> imports) {

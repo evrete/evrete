@@ -15,7 +15,7 @@ public class SingleSourceCompiler {
         this.compiler = ToolProvider.getSystemJavaCompiler();
     }
 
-    public final byte[] compileToBytes(String className, String source, ClassLoader classLoader) {
+    public final byte[] compileToBytes(String source, ClassLoader classLoader) {
         synchronized (compiler) {
             FileManager<?> fileManager = FileManager.instance(compiler, classLoader);
             DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
@@ -27,7 +27,7 @@ public class SingleSourceCompiler {
                         diagnostics,
                         null,
                         null,
-                        JavaSource.task(className, source)
+                        JavaSource.task(source)
                 ).call();
             } catch (Throwable t) {
                 throw new CompilationException(t.getCause());
@@ -42,7 +42,7 @@ public class SingleSourceCompiler {
                         errors.add(diagnostic.toString());
                     }
                 }
-                LOGGER.log(Level.SEVERE, "\n---- UNCOMPILABLE SOURCE START ----\n" + source + "\n----- UNCOMPILABLE SOURCE END -----");
+                LOGGER.log(Level.SEVERE, "\n" + source + "\n");
                 throw new CompilationException("Unknown compilation error: " + errors + ". Check with error logs for the source code in question.");
             }
         }

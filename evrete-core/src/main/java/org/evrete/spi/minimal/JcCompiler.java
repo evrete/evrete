@@ -1,22 +1,23 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.RuntimeContext;
+import org.evrete.util.compiler.CompiledClassLoader;
 import org.evrete.util.compiler.SingleSourceCompiler;
 
 class JcCompiler extends SingleSourceCompiler {
-    private final JcClassLoader classLoader;
+    private final CompiledClassLoader classLoader;
 
     JcCompiler(RuntimeContext<?> ctx) {
-        this.classLoader = new JcClassLoader(ctx.getClassLoader());
+        this.classLoader = new CompiledClassLoader(ctx.getClassLoader());
     }
 
-    JcClassLoader getClassLoader() {
+    CompiledClassLoader getClassLoader() {
         return classLoader;
     }
 
-    Class<?> compile(String className, String source) {
-        byte[] bytes = super.compileToBytes(className, source, classLoader.getParent());
-        return classLoader.buildClass(className, bytes);
+    Class<?> compile(String source) {
+        byte[] bytes = super.compileToBytes(source, classLoader.getParent());
+        return classLoader.buildClass(bytes);
     }
 
 }
