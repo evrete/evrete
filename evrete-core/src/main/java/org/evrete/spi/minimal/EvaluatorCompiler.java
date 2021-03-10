@@ -4,6 +4,7 @@ import org.evrete.api.Evaluator;
 import org.evrete.api.FieldReference;
 import org.evrete.api.IntToValue;
 import org.evrete.util.NextIntSupplier;
+import org.evrete.util.StringLiteralRemover;
 
 import java.lang.invoke.MethodHandle;
 import java.util.ArrayList;

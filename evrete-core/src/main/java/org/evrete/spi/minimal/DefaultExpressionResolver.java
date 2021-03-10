@@ -3,6 +3,7 @@ package org.evrete.spi.minimal;
 import org.evrete.api.*;
 import org.evrete.util.BaseConditionClass;
 import org.evrete.util.NextIntSupplier;
+import org.evrete.util.StringLiteralRemover;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,7 +68,7 @@ class DefaultExpressionResolver implements ExpressionResolver {
 
     @Override
     public synchronized Evaluator buildExpression(String rawExpression, Function<String, NamedType> resolver) {
-        StringLiteralRemover remover = StringLiteralRemover.of(rawExpression);
+        StringLiteralRemover remover = StringLiteralRemover.of(rawExpression, true);
         String strippedExpression = remover.getConverted();
         Matcher m = REFERENCE_PATTERN.matcher(strippedExpression);
         List<ConditionStringTerm> terms = new ArrayList<>();

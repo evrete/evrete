@@ -15,7 +15,17 @@ public class SingleSourceCompiler {
         this.compiler = ToolProvider.getSystemJavaCompiler();
     }
 
-    public final byte[] compileToBytes(String source, ClassLoader classLoader) {
+    public final Class<?> compile(String source, ClassLoader classLoader) {
+        CompiledClassLoader cl;
+        if (classLoader instanceof CompiledClassLoader) {
+            cl = (CompiledClassLoader) classLoader;
+        } else {
+            cl = new CompiledClassLoader(classLoader);
+        }
+        return compile(source, cl);
+    }
+
+    public final Class<?> compile(String source, CompiledClassLoader classLoader) {
         synchronized (compiler) {
             FileManager<?> fileManager = FileManager.instance(compiler, classLoader);
             DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
@@ -30,11 +40,11 @@ public class SingleSourceCompiler {
                         JavaSource.task(source)
                 ).call();
             } catch (Throwable t) {
-                throw new CompilationException(t.getCause());
+                throw new CompilationException(t);
             }
 
             if (success) {
-                return fileManager.getBytes();
+                return classLoader.buildClass(fileManager.getBytes());
             } else {
                 StringJoiner errors = new StringJoiner(", ");
                 for (Diagnostic<?> diagnostic : diagnostics.getDiagnostics()) {

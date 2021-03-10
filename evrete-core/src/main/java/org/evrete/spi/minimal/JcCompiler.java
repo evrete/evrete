@@ -16,8 +16,7 @@ class JcCompiler extends SingleSourceCompiler {
     }
 
     Class<?> compile(String source) {
-        byte[] bytes = super.compileToBytes(source, classLoader.getParent());
-        return classLoader.buildClass(bytes);
+        return compile(source, classLoader);
     }
 
 }

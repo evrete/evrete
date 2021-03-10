@@ -1,9 +1,9 @@
-package org.evrete.spi.minimal;
+package org.evrete.util;
 
 import java.util.HashMap;
 import java.util.Map;
 
-class StringLiteralRemover {
+public class StringLiteralRemover {
     private static final String PREFIX = "${const";
     private static final String SUFFIX = "}";
     private static final char[] QUOTES = new char[]{'\'', '"', '`'};
@@ -19,7 +19,7 @@ class StringLiteralRemover {
         this.stringConstantMap = stringConstantMap;
     }
 
-    public static StringLiteralRemover of(String s) {
+    public static StringLiteralRemover of(String s, boolean stripWhiteSpaces) {
 
         // First name and replace all String constants
         int stringConstantId = 0;
@@ -46,9 +46,15 @@ class StringLiteralRemover {
         }
 
         // Now it's safe to remove all the whitespaces
-        current = current.replaceAll("\\s", "");
+        if (stripWhiteSpaces) {
+            current = current.replaceAll("\\s", "");
+        }
 
         return new StringLiteralRemover(s, current, stringConstantMap);
+    }
+
+    public Map<String, String> getConstantMap() {
+        return stringConstantMap;
     }
 
     public String unwrapLiterals(String arg) {
