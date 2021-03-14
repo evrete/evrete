@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 public @interface Where {
     /**
      * <p>
-     * This annotation value defines an array of literal conditions like "[$c.type == $cat.id, $c.rating > 30.0]".
+     * This annotation value defines an array of literal conditions like "[$c.type == $cat.id, $c.rating &gt; 30.0]".
      * The implementation must parse and match every condition with the method signature.
      * So in the example above the annotated method might look like <code>void doSomething(Customer $a, Category $cat)</code>
      * </p>

@@ -17,16 +17,21 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.evrete.dsl.JavaSourceDSLProvider.LOGGER;
+import static org.evrete.dsl.JavaDSLSourceProvider.LOGGER;
 
 class JavaClassRuleSet {
     private final List<RuleMethod> ruleMethods;
     private final Class<?> ruleSetClass;
     private final Object instance;
 
-    JavaClassRuleSet(Class<?> clazz, Object instance) {
+    JavaClassRuleSet(Class<?> clazz) {
+        try {
+            this.instance = clazz.getConstructor().newInstance();
+        } catch (Throwable t) {
+            throw new MalformedResourceException("Unable to create instance of " + clazz.getName() + ". Rule set must be a pubic class with zero-argument constructor.", t);
+        }
+
         this.ruleSetClass = clazz;
-        this.instance = instance;
         // Scan and store methods via reflection
         Method[] classMethods = clazz.getMethods();
         this.ruleMethods = new ArrayList<>(classMethods.length);
@@ -50,13 +55,27 @@ class JavaClassRuleSet {
             LOGGER.warning("No rule methods found in the source, ruleset is empty");
         } else {
             // How to sort rules when no salience is specified
-            RuleSortPolicy sortPolicy = clazz.getAnnotation(RuleSortPolicy.class);
-            Sort defaultSortMethod = sortPolicy == null ? Sort.DEFAULT : sortPolicy.value();
-            ruleMethods.sort(new RuleComparator(defaultSortMethod));
+            Sort defaultSort = deriveSort(clazz);
+            defaultSort = defaultSort == null ? Sort.DEFAULT : defaultSort;
+            ruleMethods.sort(new RuleComparator(defaultSort));
+        }
+    }
+
+    private static Sort deriveSort(Class<?> clazz) {
+        RuleSortPolicy policy = clazz.getAnnotation(RuleSortPolicy.class);
+        if (policy != null) {
+            return policy.value();
+        } else {
+            Class<?> parent = clazz.getSuperclass();
+            if (parent.equals(Object.class)) {
+                return null;
+            } else {
+                return deriveSort(parent);
+            }
         }
 
-
     }
+
 
     List<RuleMethod> getRuleMethods() {
         return ruleMethods;

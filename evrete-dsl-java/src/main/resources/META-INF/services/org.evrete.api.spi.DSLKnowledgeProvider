@@ -1,1 +1,3 @@
-org.evrete.dsl.JavaSourceDSLProvider
+org.evrete.dsl.JavaDSLSourceProvider
+org.evrete.dsl.JavaDSLClassProvider
+org.evrete.dsl.JavaDSLJarProvider

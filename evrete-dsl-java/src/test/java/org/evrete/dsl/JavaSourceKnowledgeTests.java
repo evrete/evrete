@@ -16,7 +16,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
 
-class BaseTests {
+class JavaSourceKnowledgeTests {
     private static KnowledgeService service;
     private Knowledge runtime;
 
@@ -35,11 +35,15 @@ class BaseTests {
         runtime = service.newKnowledge();
     }
 
+    private StatefulSession session(ActivationMode mode) {
+        return runtime.createSession().setActivationMode(mode);
+    }
+
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void sort1(ActivationMode mode) {
         applyToRuntime("src/test/resources/java/SortTest1.java");
-        StatefulSession session = runtime.createSession().setActivationMode(mode);
+        StatefulSession session = session(mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 3;
         assert rules.get(0).getName().endsWith("rule1");
@@ -51,7 +55,7 @@ class BaseTests {
     @EnumSource(ActivationMode.class)
     void sort2(ActivationMode mode) {
         applyToRuntime("src/test/resources/java/SortTest2.java");
-        StatefulSession session = runtime.createSession().setActivationMode(mode);
+        StatefulSession session = session(mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 3;
         assert rules.get(0).getName().endsWith("rule1");
@@ -63,7 +67,7 @@ class BaseTests {
     @EnumSource(ActivationMode.class)
     void sort3(ActivationMode mode) {
         applyToRuntime("src/test/resources/java/SortTest3.java");
-        StatefulSession session = runtime.createSession().setActivationMode(mode);
+        StatefulSession session = session(mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 3;
         assert rules.get(0).getName().endsWith("rule3");
@@ -75,7 +79,7 @@ class BaseTests {
     @EnumSource(ActivationMode.class)
     void sort4(ActivationMode mode) {
         applyToRuntime("src/test/resources/java/SortTest4.java");
-        StatefulSession session = runtime.createSession().setActivationMode(mode);
+        StatefulSession session = session(mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 5;
         assert rules.get(0).getName().endsWith("rule2"); // Salience 100
@@ -89,7 +93,7 @@ class BaseTests {
     @EnumSource(ActivationMode.class)
     void primeNonStaticMethod(ActivationMode mode) {
         applyToRuntime("src/test/resources/java/PrimeNumbers1.java");
-        StatefulSession session = runtime.createSession().setActivationMode(mode);
+        StatefulSession session = session(mode);
 
         assert session.getRules().size() == 1;
         for (int i = 2; i < 100; i++) {
@@ -108,7 +112,7 @@ class BaseTests {
     @EnumSource(ActivationMode.class)
     void primeStaticMethod(ActivationMode mode) {
         applyToRuntime("src/test/resources/java/PrimeNumbers2.java");
-        StatefulSession session = runtime.createSession().setActivationMode(mode);
+        StatefulSession session = session(mode);
 
         assert session.getRules().size() == 1;
         for (int i = 2; i < 100; i++) {
@@ -127,7 +131,7 @@ class BaseTests {
     @EnumSource(ActivationMode.class)
     void primeNonStaticMethodNonStaticCondition(ActivationMode mode) {
         applyToRuntime("src/test/resources/java/PrimeNumbers3.java");
-        StatefulSession session = runtime.createSession().setActivationMode(mode);
+        StatefulSession session = session(mode);
 
         assert session.getRules().size() == 1;
         for (int i = 2; i < 100; i++) {
@@ -145,7 +149,7 @@ class BaseTests {
     @EnumSource(ActivationMode.class)
     void primeNonStaticMethodStaticCondition(ActivationMode mode) {
         applyToRuntime("src/test/resources/java/PrimeNumbers4.java");
-        StatefulSession session = runtime.createSession().setActivationMode(mode);
+        StatefulSession session = session(mode);
 
         assert session.getRules().size() == 1;
         for (int i = 2; i < 100; i++) {
@@ -163,7 +167,7 @@ class BaseTests {
     @EnumSource(ActivationMode.class)
     void primeStaticMethodStaticCondition(ActivationMode mode) {
         applyToRuntime("src/test/resources/java/PrimeNumbers5.java");
-        StatefulSession session = runtime.createSession().setActivationMode(mode);
+        StatefulSession session = session(mode);
 
         assert session.getRules().size() == 1;
         for (int i = 2; i < 100; i++) {
@@ -180,7 +184,7 @@ class BaseTests {
 
     private void applyToRuntime(String file) {
         try {
-            runtime.appendDslRules(JavaSourceDSLProvider.NAME, new FileInputStream(file));
+            runtime.appendDslRules(JavaDSLSourceProvider.NAME, new FileInputStream(file));
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
