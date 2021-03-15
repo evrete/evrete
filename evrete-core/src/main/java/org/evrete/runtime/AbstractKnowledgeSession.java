@@ -24,13 +24,6 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
         }
     }
 
-
-    @Override
-    protected TypeResolver newTypeResolver() {
-        return getParentContext().getTypeResolver().copyOf();
-    }
-
-
     private void reSortRules() {
         ruleStorage.sort(getRuleComparator());
     }

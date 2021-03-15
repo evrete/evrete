@@ -3,6 +3,9 @@ package org.evrete.api;
 import org.evrete.Configuration;
 import org.evrete.runtime.RuleDescriptor;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.Comparator;
 import java.util.List;
 
@@ -15,6 +18,7 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
 
     boolean ruleExists(String name);
 
+    //TODO !!! make it generic, return runtime rule or rule descriptor
     List<RuleDescriptor> getRuleDescriptors();
 
     Kind getKind();
@@ -33,6 +37,8 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
 
     C setActivationMode(ActivationMode agendaMode);
 
+    ExpressionResolver getExpressionResolver();
+
     ClassLoader getClassLoader();
 
     void setClassLoader(ClassLoader classLoader);
@@ -46,6 +52,10 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
     TypeResolver getTypeResolver();
 
     Configuration getConfiguration();
+
+    void appendDslRules(String dsl, InputStream inputStream) throws IOException;
+
+    void appendDslRules(String dsl, URL... resources) throws IOException;
 
     enum Kind {
         KNOWLEDGE, SESSION

@@ -101,10 +101,41 @@ class TypeResolverImpl implements TypeResolver {
         }
     }
 
+    private static Class<?> primitiveClassForName(String className) {
+        switch (className) {
+            case "boolean":
+                return boolean.class;
+            case "byte":
+                return byte.class;
+            case "short":
+                return short.class;
+            case "int":
+                return int.class;
+            case "long":
+                return long.class;
+            case "float":
+                return float.class;
+            case "double":
+                return double.class;
+            case "char":
+                return char.class;
+            case "void":
+                return void.class;
+            default:
+                return null;
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private <T> Class<T> classForName(String javaType) {
+
         try {
-            return (Class<T>) Class.forName(javaType, true, classLoader);
+            Class<?> clazz = primitiveClassForName(javaType);
+            if (clazz == null) {
+                clazz = classLoader.loadClass(javaType);
+            }
+            return (Class<T>) clazz;
+            //return (Class<T>) Class.forName(javaType, true, classLoader);
         } catch (ClassNotFoundException e) {
             return null;
         }

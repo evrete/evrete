@@ -40,7 +40,7 @@ class MemoryKeyImpl implements MemoryKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MemoryKeyImpl other = (MemoryKeyImpl) o;
-        return other.transientValue == this.transientValue && MiscUtils.sameData(other.data, data);
+        return other.transientValue == this.transientValue && Arrays.equals(other.data, data);
     }
 
     @Override

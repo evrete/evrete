@@ -37,7 +37,7 @@ class HotDeploymentTests {
 
     @BeforeEach
     void init() {
-        session = service.newKnowledge().createSession();
+        session = service.newSession();
     }
 
     @ParameterizedTest

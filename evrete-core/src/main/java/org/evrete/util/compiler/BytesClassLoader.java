@@ -1,8 +1,8 @@
 package org.evrete.util.compiler;
 
-public class CompiledClassLoader extends ClassLoader {
+public class BytesClassLoader extends ClassLoader {
 
-    public CompiledClassLoader(ClassLoader parent) {
+    public BytesClassLoader(ClassLoader parent) {
         super(parent);
     }
 
@@ -11,7 +11,7 @@ public class CompiledClassLoader extends ClassLoader {
             Class<?> cl = defineClass(null, bytes, 0, bytes.length);
             return loadClass(cl.getName());
         } catch (Throwable t) {
-            throw new CompilationException(t);
+            throw new IllegalStateException(t);
         }
     }
 }

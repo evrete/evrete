@@ -72,6 +72,10 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         return self();
     }
 
+    public final RuntimeContext<C> getRuntime() {
+        return ruleBuilder.getRuntime();
+    }
+
     public G where(String expression, double complexity) {
         addExpression(expression, complexity);
         return self();

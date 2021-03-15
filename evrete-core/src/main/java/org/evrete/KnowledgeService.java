@@ -2,6 +2,7 @@ package org.evrete;
 
 import org.evrete.api.Knowledge;
 import org.evrete.api.OrderedServiceProvider;
+import org.evrete.api.StatefulSession;
 import org.evrete.api.spi.ExpressionResolverProvider;
 import org.evrete.api.spi.LiteralRhsCompiler;
 import org.evrete.api.spi.MemoryFactoryProvider;
@@ -13,16 +14,16 @@ import java.util.*;
 
 public class KnowledgeService {
     private final Configuration configuration;
-    private final ForkJoinExecutor executor = new ForkJoinExecutor();
+    private final ForkJoinExecutor executor;
     private final MemoryFactoryProvider collectionsServiceProvider;
     private final ExpressionResolverProvider expressionResolverProvider;
     private final TypeResolverProvider typeResolverProvider;
     private final LiteralRhsCompiler literalRhsProvider;
     private ClassLoader classLoader;
 
-
-    public KnowledgeService(Configuration configuration) {
-        this.configuration = configuration;
+    public KnowledgeService(Configuration conf) {
+        this.configuration = conf;
+        this.executor = new ForkJoinExecutor(conf.getAsInteger(Configuration.PARALLELISM, Runtime.getRuntime().availableProcessors()));
         this.collectionsServiceProvider = loadService(MemoryFactoryProvider.class);
         this.expressionResolverProvider = loadService(ExpressionResolverProvider.class);
         this.typeResolverProvider = loadService(TypeResolverProvider.class);
@@ -59,6 +60,11 @@ public class KnowledgeService {
         return new KnowledgeRuntime(this);
     }
 
+    public StatefulSession newSession() {
+        return newKnowledge().createSession();
+    }
+
+    //TODO !!! class gets GCed, no need call the method explicitly, remove the call from code samples
     public void shutdown() {
         this.executor.shutdown();
     }
@@ -79,7 +85,7 @@ public class KnowledgeService {
         return expressionResolverProvider;
     }
 
-    public LiteralRhsCompiler getLiteralRhsProvider() {
+    public LiteralRhsCompiler getLiteralRhsCompiler() {
         return literalRhsProvider;
     }
 

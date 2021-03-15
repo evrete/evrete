@@ -3,16 +3,18 @@ package org.evrete.runtime;
 import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
-import org.evrete.api.spi.LiteralRhsCompiler;
+import org.evrete.api.spi.DSLKnowledgeProvider;
 import org.evrete.runtime.async.ForkJoinExecutor;
 import org.evrete.runtime.builder.FactTypeBuilder;
 import org.evrete.runtime.builder.RuleBuilderImpl;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.EvaluatorWrapper;
 import org.evrete.util.DefaultActivationManager;
-import org.evrete.util.LazyInstance;
 import org.evrete.util.NextIntSupplier;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -22,11 +24,9 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
     private final List<RuleDescriptor> ruleDescriptors;
     private final NextIntSupplier ruleCounter;
 
-    //private final AlphaConditions alphaConditions;
     private final KnowledgeService service;
-    private final LazyInstance<ExpressionResolver> expressionResolver = new LazyInstance<>(this::newExpressionResolver);
-    private final LazyInstance<TypeResolver> typeResolver = new LazyInstance<>(this::newTypeResolver);
-    private final LazyInstance<LiteralRhsCompiler> rhsCompiler = new LazyInstance<>(this::newLiteralLhsProvider);
+    private ExpressionResolver expressionResolver;
+    private TypeResolver typeResolver;
     private final AbstractRuntime<?> parent;
     private ClassLoader classLoader;
     private Comparator<Rule> ruleComparator = SALIENCE_COMPARATOR;
@@ -44,12 +44,12 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
         this.configuration = service.getConfiguration().copyOf();
         this.parent = null;
         this.ruleCounter = new NextIntSupplier();
-        //this.alphaConditions = new AlphaConditions();
         this.ruleDescriptors = new ArrayList<>();
         this.service = service;
         this.activationManagerFactory = DefaultActivationManager.class;
         this.classLoader = service.getClassLoader();
         this.agendaMode = ActivationMode.DEFAULT;
+        this.typeResolver = service.getTypeResolverProvider().instance(this);
     }
 
     /**
@@ -60,7 +60,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
     AbstractRuntime(AbstractRuntime<?> parent) {
         super(parent);
         this.parent = parent;
-        this.configuration = parent.getConfiguration().copyOf();
+        this.configuration = parent.configuration.copyOf();
         this.ruleCounter = parent.ruleCounter.copyOf();
         this.ruleDescriptors = new ArrayList<>(parent.ruleDescriptors);
         this.service = parent.service;
@@ -68,10 +68,8 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
         this.activationManagerFactory = parent.activationManagerFactory;
         this.classLoader = parent.classLoader;
         this.agendaMode = parent.agendaMode;
+        this.typeResolver = parent.typeResolver.copyOf();
     }
-
-    protected abstract TypeResolver newTypeResolver();
-
 
     ActivationMode getAgendaMode() {
         return agendaMode;
@@ -82,6 +80,41 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
     public C setActivationMode(ActivationMode agendaMode) {
         this.agendaMode = agendaMode;
         return (C) this;
+    }
+
+    private static DSLKnowledgeProvider getDslProvider(String dsl) {
+        Objects.requireNonNull(dsl);
+        ServiceLoader<DSLKnowledgeProvider> loader = ServiceLoader.load(DSLKnowledgeProvider.class);
+
+        List<DSLKnowledgeProvider> found = new LinkedList<>();
+        StringJoiner knownProviders = new StringJoiner(",", "[", "]");
+        for (DSLKnowledgeProvider provider : loader) {
+            String name = provider.getName();
+            if (dsl.equals(name)) {
+                found.add(provider);
+            }
+            knownProviders.add("'" + name + "' = " + provider.getClass());
+        }
+
+        if (found.isEmpty()) {
+            throw new IllegalStateException("DSL provider '" + dsl + "' is not found. Make sure the corresponding implementation is available on the classpath. Available providers: " + knownProviders);
+        }
+
+        if (found.size() > 1) {
+            throw new IllegalStateException("Multiple DSL providers found implementing the '" + dsl + "' language. Known providers: " + knownProviders);
+        } else {
+            return found.iterator().next();
+        }
+    }
+
+    @Override
+    public void appendDslRules(String dsl, InputStream inputStream) throws IOException {
+        getDslProvider(dsl).apply(this, inputStream);
+    }
+
+    @Override
+    public void appendDslRules(String dsl, URL... resources) throws IOException {
+        getDslProvider(dsl).apply(this, resources);
     }
 
     @Override
@@ -105,12 +138,12 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
 
     @Override
     public final void wrapTypeResolver(TypeResolverWrapper wrapper) {
-        this.typeResolver.set(wrapper);
+        this.typeResolver = wrapper;
     }
 
     @Override
     public final TypeResolver getTypeResolver() {
-        return typeResolver.get();
+        return typeResolver;
     }
 
     @Override
@@ -191,15 +224,7 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
 
     @Override
     public Configuration getConfiguration() {
-        return service.getConfiguration();
-    }
-
-    private ExpressionResolver newExpressionResolver() {
-        return service.getExpressionResolverProvider().instance(this);
-    }
-
-    private LiteralRhsCompiler newLiteralLhsProvider() {
-        return service.getLiteralRhsProvider();
+        return this.configuration;
     }
 
     @Override
@@ -219,11 +244,14 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
     }
 
     Consumer<RhsContext> compile(String literalRhs, FactType[] factTypes, Collection<String> imports) {
-        return rhsCompiler.get().compileRhs(this, literalRhs, Arrays.asList(factTypes), imports);
+        return service.getLiteralRhsCompiler().compileRhs(this, literalRhs, Arrays.asList(factTypes), imports);
     }
 
-    public ExpressionResolver getExpressionResolver() {
-        return expressionResolver.get();
+    @Override
+    public final synchronized ExpressionResolver getExpressionResolver() {
+        if (expressionResolver == null) {
+            expressionResolver = service.getExpressionResolverProvider().instance(this);
+        }
+        return expressionResolver;
     }
-
 }

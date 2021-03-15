@@ -33,7 +33,6 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
             this.evaluationState[type.getInRuleIndex()] = keyMeta;
         }
 
-
         this.sourceMetas = new SourceMeta[sources.length];
         for (int i = 0; i < sources.length; i++) {
             sourceMetas[i] = new SourceMeta(sources[i]);

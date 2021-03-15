@@ -187,6 +187,9 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         return properties.keySet();
     }
 
+    //TODO !!!! non-lazy initialization isn't working
+    public abstract ExpressionResolver getExpressionResolver();
+
     private static class TypeMeta implements Copyable<TypeMeta> {
         private ActiveField[] activeFields;
         private AlphaEvaluator[] alphaEvaluators;

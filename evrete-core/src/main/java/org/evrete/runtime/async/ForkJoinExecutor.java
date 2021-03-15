@@ -8,10 +8,6 @@ public class ForkJoinExecutor {
     private static final AtomicInteger poolCounter = new AtomicInteger(0);
     private final ForkJoinPool delegate;
 
-    public ForkJoinExecutor() {
-        this(Runtime.getRuntime().availableProcessors());
-    }
-
     public ForkJoinExecutor(int parallelism) {
         this.delegate = new ForkJoinPool(parallelism, new EvreteForkJoinWorkerThreadFactory(), null, false);
     }

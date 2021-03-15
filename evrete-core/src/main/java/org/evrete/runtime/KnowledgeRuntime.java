@@ -21,11 +21,6 @@ public class KnowledgeRuntime extends AbstractRuntime<Knowledge> implements Know
     }
 
     @Override
-    protected TypeResolver newTypeResolver() {
-        return getService().getTypeResolverProvider().instance(this);
-    }
-
-    @Override
     public void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
         // Do nothing
     }

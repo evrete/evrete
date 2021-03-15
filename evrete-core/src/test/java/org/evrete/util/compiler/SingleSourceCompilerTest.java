@@ -21,8 +21,8 @@ class SingleSourceCompilerTest {
 
 
         ClassLoader parentClassLoader = Thread.currentThread().getContextClassLoader();
-        SingleSourceCompiler compiler = new SingleSourceCompiler();
-        CompiledClassLoader classLoader = new CompiledClassLoader(parentClassLoader);
+        SourceCompiler compiler = new SourceCompiler();
+        BytesClassLoader classLoader = new BytesClassLoader(parentClassLoader);
         Class<?> clazz = compiler.compile(code, classLoader);
         assert clazz.getClassLoader() == classLoader;
         assert clazz.getPackage().getName().equals("test.pkg");

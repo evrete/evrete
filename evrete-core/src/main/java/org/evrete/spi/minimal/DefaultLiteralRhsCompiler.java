@@ -10,9 +10,9 @@ import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-public class DefaultLiteralRhsProvider extends LeastImportantServiceProvider implements LiteralRhsCompiler {
+public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider implements LiteralRhsCompiler {
     private static final AtomicInteger classCounter = new AtomicInteger(0);
-    private static final String classPackage = DefaultLiteralRhsProvider.class.getPackage().getName() + ".rhs";
+    private static final String classPackage = DefaultLiteralRhsCompiler.class.getPackage().getName() + ".rhs";
 
     @SuppressWarnings("unchecked")
     private static Class<? extends AbstractLiteralRhs> buildClass(JcCompiler compiler, FactType[] types, String literalRhs, Collection<String> imports) {
