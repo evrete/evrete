@@ -2,7 +2,6 @@ package org.evrete.dsl;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.ActivationMode;
-import org.evrete.api.Knowledge;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
 import org.evrete.dsl.rules.*;
@@ -18,9 +17,9 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 
-class JavaClassTests {
+class JavaClassSessionTests {
     private static KnowledgeService service;
-    private Knowledge runtime;
+    private StatefulSession runtime;
 
     @BeforeAll
     static void setUpClass() {
@@ -34,11 +33,11 @@ class JavaClassTests {
 
     @BeforeEach
     void init() {
-        runtime = service.newKnowledge();
+        runtime = service.newSession();
     }
 
     private StatefulSession session(ActivationMode mode) {
-        return runtime.createSession().setActivationMode(mode);
+        return runtime.setActivationMode(mode);
     }
 
     @ParameterizedTest

@@ -1,12 +1,12 @@
 package org.evrete.dsl.rules;
 
-import org.evrete.dsl.Sort;
+import org.evrete.dsl.DefaultSort;
 import org.evrete.dsl.annotation.Fact;
 import org.evrete.dsl.annotation.Rule;
 import org.evrete.dsl.annotation.RuleSortPolicy;
 
 @SuppressWarnings("unused")
-@RuleSortPolicy(Sort.BY_NAME_INVERSE)
+@RuleSortPolicy(DefaultSort.BY_NAME_INVERSE)
 public class SortedRuleSet2 extends SortedRuleSetBase2 {
 
     @Rule(salience = 10)

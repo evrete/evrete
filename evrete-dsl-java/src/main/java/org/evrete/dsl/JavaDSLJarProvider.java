@@ -1,5 +1,7 @@
 package org.evrete.dsl;
 
+import org.evrete.KnowledgeService;
+import org.evrete.api.Knowledge;
 import org.evrete.api.RuntimeContext;
 import org.evrete.api.spi.DSLKnowledgeProvider;
 
@@ -11,7 +13,7 @@ import java.util.logging.Logger;
 public class JavaDSLJarProvider extends AbstractJavaDSLProvider implements DSLKnowledgeProvider {
     static final String NAME = "JAVA-JAR";
     private static final Logger LOGGER = Logger.getLogger(JavaDSLJarProvider.class.getName());
-    private static final String CLASSES_PROPERTY = "org.evrete.dsl.classes";
+    static final String CLASSES_PROPERTY = "org.evrete.dsl.rule-classes";
     private static final String EMPTY_CLASSES = "";
 
     @Override
@@ -20,7 +22,14 @@ public class JavaDSLJarProvider extends AbstractJavaDSLProvider implements DSLKn
     }
 
     @Override
-    public void apply(RuntimeContext<?> targetContext, URL... resources) throws IOException {
+    public Knowledge create(KnowledgeService service, URL... resources) throws IOException {
+        Knowledge knowledge = service.newKnowledge();
+        apply(knowledge, resources);
+        return knowledge;
+    }
+
+    @Override
+    public void apply(RuntimeContext<?> targetContext, URL... resources) {
         if (resources == null || resources.length == 0) return;
         URLClassLoader loader = new URLClassLoader(resources, targetContext.getClassLoader());
         String ruleSets = (String) targetContext.getConfiguration().getOrDefault(CLASSES_PROPERTY, EMPTY_CLASSES);

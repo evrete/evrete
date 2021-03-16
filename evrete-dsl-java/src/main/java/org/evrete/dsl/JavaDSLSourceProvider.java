@@ -1,5 +1,7 @@
 package org.evrete.dsl;
 
+import org.evrete.KnowledgeService;
+import org.evrete.api.Knowledge;
 import org.evrete.api.RuntimeContext;
 import org.evrete.api.spi.DSLKnowledgeProvider;
 import org.evrete.util.compiler.BytesClassLoader;
@@ -30,6 +32,13 @@ public class JavaDSLSourceProvider extends AbstractJavaDSLProvider implements DS
     @Override
     public String getName() {
         return NAME;
+    }
+
+    @Override
+    public Knowledge create(KnowledgeService service, URL... resources) throws IOException {
+        Knowledge knowledge = service.newKnowledge();
+        apply(knowledge, resources);
+        return knowledge;
     }
 
     @Override

@@ -55,13 +55,13 @@ class JavaClassRuleSet {
             LOGGER.warning("No rule methods found in the source, ruleset is empty");
         } else {
             // How to sort rules when no salience is specified
-            Sort defaultSort = deriveSort(clazz);
-            defaultSort = defaultSort == null ? Sort.DEFAULT : defaultSort;
+            DefaultSort defaultSort = deriveSort(clazz);
+            defaultSort = defaultSort == null ? DefaultSort.DEFAULT : defaultSort;
             ruleMethods.sort(new RuleComparator(defaultSort));
         }
     }
 
-    private static Sort deriveSort(Class<?> clazz) {
+    private static DefaultSort deriveSort(Class<?> clazz) {
         RuleSortPolicy policy = clazz.getAnnotation(RuleSortPolicy.class);
         if (policy != null) {
             return policy.value();

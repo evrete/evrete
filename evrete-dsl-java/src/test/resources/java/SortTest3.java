@@ -3,9 +3,9 @@ package org.mypackage;
 import org.evrete.dsl.annotation.Fact;
 import org.evrete.dsl.annotation.Rule;
 import org.evrete.dsl.annotation.RuleSortPolicy;
-import org.evrete.dsl.Sort;
+import org.evrete.dsl.DefaultSort;
 
-@RuleSortPolicy(Sort.BY_NAME_INVERSE)
+@RuleSortPolicy(DefaultSort.BY_NAME_INVERSE)
 public class RuleSet {
 
     @Rule

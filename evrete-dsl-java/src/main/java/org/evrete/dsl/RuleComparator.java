@@ -5,9 +5,9 @@ import java.util.Comparator;
 
 class RuleComparator implements Comparator<RuleMethod>, Serializable {
     private static final long serialVersionUID = 227921134207025747L;
-    private final Sort nameSort;
+    private final DefaultSort nameSort;
 
-    RuleComparator(Sort nameSort) {
+    RuleComparator(DefaultSort nameSort) {
         this.nameSort = nameSort;
     }
 

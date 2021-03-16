@@ -1,13 +1,13 @@
 package org.evrete.dsl;
 
-public enum Sort {
+public enum DefaultSort {
     BY_NAME(1),
     BY_NAME_INVERSE(-1);
 
-    public static final Sort DEFAULT = Sort.BY_NAME;
+    public static final DefaultSort DEFAULT = DefaultSort.BY_NAME;
     final int modifier;
 
-    Sort(int modifier) {
+    DefaultSort(int modifier) {
         this.modifier = modifier;
     }
 

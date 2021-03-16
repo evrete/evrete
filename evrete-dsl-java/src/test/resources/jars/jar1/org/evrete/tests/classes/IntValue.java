@@ -1,9 +1,9 @@
 package org.evrete.tests.classes;
 
-public class IntegerValue {
+public class IntValue {
     public final int value;
 
-    public IntegerValue(int value) {
+    public IntValue(int value) {
         this.value = value;
     }
 }

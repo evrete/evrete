@@ -1,11 +1,11 @@
 package org.evrete.dsl.rules;
 
-import org.evrete.dsl.Sort;
+import org.evrete.dsl.DefaultSort;
 import org.evrete.dsl.annotation.Fact;
 import org.evrete.dsl.annotation.Rule;
 import org.evrete.dsl.annotation.RuleSortPolicy;
 
-@RuleSortPolicy(Sort.BY_NAME)
+@RuleSortPolicy(DefaultSort.BY_NAME)
 @SuppressWarnings("unused")
 public class SortedRuleSetBase2 {
     private static final int SALIENCE_THAT_WILL_BE_OVERRIDDEN = 777;
