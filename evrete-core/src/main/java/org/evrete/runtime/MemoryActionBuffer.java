@@ -20,57 +20,66 @@ class MemoryActionBuffer {
         this.queue = new LinearHashSet<>(minCapacity);
     }
 
+
+    AtomicMemoryAction get(FactHandle factHandle) {
+        int hash = factHandle.hashCode();
+        int addr = queue.findBinIndex(factHandle, hash, SEARCH_FUNCTION);
+        return queue.get(addr);
+    }
+
     synchronized void add(Action action, FactHandle factHandle, LazyInsertState factRecord) {
         queue.resize();
         int hash = factHandle.hashCode();
         int addr = queue.findBinIndex(factHandle, hash, SEARCH_FUNCTION);
-
-        AtomicMemoryAction actionSameHandle = queue.get(addr);
-        if (actionSameHandle == null) {
+        AtomicMemoryAction existingAction = queue.get(addr);
+        if (existingAction == null) {
             queue.saveDirect(new AtomicMemoryAction(action, factHandle, factRecord), addr);
             actionCounts[action.ordinal()]++;
             totalActions++;
         } else {
             switch (action) {
                 case INSERT:
-                    throw new IllegalStateException("FactHandle exists");
+                    LOGGER.warning("Fact has been already inserted, operation skipped.");
+                    break;
                 case UPDATE:
-                    switch (actionSameHandle.action) {
+                    switch (existingAction.action) {
                         case RETRACT:
                             // Fact handle has been already deleted, we can't update deleted entry
                             LOGGER.warning("An attempt was made to update a fact that has been just deleted, update operation skipped");
                             break;
                         case INSERT:
-                            // Fact handle has been just inserted, issuing a warning
-                            LOGGER.warning("An attempt was made to update a fact that has been just inserted, update operation skipped");
+                            existingAction.factRecord = factRecord;
                             break;
                         case UPDATE:
-                            // Duplicate update operation, updating the instance
-                            actionSameHandle.factRecord = factRecord;
+                            existingAction.factRecord = factRecord;
                             break;
                     }
+                    break;
                 case RETRACT:
-                    switch (actionSameHandle.action) {
+                    switch (existingAction.action) {
                         case RETRACT:
                             // Duplicate delete operation, skipping silently
                             break;
                         case INSERT:
                             // Deleting a fact that has been just inserted
-                            LOGGER.warning("Deleting a fact that has been just inserted, both operation cancelled as if they both never happened.");
-                            queue.markDeleted(addr);
+                            existingAction.action = Action.RETRACT;
                             actionCounts[Action.INSERT.ordinal()]--;
-                            totalActions--;
+                            actionCounts[Action.RETRACT.ordinal()]++;
                             break;
                         case UPDATE:
                             // Deleting a fact that has been queued for update, updating the action
-                            actionSameHandle.action = Action.RETRACT;
+                            existingAction.action = Action.RETRACT;
                             actionCounts[Action.UPDATE.ordinal()]--;
                             actionCounts[Action.RETRACT.ordinal()]++;
                             break;
                     }
+                    break;
+                default:
+                    throw new IllegalStateException();
             }
         }
     }
+
 
     boolean hasData() {
         return totalActions > 0;

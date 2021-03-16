@@ -58,7 +58,15 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
 
     @Override
     public Object getFact(FactHandle handle) {
-        return memory.get(handle.getTypeId()).getFact(handle).instance;
+        FactRecord record;
+        // Object may be in uncommitted state (updated), so we need check the action buffer first
+        AtomicMemoryAction bufferedAction = buffer.get(handle);
+        if (bufferedAction != null && bufferedAction.action != Action.RETRACT) {
+            record = bufferedAction.factRecord.record;
+        } else {
+            record = memory.get(handle.getTypeId()).getFact(handle);
+        }
+        return record == null ? null : record.instance;
     }
 
     private FactHandle insert(Type<?> type, Object fact) {
@@ -117,7 +125,20 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
     }
 
     public final void forEachFact(BiConsumer<FactHandle, Object> consumer) {
-        memory.forEachFactEntry(consumer);
+        // Scanning main memory and making sure fact handles are not deleted
+        memory.forEachFactEntry((handle, o) -> {
+            // Checking buffer for changes
+            AtomicMemoryAction bufferedAction = buffer.get(handle);
+            if (bufferedAction == null) {
+                // No changes to this fact
+                consumer.accept(handle, o);
+            } else {
+                if (bufferedAction.action != Action.RETRACT) {
+                    // Reporting changed data
+                    consumer.accept(bufferedAction.handle, bufferedAction.factRecord.record.instance);
+                }
+            }
+        });
     }
 
     @Override
