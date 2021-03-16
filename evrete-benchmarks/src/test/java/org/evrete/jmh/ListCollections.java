@@ -2,7 +2,8 @@ package org.evrete.jmh;
 
 import org.evrete.api.ReIterator;
 import org.evrete.classes.TypeA;
-import org.evrete.collections.LinkedData;
+import org.evrete.collections.LinkedDataRW;
+import org.evrete.collections.LinkedDataRWD;
 import org.evrete.helper.IterableCollection;
 import org.evrete.helper.TestUtils;
 import org.openjdk.jmh.annotations.*;
@@ -15,7 +16,7 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-@BenchmarkMode(Mode.AverageTime)
+@BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @Fork(value = 1, warmups = 1)
 @SuppressWarnings({"MethodMayBeStatic", "unused"})
@@ -23,7 +24,7 @@ public class ListCollections {
     private static final AtomicLong counter = new AtomicLong();
 
     @Benchmark
-    public void plainIterator(BenchState state) {
+    public void iterator(BenchState state) {
         ReIterator<TypeA> it = state.scanData.get(state.collection).iterator();
         while (it.hasNext()) {
             TypeA a = it.next();
@@ -32,7 +33,7 @@ public class ListCollections {
     }
 
     @Benchmark
-    public void nestedIterator(BenchState state) {
+    public void nested(BenchState state) {
         ReIterator<TypeA> it = state.reIteratorData.get(state.collection).iterator();
         for (int i = 0; i < 1024; i++) {
             it.reset();
@@ -53,14 +54,14 @@ public class ListCollections {
     }
 
     public enum ListImplementation {
-        LinkedData,
+        LinkedDataRWD,
+        LinkedDataRW,
         LinkedList
     }
 
     @State(Scope.Thread)
     public static class BenchState {
-        private static final int objectCount = (1 << 17) + (1 << 15);
-        private static final int initialSize = objectCount >> 10;
+        private static final int objectCount = 1 << 16;
         final EnumMap<ListImplementation, IterableCollection<TypeA>> scanData = new EnumMap<>(ListImplementation.class);
         final EnumMap<ListImplementation, IterableCollection<TypeA>> addData = new EnumMap<>(ListImplementation.class);
         final EnumMap<ListImplementation, IterableCollection<TypeA>> reIteratorData = new EnumMap<>(ListImplementation.class);
@@ -71,11 +72,14 @@ public class ListCollections {
 
         public BenchState() {
             scanData.put(ListImplementation.LinkedList, TestUtils.collectionOf(new LinkedList<>()));
-            scanData.put(ListImplementation.LinkedData, TestUtils.collectionOf(new LinkedData<>()));
+            scanData.put(ListImplementation.LinkedDataRWD, TestUtils.collectionOf(new LinkedDataRWD<>()));
+            scanData.put(ListImplementation.LinkedDataRW, TestUtils.collectionOf(new LinkedDataRW<>()));
             addData.put(ListImplementation.LinkedList, TestUtils.collectionOf(new LinkedList<>()));
-            addData.put(ListImplementation.LinkedData, TestUtils.collectionOf(new LinkedData<>()));
+            addData.put(ListImplementation.LinkedDataRWD, TestUtils.collectionOf(new LinkedDataRWD<>()));
+            addData.put(ListImplementation.LinkedDataRW, TestUtils.collectionOf(new LinkedDataRW<>()));
             reIteratorData.put(ListImplementation.LinkedList, TestUtils.collectionOf(new LinkedList<>()));
-            reIteratorData.put(ListImplementation.LinkedData, TestUtils.collectionOf(new LinkedData<>()));
+            reIteratorData.put(ListImplementation.LinkedDataRWD, TestUtils.collectionOf(new LinkedDataRWD<>()));
+            reIteratorData.put(ListImplementation.LinkedDataRW, TestUtils.collectionOf(new LinkedDataRW<>()));
         }
 
         @Setup(Level.Iteration)
@@ -91,7 +95,7 @@ public class ListCollections {
                 scanData.values().forEach(o -> o.add(a));
                 objects.add(a);
             }
-            for (int i = 0; i < objectCount / 512; i++) {
+            for (int i = 0; i < objectCount / 1024; i++) {
                 int v = r.nextInt();
                 TypeA a = new TypeA();
                 a.setI(v);

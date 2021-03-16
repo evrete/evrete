@@ -4,7 +4,8 @@ import org.evrete.api.ReIterator;
 import org.evrete.api.StatefulSession;
 import org.evrete.collections.CollectionReIterator;
 import org.evrete.collections.LinearHashSet;
-import org.evrete.collections.LinkedData;
+import org.evrete.collections.LinkedDataRW;
+import org.evrete.collections.LinkedDataRWD;
 import org.kie.api.KieBase;
 import org.kie.api.KieServices;
 import org.kie.api.builder.*;
@@ -186,7 +187,47 @@ public final class TestUtils {
         };
     }
 
-    public static <Z> IterableCollection<Z> collectionOf(final LinkedData<Z> list) {
+    public static <Z> IterableCollection<Z> collectionOf(final LinkedDataRWD<Z> list) {
+        return new IterableCollection<Z>() {
+            @Override
+            public boolean add(Z element) {
+                list.add(element);
+                return true;
+            }
+
+            @Override
+            public long size() {
+                return list.size();
+            }
+
+            @Override
+            public void delete(Predicate<Z> predicate) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void clear() {
+                list.clear();
+            }
+
+            @Override
+            public Stream<Z> stream() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public ReIterator<Z> iterator() {
+                return list.iterator();
+            }
+
+            @Override
+            public void forEach(Consumer<Z> consumer) {
+                list.iterator().forEachRemaining(consumer);
+            }
+        };
+    }
+
+    public static <Z> IterableCollection<Z> collectionOf(final LinkedDataRW<Z> list) {
         return new IterableCollection<Z>() {
             @Override
             public boolean add(Z element) {

@@ -44,7 +44,7 @@ public class Drools01 extends DroolsBase {
         @Param
         Implementation implementation;
 
-        @Param({"100", "100000"})
+        @Param({"100"})
         int rhsLoad;
 
         private KnowledgeService service;
@@ -115,7 +115,6 @@ public class Drools01 extends DroolsBase {
                         TypeA a = ctx.get("$a");
                         a.waitNs(a.getL());
                     });
-
 
             // Drools
             dKnowledge = TestUtils.droolsKnowledge("src/test/drl/sample01.drl");

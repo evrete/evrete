@@ -9,7 +9,7 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.openjdk.jmh.runner.options.TimeValue;
 
 
-class LinkedCollectionsBenchmarks {
+class LinkedCollections {
 
     @Test
     void benchmark() throws RunnerException {
@@ -17,7 +17,6 @@ class LinkedCollectionsBenchmarks {
         int iterations = 10;
         Options opt = new OptionsBuilder()
                 .include(ListCollections.class.getSimpleName())
-                //.jvmArgsPrepend("--add-opens=java.base/java.io=ALL-UNNAMED")
                 .warmupIterations(iterations)
                 .warmupTime(duration)
                 .measurementIterations(iterations)

@@ -9,7 +9,7 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.openjdk.jmh.runner.options.TimeValue;
 
-class DroolsBenchmarks {
+class RuleEngines {
     @Test
     void benchMark() throws RunnerException {
         TimeValue duration = TimeValue.milliseconds(1000L);
