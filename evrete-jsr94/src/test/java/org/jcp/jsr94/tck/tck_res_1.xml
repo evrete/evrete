@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/*
+ * J A V A  C O M M U N I T Y  P R O C E S S
+ *
+ * J S R  9 4
+ *
+ * Test Compatibility Kit
+ *
+ */
+The definition of a RuleExecutionSet is not within the scope of the JSR 94. 
+The implementation given in this file is written for the reference 
+implementation. A rule engine vendor verifying their rule engine should 
+modify this file to their specific needs.
+
+This RuleExecutionSet will be invoked by the TCK in a stateless manner.
+
+The rule execution set must have support for the following business object 
+model:
+-	Customer Class.
+The Customer business object is a simple business object that contains a 
+name and credit limit property. The definition of this class can be found in 
+org.jcp.jsr94.tck.model.Customer
+-	Invoice Class.
+The Invoice business object is a simple business object that contains a 
+description, amount, and status property. The definition of this class 
+can be found in org.jcp.jsr94.tck.model.Invoice
+
+The rule execution set has the following definition:
+-	Support Customer and Invoice business objects.
+-	Defines 1 logical rule.
+Rule1:
+If the credit limit of the customer is greater than the amount of the 
+invoice and the status of the invoice is unpaid then 
+decrement the credit limit with the amount of the invoice and 
+set the status of the invoice to "paid".
+
+Note:
+Additional physical rules may be defined to accomplish the 
+requirements mentioned above.
+
+The rule execution set has the following semantics:
+Input: 
+-	A Customer with a credit limit of 5000.
+-	An Invoice with an amount of 2000.
+
+The rule execution should produce the following output:
+-	The credit limit of the customer is 3000
+-	The status of the invoice is paid.
+
+-->
+<rule-execution-set>
+
+    <name>RuleExecutionSet1</name>
+    <description>Stateless RuleExecutionSet for the TCK for Jess</description>
+
+    <code>
+        (defclass org.jcp.jsr94.tck.model.Customer
+        org.jcp.jsr94.tck.model.Customer)
+        (defclass org.jcp.jsr94.tck.model.Invoice
+        org.jcp.jsr94.tck.model.Invoice)
+
+        (defrule rule-1
+        ?customer &lt;- (org.jcp.jsr94.tck.model.Customer
+        (creditLimit ?limit) (OBJECT ?C))
+        ?invoice &lt;- (org.jcp.jsr94.tck.model.Invoice
+        (amount ?amt&amp;:(&gt; ?limit ?amt))
+        (status "unpaid") (OBJECT ?I))
+        =&gt;
+        (modify ?customer (creditLimit (- ?limit ?amt)))
+        ; (printout t "The credit limit of the customer is "
+        ; (get ?C creditLimit) crlf)
+        (modify ?invoice (status paid))
+        ; (printout t "The status of the invoice is "
+        ; (get ?I status) crlf)
+        )
+
+    </code>
+</rule-execution-set>
