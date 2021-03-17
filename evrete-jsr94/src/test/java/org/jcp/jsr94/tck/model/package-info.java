@@ -1,0 +1,8 @@
+/**
+ * <p>
+ * Provides some classes independent of the TCK framework. The classes of this package
+ * are supposed to belong to the final user of a rule engine implementation. In other
+ * words, they are part of the business object model of the rule application.
+ * </p>
+ */
+package org.jcp.jsr94.tck.model;
