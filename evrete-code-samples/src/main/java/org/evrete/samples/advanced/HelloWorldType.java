@@ -30,10 +30,13 @@ public class HelloWorldType {
                 .forEach("$hw", HELLO_WORLD_CONST)
                 .where("$hw.lenSquared > 1")
                 .execute(context -> {
+                    //TODO !!!!!!!!!!! must fix this
+/*
                     RuntimeFact fact = context.getFact("$hw");
                     String str = fact.getDelegate();
                     int myFieldValue = fact.getValue(0);
                     System.out.println(str + ", lenSquared = " + myFieldValue);
+*/
                 })
                 .createSession();
 

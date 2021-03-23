@@ -19,7 +19,8 @@ class FieldDeclarations {
                 "self",
                 Integer.class, o -> o);
 
-        type.declareField("factorial", FieldDeclarations::computeFactorial);
+        TypeField factorialField = type
+                .declareField("factorial", FieldDeclarations::computeFactorial);
 
         StatefulSession session = knowledge
                 .newRule()
@@ -28,14 +29,12 @@ class FieldDeclarations {
                         "$i2", Integer.class)
                 .where("$i1.factorial > $i2.factorial")
                 .execute(context -> {
-                    RuntimeFact fact1 = context.getFact("$i1");
-                    RuntimeFact fact2 = context.getFact("$i2");
-                    int factObject1 = fact1.getDelegate();
-                    int factObject2 = fact2.getDelegate();
-                    long factorial1 = fact1.getValue(0);
-                    long factorial2 = fact2.getValue(0);
+                    Integer i1 = context.get("$i1");
+                    Integer i2 = context.get("$i2");
+                    long factorial1 = (long) factorialField.readValue(i1);
+                    long factorial2 = (long) factorialField.readValue(i2);
+                    System.out.printf("i1: %d (%d)\t\ti2: %d (%d)\n", i1, factorial1, i2, factorial2);
 
-                    System.out.printf("i1: %d (%d)\t\ti2: %d (%d)\n", factObject1, factorial1, factObject2, factorial2);
                 })
                 .createSession();
 
