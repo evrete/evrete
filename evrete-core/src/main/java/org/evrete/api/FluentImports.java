@@ -4,16 +4,16 @@ import java.util.Set;
 
 public interface FluentImports<T> {
 
-    T addImport(String imp);
+    T addImport(RuleScope scope, String imp);
 
-    default T addImport(Class<?> type) {
+    default T addImport(RuleScope scope, Class<?> type) {
         String canonicalName = type.getCanonicalName();
         if (canonicalName == null) {
             throw new IllegalStateException("Can not import " + type);
         } else {
-            return addImport(canonicalName);
+            return addImport(scope, canonicalName);
         }
     }
 
-    Set<String> getImports();
+    Set<String> getImports(RuleScope... scopes);
 }

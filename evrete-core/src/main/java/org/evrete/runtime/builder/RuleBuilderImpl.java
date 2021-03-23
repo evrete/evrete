@@ -1,10 +1,7 @@
 package org.evrete.runtime.builder;
 
 import org.evrete.AbstractRule;
-import org.evrete.api.FactBuilder;
-import org.evrete.api.RhsContext;
-import org.evrete.api.RuleBuilder;
-import org.evrete.api.RuntimeContext;
+import org.evrete.api.*;
 import org.evrete.runtime.AbstractRuntime;
 
 import java.util.Collection;
@@ -22,6 +19,7 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
         } else {
             this.runtime = ctx;
         }
+        this.appendImports(ctx.getImportsData());
         this.lhsBuilder = new LhsBuilder<>(this);
     }
 
@@ -42,14 +40,14 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
     }
 
     @Override
-    public RuleBuilderImpl<C> addImport(String imp) {
-        super.addImport(imp);
+    public RuleBuilderImpl<C> addImport(RuleScope scope, String imp) {
+        super.addImport(scope, imp);
         return this;
     }
 
     @Override
-    public RuleBuilder<C> addImport(Class<?> type) {
-        super.addImport(type);
+    public RuleBuilder<C> addImport(RuleScope scope, Class<?> type) {
+        super.addImport(scope, type);
         return this;
     }
 

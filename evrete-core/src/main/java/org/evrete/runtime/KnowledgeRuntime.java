@@ -4,6 +4,10 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.net.URL;
 import java.util.*;
 
 public class KnowledgeRuntime extends AbstractRuntime<Knowledge> implements Knowledge {
@@ -31,13 +35,31 @@ public class KnowledgeRuntime extends AbstractRuntime<Knowledge> implements Know
     }
 
     @Override
-    public Knowledge addImport(String imp) {
-        return (Knowledge) super.addImport(imp);
+    public Knowledge addImport(RuleScope scope, String imp) {
+        return (Knowledge) super.addImport(scope, imp);
     }
 
     @Override
-    public Knowledge addImport(Class<?> type) {
-        super.addImport(type);
+    public Knowledge addImport(RuleScope scope, Class<?> type) {
+        super.addImport(scope, type);
+        return this;
+    }
+
+    @Override
+    public Knowledge appendDslRules(String dsl, InputStream... streams) throws IOException {
+        append(dsl, streams);
+        return this;
+    }
+
+    @Override
+    public Knowledge appendDslRules(String dsl, URL... resources) throws IOException {
+        append(dsl, resources);
+        return this;
+    }
+
+    @Override
+    public Knowledge appendDslRules(String dsl, Reader... readers) throws IOException {
+        append(dsl, readers);
         return this;
     }
 

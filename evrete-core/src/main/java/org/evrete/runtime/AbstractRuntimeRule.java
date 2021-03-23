@@ -1,11 +1,9 @@
 package org.evrete.runtime;
 
 import org.evrete.AbstractRule;
+import org.evrete.api.RuleScope;
 import org.evrete.api.Type;
 import org.evrete.util.Bits;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public abstract class AbstractRuntimeRule extends AbstractRule {
     final FactType[] factTypes;
@@ -19,6 +17,7 @@ public abstract class AbstractRuntimeRule extends AbstractRule {
         for (FactType factType : factTypes) {
             this.typeMask.set(factType.getType().getId());
         }
+        appendImports(runtime.getImportsData());
         setRhs(getLiteralRhs());
     }
 
@@ -33,9 +32,7 @@ public abstract class AbstractRuntimeRule extends AbstractRule {
     @Override
     public final void setRhs(String literalRhs) {
         if (literalRhs != null) {
-            Set<String> allImports = new HashSet<>(runtime.getImports());
-            allImports.addAll(getImports());
-            setRhs(runtime.compile(literalRhs, factTypes, allImports));
+            setRhs(runtime.compile(literalRhs, factTypes, getImports(RuleScope.BOTH, RuleScope.RHS)));
         }
     }
 }

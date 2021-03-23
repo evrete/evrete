@@ -48,6 +48,8 @@ public class StringLiteralRemover {
         // Now it's safe to remove all the whitespaces
         if (stripWhiteSpaces) {
             current = current.replaceAll("\\s", "");
+        } else {
+            current = current.replaceAll("\\s{2,}", " ");
         }
 
         return new StringLiteralRemover(s, current, stringConstantMap);

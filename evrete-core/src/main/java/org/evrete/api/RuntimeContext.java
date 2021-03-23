@@ -1,10 +1,12 @@
 package org.evrete.api;
 
 import org.evrete.Configuration;
+import org.evrete.KnowledgeService;
 import org.evrete.runtime.RuleDescriptor;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.net.URL;
 import java.util.Comparator;
 import java.util.List;
@@ -41,6 +43,8 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
 
     ClassLoader getClassLoader();
 
+    KnowledgeService getService();
+
     void setClassLoader(ClassLoader classLoader);
 
     Class<? extends ActivationManager> getActivationManagerFactory();
@@ -53,9 +57,11 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
 
     Configuration getConfiguration();
 
-    void appendDslRules(String dsl, InputStream inputStream) throws IOException;
+    C appendDslRules(String dsl, InputStream... streams) throws IOException;
 
-    void appendDslRules(String dsl, URL... resources) throws IOException;
+    C appendDslRules(String dsl, URL... resources) throws IOException;
+
+    C appendDslRules(String dsl, Reader... readers) throws IOException;
 
     enum Kind {
         KNOWLEDGE, SESSION

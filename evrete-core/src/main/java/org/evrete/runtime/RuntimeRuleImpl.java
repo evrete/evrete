@@ -56,6 +56,22 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         }
     }
 
+/*
+    final long executeRhs() {
+        Permission[] perms = new Permission[1];
+        perms[0] = new NetPermission("setDefaultAuthenticator");
+        AccessControlContext acc = AccessController.getContext();
+        System.out.println("Here1");
+        return AccessController.doPrivileged(new PrivilegedAction<Long>() {
+            @Override
+            public Long run() {
+                return executeRhsInner();
+            }
+        }, acc,perms);
+        ClassLoader
+    }
+*/
+
     final long executeRhs() {
         this.rhsCallCounter = 0;
         // Reset state if any
@@ -154,8 +170,8 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     }
 
     @Override
-    public RuntimeRule addImport(String imp) {
-        super.addImport(imp);
+    public RuntimeRule addImport(RuleScope scope, String imp) {
+        super.addImport(scope, imp);
         return this;
     }
 

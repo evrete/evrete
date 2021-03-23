@@ -2,9 +2,10 @@ package org.evrete;
 
 import org.evrete.api.RhsContext;
 import org.evrete.api.Rule;
+import org.evrete.api.RuleScope;
+import org.evrete.runtime.Imports;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,7 +16,7 @@ public abstract class AbstractRule implements Rule {
     private static final Logger LOGGER = Logger.getLogger(AbstractRule.class.getName());
     private final String name;
     private final Consumer<RhsContext> nullRhs;
-    private final Set<String> imports;
+    private final Imports imports;
     private final Map<String, Object> properties;
     protected Consumer<RhsContext> rhs;
     private int salience;
@@ -27,7 +28,7 @@ public abstract class AbstractRule implements Rule {
         this.salience = defaultSalience;
         this.nullRhs = arg -> LOGGER.warning("No RHS is set for rule '" + AbstractRule.this.name + '\'');
         this.rhs = nullRhs;
-        this.imports = new HashSet<>();
+        this.imports = new Imports();
     }
 
     protected AbstractRule(AbstractRule other) {
@@ -38,12 +39,20 @@ public abstract class AbstractRule implements Rule {
         this.nullRhs = other.nullRhs;
         this.rhs = other.rhs;
         this.literalRhs = other.literalRhs;
-        this.imports = new HashSet<>(other.imports);
+        this.imports = other.imports.copyOf();
+    }
+
+    protected void appendImports(Imports parent) {
+        imports.append(parent);
+    }
+
+    public Imports getImportsData() {
+        return imports;
     }
 
     @Override
-    public Rule addImport(String imp) {
-        this.imports.add(imp);
+    public Rule addImport(RuleScope scope, String imp) {
+        this.imports.add(scope, imp);
         return this;
     }
 
@@ -53,8 +62,8 @@ public abstract class AbstractRule implements Rule {
     }
 
     @Override
-    public Set<String> getImports() {
-        return imports;
+    public Set<String> getImports(RuleScope... scopes) {
+        return imports.get(scopes);
     }
 
     protected String getLiteralRhs() {

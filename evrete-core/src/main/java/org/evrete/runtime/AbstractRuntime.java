@@ -11,13 +11,16 @@ import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.EvaluatorWrapper;
 import org.evrete.util.DefaultActivationManager;
 import org.evrete.util.NextIntSupplier;
+import org.evrete.util.compiler.CompilationException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.logging.Logger;
 
 public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends RuntimeMetaData<C> {
     private final List<RuleBuilder<C>> ruleBuilders = new ArrayList<>();
@@ -107,13 +110,15 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
         }
     }
 
-    @Override
-    public void appendDslRules(String dsl, InputStream inputStream) throws IOException {
-        getDslProvider(dsl).apply(this, inputStream);
+    protected void append(String dsl, InputStream... streams) throws IOException {
+        getDslProvider(dsl).apply(this, streams);
     }
 
-    @Override
-    public void appendDslRules(String dsl, URL... resources) throws IOException {
+    protected void append(String dsl, Reader... readers) throws IOException {
+        getDslProvider(dsl).apply(this, readers);
+    }
+
+    protected void append(String dsl, URL... resources) throws IOException {
         getDslProvider(dsl).apply(this, resources);
     }
 
@@ -127,7 +132,8 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
         this.classLoader = classLoader;
     }
 
-    KnowledgeService getService() {
+    @Override
+    public KnowledgeService getService() {
         return service;
     }
 
@@ -189,8 +195,13 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
         return service.getExecutor();
     }
 
-    public Evaluator compile(String expression, Function<String, NamedType> resolver) {
-        return getExpressionResolver().buildExpression(expression, resolver);
+    public Evaluator compile(String expression, Function<String, NamedType> resolver, Set<String> imports) {
+        try {
+            return getExpressionResolver().buildExpression(expression, resolver, imports);
+        } catch (CompilationException e) {
+            Logger.getAnonymousLogger().warning("Failed code:\n" + e.getSource());
+            throw new RuntimeException(e);
+        }
     }
 
     FactType buildFactType(FactTypeBuilder builder, Set<EvaluatorWrapper> alphaEvaluators, int inRuleId) {
@@ -244,7 +255,12 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
     }
 
     Consumer<RhsContext> compile(String literalRhs, FactType[] factTypes, Collection<String> imports) {
-        return service.getLiteralRhsCompiler().compileRhs(this, literalRhs, Arrays.asList(factTypes), imports);
+        try {
+            return service.getLiteralRhsCompiler().compileRhs(this, literalRhs, Arrays.asList(factTypes), imports);
+        } catch (CompilationException e) {
+            Logger.getAnonymousLogger().warning("Failed source\n: " + e.getSource());
+            throw new IllegalStateException(e);
+        }
     }
 
     @Override

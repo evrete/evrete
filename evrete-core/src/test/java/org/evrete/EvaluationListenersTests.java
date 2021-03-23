@@ -109,4 +109,42 @@ class EvaluationListenersTests {
         assert sessionListenerCounter.get() == knowledgeListenerCounter.get() : "Actual " + sessionListenerCounter.get() + " vs " + knowledgeListenerCounter.get();
         assert sessionListenerCounter.get() == expected : "Actual " + sessionListenerCounter.get() + " vs expected " + expected;
     }
+
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testBeta(ActivationMode mode) {
+        AtomicInteger sessionListenerCounter = new AtomicInteger(0);
+
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a", TypeA.class,
+                "$b", TypeB.class
+        );
+
+        knowledge.newRule()
+                .forEach(
+                        "$a", TypeA.class,
+                        "$b", TypeB.class
+                )
+                .where("$a.i == $b.i")
+                .execute(rhsAssert);
+
+
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
+        s.addListener((evaluator, values, result) -> sessionListenerCounter.incrementAndGet());
+
+        int mod = 4;
+
+        for (int i = 0; i < 512; i++) {
+            int val = i % mod;
+            TypeA a = new TypeA("A" + i);
+            a.setAllNumeric(val);
+            TypeB b = new TypeB("B" + i);
+            b.setAllNumeric(val);
+            s.insert(a);
+            s.insert(b);
+        }
+        s.fire();
+
+        assert sessionListenerCounter.get() == mod * mod;
+    }
 }

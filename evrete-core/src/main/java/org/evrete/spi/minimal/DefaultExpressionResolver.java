@@ -4,9 +4,11 @@ import org.evrete.api.*;
 import org.evrete.util.BaseConditionClass;
 import org.evrete.util.NextIntSupplier;
 import org.evrete.util.StringLiteralRemover;
+import org.evrete.util.compiler.CompilationException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -67,8 +69,18 @@ class DefaultExpressionResolver implements ExpressionResolver {
     }
 
     @Override
-    public synchronized Evaluator buildExpression(String rawExpression, Function<String, NamedType> resolver) {
-        StringLiteralRemover remover = StringLiteralRemover.of(rawExpression, true);
+    public synchronized Evaluator buildExpression(String rawExpression, Function<String, NamedType> resolver, Set<String> imports) throws CompilationException {
+        try {
+            return buildExpression(rawExpression, resolver, imports, true);
+        } catch (Throwable e) {
+            // Trying again with the original expression. There might be a keyword like 'new',
+            // which requires whitespaces to be preserved.
+            return buildExpression(rawExpression, resolver, imports, false);
+        }
+    }
+
+    private Evaluator buildExpression(String rawExpression, Function<String, NamedType> resolver, Set<String> imports, boolean stripWhiteSpaces) throws CompilationException {
+        StringLiteralRemover remover = StringLiteralRemover.of(rawExpression, stripWhiteSpaces);
         String strippedExpression = remover.getConverted();
         Matcher m = REFERENCE_PATTERN.matcher(strippedExpression);
         List<ConditionStringTerm> terms = new ArrayList<>();
@@ -92,7 +104,7 @@ class DefaultExpressionResolver implements ExpressionResolver {
 
         try {
             Class<?> baseClass = evaluatorCompiler.getClassLoader().loadClass(conditionBaseClassName);
-            return evaluatorCompiler.buildExpression(baseClass, remover, strippedExpression, terms);
+            return evaluatorCompiler.buildExpression(baseClass, remover, strippedExpression, terms, imports);
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("Unable to load class '" + conditionBaseClassName + "'");
         }

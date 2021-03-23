@@ -43,18 +43,18 @@ public interface DSLKnowledgeProvider {
      * </p>
      *
      * @param targetContext the runtime to append rules to
-     * @param inputStream   input stream to a ruleset data
+     * @param inputStreams  input streams to ruleset sources
      */
-    default void apply(RuntimeContext<?> targetContext, InputStream inputStream) throws IOException {
+    default void apply(RuntimeContext<?> targetContext, InputStream... inputStreams) throws IOException {
         throw new UnsupportedOperationException("Method not supported by " + getClass().getName());
     }
 
     /**
      * @param targetContext the runtime to append rules to
-     * @param reader        reader of a ruleset data
-     * @see #apply(RuntimeContext, InputStream)
+     * @param readers        readers of ruleset sources
+     * @see #apply(RuntimeContext, InputStream...)
      */
-    default void apply(RuntimeContext<?> targetContext, Reader reader) throws IOException {
+    default void apply(RuntimeContext<?> targetContext, Reader... readers) throws IOException {
         throw new UnsupportedOperationException("Method not supported by " + getClass().getName());
     }
 }

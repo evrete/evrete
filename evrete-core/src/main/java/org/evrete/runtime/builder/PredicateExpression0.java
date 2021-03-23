@@ -2,22 +2,25 @@ package org.evrete.runtime.builder;
 
 import org.evrete.api.*;
 import org.evrete.runtime.AbstractRuntime;
+import org.evrete.runtime.Imports;
 
 import java.util.Objects;
 import java.util.function.Function;
 
 class PredicateExpression0 extends AbstractExpression {
     private final String source;
+    private final Imports imports;
 
-    PredicateExpression0(String source, double complexity) {
+    PredicateExpression0(String source, double complexity, Imports imports) {
         super(complexity);
+        this.imports = imports;
         Objects.requireNonNull(source);
         if (complexity <= 0.0) throw new IllegalArgumentException("Complexity must be positive");
         this.source = source;
     }
 
-    PredicateExpression0(String source) {
-        this(source, DEFAULT_COMPLEXITY);
+    PredicateExpression0(String source, Imports imports) {
+        this(source, DEFAULT_COMPLEXITY, imports);
     }
 
     @Override
@@ -36,7 +39,7 @@ class PredicateExpression0 extends AbstractExpression {
 
     @Override
     Evaluator build(AbstractRuntime<?> runtime, Function<String, NamedType> typeMapper) {
-        Evaluator e = runtime.compile(source, typeMapper);
+        Evaluator e = runtime.compile(source, typeMapper, imports.get(RuleScope.BOTH, RuleScope.LHS));
         double complexity = getComplexity();
         if (complexity == ComplexityObject.DEFAULT_COMPLEXITY) {
             return e;

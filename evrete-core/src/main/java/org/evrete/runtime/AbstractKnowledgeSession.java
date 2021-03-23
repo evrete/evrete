@@ -13,6 +13,10 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
     final RuntimeRules ruleStorage;
     private ActivationManager activationManager;
     private BooleanSupplier fireCriteria = () -> true;
+/*
+    private final AccessControlContext lhsControlContext;
+    private final PrivilegedAction<Void> privilegedProcessBuffer;
+*/
 
     AbstractKnowledgeSession(KnowledgeRuntime knowledge) {
         super(knowledge);
@@ -22,13 +26,32 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
         for (RuleDescriptor descriptor : getRuleDescriptors()) {
             deployRule(descriptor, false);
         }
+
+/*
+        this.lhsControlContext = new AccessControlContext(
+                new ProtectionDomain[]{
+                        getService()
+                                .getSecurity()
+                                .getProtectionDomain(RuleScope.LHS)
+                }
+        );
+
+        this.privilegedProcessBuffer = () -> {
+            processBufferInsecure();
+            return null;
+        };
+*/
     }
 
     private void reSortRules() {
         ruleStorage.sort(getRuleComparator());
     }
 
-    private List<RuntimeRule> propagateInsertChanges() {
+    private List<RuntimeRule> buildMemoryDeltas() {
+        return buildMemoryDeltasInsecure();
+    }
+
+    private List<RuntimeRule> buildMemoryDeltasInsecure() {
         List<RuntimeRule> affectedRules = new LinkedList<>();
         Set<BetaEndNode> affectedEndNodes = new HashSet<>();
 
@@ -154,7 +177,7 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
         List<RuntimeRule> agenda;
         while (fireCriteria.getAsBoolean() && buffer.hasData()) {
             processBuffer();
-            if (!(agenda = propagateInsertChanges()).isEmpty()) {
+            if (!(agenda = buildMemoryDeltas()).isEmpty()) {
                 activationManager.onAgenda(ctx.incrementFireCount(), agenda);
                 for (RuntimeRule candidate : agenda) {
                     RuntimeRuleImpl rule = (RuntimeRuleImpl) candidate;
@@ -171,7 +194,7 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
         List<RuntimeRule> agenda;
         while (fireCriteria.getAsBoolean() && buffer.hasData()) {
             processBuffer();
-            if (!(agenda = propagateInsertChanges()).isEmpty()) {
+            if (!(agenda = buildMemoryDeltas()).isEmpty()) {
                 activationManager.onAgenda(ctx.incrementFireCount(), agenda);
                 for (RuntimeRule candidate : agenda) {
                     RuntimeRuleImpl rule = (RuntimeRuleImpl) candidate;
@@ -192,7 +215,6 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
             }
         }
     }
-
 
     private void processBuffer() {
         Iterator<AtomicMemoryAction> it = buffer.actions();

@@ -5,15 +5,14 @@ import org.evrete.api.FieldReference;
 import org.evrete.api.IntToValue;
 import org.evrete.util.NextIntSupplier;
 import org.evrete.util.StringLiteralRemover;
+import org.evrete.util.compiler.CompilationException;
 
 import java.lang.invoke.MethodHandle;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.StringJoiner;
+import java.util.*;
 
 class EvaluatorCompiler {
     private static final String JAVA_EVALUATOR_TEMPLATE = "package %s;\n" +
+            "%s\n" +
             "\n" +
             "public final class %s extends %s {\n" +
             "    public static final java.lang.invoke.MethodHandle HANDLE;\n" +
@@ -50,18 +49,16 @@ class EvaluatorCompiler {
         return compiler.getClassLoader();
     }
 
-    private MethodHandle compileExpression(String classJavaSource) {
+    private MethodHandle compileExpression(String classJavaSource) throws CompilationException {
         try {
             Class<?> compiledClass = compiler.compile(classJavaSource);
             return (MethodHandle) compiledClass.getDeclaredField("HANDLE").get(null);
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            throw new CompilationException(e, classJavaSource);
         }
     }
 
-    Evaluator buildExpression(Class<?> baseClass, StringLiteralRemover remover, String strippedExpression, List<ConditionStringTerm> terms) {
+    Evaluator buildExpression(Class<?> baseClass, StringLiteralRemover remover, String strippedExpression, List<ConditionStringTerm> terms, Set<String> imports) throws CompilationException {
 
         int accumulatedShift = 0;
         StringJoiner argClasses = new StringJoiner(", ");
@@ -99,6 +96,17 @@ class EvaluatorCompiler {
             }
         }
 
+        // Adding imports
+        //TODO move this duplicated code to the Imports class
+        StringBuilder importsBuilder = new StringBuilder(1024);
+        if (!imports.isEmpty()) {
+            for (String imp : imports) {
+                importsBuilder.append("import ").append(imp).append(";\n");
+            }
+            importsBuilder.append("\n");
+        }
+
+
         String replaced = remover.unwrapLiterals(strippedExpression);
 
         String pkg = this.getClass().getPackage().getName() + ".compiled";
@@ -106,6 +114,7 @@ class EvaluatorCompiler {
         String classJavaSource = String.format(
                 JAVA_EVALUATOR_TEMPLATE,
                 pkg,
+                importsBuilder.toString(),
                 clazz,
                 baseClass.getName(),
                 clazz,
@@ -160,6 +169,8 @@ class EvaluatorCompiler {
         public boolean test(IntToValue values) {
             try {
                 return (boolean) methodHandle.invoke(values);
+            } catch (SecurityException t) {
+                throw t;
             } catch (Throwable t) {
                 Object[] args = new Object[descriptor.length];
                 for (int i = 0; i < args.length; i++) {

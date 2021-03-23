@@ -20,6 +20,7 @@ public class KnowledgeService {
     private final TypeResolverProvider typeResolverProvider;
     private final LiteralRhsCompiler literalRhsProvider;
     private ClassLoader classLoader;
+    private final SourceSecurity security = new SourceSecurity();
 
     public KnowledgeService(Configuration conf) {
         this.configuration = conf;
@@ -47,6 +48,11 @@ public class KnowledgeService {
         }
     }
 
+
+    public SourceSecurity getSecurity() {
+        return security;
+    }
+
     public ClassLoader getClassLoader() {
         return classLoader;
     }
@@ -64,7 +70,6 @@ public class KnowledgeService {
         return newKnowledge().createSession();
     }
 
-    //TODO !!! class gets GCed, no need call the method explicitly, remove the call from code samples
     public void shutdown() {
         this.executor.shutdown();
     }
@@ -92,5 +97,6 @@ public class KnowledgeService {
     public TypeResolverProvider getTypeResolverProvider() {
         return typeResolverProvider;
     }
+
 
 }

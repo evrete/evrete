@@ -1,5 +1,7 @@
 package org.evrete.util.compiler;
 
+import org.evrete.KnowledgeService;
+import org.evrete.api.RuleScope;
 import org.junit.jupiter.api.Test;
 
 class SingleSourceCompilerTest {
@@ -20,12 +22,18 @@ class SingleSourceCompilerTest {
                 "}";
 
 
+        KnowledgeService service = new KnowledgeService();
         ClassLoader parentClassLoader = Thread.currentThread().getContextClassLoader();
         SourceCompiler compiler = new SourceCompiler();
-        BytesClassLoader classLoader = new BytesClassLoader(parentClassLoader);
-        Class<?> clazz = compiler.compile(code, classLoader);
-        assert clazz.getClassLoader() == classLoader;
-        assert clazz.getPackage().getName().equals("test.pkg");
+        BytesClassLoader classLoader = new BytesClassLoader(parentClassLoader, service.getSecurity().getProtectionDomain(RuleScope.BOTH));
+        Class<?> clazz = null;
+        try {
+            clazz = compiler.compile(code, classLoader);
+            assert clazz.getClassLoader() == classLoader;
+            assert clazz.getPackage().getName().equals("test.pkg");
+        } catch (CompilationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
 

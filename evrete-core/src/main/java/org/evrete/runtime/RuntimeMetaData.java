@@ -14,14 +14,14 @@ import java.util.stream.Collectors;
 
 abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeContext<C> {
     private static final Comparator<ActiveField> DEFAULT_FIELD_COMPARATOR = Comparator.comparing(ActiveField::getValueIndex);
-    private final Set<String> imports;
+    private final Imports imports;
     private final Map<String, Object> properties;
     private final ArrayOf<TypeMeta> typeMetas;
     private final ArrayOf<FieldKeyMeta> keyMetas;
     private final ArrayOf<FieldsKey> memoryKeys;
 
     RuntimeMetaData() {
-        this.imports = new HashSet<>();
+        this.imports = new Imports();
         this.typeMetas = new ArrayOf<>(TypeMeta.class);
         this.memoryKeys = new ArrayOf<>(FieldsKey.class);
         this.properties = new ConcurrentHashMap<>();
@@ -29,7 +29,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     }
 
     RuntimeMetaData(RuntimeMetaData<?> parent) {
-        this.imports = new HashSet<>(parent.imports);
+        this.imports = parent.imports.copyOf();
         this.properties = new ConcurrentHashMap<>(parent.properties);
         this.memoryKeys = new ArrayOf<>(parent.memoryKeys);
         this.typeMetas = new ArrayOf<>(TypeMeta.class);
@@ -157,14 +157,16 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         return getTypeMeta(t).activeFields;
     }
 
-    public RuntimeContext<?> addImport(String imp) {
-        if (imp != null && !imp.isEmpty()) {
-            this.imports.add(imp);
-        }
+    public RuntimeContext<?> addImport(RuleScope scope, String imp) {
+        this.imports.add(scope, imp);
         return this;
     }
 
-    public final Set<String> getImports() {
+    public final Set<String> getImports(RuleScope... scopes) {
+        return imports.get(scopes);
+    }
+
+    public Imports getImportsData() {
         return imports;
     }
 

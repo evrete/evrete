@@ -122,7 +122,7 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
     }
 
     private void addExpression(String expression, double complexity) {
-        this.conditions.add(new PredicateExpression0(expression, complexity));
+        this.conditions.add(new PredicateExpression0(expression, complexity, ruleBuilder.getImportsData()));
     }
 
     private void addExpression(Predicate<Object[]> predicate, double complexity, String[] references) {
@@ -158,7 +158,7 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
     }
 
     private void addExpression(String expression) {
-        this.conditions.add(new PredicateExpression0(expression));
+        this.conditions.add(new PredicateExpression0(expression, ruleBuilder.getImportsData()));
     }
 
     public synchronized FactTypeBuilder buildLhs(String name, Type<?> type) {
@@ -175,13 +175,21 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
     G buildLhs(Collection<FactBuilder> facts) {
         if (facts == null || facts.isEmpty()) return self();
         for (FactBuilder f : facts) {
-            buildLhs(f.getName(), f.getType());
+            Class<?> c = f.getResolvedType();
+            if (c == null) {
+                // Unresolved
+                buildLhs(f.getName(), f.getUnresolvedType());
+            } else {
+                // Resolved
+                buildLhs(f.getName(), c);
+            }
         }
         return self();
     }
 
     public FactTypeBuilder buildLhs(String name, Class<?> type) {
-        return buildLhs(name, type.getName());
+        Type<?> t = getTypeResolver().getOrDeclare(type);
+        return buildLhs(name, t);
     }
 
     private void checkRefName(String name) {

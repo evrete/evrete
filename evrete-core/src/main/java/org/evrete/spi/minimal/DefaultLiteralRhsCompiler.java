@@ -1,10 +1,13 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.RhsContext;
+import org.evrete.api.RuleScope;
 import org.evrete.api.RuntimeContext;
 import org.evrete.api.spi.LiteralRhsCompiler;
 import org.evrete.runtime.FactType;
+import org.evrete.util.compiler.CompilationException;
 
+import java.security.ProtectionDomain;
 import java.util.Collection;
 import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -15,7 +18,7 @@ public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider imp
     private static final String classPackage = DefaultLiteralRhsCompiler.class.getPackage().getName() + ".rhs";
 
     @SuppressWarnings("unchecked")
-    private static Class<? extends AbstractLiteralRhs> buildClass(JcCompiler compiler, FactType[] types, String literalRhs, Collection<String> imports) {
+    private static Class<? extends AbstractLiteralRhs> buildClass(JcCompiler compiler, FactType[] types, String literalRhs, Collection<String> imports) throws CompilationException {
         String simpleName = "Rhs" + classCounter.getAndIncrement();
         String source = buildSource(simpleName, types, literalRhs, imports);
         return (Class<? extends AbstractLiteralRhs>) compiler.compile(source);
@@ -35,10 +38,7 @@ public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider imp
         // Adding imports
         if (!imports.isEmpty()) {
             for (String imp : imports) {
-                String s = imp
-                        .replaceAll("\\s", "")
-                        .replaceAll(";", "");
-                sb.append("import ").append(s).append(";\n");
+                sb.append("import ").append(imp).append(";\n");
             }
             sb.append("\n");
         }
@@ -70,10 +70,11 @@ public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider imp
     }
 
     @Override
-    public Consumer<RhsContext> compileRhs(RuntimeContext<?> requester, String literalRhs, Collection<FactType> factTypes, Collection<String> imports) {
+    public Consumer<RhsContext> compileRhs(RuntimeContext<?> requester, String literalRhs, Collection<FactType> factTypes, Collection<String> imports) throws CompilationException {
         FactType[] types = factTypes.toArray(FactType.ZERO_ARRAY);
 
-        Class<? extends AbstractLiteralRhs> clazz = buildClass(getCreateJavaCompiler(requester), types, literalRhs, imports);
+        ProtectionDomain domain = requester.getService().getSecurity().getProtectionDomain(RuleScope.RHS);
+        Class<? extends AbstractLiteralRhs> clazz = buildClass(getCreateJavaCompiler(requester, domain), types, literalRhs, imports);
         try {
             return clazz.getDeclaredConstructor().newInstance();
         } catch (Exception e) {

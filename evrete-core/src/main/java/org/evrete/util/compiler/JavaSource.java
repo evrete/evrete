@@ -31,7 +31,7 @@ class JavaSource extends SimpleJavaFileObject {
         this.code = code;
     }
 
-    static Collection<JavaSource> task(String sourceCode) {
+    static Collection<JavaSource> task(String sourceCode) throws CompilationException {
         String derivedClassName = guessJavaClassName(sourceCode);
         String virtualFolder = "folder" + folderId.incrementAndGet();
         URI uri = URI.create("string:///" + virtualFolder + "/" + derivedClassName + Kind.SOURCE.extension);
@@ -53,7 +53,7 @@ class JavaSource extends SimpleJavaFileObject {
      * @param source source code
      * @return top-level type name
      */
-    private static String guessJavaClassName(String source) {
+    private static String guessJavaClassName(String source) throws CompilationException {
         Objects.requireNonNull(source, "Source can not be null");
 
         // 1. Converting to Unix format
@@ -87,7 +87,7 @@ class JavaSource extends SimpleJavaFileObject {
         while ((commentStart = stripped.indexOf("/*")) >= 0) {
             int commentEnd = stripped.indexOf("*/", commentStart);
             if (commentEnd < 0) {
-                throw new CompilationException("Unable to derive type name: unbalanced block comments.");
+                throw new CompilationException("Unable to derive type name: unbalanced block comments.", source);
             } else {
                 stripped = stripped.substring(0, commentStart) + stripped.substring(commentEnd + 2);
             }
@@ -124,7 +124,7 @@ class JavaSource extends SimpleJavaFileObject {
         }
 
         Logger.getAnonymousLogger().warning("Source code:\n" + source);
-        throw new CompilationException("Unable to locate class definition, see the error logs for the corresponding source code");
+        throw new CompilationException("Unable to locate class definition, see the error logs for the corresponding source code", source);
     }
 
     private static String clearBrackets(String source, char openingBracket, char closingBracket) {

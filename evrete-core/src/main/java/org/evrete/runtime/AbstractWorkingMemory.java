@@ -58,11 +58,13 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
 
     @Override
     public Object getFact(FactHandle handle) {
-        FactRecord record;
+        FactRecord record = null;
         // Object may be in uncommitted state (updated), so we need check the action buffer first
         AtomicMemoryAction bufferedAction = buffer.get(handle);
-        if (bufferedAction != null && bufferedAction.action != Action.RETRACT) {
-            record = bufferedAction.factRecord.record;
+        if (bufferedAction != null) {
+            if (bufferedAction.action != Action.RETRACT) {
+                record = bufferedAction.factRecord.record;
+            }
         } else {
             record = memory.get(handle.getTypeId()).getFact(handle);
         }

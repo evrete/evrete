@@ -147,9 +147,11 @@ class TypeResolverImpl implements TypeResolver {
         if (type != null)
             throw new IllegalStateException("Type name '" + typeName + "' has been already defined: " + type);
         Class<T> resolvedJavaType = classForName(javaType);
-        if (resolvedJavaType == null)
+        if (resolvedJavaType == null) {
             throw new IllegalStateException("Unable to resolve Java class '" + javaType + "'");
-        return saveNewType(typeName, new TypeImpl<>(typeName, newId(), resolvedJavaType));
+        } else {
+            return saveNewType(typeName, new TypeImpl<>(typeName, newId(), resolvedJavaType));
+        }
     }
 
     @Override
