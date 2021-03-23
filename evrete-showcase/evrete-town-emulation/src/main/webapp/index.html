@@ -24,10 +24,10 @@
         <div class="cell medium-6">
             <div>
                 <svg height="2048"
-                     id="svg"
                      preserveAspectRatio="none"
                      viewBox="0 0 2048 2048"
                      width="2048"
+                     id="map-svg"
                      xmlns="http://www.w3.org/2000/svg">
                     <g>
                         <image height="2048" href="map.png" width="2048"/>
@@ -39,16 +39,12 @@
                             pointer-events: none;
                         }
 
-                        #svg-layers #HOME rect {
+                        #svg-layers #RESIDENTIAL rect {
                             fill: green;
                         }
 
-                        #svg-layers #WORKING rect {
+                        #svg-layers #BUSINESS rect {
                             fill: red;
-                        }
-
-                        #svg-layers #SHOPPING rect {
-                            fill: blue;
                         }
                     </style>
                 </svg>
@@ -71,36 +67,86 @@
                     </button>
                 </div>
             </div>
-        </div>
-
-        <div id="world-time">
+            <ol class="clearable" id="logs"></ol>
 
         </div>
         <div class="cell medium-6">
-            <ol class="clearable" id="logs"></ol>
-            <label for="tmp_normal">Normal</label><input checked id="tmp_normal" name="tmp_mode" type="radio"
-                                                         value="normal">
-            <label for="tmp_homes">Add</label><input id="tmp_homes" name="tmp_mode" type="radio" value="add_place">
-            <div id="tmp_locations">
+            <h3>Runtime location distribution</h3>
+            <div>
+                <svg height="120"
+                     id="chart-svg"
+                     preserveAspectRatio="none"
+                     viewBox="0 0 450 120"
+                     width="450"
+                     xmlns="http://www.w3.org/2000/svg">
+                    <style>
+                        #chart-pie path.RESIDENTIAL {
+                            fill: green;
+                        }
 
+                        #chart-pie path.BUSINESS {
+                            fill: red;
+                        }
+
+                        #chart-pie path.COMMUTING {
+                            fill: gray;
+                        }
+
+                        #chart-legend rect.RESIDENTIAL {
+                            fill: green;
+                        }
+
+                        #chart-legend rect.BUSINESS {
+                            fill: red;
+                        }
+
+                        #chart-legend rect.COMMUTING {
+                            fill: gray;
+                        }
+
+                        #chart-legend rect {
+                            opacity: 0.75;
+                        }
+
+                        #chart-pie circle {
+                            fill: none;
+                            stroke: #999999;
+                            stroke-width: 1;
+                        }
+
+                        #chart-svg text {
+                            font-family: monospace;
+                            font-size: 12px;
+                        }
+
+                        #chart-svg path {
+                            stroke: lightgray;
+                            stroke-width: 1.0;
+                            opacity: 0.75;
+                        }
+                    </style>
+
+                    <g id="chart-pie" transform="translate(390,60)">
+                        <circle r="50"/>
+                    </g>
+                    <g transform="translate(10,20)">
+                        <text id="chart-time" x="0" y="0">--:--</text>
+                        <g id="chart-legend"/>
+                    </g>
+                </svg>
             </div>
         </div>
-        <label for="interval">Interval</label>
-        <select id="interval">
-            <option value="10">10 seconds</option>
-            <option value="30">30 seconds</option>
-            <option value="60">1 minute</option>
-            <option selected value="300">5 minutes</option>
-            <option value="900">15 minutes</option>
-        </select>
-
-
+        <div class="cell medium-6">
+            <label for="interval">Interval</label>
+            <select id="interval">
+                <option value="10">10 seconds</option>
+                <option value="30">30 seconds</option>
+                <option value="60">1 minute</option>
+                <option selected value="300">5 minutes</option>
+                <option value="600">10 minutes</option>
+            </select>
+        </div>
     </div>
-
-
-    <!--
-        <div id="xml-editor"></div>
-    -->
 </div>
 
 
@@ -110,11 +156,6 @@
 <!-- Foundation JavaScript -->
 <script crossorigin="anonymous"
         src="https://cdn.jsdelivr.net/npm/foundation-sites@6.6.3/dist/js/foundation.min.js"></script>
-<!-- Ace Editor -->
-<!--
-<script charset="utf-8" crossorigin="anonymous" src="https://pagecdn.io/lib/ace/1.4.12/ace.js"></script>
-<script charset="utf-8" crossorigin="anonymous" src="https://pagecdn.io/lib/ace/1.4.12/mode-xml.js"></script>
--->
 
 <!-- Project files -->
 <script src="town-emulation.js"></script>

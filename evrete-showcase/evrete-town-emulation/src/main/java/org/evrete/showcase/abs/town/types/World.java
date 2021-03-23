@@ -1,124 +1,114 @@
 package org.evrete.showcase.abs.town.types;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonReader;
 import org.evrete.showcase.abs.town.json.GeoData;
-import org.evrete.showcase.abs.town.json.Viewport;
 
-import java.security.SecureRandom;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class World {
-    private static final SecureRandom random = new SecureRandom();
-    private final Summary[][][] personCountsByZoom = new Summary[Integer.SIZE - Integer.numberOfLeadingZeros(Viewport.MAX_SIZE)][][];
     public List<Entity> homes = new ArrayList<>();
     public List<Entity> businesses = new ArrayList<>();
     public List<Entity> population = new ArrayList<>();
+    private final double shoppingProbability;
 
-    public World(GeoData data, float fillRatio) {
-        for (int z = 0; z < personCountsByZoom.length; z++) {
-            int areaSize = 1 << z;
-            personCountsByZoom[z] = new Summary[areaSize][areaSize];
-            for (int i = 0; i < areaSize; i++) {
-                for (int j = 0; j < areaSize; j++) {
-                    personCountsByZoom[z][i][j] = new Summary();
-                }
-            }
-        }
+    private World(double shoppingProbability) {
+        this.shoppingProbability = shoppingProbability;
+    }
+
+    public static World factory(GeoData data, float fillRatio, float workingPeopleRatio, double shoppingProbability) {
+        World world = new World(shoppingProbability);
 
         List<XYPoint> homesInUse = data.randomHomes(fillRatio);
         List<XYPoint> businessesInUse = data.randomBusinesses(fillRatio);
 
         // Seed businesses
+        //TODO remove id
+        int businessId = 0;
         for (XYPoint point : businessesInUse) {
-            Entity business = new Entity("business");
+            Entity business = new Entity(LocationState.BUSINESS.name());
             business.set("x", point.x);
             business.set("y", point.y);
-            this.businesses.add(business);
+            business.set("bid", businessId++);
+            world.businesses.add(business);
         }
 
-        //TODO remove id
         int residentId = 0;
+        int homeId = 0;
+        //TODO remove id
         for (XYPoint point : homesInUse) {
-            Entity home = new Entity("home");
+            Entity home = new Entity(LocationState.RESIDENTIAL.name());
+            home.set("hid", homeId++);
             home.set("x", point.x);
             home.set("y", point.y);
             // Defining residents
-            int count = random.nextInt(5) + 1;
+            int count = RandomUtils.randomGaussian1(3, 2, 6);
             for (int p = 0; p < count; p++) {
                 Entity resident = new Entity("person");
                 resident.set("id", residentId++);
-                // Working status
-                resident.set("work", randomWorkPlace());
-                // Resident's home
+                //Initial configuration
                 resident.set("home", home);
-                // Initial location
-                resident.set("location", home);
-
-                population.add(resident);
+                int wakeup = RandomUtils.randomGaussian1(6 * 3600, 4 * 3600, 24 * 3600);
+                resident.set("wakeup", wakeup);
+                if (RandomUtils.randomBoolean(workingPeopleRatio)) {
+                    resident.set("work", RandomUtils.randomListElement(world.businesses));
+                }
+                world.population.add(resident);
             }
-            this.homes.add(home);
+            world.homes.add(home);
         }
 
+
+        return world;
     }
 
-    public static boolean randomBoolean(double probability) {
-        return random.nextDouble() <= probability;
+    public static int randomGaussian(int mean, int stdDev, int maximum) {
+        return RandomUtils.randomGaussian1(mean, stdDev, maximum);
     }
 
-    public static int randomGaussian(int mean, int stdDev) {
-        if (stdDev <= 0) {
-            throw new IllegalArgumentException("Standard deviation must be a positive value");
-        }
-        if (mean <= 0) {
-            throw new IllegalArgumentException("In this project mean must be a positive value.");
-        }
-        int rand = (int) (random.nextGaussian() * stdDev + mean);
-        if (rand <= 0) {
-            rand = randomGaussian(mean, stdDev);
-        }
-        return rand;
-    }
-
-    private Entity randomBusiness() {
-        return this.businesses.get(random.nextInt(this.businesses.size()));
-    }
-
-    public Entity randomWorkPlace() {
-        if (random.nextInt(100) < 20) {
-            return randomBusiness();
-        } else {
+    public static World readFromFile() {
+        try {
+            File file = new File("/Users/oswald/Desktop/world.json");
+            if (file.exists()) {
+                Gson gson = new Gson();
+                JsonReader reader = gson.newJsonReader(new FileReader(file));
+                return gson.fromJson(reader, World.class);
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
-
     }
 
-    public Entity randomShopLocation() {
-        return businesses.get(random.nextInt(businesses.size()));
+    public double getShoppingProbability() {
+        return shoppingProbability;
     }
 
-    public Summary getCellSummary(int zoom, int zoomedX, int zoomedY) {
-        Summary[][] counts = personCountsByZoom[zoom];
-        return counts[zoomedX][zoomedY];
+    public Entity randomBusiness() {
+        return RandomUtils.randomListElement(this.businesses);
     }
 
-/*
-    void addPersonTo(State state, XYPoint point, int count) {
-        Objects.requireNonNull(point);
-        for (int zoom = 0; zoom < personCountsByZoom.length; zoom++) {
-            Summary[][] counts = personCountsByZoom[zoom];
-            int div = Viewport.MAX_SIZE >> zoom;
-
-
-            int zoomedX = point.x / div;
-            int zoomedY = point.y / div;
-            counts[zoomedX][zoomedY].add(state, count);
+    public void saveToFile() {
+        try {
+            for (Entity person : population) {
+                person.tmpClear();
+            }
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            FileWriter writer = new FileWriter("/Users/oswald/Desktop/world.json");
+            writer.write(gson.toJson(this));
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
         }
-    }
-*/
-
-    void stateChanged(State from, State to) {
-
-
     }
 
 }

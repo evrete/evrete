@@ -2,16 +2,16 @@ package org.evrete.showcase.abs.town.types;
 
 import java.util.Arrays;
 
-public class Summary {
-    private final int[] counts = new int[State.values().length];
-    public int total = 0;
+public class UiStateCounter {
+    private final int[] counts = new int[LocationState.values().length];
+    private int total = 0;
 
-    void add(State state, int count) {
+    void add(LocationState state, int count) {
         this.counts[state.ordinal()] += count;
         this.total += count;
     }
 
-    public int getCount(State state) {
+    public int getCount(LocationState state) {
         return counts[state.ordinal()];
     }
 
@@ -19,7 +19,7 @@ public class Summary {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Summary summary = (Summary) o;
+        UiStateCounter summary = (UiStateCounter) o;
         return Arrays.equals(counts, summary.counts);
     }
 
@@ -36,8 +36,8 @@ public class Summary {
                 '}';
     }
 
-    public Summary copy() {
-        Summary copy = new Summary();
+    public UiStateCounter copy() {
+        UiStateCounter copy = new UiStateCounter();
         copy.total = this.total;
         System.arraycopy(this.counts, 0, copy.counts, 0, this.counts.length);
         return copy;

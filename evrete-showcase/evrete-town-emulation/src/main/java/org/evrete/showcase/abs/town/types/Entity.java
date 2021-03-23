@@ -36,6 +36,26 @@ public class Entity {
         return this;
     }
 
+    public void tmpClear() {
+        if ("person".equals(type)) {
+            int wakeup = numbers.get("wakeup");
+            int id = numbers.get("id");
+            Entity home = properties.get("home");
+            Entity work = properties.get("work");
+
+            if (home == null) {
+                throw new IllegalStateException();
+            }
+            this.flags.clear();
+            this.numbers.clear();
+            this.properties.clear();
+            set("id", id);
+            set("wakeup", wakeup % (24 * 3600));
+            set("home", home);
+            set("work", work);
+        }
+    }
+
     public Entity set(String name, int number) {
         this.numbers.put(name, number);
         return this;

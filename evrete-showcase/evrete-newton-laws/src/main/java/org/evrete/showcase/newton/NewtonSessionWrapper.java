@@ -104,8 +104,8 @@ class NewtonSessionWrapper extends AbstractSocketSession {
         List<LiteralRule> rules = LiteralRule.parse(msg.rules);
         KnowledgeService service = AppContext.knowledgeService();
         Knowledge knowledge = service.newKnowledge();
-        knowledge.addImport(Vector.class);
-        knowledge.addImport(Particle.class);
+        knowledge.addImport(RuleScope.BOTH, Vector.class);
+        knowledge.addImport(RuleScope.BOTH, Particle.class);
         for (LiteralRule rule : rules) {
             Collection<FactBuilder> facts = new ArrayList<>();
             for (String var : rule.factTypeVars()) {

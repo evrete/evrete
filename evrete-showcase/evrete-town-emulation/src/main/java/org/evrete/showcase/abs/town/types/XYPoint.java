@@ -1,7 +1,5 @@
 package org.evrete.showcase.abs.town.types;
 
-import java.util.Objects;
-
 public class XYPoint {
     public int x;
     public int y;
@@ -33,6 +31,6 @@ public class XYPoint {
 
     @Override
     public int hashCode() {
-        return Objects.hash(x, y);
+        return x + 31 * y;
     }
 }

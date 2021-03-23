@@ -5,12 +5,13 @@
     <parent>
         <artifactId>evrete</artifactId>
         <groupId>org.evrete</groupId>
-        <version>1.2.05-SNAPSHOT</version>
+        <version>1.2.06-SNAPSHOT</version>
     </parent>
 
     <packaging>pom</packaging>
     <name>evrete-showcase</name>
-    <version>1.2.05-SNAPSHOT</version>
+    <version>1.2.06-SNAPSHOT</version>
+
 
     <build>
         <plugins>
@@ -41,6 +42,13 @@
                 </configuration>
             </plugin>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -48,7 +56,7 @@
         <dependency>
             <groupId>org.evrete</groupId>
             <artifactId>evrete-core</artifactId>
-            <version>1.2.05-SNAPSHOT</version>
+            <version>1.2.06-SNAPSHOT</version>
         </dependency>
 
         <dependency>

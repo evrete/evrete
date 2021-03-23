@@ -1,5 +1,5 @@
 const SVG_NS = "http://www.w3.org/2000/svg";
-const SVG = document.getElementById('svg');
+const SVG = document.getElementById('map-svg');
 const IMG_SIZE = 2048;
 const SVG_DUMMY_POINT = SVG.createSVGPoint();
 const MAX_ZOOM = 3;
@@ -28,8 +28,6 @@ if ('WebSocket' in window || 'MozWebSocket' in window) {
 
 _updateView();
 
-const TMP_LOCATIONS = [];
-
 SVG.onclick = function (ev) {
     SVG_DUMMY_POINT.x = ev.clientX;
     SVG_DUMMY_POINT.y = ev.clientY;
@@ -42,27 +40,12 @@ SVG.onclick = function (ev) {
 }
 
 function onImageClick(x, y) {
-
-    const mode = _tmpMode();
-    switch (mode) {
-        case 'normal':
-            VIEW.center = {
-                x: x,
-                y: y
-            }
-            _updateView();
-            sendViewport();
-            break;
-        case 'add_place':
-            TMP_LOCATIONS.push({
-                x: x,
-                y: y
-            });
-            $('#tmp_locations').text(JSON.stringify(TMP_LOCATIONS));
-            addHome("businesses", x, y);
-            break;
+    VIEW.center = {
+        x: x,
+        y: y
     }
-
+    _updateView();
+    sendViewport();
 }
 
 function sessionStart() {
@@ -144,13 +127,6 @@ function onMessage(evt) {
     const stopButton = $('#stop-button');
 
     switch (msg['type']) {
-        case 'MAP_DATA':
-            let points = msg['points'];
-            for (let i = 0; i < points.length; i++) {
-                addHome(msg['category'], points[i].x, points[i].y);
-            }
-            break;
-
         case 'CONFIG':
             //CONFIG_EDITOR.setValue(msg['xml'], -1);
             break;
@@ -174,14 +150,14 @@ function onMessage(evt) {
 
 function _drawState(state) {
     const layersGroup = document.getElementById('svg-layers');
-    if (state['full']) {
+    if (state['reset']) {
         // Clearing all layers
         while (layersGroup.lastChild) {
             layersGroup.removeChild(layersGroup.lastChild);
         }
     }
 
-    $('#world-time').text(state['time']);
+    drawSummary(state['total'], state['time'])
 
     let cellSize = state['cellSize'];
     // clear current status
@@ -189,7 +165,6 @@ function _drawState(state) {
     for (const key in layers) {
         if (layers.hasOwnProperty(key)) {
             let svgLayer = document.getElementById(key);
-            const maxCount = state['maxCounts'][key];
 
             if (!svgLayer) {
                 // Create a new one
@@ -202,7 +177,6 @@ function _drawState(state) {
             for (let i = 0; i < cells.length; i++) {
                 const cell = cells[i];
                 const cellId = cell['id'];
-                const count = cell.count;
                 let rect = document.getElementById(cellId);
                 if (!rect) {
                     rect = document.createElementNS(SVG_NS, 'rect');
@@ -213,32 +187,12 @@ function _drawState(state) {
                     rect.setAttribute("height", cellSize);
                     svgLayer.appendChild(rect);
                 }
-                const opacity = count === 0 ? 0 : 0.4 * (count / maxCount);
-                rect.setAttribute("fill-opacity", opacity.toString());
+                rect.setAttribute("fill-opacity", cell.opacity);
             }
         }
     }
 }
 
-function _tmpMode() {
-    const radios = document.getElementsByName('tmp_mode');
-
-    for (let i = 0, length = radios.length; i < length; i++) {
-        if (radios[i].checked) {
-            return radios[i].value;
-        }
-    }
-    return null;
-}
-
-function addHome(group, x, y) {
-    let homesUiGroup = document.getElementById(group);
-    const element = document.createElementNS(SVG_NS, 'circle');
-    element.setAttributeNS(null, 'cx', x);
-    element.setAttributeNS(null, 'cy', y);
-    element.setAttributeNS(null, 'r', "4");
-    homesUiGroup.appendChild(element);
-}
 
 function sendViewport() {
     SOCKET.send(JSON.stringify(
@@ -250,6 +204,65 @@ function sendViewport() {
         }
     ));
 }
+
+function drawSummary(data, time) {
+    const pieGroup = document.getElementById('chart-pie');
+    const legendGroup = document.getElementById('chart-legend');
+
+    while (pieGroup.lastChild) {
+        pieGroup.removeChild(pieGroup.lastChild);
+    }
+    while (legendGroup.lastChild) {
+        legendGroup.removeChild(legendGroup.lastChild);
+    }
+
+    // Set time
+    document.getElementById('chart-time').innerHTML = time;
+
+    const radius = 50;
+    let currentAngle = Math.PI / 2;
+    let currentX = 0;
+    let currentY = -radius;
+    let legendY = 15;
+    for (const key in data) {
+        if (data.hasOwnProperty(key)) {
+            const val = data[key];
+            const angle = 2.0 * Math.PI * val;
+            const largeArc = angle > Math.PI ? ' 1 ' : ' 0 ';
+
+            let path = 'M 0 0 ' + currentX + ' ' + currentY + ' A ' + radius + ' ' + radius + ' 0 ' + largeArc + ' 1 ';
+            currentAngle = currentAngle - angle;
+            currentX = radius * Math.cos(currentAngle);
+            currentY = -radius * Math.sin(currentAngle);
+            path = path + ' ' + currentX + ' ' + currentY + ' Z';
+            const pieSector = document.createElementNS(SVG_NS, 'path');
+            pieSector.setAttribute('d', path);
+            pieSector.setAttribute('class', key);
+            pieGroup.appendChild(pieSector);
+
+            const legendRect = document.createElementNS(SVG_NS, 'rect');
+            legendRect.setAttribute("class", key);
+            legendRect.setAttribute("width", "10");
+            legendRect.setAttribute("height", "16");
+            legendRect.setAttribute("y", legendY.toString());
+            legendRect.setAttribute("x", "0");
+
+            legendGroup.appendChild(legendRect);
+
+
+            const legendText = document.createElementNS(SVG_NS, 'text');
+            legendText.setAttribute("class", key);
+            legendText.setAttribute("y", (legendY + 14).toString());
+            legendText.setAttribute("x", "16");
+            legendText.innerHTML = key + ' - ' + Math.round(val * 100) + '%';
+            legendGroup.appendChild(legendText);
+
+            legendY += 20;
+
+        }
+    }
+}
+
 
 function _createWebSocket() {
     let url = window.location.href.replace(/[^/]*$/, '') + 'ws/socket';
@@ -282,18 +295,3 @@ function _createWebSocket() {
     }, 19391);
     return webSocket;
 }
-
-/*
-function _createEditor(element, mode) {
-    return ace.edit(element, {
-        mode: mode,
-        maxLines: 30,
-        wrap: true,
-        autoScrollEditorIntoView: true,
-        showPrintMargin: false,
-        vScrollBarAlwaysVisible: true,
-        minLines: 8,
-        scrollPastEnd: 0.5,
-        theme: 'ace/theme/xcode'
-    })
-}*/

@@ -13,9 +13,9 @@ public class GeoData {
     private static List<XYPoint> randomSubList(List<XYPoint> fullData, float fillRatio) {
         List<XYPoint> selected = new ArrayList<>(fullData);
         Collections.shuffle(selected);
-        int homesCount = Math.max((int) (selected.size() * fillRatio), 2);
+        int count = Math.max((int) (selected.size() * fillRatio), 1);
 
-        selected = selected.subList(0, homesCount);
+        selected = selected.subList(0, count);
         return selected;
     }
 

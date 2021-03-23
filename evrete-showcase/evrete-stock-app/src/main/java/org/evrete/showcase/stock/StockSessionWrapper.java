@@ -101,8 +101,8 @@ class StockSessionWrapper extends AbstractSocketSession {
         }
 
         @Override
-        public void onActivation(RuntimeRule rule) {
-            delegate.onActivation(rule);
+        public void onActivation(RuntimeRule rule, long count) {
+            delegate.onActivation(rule, count);
             try {
                 getMessenger().sendDelayed(new Message("RULE_EXECUTED", rule.getName()));
             } catch (IOException e) {

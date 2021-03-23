@@ -43,7 +43,7 @@ public class SocketMessenger {
         send(message);
     }
 
-    public void send(Exception e) {
+    public void send(Throwable e) {
         try {
             send(Message.error(e.getMessage()));
         } catch (IOException ioe) {

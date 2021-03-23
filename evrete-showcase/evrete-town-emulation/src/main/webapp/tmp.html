@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Evrete showcase | Chess queens</title>
+
+    <!-- Foundation CSS -->
+    <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/foundation-sites@6.6.3/dist/css/foundation.min.css"
+          rel="stylesheet">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+    <!-- Icons -->
+    <link href="https://cdn.lineicons.com/2.0/LineIcons.css" rel="stylesheet">
+    <!-- Project styling -->
+    <link href="town-emulation.css" rel="stylesheet" type="text/css">
+    <script>
+        const data = {
+            RESIDENTIAL: 0.4,
+            BUSINESS: 0.4,
+            TRAVEL: 0.2
+        };
+
+        const SVG_NS = "http://www.w3.org/2000/svg";
+
+        function drawSectors() {
+            drawSummary(data, 'current time');
+        }
+
+        function drawSummary(data, time) {
+            const pieGroup = document.getElementById('chart-pie');
+            const legendGroup = document.getElementById('chart-legend');
+
+            while (pieGroup.lastChild) {
+                pieGroup.removeChild(pieGroup.lastChild);
+            }
+            while (legendGroup.lastChild) {
+                legendGroup.removeChild(legendGroup.lastChild);
+            }
+
+            // Set time
+            document.getElementById('chart-time').innerHTML = time;
+
+            const radius = 50;
+            let currentAngle = Math.PI / 2;
+            let currentX = 0;
+            let currentY = -radius;
+            let legendY = 15;
+            for (const key in data) {
+                if (data.hasOwnProperty(key)) {
+                    const val = data[key];
+                    const angle = 2.0 * Math.PI * val;
+                    const largeArc = angle > Math.PI ? ' 1 ' : ' 0 ';
+
+                    let path = 'M 0 0 ' + currentX + ' ' + currentY + ' A ' + radius + ' ' + radius + ' 0 ' + largeArc + ' 1 ';
+                    currentAngle = currentAngle - angle;
+                    currentX = radius * Math.cos(currentAngle);
+                    currentY = -radius * Math.sin(currentAngle);
+                    path = path + ' ' + currentX + ' ' + currentY + ' Z';
+                    const pieSector = document.createElementNS(SVG_NS, 'path');
+                    pieSector.setAttribute('d', path);
+                    pieSector.setAttribute('class', key);
+                    pieGroup.appendChild(pieSector);
+
+                    const legendRect = document.createElementNS(SVG_NS, 'rect');
+                    legendRect.setAttribute("class", key);
+                    legendRect.setAttribute("width", "10");
+                    legendRect.setAttribute("height", "16");
+                    legendRect.setAttribute("y", legendY.toString());
+                    legendRect.setAttribute("x", "0");
+
+                    legendGroup.appendChild(legendRect);
+
+
+                    const legendText = document.createElementNS(SVG_NS, 'text');
+                    legendText.setAttribute("class", key);
+                    legendText.setAttribute("y", (legendY + 14).toString());
+                    legendText.setAttribute("x", "16");
+                    legendText.innerHTML = key + ' - ' + Math.round(val * 100) + '%';
+                    legendGroup.appendChild(legendText);
+
+                    legendY += 20;
+
+                }
+            }
+        }
+    </script>
+    <style>
+        #chart-svg {
+            width: 100%;
+            height: 100%;
+            border: 1px solid lightgray;
+        }
+    </style>
+</head>
+<body>
+
+<div class="grid-container">
+    <h2>Tmp</h2>
+    <div class="grid-x grid-padding-x">
+        <div class="cell medium-6">
+            <svg height="100" id="chart-svg" viewBox="0 0 450 100" width="450">
+                <style>
+                    #chart-pie path.RESIDENTIAL {
+                        fill: green;
+                    }
+
+                    #chart-pie path.BUSINESS {
+                        fill: red;
+                    }
+
+                    #chart-pie path.TRAVEL {
+                        fill: gray;
+                    }
+
+                    #chart-legend rect.RESIDENTIAL {
+                        fill: green;
+                    }
+
+                    #chart-legend rect.BUSINESS {
+                        fill: red;
+                    }
+
+                    #chart-legend rect.TRAVEL {
+                        fill: gray;
+                    }
+
+                    #chart-pie circle {
+                        fill: none;
+                        stroke: #999999;
+                        stroke-width: 1;
+                    }
+
+                    #chart-svg text {
+                        font-family: monospace;
+                        font-size: 14px;
+                    }
+
+                    #chart-svg path {
+                        stroke: #999999;
+                        stroke-width: 1;
+                    }
+                </style>
+
+                <g id="chart-pie" transform="translate(380,50)">
+                    <circle r="50"/>
+                </g>
+                <g transform="translate(20,20)">
+                    <text id="chart-time" x="0" y="0">--:--</text>
+                    <g id="chart-legend"/>
+                </g>
+            </svg>
+        </div>
+        <div class="cell medium-6">
+            <button class="button primary" onclick="drawSectors()">Draw</button>
+        </div>
+
+    </div>
+</div>
+
+
+</body>
+</html>

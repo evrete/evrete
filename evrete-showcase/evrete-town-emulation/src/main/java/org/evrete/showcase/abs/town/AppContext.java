@@ -5,24 +5,15 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.showcase.abs.town.json.GeoData;
 import org.evrete.showcase.abs.town.types.Entity;
+import org.evrete.showcase.abs.town.types.RandomUtils;
 import org.evrete.showcase.abs.town.types.World;
 import org.evrete.showcase.abs.town.types.WorldTime;
 import org.evrete.showcase.shared.Utils;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
-import java.io.StringReader;
 import java.util.function.Consumer;
 
 
@@ -31,9 +22,6 @@ public class AppContext implements ServletContextListener {
     static GeoData MAP_DATA;
     private static KnowledgeService knowledgeService;
     private static Knowledge knowledge;
-    private static Validator XML_VALIDATOR;
-    private static String DEFAULT_XML;
-
 
     private static KnowledgeService knowledgeService() {
         if (knowledgeService == null) {
@@ -61,147 +49,212 @@ public class AppContext implements ServletContextListener {
         };
 
         return knowledge
-                .newRule("Initial configuration")
+                .newRule("Wakeup")
                 .forEach(facts)
-                .where("$person.flags.active == false")
+                .where("$person.properties.current_location == $person.properties.home")
+                .where("$time.secondsSinceStart > $person.numbers.wakeup")
                 .execute(new PersonTimeConsumer() {
                     @Override
                     public void process(Entity person, WorldTime time, World world) {
-                        // Wakeup time in seconds
-                        int wakeUpTime = World.randomGaussian(8 * 3600, 2 * 3600);
-                        person.set("wakeup", wakeUpTime);
-                        person.set("active", true);
-                        System.out.println("!!! config " + person);
+                        int nextWakeUp = person.getNumber("wakeup", -1) + 3600 * 24;
+                        // New day, resetting yesterday's planning flags
+                        // and setting new wakeup time for tomorrow
+                        person
+                                .set("wakeup", nextWakeUp)
+                                .set("day_planning", true) // Start planning
+                        ;
                     }
                 })
 
-                .newRule("Working persons wakeup")
+                .newRule("Planning. Will we shop today?")
                 .forEach(facts)
-                .where("$person.flags.active == true")
-                .where("$person.flags.sleeping == true")
+                .where("$person.flags.day_planning == true")
+                .execute(new PersonTimeConsumer() {
+                    @Override
+                    public void process(Entity person, WorldTime time, World world) {
+                        boolean shopping = RandomUtils.randomBoolean(world.getShoppingProbability());
+                        person
+                                .set("day_planning", false) // End of planning
+                                .set("shopping", shopping)
+                        ;
+                    }
+                })
+
+
+                .newRule("Non-working persons: day planning")
+                .forEach(facts)
+                .where("$person.properties.work == null")
+                .where("$person.properties.current_location == $person.properties.home")
+                .where("$person.flags.shopping == true")
+                .where("$person.properties.selected_shop == null")
+                .execute(new PersonTimeConsumer() {
+                    @Override
+                    public void process(Entity person, WorldTime time, World world) {
+                        Entity selectedShop = world.randomBusiness();
+                        int selectedShopTime = time.secondsSinceStart() + world.randomGaussian(2 * 3600, 3 * 3600, 10 * 3600); // Within 6 hours
+                        person
+                                .set("selected_shop", selectedShop)
+                                .set("shopping", false)
+                                .set("selected_shop_time", selectedShopTime)
+                        ;
+                    }
+                })
+
+
+                .newRule("Working persons: commute to work")
+                .forEach(facts)
                 .where("$person.properties.work != null")
-                .where("$time.seconds > $person.numbers.wakeup")
+                .where("$person.properties.travel_to == null")
+                .where("$person.properties.current_location == $person.properties.home")
+                .where("$time.secondsSinceStart > $person.numbers.wakeup")
                 .execute(new PersonTimeConsumer() {
                     @Override
                     public void process(Entity person, WorldTime time, World world) {
                         person
-                                .set("sleeping", false)
-                                .set("commuting_to_work", true)
-                                .set("transit_start_time", time.absoluteTimeSeconds())
-                                .set("location", null);
-                        System.out.println("!!! Wakeup " + person + ", time: " + time);
+                                .set("travel_to", person.getProperty("work"))
+                        ;
                     }
                 })
 
-                .newRule("Working persons, arrival at work")
+                .newRule("Working persons: arrival at work")
                 .forEach(facts)
-                .where("$person.flags.active == true")
                 .where("$person.properties.work != null")
-                .where("$person.flags.commuting_to_work == true")
-                .where("$time.absoluteTimeSeconds - $person.numbers.transit_start_time > 1200") // 20 min
+                .where("$person.properties.current_location == $person.properties.work")
+                .where("$person.flags.just_arrived == true")
                 .execute(new PersonTimeConsumer() {
                     @Override
                     public void process(Entity person, WorldTime time, World world) {
                         person
-                                .set("commuting_to_work", false)
-                                .set("working", true)
-                                .set("location", person.getProperty("work"));
-
-                        int currentAbsoluteTime = time.absoluteTimeSeconds();
-
-                        int workDuration = World.randomGaussian(8 * 3600, 2 * 3600);
-                        person.set("end_of_work_time", currentAbsoluteTime + workDuration);
-
-                        System.out.println("!!! Working " + person + ", time: " + time);
+                                .set("end_of_work_time", time.secondsSinceStart() + world.randomGaussian(8 * 3600, 2 * 3600, 12 * 3600))
+                                .set("just_arrived", false)
+                        ;
                     }
                 })
 
-                .newRule("Working persons, end of work")
+                .newRule("Working persons: end of work (home)")
                 .forEach(facts)
-                .where("$person.flags.active == true")
                 .where("$person.properties.work != null")
-                .where("$person.flags.working == true")
-                .where("$time.absoluteTimeSeconds > $person.numbers.end_of_work_time")
+                .where("$person.properties.current_location == $person.properties.work")
+                .where("$person.properties.travel_to == null")
+                .where("$time.secondsSinceStart > $person.numbers.end_of_work_time")
+                .where("$person.flags.shopping == false")
+                .where("$person.flags.just_arrived == false")
                 .execute(new PersonTimeConsumer() {
                     @Override
                     public void process(Entity person, WorldTime time, World world) {
                         person
-                                .set("deciding_on_shopping", true)
-                                .set("working", false)
-                                .set("location", null);
-                        System.out.println("!!! End of work, time: " + time);
+                                .set("travel_to", person.getProperty("home"))
+                        ;
                     }
                 })
 
-                .newRule("Working persons, shop or not to shop?")
+                .newRule("Working persons: end of work (shopping)")
                 .forEach(facts)
-                .where("$person.flags.active == true")
-                .where("$person.flags.deciding_on_shopping == true")
                 .where("$person.properties.work != null")
-                .where("$person.flags.decided == false")
+                .where("$person.properties.current_location == $person.properties.work")
+                .where("$person.properties.travel_to == null")
+                .where("$time.secondsSinceStart > $person.numbers.end_of_work_time")
+                .where("$person.flags.shopping == true")
+                .where("$person.flags.just_arrived == false")
                 .execute(new PersonTimeConsumer() {
                     @Override
                     public void process(Entity person, WorldTime time, World world) {
+                        Entity selectedShop = world.randomBusiness();
                         person
-                                .set("deciding_on_shopping", false)
-                                .set("decided", true)
-                                .set("post_work_shopping", World.randomBoolean(0.5));
-                        System.out.println("!!! Post-work shopping: " + person.getFlag("post_work_shopping", false));
+                                .set("selected_shop", selectedShop)
+                                .set("travel_to", selectedShop)
+                        ;
                     }
                 })
 
-                .newRule("Working persons, post-work shopping = yes")
+
+                .newRule("Commute start")
                 .forEach(facts)
-                .where("$person.flags.active == true")
-                .where("$person.properties.work != null")
-                .where("$person.flags.decided == true")
+                .where("$person.properties.travel_to != null")
+                .where("$person.properties.current_location != null")
                 .where("$person.flags.in_transit == false")
-                .where("$person.flags.post_work_shopping == true")
                 .execute(new PersonTimeConsumer() {
                     @Override
                     public void process(Entity person, WorldTime time, World world) {
+                        Entity current = person.getProperty("current_location");
                         person
-                                .set("deciding_on_shopping", false)
-                                .set("decided", false)
-                                .set("in_transit", true);
-                        //.set("post_work_shopping", World.randomBoolean(1.0));
-                        System.out.println("!!! I'm shopping");
+                                .set("travel_from", current)
+                                .set("current_location", null)
+                                .set("in_transit", true)
+                                .set("arrival_time", time.secondsSinceStart() + 60 * 20) // 20 min travel time
+                        ;
                     }
                 })
 
-                .newRule("Working persons, post-work shopping = no")
+                .newRule("Commute end")
                 .forEach(facts)
-                .where("$person.flags.active == true")
-                .where("$person.properties.work != null")
-                .where("$person.flags.decided == true")
-                .where("$person.flags.in_transit == false")
-                .where("$person.flags.post_work_shopping == false")
+                .where("$person.properties.current_location == null")
+                .where("$person.flags.in_transit == true")
+                .where("$time.secondsSinceStart >= $person.numbers.arrival_time")
+                .execute(new PersonTimeConsumer() {
+                    @Override
+                    public void process(Entity person, WorldTime time, World world) {
+                        Entity destination = person.getProperty("travel_to");
+                        person
+                                .set("in_transit", false)
+                                .set("just_arrived", true)
+                                .set("current_location", destination)
+                                .set("travel_to", null)
+                        ;
+
+                    }
+                })
+
+                .newRule("All persons: Shopping time")
+                .forEach(facts)
+                .where("$person.properties.selected_shop != null")
+                .where("$person.properties.current_location != $person.properties.selected_shop")
+                .where("$person.properties.travel_to == null")
+                .where("$time.secondsSinceStart >= $person.numbers.selected_shop_time")
                 .execute(new PersonTimeConsumer() {
                     @Override
                     public void process(Entity person, WorldTime time, World world) {
                         person
-                                .set("deciding_on_shopping", false)
-                                .set("decided", false)
-                                .set("in_transit", true);
-                        //.set("post_work_shopping", World.randomBoolean(1.0));
-                        System.out.println("!!! I'm heading home");
+                                .set("travel_to", person.getProperty("selected_shop"))
+                        ;
                     }
                 })
 
+                .newRule("All persons: shopping arrival")
+                .forEach(facts)
+                .where("$person.properties.current_location == $person.properties.selected_shop")
+                .where("$person.properties.selected_shop != null")
+                .where("$person.flags.just_arrived == true")
+                .execute(new PersonTimeConsumer() {
+                    @Override
+                    public void process(Entity person, WorldTime time, World world) {
+                        int shoppingDuration = world.randomGaussian(3600, 3600, 4 * 3600);
+                        int shoppingEndTime = time.secondsSinceStart() + shoppingDuration;
+                        person
+                                .set("just_arrived", false)
+                                .set("shopping_end_time", shoppingEndTime)
+                        ;
+                    }
+                })
+
+
+                .newRule("All persons: shopping end")
+                .forEach(facts)
+                .where("$person.properties.selected_shop != null")
+                .where("$person.properties.current_location == $person.properties.selected_shop")
+                .where("$person.flags.just_arrived == false")
+                .where("$time.secondsSinceStart >= $person.numbers.shopping_end_time")
+                .execute(new PersonTimeConsumer() {
+                    @Override
+                    public void process(Entity person, WorldTime time, World world) {
+                        person
+                                .set("travel_to", person.getProperty("home"))
+                                .set("selected_shop", null)
+                        ;
+                    }
+                })
                 ;
 
-    }
-
-    public static Document buildConfigXml(String sourceXml) {
-        try {
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = dbf.newDocumentBuilder();
-            Document document = builder.parse(new InputSource(new StringReader(sourceXml)));
-            XML_VALIDATOR.validate(new DOMSource(document));
-            return document;
-        } catch (Exception e) {
-            throw new IllegalArgumentException(e);
-        }
     }
 
     @Override
@@ -218,16 +271,6 @@ public class AppContext implements ServletContextListener {
                         Utils.readResourceAsString(ctx, "/WEB-INF/data.json"),
                         GeoData.class
                 );
-
-
-                SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-                Schema schema = factory.newSchema(ctx.getResource("/WEB-INF/schema.xsd"));
-                XML_VALIDATOR = schema.newValidator();
-
-
-                // Validating default
-                DEFAULT_XML = Utils.readResourceAsString(ctx, "/WEB-INF/config.xml");
-
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new IllegalStateException("Can not read configuration data", e);
@@ -248,7 +291,6 @@ public class AppContext implements ServletContextListener {
     }
 
     private abstract static class PersonTimeConsumer implements Consumer<RhsContext> {
-
         abstract void process(Entity person, WorldTime time, World world);
 
         @Override

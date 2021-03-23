@@ -1,5 +1,8 @@
 package org.evrete.showcase.abs.town;
 
+import org.evrete.api.ActivationManager;
+import org.evrete.api.ActivationMode;
+import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
 import org.evrete.showcase.abs.town.json.Viewport;
 import org.evrete.showcase.abs.town.types.Entity;
@@ -10,17 +13,14 @@ import org.evrete.showcase.shared.Message;
 import org.evrete.showcase.shared.Utils;
 
 import javax.websocket.Session;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 class TownSessionWrapper extends AbstractSocketSession {
     private final AtomicBoolean sessionGate = new AtomicBoolean(true);
-    private World world;
     private Viewport viewport;
-    private WorldTime worldTime;
-    //private TransitionManager transitionManager;
-    private int intervalSeconds;
     private SessionThread thread;
-    private UiWriter uiWriter;
+    private UiMap uiWriter;
 
     TownSessionWrapper(Session session) {
         super(session);
@@ -37,39 +37,41 @@ class TownSessionWrapper extends AbstractSocketSession {
 
     void start(String configXml, int interval) {
         // Reading config
-        //this.transitionManager = new TransitionManager(configXml, interval);
-        this.intervalSeconds = interval;
         this.sessionGate.set(true);
 
         // Building knowledge
-        StatefulSession session = AppContext.knowledge().createSession();
+        StatefulSession session = AppContext.knowledge().createSession().setActivationMode(ActivationMode.CONTINUOUS);
+        session.setActivationManager(new ActivationManager() {
+            @Override
+            public void onAgenda(int sequenceId, List<RuntimeRule> agenda) {
+                if (sequenceId > 100) throw new IllegalStateException("Rules result in infinite loop");
+            }
+        });
+
         setKnowledgeSession(session);
+        WorldTime worldTime = new WorldTime();
 
-        this.world = new World(AppContext.MAP_DATA, 0.001f);
-        this.worldTime = new WorldTime();
-        this.uiWriter = new UiWriter(getMessenger(), world, worldTime, viewport);
+        World saved = World.readFromFile();
+        World world;
+        if (saved != null) {
+            world = saved;
+            System.out.println("Using a saved world.....");
+        } else {
+            world = World.factory(AppContext.MAP_DATA, 1.0f, 0.75f, 0.75);
+        }
+        this.uiWriter = new UiMap(world, worldTime, viewport);
 
-        getMessenger().sendUnchecked(new Message("LOG", String.format("Data initialized. Residents: %d, Homes: %d, Businesses: %d", this.world.population.size(), this.world.homes.size(), this.world.businesses.size())));
+        // Put the initial allocation on the map
+        for (Entity person : world.population) {
+            person.set("current_location", person.getProperty("home"));
+        }
 
+        getMessenger().sendUnchecked(new Message("LOG", String.format("Data initialized. Residents: %d, Homes: %d, Businesses: %d", world.population.size(), world.homes.size(), world.businesses.size())));
 
-        //session.insert(this.world.population);
-
-        Entity single = new Entity("person");
-        Entity home = new Entity("home");
-        Entity work = new Entity("work");
-
-        single.set("work", work);
-        single.set("home", home);
-        single.set("location", home);
-        single.set("wakeup", 20000);
-        single.set("active", false);
-        single.set("sleeping", true);
-
-
-        session.insert(single);
-        session.insert(this.worldTime);
-        session.insert(this.world);
-        this.thread = new SessionThread(session);
+        session.insert(world.population);
+        session.insert(worldTime);
+        session.insert(world);
+        this.thread = new SessionThread(session, interval, getMessenger(), world, worldTime, uiWriter, sessionGate::get);
         this.thread.start();
     }
 
@@ -86,30 +88,4 @@ class TownSessionWrapper extends AbstractSocketSession {
     void stop() {
         closeSession();
     }
-
-    class SessionThread extends Thread {
-        private final StatefulSession session;
-
-        SessionThread(StatefulSession session) {
-            this.session = session;
-        }
-
-        @Override
-        public void run() {
-            // Initial fire
-            session.fire();
-
-            while (sessionGate.get() && worldTime.absoluteTimeSeconds() - worldTime.getInitialTimeSeconds() < 3600 * 24 * 2) {
-                TownSessionWrapper.this.uiWriter.writeState();
-                session.updateAndFire(worldTime.increment(intervalSeconds));
-                Utils.delay(10);
-            }
-
-            System.out.println("Session end");
-            getMessenger().sendUnchecked(new Message("LOG", "Session ended"));
-            getMessenger().sendUnchecked(new Message("END"));
-        }
-    }
-
-
 }
