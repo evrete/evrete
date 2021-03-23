@@ -35,12 +35,47 @@
                         <id>jar1-compile</id>
                         <phase>generate-test-sources</phase>
                         <goals>
-                            <goal>testCompile</goal>
+                            <goal>compile</goal>
                         </goals>
                         <configuration>
                             <compileSourceRoots>
                                 ${project.basedir}/src/test/resources/jars/jar1
                             </compileSourceRoots>
+                            <outputDirectory>
+                                ${project.build.testOutputDirectory}/jar1
+                            </outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>with-security-manager</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <include>**/*SecurityTests.java</include>
+                            </includes>
+                            <argLine>
+                                -Djava.security.manager
+                                -Djava.security.policy==${project.basedir}/src/test/resources/all-permissions.policy
+                            </argLine>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>default-test</id>
+                        <phase>test</phase>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/*SecurityTests.java</exclude>
+                            </excludes>
                         </configuration>
                     </execution>
                 </executions>
@@ -65,7 +100,7 @@
                             <finalName>jar1</finalName>
                             <forceCreation>true</forceCreation>
                             <testClassesDirectory>
-                                ${project.build.testOutputDirectory}/jars/jar1
+                                ${project.build.testOutputDirectory}/jar1
                             </testClassesDirectory>
                             <outputDirectory>${project.basedir}/src/test/resources/jars/jar1</outputDirectory>
                         </configuration>

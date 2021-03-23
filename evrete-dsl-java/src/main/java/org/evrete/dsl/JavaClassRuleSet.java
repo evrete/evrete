@@ -120,10 +120,11 @@ class JavaClassRuleSet {
 
     private MethodHandle resolveMethod(String method, boolean staticMethod, MethodType type) {
         try {
+            MethodHandles.Lookup lookup = MethodHandles.lookup().in(ruleSetClass);
             return staticMethod ?
-                    MethodHandles.lookup().findStatic(ruleSetClass, method, type)
+                    lookup.findStatic(ruleSetClass, method, type)
                     :
-                    MethodHandles.lookup().findVirtual(ruleSetClass, method, type);
+                    lookup.findVirtual(ruleSetClass, method, type);
         } catch (IllegalAccessException | NoSuchMethodException e) {
             return null;
         }
@@ -174,6 +175,8 @@ class JavaClassRuleSet {
             try {
                 init(values);
                 return (boolean) handle.invokeWithArguments(currentValues);
+            } catch (SecurityException e) {
+                throw e;
             } catch (Throwable t) {
                 throw new RuntimeException(t);
             }

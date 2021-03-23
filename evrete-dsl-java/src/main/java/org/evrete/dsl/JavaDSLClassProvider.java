@@ -2,27 +2,29 @@ package org.evrete.dsl;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
+import org.evrete.api.RuleScope;
 import org.evrete.api.RuntimeContext;
-import org.evrete.api.spi.DSLKnowledgeProvider;
 import org.evrete.util.compiler.BytesClassLoader;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.net.URLConnection;
+import java.security.ProtectionDomain;
 
-public class JavaDSLClassProvider extends AbstractJavaDSLProvider implements DSLKnowledgeProvider {
-    static final String NAME = "JAVA-CLASS";
+public class JavaDSLClassProvider extends AbstractJavaDSLProvider {
 
-    private static void apply(RuntimeContext<?> targetContext, byte[] bytes) {
+    private static void apply(RuntimeContext<?> targetContext, byte[][] bytes) {
         ClassLoader ctxClassLoader = targetContext.getClassLoader();
-        BytesClassLoader loader = new BytesClassLoader(ctxClassLoader);
-        processRuleSet(targetContext, new JavaClassRuleSet(loader.buildClass(bytes)));
+        ProtectionDomain domain = targetContext.getService().getSecurity().getProtectionDomain(RuleScope.BOTH);
+        BytesClassLoader loader = new BytesClassLoader(ctxClassLoader, domain);
+        for (byte[] arr : bytes) {
+            processRuleSet(targetContext, new JavaClassRuleSet(loader.buildClass(arr)));
+        }
     }
 
     @Override
     public String getName() {
-        return NAME;
+        return PROVIDER_JAVA_C;
     }
 
     @Override
@@ -33,16 +35,11 @@ public class JavaDSLClassProvider extends AbstractJavaDSLProvider implements DSL
     }
 
     @Override
-    public void apply(RuntimeContext<?> targetContext, InputStream inputStream) throws IOException {
-        apply(targetContext, toByteArray(inputStream));
-    }
-
-    @Override
-    public void apply(RuntimeContext<?> targetContext, URL... resources) throws IOException {
-        if (resources == null || resources.length == 0) return;
-        for (URL url : resources) {
-            URLConnection conn = url.openConnection();
-            apply(targetContext, conn.getInputStream());
+    public void apply(RuntimeContext<?> targetContext, InputStream... streams) throws IOException {
+        byte[][] bytes = new byte[streams.length][];
+        for (int i = 0; i < streams.length; i++) {
+            bytes[i] = toByteArray(streams[i]);
         }
+        apply(targetContext, bytes);
     }
 }

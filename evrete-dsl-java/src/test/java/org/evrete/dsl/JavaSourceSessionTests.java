@@ -11,11 +11,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.File;
 import java.util.List;
 
-class JavaSourceSessionTests {
+class JavaSourceSessionTests extends CommonTestMethods {
     private static KnowledgeService service;
     private StatefulSession runtime;
 
@@ -41,7 +40,7 @@ class JavaSourceSessionTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void sort1(ActivationMode mode) {
-        applyToRuntime("src/test/resources/java/SortTest1.java");
+        applyToRuntimeAsFile(runtime, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/SortTest1.java"));
         StatefulSession session = session(mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 3;
@@ -53,7 +52,7 @@ class JavaSourceSessionTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void sort2(ActivationMode mode) {
-        applyToRuntime("src/test/resources/java/SortTest2.java");
+        applyToRuntimeAsFile(runtime, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/SortTest2.java"));
         StatefulSession session = session(mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 3;
@@ -65,7 +64,7 @@ class JavaSourceSessionTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void sort3(ActivationMode mode) {
-        applyToRuntime("src/test/resources/java/SortTest3.java");
+        applyToRuntimeAsFile(runtime, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/SortTest3.java"));
         StatefulSession session = session(mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 3;
@@ -77,7 +76,7 @@ class JavaSourceSessionTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void sort4(ActivationMode mode) {
-        applyToRuntime("src/test/resources/java/SortTest4.java");
+        applyToRuntimeAsFile(runtime, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/SortTest4.java"));
         StatefulSession session = session(mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 5;
@@ -91,7 +90,7 @@ class JavaSourceSessionTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void primeNonStaticMethod(ActivationMode mode) {
-        applyToRuntime("src/test/resources/java/PrimeNumbers1.java");
+        applyToRuntimeAsFile(runtime, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/PrimeNumbers1.java"));
         StatefulSession session = session(mode);
 
         assert session.getRules().size() == 1;
@@ -110,7 +109,7 @@ class JavaSourceSessionTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void primeStaticMethod(ActivationMode mode) {
-        applyToRuntime("src/test/resources/java/PrimeNumbers2.java");
+        applyToRuntimeAsFile(runtime, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/PrimeNumbers2.java"));
         StatefulSession session = session(mode);
 
         assert session.getRules().size() == 1;
@@ -129,7 +128,7 @@ class JavaSourceSessionTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void primeNonStaticMethodNonStaticCondition(ActivationMode mode) {
-        applyToRuntime("src/test/resources/java/PrimeNumbers3.java");
+        applyToRuntimeAsFile(runtime, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/PrimeNumbers3.java"));
         StatefulSession session = session(mode);
 
         assert session.getRules().size() == 1;
@@ -147,7 +146,7 @@ class JavaSourceSessionTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void primeNonStaticMethodStaticCondition(ActivationMode mode) {
-        applyToRuntime("src/test/resources/java/PrimeNumbers4.java");
+        applyToRuntimeAsFile(runtime, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/PrimeNumbers4.java"));
         StatefulSession session = session(mode);
 
         assert session.getRules().size() == 1;
@@ -165,7 +164,7 @@ class JavaSourceSessionTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void primeStaticMethodStaticCondition(ActivationMode mode) {
-        applyToRuntime("src/test/resources/java/PrimeNumbers5.java");
+        applyToRuntimeAsURLs(runtime, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/PrimeNumbers5.java"));
         StatefulSession session = session(mode);
 
         assert session.getRules().size() == 1;
@@ -178,14 +177,5 @@ class JavaSourceSessionTests {
         session.forEachFact((h, o) -> primeCounter.next());
 
         assert primeCounter.get() == 25;
-    }
-
-
-    private void applyToRuntime(String file) {
-        try {
-            runtime.appendDslRules(JavaDSLSourceProvider.NAME, new FileInputStream(file));
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
     }
 }

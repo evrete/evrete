@@ -12,9 +12,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.io.File;
-import java.net.URL;
 
-class JavaJarKnowledgeTests {
+class JavaJarKnowledgeTests extends CommonTestMethods {
     private static KnowledgeService service;
     private Knowledge runtime;
 
@@ -42,8 +41,8 @@ class JavaJarKnowledgeTests {
     void test1(ActivationMode mode) {
         runtime
                 .getConfiguration()
-                .setProperty(JavaDSLJarProvider.CLASSES_PROPERTY, "org.evrete.tests.rule.RuleSet1");
-        applyToRuntimeAsStream("src/test/resources/jars/jar1-tests.jar");
+                .setProperty(JavaDSLJarProvider.CLASSES_PROPERTY, "pkg1.evrete.tests.rule.RuleSet1");
+        applyToRuntimeAsURLs(runtime, AbstractJavaDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar1//jar1-tests.jar"));
         StatefulSession session = session(mode);
         assert session.getRules().size() == 2;
         for (int i = 2; i < 100; i++) {
@@ -56,20 +55,5 @@ class JavaJarKnowledgeTests {
 
         assert primeCounter.get() == 25;
 
-    }
-
-
-    private void applyToRuntimeAsStream(String... files) {
-        assert files != null && files.length > 0;
-        try {
-            URL[] urls = new URL[files.length];
-            for (int i = 0; i < urls.length; i++) {
-                File f = new File(files[i]);
-                urls[i] = f.toURI().toURL();
-            }
-            runtime.appendDslRules(JavaDSLJarProvider.NAME, urls);
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
     }
 }

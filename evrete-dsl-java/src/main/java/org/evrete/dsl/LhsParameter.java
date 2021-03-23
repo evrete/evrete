@@ -8,7 +8,7 @@ class LhsParameter {
     static LhsParameter[] EMPTY_ARRAY = new LhsParameter[0];
     final int position;
     final String lhsRef;
-    private final String factType;
+    private final Class<?> factType;
 
     LhsParameter(Parameter parameter, int position) {
         String ref;
@@ -24,8 +24,7 @@ class LhsParameter {
         } else {
             this.position = position;
             this.lhsRef = ref;
-            Class<?> parameterType = lhsType(parameter);
-            this.factType = parameterType.getName();
+            this.factType = lhsType(parameter);
         }
     }
 
@@ -65,7 +64,7 @@ class LhsParameter {
         return lhsRef;
     }
 
-    String getFactType() {
+    Class<?> getFactType() {
         return factType;
     }
 }

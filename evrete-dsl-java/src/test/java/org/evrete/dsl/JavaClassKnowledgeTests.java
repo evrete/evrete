@@ -13,12 +13,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.List;
 
-class JavaClassKnowledgeTests {
+class JavaClassKnowledgeTests extends CommonTestMethods {
     private static KnowledgeService service;
     private Knowledge runtime;
 
@@ -44,7 +41,7 @@ class JavaClassKnowledgeTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void primeTest1(ActivationMode mode) {
-        applyToRuntimeAsStream(SampleRuleSet1.class);
+        applyToRuntimeAsStream(runtime, SampleRuleSet1.class);
         StatefulSession session = session(mode);
 
         assert session.getRules().size() == 1;
@@ -63,7 +60,7 @@ class JavaClassKnowledgeTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void primeTest2(ActivationMode mode) {
-        applyToRuntimeAsURL(SampleRuleSet2.class);
+        applyToRuntimeAsURL(runtime, SampleRuleSet2.class);
         StatefulSession session = session(mode);
 
         assert session.getRules().size() == 1;
@@ -81,7 +78,7 @@ class JavaClassKnowledgeTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void primeTest3(ActivationMode mode) {
-        applyToRuntimeAsStream(SampleRuleSet3.class);
+        applyToRuntimeAsStream(runtime, SampleRuleSet3.class);
         StatefulSession session = session(mode);
 
         assert session.getRules().size() == 1;
@@ -99,7 +96,7 @@ class JavaClassKnowledgeTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void sortInheritance1(ActivationMode mode) {
-        applyToRuntimeAsURL(SortedRuleSet1.class);
+        applyToRuntimeAsURL(runtime, SortedRuleSet1.class);
         StatefulSession session = session(mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 5;
@@ -113,7 +110,7 @@ class JavaClassKnowledgeTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void sortInheritance2(ActivationMode mode) {
-        applyToRuntimeAsStream(SortedRuleSet2.class);
+        applyToRuntimeAsStream(runtime, SortedRuleSet2.class);
         StatefulSession session = session(mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 5;
@@ -124,24 +121,4 @@ class JavaClassKnowledgeTests {
         assert rules.get(4).getName().endsWith("rule4");
     }
 
-
-    private void applyToRuntimeAsStream(Class<?> ruleClass) {
-        try {
-            String url = ruleClass.getName().replaceAll("\\.", "/") + ".class";
-            InputStream is = ruleClass.getClassLoader().getResourceAsStream(url);
-            runtime.appendDslRules(JavaDSLClassProvider.NAME, is);
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    private void applyToRuntimeAsURL(Class<?> ruleClass) {
-        try {
-            String url = ruleClass.getName().replaceAll("\\.", "/") + ".class";
-            URL u = ruleClass.getClassLoader().getResource(url);
-            runtime.appendDslRules(JavaDSLClassProvider.NAME, u);
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
-    }
 }
