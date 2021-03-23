@@ -1,6 +1,6 @@
 package org.evrete.benchmarks;
 
-import org.evrete.jmh.Expressions;
+import org.evrete.benchmarks.jmh.Expressions;
 import org.junit.jupiter.api.Test;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;

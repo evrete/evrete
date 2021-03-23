@@ -1,4 +1,4 @@
-package org.evrete.helper;
+package org.evrete.benchmarks.helper;
 
 public interface IterableSet<T> extends IterableCollection<T> {
 

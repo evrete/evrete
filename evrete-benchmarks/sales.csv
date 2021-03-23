@@ -1,0 +1,15 @@
+"Benchmark","Mode","Threads","Samples","Score","Score Error (99.9%)","Unit","Param: customerBase","Param: totalInvoices"
+"org.evrete.benchmarks.jmh.SalesModel.drools","thrpt",1,10,2559.835042,18.100331,"ops/s",16,256
+"org.evrete.benchmarks.jmh.SalesModel.drools","thrpt",1,10,1287.835222,3.603265,"ops/s",16,512
+"org.evrete.benchmarks.jmh.SalesModel.drools","thrpt",1,10,643.319660,5.025991,"ops/s",16,1024
+"org.evrete.benchmarks.jmh.SalesModel.drools","thrpt",1,10,320.450369,1.470936,"ops/s",16,2048
+"org.evrete.benchmarks.jmh.SalesModel.drools","thrpt",1,10,159.667834,0.823281,"ops/s",16,4096
+"org.evrete.benchmarks.jmh.SalesModel.drools","thrpt",1,10,79.431795,0.388334,"ops/s",16,8192
+"org.evrete.benchmarks.jmh.SalesModel.drools","thrpt",1,10,39.284281,0.397495,"ops/s",16,16384
+"org.evrete.benchmarks.jmh.SalesModel.evrete","thrpt",1,10,7197.609885,237.000613,"ops/s",16,256
+"org.evrete.benchmarks.jmh.SalesModel.evrete","thrpt",1,10,5144.465180,84.115133,"ops/s",16,512
+"org.evrete.benchmarks.jmh.SalesModel.evrete","thrpt",1,10,3346.636292,44.134123,"ops/s",16,1024
+"org.evrete.benchmarks.jmh.SalesModel.evrete","thrpt",1,10,1897.595390,77.775901,"ops/s",16,2048
+"org.evrete.benchmarks.jmh.SalesModel.evrete","thrpt",1,10,1044.091075,16.775369,"ops/s",16,4096
+"org.evrete.benchmarks.jmh.SalesModel.evrete","thrpt",1,10,452.976802,11.842872,"ops/s",16,8192
+"org.evrete.benchmarks.jmh.SalesModel.evrete","thrpt",1,10,210.571054,5.240203,"ops/s",16,16384

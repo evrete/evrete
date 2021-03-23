@@ -1,4 +1,4 @@
-package org.evrete.jmh;
+package org.evrete.benchmarks.jmh;
 
 import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
@@ -6,13 +6,14 @@ import org.evrete.api.Evaluator;
 import org.evrete.api.IntToValue;
 import org.evrete.api.Knowledge;
 import org.evrete.api.RuleBuilder;
-import org.evrete.classes.TypeA;
-import org.evrete.classes.TypeB;
-import org.evrete.classes.TypeC;
+import org.evrete.benchmarks.models.misc.TypeA;
+import org.evrete.benchmarks.models.misc.TypeB;
+import org.evrete.benchmarks.models.misc.TypeC;
 import org.evrete.runtime.KnowledgeRuntime;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
+import java.util.HashSet;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -67,7 +68,7 @@ public class Expressions {
             rule.forEach().buildLhs("$a", TypeA.class);
             rule.forEach().buildLhs("$b", TypeB.class.getName());
             rule.forEach().buildLhs("$c", TypeC.class.getName());
-            evaluator = knowledge.compile("$a.i + $b.i + $c.i > 10_000", rule.getLhs().getFactTypeMapper());
+            evaluator = knowledge.compile("$a.i + $b.i + $c.i > 10_000", rule.getLhs().getFactTypeMapper(), new HashSet<>());
 
             Random random = new Random();
             Object[] vars = new Object[8192 * 256];

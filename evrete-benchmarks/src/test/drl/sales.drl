@@ -1,0 +1,15 @@
+import org.evrete.benchmarks.models.sales.Invoice;
+import org.evrete.benchmarks.models.sales.Department;
+import org.evrete.benchmarks.models.sales.Customer;
+import org.evrete.benchmarks.models.sales.SalesReport;
+
+rule "sales"
+  when
+      $i        : Invoice()
+      $c        : Customer(id == $i.customer.id)
+      $report   : SalesReport();
+
+  then
+      $report.sales += $i.amount;
+end
+

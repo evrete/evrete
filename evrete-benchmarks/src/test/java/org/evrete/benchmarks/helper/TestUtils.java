@@ -1,4 +1,4 @@
-package org.evrete.helper;
+package org.evrete.benchmarks.helper;
 
 import org.evrete.api.ReIterator;
 import org.evrete.api.StatefulSession;

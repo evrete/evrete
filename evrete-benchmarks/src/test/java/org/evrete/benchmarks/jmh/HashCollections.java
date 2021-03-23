@@ -1,11 +1,11 @@
-package org.evrete.jmh;
+package org.evrete.benchmarks.jmh;
 
 import org.evrete.api.ReIterator;
-import org.evrete.classes.TypeA;
+import org.evrete.benchmarks.helper.IterableCollection;
+import org.evrete.benchmarks.helper.IterableSet;
+import org.evrete.benchmarks.helper.TestUtils;
+import org.evrete.benchmarks.models.misc.TypeA;
 import org.evrete.collections.LinearHashSet;
-import org.evrete.helper.IterableCollection;
-import org.evrete.helper.IterableSet;
-import org.evrete.helper.TestUtils;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 

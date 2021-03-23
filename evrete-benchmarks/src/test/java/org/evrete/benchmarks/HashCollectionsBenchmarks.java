@@ -1,6 +1,6 @@
 package org.evrete.benchmarks;
 
-import org.evrete.jmh.HashCollections;
+import org.evrete.benchmarks.jmh.HashCollections;
 import org.junit.jupiter.api.Test;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;

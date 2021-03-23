@@ -1,4 +1,4 @@
-package org.evrete.helper;
+package org.evrete.benchmarks.helper;
 
 import java.util.function.Consumer;
 

@@ -1,4 +1,4 @@
-package org.evrete.jmh;
+package org.evrete.benchmarks.jmh;
 
 import java.util.HashMap;
 import java.util.Map;

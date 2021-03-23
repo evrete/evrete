@@ -1,4 +1,4 @@
-package org.evrete.classes;
+package org.evrete.benchmarks.models.misc;
 
 
 @SuppressWarnings("unused")

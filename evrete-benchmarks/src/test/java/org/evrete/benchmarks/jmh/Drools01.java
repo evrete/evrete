@@ -1,11 +1,11 @@
-package org.evrete.jmh;
+package org.evrete.benchmarks.jmh;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
-import org.evrete.classes.TypeA;
-import org.evrete.classes.TypeB;
-import org.evrete.helper.SessionWrapper;
-import org.evrete.helper.TestUtils;
+import org.evrete.benchmarks.helper.SessionWrapper;
+import org.evrete.benchmarks.helper.TestUtils;
+import org.evrete.benchmarks.models.misc.TypeA;
+import org.evrete.benchmarks.models.misc.TypeB;
 import org.evrete.util.MapOfList;
 import org.kie.api.runtime.KieContainer;
 import org.openjdk.jmh.annotations.*;
@@ -43,9 +43,6 @@ public class Drools01 extends DroolsBase {
 
         @Param
         Implementation implementation;
-
-        @Param({"100"})
-        int rhsLoad;
 
         private KnowledgeService service;
         private KieContainer dKnowledge;
@@ -89,7 +86,7 @@ public class Drools01 extends DroolsBase {
                     TypeB $b = new TypeB();
                     $b.setI(i);
                     // Using the long field to store the wait time
-                    $a.setL(rhsLoad);
+                    $a.setL(100);
                     objectMaps.add(uniquenessLabel, $a);
                     objectMaps.add(uniquenessLabel, $b);
 
@@ -113,6 +110,7 @@ public class Drools01 extends DroolsBase {
                     .where("$a.i == $b.i")
                     .execute(ctx -> {
                         TypeA a = ctx.get("$a");
+                        TypeB b = ctx.get("$b");
                         a.waitNs(a.getL());
                     });
 
