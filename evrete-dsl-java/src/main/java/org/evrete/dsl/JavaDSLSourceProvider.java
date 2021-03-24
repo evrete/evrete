@@ -32,7 +32,7 @@ public class JavaDSLSourceProvider extends AbstractJavaDSLProvider {
                 processRuleSet(targetContext, new JavaClassRuleSet(ruleSet));
             } catch (CompilationException e) {
                 LOGGER.warning("Source code: \n" + e.getSource());
-                throw new IllegalStateException("Unable to compile sources, see the error logs.");
+                throw new IllegalStateException(e);
             }
         }
     }

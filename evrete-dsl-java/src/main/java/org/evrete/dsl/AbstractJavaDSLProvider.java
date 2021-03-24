@@ -38,7 +38,7 @@ abstract class AbstractJavaDSLProvider implements DSLKnowledgeProvider {
             LhsBuilder<?> lhsBuilder = builder.forEach(facts);
             Where predicates = rm.getPredicates();
             if (predicates != null) {
-                for (String stringPredicate : predicates.asStrings()) {
+                for (String stringPredicate : predicates.value()) {
                     lhsBuilder = lhsBuilder.where(stringPredicate);
                 }
 

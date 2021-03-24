@@ -113,7 +113,7 @@ class JavaClassKnowledgeTests extends CommonTestMethods {
         applyToRuntimeAsStream(runtime, SortedRuleSet2.class);
         StatefulSession session = session(mode);
         List<RuntimeRule> rules = session.getRules();
-        assert rules.size() == 5;
+        assert rules.size() == 5 : "Actual: " + rules.size() + ": " + rules;
         assert rules.get(0).getName().endsWith("rule2"); // Salience 100
         assert rules.get(1).getName().endsWith("rule3"); // Salience 10
         assert rules.get(2).getName().endsWith("rule1"); // Salience -1

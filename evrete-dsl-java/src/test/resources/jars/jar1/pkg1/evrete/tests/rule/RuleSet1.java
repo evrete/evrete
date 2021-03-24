@@ -20,7 +20,7 @@ public class RuleSet1 {
     }
 
     @Rule
-    @Where(asStrings = {"$i3.value == $i1.value * $i2.value"})
+    @Where(value = {"$i3.value == $i1.value * $i2.value"})
     public void deleteNonPrime(@Fact("$i1") IntValue i1, @Fact("$i2") IntValue i2, @Fact("$i3") IntValue i3, RhsContext ctx) {
         ctx.deleteFact("$i3");
     }

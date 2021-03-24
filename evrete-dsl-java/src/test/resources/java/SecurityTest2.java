@@ -10,7 +10,7 @@ import org.evrete.dsl.annotation.Where;
 public class SecurityTest2 {
 
     @Rule
-    @Where(asStrings = "new File($i.toString()).exists()")
+    @Where(value = "new File($i.toString()).exists()")
     public void rule1(@Fact("$i") Integer i) {
         System.out.println("Unreachable");
     }

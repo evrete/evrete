@@ -17,7 +17,7 @@ public @interface Where {
      *
      * @return array of literal conditions
      */
-    String[] asStrings() default {};
+    String[] value() default {};
 
     /**
      * @return array of MethodPredicate conditions

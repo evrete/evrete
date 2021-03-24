@@ -8,7 +8,7 @@ import org.evrete.dsl.annotation.Where;
 public class PrimeNumbers2 {
 
     @Rule("Delete non-prime integers")
-    @Where(asStrings = {"$i3 == $i1 * $i2"})
+    @Where(value = {"$i3 == $i1 * $i2"})
     public static void rule(RhsContext ctx, int $i1, @Fact("$i2") int i2, int $i3) {
         ctx.delete($i3);
     }
