@@ -4,7 +4,6 @@ package org.evrete.samples.guessingnumbers;
 public class Player {
     public int secret;
     public String name;
-    public boolean inGame = true;
 
     public Player(String name) {
         this.name = name;

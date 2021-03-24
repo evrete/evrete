@@ -16,15 +16,13 @@ public class GuessingNumbers {
                 )
                 .where(
                         "$guess.number == $player.secret",
-                        "$player != $guess.author",
-                        "$player.inGame == true"
+                        "$player != $guess.author"
                 )
                 .execute(
                         ctx -> {
-                            Player $player = ctx.get("$player");
-                            $player.inGame = false;
-                            System.out.println("Number '" + $player.secret + "' matches! " + $player + " is leaving the game.");
-                            ctx.update($player);
+                            Player p = ctx.get("$player");
+                            System.out.println("Number '" + p.secret + "' matches! " + p + " is leaving the game.");
+                            ctx.delete(p);
                         }
                 )
                 .newRule("Number is not guessed, next turn")
@@ -34,13 +32,12 @@ public class GuessingNumbers {
                 )
                 .where(
                         "$guess.number != $player.secret",
-                        "$player != $guess.author",
-                        "$player.inGame == true"
+                        "$player != $guess.author"
                 )
                 .execute(
                         ctx -> {
-                            Player $player = ctx.get("$player");
-                            Guess nextGuess = new Guess($player);
+                            Player p = ctx.get("$player");
+                            Guess nextGuess = new Guess(p);
                             ctx.insert(nextGuess);
                             System.out.println(nextGuess);
                         }

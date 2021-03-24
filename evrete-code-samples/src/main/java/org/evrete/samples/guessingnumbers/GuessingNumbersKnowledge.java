@@ -11,21 +11,17 @@ public class GuessingNumbersKnowledge {
     @Rule("Number is guessed")
     @Where({
             "$guess.number == $player.secret",
-            "$player != $guess.author",
-            "$player.inGame == true"
+            "$player != $guess.author"
     })
     public void rule1(RhsContext ctx, @Fact("$guess") Guess g, @Fact("$player") Player p) {
         System.out.println("Number guessed! " + p + " is leaving the game.");
-        // Marking the player accordingly
-        p.inGame = false;
-        ctx.update(p);
+        ctx.delete(p);
     }
 
     @Rule("Number is not guessed, next turn")
     @Where({
             "$guess.number != $player.secret",
-            "$player != $guess.author",
-            "$player.inGame == true"
+            "$player != $guess.author"
     })
     public void rule2(RhsContext ctx, @Fact("$guess") Guess g, @Fact("$player") Player p) {
         Guess newGuess = new Guess(p);
