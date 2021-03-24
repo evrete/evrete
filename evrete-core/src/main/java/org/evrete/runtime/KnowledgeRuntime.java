@@ -64,6 +64,12 @@ public class KnowledgeRuntime extends AbstractRuntime<Knowledge> implements Know
     }
 
     @Override
+    public Knowledge appendDslRules(String dsl, Class<?> classes) throws IOException {
+        append(dsl, classes);
+        return this;
+    }
+
+    @Override
     public final Kind getKind() {
         return Kind.KNOWLEDGE;
     }

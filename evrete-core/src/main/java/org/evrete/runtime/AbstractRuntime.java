@@ -122,6 +122,20 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
         getDslProvider(dsl).apply(this, resources);
     }
 
+    private static URL classToURL(Class<?> cl) {
+        String resource = cl.getName().replaceAll("\\.", "/") + ".class";
+        return cl.getClassLoader().getResource(resource);
+    }
+
+    protected void append(String dsl, Class<?>... classes) throws IOException {
+        if (classes == null || classes.length == 0) return;
+        URL[] urls = new URL[classes.length];
+        for (int i = 0; i < classes.length; i++) {
+            urls[i] = classToURL(classes[i]);
+        }
+        getDslProvider(dsl).apply(this, urls);
+    }
+
     @Override
     public ClassLoader getClassLoader() {
         return classLoader;

@@ -7,6 +7,7 @@ import org.evrete.runtime.RuleDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.io.StringReader;
 import java.net.URL;
 import java.util.Comparator;
 import java.util.List;
@@ -61,7 +62,17 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
 
     C appendDslRules(String dsl, URL... resources) throws IOException;
 
+    C appendDslRules(String dsl, Class<?> classes) throws IOException;
+
     C appendDslRules(String dsl, Reader... readers) throws IOException;
+
+    default C appendDslRules(String dsl, String... sources) throws IOException {
+        Reader[] readers = new Reader[sources.length];
+        for (int i = 0; i < sources.length; i++) {
+            readers[i] = new StringReader(sources[i]);
+        }
+        return appendDslRules(dsl, readers);
+    }
 
     enum Kind {
         KNOWLEDGE, SESSION

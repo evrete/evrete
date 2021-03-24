@@ -87,9 +87,9 @@ class EvaluatorCompiler {
                 Class<?> fieldType = term.field().getValueType();
 
                 argTypes.add(term.type().getType().getName() + "/" + term.field().getName());
-                argCasts.add("(" + fieldType.getName() + ") values.apply(" + castVarIndex + ")");
+                argCasts.add("(" + fieldType.getCanonicalName() + ") values.apply(" + castVarIndex + ")");
                 argClasses.add(fieldType.getName() + ".class");
-                methodArgs.add(fieldType.getName() + " " + javaArgVar);
+                methodArgs.add(fieldType.getCanonicalName() + " " + javaArgVar);
                 castVarIndex++;
                 // Mark as processed
                 uniqueReferences.add(term);

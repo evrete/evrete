@@ -56,6 +56,11 @@ public class StatefulSessionImpl extends AbstractKnowledgeSession<StatefulSessio
         return this;
     }
 
+    @Override
+    public StatefulSession appendDslRules(String dsl, Class<?> classes) throws IOException {
+        append(dsl, classes);
+        return this;
+    }
 
     @Override
     public List<RuntimeRule> getRules() {
