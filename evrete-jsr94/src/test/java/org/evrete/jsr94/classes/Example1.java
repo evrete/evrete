@@ -16,7 +16,7 @@ public class Example1 {
         decrement the credit limit with the amount of the invoice and
         set the status of the invoice to "paid".
      */
-    @Where(asStrings = {
+    @Where(value = {
             "$customer.creditLimit > $invoice.amount",
             "$invoice.status.equals(\"unpaid\")"
     })
