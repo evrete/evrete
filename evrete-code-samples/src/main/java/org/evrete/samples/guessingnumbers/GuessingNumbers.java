@@ -21,7 +21,7 @@ public class GuessingNumbers {
                 .execute(
                         ctx -> {
                             Player p = ctx.get("$player");
-                            System.out.println("Number '" + p.secret + "' matches! " + p + " is leaving the game.");
+                            System.out.println("Number guessed! " + p + " is leaving the game.");
                             ctx.delete(p);
                         }
                 )
