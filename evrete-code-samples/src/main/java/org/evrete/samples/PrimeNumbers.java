@@ -33,7 +33,7 @@ class PrimeNumbers {
         session.fire();
 
         // Print current memory state
-        session.forEachMemoryObject(System.out::println);
+        session.forEachFact((handle, o) -> System.out.println(o));
 
         // Closing resources
         session.close();

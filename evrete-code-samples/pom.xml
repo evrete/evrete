@@ -23,6 +23,7 @@
             <artifactId>evrete-core</artifactId>
             <version>1.2.06-SNAPSHOT</version>
         </dependency>
+
         <dependency>
             <groupId>org.evrete</groupId>
             <artifactId>evrete-dsl-java</artifactId>

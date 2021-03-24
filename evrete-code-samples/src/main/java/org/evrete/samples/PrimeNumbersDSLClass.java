@@ -8,16 +8,15 @@ import org.evrete.dsl.annotation.Rule;
 import org.evrete.dsl.annotation.Where;
 
 import java.io.IOException;
-import java.net.URL;
 
-public class PrimeNumbersDSL {
+public class PrimeNumbersDSLClass {
     public static void main(String[] args) throws IOException {
         KnowledgeService service = new KnowledgeService();
         StatefulSession session = service
                 .newKnowledge()
                 .appendDslRules(
                         "JAVA-CLASS",
-                        classToURL(PrimeNumbersDSL.class)
+                        PrimeNumbersDSLClass.class
                 )
                 .createSession();
 
@@ -35,13 +34,8 @@ public class PrimeNumbersDSL {
     }
 
     @Rule
-    @Where(asStrings = "$i1 * $i2 == $i3")
+    @Where(value = "$i1 * $i2 == $i3")
     public static void rule(RhsContext ctx, @Fact("$i1") int i1, @Fact("$i2") int i2, @Fact("$i3") int i3) {
         ctx.deleteFact("$i3");
-    }
-
-    private static URL classToURL(Class<?> cl) {
-        String resource = cl.getName().replaceAll("\\.", "/") + ".class";
-        return cl.getClassLoader().getResource(resource);
     }
 }
