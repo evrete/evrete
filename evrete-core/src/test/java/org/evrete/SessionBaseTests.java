@@ -296,6 +296,8 @@ class SessionBaseTests {
                 .execute();
 
         StatefulSession s = knowledge.createSession().setActivationMode(mode);
+
+        assert s.getParentContext() == knowledge;
         RhsAssert rhsAssert = new RhsAssert(s);
         TypeA a = new TypeA("A");
         a.setAllNumeric(1);

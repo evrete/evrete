@@ -9,7 +9,7 @@ public interface FluentImports<T> {
     default T addImport(RuleScope scope, Class<?> type) {
         String canonicalName = type.getCanonicalName();
         if (canonicalName == null) {
-            throw new IllegalStateException("Can not import " + type);
+            throw new IllegalArgumentException("Can not import " + type + ", it's canonical name is null.");
         } else {
             return addImport(scope, canonicalName);
         }

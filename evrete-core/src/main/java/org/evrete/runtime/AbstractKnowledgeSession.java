@@ -13,34 +13,15 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
     final RuntimeRules ruleStorage;
     private ActivationManager activationManager;
     private BooleanSupplier fireCriteria = () -> true;
-/*
-    private final AccessControlContext lhsControlContext;
-    private final PrivilegedAction<Void> privilegedProcessBuffer;
-*/
 
     AbstractKnowledgeSession(KnowledgeRuntime knowledge) {
         super(knowledge);
         this.activationManager = newActivationManager();
         this.ruleStorage = new RuntimeRules();
         // Deploy existing rules
-        for (RuleDescriptor descriptor : getRuleDescriptors()) {
+        for (RuleDescriptor descriptor : knowledge.getRules()) {
             deployRule(descriptor, false);
         }
-
-/*
-        this.lhsControlContext = new AccessControlContext(
-                new ProtectionDomain[]{
-                        getService()
-                                .getSecurity()
-                                .getProtectionDomain(RuleScope.LHS)
-                }
-        );
-
-        this.privilegedProcessBuffer = () -> {
-            processBufferInsecure();
-            return null;
-        };
-*/
     }
 
     private void reSortRules() {
@@ -49,6 +30,11 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
 
     private List<RuntimeRule> buildMemoryDeltas() {
         return buildMemoryDeltasInsecure();
+    }
+
+    @Override
+    public List<RuntimeRule> getRules() {
+        return ruleStorage.asList();
     }
 
     private List<RuntimeRule> buildMemoryDeltasInsecure() {
@@ -143,7 +129,6 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
     public ActivationManager getActivationManager() {
         return activationManager;
     }
-
 
     void applyActivationManager(ActivationManager activationManager) {
         this.activationManager = activationManager;

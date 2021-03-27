@@ -1,7 +1,6 @@
 package org.evrete.api;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
@@ -10,9 +9,8 @@ public interface StatefulSession extends KnowledgeSession<StatefulSession> {
 
     StatefulSession setFireCriteria(BooleanSupplier fireCriteria);
 
+    // TODO !!! move this higher
     RuntimeRule getRule(String name);
-
-    List<RuntimeRule> getRules();
 
     default RuntimeRule getRule(Named named) {
         return getRule(named.getName());

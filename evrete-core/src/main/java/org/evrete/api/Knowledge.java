@@ -5,7 +5,7 @@ import org.evrete.runtime.RuleDescriptor;
 import java.util.Collection;
 
 @SuppressWarnings("unused")
-public interface Knowledge extends RuntimeContext<Knowledge> {
+public interface Knowledge extends RuntimeContext<Knowledge>, RuleSet<RuleDescriptor> {
     Collection<KnowledgeSession<?>> getSessions();
 
     StatefulSession createSession();

@@ -1,6 +1,7 @@
 package org.evrete.samples.guessingnumbers;
 
 import org.evrete.KnowledgeService;
+import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
 
 import java.io.IOException;
@@ -9,24 +10,21 @@ import java.io.IOException;
 public class GuessingNumbersDSL {
     public static void main(String[] args) throws IOException {
         KnowledgeService service = new KnowledgeService();
-        StatefulSession session = service
+        Knowledge knowledge = service
                 .newKnowledge()
                 .appendDslRules(
                         "JAVA-CLASS",
                         GuessingNumbersKnowledge.class
-                )
-                .createSession();
+                );
 
-        Player p1 = new Player("Andrew");
-        Player p2 = new Player("Anna");
-        Guess startingGuess = new Guess(p1);
+        try (StatefulSession session = knowledge.createSession()) {
+            Player p1 = new Player("Andrew");
+            Player p2 = new Player("Anna");
+            Guess startingGuess = new Guess(p1);
+            session.insert(p1, p2, startingGuess);
+            session.fire();
+        }
 
-        session.insert(p1, p2, startingGuess);
-
-        session.fire();
-
-        // Closing resources
-        session.close();
         service.shutdown();
 
     }

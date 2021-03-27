@@ -1,13 +1,14 @@
 package org.evrete.samples;
 
 import org.evrete.KnowledgeService;
+import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
 
 class PrimeNumbers {
     public static void main(String[] args) {
 
         KnowledgeService service = new KnowledgeService();
-        StatefulSession session = service
+        Knowledge knowledge = service
                 .newKnowledge()
                 .newRule("prime numbers")
                 .forEach(
@@ -21,22 +22,20 @@ class PrimeNumbers {
                             int $i3 = ctx.get("$i3");
                             ctx.delete($i3);
                         }
-                )
-                .createSession();
+                );
 
-        // Inject candidates
-        for (int i = 2; i <= 100; i++) {
-            session.insert(i);
+        try (StatefulSession session = knowledge.createSession()) {
+            // Inject candidates
+            for (int i = 2; i <= 100; i++) {
+                session.insert(i);
+            }
+
+            // Execute rules
+            session.fire();
+
+            // Print current memory state
+            session.forEachFact((handle, o) -> System.out.println(o));
         }
-
-        // Execute rules
-        session.fire();
-
-        // Print current memory state
-        session.forEachFact((handle, o) -> System.out.println(o));
-
-        // Closing resources
-        session.close();
         service.shutdown();
     }
 }

@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.net.URL;
-import java.util.List;
 import java.util.function.BooleanSupplier;
 
 public class StatefulSessionImpl extends AbstractKnowledgeSession<StatefulSession> implements StatefulSession {
@@ -60,11 +59,6 @@ public class StatefulSessionImpl extends AbstractKnowledgeSession<StatefulSessio
     public StatefulSession appendDslRules(String dsl, Class<?> classes) throws IOException {
         append(dsl, classes);
         return this;
-    }
-
-    @Override
-    public List<RuntimeRule> getRules() {
-        return ruleStorage.asList();
     }
 
     @Override

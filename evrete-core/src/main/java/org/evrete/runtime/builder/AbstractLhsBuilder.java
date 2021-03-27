@@ -72,7 +72,7 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         return self();
     }
 
-    public final RuntimeContext<C> getRuntime() {
+    public final RuntimeContext<?> getRuntime() {
         return ruleBuilder.getRuntime();
     }
 

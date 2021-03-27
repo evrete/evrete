@@ -10,7 +10,6 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.net.URL;
 import java.util.Comparator;
-import java.util.List;
 
 public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, FluentImports<RuntimeContext<?>>, PropertyAccess<C> {
     Comparator<Rule> SALIENCE_COMPARATOR = (rule1, rule2) -> -1 * Integer.compare(rule1.getSalience(), rule2.getSalience());
@@ -21,13 +20,12 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
 
     boolean ruleExists(String name);
 
-    //TODO !!! make it generic, return runtime rule or rule descriptor
-    List<RuleDescriptor> getRuleDescriptors();
-
     Kind getKind();
 
+    //TODO move this to RuleSet
     RuleDescriptor compileRule(RuleBuilder<?> builder);
 
+    //TODO move this to RuleSet
     void deployRule(RuleDescriptor descriptor);
 
     RuleBuilder<C> newRule(String name);

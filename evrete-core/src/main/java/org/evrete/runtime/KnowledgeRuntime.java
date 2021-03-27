@@ -30,6 +30,11 @@ public class KnowledgeRuntime extends AbstractRuntime<Knowledge> implements Know
     }
 
     @Override
+    public List<RuleDescriptor> getRules() {
+        return getRuleDescriptorsTmp();
+    }
+
+    @Override
     public void addListener(EvaluationListener listener) {
         this.evaluationListeners.add(listener);
     }

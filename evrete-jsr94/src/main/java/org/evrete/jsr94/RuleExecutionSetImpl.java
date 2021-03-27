@@ -19,8 +19,8 @@ class RuleExecutionSetImpl implements RuleExecutionSet {
     RuleExecutionSetImpl(Knowledge knowledge, Map<?, ?> map) {
         this.knowledge = knowledge;
         Utils.copyConfiguration(knowledge, map);
-        this.rules = new ArrayList<>(knowledge.getRuleDescriptors().size());
-        for (RuleDescriptor rd : knowledge.getRuleDescriptors()) {
+        this.rules = new ArrayList<>(knowledge.getRules().size());
+        for (RuleDescriptor rd : knowledge.getRules()) {
             this.rules.add(new RuleImpl(rd));
         }
     }

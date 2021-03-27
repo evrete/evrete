@@ -24,6 +24,7 @@ import java.util.logging.Logger;
 
 public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends RuntimeMetaData<C> {
     private final List<RuleBuilder<C>> ruleBuilders = new ArrayList<>();
+    //TODO !!! move descriptors to knowledge!!
     private final List<RuleDescriptor> ruleDescriptors;
     private final NextIntSupplier ruleCounter;
 
@@ -108,6 +109,11 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
         } else {
             return found.iterator().next();
         }
+    }
+
+
+    protected List<RuleDescriptor> getRuleDescriptorsTmp() {
+        return ruleDescriptors;
     }
 
     protected void append(String dsl, InputStream... streams) throws IOException {
@@ -224,10 +230,12 @@ public abstract class AbstractRuntime<C extends RuntimeContext<C>> extends Runti
         return new FactType(builder.getVar(), alphaMask, fieldsKey, inRuleId);
     }
 
+/*
     @Override
     public List<RuleDescriptor> getRuleDescriptors() {
         return ruleDescriptors;
     }
+*/
 
     @Override
     public RuleBuilder<C> newRule() {

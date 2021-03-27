@@ -1,13 +1,14 @@
 package org.evrete.samples;
 
 import org.evrete.KnowledgeService;
+import org.evrete.api.Knowledge;
 import org.evrete.api.RhsContext;
 import org.evrete.api.StatefulSession;
 
 class PrimeNumbersJava8 {
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
-        StatefulSession session = service
+        Knowledge knowledge = service
                 .newKnowledge()
                 .newRule("prime numbers")
                 .forEach(
@@ -18,26 +19,23 @@ class PrimeNumbersJava8 {
                 .where(
                         PrimeNumbersJava8::test,
                         "$i1", "$i2", "$i3")
-                .execute() // No RHS
-                .createSession();
+                .execute(); // No RHS
 
-        // Change RHS on an active session
-        session.getRule("prime numbers").setRhs(PrimeNumbersJava8::rhsMethod);
+        try (StatefulSession session = knowledge.createSession()) {
+            // Change RHS on an active session
+            session.getRule("prime numbers").setRhs(PrimeNumbersJava8::rhsMethod);
 
+            // Inject candidates
+            for (int i = 2; i <= 100; i++) {
+                session.insert(i);
+            }
 
-        // Inject candidates
-        for (int i = 2; i <= 100; i++) {
-            session.insert(i);
+            // Execute rules
+            session.fire();
+
+            // Print current memory state
+            session.forEachFact((h, o) -> System.out.println(o));
         }
-
-        // Execute rules
-        session.fire();
-
-        // Print current memory state
-        session.forEachMemoryObject(System.out::println);
-
-        // Closing resources
-        session.close();
         service.shutdown();
     }
 
