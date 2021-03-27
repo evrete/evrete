@@ -10,10 +10,11 @@ import java.io.Reader;
 import java.net.URL;
 import java.util.*;
 
-public class KnowledgeRuntime extends AbstractRuntime<Knowledge> implements Knowledge {
+public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge> implements Knowledge {
     private final WeakHashMap<KnowledgeSession<?>, Object> sessions = new WeakHashMap<>();
     private final Object VALUE = new Object();
     private final Set<EvaluationListener> evaluationListeners = new HashSet<>();
+    private final List<RuleDescriptor> ruleDescriptors = new ArrayList<>();
 
     public KnowledgeRuntime(KnowledgeService service) {
         super(service);
@@ -30,8 +31,20 @@ public class KnowledgeRuntime extends AbstractRuntime<Knowledge> implements Know
     }
 
     @Override
+    public RuleDescriptor compileRule(RuleBuilder<?> builder) {
+        RuleDescriptor rd = super.compileRuleBuilder(builder);
+        this.ruleDescriptors.add(rd);
+        return rd;
+    }
+
+    @Override
+    public RuntimeContext<?> getParentContext() {
+        return null;
+    }
+
+    @Override
     public List<RuleDescriptor> getRules() {
-        return getRuleDescriptorsTmp();
+        return ruleDescriptors;
     }
 
     @Override

@@ -33,6 +33,12 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
     }
 
     @Override
+    public RuntimeRule compileRule(RuleBuilder<?> builder) {
+        RuleDescriptor rd = compileRuleBuilder(builder);
+        return deployRule(rd, true);
+    }
+
+    @Override
     public List<RuntimeRule> getRules() {
         return ruleStorage.asList();
     }
@@ -81,7 +87,7 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
         reSortRules();
     }
 
-    private synchronized void deployRule(RuleDescriptor descriptor, boolean hotDeployment) {
+    private synchronized RuntimeRule deployRule(RuleDescriptor descriptor, boolean hotDeployment) {
         for (FactType factType : descriptor.getLhs().getFactTypes()) {
             memory.touchMemory(factType.getFields(), factType.getAlphaMask());
         }
@@ -90,9 +96,10 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
             getExecutor().invoke(new RuleHotDeploymentTask(rule));
         }
         reSortRules();
+        return rule;
     }
 
-    @Override
+    //@Override
     public void deployRule(RuleDescriptor descriptor) {
         deployRule(descriptor, true);
     }

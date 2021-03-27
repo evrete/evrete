@@ -21,7 +21,7 @@ abstract class AbstractLhsDescriptor {
     private final FactType[] factTypes;
     private final RhsFactGroupDescriptor[] allFactGroups;
 
-    AbstractLhsDescriptor(AbstractRuntime<?> runtime, AbstractLhsBuilder<?, ?> group, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
+    AbstractLhsDescriptor(AbstractRuntime<?, ?> runtime, AbstractLhsBuilder<?, ?> group, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
         Set<FactTypeBuilder> declaredTypes = group.getDeclaredFactTypes();
         AbstractLhsBuilder.Compiled compiledConditions = group.getCompiledData();
 

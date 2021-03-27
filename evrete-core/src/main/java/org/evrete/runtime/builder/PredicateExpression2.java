@@ -26,7 +26,7 @@ class PredicateExpression2 extends AbstractExpression {
     }
 
     @Override
-    Evaluator build(AbstractRuntime<?> runtime, Function<String, NamedType> typeMapper) {
+    Evaluator build(AbstractRuntime<?, ?> runtime, Function<String, NamedType> typeMapper) {
         FieldReference[] descriptor = resolveReferences(runtime, typeMapper, references);
         return new PredicateEvaluator(descriptor, predicate, getComplexity());
     }

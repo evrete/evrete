@@ -9,12 +9,12 @@ import org.evrete.util.NextIntSupplier;
 public class RuleDescriptor extends AbstractRuntimeRule {
     private final LhsDescriptor lhsDescriptor;
 
-    private RuleDescriptor(AbstractRuntime<?> runtime, AbstractRule other, LhsDescriptor lhsDescriptor) {
+    private RuleDescriptor(AbstractRuntime<?, ?> runtime, AbstractRule other, LhsDescriptor lhsDescriptor) {
         super(runtime, other, lhsDescriptor.getFactTypes());
         this.lhsDescriptor = lhsDescriptor;
     }
 
-    static RuleDescriptor factory(AbstractRuntime<?> runtime, RuleBuilderImpl<?> rule) {
+    static RuleDescriptor factory(AbstractRuntime<?, ?> runtime, RuleBuilderImpl<?> rule) {
         RuleBuilderImpl<?> compiled = rule.compileConditions(runtime);
         LhsDescriptor lhsDescriptor = new LhsDescriptor(runtime, compiled.getLhs(), new NextIntSupplier(), new MapFunction<>());
         return new RuleDescriptor(runtime, rule, lhsDescriptor);

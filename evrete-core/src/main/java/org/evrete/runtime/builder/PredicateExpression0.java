@@ -38,7 +38,7 @@ class PredicateExpression0 extends AbstractExpression {
 
 
     @Override
-    Evaluator build(AbstractRuntime<?> runtime, Function<String, NamedType> typeMapper) {
+    Evaluator build(AbstractRuntime<?, ?> runtime, Function<String, NamedType> typeMapper) {
         Evaluator e = runtime.compile(source, typeMapper, imports.get(RuleScope.BOTH, RuleScope.LHS));
         double complexity = getComplexity();
         if (complexity == ComplexityObject.DEFAULT_COMPLEXITY) {

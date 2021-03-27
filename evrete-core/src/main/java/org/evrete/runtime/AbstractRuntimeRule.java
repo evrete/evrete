@@ -7,10 +7,10 @@ import org.evrete.util.Bits;
 
 public abstract class AbstractRuntimeRule extends AbstractRule {
     final FactType[] factTypes;
-    private final AbstractRuntime<?> runtime;
+    private final AbstractRuntime<?, ?> runtime;
     private final Bits typeMask = new Bits();
 
-    AbstractRuntimeRule(AbstractRuntime<?> runtime, AbstractRule other, FactType[] factTypes) {
+    AbstractRuntimeRule(AbstractRuntime<?, ?> runtime, AbstractRule other, FactType[] factTypes) {
         super(other);
         this.runtime = runtime;
         this.factTypes = factTypes;

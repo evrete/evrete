@@ -20,9 +20,4 @@ public interface Knowledge extends RuntimeContext<Knowledge>, RuleSet<RuleDescri
         setActivationManagerFactory(factory);
         return this;
     }
-
-    @Override
-    default void deployRule(RuleDescriptor descriptor) {
-        throw new UnsupportedOperationException("Rules can not be deployed in knowledge context.");
-    }
 }

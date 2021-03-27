@@ -39,7 +39,7 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         return factTypeMapper::apply;
     }
 
-    void compileConditions(AbstractRuntime<?> runtime) {
+    void compileConditions(AbstractRuntime<?, ?> runtime) {
         if (compiledData != null) {
             throw new IllegalStateException("Conditions already compiled");
         } else {
@@ -209,7 +209,7 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         //private final Set<Evaluator> aggregateConditions = new HashSet<>();
         private final AbstractLhsBuilder<?, ?> lhsBuilder;
 
-        Compiled(AbstractRuntime<?> runtime, AbstractLhsBuilder<?, ?> lhsBuilder) {
+        Compiled(AbstractRuntime<?, ?> runtime, AbstractLhsBuilder<?, ?> lhsBuilder) {
             this.lhsBuilder = lhsBuilder;
             for (AbstractExpression condition : lhsBuilder.conditions) {
                 Evaluator evaluator = condition.build(runtime, lhsBuilder.getFactTypeMapper());

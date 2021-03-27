@@ -22,7 +22,7 @@ class PredicateExpression4 extends AbstractExpression {
     }
 
     @Override
-    Evaluator build(AbstractRuntime<?> runtime, Function<String, NamedType> typeMapper) {
+    Evaluator build(AbstractRuntime<?, ?> runtime, Function<String, NamedType> typeMapper) {
         return new PredicateEvaluator(references, predicate, getComplexity());
     }
 

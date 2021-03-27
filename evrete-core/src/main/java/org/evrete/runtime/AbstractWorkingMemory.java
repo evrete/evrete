@@ -7,21 +7,18 @@ import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
-abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends AbstractRuntime<S> implements KnowledgeSession<S> {
+abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends AbstractRuntime<RuntimeRule, S> implements KnowledgeSession<S> {
     private static final Logger LOGGER = Logger.getLogger(AbstractWorkingMemory.class.getName());
     final KnowledgeRuntime knowledge;
     final SessionMemory memory;
-
     //TODO !!!! set in configuration
     final MemoryActionBuffer buffer = new MemoryActionBuffer(4096);
-    private final MemoryFactory memoryFactory;
     private boolean active = true;
-
 
     AbstractWorkingMemory(KnowledgeRuntime knowledge) {
         super(knowledge);
         this.knowledge = knowledge;
-        this.memoryFactory = knowledge.getService().getMemoryFactoryProvider().instance(this);
+        MemoryFactory memoryFactory = knowledge.getService().getMemoryFactoryProvider().instance(this);
         this.memory = new SessionMemory(knowledge.getConfiguration(), memoryFactory);
     }
 
@@ -29,8 +26,9 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
         this.active = false;
     }
 
-    final MemoryFactory getMemoryFactory() {
-        return memoryFactory;
+    @Override
+    public Knowledge getParentContext() {
+        return knowledge;
     }
 
     private void _assertActive() {
@@ -157,7 +155,6 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
     public final Kind getKind() {
         return Kind.SESSION;
     }
-
 
     @Override
     public void clear() {

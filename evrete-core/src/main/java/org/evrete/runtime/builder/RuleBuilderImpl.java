@@ -8,22 +8,26 @@ import java.util.Collection;
 import java.util.function.Consumer;
 
 
+//TODO !!!! why extending AbstractRule?
 public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule implements RuleBuilder<C> {
-    private final AbstractRuntime<C> runtime;
+    private final AbstractRuntime<?, C> runtime;
     private final LhsBuilder<C> lhsBuilder;
 
-    public RuleBuilderImpl(AbstractRuntime<C> ctx, String name, int defaultSalience) {
+    public RuleBuilderImpl(AbstractRuntime<?, C> ctx, String name, int defaultSalience) {
         super(name, defaultSalience);
+/*
         if (ctx.ruleExists(name)) {
             throw new IllegalStateException("Rule '" + name + "' already exists");
         } else {
             this.runtime = ctx;
         }
+*/
+        this.runtime = ctx;
         this.appendImports(ctx.getImportsData());
         this.lhsBuilder = new LhsBuilder<>(this);
     }
 
-    public RuleBuilderImpl<C> compileConditions(AbstractRuntime<?> runtime) {
+    public RuleBuilderImpl<C> compileConditions(AbstractRuntime<?, ?> runtime) {
         lhsBuilder.compileConditions(runtime);
         return this;
     }
@@ -68,18 +72,10 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
         return lhsBuilder;
     }
 
+    @SuppressWarnings("unchecked")
     C build() {
-        switch (runtime.getKind()) {
-            case SESSION:
-                runtime.deployRule(runtime.compileRule(this));
-                break;
-            case KNOWLEDGE:
-                runtime.compileRule(this);
-                break;
-            default:
-                throw new IllegalStateException();
-        }
-        return getRuntime();
+        runtime.compileRule(this);
+        return (C) runtime;
     }
 
 
@@ -98,7 +94,7 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
         return lhsBuilder.buildLhs(facts);
     }
 
-    public AbstractRuntime<?> getRuntimeContext() {
+    public AbstractRuntime<?, C> getRuntimeContext() {
         return runtime;
     }
 

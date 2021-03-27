@@ -2,7 +2,6 @@ package org.evrete.api;
 
 import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
-import org.evrete.runtime.RuleDescriptor;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,15 +17,10 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
 
     void setRuleComparator(Comparator<Rule> comparator);
 
-    boolean ruleExists(String name);
-
     Kind getKind();
 
     //TODO move this to RuleSet
-    RuleDescriptor compileRule(RuleBuilder<?> builder);
-
-    //TODO move this to RuleSet
-    void deployRule(RuleDescriptor descriptor);
+    //void deployRule(RuleDescriptor descriptor);
 
     RuleBuilder<C> newRule(String name);
 
