@@ -1,12 +1,12 @@
 package org.evrete.dsl;
 
 import org.evrete.api.FactBuilder;
+import org.evrete.api.LhsBuilder;
 import org.evrete.api.RuleBuilder;
 import org.evrete.api.RuntimeContext;
 import org.evrete.api.spi.DSLKnowledgeProvider;
 import org.evrete.dsl.annotation.MethodPredicate;
 import org.evrete.dsl.annotation.Where;
-import org.evrete.runtime.builder.LhsBuilder;
 
 import java.io.*;
 import java.net.URL;

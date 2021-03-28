@@ -7,7 +7,6 @@ import org.evrete.helper.RhsAssert;
 import org.evrete.helper.TestUtils;
 import org.evrete.runtime.StatefulSessionImpl;
 import org.evrete.runtime.builder.FactTypeBuilder;
-import org.evrete.runtime.builder.LhsBuilder;
 import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;

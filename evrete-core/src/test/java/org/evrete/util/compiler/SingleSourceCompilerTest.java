@@ -26,9 +26,8 @@ class SingleSourceCompilerTest {
         ClassLoader parentClassLoader = Thread.currentThread().getContextClassLoader();
         SourceCompiler compiler = new SourceCompiler();
         BytesClassLoader classLoader = new BytesClassLoader(parentClassLoader, service.getSecurity().getProtectionDomain(RuleScope.BOTH));
-        Class<?> clazz = null;
         try {
-            clazz = compiler.compile(code, classLoader);
+            Class<?> clazz = compiler.compile(code, classLoader);
             assert clazz.getClassLoader() == classLoader;
             assert clazz.getPackage().getName().equals("test.pkg");
         } catch (CompilationException e) {

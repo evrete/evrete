@@ -9,12 +9,12 @@ import org.evrete.runtime.async.RuleMemoryInsertTask;
 import java.util.*;
 import java.util.function.BooleanSupplier;
 
-abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends AbstractWorkingMemory<S> {
-    final RuntimeRules ruleStorage;
+abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWorkingMemory<S> {
+    private final RuntimeRules ruleStorage;
     private ActivationManager activationManager;
     private BooleanSupplier fireCriteria = () -> true;
 
-    AbstractKnowledgeSession(KnowledgeRuntime knowledge) {
+    AbstractRuleSession(KnowledgeRuntime knowledge) {
         super(knowledge);
         this.activationManager = newActivationManager();
         this.ruleStorage = new RuntimeRules();
@@ -97,11 +97,6 @@ abstract class AbstractKnowledgeSession<S extends KnowledgeSession<S>> extends A
         }
         reSortRules();
         return rule;
-    }
-
-    //@Override
-    public void deployRule(RuleDescriptor descriptor) {
-        deployRule(descriptor, true);
     }
 
     @Override

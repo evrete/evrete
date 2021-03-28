@@ -16,7 +16,7 @@ public class RuntimeRules implements Iterable<RuntimeRuleImpl>, EvaluationListen
         this.list.add(rule);
     }
 
-    RuntimeRuleImpl addRule(RuleDescriptor ruleDescriptor, AbstractKnowledgeSession<?> session) {
+    RuntimeRuleImpl addRule(RuleDescriptor ruleDescriptor, AbstractRuleSession<?> session) {
         RuntimeRuleImpl r = new RuntimeRuleImpl(ruleDescriptor, session);
         this.add(r);
         return r;

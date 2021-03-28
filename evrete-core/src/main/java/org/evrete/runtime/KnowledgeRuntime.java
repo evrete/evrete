@@ -11,7 +11,7 @@ import java.net.URL;
 import java.util.*;
 
 public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge> implements Knowledge {
-    private final WeakHashMap<KnowledgeSession<?>, Object> sessions = new WeakHashMap<>();
+    private final WeakHashMap<RuleSession<?>, Object> sessions = new WeakHashMap<>();
     private final Object VALUE = new Object();
     private final Set<EvaluationListener> evaluationListeners = new HashSet<>();
     private final List<RuleDescriptor> ruleDescriptors = new ArrayList<>();
@@ -35,11 +35,6 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
         RuleDescriptor rd = super.compileRuleBuilder(builder);
         this.ruleDescriptors.add(rd);
         return rd;
-    }
-
-    @Override
-    public RuntimeContext<?> getParentContext() {
-        return null;
     }
 
     @Override
@@ -87,19 +82,14 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
         return this;
     }
 
-    @Override
-    public final Kind getKind() {
-        return Kind.KNOWLEDGE;
-    }
-
-    void close(KnowledgeSession<?> session) {
+    void close(RuleSession<?> session) {
         synchronized (sessions) {
             sessions.remove(session);
         }
     }
 
     @Override
-    public Collection<KnowledgeSession<?>> getSessions() {
+    public Collection<RuleSession<?>> getSessions() {
         return Collections.unmodifiableCollection(sessions.keySet());
     }
 

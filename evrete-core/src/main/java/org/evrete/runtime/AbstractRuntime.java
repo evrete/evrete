@@ -10,7 +10,6 @@ import org.evrete.runtime.builder.RuleBuilderImpl;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.EvaluatorWrapper;
 import org.evrete.util.DefaultActivationManager;
-import org.evrete.util.NextIntSupplier;
 import org.evrete.util.compiler.CompilationException;
 
 import java.io.IOException;
@@ -24,13 +23,10 @@ import java.util.logging.Logger;
 
 public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C>> extends RuntimeMetaData<C> implements RuleSet<R> {
     private final List<RuleBuilder<C>> ruleBuilders = new ArrayList<>();
-    //TODO !!! move descriptors to knowledge!!
-    private final NextIntSupplier ruleCounter;
 
     private final KnowledgeService service;
     private ExpressionResolver expressionResolver;
     private TypeResolver typeResolver;
-    private final AbstractRuntime<?, ?> parent;
     private ClassLoader classLoader;
     private Comparator<Rule> ruleComparator = SALIENCE_COMPARATOR;
     private Class<? extends ActivationManager> activationManagerFactory;
@@ -45,9 +41,6 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     AbstractRuntime(KnowledgeService service) {
         super();
         this.configuration = service.getConfiguration().copyOf();
-        this.parent = null;
-        this.ruleCounter = new NextIntSupplier();
-        //this.ruleDescriptors = new ArrayList<>();
         this.service = service;
         this.activationManagerFactory = DefaultActivationManager.class;
         this.classLoader = service.getClassLoader();
@@ -62,16 +55,14 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
      */
     AbstractRuntime(AbstractRuntime<?, ?> parent) {
         super(parent);
-        this.parent = parent;
         this.configuration = parent.configuration.copyOf();
-        this.ruleCounter = parent.ruleCounter.copyOf();
-        //this.ruleDescriptors = new ArrayList<>(parent.ruleDescriptors);
         this.service = parent.service;
         this.ruleComparator = parent.ruleComparator;
         this.activationManagerFactory = parent.activationManagerFactory;
         this.classLoader = parent.classLoader;
         this.agendaMode = parent.agendaMode;
         this.typeResolver = parent.typeResolver.copyOf();
+        this.expressionResolver = null;
     }
 
     ActivationMode getAgendaMode() {
@@ -83,10 +74,6 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     public C setActivationMode(ActivationMode agendaMode) {
         this.agendaMode = agendaMode;
         return (C) this;
-    }
-
-    public R deployRuleTmp(RuleBuilder<?> rb) {
-        throw new UnsupportedOperationException("!!!!!");
     }
 
     private static DSLKnowledgeProvider getDslProvider(String dsl) {
@@ -113,13 +100,6 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
             return found.iterator().next();
         }
     }
-
-
-/*
-    protected List<RuleDescriptor> getRuleDescriptorsTmp() {
-        return ruleDescriptors;
-    }
-*/
 
     protected void append(String dsl, InputStream... streams) throws IOException {
         getDslProvider(dsl).apply(this, streams);
@@ -161,13 +141,6 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     public KnowledgeService getService() {
         return service;
     }
-
-/*
-    @Override
-    public AbstractRuntime<?> getParentContext() {
-        return parent;
-    }
-*/
 
     @Override
     public final void wrapTypeResolver(TypeResolverWrapper wrapper) {
@@ -237,67 +210,43 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         return new FactType(builder.getVar(), alphaMask, fieldsKey, inRuleId);
     }
 
-/*
-    @Override
-    public List<RuleDescriptor> getRuleDescriptors() {
-        return ruleDescriptors;
-    }
-*/
-
     @Override
     public RuleBuilder<C> newRule() {
-        return newRule(RuleBuilderImpl.class.getName() + "#" + ruleCounter.get());
+        return newRule(null);
     }
 
     @Override
     public RuleBuilderImpl<C> newRule(String name) {
-        RuleBuilderImpl<C> rb = new RuleBuilderImpl<>(this, name, -1 * ruleCounter.next());
+        RuleBuilderImpl<C> rb = new RuleBuilderImpl<>(this, name);
         this.ruleBuilders.add(rb);
         return rb;
     }
-
-    //@Override
-/*
-    public boolean ruleExists(String name) {
-        Objects.requireNonNull(name);
-        return Named.find(this.ruleDescriptors, name) != null;
-    }
-*/
 
     @Override
     public Configuration getConfiguration() {
         return this.configuration;
     }
 
-/*
-    @Override
-    public final synchronized RuleDescriptor compileRule(RuleBuilder<?> ruleBuilder) {
-        RuleDescriptor rd = compileRuleBuilder(ruleBuilder);
-        this.ruleDescriptors.add(rd);
-        if (!this.ruleBuilders.remove(ruleBuilder)) {
-            throw new IllegalArgumentException("No such rule builder");
-        } else {
-            if (ruleExists(ruleBuilder.getName())) {
-                throw new IllegalArgumentException("Rule '" + ruleBuilder.getName() + "' already exists");
-            } else {
-                RuleBuilderImpl<?> rb = (RuleBuilderImpl<?>) ruleBuilder;
-                RuleDescriptor rd = RuleDescriptor.factory(this, rb);
-                this.ruleDescriptors.add(rd);
-                return rd;
-            }
-        }
-    }
-*/
-
     synchronized RuleDescriptor compileRuleBuilder(RuleBuilder<?> ruleBuilder) {
         if (!this.ruleBuilders.remove(ruleBuilder)) {
             throw new IllegalArgumentException("No such rule builder");
         } else {
+            int currentRuleCount = getRules().size();
+            String ruleName = ruleBuilder.getName();
+            int salience = ruleBuilder.getSalience();
+            if (salience == RuleBuilderImpl.NULL_SALIENCE) {
+                salience = -1 * (currentRuleCount + 1);
+            }
+
+            if (ruleName == null) {
+                ruleName = "Rule#" + currentRuleCount;
+            }
+
             if (ruleExists(ruleBuilder.getName())) {
                 throw new IllegalArgumentException("Rule '" + ruleBuilder.getName() + "' already exists");
             } else {
                 RuleBuilderImpl<?> rb = (RuleBuilderImpl<?>) ruleBuilder;
-                return RuleDescriptor.factory(this, rb);
+                return RuleDescriptor.factory(this, rb, ruleName, salience);
             }
         }
     }

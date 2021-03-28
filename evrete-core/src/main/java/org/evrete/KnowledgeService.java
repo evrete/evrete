@@ -12,6 +12,13 @@ import org.evrete.runtime.async.ForkJoinExecutor;
 
 import java.util.*;
 
+/**
+ * <p>
+ * KnowledgeService is a root element of every Evrete-based application.
+ * It holds initial {@link Configuration}, security settings, references to all
+ * required SPI implementations, and an instance of Java ExecutorService.
+ * </p>
+ */
 public class KnowledgeService {
     private final Configuration configuration;
     private final ForkJoinExecutor executor;
@@ -62,10 +69,21 @@ public class KnowledgeService {
         this.classLoader = classLoader;
     }
 
+    /**
+     * @return an empty {@link Knowledge} instance
+     */
     public Knowledge newKnowledge() {
         return new KnowledgeRuntime(this);
     }
 
+    /**
+     * <p>
+     * This method is a shorthand for <code>newKnowledge().createSession()</code> which
+     * returns an empty session instance.
+     * </p>
+     *
+     * @return an empty {@link StatefulSession}
+     */
     public StatefulSession newSession() {
         return newKnowledge().createSession();
     }

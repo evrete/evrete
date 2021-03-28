@@ -9,7 +9,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends AbstractLhsBuilder<C, ?>> {
+public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends AbstractLhsBuilder<C, ?>> implements LhsBuilder<C> {
     private final RuleBuilderImpl<C> ruleBuilder;
     private final Map<String, FactTypeBuilder> declaredLhsTypes;
     private final Set<AbstractExpression> conditions = new HashSet<>();
@@ -35,6 +35,7 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         return compiledData;
     }
 
+    @Override
     public Function<String, NamedType> getFactTypeMapper() {
         return factTypeMapper::apply;
     }
@@ -60,10 +61,12 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         return new HashSet<>(declaredLhsTypes.values());
     }
 
-    RuleBuilderImpl<C> getRuleBuilder() {
+    @Override
+    public RuleBuilderImpl<C> getRuleBuilder() {
         return ruleBuilder;
     }
 
+    @Override
     public G where(String... expressions) {
         if (expressions == null || expressions.length == 0) return self();
         for (String expression : expressions) {
@@ -72,50 +75,55 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         return self();
     }
 
-    public final RuntimeContext<?> getRuntime() {
-        return ruleBuilder.getRuntime();
-    }
-
+    @Override
     public G where(String expression, double complexity) {
         addExpression(expression, complexity);
         return self();
     }
 
+    @Override
     public G where(Predicate<Object[]> predicate, double complexity, String... references) {
         addExpression(predicate, complexity, references);
         return self();
     }
 
+    @Override
     public G where(Predicate<Object[]> predicate, String... references) {
         addExpression(predicate, references);
         return self();
     }
 
+    @Override
     public G where(ValuesPredicate predicate, double complexity, String... references) {
         addExpression(predicate, complexity, references);
         return self();
     }
 
+    @Override
     public G where(ValuesPredicate predicate, String... references) {
         addExpression(predicate, references);
         return self();
     }
 
+    @Override
     public G where(Predicate<Object[]> predicate, double complexity, FieldReference... references) {
         addExpression(predicate, complexity, references);
         return self();
     }
 
+    @Override
     public G where(Predicate<Object[]> predicate, FieldReference... references) {
         addExpression(predicate, references);
         return self();
     }
 
+    @Override
     public G where(ValuesPredicate predicate, double complexity, FieldReference... references) {
         addExpression(predicate, complexity, references);
         return self();
     }
 
+    @Override
     public G where(ValuesPredicate predicate, FieldReference... references) {
         addExpression(predicate, references);
         return self();
@@ -161,6 +169,7 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         this.conditions.add(new PredicateExpression0(expression, ruleBuilder.getImportsData()));
     }
 
+    @Override
     public synchronized FactTypeBuilder buildLhs(String name, Type<?> type) {
         checkRefName(name);
         FactTypeBuilder factType = new FactTypeBuilder(this, name, type);
@@ -168,11 +177,13 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         return factType;
     }
 
+    @Override
     public FactTypeBuilder buildLhs(String name, String type) {
         return buildLhs(name, getTypeResolver().getOrDeclare(type));
     }
 
-    G buildLhs(Collection<FactBuilder> facts) {
+    @Override
+    public G buildLhs(Collection<FactBuilder> facts) {
         if (facts == null || facts.isEmpty()) return self();
         for (FactBuilder f : facts) {
             Class<?> c = f.getResolvedType();
@@ -187,6 +198,7 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         return self();
     }
 
+    @Override
     public FactTypeBuilder buildLhs(String name, Class<?> type) {
         Type<?> t = getTypeResolver().getOrDeclare(type);
         return buildLhs(name, t);

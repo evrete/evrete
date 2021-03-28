@@ -11,7 +11,11 @@ public abstract class AbstractRuntimeRule extends AbstractRule {
     private final Bits typeMask = new Bits();
 
     AbstractRuntimeRule(AbstractRuntime<?, ?> runtime, AbstractRule other, FactType[] factTypes) {
-        super(other);
+        this(runtime, other, other.getName(), other.getSalience(), factTypes);
+    }
+
+    AbstractRuntimeRule(AbstractRuntime<?, ?> runtime, AbstractRule other, String ruleName, int salience, FactType[] factTypes) {
+        super(other, ruleName, salience);
         this.runtime = runtime;
         this.factTypes = factTypes;
         for (FactType factType : factTypes) {

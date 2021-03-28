@@ -48,8 +48,6 @@ class MemoryActionBuffer {
                             LOGGER.warning("An attempt was made to update a fact that has been just deleted, update operation skipped");
                             break;
                         case INSERT:
-                            existingAction.factRecord = factRecord;
-                            break;
                         case UPDATE:
                             existingAction.factRecord = factRecord;
                             break;

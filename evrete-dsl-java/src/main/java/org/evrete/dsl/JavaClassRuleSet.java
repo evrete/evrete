@@ -1,13 +1,9 @@
 package org.evrete.dsl;
 
-import org.evrete.api.ExpressionResolver;
-import org.evrete.api.FieldReference;
-import org.evrete.api.IntToValue;
-import org.evrete.api.ValuesPredicate;
+import org.evrete.api.*;
 import org.evrete.dsl.annotation.MethodPredicate;
 import org.evrete.dsl.annotation.Rule;
 import org.evrete.dsl.annotation.RuleSortPolicy;
-import org.evrete.runtime.builder.LhsBuilder;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -88,7 +84,7 @@ class JavaClassRuleSet {
         }
         Class<?>[] signature = new Class<?>[descriptor.length];
 
-        ExpressionResolver expressionResolver = lhs.getRuntime().getExpressionResolver();
+        ExpressionResolver expressionResolver = lhs.getRuleBuilder().getRuntime().getExpressionResolver();
         for (int i = 0; i < descriptor.length; i++) {
             FieldReference ref = expressionResolver.resolve(descriptor[i], lhs.getFactTypeMapper());
             signature[i] = ref.field().getValueType();

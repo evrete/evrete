@@ -32,7 +32,11 @@ public abstract class AbstractRule implements Rule {
     }
 
     protected AbstractRule(AbstractRule other) {
-        this.name = other.name;
+        this(other, other.name, other.salience);
+    }
+
+    protected AbstractRule(AbstractRule other, String ruleName, int salience) {
+        this.name = ruleName;
         this.properties = new ConcurrentHashMap<>();
         this.properties.putAll(other.properties);
         this.salience = other.salience;

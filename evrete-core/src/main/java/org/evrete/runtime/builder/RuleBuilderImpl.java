@@ -7,24 +7,16 @@ import org.evrete.runtime.AbstractRuntime;
 import java.util.Collection;
 import java.util.function.Consumer;
 
-
-//TODO !!!! why extending AbstractRule?
 public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule implements RuleBuilder<C> {
     private final AbstractRuntime<?, C> runtime;
-    private final LhsBuilder<C> lhsBuilder;
+    public static int NULL_SALIENCE = Integer.MIN_VALUE;
+    private final LhsBuilderImpl<C> lhsBuilder;
 
-    public RuleBuilderImpl(AbstractRuntime<?, C> ctx, String name, int defaultSalience) {
-        super(name, defaultSalience);
-/*
-        if (ctx.ruleExists(name)) {
-            throw new IllegalStateException("Rule '" + name + "' already exists");
-        } else {
-            this.runtime = ctx;
-        }
-*/
+    public RuleBuilderImpl(AbstractRuntime<?, C> ctx, String name) {
+        super(name, NULL_SALIENCE);
         this.runtime = ctx;
         this.appendImports(ctx.getImportsData());
-        this.lhsBuilder = new LhsBuilder<>(this);
+        this.lhsBuilder = new LhsBuilderImpl<>(this);
     }
 
     public RuleBuilderImpl<C> compileConditions(AbstractRuntime<?, ?> runtime) {
@@ -68,7 +60,7 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
     }
 
     @Override
-    public LhsBuilder<C> getLhs() {
+    public LhsBuilderImpl<C> getLhs() {
         return lhsBuilder;
     }
 
@@ -90,7 +82,7 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
     }
 
     @Override
-    public LhsBuilder<C> forEach(Collection<FactBuilder> facts) {
+    public LhsBuilderImpl<C> forEach(Collection<FactBuilder> facts) {
         return lhsBuilder.buildLhs(facts);
     }
 

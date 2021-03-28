@@ -5,7 +5,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 //TODO javadoc
-public interface StatefulSession extends KnowledgeSession<StatefulSession> {
+public interface StatefulSession extends RuleSession<StatefulSession> {
 
     StatefulSession setFireCriteria(BooleanSupplier fireCriteria);
 

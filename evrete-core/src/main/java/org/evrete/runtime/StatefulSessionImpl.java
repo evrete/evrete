@@ -8,7 +8,7 @@ import java.io.Reader;
 import java.net.URL;
 import java.util.function.BooleanSupplier;
 
-public class StatefulSessionImpl extends AbstractKnowledgeSession<StatefulSession> implements StatefulSession {
+public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> implements StatefulSession {
 
     StatefulSessionImpl(KnowledgeRuntime knowledge) {
         super(knowledge);

@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 
 public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule, EvaluationListeners {
     private static final boolean[] BOOLEANS = new boolean[]{true, false};
-    private final AbstractKnowledgeSession<?> runtime;
+    private final AbstractRuleSession<?> runtime;
     private final RuleDescriptor descriptor;
     private final RuntimeLhs lhs;
     private final RhsGroupNode[] rhsGroupNodes;
@@ -20,7 +20,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     private final BetaEndNode[] endNodes;
     private long rhsCallCounter = 0;
 
-    public RuntimeRuleImpl(RuleDescriptor rd, AbstractKnowledgeSession<?> runtime) {
+    public RuntimeRuleImpl(RuleDescriptor rd, AbstractRuleSession<?> runtime) {
         super(runtime, rd, rd.getLhs().getFactTypes());
         this.descriptor = rd;
         this.runtime = runtime;
@@ -165,7 +165,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     }
 
     @Override
-    public AbstractKnowledgeSession<?> getRuntime() {
+    public AbstractRuleSession<?> getRuntime() {
         return runtime;
     }
 

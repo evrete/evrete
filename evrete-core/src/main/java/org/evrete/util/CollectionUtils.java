@@ -138,7 +138,7 @@ public final class CollectionUtils {
     public static void systemFill(int[] array, int fromIndex, int toIndex, int value) {
         int len;
         if ((len = toIndex - fromIndex) < 64) {
-            fillInts(array, fromIndex, toIndex, value);
+            fillIntegers(array, fromIndex, toIndex, value);
         } else {
             array[fromIndex] = value;
             for (int i = 1; i < len; i += i) {
@@ -171,7 +171,7 @@ public final class CollectionUtils {
         for (int i = 0; i < toIndex; i++) a[i] = val;
     }
 
-    private static void fillInts(int[] a, int fromIndex, int toIndex, int val) {
+    private static void fillIntegers(int[] a, int fromIndex, int toIndex, int val) {
         for (int i = fromIndex; i < toIndex; i++) a[i] = val;
     }
 

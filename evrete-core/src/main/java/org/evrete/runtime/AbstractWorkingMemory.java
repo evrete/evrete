@@ -7,7 +7,7 @@ import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
-abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends AbstractRuntime<RuntimeRule, S> implements KnowledgeSession<S> {
+abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractRuntime<RuntimeRule, S> implements RuleSession<S> {
     private static final Logger LOGGER = Logger.getLogger(AbstractWorkingMemory.class.getName());
     final KnowledgeRuntime knowledge;
     final SessionMemory memory;
@@ -70,6 +70,7 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
     }
 
     private FactHandle insert(Type<?> type, Object fact) {
+        if (fact == null) throw new NullPointerException("Null facts are not supported");
         if (type == null) {
             if (getConfiguration().getAsBoolean(Configuration.WARN_UNKNOWN_TYPES)) {
                 LOGGER.warning("Can not resolve type for " + fact + ", insert operation skipped.");
@@ -149,11 +150,6 @@ abstract class AbstractWorkingMemory<S extends KnowledgeSession<S>> extends Abst
     @Override
     public final void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
         memory.onNewAlphaBucket(key, meta);
-    }
-
-    @Override
-    public final Kind getKind() {
-        return Kind.SESSION;
     }
 
     @Override

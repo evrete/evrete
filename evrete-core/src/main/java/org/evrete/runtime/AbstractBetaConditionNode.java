@@ -58,7 +58,7 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode {
         return stores[mode.ordinal()];
     }
 
-    AbstractKnowledgeSession<?> getRuntime() {
+    AbstractRuleSession<?> getRuntime() {
         return rule.getRuntime();
     }
 

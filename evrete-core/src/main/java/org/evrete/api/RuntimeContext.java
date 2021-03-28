@@ -10,6 +10,9 @@ import java.io.StringReader;
 import java.net.URL;
 import java.util.Comparator;
 
+/**
+ * @param <C> context type parameter
+ */
 public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, FluentImports<RuntimeContext<?>>, PropertyAccess<C> {
     Comparator<Rule> SALIENCE_COMPARATOR = (rule1, rule2) -> -1 * Integer.compare(rule1.getSalience(), rule2.getSalience());
 
@@ -17,16 +20,9 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
 
     void setRuleComparator(Comparator<Rule> comparator);
 
-    Kind getKind();
-
-    //TODO move this to RuleSet
-    //void deployRule(RuleDescriptor descriptor);
-
     RuleBuilder<C> newRule(String name);
 
     RuleBuilder<C> newRule();
-
-    RuntimeContext<?> getParentContext();
 
     void wrapTypeResolver(TypeResolverWrapper wrapper);
 
@@ -64,9 +60,5 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
             readers[i] = new StringReader(sources[i]);
         }
         return appendDslRules(dsl, readers);
-    }
-
-    enum Kind {
-        KNOWLEDGE, SESSION
     }
 }
