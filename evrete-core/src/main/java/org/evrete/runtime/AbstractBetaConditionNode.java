@@ -2,6 +2,7 @@ package org.evrete.runtime;
 
 import org.evrete.api.KeyMode;
 import org.evrete.api.MemoryKey;
+import org.evrete.api.MemoryKeyCollection;
 import org.evrete.api.ReIterator;
 
 import java.util.ArrayList;

@@ -5,10 +5,48 @@ import org.evrete.util.compiler.CompilationException;
 import java.util.Set;
 import java.util.function.Function;
 
+/**
+ * An interface with a set of basic methods that are necessary for parsing string expressions.
+ */
 public interface ExpressionResolver {
 
-    //TODO !!!! rename, javadoc and return null if not resolved
-    FieldReference resolve(String s, Function<String, NamedType> resolver);
+    /**
+     * <p>
+     * This method takes a string as an argument and builds a {@link FieldReference} if possible.
+     * </p>
+     * <p>
+     * For example, if the argument is "$c.category.id", the implementation might do the following:
+     * </p>
+     * <ol>
+     *    <li>
+     *        Use the supplied resolver to identify which {@link NamedType} this expression refers
+     *        to (let's say it's a Customer fact, named "$c")
+     *    </li>
+     *    <li>
+     *        Use the resolved {@link NamedType} to parse the remaining part of the argument,
+     *        "category.id", by the means provided by the {@link Type} interface.
+     *    </li>
+     * </ol>
+     *
+     * @param arg      a String to parse
+     * @param resolver a mapping function between fact names and their full {@link NamedType}
+     * @return returns {@link FieldReference} instance or throws an {@link IllegalArgumentException}
+     * @throws IllegalArgumentException if the argument can not be resolved
+     */
+    FieldReference resolve(String arg, Function<String, NamedType> resolver);
 
+    /**
+     * <p>
+     * This method parses a string argument and returns an {@link Evaluator} if possible.
+     * </p>
+     *
+     * @param stringExpression - an String condition expression to parse
+     * @param resolver         a mapping function between fact names and their full {@link NamedType}
+     * @param imports          a collection of class imports
+     * @return returns an {@link Evaluator} instance or throws an exception
+     * @throws CompilationException     if the argument can not be compiled
+     * @throws IllegalArgumentException if the any parts of the argument can not be resolved
+     * @see #resolve(String, Function)
+     */
     Evaluator buildExpression(String stringExpression, Function<String, NamedType> resolver, Set<String> imports) throws CompilationException;
 }

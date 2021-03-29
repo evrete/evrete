@@ -1,10 +1,10 @@
 package org.evrete.spi.minimal;
 
+import org.evrete.api.NamedType;
 import org.evrete.api.RhsContext;
 import org.evrete.api.RuleScope;
 import org.evrete.api.RuntimeContext;
 import org.evrete.api.spi.LiteralRhsCompiler;
-import org.evrete.runtime.FactType;
 import org.evrete.util.compiler.CompilationException;
 
 import java.security.ProtectionDomain;
@@ -18,16 +18,16 @@ public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider imp
     private static final String classPackage = DefaultLiteralRhsCompiler.class.getPackage().getName() + ".rhs";
 
     @SuppressWarnings("unchecked")
-    private static Class<? extends AbstractLiteralRhs> buildClass(JcCompiler compiler, FactType[] types, String literalRhs, Collection<String> imports) throws CompilationException {
+    private static Class<? extends AbstractLiteralRhs> buildClass(JcCompiler compiler, NamedType[] types, String literalRhs, Collection<String> imports) throws CompilationException {
         String simpleName = "Rhs" + classCounter.getAndIncrement();
         String source = buildSource(simpleName, types, literalRhs, imports);
         return (Class<? extends AbstractLiteralRhs>) compiler.compile(source);
     }
 
-    private static String buildSource(String className, FactType[] types, String literalRhs, Collection<String> imports) {
+    private static String buildSource(String className, NamedType[] types, String literalRhs, Collection<String> imports) {
         StringJoiner methodArgs = new StringJoiner(", ");
         StringJoiner args = new StringJoiner(", ");
-        for (FactType t : types) {
+        for (NamedType t : types) {
             methodArgs.add(t.getType().getJavaType().getName() + " " + t.getVar());
             args.add(t.getVar());
         }
@@ -48,7 +48,7 @@ public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider imp
         // Abstract method
         sb.append("\t@").append(Override.class.getName()).append("\n");
         sb.append("\tprotected void doRhs() {\n");
-        for (FactType t : types) {
+        for (NamedType t : types) {
             sb.append("\t\t").append(t.getType().getJavaType().getName()).append(" ").append(t.getVar()).append(" = ").append("get(\"").append(t.getVar()).append("\");\n");
 
         }
@@ -70,8 +70,8 @@ public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider imp
     }
 
     @Override
-    public Consumer<RhsContext> compileRhs(RuntimeContext<?> requester, String literalRhs, Collection<FactType> factTypes, Collection<String> imports) throws CompilationException {
-        FactType[] types = factTypes.toArray(FactType.ZERO_ARRAY);
+    public Consumer<RhsContext> compileRhs(RuntimeContext<?> requester, String literalRhs, Collection<NamedType> factTypes, Collection<String> imports) throws CompilationException {
+        NamedType[] types = factTypes.toArray(new NamedType[0]);
 
         ProtectionDomain domain = requester.getService().getSecurity().getProtectionDomain(RuleScope.RHS);
         Class<? extends AbstractLiteralRhs> clazz = buildClass(getCreateJavaCompiler(requester, domain), types, literalRhs, imports);

@@ -170,7 +170,7 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
     }
 
     @Override
-    public synchronized FactTypeBuilder buildLhs(String name, Type<?> type) {
+    public synchronized FactTypeBuilder addFactDeclaration(String name, Type<?> type) {
         checkRefName(name);
         FactTypeBuilder factType = new FactTypeBuilder(this, name, type);
         this.declaredLhsTypes.put(name, factType);
@@ -178,8 +178,8 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
     }
 
     @Override
-    public FactTypeBuilder buildLhs(String name, String type) {
-        return buildLhs(name, getTypeResolver().getOrDeclare(type));
+    public FactTypeBuilder addFactDeclaration(String name, String type) {
+        return addFactDeclaration(name, getTypeResolver().getOrDeclare(type));
     }
 
     @Override
@@ -189,19 +189,19 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
             Class<?> c = f.getResolvedType();
             if (c == null) {
                 // Unresolved
-                buildLhs(f.getName(), f.getUnresolvedType());
+                addFactDeclaration(f.getName(), f.getUnresolvedType());
             } else {
                 // Resolved
-                buildLhs(f.getName(), c);
+                addFactDeclaration(f.getName(), c);
             }
         }
         return self();
     }
 
     @Override
-    public FactTypeBuilder buildLhs(String name, Class<?> type) {
+    public FactTypeBuilder addFactDeclaration(String name, Class<?> type) {
         Type<?> t = getTypeResolver().getOrDeclare(type);
-        return buildLhs(name, t);
+        return addFactDeclaration(name, t);
     }
 
     private void checkRefName(String name) {

@@ -6,7 +6,6 @@ import org.evrete.helper.FactEntry;
 import org.evrete.helper.RhsAssert;
 import org.evrete.helper.TestUtils;
 import org.evrete.runtime.StatefulSessionImpl;
-import org.evrete.runtime.builder.FactTypeBuilder;
 import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -77,8 +76,8 @@ class SessionBaseTests {
         Knowledge kn = service.newKnowledge();
 
         String[] fields = new String[]{"i", "l", "d", "f"};
-        Class<?>[] fieldTypes = new Class[]{int.class, long.class, double.class, float.class};
-        Function<Base, ?>[] functions = new Function[]{
+        Class<Object>[] fieldTypes = new Class[]{int.class, long.class, double.class, float.class};
+        Function<Base, Object>[] functions = new Function[]{
                 o -> ((Base) o).getI(),
                 o -> ((Base) o).getL(),
                 o -> ((Base) o).getD(),
@@ -105,14 +104,14 @@ class SessionBaseTests {
             int lastDot = type.getName().lastIndexOf('.');
             String factName = type.getName().substring(lastDot + 1);
 
-            FactTypeBuilder factType = rootGroup.buildLhs("$" + factName, type);
+            NamedType factType = rootGroup.addFactDeclaration("$" + factName, type);
 
             for (int f = 0; f < fields.length; f++) {
                 String fieldName = fields[f];
-                Class<?> fieldType = fieldTypes[f];
-                Function<Base, ?> function = functions[f];
+                Class<Object> fieldType = fieldTypes[f];
+                Function<Base, Object> function = functions[f];
                 //DeclaredField field = type.resolveField(fields[f]);
-                TypeField field = type.declareField(fieldName, fieldType, function::apply);
+                TypeField field = type.declareField(fieldName, fieldType, function);
                 if (field == null) {
                     throw new IllegalStateException();
                 } else {

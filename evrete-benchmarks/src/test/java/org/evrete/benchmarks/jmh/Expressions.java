@@ -65,9 +65,9 @@ public class Expressions {
             service = new KnowledgeService(new Configuration());
             KnowledgeRuntime knowledge = (KnowledgeRuntime) service.newKnowledge();
             RuleBuilder<Knowledge> rule = knowledge.newRule();
-            rule.forEach().buildLhs("$a", TypeA.class);
-            rule.forEach().buildLhs("$b", TypeB.class.getName());
-            rule.forEach().buildLhs("$c", TypeC.class.getName());
+            rule.forEach().addFactDeclaration("$a", TypeA.class);
+            rule.forEach().addFactDeclaration("$b", TypeB.class.getName());
+            rule.forEach().addFactDeclaration("$c", TypeC.class.getName());
             evaluator = knowledge.compile("$a.i + $b.i + $c.i > 10_000", rule.getLhs().getFactTypeMapper(), new HashSet<>());
 
             Random random = new Random();

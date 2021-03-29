@@ -1,6 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.ActiveField;
+import org.evrete.api.NamedType;
 import org.evrete.api.Type;
 import org.evrete.api.TypeField;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
@@ -9,7 +10,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 
-public class FactType {
+public class FactType implements NamedType {
     public static final FactType[] ZERO_ARRAY = new FactType[0];
     private static final Comparator<FactType> COMPARATOR = Comparator.comparingInt(FactType::getInRuleIndex);
     private final String var;
@@ -48,10 +49,12 @@ public class FactType {
         return alphaMask;
     }
 
+    @Override
     public String getVar() {
         return var;
     }
 
+    @Override
     public Type<?> getType() {
         return fields.getType();
     }

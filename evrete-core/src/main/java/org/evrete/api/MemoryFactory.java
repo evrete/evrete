@@ -1,7 +1,6 @@
 package org.evrete.api;
 
 import org.evrete.runtime.FactType;
-import org.evrete.runtime.MemoryKeyCollection;
 
 import java.util.function.BiPredicate;
 

@@ -37,7 +37,6 @@ abstract class AbstractLhsDescriptor {
             );
             typeMapping.putNew(builder, factType);
 
-
             if (factType.getFields().size() == 0) {
                 plainFactTypes.add(factType);
             } else {

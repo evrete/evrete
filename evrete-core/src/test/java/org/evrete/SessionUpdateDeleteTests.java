@@ -17,7 +17,6 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.ToIntFunction;
 
 import static org.evrete.api.FactBuilder.fact;
 import static org.evrete.helper.TestUtils.sessionFacts;
@@ -90,7 +89,7 @@ class SessionUpdateDeleteTests {
         NextIntSupplier counter = new NextIntSupplier();
 
         Type<TypeA> t = knowledge.getTypeResolver().declare(TypeA.class);
-        TypeField field = t.declareField("length", (ToIntFunction<TypeA>) value -> value.getStr().length());
+        TypeField field = t.declareIntField("length", value -> value.getStr().length());
         assert field.getValueType().equals(int.class);
 
         // Appending counter to the value of field 's' while its length is less than 10

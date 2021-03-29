@@ -28,16 +28,16 @@ class DefaultExpressionResolver implements ExpressionResolver {
 
 
     @Override
-    public FieldReference resolve(String var, Function<String, NamedType> resolver) {
+    public FieldReference resolve(String arg, Function<String, NamedType> resolver) {
         Type<?> type;
         TypeField field;
         NamedType typeRef;
 
-        int firstDot = var.indexOf('.');
+        int firstDot = arg.indexOf('.');
         if (firstDot < 0) {
             // Var references type
-            if ((typeRef = resolver.apply(var)) == null) {
-                throw new IllegalArgumentException("There's no declared reference '" + var + "' in provided context.");
+            if ((typeRef = resolver.apply(arg)) == null) {
+                throw new IllegalArgumentException("There's no declared reference '" + arg + "' in provided context.");
             }
 
             type = typeRef.getType();
@@ -48,8 +48,8 @@ class DefaultExpressionResolver implements ExpressionResolver {
             }
         } else {
             // Var references field
-            String lhsFactType = var.substring(0, firstDot);
-            String dottedProp = var.substring(firstDot + 1);
+            String lhsFactType = arg.substring(0, firstDot);
+            String dottedProp = arg.substring(firstDot + 1);
             Const.assertName(dottedProp);
             Const.assertName(lhsFactType.substring(1));
 

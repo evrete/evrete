@@ -1,7 +1,4 @@
-package org.evrete.runtime;
-
-import org.evrete.api.MemoryKey;
-import org.evrete.api.ReIterable;
+package org.evrete.api;
 
 public interface MemoryKeyCollection extends ReIterable<MemoryKey> {
 

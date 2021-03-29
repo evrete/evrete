@@ -1,7 +1,5 @@
 package org.evrete.api;
 
-import org.evrete.runtime.builder.FactTypeBuilder;
-
 import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -42,11 +40,11 @@ public interface LhsBuilder<C extends RuntimeContext<C>> {
 
     LhsBuilder<C> where(ValuesPredicate predicate, FieldReference... references);
 
-    FactTypeBuilder buildLhs(String name, Type<?> type);
+    NamedType addFactDeclaration(String name, Type<?> type);
 
-    FactTypeBuilder buildLhs(String name, String type);
+    NamedType addFactDeclaration(String name, String type);
 
     LhsBuilder<C> buildLhs(Collection<FactBuilder> facts);
 
-    FactTypeBuilder buildLhs(String name, Class<?> type);
+    NamedType addFactDeclaration(String name, Class<?> type);
 }

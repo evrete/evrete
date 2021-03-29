@@ -1,9 +1,9 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.MemoryKey;
+import org.evrete.api.MemoryKeyCollection;
 import org.evrete.api.ReIterator;
 import org.evrete.collections.LinkedDataRW;
-import org.evrete.runtime.MemoryKeyCollection;
 
 class DefaultMemoryKeyCollection implements MemoryKeyCollection {
     private final LinkedDataRW<MemoryKey> data = new LinkedDataRW<>();

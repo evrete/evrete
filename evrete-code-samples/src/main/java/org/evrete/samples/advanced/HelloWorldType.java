@@ -19,9 +19,8 @@ public class HelloWorldType {
         HelloWorldResolver myResolver = new HelloWorldResolver(typeResolver);
         knowledge.wrapTypeResolver(myResolver);
         // Declare a new int field which equals the squared length of the input String
-        helloType.declareField(
+        TypeField lenSquaredField = helloType.declareIntField(
                 "lenSquared",
-                int.class,
                 s -> s.length() * s.length()
         );
 
@@ -30,13 +29,9 @@ public class HelloWorldType {
                 .forEach("$hw", HELLO_WORLD_CONST)
                 .where("$hw.lenSquared > 1")
                 .execute(context -> {
-                    //TODO !!!!!!!!!!! must fix this
-/*
-                    RuntimeFact fact = context.getFact("$hw");
-                    String str = fact.getDelegate();
-                    int myFieldValue = fact.getValue(0);
-                    System.out.println(str + ", lenSquared = " + myFieldValue);
-*/
+                    String s = context.get("$hw");
+                    Object lenSquared = lenSquaredField.readValue(s);
+                    System.out.println(s + ", lenSquared = " + lenSquared);
                 })
                 .createSession();
 

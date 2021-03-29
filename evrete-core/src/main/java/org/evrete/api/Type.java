@@ -5,8 +5,8 @@ import java.util.function.*;
 
 /**
  * <p>
- * The definition of a type which is assigned to every object before it gets
- * into the working memory.
+ * Engine's internal type which is assigned to every fact before it gets
+ * into the session's working memory.
  * </p>
  *
  * @param <T> Java type associated with this type
@@ -45,25 +45,26 @@ public interface Type<T> extends Named, Copyable<Type<T>> {
      * </p>
      *
      * @param name     field name
-     * @param type     field value type
+     * @param type     field value class
+     * @param <V>      field value generic type
      * @param function the function that will be used to read field's value
      * @return newly created field
      */
-    TypeField declareField(String name, Class<?> type, Function<T, Object> function);
+    <V> TypeField declareField(String name, Class<V> type, Function<T, V> function);
 
-    default TypeField declareField(final String name, final ToIntFunction<T> function) {
+    default TypeField declareIntField(final String name, final ToIntFunction<T> function) {
         return declareField(name, int.class, function::applyAsInt);
     }
 
-    default TypeField declareField(final String name, final ToLongFunction<T> function) {
+    default TypeField declareLongField(final String name, final ToLongFunction<T> function) {
         return declareField(name, long.class, function::applyAsLong);
     }
 
-    default TypeField declareField(final String name, final ToDoubleFunction<T> function) {
+    default TypeField declareDoubleField(final String name, final ToDoubleFunction<T> function) {
         return declareField(name, double.class, function::applyAsDouble);
     }
 
-    default TypeField declareField(final String name, final Predicate<T> function) {
+    default TypeField declareBooleanField(final String name, final Predicate<T> function) {
         return declareField(name, boolean.class, function::test);
     }
 }

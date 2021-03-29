@@ -7,7 +7,6 @@ import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.runtime.KnowledgeRuntime;
-import org.evrete.runtime.builder.FactTypeBuilder;
 import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -42,9 +41,9 @@ class ExpressionsTest {
     @Test
     void test1() {
         LhsBuilder<Knowledge> root = rule.forEach();
-        assert root.buildLhs("$a", TypeA.class).getVar().equals("$a");
-        FactTypeBuilder b1 = root.buildLhs("$b", TypeB.class.getName());
-        FactTypeBuilder b2 = root.buildLhs("$c", TypeC.class.getName());
+        assert root.addFactDeclaration("$a", TypeA.class).getVar().equals("$a");
+        NamedType b1 = root.addFactDeclaration("$b", TypeB.class.getName());
+        NamedType b2 = root.addFactDeclaration("$c", TypeC.class.getName());
         assert b1.getType().getJavaType().equals(TypeB.class);
         assert b2.getType().getJavaType().equals(TypeC.class);
         Evaluator ev = knowledge.compile("$a.i + $b.i + $c.i == 1", root.getFactTypeMapper(), new HashSet<>());
@@ -67,7 +66,7 @@ class ExpressionsTest {
     @Test
     void test2() {
         LhsBuilder<Knowledge> root = rule.forEach();
-        assert root.buildLhs("$a", TypeA.class).getVar().equals("$a");
+        assert root.addFactDeclaration("$a", TypeA.class).getVar().equals("$a");
         Evaluator ev1 = knowledge.compile("$a.i == 1", root.getFactTypeMapper(), new HashSet<>());
         Evaluator ev2 = knowledge.compile("   $a.i ==     1     ", root.getFactTypeMapper(), new HashSet<>());
         assert ev1.compare(ev2) == Evaluator.RELATION_EQUALS;

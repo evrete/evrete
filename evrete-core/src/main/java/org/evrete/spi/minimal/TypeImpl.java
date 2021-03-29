@@ -126,7 +126,7 @@ class TypeImpl<T> implements Type<T> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public TypeField declareField(String name, Class<?> type, Function<T, Object> function) {
+    public <V> TypeField declareField(String name, Class<V> type, Function<T, V> function) {
         return getCreateField(name, type, o -> function.apply((T) o));
     }
 

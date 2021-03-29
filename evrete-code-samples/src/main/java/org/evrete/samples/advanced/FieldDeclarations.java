@@ -20,7 +20,7 @@ class FieldDeclarations {
                 Integer.class, o -> o);
 
         TypeField factorialField = type
-                .declareField("factorial", FieldDeclarations::computeFactorial);
+                .declareLongField("factorial", FieldDeclarations::computeFactorial);
 
         StatefulSession session = knowledge
                 .newRule()

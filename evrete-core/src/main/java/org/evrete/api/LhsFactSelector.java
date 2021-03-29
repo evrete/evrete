@@ -16,11 +16,11 @@ import static org.evrete.api.FactBuilder.fact;
 public interface LhsFactSelector<T> {
     /**
      * <p>
-     * The main method which associates the implementation with a list fact type builders.
+     *      The main method that declares LHS types.
      * </p>
      *
      * @param facts a collection of facts to declare
-     * @return the generic type of the FactSelector
+     * @return the instance of this interface's implementation
      */
     T forEach(Collection<FactBuilder> facts);
 

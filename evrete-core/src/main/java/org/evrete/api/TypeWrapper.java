@@ -40,7 +40,7 @@ public class TypeWrapper<T> implements Type<T> {
     }
 
     @Override
-    public TypeField declareField(String name, Class<?> type, Function<T, Object> function) {
+    public <V> TypeField declareField(String name, Class<V> type, Function<T, V> function) {
         return delegate.declareField(name, type, function);
     }
 

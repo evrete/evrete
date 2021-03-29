@@ -5,7 +5,6 @@ import org.evrete.api.*;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Predicate;
 
 /**
  * <p>
@@ -91,7 +90,7 @@ class WhoIsFritzDynamicFields {
     }
 
     public static class SubjectType extends TypeWrapper<Subject> {
-        public SubjectType(Type<Subject> delegate) {
+        SubjectType(Type<Subject> delegate) {
             super(delegate);
         }
 
@@ -100,7 +99,7 @@ class WhoIsFritzDynamicFields {
             TypeField found = super.getField(name);
             if (found == null) {
                 //Declaring field right in the get method
-                found = declareField(name, (Predicate<Subject>) subject -> {
+                found = declareBooleanField(name, subject -> {
                     Boolean state = subject.properties.get(name);
                     return Boolean.TRUE.equals(state);
                 });
