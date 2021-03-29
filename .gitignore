@@ -13,6 +13,8 @@ buildNumber.properties
 .DS_Store?
 .idea
 *.iml
+*.xls
+*.csv
 
 # Benchmark files
 ######################
