@@ -10,6 +10,7 @@ import org.w3c.dom.Element;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -23,7 +24,7 @@ public class XMLType {
     private static final TransformerFactory TRANSFORMER_FACTORY = TransformerFactory.newInstance();
     private static final String CUSTOMER_TYPE_NAME = "Customer XML Type";
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
 
         Knowledge knowledge = service.newKnowledge();
@@ -52,8 +53,8 @@ public class XMLType {
                 .where("$c.active == true")
                 .execute(ctx -> {
                             Document customer = ctx.get("$c");
-                            Object activeValue = activeField.readValue(customer);
-                            Object nameValue = nameField.readValue(customer);
+                            boolean activeValue = activeField.readValue(customer);
+                            String nameValue = nameField.readValue(customer);
                             System.out.printf("An active customer processed:\n\tname='%s', \n\tactive='%s', \n\tsource='%s'\n", nameValue, activeValue, asString(customer));
                         }
                 )
@@ -70,15 +71,19 @@ public class XMLType {
 
     }
 
-    private static Document newCustomer(String name, boolean active) throws Exception {
-        DocumentBuilder builder = BUILDER_FACTORY.newDocumentBuilder();
-        Document doc = builder.newDocument();
-        Element root = doc.createElement("customer");
-        root.setAttribute("name", name);
-        root.setAttribute("active", String.valueOf(active));
-        doc.appendChild(root);
-        System.out.println("Customer XML created: " + asString(doc));
-        return doc;
+    private static Document newCustomer(String name, boolean active) {
+        try {
+            DocumentBuilder builder = BUILDER_FACTORY.newDocumentBuilder();
+            Document doc = builder.newDocument();
+            Element root = doc.createElement("customer");
+            root.setAttribute("name", name);
+            root.setAttribute("active", String.valueOf(active));
+            doc.appendChild(root);
+            System.out.println("Customer XML created: " + asString(doc));
+            return doc;
+        } catch (ParserConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private static String asString(Document doc) {
@@ -89,7 +94,7 @@ public class XMLType {
             transformer.transform(new DOMSource(doc), new StreamResult(writer));
             return writer.getBuffer().toString();
         } catch (TransformerException e) {
-            throw new IllegalStateException();
+            throw new IllegalStateException(e);
         }
     }
 }

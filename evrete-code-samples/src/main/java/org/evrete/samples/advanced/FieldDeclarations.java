@@ -31,8 +31,8 @@ class FieldDeclarations {
                 .execute(context -> {
                     Integer i1 = context.get("$i1");
                     Integer i2 = context.get("$i2");
-                    long factorial1 = (long) factorialField.readValue(i1);
-                    long factorial2 = (long) factorialField.readValue(i2);
+                    long factorial1 = factorialField.readValue(i1);
+                    long factorial2 = factorialField.readValue(i2);
                     System.out.printf("i1: %d (%d)\t\ti2: %d (%d)\n", i1, factorial1, i2, factorial2);
 
                 })

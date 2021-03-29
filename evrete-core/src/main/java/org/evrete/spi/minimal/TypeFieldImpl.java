@@ -36,8 +36,9 @@ class TypeFieldImpl implements TypeField {
     }
 
     @Override
-    public Object readValue(Object subject) {
-        return function.apply(subject);
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(Object subject) {
+        return (T) function.apply(subject);
     }
 
     @Override

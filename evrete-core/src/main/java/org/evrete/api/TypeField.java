@@ -12,6 +12,5 @@ public interface TypeField extends Named {
 
     Class<?> getValueType();
 
-    Object readValue(Object subject);
-
+    <T> T readValue(Object subject);
 }

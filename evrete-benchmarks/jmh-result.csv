@@ -1,4 +1,0 @@
-"Benchmark","Mode","Threads","Samples","Score","Score Error (99.9%)","Unit"
-"org.evrete.benchmarks.jmh.SalesModel.baseline","thrpt",1,4,12.933580,6.471616,"ops/s"
-"org.evrete.benchmarks.jmh.SalesModel.drools","thrpt",1,4,3.648634,1.149590,"ops/s"
-"org.evrete.benchmarks.jmh.SalesModel.evrete","thrpt",1,4,5.616391,1.400892,"ops/s"

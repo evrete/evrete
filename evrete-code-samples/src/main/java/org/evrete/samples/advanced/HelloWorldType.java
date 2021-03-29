@@ -30,7 +30,7 @@ public class HelloWorldType {
                 .where("$hw.lenSquared > 1")
                 .execute(context -> {
                     String s = context.get("$hw");
-                    Object lenSquared = lenSquaredField.readValue(s);
+                    int lenSquared = lenSquaredField.readValue(s);
                     System.out.println(s + ", lenSquared = " + lenSquared);
                 })
                 .createSession();
@@ -62,7 +62,5 @@ public class HelloWorldType {
                 return super.resolve(o);
             }
         }
-
-
     }
 }

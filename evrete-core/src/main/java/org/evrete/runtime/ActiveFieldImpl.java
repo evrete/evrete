@@ -33,7 +33,7 @@ final class ActiveFieldImpl implements ActiveField {
     }
 
     @Override
-    public Object readValue(Object subject) {
+    public <T> T readValue(Object subject) {
         return delegate.readValue(subject);
     }
 
