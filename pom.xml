@@ -187,14 +187,6 @@
     </build>
 
 
-    <modules>
-        <module>evrete-core</module>
-        <module>evrete-jsr94</module>
-        <module>evrete-code-samples</module>
-        <module>evrete-showcase</module>
-        <module>evrete-benchmarks</module>
-        <module>evrete-dsl-java</module>
-    </modules>
 
     <profiles>
         <profile>
@@ -202,6 +194,14 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
+            <modules>
+                <module>evrete-core</module>
+                <module>evrete-jsr94</module>
+                <module>evrete-code-samples</module>
+                <module>evrete-showcase</module>
+                <module>evrete-benchmarks</module>
+                <module>evrete-dsl-java</module>
+            </modules>
             <build>
                 <plugins>
                     <plugin>
