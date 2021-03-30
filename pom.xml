@@ -222,6 +222,11 @@
             <properties>
                 <gpg.key>B3A2519B3AC016443F74EBF4FAE509F54B7D0D42</gpg.key>
             </properties>
+            <modules>
+                <module>evrete-core</module>
+                <module>evrete-dsl-java</module>
+                <module>evrete-jsr94</module>
+            </modules>
             <build>
                 <plugins>
                     <plugin>
