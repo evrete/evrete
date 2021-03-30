@@ -6,6 +6,7 @@ import org.evrete.dsl.annotation.Rule;
 import org.evrete.dsl.annotation.RuleSortPolicy;
 
 import java.io.File;
+import java.nio.file.Paths;
 
 @RuleSortPolicy(DefaultSort.BY_NAME)
 public class SecurityTest1 {

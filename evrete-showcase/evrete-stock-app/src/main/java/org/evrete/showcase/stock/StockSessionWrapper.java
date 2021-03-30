@@ -11,15 +11,14 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.ToDoubleFunction;
 
 class StockSessionWrapper extends AbstractSocketSession {
-    public static final int MAX_DATA_SIZE = 128;
-    public static final int MAX_FACTS = 4;
+    static final int MAX_DATA_SIZE = 128;
+    private static final int MAX_FACTS = 4;
 
-    final AtomicInteger counter = new AtomicInteger(0);
+    private final AtomicInteger counter = new AtomicInteger(0);
 
-    public StockSessionWrapper(Session session) {
+    StockSessionWrapper(Session session) {
         super(session);
     }
 
@@ -132,7 +131,7 @@ class StockSessionWrapper extends AbstractSocketSession {
     }
 
     public static class SlotType extends TypeWrapper<TimeSlot> {
-        public SlotType(Type<TimeSlot> delegate) {
+        SlotType(Type<TimeSlot> delegate) {
             super(delegate);
         }
 
@@ -141,7 +140,7 @@ class StockSessionWrapper extends AbstractSocketSession {
             TypeField found = getDelegate().getField(name);
             if (found == null) {
                 //Declaring field right in the get method
-                found = declareField(name, (ToDoubleFunction<TimeSlot>) subject -> subject.get(name, ConditionSuperClass.UNDEFINED));
+                found = declareDoubleField(name, subject -> subject.get(name, ConditionSuperClass.UNDEFINED));
             }
             return found;
         }

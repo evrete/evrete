@@ -48,7 +48,7 @@ class RuleExecutionSetProviderImpl implements RuleExecutionSetProvider {
             try {
                 return createRuleExecutionSet(map, urls);
             } catch (IOException e) {
-                throw new RuleExecutionSetCreateException("Unable to create ruleset from URL", e);
+                throw new RuleExecutionSetCreateException("Unable to create ruleset from URL[]", e);
             }
         }
 
@@ -58,7 +58,7 @@ class RuleExecutionSetProviderImpl implements RuleExecutionSetProvider {
                 URL url = uri.toURL();
                 return createRuleExecutionSet(map, url);
             } catch (IOException e) {
-                throw new RuleExecutionSetCreateException("Unable to create ruleset from URL", e);
+                throw new RuleExecutionSetCreateException("Unable to create ruleset from URI", e);
             }
         }
 
@@ -71,7 +71,7 @@ class RuleExecutionSetProviderImpl implements RuleExecutionSetProvider {
                 }
                 return createRuleExecutionSet(map, urls);
             } catch (IOException e) {
-                throw new RuleExecutionSetCreateException("Unable to create ruleset from URL", e);
+                throw new RuleExecutionSetCreateException("Unable to create ruleset from URI[]", e);
             }
         }
 
@@ -81,7 +81,7 @@ class RuleExecutionSetProviderImpl implements RuleExecutionSetProvider {
                 URL url = file.toURI().toURL();
                 return createRuleExecutionSet(map, url);
             } catch (IOException e) {
-                throw new RuleExecutionSetCreateException("Unable to create ruleset from URL", e);
+                throw new RuleExecutionSetCreateException("Unable to create ruleset from File", e);
             }
         }
 
@@ -94,7 +94,7 @@ class RuleExecutionSetProviderImpl implements RuleExecutionSetProvider {
                 }
                 return createRuleExecutionSet(map, urls);
             } catch (IOException e) {
-                throw new RuleExecutionSetCreateException("Unable to create ruleset from URL", e);
+                throw new RuleExecutionSetCreateException("Unable to create ruleset from File[]", e);
             }
         }
 

@@ -21,7 +21,7 @@ public final class TypeMemory extends MemoryComponent {
         super(sessionMemory);
         this.type = type;
 
-        String identityMethod = configuration.getOrDefault(Configuration.OBJECT_COMPARE_METHOD, Configuration.IDENTITY_METHOD_IDENTITY).toString();
+        String identityMethod = configuration.getProperty(Configuration.OBJECT_COMPARE_METHOD);
         switch (identityMethod) {
             case Configuration.IDENTITY_METHOD_EQUALS:
                 this.factStorage = memoryFactory.newFactStorage(type, FactRecord.class, (o1, o2) -> Objects.equals(o1.instance, o2.instance));

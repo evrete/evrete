@@ -11,13 +11,13 @@ abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractR
     private static final Logger LOGGER = Logger.getLogger(AbstractWorkingMemory.class.getName());
     final KnowledgeRuntime knowledge;
     final SessionMemory memory;
-    //TODO !!!! set in configuration
-    final MemoryActionBuffer buffer = new MemoryActionBuffer(4096);
+    final MemoryActionBuffer buffer;
     private boolean active = true;
 
     AbstractWorkingMemory(KnowledgeRuntime knowledge) {
         super(knowledge);
         this.knowledge = knowledge;
+        this.buffer = new MemoryActionBuffer(getConfiguration().getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT));
         MemoryFactory memoryFactory = knowledge.getService().getMemoryFactoryProvider().instance(this);
         this.memory = new SessionMemory(knowledge.getConfiguration(), memoryFactory);
     }

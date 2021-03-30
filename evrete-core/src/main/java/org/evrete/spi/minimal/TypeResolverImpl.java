@@ -128,14 +128,12 @@ class TypeResolverImpl implements TypeResolver {
 
     @SuppressWarnings("unchecked")
     private <T> Class<T> classForName(String javaType) {
-
         try {
             Class<?> clazz = primitiveClassForName(javaType);
             if (clazz == null) {
                 clazz = classLoader.loadClass(javaType);
             }
             return (Class<T>) clazz;
-            //return (Class<T>) Class.forName(javaType, true, classLoader);
         } catch (ClassNotFoundException e) {
             return null;
         }

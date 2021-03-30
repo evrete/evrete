@@ -26,21 +26,21 @@ public class XMLType {
 
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
-
         Knowledge knowledge = service.newKnowledge();
-        Type<Document> xmlType = knowledge
+
+        Type<Document> customerType = knowledge
                 .getTypeResolver()
                 .getOrDeclare(CUSTOMER_TYPE_NAME, Document.class);
 
         // Declaring the "active" field
-        TypeField activeField = xmlType
+        TypeField activeField = customerType
                 .declareBooleanField(
                         "active",
                         doc -> Boolean.parseBoolean(doc.getDocumentElement().getAttribute("active"))
                 );
 
         // Declaring the "name" field
-        TypeField nameField = xmlType
+        TypeField nameField = customerType
                 .declareField(
                         "name",
                         String.class,

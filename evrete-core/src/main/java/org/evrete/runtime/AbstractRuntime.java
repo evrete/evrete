@@ -71,8 +71,8 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
 
     @Override
     @SuppressWarnings("unchecked")
-    public C setActivationMode(ActivationMode agendaMode) {
-        this.agendaMode = agendaMode;
+    public C setActivationMode(ActivationMode activationMode) {
+        this.agendaMode = activationMode;
         return (C) this;
     }
 

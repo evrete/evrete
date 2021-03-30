@@ -57,7 +57,7 @@ class Jsr94Tests {
         Map<Object, Object> ruleSetConfig = new HashMap<>();
         ruleSetConfig.put(Const.DSL_NAME, "JAVA-CLASS");
         ruleSetConfig.put(Const.RULE_SET_NAME, "JSR-94 Example");
-        ruleSetConfig.put(Const.RULE_SET_DESCRIPTION, "A simple rule set that removen all non-prime numbers from working memory");
+        ruleSetConfig.put(Const.RULE_SET_DESCRIPTION, "A simple rule set that removes all non-prime numbers from working memory");
         RuleExecutionSet res1 = administrator
                 .getLocalRuleExecutionSetProvider(null)
                 .createRuleExecutionSet(inStream, ruleSetConfig);

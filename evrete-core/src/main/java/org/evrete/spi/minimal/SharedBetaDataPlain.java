@@ -6,11 +6,10 @@ class SharedBetaDataPlain implements SharedBetaFactStorage {
     private final ActiveField field;
     private final FieldsFactMapPlain[] maps = new FieldsFactMapPlain[KeyMode.values().length];
 
-    SharedBetaDataPlain(ActiveField field) {
+    SharedBetaDataPlain(int initialSize, ActiveField field) {
         this.field = field;
         for (KeyMode mode : KeyMode.values()) {
-            //TODO !!!! set in configuration
-            this.maps[mode.ordinal()] = new FieldsFactMapPlain(mode, 4096);
+            this.maps[mode.ordinal()] = new FieldsFactMapPlain(mode, initialSize);
         }
     }
 

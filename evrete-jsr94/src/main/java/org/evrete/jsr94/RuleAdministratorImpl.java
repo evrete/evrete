@@ -8,7 +8,6 @@ import java.util.Map;
 public class RuleAdministratorImpl implements RuleAdministrator {
     private final LocalRuleExecutionSetProviderImpl localProvider;
     private final RuleExecutionSetProviderImpl provider;
-    //private final Map<String, RuleExecutionSet> registrations = new ConcurrentHashMap<>();
     private final RuleSetRegistrations registrations;
 
     RuleAdministratorImpl(KnowledgeService service, RuleSetRegistrations registrations) {

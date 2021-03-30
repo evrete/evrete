@@ -6,8 +6,6 @@ import org.evrete.api.TypeWrapper;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Predicate;
-import java.util.function.ToIntFunction;
 
 public class Entity {
     public final String type;
@@ -100,9 +98,9 @@ public class Entity {
             String key = parts[1];
             switch (parts[0]) {
                 case "flags":
-                    return declareField(name, (Predicate<Entity>) entity -> entity.getFlag(key, false));
+                    return declareBooleanField(name, entity -> entity.getFlag(key, false));
                 case "numbers":
-                    return declareField(name, (ToIntFunction<Entity>) entity -> entity.getNumber(key, 0));
+                    return declareIntField(name, entity -> entity.getNumber(key, 0));
                 case "properties":
                     return declareField(name, Entity.class, entity -> entity.getProperty(key));
                 default:

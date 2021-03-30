@@ -26,7 +26,7 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
 
     void wrapTypeResolver(TypeResolverWrapper wrapper);
 
-    C setActivationMode(ActivationMode agendaMode);
+    C setActivationMode(ActivationMode activationMode);
 
     ExpressionResolver getExpressionResolver();
 
