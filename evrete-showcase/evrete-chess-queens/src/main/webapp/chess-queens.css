@@ -61,7 +61,7 @@ svg {
 }
 
 .solution .cell-dark {
-    fill: #aa4422;
+    fill: #999999;
 }
 
 .solution .queen.queen-on-dark {
@@ -70,7 +70,7 @@ svg {
 }
 
 .solution .queen.queen-on-white {
-    fill: #aa4422;
+    fill: #999999;
     stroke: none;
 }
 

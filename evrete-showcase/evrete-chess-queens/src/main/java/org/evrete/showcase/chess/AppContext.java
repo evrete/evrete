@@ -10,7 +10,7 @@ import javax.servlet.annotation.WebListener;
 
 @WebListener
 public class AppContext implements ServletContextListener {
-    static KnowledgeService knowledgeService;
+    private static KnowledgeService knowledgeService;
 
     static KnowledgeService knowledgeService() {
         if (knowledgeService == null) {
@@ -24,7 +24,9 @@ public class AppContext implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
         if (knowledgeService == null) {
             Configuration configuration = new Configuration();
+
             knowledgeService = new KnowledgeService(configuration);
+            knowledgeService.setClassLoader(AppContext.class.getClassLoader());
         } else {
             throw new IllegalStateException();
         }

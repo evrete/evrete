@@ -9,57 +9,39 @@ import org.evrete.showcase.chess.types.ChessBoard;
 import org.evrete.showcase.chess.types.ChessTask;
 import org.evrete.showcase.shared.AbstractSocketSession;
 import org.evrete.showcase.shared.Message;
-import org.evrete.showcase.shared.Utils;
 
 import javax.websocket.Session;
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-class ChessSessionWrapper extends AbstractSocketSession {
+public class ChessSessionWrapper extends AbstractSocketSession {
     private static final int DEFAULT_BOARD_SIZE = 8;
     private final Knowledge knowledge;
     private ChessBoard chessBoard;
     private final AtomicInteger solutions = new AtomicInteger();
 
 
-    public ChessSessionWrapper(Session session) {
+    ChessSessionWrapper(Session session) {
         super(session);
         this.chessBoard = new ChessBoard(DEFAULT_BOARD_SIZE);
 
-        this.knowledge = AppContext.knowledgeService()
-                .newKnowledge()
-                .newRule("Report completed")
-                .forEach("$task", ChessTask.class)
-                .where("$task.completed == true")
-                .execute(ctx -> {
-                    ChessTask $task = ctx.get("$task");
-                    getMessenger().sendUnchecked(new SolutionMessage(solutions.incrementAndGet(), $task.board));
-                    ctx.delete($task);
-                    Utils.delay(20);
-                })
-
-                .newRule("Remove failed")
-                .forEach("$task", ChessTask.class)
-                .where("$task.failed == true")
-                .execute(ctx -> {
-                    ChessTask $task = ctx.get("$task");
-                    ctx.delete($task);
-                })
-
-                .newRule("Spawn subtask")
-                .forEach("$task", ChessTask.class)
-                .where("$task.failed == false")
-                .where("$task.completed == false")
-                .execute(ctx -> {
-                    ChessTask $task = ctx.get("$task");
-                    ctx.insert($task.nextTask());
-                    ctx.update($task);
-                });
-        //TODO move to DEFAULT
-        this.knowledge.setActivationMode(ActivationMode.CONTINUOUS);
+        try {
+            this.knowledge = AppContext.knowledgeService()
+                    .newKnowledge()
+                    .setActivationMode(ActivationMode.CONTINUOUS)
+                    .appendDslRules("JAVA-CLASS", MainRuleSet.class);
+            this.knowledge.set("SOCKET-SESSION", this);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
+    @SuppressWarnings("WeakerAccess")
+    public void sendSolution(ChessBoard board) {
+        getMessenger().sendUnchecked(new SolutionMessage(solutions.incrementAndGet(), board));
+    }
 
-    public ChessBoard getChessBoard() {
+    ChessBoard getChessBoard() {
         return chessBoard;
     }
 

@@ -43,7 +43,7 @@ public class ChessSocketEndpoint {
         }
     }
 
-    private void process(String message, ChessSessionWrapper sessionWrapper) throws Exception {
+    private static void process(String message, ChessSessionWrapper sessionWrapper) throws Exception {
         SocketMessenger
                 messenger = sessionWrapper.getMessenger();
         JsonMessage m = Utils.fromJson(message, JsonMessage.class);
