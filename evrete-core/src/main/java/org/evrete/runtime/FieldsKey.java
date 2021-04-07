@@ -10,7 +10,6 @@ public final class FieldsKey {
     private final Type<?> type;
     private final int id;
 
-
     FieldsKey(int id, Type<?> type, ActiveField[] arr) {
         this.id = id;
         this.fields = arr;

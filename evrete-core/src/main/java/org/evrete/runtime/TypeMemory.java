@@ -5,26 +5,28 @@ import org.evrete.api.*;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 public final class TypeMemory extends MemoryComponent {
     private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
-    private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
+    final MemoryActionBuffer buffer;
     private final FactStorage<FactRecord> factStorage;
     private final Type<?> type;
     private ActiveField[] activeFields;
     private AlphaEvaluator[] alphaEvaluators;
+    //TODO !!!! performance, switch to ArrayOf
+    private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
+
 
     TypeMemory(SessionMemory sessionMemory, Type<?> type, ActiveField[] activeFields, AlphaEvaluator[] alphaEvaluators) {
         super(sessionMemory);
         this.type = type;
         this.activeFields = activeFields;
         this.alphaEvaluators = alphaEvaluators;
+        this.buffer = new MemoryActionBuffer(configuration.getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT));
         String identityMethod = configuration.getProperty(Configuration.OBJECT_COMPARE_METHOD);
         switch (identityMethod) {
             case Configuration.IDENTITY_METHOD_EQUALS:
@@ -37,6 +39,57 @@ public final class TypeMemory extends MemoryComponent {
                 throw new IllegalArgumentException("Invalid identity method '" + identityMethod + "' in the configuration. Expected values are '" + Configuration.IDENTITY_METHOD_EQUALS + "' or '" + Configuration.IDENTITY_METHOD_IDENTITY + "'");
         }
         //rebuildCachedData();
+    }
+
+    public Object getFact(FactHandle handle) {
+        FactRecord record = getFactRecord(handle);
+        return record == null ? null : record.instance;
+    }
+
+    private FactRecord getFactRecord(FactHandle handle) {
+        FactRecord record = null;
+        // Object may be in uncommitted state (updated), so we need check the action buffer first
+        AtomicMemoryAction bufferedAction = buffer.get(handle);
+        if (bufferedAction != null) {
+            if (bufferedAction.action != Action.RETRACT) {
+                record = bufferedAction.factRecord.record;
+            }
+        } else {
+            record = getStoredRecord(handle);
+        }
+        return record;
+    }
+
+    FactRecord getStoredRecord(FactHandle handle) {
+        return factStorage.getFact(handle);
+    }
+
+    public void add(Action action, FactHandle factHandle, LazyInsertState factRecord, MemoryActionListener listener) {
+        buffer.add(action, factHandle, factRecord, listener);
+    }
+
+    /*
+
+    FactRecord getFact(FactHandle handle) {
+        return factStorage.getFact(handle);
+    }
+*/
+
+
+    LazyInsertState buildFactRecord(Object instance) {
+        ValueHandle[] valueHandles = new ValueHandle[activeFields.length];
+        // We will need field values for lazy alpha tests thus avoiding
+        // extra calls to ValueResolver
+        Object[] transientFieldValues = new Object[activeFields.length];
+        FactRecord record = new FactRecord(instance, valueHandles);
+
+        for (ActiveField field : activeFields) {
+            int idx = field.getValueIndex();
+            Object fieldValue = field.readValue(instance);
+            valueHandles[idx] = valueResolver.getValueHandle(field.getValueType(), fieldValue);
+            transientFieldValues[idx] = fieldValue;
+        }
+        return new LazyInsertState(record, transientFieldValues);
     }
 
 
@@ -98,10 +151,42 @@ public final class TypeMemory extends MemoryComponent {
         }
     }
 
+    // TODO !!! two similar forEach, analyze usage
     void forEachEntry(BiConsumer<FactHandle, FactRecord> consumer) {
         factStorage
                 .iterator()
                 .forEachRemaining(entry -> consumer.accept(entry.getHandle(), entry.getInstance()));
+    }
+
+    // TODO !!! two similar forEach, analyze usage
+    void forEachFact(BiConsumer<FactHandle, Object> consumer) {
+        factStorage.iterator().forEachRemaining(new Consumer<FactStorage.Entry<FactRecord>>() {
+            @Override
+            public void accept(FactStorage.Entry<FactRecord> record) {
+                FactHandle handle = record.getHandle();
+                Object fact = record.getInstance().instance;
+                AtomicMemoryAction bufferedAction = buffer.get(handle);
+                if (bufferedAction == null) {
+                    // No changes to this fact
+                    consumer.accept(handle, fact);
+                } else {
+                    if (bufferedAction.action != Action.RETRACT) {
+                        // Reporting changed data
+                        consumer.accept(bufferedAction.handle, bufferedAction.factRecord.record.instance);
+                    }
+                }
+            }
+        });
+    }
+
+    void processBuffer() {
+        Iterator<AtomicMemoryAction> it = buffer.actions();
+        while (it.hasNext()) {
+            AtomicMemoryAction a = it.next();
+            processMemoryChange(a.action, a.handle, a.factRecord);
+        }
+        buffer.clear();
+
     }
 
     public final FieldsMemory get(FieldsKey fields) {
@@ -111,10 +196,6 @@ public final class TypeMemory extends MemoryComponent {
         } else {
             return fm;
         }
-    }
-
-    FactRecord getFact(FactHandle handle) {
-        return factStorage.getFact(handle);
     }
 
     MemoryComponent touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {

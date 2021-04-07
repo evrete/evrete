@@ -11,13 +11,13 @@ abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractR
     private static final Logger LOGGER = Logger.getLogger(AbstractWorkingMemory.class.getName());
     final KnowledgeRuntime knowledge;
     final SessionMemory memory;
-    final MemoryActionBuffer buffer;
+    final MemoryActionCounter actionCounter;
     private boolean active = true;
 
     AbstractWorkingMemory(KnowledgeRuntime knowledge) {
         super(knowledge);
         this.knowledge = knowledge;
-        this.buffer = new MemoryActionBuffer(getConfiguration().getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT));
+        this.actionCounter = new MemoryActionCounter();
         MemoryFactory memoryFactory = knowledge.getService().getMemoryFactoryProvider().instance(this);
         this.memory = new SessionMemory(knowledge.getConfiguration(), memoryFactory);
     }
@@ -56,33 +56,26 @@ abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractR
 
     @Override
     public Object getFact(FactHandle handle) {
-        FactRecord record = null;
-        // Object may be in uncommitted state (updated), so we need check the action buffer first
-        AtomicMemoryAction bufferedAction = buffer.get(handle);
-        if (bufferedAction != null) {
-            if (bufferedAction.action != Action.RETRACT) {
-                record = bufferedAction.factRecord.record;
-            }
-        } else {
-            record = memory.get(handle.getTypeId()).getFact(handle);
-        }
-        return record == null ? null : record.instance;
+        return memory.get(handle.getTypeId()).getFact(handle);
     }
 
     private FactHandle insert(Type<?> type, Object fact) {
         if (fact == null) throw new NullPointerException("Null facts are not supported");
         if (type == null) {
+            //TODO cache this configuration opting !!!!
             if (getConfiguration().getAsBoolean(Configuration.WARN_UNKNOWN_TYPES)) {
                 LOGGER.warning("Can not resolve type for " + fact + ", insert operation skipped.");
             }
             return null;
         } else {
-            LazyInsertState innerFact = buildFactRecord(type, fact);
-            FactHandle factHandle = memory.get(type).registerNewFact(innerFact);
+            //TODO move the entire block to the TypeMemory
+            TypeMemory tm = memory.get(type);
+            LazyInsertState innerFact = tm.buildFactRecord(fact);
+            FactHandle factHandle = tm.registerNewFact(innerFact);
             if (factHandle == null) {
                 LOGGER.warning("Fact " + fact + " has been already inserted");
             } else {
-                buffer.add(Action.INSERT, factHandle, innerFact);
+                tm.add(Action.INSERT, factHandle, innerFact, actionCounter);
             }
             return factHandle;
         }
@@ -93,11 +86,12 @@ abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractR
         _assertActive();
         Type<?> type = getTypeResolver().getType(handle.getTypeId());
         if (type == null) {
+            //TODO cache this configuration opting !!!!
             if (getConfiguration().getAsBoolean(Configuration.WARN_UNKNOWN_TYPES)) {
                 LOGGER.warning("Can not resolve type for fact handle " + handle + ", update operation skipped.");
             }
         } else {
-            buffer.add(Action.UPDATE, handle, buildFactRecord(type, newValue));
+            memory.get(type).add(Action.UPDATE, handle, memory.get(type).buildFactRecord(newValue), actionCounter);
         }
     }
 
@@ -105,29 +99,16 @@ abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractR
     @Override
     public final void delete(FactHandle handle) {
         _assertActive();
-        buffer.add(Action.RETRACT, handle, null);
-    }
-
-    private LazyInsertState buildFactRecord(Type<?> type, Object instance) {
-        ValueResolver valueResolver = memory.valueResolver;
-        ActiveField[] activeFields = getActiveFields(type);
-        ValueHandle[] valueHandles = new ValueHandle[activeFields.length];
-        // We will need field values for lazy alpha tests thus avoiding
-        // extra calls to ValueResolver
-        Object[] transientFieldValues = new Object[activeFields.length];
-        FactRecord record = new FactRecord(instance, valueHandles);
-
-        for (ActiveField field : activeFields) {
-            int idx = field.getValueIndex();
-            Object fieldValue = field.readValue(instance);
-            valueHandles[idx] = valueResolver.getValueHandle(field.getValueType(), fieldValue);
-            transientFieldValues[idx] = fieldValue;
-        }
-        return new LazyInsertState(record, transientFieldValues);
+        memory.get(handle.getTypeId()).add(Action.RETRACT, handle, null, actionCounter);
     }
 
     public final void forEachFact(BiConsumer<FactHandle, Object> consumer) {
         // Scanning main memory and making sure fact handles are not deleted
+        for (TypeMemory tm : memory) {
+            tm.forEachFact(consumer);
+        }
+
+/*
         memory.forEachFactEntry((handle, o) -> {
             // Checking buffer for changes
             AtomicMemoryAction bufferedAction = buffer.get(handle);
@@ -141,6 +122,7 @@ abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractR
                 }
             }
         });
+*/
     }
 
     @Override

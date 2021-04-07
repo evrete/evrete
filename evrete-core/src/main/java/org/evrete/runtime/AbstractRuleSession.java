@@ -186,7 +186,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
 
     private void fireContinuous(ActivationContext ctx) {
         List<RuntimeRule> agenda;
-        while (fireCriteria.getAsBoolean() && buffer.hasData()) {
+        while (fireCriteria.getAsBoolean() && actionCounter.hasData()) {
             processBuffer();
             if (!(agenda = buildMemoryDeltas()).isEmpty()) {
                 activationManager.onAgenda(ctx.incrementFireCount(), agenda);
@@ -203,7 +203,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
 
     private void fireDefault(ActivationContext ctx) {
         List<RuntimeRule> agenda;
-        while (fireCriteria.getAsBoolean() && buffer.hasData()) {
+        while (fireCriteria.getAsBoolean() && actionCounter.hasData()) {
             processBuffer();
             if (!(agenda = buildMemoryDeltas()).isEmpty()) {
                 activationManager.onAgenda(ctx.incrementFireCount(), agenda);
@@ -212,7 +212,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
                     if (activationManager.test(candidate)) {
                         activationManager.onActivation(rule, rule.executeRhs());
                         // Analyzing buffer
-                        int deltaOperations = buffer.deltaOperations();
+                        int deltaOperations = actionCounter.deltaOperations();
                         if (deltaOperations > 0) {
                             // Breaking the agenda
                             break;
@@ -228,14 +228,11 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
     }
 
     private void processBuffer() {
-        Iterator<AtomicMemoryAction> it = buffer.actions();
-        while (it.hasNext()) {
-            AtomicMemoryAction a = it.next();
-            int typeId = a.handle.getTypeId();
-            TypeMemory tm = getMemory().get(typeId);
-            tm.processMemoryChange(a.action, a.handle, a.factRecord);
+        //TODO !!!! narrow the scope, all type memories are being processed
+        for (TypeMemory tm : memory) {
+            tm.processBuffer();
         }
-        buffer.clear();
+        actionCounter.clear();
     }
 
     private void commitInserts() {

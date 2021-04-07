@@ -43,7 +43,7 @@ class RhsFactType {
             return true;
         } else {
             FactHandle handle = v.getHandle();
-            FactRecord fact = typeMemory.getFact(handle);
+            FactRecord fact = typeMemory.getStoredRecord(handle);
             if (fact == null || fact.getVersion() != v.getVersion()) {
                 return false;
             } else {
