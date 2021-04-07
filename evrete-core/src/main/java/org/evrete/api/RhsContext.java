@@ -8,6 +8,7 @@ import java.util.Collection;
  * working memory methods.
  * </p>
  */
+@SuppressWarnings("UnusedReturnValue")
 public interface RhsContext {
     /**
      * <p>

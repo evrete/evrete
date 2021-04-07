@@ -2,15 +2,12 @@ package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
 
-class SharedBetaDataPlain implements SharedBetaFactStorage {
+class SharedBetaDataPlain extends AbstractBetaFactStorage<FieldsFactMapPlain> {
     private final ActiveField field;
-    private final FieldsFactMapPlain[] maps = new FieldsFactMapPlain[KeyMode.values().length];
 
     SharedBetaDataPlain(int initialSize, ActiveField field) {
+        super(FieldsFactMapPlain.class, mode -> new FieldsFactMapPlain(mode, initialSize));
         this.field = field;
-        for (KeyMode mode : KeyMode.values()) {
-            this.maps[mode.ordinal()] = new FieldsFactMapPlain(mode, initialSize);
-        }
     }
 
     @Override
@@ -22,13 +19,6 @@ class SharedBetaDataPlain implements SharedBetaFactStorage {
     public ReIterator<FactHandleVersioned> values(KeyMode mode, MemoryKey key) {
         MemoryKeyImplPlain k = (MemoryKeyImplPlain) key;
         return get(mode).values(k);
-    }
-
-    @Override
-    public void clear() {
-        for (FieldsFactMapPlain map : maps) {
-            map.clear();
-        }
     }
 
     @Override
@@ -51,9 +41,5 @@ class SharedBetaDataPlain implements SharedBetaFactStorage {
             // New key
             get(KeyMode.UNKNOWN_UNKNOWN).add(memoryKey, value);
         }
-    }
-
-    private FieldsFactMapPlain get(KeyMode mode) {
-        return maps[mode.ordinal()];
     }
 }

@@ -4,6 +4,7 @@ import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
+import org.evrete.runtime.evaluation.AlphaEvaluator;
 
 import java.util.Iterator;
 import java.util.function.BiConsumer;
@@ -29,26 +30,18 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
         return typedMemories.iterator();
     }
 
-    void touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
-        Type<?> t = key.getType();
-        get(t).touchMemory(key, alphaMeta);
+    void touchMemory(Type<?> t, ActiveField[] activeFields, AlphaEvaluator[] alphaEvaluators, FieldsKey key, AlphaBucketMeta alphaMeta) {
+        getCreate(t, activeFields, alphaEvaluators).touchMemory(key, alphaMeta);
     }
 
-    synchronized void onNewActiveField(ActiveField newField) {
-        Type<?> t = newField.getDeclaringType();
-        TypeMemory tm = get(t);
-        tm.onNewActiveField(newField);
+    synchronized void onNewActiveField(Type<?> t, AlphaEvaluator[] alphaEvaluators, ActiveField newField, ActiveField[] newFields) {
+        TypeMemory tm = getCreate(t, newFields, alphaEvaluators);
+        tm.onNewActiveField(newField, newFields);
     }
 
     void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
-        Type<?> t = key.getType();
-        TypeMemory tm = typedMemories.get(t.getId());
-        if (tm == null) {
-            tm = new TypeMemory(SessionMemory.this, t);
-            typedMemories.set(t.getId(), tm);
-        } else {
-            tm.onNewAlphaBucket(key, meta);
-        }
+        TypeMemory tm = getCreate(key.getType(), key.getFields(), meta.alphaEvaluators);
+        tm.onNewAlphaBucket(key, meta);
     }
 
     SharedBetaFactStorage getBetaFactStorage(FactType factType) {
@@ -60,9 +53,13 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
     }
 
     public TypeMemory get(Type<?> t) {
+        return get(t.getId());
+    }
+
+    private TypeMemory getCreate(Type<?> t, ActiveField[] activeFields, AlphaEvaluator[] alphaEvaluators) {
         TypeMemory m = typedMemories.get(t.getId());
         if (m == null) {
-            m = new TypeMemory(this, t);
+            m = new TypeMemory(this, t, activeFields, alphaEvaluators);
             typedMemories.set(t.getId(), m);
         }
         return m;

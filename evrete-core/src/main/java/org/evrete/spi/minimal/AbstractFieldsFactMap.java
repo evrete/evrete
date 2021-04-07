@@ -1,21 +1,16 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.FactHandleVersioned;
-import org.evrete.api.KeyMode;
-import org.evrete.api.MemoryKey;
-import org.evrete.api.ReIterator;
-import org.evrete.collections.LinearHashSet;
+abstract class AbstractFieldsFactMap {
 
-import java.util.function.BiPredicate;
-import java.util.function.Function;
+    abstract void clear();
 
-class FieldsFactMapPlain extends AbstractFieldsFactMap {
-    private static final BiPredicate<MapEntry, MemoryKeyImplPlain> SEARCH_PREDICATE = (entry, memoryKey) -> entry.key.equals(memoryKey);
-    private static final Function<MapEntry, MemoryKey> ENTRY_MAPPER = entry -> entry.key;
+/*
+    private static final BiPredicate<MapEntry, MemoryKeyImpl> SEARCH_PREDICATE = (entry, memoryKey) -> entry.key.equals(memoryKey);
     private final int myModeOrdinal;
+    private static final Function<MapEntry, MemoryKey> ENTRY_MAPPER = entry -> entry.key;
     private final LinearHashSet<MapEntry> data;
 
-    FieldsFactMapPlain(KeyMode myMode, int minCapacity) {
+    AbstractFieldsFactMap(KeyMode myMode, int minCapacity) {
         this.myModeOrdinal = myMode.ordinal();
         this.data = new LinearHashSet<>(minCapacity);
     }
@@ -24,7 +19,7 @@ class FieldsFactMapPlain extends AbstractFieldsFactMap {
         data.clear();
     }
 
-    void merge(FieldsFactMapPlain other) {
+    void merge(AbstractFieldsFactMap other) {
         other.data.forEachDataEntry(this::merge);
         other.data.clear();
     }
@@ -44,14 +39,14 @@ class FieldsFactMapPlain extends AbstractFieldsFactMap {
         return data.iterator(ENTRY_MAPPER);
     }
 
-    ReIterator<FactHandleVersioned> values(MemoryKeyImplPlain key) {
+    ReIterator<FactHandleVersioned> values(MemoryKeyImpl key) {
         // TODO !!!! analyze usage, return null and call remove() on the corresponding key iterator
         int addr = addr(key);
         MapEntry entry = data.get(addr);
         return entry == null ? ReIterator.emptyIterator() : entry.facts.iterator();
     }
 
-    public void add(MemoryKeyImplPlain key, FactHandleVersioned factHandleVersioned) {
+    public void add(MemoryKeyImpl key, FactHandleVersioned factHandleVersioned) {
         key.setMetaValue(myModeOrdinal);
 
         data.resize();
@@ -65,13 +60,13 @@ class FieldsFactMapPlain extends AbstractFieldsFactMap {
         entry.facts.add(factHandleVersioned);
     }
 
-    boolean hasKey(MemoryKeyImplPlain key) {
+    boolean hasKey(MemoryKeyImpl key) {
         int addr = addr(key);
         MapEntry entry = data.get(addr);
         return entry != null;
     }
 
-    private int addr(MemoryKeyImplPlain key) {
+    private int addr(MemoryKeyImpl key) {
         return data.findBinIndex(key, key.hashCode(), SEARCH_PREDICATE);
     }
 
@@ -82,9 +77,9 @@ class FieldsFactMapPlain extends AbstractFieldsFactMap {
 
     private static class MapEntry {
         final LinkedFactHandles facts = new LinkedFactHandles();
-        private final MemoryKeyImplPlain key;
+        private final MemoryKeyImpl key;
 
-        MapEntry(MemoryKeyImplPlain key) {
+        MapEntry(MemoryKeyImpl key) {
             this.key = key;
         }
 
@@ -101,4 +96,5 @@ class FieldsFactMapPlain extends AbstractFieldsFactMap {
             return key.hashCode();
         }
     }
+*/
 }

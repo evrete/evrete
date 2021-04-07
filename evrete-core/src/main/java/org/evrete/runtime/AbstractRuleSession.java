@@ -5,6 +5,7 @@ import org.evrete.runtime.async.Completer;
 import org.evrete.runtime.async.ForkJoinExecutor;
 import org.evrete.runtime.async.RuleHotDeploymentTask;
 import org.evrete.runtime.async.RuleMemoryInsertTask;
+import org.evrete.runtime.evaluation.AlphaEvaluator;
 
 import java.util.*;
 import java.util.function.BooleanSupplier;
@@ -51,6 +52,26 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
             rule.mergeNodeDeltas();
             boolean ruleAdded = false;
 
+            int ruleDeltaMask = 0;
+            for (RhsFactGroup group : rule.getLhs().getFactGroups()) {
+                int groupDeltaMask = 0;
+                for (FactType t : group.types()) {
+                    SharedBetaFactStorage m = memory.get(t.getType()).get(t.getFields()).get(t.getAlphaMask());
+                    int factDeltaMask = m.getDeltaStatus();
+                    if (factDeltaMask == 0) {
+                        groupDeltaMask = 0;
+                        break;
+                    } else {
+                        groupDeltaMask |= factDeltaMask;
+                    }
+                }
+
+                if (group instanceof BetaEndNode) {
+
+                }
+            }
+
+
             for (TypeMemory tm : memory) {
                 Type<?> t = tm.getType();
                 if (!ruleAdded && rule.dependsOn(t)) {
@@ -89,7 +110,10 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
 
     private synchronized RuntimeRule deployRule(RuleDescriptor descriptor, boolean hotDeployment) {
         for (FactType factType : descriptor.getLhs().getFactTypes()) {
-            memory.touchMemory(factType.getFields(), factType.getAlphaMask());
+            Type<?> t = factType.getType();
+            AlphaEvaluator[] alphaEvaluators = getAlphaEvaluators(t);
+            ActiveField[] activeFields = getActiveFields(t);
+            memory.touchMemory(t, activeFields, alphaEvaluators, factType.getFields(), factType.getAlphaMask());
         }
         RuntimeRuleImpl rule = ruleStorage.addRule(descriptor, this);
         if (hotDeployment) {

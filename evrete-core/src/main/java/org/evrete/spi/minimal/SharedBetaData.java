@@ -4,15 +4,12 @@ import org.evrete.api.*;
 
 import java.util.Objects;
 
-class SharedBetaData implements SharedBetaFactStorage {
+class SharedBetaData extends AbstractBetaFactStorage<FieldsFactMap> {
     private final ActiveField[] fields;
-    private final FieldsFactMap[] maps = new FieldsFactMap[KeyMode.values().length];
 
     SharedBetaData(int initialSize, ActiveField[] fields) {
+        super(FieldsFactMap.class, mode -> new FieldsFactMap(mode, initialSize));
         this.fields = fields;
-        for (KeyMode mode : KeyMode.values()) {
-            this.maps[mode.ordinal()] = new FieldsFactMap(mode, initialSize);
-        }
     }
 
     @Override
@@ -26,10 +23,10 @@ class SharedBetaData implements SharedBetaFactStorage {
     }
 
     @Override
-    public void clear() {
-        for (FieldsFactMap map : maps) {
-            map.clear();
-        }
+    public void commitChanges() {
+        FieldsFactMap main = get(KeyMode.MAIN);
+        main.merge(get(KeyMode.UNKNOWN_UNKNOWN));
+        main.merge(get(KeyMode.KNOWN_UNKNOWN));
     }
 
     private int hash(FieldToValueHandle key) {
@@ -38,13 +35,6 @@ class SharedBetaData implements SharedBetaFactStorage {
             hash ^= Objects.hashCode(key.apply(field));
         }
         return hash;
-    }
-
-    @Override
-    public void commitChanges() {
-        FieldsFactMap main = get(KeyMode.MAIN);
-        main.merge(get(KeyMode.UNKNOWN_UNKNOWN));
-        main.merge(get(KeyMode.KNOWN_UNKNOWN));
     }
 
     @Override
@@ -64,9 +54,5 @@ class SharedBetaData implements SharedBetaFactStorage {
             // New key
             get(KeyMode.UNKNOWN_UNKNOWN).add(memoryKey, value);
         }
-    }
-
-    private FieldsFactMap get(KeyMode mode) {
-        return maps[mode.ordinal()];
     }
 }

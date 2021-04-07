@@ -1,5 +1,7 @@
 package org.evrete.runtime.evaluation;
 
+import org.evrete.api.FieldToValue;
+
 import java.util.*;
 
 public abstract class AlphaBucketMeta {
@@ -25,6 +27,17 @@ public abstract class AlphaBucketMeta {
             this.requiredValues[i] = match.direct;
             i++;
         }
+    }
+
+    public boolean test(FieldToValue values) {
+        if (isEmpty()) return true;
+        for (int i = 0; i < alphaEvaluators.length; i++) {
+            AlphaEvaluator e = alphaEvaluators[i];
+            if (e.test(values) != requiredValues[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public static AlphaBucketMeta factory(int bucketIndex, Set<AlphaEvaluator.Match> matches) {

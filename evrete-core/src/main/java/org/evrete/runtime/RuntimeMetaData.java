@@ -45,7 +45,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
                 );
     }
 
-    protected abstract void onNewActiveField(ActiveField newField);
+    protected abstract void onNewActiveField(Type<?> type, ActiveField newField, ActiveField[] newFields);
 
     public abstract void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta);
 
@@ -58,7 +58,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     }
 
     private TypeMeta getTypeMeta(Type<?> type) {
-        return typeMetas.computeIfAbsent(type.getId(), k -> new TypeMeta());
+        return typeMetas.computeIfAbsent(type.getId(), k -> new TypeMeta(type));
     }
 
     private FieldKeyMeta getKeyMeta(FieldsKey key) {
@@ -157,6 +157,10 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         return getTypeMeta(t).activeFields;
     }
 
+    AlphaEvaluator[] getAlphaEvaluators(Type<?> t) {
+        return getTypeMeta(t).alphaEvaluators;
+    }
+
     public RuntimeContext<?> addImport(RuleScope scope, String imp) {
         this.imports.add(scope, imp);
         return this;
@@ -192,48 +196,10 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     //TODO !!!! non-lazy initialization isn't working
     public abstract ExpressionResolver getExpressionResolver();
 
-    private static class TypeMeta implements Copyable<TypeMeta> {
-        private ActiveField[] activeFields;
-        private AlphaEvaluator[] alphaEvaluators;
+    @FunctionalInterface
+    public static interface NewActiveFieldListener {
 
-        TypeMeta() {
-            this.activeFields = ActiveField.ZERO_ARRAY;
-            this.alphaEvaluators = new AlphaEvaluator[0];
-        }
-
-        TypeMeta(TypeMeta other) {
-            this.activeFields = Arrays.copyOf(other.activeFields, other.activeFields.length);
-            this.alphaEvaluators = Arrays.copyOf(other.alphaEvaluators, other.alphaEvaluators.length);
-        }
-
-        private synchronized AlphaEvaluator append(EvaluatorWrapper wrapper, ActiveField[] descriptor) {
-            int newId = this.alphaEvaluators.length;
-            AlphaEvaluator alphaEvaluator = new AlphaEvaluator(wrapper, descriptor);
-            this.alphaEvaluators = Arrays.copyOf(this.alphaEvaluators, this.alphaEvaluators.length + 1);
-            this.alphaEvaluators[newId] = alphaEvaluator;
-            return alphaEvaluator;
-        }
-
-        @Override
-        public TypeMeta copyOf() {
-            return new TypeMeta(this);
-        }
-
-        private synchronized ActiveField getCreate(TypeField field, Consumer<ActiveField> listener) {
-            for (ActiveField af : activeFields) {
-                if (af.getName().equals(field.getName())) {
-                    return af;
-                }
-            }
-            // Create and store new instance
-            int id = activeFields.length;
-            ActiveField af = new ActiveFieldImpl(field, id);
-            this.activeFields = Arrays.copyOf(this.activeFields, id + 1);
-            this.activeFields[id] = af;
-            listener.accept(af);
-            return af;
-        }
-
+        void onNew(Type<?> type, ActiveField newField, ActiveField[] newFields);
     }
 
     private static class FieldKeyMeta implements Copyable<FieldKeyMeta> {
@@ -251,5 +217,53 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         public FieldKeyMeta copyOf() {
             return new FieldKeyMeta(this);
         }
+    }
+
+    private static class TypeMeta implements Copyable<TypeMeta> {
+        private ActiveField[] activeFields;
+        private AlphaEvaluator[] alphaEvaluators;
+        private final Type<?> type;
+
+
+        TypeMeta(Type<?> type) {
+            this.activeFields = ActiveField.ZERO_ARRAY;
+            this.alphaEvaluators = new AlphaEvaluator[0];
+            this.type = type;
+        }
+
+        TypeMeta(TypeMeta other) {
+            this.activeFields = Arrays.copyOf(other.activeFields, other.activeFields.length);
+            this.alphaEvaluators = Arrays.copyOf(other.alphaEvaluators, other.alphaEvaluators.length);
+            this.type = other.type;
+        }
+
+        private synchronized AlphaEvaluator append(EvaluatorWrapper wrapper, ActiveField[] descriptor) {
+            int newId = this.alphaEvaluators.length;
+            AlphaEvaluator alphaEvaluator = new AlphaEvaluator(newId, wrapper, descriptor);
+            this.alphaEvaluators = Arrays.copyOf(this.alphaEvaluators, this.alphaEvaluators.length + 1);
+            this.alphaEvaluators[newId] = alphaEvaluator;
+            return alphaEvaluator;
+        }
+
+        @Override
+        public TypeMeta copyOf() {
+            return new TypeMeta(this);
+        }
+
+        private synchronized ActiveField getCreate(TypeField field, NewActiveFieldListener listener) {
+            for (ActiveField af : activeFields) {
+                if (af.getName().equals(field.getName())) {
+                    return af;
+                }
+            }
+            // Create and store new instance
+            int id = activeFields.length;
+            ActiveField af = new ActiveFieldImpl(field, id);
+            this.activeFields = Arrays.copyOf(this.activeFields, id + 1);
+            this.activeFields[id] = af;
+            listener.onNew(this.type, af, this.activeFields);
+            return af;
+        }
+
     }
 }

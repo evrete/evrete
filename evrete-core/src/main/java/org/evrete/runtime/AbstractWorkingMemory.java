@@ -116,6 +116,7 @@ abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractR
         // extra calls to ValueResolver
         Object[] transientFieldValues = new Object[activeFields.length];
         FactRecord record = new FactRecord(instance, valueHandles);
+
         for (ActiveField field : activeFields) {
             int idx = field.getValueIndex();
             Object fieldValue = field.readValue(instance);
@@ -143,8 +144,8 @@ abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractR
     }
 
     @Override
-    protected final void onNewActiveField(ActiveField newField) {
-        memory.onNewActiveField(newField);
+    protected void onNewActiveField(Type<?> type, ActiveField newField, ActiveField[] newFields) {
+        memory.onNewActiveField(type, getAlphaEvaluators(type), newField, newFields);
     }
 
     @Override

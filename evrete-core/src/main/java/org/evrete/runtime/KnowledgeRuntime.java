@@ -21,7 +21,7 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
     }
 
     @Override
-    protected void onNewActiveField(ActiveField newField) {
+    protected void onNewActiveField(Type<?> type, ActiveField newField, ActiveField[] newFields) {
         // Do nothing
     }
 

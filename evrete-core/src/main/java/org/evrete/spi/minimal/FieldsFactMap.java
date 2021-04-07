@@ -9,7 +9,7 @@ import org.evrete.collections.LinearHashSet;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 
-class FieldsFactMap {
+class FieldsFactMap extends AbstractFieldsFactMap {
     private static final BiPredicate<MapEntry, MemoryKeyImpl> SEARCH_PREDICATE = (entry, memoryKey) -> entry.key.equals(memoryKey);
     private final int myModeOrdinal;
     private static final Function<MapEntry, MemoryKey> ENTRY_MAPPER = entry -> entry.key;

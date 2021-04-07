@@ -3,6 +3,7 @@ package org.evrete.runtime;
 import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
+import org.evrete.runtime.evaluation.AlphaEvaluator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,11 +17,14 @@ public final class TypeMemory extends MemoryComponent {
     private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
     private final FactStorage<FactRecord> factStorage;
     private final Type<?> type;
+    private ActiveField[] activeFields;
+    private AlphaEvaluator[] alphaEvaluators;
 
-    TypeMemory(SessionMemory sessionMemory, Type<?> type) {
+    TypeMemory(SessionMemory sessionMemory, Type<?> type, ActiveField[] activeFields, AlphaEvaluator[] alphaEvaluators) {
         super(sessionMemory);
         this.type = type;
-
+        this.activeFields = activeFields;
+        this.alphaEvaluators = alphaEvaluators;
         String identityMethod = configuration.getProperty(Configuration.OBJECT_COMPARE_METHOD);
         switch (identityMethod) {
             case Configuration.IDENTITY_METHOD_EQUALS:
@@ -32,7 +36,9 @@ public final class TypeMemory extends MemoryComponent {
             default:
                 throw new IllegalArgumentException("Invalid identity method '" + identityMethod + "' in the configuration. Expected values are '" + Configuration.IDENTITY_METHOD_EQUALS + "' or '" + Configuration.IDENTITY_METHOD_IDENTITY + "'");
         }
+        //rebuildCachedData();
     }
+
 
     FactHandle registerNewFact(LazyInsertState insertState) {
         return this.factStorage.insert(insertState.record);
@@ -117,9 +123,46 @@ public final class TypeMemory extends MemoryComponent {
                 .getCreate(alphaMeta);
     }
 
+
+/*
+    private LazyInsertState buildFactRecord(Type<?> type, Object instance) {
+        ValueResolver valueResolver = memory.valueResolver;
+        ActiveField[] activeFields = getActiveFields(type);
+        ValueHandle[] valueHandles = new ValueHandle[activeFields.length];
+        // We will need field values for lazy alpha tests thus avoiding
+        // extra calls to ValueResolver
+        Object[] transientFieldValues = new Object[activeFields.length];
+        FactRecord record = new FactRecord(instance, valueHandles);
+
+        for (ActiveField field : activeFields) {
+            int idx = field.getValueIndex();
+            Object fieldValue = field.readValue(instance);
+            valueHandles[idx] = valueResolver.getValueHandle(field.getValueType(), fieldValue);
+            transientFieldValues[idx] = fieldValue;
+        }
+        return new LazyInsertState(record, transientFieldValues);
+    }
+*/
+
+
     void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
         MemoryComponent mc = touchMemory(key, meta);
-        forEachEntry((fh, rec) -> mc.insert(new FactHandleVersioned(fh, rec.getVersion()), new LazyInsertState(valueResolver, rec)));
+        forEachEntry(new BiConsumer<FactHandle, FactRecord>() {
+            @Override
+            public void accept(FactHandle fh, FactRecord rec) {
+                FactHandleVersioned fhv = new FactHandleVersioned(fh, rec.getVersion());
+                Object[] fieldValues = new Object[rec.getFieldValues().length];
+                ValueHandle[] valueHandles = rec.getFieldValues();
+                for (int i = 0; i < valueHandles.length; i++) {
+                    fieldValues[i] = valueResolver.getValue(valueHandles[i]);
+                }
+
+
+                LazyInsertState state = new LazyInsertState(rec, fieldValues);
+                mc.insert(fhv, state);
+
+            }
+        });
         mc.commitChanges();
     }
 
@@ -131,7 +174,7 @@ public final class TypeMemory extends MemoryComponent {
      *
      * @param newField newly created field
      */
-    final void onNewActiveField(ActiveField newField) {
+    final void onNewActiveField(ActiveField newField, ActiveField[] newFields) {
         ReIterator<FactStorage.Entry<FactRecord>> allFacts = factStorage.iterator();
         while (allFacts.hasNext()) {
             FactStorage.Entry<FactRecord> rec = allFacts.next();
@@ -140,6 +183,7 @@ public final class TypeMemory extends MemoryComponent {
             rec.getInstance().appendValue(newField, valueHandle);
             factStorage.update(rec.getHandle(), rec.getInstance());
         }
+        this.activeFields = newFields;
     }
 
     @Override

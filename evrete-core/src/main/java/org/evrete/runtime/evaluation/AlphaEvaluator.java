@@ -6,7 +6,7 @@ public class AlphaEvaluator implements EvaluationListeners {
     private final ActiveField[] activeDescriptor;
     private final EvaluatorWrapper delegate;
 
-    public AlphaEvaluator(EvaluatorWrapper e, ActiveField[] activeFields) {
+    public AlphaEvaluator(int id, EvaluatorWrapper e, ActiveField[] activeFields) {
         this.activeDescriptor = activeFields;
         this.delegate = e;
     }
