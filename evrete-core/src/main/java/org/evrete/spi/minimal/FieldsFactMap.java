@@ -13,11 +13,13 @@ class FieldsFactMap extends AbstractFieldsFactMap {
     private static final Function<MapEntry, MemoryKey> ENTRY_MAPPER = entry -> entry.key;
     private final LinearHashSet<MapEntry> data;
     private final ActiveField[] fields;
+    private final BiPredicate<MapEntry, FieldToValueHandle> search;
 
     FieldsFactMap(ActiveField[] fields, KeyMode myMode, int minCapacity) {
         this.fields = fields;
         this.myModeOrdinal = myMode.ordinal();
         this.data = new LinearHashSet<>(minCapacity);
+        this.search = this::sameData;
     }
 
     public void clear() {
@@ -31,7 +33,7 @@ class FieldsFactMap extends AbstractFieldsFactMap {
 
     private void merge(MapEntry otherEntry) {
         otherEntry.key.setMetaValue(myModeOrdinal);
-        int addr = addr(otherEntry.key, otherEntry.hashCode());
+        int addr = addr(otherEntry.key);
         MapEntry found = data.get(addr);
         if (found == null) {
             this.data.add(otherEntry);
@@ -46,19 +48,22 @@ class FieldsFactMap extends AbstractFieldsFactMap {
 
     ReIterator<FactHandleVersioned> values(MemoryKeyImpl key) {
         // TODO !!!! analyze usage, return null and call remove() on the corresponding key iterator
-        int addr = addr(key, key.hashCode());
+        int addr = addr(key);
         MapEntry entry = data.get(addr);
         return entry == null ? ReIterator.emptyIterator() : entry.facts.iterator();
     }
 
-    public void add(MemoryKeyImpl key, int hash, FactHandleVersioned factHandleVersioned) {
-        key.setMetaValue(myModeOrdinal);
+    public void add(FieldToValueHandle key, int hash, FactHandleVersioned factHandleVersioned) {
+        // TODO !!! possible cause of future bugs:
+        //  key.setMetaValue(myModeOrdinal);
 
         data.resize();
-        int addr = addr(key, hash);
+        int addr = data.findBinIndex(key, hash, search);
         MapEntry entry = data.get(addr);
         if (entry == null) {
-            entry = new MapEntry(key);
+            MemoryKeyImpl k = new MemoryKeyImpl(fields, key, hash);
+            k.setMetaValue(myModeOrdinal);
+            entry = new MapEntry(k);
             // TODO saveDirect is doing unnecessary job
             data.saveDirect(entry, addr);
         }
@@ -66,12 +71,7 @@ class FieldsFactMap extends AbstractFieldsFactMap {
     }
 
     boolean hasKey(int hash, FieldToValueHandle key) {
-        int addr = data.findBinIndex(key, hash, new BiPredicate<MapEntry, FieldToValueHandle>() {
-            @Override
-            public boolean test(MapEntry mapEntry, FieldToValueHandle fieldToValueHandle) {
-                return sameData(mapEntry, fieldToValueHandle);
-            }
-        });
+        int addr = data.findBinIndex(key, hash, search);
         return data.get(addr) != null;
     }
 
@@ -85,8 +85,8 @@ class FieldsFactMap extends AbstractFieldsFactMap {
         return true;
     }
 
-    private int addr(MemoryKeyImpl key, int hash) {
-        return data.findBinIndex(key, hash, SEARCH_PREDICATE);
+    private int addr(MemoryKeyImpl key) {
+        return data.findBinIndex(key, key.hashCode(), SEARCH_PREDICATE);
     }
 
     @Override

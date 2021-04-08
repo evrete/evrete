@@ -3,11 +3,9 @@ package org.evrete.spi.minimal;
 import org.evrete.api.*;
 
 class SharedBetaData extends AbstractBetaFactStorage<FieldsFactMap> {
-    private final ActiveField[] fields;
 
     SharedBetaData(int initialSize, ActiveField[] fields) {
         super(FieldsFactMap.class, mode -> new FieldsFactMap(fields, mode, initialSize));
-        this.fields = fields;
     }
 
     @Override
@@ -29,14 +27,12 @@ class SharedBetaData extends AbstractBetaFactStorage<FieldsFactMap> {
 
     @Override
     public void insert(FieldToValueHandle key, int keyHash, FactHandleVersioned value) {
-        MemoryKeyImpl memoryKey = new MemoryKeyImpl(fields, key, keyHash);
-
         if (get(KeyMode.MAIN).hasKey(keyHash, key)) {
             // Existing key
-            get(KeyMode.KNOWN_UNKNOWN).add(memoryKey, keyHash, value);
+            get(KeyMode.KNOWN_UNKNOWN).add(key, keyHash, value);
         } else {
             // New key
-            get(KeyMode.UNKNOWN_UNKNOWN).add(memoryKey, keyHash, value);
+            get(KeyMode.UNKNOWN_UNKNOWN).add(key, keyHash, value);
         }
     }
 }
