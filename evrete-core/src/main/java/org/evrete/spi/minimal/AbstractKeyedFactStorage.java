@@ -1,15 +1,15 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.KeyMode;
-import org.evrete.api.SharedBetaFactStorage;
+import org.evrete.api.KeyedFactStorage;
 import org.evrete.util.CollectionUtils;
 
 import java.util.function.Function;
 
-abstract class AbstractBetaFactStorage<T extends AbstractFieldsFactMap> implements SharedBetaFactStorage {
+abstract class AbstractKeyedFactStorage<T extends AbstractFactsMap> implements KeyedFactStorage {
     private final T[] maps;// = new FieldsFactMap[KeyMode.values().length];
 
-    AbstractBetaFactStorage(Class<T> mapType, Function<KeyMode, T> mapSupplier) {
+    AbstractKeyedFactStorage(Class<T> mapType, Function<KeyMode, T> mapSupplier) {
         //this.fields = fields;
         this.maps = CollectionUtils.array(mapType, KeyMode.values().length);
         for (KeyMode mode : KeyMode.values()) {

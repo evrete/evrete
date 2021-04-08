@@ -4,7 +4,7 @@ import org.evrete.api.*;
 
 import java.util.NoSuchElementException;
 
-class SharedAlphaData implements SharedBetaFactStorage {
+class SharedAlphaData implements KeyedFactStorage {
     private final LinkedFactHandles[] dataWrappers;
     private final KeyIterator[] keyIterators;
 
@@ -52,11 +52,11 @@ class SharedAlphaData implements SharedBetaFactStorage {
 
     private static class KeyIterator implements ReIterator<MemoryKey> {
         private static final ValueHandle[] EMPTY = new ValueHandle[0];
-        private final MemoryKeyImpl row;
+        private final MemoryKeyMulti row;
         private boolean hasNext = true;
 
         KeyIterator(KeyMode mode) {
-            this.row = new MemoryKeyImpl(EMPTY, 0);
+            this.row = new MemoryKeyMulti(EMPTY, 0);
             this.row.setMetaValue(mode.ordinal());
         }
 

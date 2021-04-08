@@ -1,6 +1,6 @@
 package org.evrete.spi.minimal;
 
-abstract class AbstractFieldsFactMap {
+abstract class AbstractFactsMap {
 
     abstract void clear();
 

@@ -1,12 +1,12 @@
 package org.evrete.runtime;
 
 import org.evrete.api.FactHandleVersioned;
-import org.evrete.api.SharedBetaFactStorage;
+import org.evrete.api.KeyedFactStorage;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.util.Bits;
 
 class FieldsMemoryBucket extends MemoryComponent {
-    private final SharedBetaFactStorage fieldData;
+    private final KeyedFactStorage fieldData;
     private final AlphaBucketMeta alphaMask;
 
     FieldsMemoryBucket(MemoryComponent runtime, FieldsKey typeFields, AlphaBucketMeta alphaMask) {
@@ -20,7 +20,7 @@ class FieldsMemoryBucket extends MemoryComponent {
         fieldData.clear();
     }
 
-    SharedBetaFactStorage getFieldData() {
+    KeyedFactStorage getFieldData() {
         return fieldData;
     }
 

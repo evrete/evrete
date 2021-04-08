@@ -7,17 +7,17 @@ import org.evrete.api.ValueHandle;
 
 import java.util.Arrays;
 
-class MemoryKeyImpl implements MemoryKey {
+class MemoryKeyMulti implements MemoryKey {
     private final ValueHandle[] data;
     private final int hash;
     private transient int transientValue;
 
-    MemoryKeyImpl(ValueHandle[] data, int hash) {
+    MemoryKeyMulti(ValueHandle[] data, int hash) {
         this.data = data;
         this.hash = hash;
     }
 
-    MemoryKeyImpl(ActiveField[] fields, FieldToValueHandle key, int hash) {
+    MemoryKeyMulti(ActiveField[] fields, FieldToValueHandle key, int hash) {
         this.data = new ValueHandle[fields.length];
         for (int i = 0; i < fields.length; i++) {
             this.data[i] = key.apply(fields[i]);
@@ -49,7 +49,7 @@ class MemoryKeyImpl implements MemoryKey {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        MemoryKeyImpl other = (MemoryKeyImpl) o;
+        MemoryKeyMulti other = (MemoryKeyMulti) o;
         return other.transientValue == this.transientValue && Arrays.equals(other.data, data);
     }
 

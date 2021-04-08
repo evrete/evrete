@@ -41,7 +41,7 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
                 .onNewAlphaBucket(key, meta);
     }
 
-    SharedBetaFactStorage getBetaFactStorage(FactType factType) {
+    KeyedFactStorage getBetaFactStorage(FactType factType) {
         Type<?> t = factType.getType();
         FieldsKey fields = factType.getFields();
         AlphaBucketMeta mask = factType.getAlphaMask();

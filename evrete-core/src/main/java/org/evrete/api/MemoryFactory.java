@@ -6,7 +6,7 @@ import java.util.function.BiPredicate;
 
 public interface MemoryFactory {
 
-    SharedBetaFactStorage newBetaStorage(ActiveField[] fields);
+    KeyedFactStorage newBetaStorage(ActiveField[] fields);
 
     MemoryKeyCollection newMemoryKeyCollection(FactType[] types);
 

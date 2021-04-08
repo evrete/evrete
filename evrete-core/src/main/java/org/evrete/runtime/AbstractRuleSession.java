@@ -55,7 +55,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
             for (RhsFactGroup group : rule.getLhs().getFactGroups()) {
                 int groupDeltaMask = 0;
                 for (FactType t : group.types()) {
-                    SharedBetaFactStorage m = memory.get(t.getType()).get(t.getFields()).get(t.getAlphaMask());
+                    KeyedFactStorage m = memory.get(t.getType()).get(t.getFields()).get(t.getAlphaMask());
                     int factDeltaMask = m.getDeltaStatus();
                     if (factDeltaMask == 0) {
                         groupDeltaMask = 0;

@@ -7,16 +7,16 @@ import java.util.Objects;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 
-class FieldsFactMapPlain extends AbstractFieldsFactMap {
-    private static final BiPredicate<MapEntry, MemoryKeyImplPlain> SEARCH_PREDICATE = (entry, memoryKey) -> entry.key.equals(memoryKey);
-    private static final Function<MapEntry, MemoryKey> ENTRY_MAPPER = entry -> entry.key;
+class FactsMapSingle extends AbstractFactsMap {
+    private static final BiPredicate<MapEntrySingle, MemoryKeySingle> SEARCH_PREDICATE = (entry, memoryKey) -> entry.key.equals(memoryKey);
+    private static final Function<MapEntrySingle, MemoryKey> ENTRY_MAPPER = entry -> entry.key;
     private final int myModeOrdinal;
-    private final LinearHashSet<MapEntry> data;
+    private final LinearHashSet<MapEntrySingle> data;
     private final ActiveField field;
-    private final BiPredicate<MapEntry, FieldToValueHandle> search;
+    private final BiPredicate<MapEntrySingle, FieldToValueHandle> search;
 
 
-    FieldsFactMapPlain(ActiveField field, KeyMode myMode, int minCapacity) {
+    FactsMapSingle(ActiveField field, KeyMode myMode, int minCapacity) {
         this.myModeOrdinal = myMode.ordinal();
         this.field = field;
         this.data = new LinearHashSet<>(minCapacity);
@@ -27,15 +27,15 @@ class FieldsFactMapPlain extends AbstractFieldsFactMap {
         data.clear();
     }
 
-    void merge(FieldsFactMapPlain other) {
+    void merge(FactsMapSingle other) {
         other.data.forEachDataEntry(this::merge);
         other.data.clear();
     }
 
-    private void merge(MapEntry otherEntry) {
+    private void merge(MapEntrySingle otherEntry) {
         otherEntry.key.setMetaValue(myModeOrdinal);
         int addr = addr(otherEntry.key);
-        MapEntry found = data.get(addr);
+        MapEntrySingle found = data.get(addr);
         if (found == null) {
             this.data.add(otherEntry);
         } else {
@@ -47,21 +47,21 @@ class FieldsFactMapPlain extends AbstractFieldsFactMap {
         return data.iterator(ENTRY_MAPPER);
     }
 
-    ReIterator<FactHandleVersioned> values(MemoryKeyImplPlain key) {
+    ReIterator<FactHandleVersioned> values(MemoryKeySingle key) {
         // TODO !!!! analyze usage, return null and call remove() on the corresponding key iterator
         int addr = addr(key);
-        MapEntry entry = data.get(addr);
+        MapEntrySingle entry = data.get(addr);
         return entry == null ? ReIterator.emptyIterator() : entry.facts.iterator();
     }
 
     public void add(FieldToValueHandle key, int keyHash, FactHandleVersioned factHandleVersioned) {
         data.resize();
         int addr = data.findBinIndex(key, keyHash, search);
-        MapEntry entry = data.get(addr);
+        MapEntrySingle entry = data.get(addr);
         if (entry == null) {
-            MemoryKeyImplPlain k = new MemoryKeyImplPlain(key.apply(field), keyHash);
+            MemoryKeySingle k = new MemoryKeySingle(key.apply(field), keyHash);
             k.setMetaValue(myModeOrdinal);
-            entry = new MapEntry(k);
+            entry = new MapEntrySingle(k);
             // TODO saveDirect is doing unnecessary job
             data.saveDirect(entry, addr);
         }
@@ -74,14 +74,14 @@ class FieldsFactMapPlain extends AbstractFieldsFactMap {
         return data.get(addr) != null;
     }
 
-    private boolean sameData(MapEntry mapEntry, FieldToValueHandle fieldToValueHandle) {
+    private boolean sameData(MapEntrySingle mapEntry, FieldToValueHandle fieldToValueHandle) {
         ValueHandle h1 = mapEntry.key.data;
         ValueHandle h2 = fieldToValueHandle.apply(field);
         return Objects.equals(h1, h2);
     }
 
 
-    private int addr(MemoryKeyImplPlain key) {
+    private int addr(MemoryKeySingle key) {
         return data.findBinIndex(key, key.hashCode(), SEARCH_PREDICATE);
     }
 
@@ -90,11 +90,11 @@ class FieldsFactMapPlain extends AbstractFieldsFactMap {
         return data.toString();
     }
 
-    private static class MapEntry {
+    private static class MapEntrySingle {
         final LinkedFactHandles facts = new LinkedFactHandles();
-        final MemoryKeyImplPlain key;
+        final MemoryKeySingle key;
 
-        MapEntry(MemoryKeyImplPlain key) {
+        MapEntrySingle(MemoryKeySingle key) {
             this.key = key;
         }
 
@@ -102,7 +102,7 @@ class FieldsFactMapPlain extends AbstractFieldsFactMap {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            MapEntry mapEntry = (MapEntry) o;
+            MapEntrySingle mapEntry = (MapEntrySingle) o;
             return key.equals(mapEntry.key);
         }
 

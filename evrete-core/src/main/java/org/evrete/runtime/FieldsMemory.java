@@ -2,7 +2,7 @@ package org.evrete.runtime;
 
 import org.evrete.api.FactHandleVersioned;
 import org.evrete.api.InnerFactMemory;
-import org.evrete.api.SharedBetaFactStorage;
+import org.evrete.api.KeyedFactStorage;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.util.Bits;
@@ -30,12 +30,12 @@ public class FieldsMemory extends MemoryComponent implements InnerFactMemory {
         alphaBuckets.forEach(bucket -> bucket.insert(key, alphaTests, value));
     }
 
-    public SharedBetaFactStorage get(AlphaBucketMeta mask) {
+    public KeyedFactStorage get(AlphaBucketMeta mask) {
         int bucketIndex = mask.getBucketIndex();
         if (bucketIndex >= alphaBuckets.data.length) {
             throw new IllegalArgumentException("No alpha bucket created for " + mask);
         } else {
-            SharedBetaFactStorage storage = alphaBuckets.data[bucketIndex].getFieldData();
+            KeyedFactStorage storage = alphaBuckets.data[bucketIndex].getFieldData();
             if (storage == null) {
                 throw new IllegalArgumentException("No alpha bucket created for " + mask);
             } else {

@@ -1,6 +1,6 @@
 package org.evrete.api;
 
-public interface SharedBetaFactStorage extends InnerFactMemory {
+public interface KeyedFactStorage extends InnerFactMemory {
     ReIterator<MemoryKey> keys(KeyMode keyMode);
 
     ReIterator<FactHandleVersioned> values(KeyMode mode, MemoryKey key);

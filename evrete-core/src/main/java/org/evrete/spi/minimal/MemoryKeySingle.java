@@ -5,12 +5,12 @@ import org.evrete.api.ValueHandle;
 
 import java.util.Objects;
 
-class MemoryKeyImplPlain implements MemoryKey {
+class MemoryKeySingle implements MemoryKey {
     final ValueHandle data;
     private final int hash;
     private transient int transientValue;
 
-    MemoryKeyImplPlain(ValueHandle data, int hash) {
+    MemoryKeySingle(ValueHandle data, int hash) {
         this.data = data;
         this.hash = hash;
     }
@@ -39,7 +39,7 @@ class MemoryKeyImplPlain implements MemoryKey {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        MemoryKeyImplPlain other = (MemoryKeyImplPlain) o;
+        MemoryKeySingle other = (MemoryKeySingle) o;
         return other.transientValue == this.transientValue && Objects.equals(other.data, data);
     }
 

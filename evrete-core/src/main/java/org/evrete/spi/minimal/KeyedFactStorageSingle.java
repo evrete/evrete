@@ -2,10 +2,10 @@ package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
 
-class SharedBetaDataPlain extends AbstractBetaFactStorage<FieldsFactMapPlain> {
+class KeyedFactStorageSingle extends AbstractKeyedFactStorage<FactsMapSingle> {
 
-    SharedBetaDataPlain(int initialSize, ActiveField field) {
-        super(FieldsFactMapPlain.class, mode -> new FieldsFactMapPlain(field, mode, initialSize));
+    KeyedFactStorageSingle(int initialSize, ActiveField field) {
+        super(FactsMapSingle.class, mode -> new FactsMapSingle(field, mode, initialSize));
     }
 
     @Override
@@ -15,13 +15,13 @@ class SharedBetaDataPlain extends AbstractBetaFactStorage<FieldsFactMapPlain> {
 
     @Override
     public ReIterator<FactHandleVersioned> values(KeyMode mode, MemoryKey key) {
-        MemoryKeyImplPlain k = (MemoryKeyImplPlain) key;
+        MemoryKeySingle k = (MemoryKeySingle) key;
         return get(mode).values(k);
     }
 
     @Override
     public void commitChanges() {
-        FieldsFactMapPlain main = get(KeyMode.MAIN);
+        FactsMapSingle main = get(KeyMode.MAIN);
         main.merge(get(KeyMode.UNKNOWN_UNKNOWN));
         main.merge(get(KeyMode.KNOWN_UNKNOWN));
     }
