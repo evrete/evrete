@@ -1,11 +1,9 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.FactHandleVersioned;
-import org.evrete.api.KeyMode;
-import org.evrete.api.MemoryKey;
-import org.evrete.api.ReIterator;
+import org.evrete.api.*;
 import org.evrete.collections.LinearHashSet;
 
+import java.util.Objects;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 
@@ -14,10 +12,15 @@ class FieldsFactMapPlain extends AbstractFieldsFactMap {
     private static final Function<MapEntry, MemoryKey> ENTRY_MAPPER = entry -> entry.key;
     private final int myModeOrdinal;
     private final LinearHashSet<MapEntry> data;
+    private final ActiveField field;
+    private final BiPredicate<MapEntry, FieldToValueHandle> search;
 
-    FieldsFactMapPlain(KeyMode myMode, int minCapacity) {
+
+    FieldsFactMapPlain(ActiveField field, KeyMode myMode, int minCapacity) {
         this.myModeOrdinal = myMode.ordinal();
+        this.field = field;
         this.data = new LinearHashSet<>(minCapacity);
+        this.search = this::sameData;
     }
 
     public void clear() {
@@ -51,25 +54,32 @@ class FieldsFactMapPlain extends AbstractFieldsFactMap {
         return entry == null ? ReIterator.emptyIterator() : entry.facts.iterator();
     }
 
-    public void add(MemoryKeyImplPlain key, FactHandleVersioned factHandleVersioned) {
-        key.setMetaValue(myModeOrdinal);
-
+    public void add(FieldToValueHandle key, int keyHash, FactHandleVersioned factHandleVersioned) {
         data.resize();
-        int addr = addr(key);
+        int addr = data.findBinIndex(key, keyHash, search);
         MapEntry entry = data.get(addr);
         if (entry == null) {
-            entry = new MapEntry(key);
+            MemoryKeyImplPlain k = new MemoryKeyImplPlain(key.apply(field), keyHash);
+            k.setMetaValue(myModeOrdinal);
+            entry = new MapEntry(k);
             // TODO saveDirect is doing unnecessary job
             data.saveDirect(entry, addr);
         }
         entry.facts.add(factHandleVersioned);
+
     }
 
-    boolean hasKey(MemoryKeyImplPlain key) {
-        int addr = addr(key);
-        MapEntry entry = data.get(addr);
-        return entry != null;
+    boolean hasKey(FieldToValueHandle key, int hash) {
+        int addr = data.findBinIndex(key, hash, search);
+        return data.get(addr) != null;
     }
+
+    private boolean sameData(MapEntry mapEntry, FieldToValueHandle fieldToValueHandle) {
+        ValueHandle h1 = mapEntry.key.data;
+        ValueHandle h2 = fieldToValueHandle.apply(field);
+        return Objects.equals(h1, h2);
+    }
+
 
     private int addr(MemoryKeyImplPlain key) {
         return data.findBinIndex(key, key.hashCode(), SEARCH_PREDICATE);
@@ -82,7 +92,7 @@ class FieldsFactMapPlain extends AbstractFieldsFactMap {
 
     private static class MapEntry {
         final LinkedFactHandles facts = new LinkedFactHandles();
-        private final MemoryKeyImplPlain key;
+        final MemoryKeyImplPlain key;
 
         MapEntry(MemoryKeyImplPlain key) {
             this.key = key;

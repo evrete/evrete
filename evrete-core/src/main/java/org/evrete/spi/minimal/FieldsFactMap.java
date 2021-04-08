@@ -54,9 +54,6 @@ class FieldsFactMap extends AbstractFieldsFactMap {
     }
 
     public void add(FieldToValueHandle key, int hash, FactHandleVersioned factHandleVersioned) {
-        // TODO !!! possible cause of future bugs:
-        //  key.setMetaValue(myModeOrdinal);
-
         data.resize();
         int addr = data.findBinIndex(key, hash, search);
         MapEntry entry = data.get(addr);

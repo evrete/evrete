@@ -6,7 +6,7 @@ import org.evrete.api.ValueHandle;
 import java.util.Objects;
 
 class MemoryKeyImplPlain implements MemoryKey {
-    private final ValueHandle data;
+    final ValueHandle data;
     private final int hash;
     private transient int transientValue;
 
