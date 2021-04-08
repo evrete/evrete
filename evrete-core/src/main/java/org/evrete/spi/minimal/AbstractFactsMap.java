@@ -1,16 +1,13 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.FieldToValueHandle;
-import org.evrete.api.KeyMode;
-import org.evrete.api.MemoryKey;
-import org.evrete.api.ReIterator;
+import org.evrete.api.*;
 import org.evrete.collections.LinearHashSet;
 
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 
 abstract class AbstractFactsMap<K extends MemoryKey, E extends AbstractFactsMap.MapKey<K>> {
-    final BiPredicate<E, K> SEARCH_PREDICATE = (entry, memoryKey) -> entry.key.equals(memoryKey);
+    private final BiPredicate<E, K> SEARCH_PREDICATE = (entry, memoryKey) -> entry.key.equals(memoryKey);
     final LinearHashSet<E> data;
     final int myModeOrdinal;
     final BiPredicate<E, FieldToValueHandle> search;
@@ -22,8 +19,6 @@ abstract class AbstractFactsMap<K extends MemoryKey, E extends AbstractFactsMap.
         this.data = new LinearHashSet<>(minCapacity);
     }
 
-    abstract void clear();
-
     abstract boolean sameData(E mapEntry, FieldToValueHandle key);
 
     final ReIterator<MemoryKey> keys() {
@@ -33,6 +28,26 @@ abstract class AbstractFactsMap<K extends MemoryKey, E extends AbstractFactsMap.
     final boolean hasKey(int hash, FieldToValueHandle key) {
         int addr = data.findBinIndex(key, hash, search);
         return data.get(addr) != null;
+    }
+
+    final int addr(K key) {
+        return data.findBinIndex(key, key.hashCode(), SEARCH_PREDICATE);
+    }
+
+    final ReIterator<FactHandleVersioned> values(K key) {
+        // TODO !!!! analyze usage, return null and call remove() on the corresponding key iterator
+        int addr = addr(key);
+        E entry = data.get(addr);
+        return entry == null ? ReIterator.emptyIterator() : entry.facts.iterator();
+    }
+
+    public final void clear() {
+        data.clear();
+    }
+
+    @Override
+    public final String toString() {
+        return data.toString();
     }
 
     static class MapKey<K> {

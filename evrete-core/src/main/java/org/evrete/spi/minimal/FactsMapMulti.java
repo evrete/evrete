@@ -12,10 +12,6 @@ class FactsMapMulti extends AbstractFactsMap<MemoryKeyMulti, FactsMapMulti.MapEn
         this.fields = fields;
     }
 
-    public void clear() {
-        data.clear();
-    }
-
     void merge(FactsMapMulti other) {
         other.data.forEachDataEntry(this::merge);
         other.data.clear();
@@ -30,13 +26,6 @@ class FactsMapMulti extends AbstractFactsMap<MemoryKeyMulti, FactsMapMulti.MapEn
         } else {
             found.facts.consume(otherEntry.facts);
         }
-    }
-
-    ReIterator<FactHandleVersioned> values(MemoryKeyMulti key) {
-        // TODO !!!! analyze usage, return null and call remove() on the corresponding key iterator
-        int addr = addr(key);
-        MapEntryMulti entry = data.get(addr);
-        return entry == null ? ReIterator.emptyIterator() : entry.facts.iterator();
     }
 
     public void add(FieldToValueHandle key, int hash, FactHandleVersioned factHandleVersioned) {
@@ -61,15 +50,6 @@ class FactsMapMulti extends AbstractFactsMap<MemoryKeyMulti, FactsMapMulti.MapEn
             if (!Objects.equals(h1, h2)) return false;
         }
         return true;
-    }
-
-    int addr(MemoryKeyMulti key) {
-        return data.findBinIndex(key, key.hashCode(), SEARCH_PREDICATE);
-    }
-
-    @Override
-    public String toString() {
-        return data.toString();
     }
 
     static class MapEntryMulti extends AbstractFactsMap.MapKey<MemoryKeyMulti> {

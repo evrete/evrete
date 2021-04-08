@@ -12,10 +12,6 @@ class FactsMapSingle extends AbstractFactsMap<MemoryKeySingle, FactsMapSingle.Ma
         this.field = field;
     }
 
-    public void clear() {
-        data.clear();
-    }
-
     void merge(FactsMapSingle other) {
         other.data.forEachDataEntry(this::merge);
         other.data.clear();
@@ -30,13 +26,6 @@ class FactsMapSingle extends AbstractFactsMap<MemoryKeySingle, FactsMapSingle.Ma
         } else {
             found.facts.consume(otherEntry.facts);
         }
-    }
-
-    ReIterator<FactHandleVersioned> values(MemoryKeySingle key) {
-        // TODO !!!! analyze usage, return null and call remove() on the corresponding key iterator
-        int addr = addr(key);
-        MapEntrySingle entry = data.get(addr);
-        return entry == null ? ReIterator.emptyIterator() : entry.facts.iterator();
     }
 
     public void add(FieldToValueHandle key, int keyHash, FactHandleVersioned factHandleVersioned) {
@@ -59,16 +48,6 @@ class FactsMapSingle extends AbstractFactsMap<MemoryKeySingle, FactsMapSingle.Ma
         ValueHandle h1 = mapEntry.key.data;
         ValueHandle h2 = fieldToValueHandle.apply(field);
         return Objects.equals(h1, h2);
-    }
-
-
-    int addr(MemoryKeySingle key) {
-        return data.findBinIndex(key, key.hashCode(), SEARCH_PREDICATE);
-    }
-
-    @Override
-    public String toString() {
-        return data.toString();
     }
 
     static class MapEntrySingle extends AbstractFactsMap.MapKey<MemoryKeySingle> {
