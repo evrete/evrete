@@ -31,7 +31,7 @@ class SharedBetaData extends AbstractBetaFactStorage<FieldsFactMap> {
     public void insert(FieldToValueHandle key, int keyHash, FactHandleVersioned value) {
         MemoryKeyImpl memoryKey = new MemoryKeyImpl(fields, key, keyHash);
 
-        if (get(KeyMode.MAIN).hasKey(keyHash, memoryKey)) {
+        if (get(KeyMode.MAIN).hasKey(keyHash, key)) {
             // Existing key
             get(KeyMode.KNOWN_UNKNOWN).add(memoryKey, keyHash, value);
         } else {

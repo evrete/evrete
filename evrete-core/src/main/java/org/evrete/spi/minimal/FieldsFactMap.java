@@ -3,6 +3,7 @@ package org.evrete.spi.minimal;
 import org.evrete.api.*;
 import org.evrete.collections.LinearHashSet;
 
+import java.util.Objects;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 
@@ -64,12 +65,25 @@ class FieldsFactMap extends AbstractFieldsFactMap {
         entry.facts.add(factHandleVersioned);
     }
 
-    boolean hasKey(int hash, MemoryKeyImpl key) {
-        int addr = addr(key, hash);
-        MapEntry entry = data.get(addr);
-        return entry != null;
+    boolean hasKey(int hash, FieldToValueHandle key) {
+        int addr = data.findBinIndex(key, hash, new BiPredicate<MapEntry, FieldToValueHandle>() {
+            @Override
+            public boolean test(MapEntry mapEntry, FieldToValueHandle fieldToValueHandle) {
+                return sameData(mapEntry, fieldToValueHandle);
+            }
+        });
+        return data.get(addr) != null;
     }
 
+
+    private boolean sameData(MapEntry mapEntry, FieldToValueHandle fieldToValueHandle) {
+        for (int i = 0; i < fields.length; i++) {
+            ValueHandle h1 = mapEntry.key.get(i);
+            ValueHandle h2 = fieldToValueHandle.apply(fields[i]);
+            if (!Objects.equals(h1, h2)) return false;
+        }
+        return true;
+    }
 
     private int addr(MemoryKeyImpl key, int hash) {
         return data.findBinIndex(key, hash, SEARCH_PREDICATE);
