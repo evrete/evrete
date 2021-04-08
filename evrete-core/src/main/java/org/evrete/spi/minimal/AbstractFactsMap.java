@@ -51,9 +51,10 @@ abstract class AbstractFactsMap<K extends MemoryKey> {
         return data.findBinIndex(key, key.hashCode(), SEARCH_PREDICATE);
     }
 
-    final ReIterator<FactHandleVersioned> values(K key) {
+    @SuppressWarnings("unchecked")
+    final ReIterator<FactHandleVersioned> values(MemoryKey k) {
         // TODO !!!! analyze usage, return null and call remove() on the corresponding key iterator
-        int addr = addr(key);
+        int addr = addr((K) k);
         MapKey<K> entry = data.get(addr);
         return entry == null ? ReIterator.emptyIterator() : entry.facts.iterator();
     }
@@ -62,7 +63,6 @@ abstract class AbstractFactsMap<K extends MemoryKey> {
         other.data.forEachDataEntry(this::merge);
         other.data.clear();
     }
-
 
     private void merge(MapKey<K> otherEntry) {
         otherEntry.key.setMetaValue(myModeOrdinal);
