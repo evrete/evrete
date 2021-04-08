@@ -128,9 +128,9 @@ public final class TypeMemory extends MemoryComponent {
     }
 
     @Override
-    void insert(FieldToValueHandle key, Bits alphaTests, FactHandleVersioned value) {
+    void insert(LazyValues values, Bits alphaTests, FactHandleVersioned value) {
         for (MemoryComponent child : childComponents()) {
-            child.insert(key, alphaTests, value);
+            child.insert(values, alphaTests, value);
         }
     }
 
@@ -198,16 +198,16 @@ public final class TypeMemory extends MemoryComponent {
         mc.commitChanges();
     }
 
-    private static class ReusableFieldValues implements FieldToValueHandle {
+    private static class ReusableFieldValues implements LazyValues {
         private static final Bits EMPTY_BITS = new Bits();
         private final ValueResolver valueResolver;
-        boolean valueHandlesResolved;
         private ActiveField[] activeFields;
         private AlphaEvaluator[] alphaEvaluators;
         private ValueHandle[] valueHandles;
         private Object[] fieldValues;
         private FieldToValue alphaFunction;
         private Bits alphaTests;
+        private FieldToValueHandle lazyValues;
 
         ReusableFieldValues(ValueResolver valueResolver) {
             this.valueResolver = valueResolver;
@@ -221,8 +221,24 @@ public final class TypeMemory extends MemoryComponent {
             this.alphaFunction = field -> fieldValues[field.getValueIndex()];
         }
 
+        @Override
+        public FieldToValueHandle getValues() {
+            if (lazyValues == null) {
+                int idx;
+                Object fieldValue;
+                for (ActiveField field : activeFields) {
+                    idx = field.getValueIndex();
+                    fieldValue = fieldValues[idx];
+                    valueHandles[idx] = valueResolver.getValueHandle(field.getValueType(), fieldValue);
+                }
+
+                lazyValues = field -> valueHandles[field.getValueIndex()];
+            }
+            return lazyValues;
+        }
+
         void update(FactRecord factRecord) {
-            this.valueHandlesResolved = false;
+            this.lazyValues = null;
             Object instance = factRecord.instance;
             for (ActiveField field : activeFields) {
                 int idx = field.getValueIndex();
@@ -249,6 +265,7 @@ public final class TypeMemory extends MemoryComponent {
             return alphaTests;
         }
 
+/*
         private void resolve() {
             if (!valueHandlesResolved) {
                 int idx;
@@ -267,5 +284,6 @@ public final class TypeMemory extends MemoryComponent {
             resolve();
             return valueHandles[activeField.getValueIndex()];
         }
+*/
     }
 }

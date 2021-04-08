@@ -27,7 +27,7 @@ abstract class MemoryComponent {
         parent.addChild(this);
     }
 
-    abstract void insert(FieldToValueHandle key, Bits alphaTests, FactHandleVersioned value);
+    abstract void insert(LazyValues key, Bits alphaTests, FactHandleVersioned value);
 
     abstract void commitChanges();
 
@@ -46,5 +46,10 @@ abstract class MemoryComponent {
         for (MemoryComponent child : childComponents.data) {
             child.clear();
         }
+    }
+
+
+    interface LazyValues {
+        FieldToValueHandle getValues();
     }
 }

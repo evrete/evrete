@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 
-//TODO !!! profile and amend the functional interfaces, they're too slow
 public class BetaEvaluatorSingle extends EvaluatorWrapper implements BetaEvaluator {
     public static final BetaEvaluatorSingle[] ZERO_ARRAY = new BetaEvaluatorSingle[0];
     private final BetaFieldReference[] descriptor;

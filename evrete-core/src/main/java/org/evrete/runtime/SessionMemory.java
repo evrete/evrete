@@ -76,7 +76,7 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
     }
 
     @Override
-    void insert(FieldToValueHandle key, Bits alphaTests, FactHandleVersioned value) {
+    void insert(LazyValues values, Bits alphaTests, FactHandleVersioned value) {
         throw new UnsupportedOperationException("Direct insert not supported");
     }
 

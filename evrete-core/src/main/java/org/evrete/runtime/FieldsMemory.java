@@ -1,7 +1,6 @@
 package org.evrete.runtime;
 
 import org.evrete.api.FactHandleVersioned;
-import org.evrete.api.FieldToValueHandle;
 import org.evrete.api.InnerFactMemory;
 import org.evrete.api.SharedBetaFactStorage;
 import org.evrete.collections.ArrayOf;
@@ -27,7 +26,7 @@ public class FieldsMemory extends MemoryComponent implements InnerFactMemory {
     }
 
     @Override
-    void insert(FieldToValueHandle key, Bits alphaTests, FactHandleVersioned value) {
+    void insert(LazyValues key, Bits alphaTests, FactHandleVersioned value) {
         alphaBuckets.forEach(bucket -> bucket.insert(key, alphaTests, value));
     }
 
