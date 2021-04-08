@@ -7,7 +7,6 @@ import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 
 import java.util.Iterator;
-import java.util.function.BiConsumer;
 
 public class SessionMemory extends MemoryComponent implements Iterable<TypeMemory> {
     private final ArrayOf<TypeMemory> typedMemories;
@@ -21,10 +20,6 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
     protected void clearLocalData() {
     }
 
-    void forEachFactEntry(BiConsumer<FactHandle, Object> consumer) {
-        typedMemories.forEach(tm -> tm.forEachEntry((handle, record) -> consumer.accept(handle, record.instance)));
-    }
-
     @Override
     public Iterator<TypeMemory> iterator() {
         return typedMemories.iterator();
@@ -36,12 +31,12 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
 
     synchronized void onNewActiveField(Type<?> t, AlphaEvaluator[] alphaEvaluators, ActiveField newField, ActiveField[] newFields) {
         getCreate(t, newFields, alphaEvaluators)
-                .onNewActiveField(newField, newFields);
+                .onNewActiveField(newField);
     }
 
     void onNewAlphaBucket(FieldsKey key, AlphaEvaluator[] newTypeAlphaEvaluators, AlphaBucketMeta meta) {
         getCreate(key.getType(), key.getFields(), newTypeAlphaEvaluators)
-                .onNewAlphaBucket(key, newTypeAlphaEvaluators, meta);
+                .onNewAlphaBucket(key, meta);
     }
 
     SharedBetaFactStorage getBetaFactStorage(FactType factType) {
@@ -63,8 +58,7 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
             typedMemories.set(t.getId(), m);
         } else {
             // Making sure type uses the same alpha conditions
-            m.alphaEvaluators = alphaEvaluators;
-            m.activeFields = activeFields;
+            m.updateCachedData(activeFields, alphaEvaluators);
         }
         return m;
     }

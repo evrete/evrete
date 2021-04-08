@@ -16,8 +16,8 @@ public final class TypeMemory extends MemoryComponent {
     final MemoryActionBuffer buffer;
     private final FactStorage<FactRecord> factStorage;
     private final Type<?> type;
-    ActiveField[] activeFields;
-    AlphaEvaluator[] alphaEvaluators;
+    private ActiveField[] cachedActiveFields;
+    private AlphaEvaluator[] cashedAlphaEvaluators;
     //TODO !!!! performance, switch to ArrayOf
     private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
 
@@ -25,8 +25,6 @@ public final class TypeMemory extends MemoryComponent {
     TypeMemory(SessionMemory sessionMemory, Type<?> type, ActiveField[] activeFields, AlphaEvaluator[] alphaEvaluators) {
         super(sessionMemory);
         this.type = type;
-        this.activeFields = activeFields;
-        this.alphaEvaluators = alphaEvaluators;
         this.buffer = new MemoryActionBuffer(configuration.getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT));
         String identityMethod = configuration.getProperty(Configuration.OBJECT_COMPARE_METHOD);
         switch (identityMethod) {
@@ -39,7 +37,12 @@ public final class TypeMemory extends MemoryComponent {
             default:
                 throw new IllegalArgumentException("Invalid identity method '" + identityMethod + "' in the configuration. Expected values are '" + Configuration.IDENTITY_METHOD_EQUALS + "' or '" + Configuration.IDENTITY_METHOD_IDENTITY + "'");
         }
-        //rebuildCachedData();
+        updateCachedData(activeFields, alphaEvaluators);
+    }
+
+    void updateCachedData(ActiveField[] activeFields, AlphaEvaluator[] alphaEvaluators) {
+        this.cachedActiveFields = activeFields;
+        this.cashedAlphaEvaluators = alphaEvaluators;
     }
 
     public Object getFact(FactHandle handle) {
@@ -78,13 +81,13 @@ public final class TypeMemory extends MemoryComponent {
 
 
     LazyInsertState buildFactRecord(Object instance) {
-        ValueHandle[] valueHandles = new ValueHandle[activeFields.length];
+        ValueHandle[] valueHandles = new ValueHandle[cachedActiveFields.length];
         // We will need field values for lazy alpha tests thus avoiding
         // extra calls to ValueResolver
-        Object[] transientFieldValues = new Object[activeFields.length];
+        Object[] transientFieldValues = new Object[cachedActiveFields.length];
         FactRecord record = new FactRecord(instance, valueHandles);
 
-        for (ActiveField field : activeFields) {
+        for (ActiveField field : cachedActiveFields) {
             int idx = field.getValueIndex();
             Object fieldValue = field.readValue(instance);
             valueHandles[idx] = valueResolver.getValueHandle(field.getValueType(), fieldValue);
@@ -98,7 +101,7 @@ public final class TypeMemory extends MemoryComponent {
                 return transientFieldValues[activeField.getValueIndex()];
             }
         };
-        for (AlphaEvaluator evaluator : alphaEvaluators) {
+        for (AlphaEvaluator evaluator : cashedAlphaEvaluators) {
             if (evaluator.test(fieldToValues)) {
                 alphaTests.set(evaluator.getIndex());
             }
@@ -220,9 +223,8 @@ public final class TypeMemory extends MemoryComponent {
     }
 
 
-    void onNewAlphaBucket(FieldsKey key, AlphaEvaluator[] newTypeAlphaEvaluators, AlphaBucketMeta meta) {
+    void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
         MemoryComponent mc = touchMemory(key, meta);
-        this.alphaEvaluators = newTypeAlphaEvaluators;
         forEachEntry(new BiConsumer<FactHandle, FactRecord>() {
             @Override
             public void accept(FactHandle fh, FactRecord rec) {
@@ -241,7 +243,7 @@ public final class TypeMemory extends MemoryComponent {
                         return fieldValues[activeField.getValueIndex()];
                     }
                 };
-                for (AlphaEvaluator evaluator : newTypeAlphaEvaluators) {
+                for (AlphaEvaluator evaluator : cashedAlphaEvaluators) {
                     if (evaluator.test(fieldToValues)) {
                         alphaTests.set(evaluator.getIndex());
                     }
@@ -263,7 +265,7 @@ public final class TypeMemory extends MemoryComponent {
      *
      * @param newField newly created field
      */
-    final void onNewActiveField(ActiveField newField, ActiveField[] newFields) {
+    final void onNewActiveField(ActiveField newField) {
         ReIterator<FactStorage.Entry<FactRecord>> allFacts = factStorage.iterator();
         while (allFacts.hasNext()) {
             FactStorage.Entry<FactRecord> rec = allFacts.next();
@@ -272,7 +274,6 @@ public final class TypeMemory extends MemoryComponent {
             rec.getInstance().appendValue(newField, valueHandle);
             factStorage.update(rec.getHandle(), rec.getInstance());
         }
-        this.activeFields = newFields;
     }
 
     @Override

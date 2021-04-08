@@ -107,22 +107,6 @@ abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractR
         for (TypeMemory tm : memory) {
             tm.forEachFact(consumer);
         }
-
-/*
-        memory.forEachFactEntry((handle, o) -> {
-            // Checking buffer for changes
-            AtomicMemoryAction bufferedAction = buffer.get(handle);
-            if (bufferedAction == null) {
-                // No changes to this fact
-                consumer.accept(handle, o);
-            } else {
-                if (bufferedAction.action != Action.RETRACT) {
-                    // Reporting changed data
-                    consumer.accept(bufferedAction.handle, bufferedAction.factRecord.record.instance);
-                }
-            }
-        });
-*/
     }
 
     @Override
