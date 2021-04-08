@@ -5,16 +5,10 @@ import org.evrete.api.ValueHandle;
 import java.util.Objects;
 
 class ValueHandleImpl implements ValueHandle {
-    private static final long serialVersionUID = 4019004009002813739L;
-    final int typeId;
-    final int valueId;
-    private final int hash;
+    final Object value;
 
-
-    ValueHandleImpl(int typeId, int valueId) {
-        this.typeId = typeId;
-        this.valueId = valueId;
-        this.hash = Objects.hash(typeId, valueId);
+    ValueHandleImpl(Object value) {
+        this.value = value;
     }
 
     @Override
@@ -22,16 +16,16 @@ class ValueHandleImpl implements ValueHandle {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ValueHandleImpl handle = (ValueHandleImpl) o;
-        return handle.valueId == valueId && handle.typeId == typeId;
+        return Objects.equals(value, handle.value);
     }
 
     @Override
     public int hashCode() {
-        return hash;
+        return System.identityHashCode(value);
     }
 
     @Override
     public String toString() {
-        return typeId + "/" + valueId;
+        return value == null ? "null" : value.toString();
     }
 }

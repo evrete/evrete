@@ -98,8 +98,8 @@ public abstract class AlphaBucketMeta {
         }
 
         public boolean test(Bits mask) {
-            for (int idx1 : bitIndices) {
-                if (mask.get(idx1) != expectedValues.get(idx1)) {
+            for (int idx : bitIndices) {
+                if (mask.get(idx) != expectedValues.get(idx)) {
                     return false;
                 }
             }
