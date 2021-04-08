@@ -2,16 +2,14 @@ package org.evrete.runtime;
 
 import org.evrete.Configuration;
 import org.evrete.api.*;
+import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 import org.evrete.util.Bits;
 
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 public final class TypeMemory extends MemoryComponent {
@@ -19,13 +17,12 @@ public final class TypeMemory extends MemoryComponent {
     private final MemoryActionBuffer buffer;
     private final FactStorage<FactRecord> factStorage;
     private final Type<?> type;
-    //TODO !!!! performance, switch to ArrayOf
-    private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
+    private final ArrayOf<FieldsMemory> betaMemories;
     private final ReusableFieldValues reusableFieldValues;
-
 
     TypeMemory(SessionMemory sessionMemory, TypeMemoryState initialState) {
         super(sessionMemory);
+        this.betaMemories = new ArrayOf<>(new FieldsMemory[0]);
         this.type = initialState.type;
         this.buffer = new MemoryActionBuffer(configuration.getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT));
         String identityMethod = configuration.getProperty(Configuration.OBJECT_COMPARE_METHOD);
@@ -75,44 +72,6 @@ public final class TypeMemory extends MemoryComponent {
         return factHandle;
     }
 
-    /*
-
-    FactRecord getFact(FactHandle handle) {
-        return factStorage.getFact(handle);
-    }
-*/
-
-
-/*
-    LazyInsertState buildFactRecord(Object instance) {
-        ValueHandle[] cachedValueHandles = new ValueHandle[cachedActiveFields.length];
-        FactRecord record = new FactRecord(instance, cachedValueHandles);
-
-        for (ActiveField field : cachedActiveFields) {
-            int idx = field.getValueIndex();
-            Object fieldValue = field.readValue(instance);
-            cachedValueHandles[idx] = valueResolver.getValueHandle(field.getValueType(), fieldValue);
-            cachedFieldValues[idx] = fieldValue;
-        }
-
-        Bits alphaTests = new Bits();
-        for (AlphaEvaluator evaluator : cashedAlphaEvaluators) {
-            if (evaluator.test(cachedValueFunction)) {
-                alphaTests.set(evaluator.getIndex());
-            }
-        }
-
-
-        return new LazyInsertState(record, alphaTests);
-    }
-*/
-
-/*
-    FactHandle registerNewFact(FactRecord record) {
-        return this.factStorage.insert(record);
-    }
-*/
-
     FactHandle externalInsert(Object fact, MemoryActionListener actionListener) {
         FactRecord record = new FactRecord(fact);
         FactHandle handle = factStorage.insert(record);
@@ -123,7 +82,6 @@ public final class TypeMemory extends MemoryComponent {
             return add(Action.INSERT, handle, record, actionListener);
         }
     }
-
 
     public Type<?> getType() {
         return type;
@@ -183,30 +141,18 @@ public final class TypeMemory extends MemoryComponent {
         }
     }
 
-
-    // TODO !!! two similar forEach, analyze usage
-    private void forEachEntry(BiConsumer<FactHandle, FactRecord> consumer) {
-        factStorage
-                .iterator()
-                .forEachRemaining(entry -> consumer.accept(entry.getHandle(), entry.getInstance()));
-    }
-
-    // TODO !!! two similar forEach, analyze usage
     void forEachFact(BiConsumer<FactHandle, Object> consumer) {
-        factStorage.iterator().forEachRemaining(new Consumer<FactStorage.Entry<FactRecord>>() {
-            @Override
-            public void accept(FactStorage.Entry<FactRecord> record) {
-                FactHandle handle = record.getHandle();
-                Object fact = record.getInstance().instance;
-                AtomicMemoryAction bufferedAction = buffer.get(handle);
-                if (bufferedAction == null) {
-                    // No changes to this fact
-                    consumer.accept(handle, fact);
-                } else {
-                    if (bufferedAction.action != Action.RETRACT) {
-                        // Reporting changed data
-                        consumer.accept(bufferedAction.handle, bufferedAction.factRecord.instance);
-                    }
+        factStorage.iterator().forEachRemaining(record -> {
+            FactHandle handle = record.getHandle();
+            Object fact = record.getInstance().instance;
+            AtomicMemoryAction bufferedAction = buffer.get(handle);
+            if (bufferedAction == null) {
+                // No changes to this fact
+                consumer.accept(handle, fact);
+            } else {
+                if (bufferedAction.action != Action.RETRACT) {
+                    // Reporting changed data
+                    consumer.accept(bufferedAction.handle, bufferedAction.factRecord.instance);
                 }
             }
         });
@@ -222,7 +168,7 @@ public final class TypeMemory extends MemoryComponent {
     }
 
     public final FieldsMemory get(FieldsKey fields) {
-        FieldsMemory fm = betaMemories.get(fields);
+        FieldsMemory fm = betaMemories.get(fields.getId());
         if (fm == null) {
             throw new IllegalArgumentException("No key memory exists for " + fields);
         } else {
@@ -232,7 +178,10 @@ public final class TypeMemory extends MemoryComponent {
 
     FieldsMemoryBucket touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
         return betaMemories
-                .computeIfAbsent(key, k -> new FieldsMemory(TypeMemory.this, key))
+                .computeIfAbsent(
+                        key.getId(),
+                        i -> new FieldsMemory(TypeMemory.this, key)
+                )
                 .getCreate(alphaMeta);
     }
 
@@ -247,39 +196,6 @@ public final class TypeMemory extends MemoryComponent {
             mc.insert(reusableFieldValues, reusableFieldValues.alphaTests(), fhv);
         }
         mc.commitChanges();
-
-
-/*
-        forEachEntry(new BiConsumer<FactHandle, FactRecord>() {
-            @Override
-            public void accept(FactHandle fh, FactRecord rec) {
-                FactHandleVersioned fhv = new FactHandleVersioned(fh, rec.getVersion());
-                ValueHandle[] valueHandles = rec.getFieldValues();
-                Object[] fieldValues = new Object[valueHandles.length];
-                FieldToValue valueFunction = new FieldToValue() {
-                    @Override
-                    public Object apply(ActiveField activeField) {
-                        return fieldValues[activeField.getValueIndex()];
-                    }
-                };
-                for (int i = 0; i < valueHandles.length; i++) {
-                    fieldValues[i] = valueResolver.getValue(valueHandles[i]);
-                }
-
-
-                Bits alphaTests = new Bits();
-                for (AlphaEvaluator evaluator : cashedAlphaEvaluators) {
-                    if (evaluator.test(valueFunction)) {
-                        alphaTests.set(evaluator.getIndex());
-                    }
-                }
-
-                LazyInsertState state = new LazyInsertState(rec, alphaTests);
-                mc.insert(fhv, state);
-
-            }
-        });
-*/
     }
 
     private static class ReusableFieldValues implements FieldToValueHandle {
@@ -302,12 +218,7 @@ public final class TypeMemory extends MemoryComponent {
             this.alphaEvaluators = alphaEvaluators;
             this.fieldValues = new Object[activeFields.length];
             this.valueHandles = new ValueHandle[activeFields.length];
-            this.alphaFunction = new FieldToValue() {
-                @Override
-                public Object apply(ActiveField activeField) {
-                    return fieldValues[activeField.getValueIndex()];
-                }
-            };
+            this.alphaFunction = field -> fieldValues[field.getValueIndex()];
         }
 
         void update(FactRecord factRecord) {
