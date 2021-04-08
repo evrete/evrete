@@ -7,20 +7,16 @@ import java.util.Objects;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 
-class FactsMapSingle extends AbstractFactsMap {
+class FactsMapSingle extends AbstractFactsMap<MemoryKeySingle, FactsMapSingle.MapEntrySingle> {
     private static final BiPredicate<MapEntrySingle, MemoryKeySingle> SEARCH_PREDICATE = (entry, memoryKey) -> entry.key.equals(memoryKey);
     private static final Function<MapEntrySingle, MemoryKey> ENTRY_MAPPER = entry -> entry.key;
-    private final int myModeOrdinal;
     private final LinearHashSet<MapEntrySingle> data;
     private final ActiveField field;
-    private final BiPredicate<MapEntrySingle, FieldToValueHandle> search;
-
 
     FactsMapSingle(ActiveField field, KeyMode myMode, int minCapacity) {
-        this.myModeOrdinal = myMode.ordinal();
+        super(myMode);
         this.field = field;
         this.data = new LinearHashSet<>(minCapacity);
-        this.search = this::sameData;
     }
 
     public void clear() {
@@ -74,7 +70,8 @@ class FactsMapSingle extends AbstractFactsMap {
         return data.get(addr) != null;
     }
 
-    private boolean sameData(MapEntrySingle mapEntry, FieldToValueHandle fieldToValueHandle) {
+    @Override
+    boolean sameData(MapEntrySingle mapEntry, FieldToValueHandle fieldToValueHandle) {
         ValueHandle h1 = mapEntry.key.data;
         ValueHandle h2 = fieldToValueHandle.apply(field);
         return Objects.equals(h1, h2);
@@ -90,12 +87,10 @@ class FactsMapSingle extends AbstractFactsMap {
         return data.toString();
     }
 
-    private static class MapEntrySingle {
-        final LinkedFactHandles facts = new LinkedFactHandles();
-        final MemoryKeySingle key;
+    static class MapEntrySingle extends AbstractFactsMap.MapKey<MemoryKeySingle> {
 
         MapEntrySingle(MemoryKeySingle key) {
-            this.key = key;
+            super(key);
         }
 
         @Override

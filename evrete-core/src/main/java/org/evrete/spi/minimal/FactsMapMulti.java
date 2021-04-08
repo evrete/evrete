@@ -7,19 +7,16 @@ import java.util.Objects;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 
-class FactsMapMulti extends AbstractFactsMap {
+class FactsMapMulti extends AbstractFactsMap<MemoryKeyMulti, FactsMapMulti.MapEntryMulti> {
     private static final BiPredicate<MapEntryMulti, MemoryKeyMulti> SEARCH_PREDICATE = (entry, memoryKey) -> entry.key.equals(memoryKey);
-    private final int myModeOrdinal;
     private static final Function<MapEntryMulti, MemoryKey> ENTRY_MAPPER = entry -> entry.key;
     private final LinearHashSet<MapEntryMulti> data;
     private final ActiveField[] fields;
-    private final BiPredicate<MapEntryMulti, FieldToValueHandle> search;
 
     FactsMapMulti(ActiveField[] fields, KeyMode myMode, int minCapacity) {
+        super(myMode);
         this.fields = fields;
-        this.myModeOrdinal = myMode.ordinal();
         this.data = new LinearHashSet<>(minCapacity);
-        this.search = this::sameData;
     }
 
     public void clear() {
@@ -73,7 +70,8 @@ class FactsMapMulti extends AbstractFactsMap {
     }
 
 
-    private boolean sameData(MapEntryMulti mapEntry, FieldToValueHandle fieldToValueHandle) {
+    @Override
+    boolean sameData(MapEntryMulti mapEntry, FieldToValueHandle fieldToValueHandle) {
         for (int i = 0; i < fields.length; i++) {
             ValueHandle h1 = mapEntry.key.get(i);
             ValueHandle h2 = fieldToValueHandle.apply(fields[i]);
@@ -91,13 +89,10 @@ class FactsMapMulti extends AbstractFactsMap {
         return data.toString();
     }
 
-    private static class MapEntryMulti {
-        final LinkedFactHandles facts = new LinkedFactHandles();
-        private final MemoryKeyMulti key;
-
+    static class MapEntryMulti extends AbstractFactsMap.MapKey<MemoryKeyMulti> {
 
         MapEntryMulti(MemoryKeyMulti key) {
-            this.key = key;
+            super(key);
         }
 
         @Override
