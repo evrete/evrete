@@ -50,6 +50,11 @@ public class EvaluatorWrapper implements Evaluator, Listeners {
     }
 
     @Override
+    public String toString() {
+        return delegate.toString();
+    }
+
+    @Override
     public final void addListener(EvaluationListener listener) {
         this.listeners.add(listener);
         updateActiveEvaluator();

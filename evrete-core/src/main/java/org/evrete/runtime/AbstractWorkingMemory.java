@@ -132,7 +132,7 @@ abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractR
 
     @Override
     public final void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
-        memory.onNewAlphaBucket(key, meta);
+        memory.onNewAlphaBucket(key, getAlphaEvaluators(key.getType()), meta);
     }
 
     @Override

@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 class DefaultValueResolver implements ValueResolver {
-    private static final ValueHandle NULL_HANDLE = new ValueHandleImpl(new int[]{-1, -1});
+    private static final ValueHandle NULL_HANDLE = new ValueHandleImpl(-1, -1);
     private static final int INITIAL_TYPE_DATA_SIZE = 128;
     private final Map<String, Integer> typeIndices = new HashMap<>();
     private final NextIntSupplier typeIdCounter = new NextIntSupplier();
@@ -27,7 +27,7 @@ class DefaultValueResolver implements ValueResolver {
     @Override
     public Object getValue(ValueHandle handle) {
         ValueHandleImpl impl = (ValueHandleImpl) handle;
-        return impl.data[0] < 0 ? null : typeDataArr[impl.data[0]].values[impl.data[1]];
+        return impl.typeId < 0 ? null : typeDataArr[impl.typeId].values[impl.valueId];
     }
 
     synchronized private ValueHandle getValueHandleInner(Class<?> valueType, Object value) {
@@ -63,7 +63,7 @@ class DefaultValueResolver implements ValueResolver {
             ValueHandleImpl handle = idMap.get(value);
             if (handle == null) {
                 int valueId = idCounter.next();
-                handle = new ValueHandleImpl(new int[]{id, valueId});
+                handle = new ValueHandleImpl(id, valueId);
                 idMap.put(value, handle);
 
                 if (valueId >= values.length) {

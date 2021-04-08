@@ -35,13 +35,13 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
     }
 
     synchronized void onNewActiveField(Type<?> t, AlphaEvaluator[] alphaEvaluators, ActiveField newField, ActiveField[] newFields) {
-        TypeMemory tm = getCreate(t, newFields, alphaEvaluators);
-        tm.onNewActiveField(newField, newFields);
+        getCreate(t, newFields, alphaEvaluators)
+                .onNewActiveField(newField, newFields);
     }
 
-    void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
-        TypeMemory tm = getCreate(key.getType(), key.getFields(), meta.alphaEvaluators);
-        tm.onNewAlphaBucket(key, meta);
+    void onNewAlphaBucket(FieldsKey key, AlphaEvaluator[] newTypeAlphaEvaluators, AlphaBucketMeta meta) {
+        getCreate(key.getType(), key.getFields(), newTypeAlphaEvaluators)
+                .onNewAlphaBucket(key, newTypeAlphaEvaluators, meta);
     }
 
     SharedBetaFactStorage getBetaFactStorage(FactType factType) {
@@ -61,6 +61,10 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
         if (m == null) {
             m = new TypeMemory(this, t, activeFields, alphaEvaluators);
             typedMemories.set(t.getId(), m);
+        } else {
+            // Making sure type uses the same alpha conditions
+            m.alphaEvaluators = alphaEvaluators;
+            m.activeFields = activeFields;
         }
         return m;
     }

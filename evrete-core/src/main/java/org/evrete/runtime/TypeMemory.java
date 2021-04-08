@@ -4,6 +4,7 @@ import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
+import org.evrete.util.Bits;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -15,8 +16,8 @@ public final class TypeMemory extends MemoryComponent {
     final MemoryActionBuffer buffer;
     private final FactStorage<FactRecord> factStorage;
     private final Type<?> type;
-    private ActiveField[] activeFields;
-    private AlphaEvaluator[] alphaEvaluators;
+    ActiveField[] activeFields;
+    AlphaEvaluator[] alphaEvaluators;
     //TODO !!!! performance, switch to ArrayOf
     private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
 
@@ -89,7 +90,22 @@ public final class TypeMemory extends MemoryComponent {
             valueHandles[idx] = valueResolver.getValueHandle(field.getValueType(), fieldValue);
             transientFieldValues[idx] = fieldValue;
         }
-        return new LazyInsertState(record, transientFieldValues);
+
+        Bits alphaTests = new Bits();
+        FieldToValue fieldToValues = new FieldToValue() {
+            @Override
+            public Object apply(ActiveField activeField) {
+                return transientFieldValues[activeField.getValueIndex()];
+            }
+        };
+        for (AlphaEvaluator evaluator : alphaEvaluators) {
+            if (evaluator.test(fieldToValues)) {
+                alphaTests.set(evaluator.getIndex());
+            }
+        }
+
+
+        return new LazyInsertState(record, alphaTests, transientFieldValues);
     }
 
 
@@ -186,7 +202,6 @@ public final class TypeMemory extends MemoryComponent {
             processMemoryChange(a.action, a.handle, a.factRecord);
         }
         buffer.clear();
-
     }
 
     public final FieldsMemory get(FieldsKey fields) {
@@ -205,29 +220,9 @@ public final class TypeMemory extends MemoryComponent {
     }
 
 
-/*
-    private LazyInsertState buildFactRecord(Type<?> type, Object instance) {
-        ValueResolver valueResolver = memory.valueResolver;
-        ActiveField[] activeFields = getActiveFields(type);
-        ValueHandle[] valueHandles = new ValueHandle[activeFields.length];
-        // We will need field values for lazy alpha tests thus avoiding
-        // extra calls to ValueResolver
-        Object[] transientFieldValues = new Object[activeFields.length];
-        FactRecord record = new FactRecord(instance, valueHandles);
-
-        for (ActiveField field : activeFields) {
-            int idx = field.getValueIndex();
-            Object fieldValue = field.readValue(instance);
-            valueHandles[idx] = valueResolver.getValueHandle(field.getValueType(), fieldValue);
-            transientFieldValues[idx] = fieldValue;
-        }
-        return new LazyInsertState(record, transientFieldValues);
-    }
-*/
-
-
-    void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
+    void onNewAlphaBucket(FieldsKey key, AlphaEvaluator[] newTypeAlphaEvaluators, AlphaBucketMeta meta) {
         MemoryComponent mc = touchMemory(key, meta);
+        this.alphaEvaluators = newTypeAlphaEvaluators;
         forEachEntry(new BiConsumer<FactHandle, FactRecord>() {
             @Override
             public void accept(FactHandle fh, FactRecord rec) {
@@ -239,7 +234,20 @@ public final class TypeMemory extends MemoryComponent {
                 }
 
 
-                LazyInsertState state = new LazyInsertState(rec, fieldValues);
+                Bits alphaTests = new Bits();
+                FieldToValue fieldToValues = new FieldToValue() {
+                    @Override
+                    public Object apply(ActiveField activeField) {
+                        return fieldValues[activeField.getValueIndex()];
+                    }
+                };
+                for (AlphaEvaluator evaluator : newTypeAlphaEvaluators) {
+                    if (evaluator.test(fieldToValues)) {
+                        alphaTests.set(evaluator.getIndex());
+                    }
+                }
+
+                LazyInsertState state = new LazyInsertState(rec, alphaTests, fieldValues);
                 mc.insert(fhv, state);
 
             }

@@ -2,14 +2,17 @@ package org.evrete.runtime;
 
 import org.evrete.api.ActiveField;
 import org.evrete.api.FieldToValue;
+import org.evrete.util.Bits;
 
 class LazyInsertState {
     final FactRecord record;
     private final Object[] transientFieldValues;
     private final FieldToValue values;
+    private final Bits alphaTests;
 
-    LazyInsertState(FactRecord record, Object[] fieldValues) {
+    LazyInsertState(FactRecord record, Bits alphaTests, Object[] fieldValues) {
         this.record = record;
+        this.alphaTests = alphaTests;
         this.transientFieldValues = fieldValues;
         this.values = new FieldToValue() {
             @Override
@@ -19,11 +22,13 @@ class LazyInsertState {
         };
     }
 
+    public Bits getAlphaTests() {
+        return alphaTests;
+    }
 
     public FieldToValue getValues() {
         return values;
     }
-
 
     @Override
     public String toString() {

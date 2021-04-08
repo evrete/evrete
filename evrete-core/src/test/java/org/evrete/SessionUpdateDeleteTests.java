@@ -476,9 +476,7 @@ class SessionUpdateDeleteTests {
         s.fire();
 
         NextIntSupplier primeCounter = new NextIntSupplier();
-        s.forEachFact((h, o) -> {
-            primeCounter.next();
-        });
+        s.forEachFact((h, o) -> primeCounter.next());
 
         assert primeCounter.get() == 25 : "Actual: " + primeCounter.get(); // There are 25 prime numbers in the range [2...100]
         s.close();

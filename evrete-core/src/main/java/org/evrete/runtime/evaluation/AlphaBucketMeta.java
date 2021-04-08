@@ -1,13 +1,13 @@
 package org.evrete.runtime.evaluation;
 
-import org.evrete.api.FieldToValue;
+import org.evrete.util.Bits;
 
 import java.util.*;
 
 public abstract class AlphaBucketMeta {
     private static final Set<AlphaEvaluator.Match> EMPTY_COMPONENTS = new HashSet<>();
     public final AlphaEvaluator[] alphaEvaluators;
-    public final boolean[] requiredValues;
+    private final Bits expectedValues = new Bits();
     final Set<AlphaEvaluator.Match> key;
     private final int bucketIndex;
 
@@ -19,21 +19,23 @@ public abstract class AlphaBucketMeta {
         sortedMatches.sort(Comparator.comparingDouble(o -> o.matched.getDelegate().getComplexity()));
 
         this.alphaEvaluators = new AlphaEvaluator[sortedMatches.size()];
-        this.requiredValues = new boolean[sortedMatches.size()];
 
         int i = 0;
         for (AlphaEvaluator.Match match : sortedMatches) {
-            this.alphaEvaluators[i] = match.matched;
-            this.requiredValues[i] = match.direct;
-            i++;
+            this.alphaEvaluators[i++] = match.matched;
+            if (match.direct) {
+                this.expectedValues.set(match.matched.getIndex());
+            }
         }
     }
 
-    public boolean test(FieldToValue values) {
-        if (isEmpty()) return true;
-        for (int i = 0; i < alphaEvaluators.length; i++) {
-            AlphaEvaluator e = alphaEvaluators[i];
-            if (e.test(values) != requiredValues[i]) {
+    //TODO !!! simplify, use int[] array instead
+    //TODO !!! create a separate implementation for evaluators.length == 1;
+    public boolean test(Bits mask) {
+        int idx;
+        for (AlphaEvaluator e : alphaEvaluators) {
+            idx = e.getIndex();
+            if (mask.get(idx) != expectedValues.get(idx)) {
                 return false;
             }
         }
@@ -60,7 +62,7 @@ public abstract class AlphaBucketMeta {
     public String toString() {
         return "{bucket=" + bucketIndex +
                 ", indices=" + Arrays.toString(alphaEvaluators) +
-                ", values=" + Arrays.toString(requiredValues) +
+                ", values=" + expectedValues +
                 '}';
     }
 
@@ -78,6 +80,11 @@ public abstract class AlphaBucketMeta {
         @Override
         public boolean sameKey(Set<AlphaEvaluator.Match> other) {
             return other.isEmpty();
+        }
+
+        @Override
+        public boolean test(Bits mask) {
+            return true;
         }
     }
 

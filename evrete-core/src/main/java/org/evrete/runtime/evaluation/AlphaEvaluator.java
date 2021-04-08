@@ -5,10 +5,24 @@ import org.evrete.api.*;
 public class AlphaEvaluator implements EvaluationListeners {
     private final ActiveField[] activeDescriptor;
     private final EvaluatorWrapper delegate;
+    private final int index;
 
-    public AlphaEvaluator(int id, EvaluatorWrapper e, ActiveField[] activeFields) {
+    public AlphaEvaluator(int index, EvaluatorWrapper e, ActiveField[] activeFields) {
         this.activeDescriptor = activeFields;
         this.delegate = e;
+        this.index = index;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    @Override
+    public String toString() {
+        return "AlphaEvaluator{" +
+                "delegate=" + delegate +
+                ", index=" + index +
+                '}';
     }
 
     public static Match search(AlphaEvaluator[] scope, EvaluatorWrapper subject) {

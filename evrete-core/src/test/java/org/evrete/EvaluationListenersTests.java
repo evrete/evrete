@@ -52,7 +52,7 @@ class EvaluationListenersTests {
         session.addListener((evaluator, values, result) -> sessionListenerCounter.next());
         session.insertAndFire(1, 2, 3);
         rhsAssert.assertCount(2).reset();
-        assert knowledgeListenerCounter.get() == 3;
+        assert knowledgeListenerCounter.get() == 3 : "Actual: " + knowledgeListenerCounter.get();
         assert knowledgeListenerCounter.get() == sessionListenerCounter.get();
         session.close();
     }

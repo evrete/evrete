@@ -2,16 +2,19 @@ package org.evrete.spi.minimal;
 
 import org.evrete.api.ValueHandle;
 
-import java.util.Arrays;
+import java.util.Objects;
 
 class ValueHandleImpl implements ValueHandle {
     private static final long serialVersionUID = 4019004009002813739L;
-    final int[] data;
+    final int typeId;
+    final int valueId;
     private final int hash;
 
-    ValueHandleImpl(int[] data) {
-        this.data = data;
-        this.hash = Arrays.hashCode(data);
+
+    ValueHandleImpl(int typeId, int valueId) {
+        this.typeId = typeId;
+        this.valueId = valueId;
+        this.hash = Objects.hash(typeId, valueId);
     }
 
     @Override
@@ -19,7 +22,7 @@ class ValueHandleImpl implements ValueHandle {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ValueHandleImpl handle = (ValueHandleImpl) o;
-        return Arrays.equals(data, handle.data);
+        return handle.valueId == valueId && handle.typeId == typeId;
     }
 
     @Override
@@ -29,6 +32,6 @@ class ValueHandleImpl implements ValueHandle {
 
     @Override
     public String toString() {
-        return Arrays.toString(data);
+        return typeId + "/" + valueId;
     }
 }
