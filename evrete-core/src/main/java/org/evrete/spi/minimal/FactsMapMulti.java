@@ -1,22 +1,15 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
-import org.evrete.collections.LinearHashSet;
 
 import java.util.Objects;
-import java.util.function.BiPredicate;
-import java.util.function.Function;
 
 class FactsMapMulti extends AbstractFactsMap<MemoryKeyMulti, FactsMapMulti.MapEntryMulti> {
-    private static final BiPredicate<MapEntryMulti, MemoryKeyMulti> SEARCH_PREDICATE = (entry, memoryKey) -> entry.key.equals(memoryKey);
-    private static final Function<MapEntryMulti, MemoryKey> ENTRY_MAPPER = entry -> entry.key;
-    private final LinearHashSet<MapEntryMulti> data;
     private final ActiveField[] fields;
 
     FactsMapMulti(ActiveField[] fields, KeyMode myMode, int minCapacity) {
-        super(myMode);
+        super(myMode, minCapacity);
         this.fields = fields;
-        this.data = new LinearHashSet<>(minCapacity);
     }
 
     public void clear() {
@@ -37,10 +30,6 @@ class FactsMapMulti extends AbstractFactsMap<MemoryKeyMulti, FactsMapMulti.MapEn
         } else {
             found.facts.consume(otherEntry.facts);
         }
-    }
-
-    ReIterator<MemoryKey> keys() {
-        return data.iterator(ENTRY_MAPPER);
     }
 
     ReIterator<FactHandleVersioned> values(MemoryKeyMulti key) {
@@ -64,12 +53,6 @@ class FactsMapMulti extends AbstractFactsMap<MemoryKeyMulti, FactsMapMulti.MapEn
         entry.facts.add(factHandleVersioned);
     }
 
-    boolean hasKey(int hash, FieldToValueHandle key) {
-        int addr = data.findBinIndex(key, hash, search);
-        return data.get(addr) != null;
-    }
-
-
     @Override
     boolean sameData(MapEntryMulti mapEntry, FieldToValueHandle fieldToValueHandle) {
         for (int i = 0; i < fields.length; i++) {
@@ -80,7 +63,7 @@ class FactsMapMulti extends AbstractFactsMap<MemoryKeyMulti, FactsMapMulti.MapEn
         return true;
     }
 
-    private int addr(MemoryKeyMulti key) {
+    int addr(MemoryKeyMulti key) {
         return data.findBinIndex(key, key.hashCode(), SEARCH_PREDICATE);
     }
 

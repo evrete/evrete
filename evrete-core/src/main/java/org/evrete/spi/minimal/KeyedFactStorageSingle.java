@@ -28,7 +28,7 @@ class KeyedFactStorageSingle extends AbstractKeyedFactStorage<FactsMapSingle> {
 
     @Override
     public void insert(FieldToValueHandle key, int keyHash, FactHandleVersioned value) {
-        if (get(KeyMode.MAIN).hasKey(key, keyHash)) {
+        if (get(KeyMode.MAIN).hasKey(keyHash, key)) {
             // Existing key
             get(KeyMode.KNOWN_UNKNOWN).add(key, keyHash, value);
         } else {
