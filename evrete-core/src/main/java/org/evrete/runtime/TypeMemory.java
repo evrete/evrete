@@ -6,18 +6,23 @@ import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 import org.evrete.util.Bits;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 public final class TypeMemory extends MemoryComponent {
     private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
-    final MemoryActionBuffer buffer;
+    private final MemoryActionBuffer buffer;
     private final FactStorage<FactRecord> factStorage;
     private final Type<?> type;
     private ActiveField[] cachedActiveFields;
     private AlphaEvaluator[] cashedAlphaEvaluators;
+    private Object[] cachedFieldValues;
+    private FieldToValue cachedValueFunction;
     //TODO !!!! performance, switch to ArrayOf
     private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
 
@@ -43,6 +48,15 @@ public final class TypeMemory extends MemoryComponent {
     void updateCachedData(ActiveField[] activeFields, AlphaEvaluator[] alphaEvaluators) {
         this.cachedActiveFields = activeFields;
         this.cashedAlphaEvaluators = alphaEvaluators;
+
+        this.cachedFieldValues = new Object[cachedActiveFields.length];
+        this.cachedValueFunction = new FieldToValue() {
+            @Override
+            public Object apply(ActiveField activeField) {
+                return cachedFieldValues[activeField.getValueIndex()];
+            }
+        };
+
     }
 
     public Object getFact(FactHandle handle) {
@@ -81,36 +95,26 @@ public final class TypeMemory extends MemoryComponent {
 
 
     LazyInsertState buildFactRecord(Object instance) {
-        ValueHandle[] valueHandles = new ValueHandle[cachedActiveFields.length];
-        // We will need field values for lazy alpha tests thus avoiding
-        // extra calls to ValueResolver
-        Object[] transientFieldValues = new Object[cachedActiveFields.length];
-        FactRecord record = new FactRecord(instance, valueHandles);
+        ValueHandle[] cachedValueHandles = new ValueHandle[cachedActiveFields.length];
+        FactRecord record = new FactRecord(instance, cachedValueHandles);
 
         for (ActiveField field : cachedActiveFields) {
             int idx = field.getValueIndex();
             Object fieldValue = field.readValue(instance);
-            valueHandles[idx] = valueResolver.getValueHandle(field.getValueType(), fieldValue);
-            transientFieldValues[idx] = fieldValue;
+            cachedValueHandles[idx] = valueResolver.getValueHandle(field.getValueType(), fieldValue);
+            cachedFieldValues[idx] = fieldValue;
         }
 
         Bits alphaTests = new Bits();
-        FieldToValue fieldToValues = new FieldToValue() {
-            @Override
-            public Object apply(ActiveField activeField) {
-                return transientFieldValues[activeField.getValueIndex()];
-            }
-        };
         for (AlphaEvaluator evaluator : cashedAlphaEvaluators) {
-            if (evaluator.test(fieldToValues)) {
+            if (evaluator.test(cachedValueFunction)) {
                 alphaTests.set(evaluator.getIndex());
             }
         }
 
 
-        return new LazyInsertState(record, alphaTests, transientFieldValues);
+        return new LazyInsertState(record, alphaTests);
     }
-
 
     FactHandle registerNewFact(LazyInsertState insertState) {
         return this.factStorage.insert(insertState.record);
@@ -125,7 +129,7 @@ public final class TypeMemory extends MemoryComponent {
         factStorage.clear();
     }
 
-    void processMemoryChange(Action action, FactHandle handle, LazyInsertState factRecord) {
+    private void processMemoryChange(Action action, FactHandle handle, LazyInsertState factRecord) {
         switch (action) {
             case RETRACT:
                 factStorage.delete(handle);
@@ -171,7 +175,7 @@ public final class TypeMemory extends MemoryComponent {
     }
 
     // TODO !!! two similar forEach, analyze usage
-    void forEachEntry(BiConsumer<FactHandle, FactRecord> consumer) {
+    private void forEachEntry(BiConsumer<FactHandle, FactRecord> consumer) {
         factStorage
                 .iterator()
                 .forEachRemaining(entry -> consumer.accept(entry.getHandle(), entry.getInstance()));
@@ -216,7 +220,7 @@ public final class TypeMemory extends MemoryComponent {
         }
     }
 
-    MemoryComponent touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
+    FieldsMemoryBucket touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
         return betaMemories
                 .computeIfAbsent(key, k -> new FieldsMemory(TypeMemory.this, key))
                 .getCreate(alphaMeta);
@@ -225,31 +229,33 @@ public final class TypeMemory extends MemoryComponent {
 
     void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
         MemoryComponent mc = touchMemory(key, meta);
+
+
         forEachEntry(new BiConsumer<FactHandle, FactRecord>() {
             @Override
             public void accept(FactHandle fh, FactRecord rec) {
                 FactHandleVersioned fhv = new FactHandleVersioned(fh, rec.getVersion());
-                Object[] fieldValues = new Object[rec.getFieldValues().length];
                 ValueHandle[] valueHandles = rec.getFieldValues();
+                Object[] fieldValues = new Object[valueHandles.length];
+                FieldToValue valueFunction = new FieldToValue() {
+                    @Override
+                    public Object apply(ActiveField activeField) {
+                        return fieldValues[activeField.getValueIndex()];
+                    }
+                };
                 for (int i = 0; i < valueHandles.length; i++) {
                     fieldValues[i] = valueResolver.getValue(valueHandles[i]);
                 }
 
 
                 Bits alphaTests = new Bits();
-                FieldToValue fieldToValues = new FieldToValue() {
-                    @Override
-                    public Object apply(ActiveField activeField) {
-                        return fieldValues[activeField.getValueIndex()];
-                    }
-                };
                 for (AlphaEvaluator evaluator : cashedAlphaEvaluators) {
-                    if (evaluator.test(fieldToValues)) {
+                    if (evaluator.test(valueFunction)) {
                         alphaTests.set(evaluator.getIndex());
                     }
                 }
 
-                LazyInsertState state = new LazyInsertState(rec, alphaTests, fieldValues);
+                LazyInsertState state = new LazyInsertState(rec, alphaTests);
                 mc.insert(fhv, state);
 
             }
@@ -274,26 +280,5 @@ public final class TypeMemory extends MemoryComponent {
             rec.getInstance().appendValue(newField, valueHandle);
             factStorage.update(rec.getHandle(), rec.getInstance());
         }
-    }
-
-    @Override
-    public String toString() {
-        String facts = "\n" + factStorage.toString();
-        facts = facts.replaceAll("\n", "\n\t\t");
-
-        StringJoiner betaJ = new StringJoiner("\n");
-        betaMemories.forEach((fieldsKey, fieldsMemory) -> {
-            String s = "\n" + fieldsKey + "\n\t" + fieldsMemory;
-            betaJ.add(s);
-        });
-
-        String beta = betaJ.toString();
-        beta = beta.replaceAll("\n\t\n", "\n");
-        beta = beta.replaceAll("\n", "\n\t\t");
-
-
-        return "type=" + type.getJavaType().getSimpleName() +
-                "\n\tbeta=" + beta +
-                "\n\tfacts=" + facts;
     }
 }

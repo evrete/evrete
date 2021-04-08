@@ -51,7 +51,7 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
         return get(t.getId());
     }
 
-    private TypeMemory getCreate(Type<?> t, ActiveField[] activeFields, AlphaEvaluator[] alphaEvaluators) {
+    public TypeMemory getCreate(Type<?> t, ActiveField[] activeFields, AlphaEvaluator[] alphaEvaluators) {
         TypeMemory m = typedMemories.get(t.getId());
         if (m == null) {
             m = new TypeMemory(this, t, activeFields, alphaEvaluators);

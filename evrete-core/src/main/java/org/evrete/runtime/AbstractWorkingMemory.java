@@ -13,6 +13,7 @@ abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractR
     final SessionMemory memory;
     final MemoryActionCounter actionCounter;
     private boolean active = true;
+    private final boolean warnUnknownTypes;
 
     AbstractWorkingMemory(KnowledgeRuntime knowledge) {
         super(knowledge);
@@ -20,6 +21,7 @@ abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractR
         this.actionCounter = new MemoryActionCounter();
         MemoryFactory memoryFactory = knowledge.getService().getMemoryFactoryProvider().instance(this);
         this.memory = new SessionMemory(knowledge.getConfiguration(), memoryFactory);
+        this.warnUnknownTypes = knowledge.getConfiguration().getAsBoolean(Configuration.WARN_UNKNOWN_TYPES);
     }
 
     void invalidateSession() {
@@ -62,8 +64,7 @@ abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractR
     private FactHandle insert(Type<?> type, Object fact) {
         if (fact == null) throw new NullPointerException("Null facts are not supported");
         if (type == null) {
-            //TODO cache this configuration opting !!!!
-            if (getConfiguration().getAsBoolean(Configuration.WARN_UNKNOWN_TYPES)) {
+            if (warnUnknownTypes) {
                 LOGGER.warning("Can not resolve type for " + fact + ", insert operation skipped.");
             }
             return null;
@@ -86,8 +87,7 @@ abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractR
         _assertActive();
         Type<?> type = getTypeResolver().getType(handle.getTypeId());
         if (type == null) {
-            //TODO cache this configuration opting !!!!
-            if (getConfiguration().getAsBoolean(Configuration.WARN_UNKNOWN_TYPES)) {
+            if (warnUnknownTypes) {
                 LOGGER.warning("Can not resolve type for fact handle " + handle + ", update operation skipped.");
             }
         } else {

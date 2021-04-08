@@ -113,7 +113,8 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
             Type<?> t = factType.getType();
             AlphaEvaluator[] alphaEvaluators = getAlphaEvaluators(t);
             ActiveField[] activeFields = getActiveFields(t);
-            memory.touchMemory(t, activeFields, alphaEvaluators, factType.getFields(), factType.getAlphaMask());
+            TypeMemory tm = memory.getCreate(t, activeFields, alphaEvaluators);
+            tm.touchMemory(factType.getFields(), factType.getAlphaMask());
         }
         RuntimeRuleImpl rule = ruleStorage.addRule(descriptor, this);
         if (hotDeployment) {
