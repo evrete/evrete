@@ -1,10 +1,13 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.*;
+import org.evrete.api.ActiveField;
+import org.evrete.api.FieldToValueHandle;
+import org.evrete.api.KeyMode;
+import org.evrete.api.ValueHandle;
 
 import java.util.Objects;
 
-class FactsMapSingle extends AbstractFactsMap<MemoryKeySingle, FactsMapSingle.MapEntrySingle> {
+class FactsMapSingle extends AbstractFactsMap<MemoryKeySingle> {
     private final ActiveField field;
 
     FactsMapSingle(ActiveField field, KeyMode myMode, int minCapacity) {
@@ -12,61 +15,15 @@ class FactsMapSingle extends AbstractFactsMap<MemoryKeySingle, FactsMapSingle.Ma
         this.field = field;
     }
 
-    void merge(FactsMapSingle other) {
-        other.data.forEachDataEntry(this::merge);
-        other.data.clear();
-    }
-
-    private void merge(MapEntrySingle otherEntry) {
-        otherEntry.key.setMetaValue(myModeOrdinal);
-        int addr = addr(otherEntry.key);
-        MapEntrySingle found = data.get(addr);
-        if (found == null) {
-            this.data.add(otherEntry);
-        } else {
-            found.facts.consume(otherEntry.facts);
-        }
-    }
-
-    public void add(FieldToValueHandle key, int keyHash, FactHandleVersioned factHandleVersioned) {
-        data.resize();
-        int addr = data.findBinIndex(key, keyHash, search);
-        MapEntrySingle entry = data.get(addr);
-        if (entry == null) {
-            MemoryKeySingle k = new MemoryKeySingle(key.apply(field), keyHash);
-            k.setMetaValue(myModeOrdinal);
-            entry = new MapEntrySingle(k);
-            // TODO saveDirect is doing unnecessary job
-            data.saveDirect(entry, addr);
-        }
-        entry.facts.add(factHandleVersioned);
-
+    @Override
+    MemoryKeySingle newKeyInstance(FieldToValueHandle fieldValues, int hash) {
+        return new MemoryKeySingle(fieldValues.apply(field), hash);
     }
 
     @Override
-    boolean sameData(MapEntrySingle mapEntry, FieldToValueHandle fieldToValueHandle) {
+    boolean sameData(MapKey<MemoryKeySingle> mapEntry, FieldToValueHandle fieldToValueHandle) {
         ValueHandle h1 = mapEntry.key.data;
         ValueHandle h2 = fieldToValueHandle.apply(field);
         return Objects.equals(h1, h2);
-    }
-
-    static class MapEntrySingle extends AbstractFactsMap.MapKey<MemoryKeySingle> {
-
-        MapEntrySingle(MemoryKeySingle key) {
-            super(key);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            MapEntrySingle mapEntry = (MapEntrySingle) o;
-            return key.equals(mapEntry.key);
-        }
-
-        @Override
-        public int hashCode() {
-            return key.hashCode();
-        }
     }
 }

@@ -1,10 +1,12 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.*;
+import org.evrete.api.ActiveField;
+import org.evrete.api.FieldToValueHandle;
+import org.evrete.api.KeyMode;
 
 import java.util.Objects;
 
-class FactsMapMulti extends AbstractFactsMap<MemoryKeyMulti, FactsMapMulti.MapEntryMulti> {
+class FactsMapMulti extends AbstractFactsMap<MemoryKeyMulti> {
     private final ActiveField[] fields;
 
     FactsMapMulti(ActiveField[] fields, KeyMode myMode, int minCapacity) {
@@ -12,63 +14,16 @@ class FactsMapMulti extends AbstractFactsMap<MemoryKeyMulti, FactsMapMulti.MapEn
         this.fields = fields;
     }
 
-    void merge(FactsMapMulti other) {
-        other.data.forEachDataEntry(this::merge);
-        other.data.clear();
-    }
-
-    private void merge(MapEntryMulti otherEntry) {
-        otherEntry.key.setMetaValue(myModeOrdinal);
-        int addr = addr(otherEntry.key);
-        MapEntryMulti found = data.get(addr);
-        if (found == null) {
-            this.data.add(otherEntry);
-        } else {
-            found.facts.consume(otherEntry.facts);
-        }
-    }
-
-    public void add(FieldToValueHandle key, int hash, FactHandleVersioned factHandleVersioned) {
-        data.resize();
-        int addr = data.findBinIndex(key, hash, search);
-        MapEntryMulti entry = data.get(addr);
-        if (entry == null) {
-            MemoryKeyMulti k = new MemoryKeyMulti(fields, key, hash);
-            k.setMetaValue(myModeOrdinal);
-            entry = new MapEntryMulti(k);
-            // TODO saveDirect is doing unnecessary job
-            data.saveDirect(entry, addr);
-        }
-        entry.facts.add(factHandleVersioned);
+    @Override
+    MemoryKeyMulti newKeyInstance(FieldToValueHandle fieldValues, int hash) {
+        return new MemoryKeyMulti(fields, fieldValues, hash);
     }
 
     @Override
-    boolean sameData(MapEntryMulti mapEntry, FieldToValueHandle fieldToValueHandle) {
+    boolean sameData(MapKey<MemoryKeyMulti> mapEntry, FieldToValueHandle key) {
         for (int i = 0; i < fields.length; i++) {
-            ValueHandle h1 = mapEntry.key.get(i);
-            ValueHandle h2 = fieldToValueHandle.apply(fields[i]);
-            if (!Objects.equals(h1, h2)) return false;
+            if (!Objects.equals(mapEntry.key.get(i), key.apply(fields[i]))) return false;
         }
         return true;
-    }
-
-    static class MapEntryMulti extends AbstractFactsMap.MapKey<MemoryKeyMulti> {
-
-        MapEntryMulti(MemoryKeyMulti key) {
-            super(key);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            MapEntryMulti mapEntry = (MapEntryMulti) o;
-            return key.equals(mapEntry.key);
-        }
-
-        @Override
-        public int hashCode() {
-            return key.hashCode();
-        }
     }
 }
