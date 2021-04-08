@@ -897,7 +897,7 @@ class HotDeploymentTests {
         session.fire();
         assert ruleCounter1.get() == 10;
 
-        // Another rule w/o alpha
+        // Another rule w/ alpha
         NextIntSupplier ruleCounter2 = new NextIntSupplier();
         session.newRule("rule 2")
                 .forEach("$i", Integer.class)

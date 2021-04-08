@@ -2,9 +2,11 @@ package org.evrete.runtime;
 
 import org.evrete.Configuration;
 import org.evrete.api.FactHandleVersioned;
+import org.evrete.api.FieldToValueHandle;
 import org.evrete.api.MemoryFactory;
 import org.evrete.api.ValueResolver;
 import org.evrete.collections.ArrayOf;
+import org.evrete.util.Bits;
 
 abstract class MemoryComponent {
     final MemoryFactory memoryFactory;
@@ -25,7 +27,7 @@ abstract class MemoryComponent {
         parent.addChild(this);
     }
 
-    abstract void insert(FactHandleVersioned value, LazyInsertState insertState);
+    abstract void insert(FieldToValueHandle key, Bits alphaTests, FactHandleVersioned value);
 
     abstract void commitChanges();
 

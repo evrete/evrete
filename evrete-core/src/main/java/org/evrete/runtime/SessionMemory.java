@@ -4,7 +4,7 @@ import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
-import org.evrete.runtime.evaluation.AlphaEvaluator;
+import org.evrete.util.Bits;
 
 import java.util.Iterator;
 
@@ -25,17 +25,19 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
         return typedMemories.iterator();
     }
 
+/*
     void touchMemory(Type<?> t, ActiveField[] activeFields, AlphaEvaluator[] alphaEvaluators, FieldsKey key, AlphaBucketMeta alphaMeta) {
         getCreate(t, activeFields, alphaEvaluators).touchMemory(key, alphaMeta);
     }
+*/
 
-    synchronized void onNewActiveField(Type<?> t, AlphaEvaluator[] alphaEvaluators, ActiveField newField, ActiveField[] newFields) {
-        getCreate(t, newFields, alphaEvaluators)
-                .onNewActiveField(newField);
+    void onNewActiveField(TypeMemoryState state, ActiveField newField) {
+        // This will update type memory's fields and alpha-conditions
+        getCreate(state);
     }
 
-    void onNewAlphaBucket(FieldsKey key, AlphaEvaluator[] newTypeAlphaEvaluators, AlphaBucketMeta meta) {
-        getCreate(key.getType(), key.getFields(), newTypeAlphaEvaluators)
+    void onNewAlphaBucket(TypeMemoryState newState, FieldsKey key, AlphaBucketMeta meta) {
+        getCreate(newState)
                 .onNewAlphaBucket(key, meta);
     }
 
@@ -51,14 +53,16 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
         return get(t.getId());
     }
 
-    public TypeMemory getCreate(Type<?> t, ActiveField[] activeFields, AlphaEvaluator[] alphaEvaluators) {
+    //TODO method updates type memory's state variables, rename
+    TypeMemory getCreate(TypeMemoryState state) {
+        Type<?> t = state.type;
         TypeMemory m = typedMemories.get(t.getId());
         if (m == null) {
-            m = new TypeMemory(this, t, activeFields, alphaEvaluators);
+            m = new TypeMemory(this, state);
             typedMemories.set(t.getId(), m);
         } else {
             // Making sure type uses the same alpha conditions
-            m.updateCachedData(activeFields, alphaEvaluators);
+            m.updateCachedData(state);
         }
         return m;
     }
@@ -72,7 +76,7 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
     }
 
     @Override
-    void insert(FactHandleVersioned value, LazyInsertState insertState) {
+    void insert(FieldToValueHandle key, Bits alphaTests, FactHandleVersioned value) {
         throw new UnsupportedOperationException("Direct insert not supported");
     }
 

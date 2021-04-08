@@ -1,8 +1,10 @@
 package org.evrete.runtime;
 
 import org.evrete.api.FactHandleVersioned;
+import org.evrete.api.FieldToValueHandle;
 import org.evrete.api.SharedBetaFactStorage;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
+import org.evrete.util.Bits;
 
 class FieldsMemoryBucket extends MemoryComponent {
     private final SharedBetaFactStorage fieldData;
@@ -29,9 +31,9 @@ class FieldsMemoryBucket extends MemoryComponent {
     }
 
     @Override
-    void insert(FactHandleVersioned value, LazyInsertState insertState) {
-        if (alphaMask.test(insertState.getAlphaTests())) {
-            fieldData.insert(insertState.record, value);
+    void insert(FieldToValueHandle key, Bits alphaTests, FactHandleVersioned value) {
+        if (alphaMask.test(alphaTests)) {
+            fieldData.insert(key, value);
         }
     }
 

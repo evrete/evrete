@@ -5,7 +5,6 @@ import org.evrete.runtime.async.Completer;
 import org.evrete.runtime.async.ForkJoinExecutor;
 import org.evrete.runtime.async.RuleHotDeploymentTask;
 import org.evrete.runtime.async.RuleMemoryInsertTask;
-import org.evrete.runtime.evaluation.AlphaEvaluator;
 
 import java.util.*;
 import java.util.function.BooleanSupplier;
@@ -111,9 +110,8 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
     private synchronized RuntimeRule deployRule(RuleDescriptor descriptor, boolean hotDeployment) {
         for (FactType factType : descriptor.getLhs().getFactTypes()) {
             Type<?> t = factType.getType();
-            AlphaEvaluator[] alphaEvaluators = getAlphaEvaluators(t);
-            ActiveField[] activeFields = getActiveFields(t);
-            TypeMemory tm = memory.getCreate(t, activeFields, alphaEvaluators);
+            TypeMemoryState state = getActiveSate(t);
+            TypeMemory tm = memory.getCreate(state);
             tm.touchMemory(factType.getFields(), factType.getAlphaMask());
         }
         RuntimeRuleImpl rule = ruleStorage.addRule(descriptor, this);

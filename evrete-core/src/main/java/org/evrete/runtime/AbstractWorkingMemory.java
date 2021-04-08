@@ -69,32 +69,18 @@ abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractR
             }
             return null;
         } else {
-            //TODO move the entire block to the TypeMemory
-            TypeMemory tm = memory.get(type);
-            LazyInsertState innerFact = tm.buildFactRecord(fact);
-            FactHandle factHandle = tm.registerNewFact(innerFact);
-            if (factHandle == null) {
-                LOGGER.warning("Fact " + fact + " has been already inserted");
-            } else {
-                tm.add(Action.INSERT, factHandle, innerFact, actionCounter);
-            }
-            return factHandle;
+            return memory.get(type).externalInsert(fact, actionCounter);
         }
     }
 
     @Override
     public final void update(FactHandle handle, Object newValue) {
         _assertActive();
-        Type<?> type = getTypeResolver().getType(handle.getTypeId());
-        if (type == null) {
-            if (warnUnknownTypes) {
-                LOGGER.warning("Can not resolve type for fact handle " + handle + ", update operation skipped.");
-            }
-        } else {
-            memory.get(type).add(Action.UPDATE, handle, memory.get(type).buildFactRecord(newValue), actionCounter);
+        if (handle == null) {
+            throw new NullPointerException("Null handle provided during update");
         }
+        memory.get(handle.getTypeId()).add(Action.UPDATE, handle, new FactRecord(newValue), actionCounter);
     }
-
 
     @Override
     public final void delete(FactHandle handle) {
@@ -110,13 +96,13 @@ abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractR
     }
 
     @Override
-    protected void onNewActiveField(Type<?> type, ActiveField newField, ActiveField[] newFields) {
-        memory.onNewActiveField(type, getAlphaEvaluators(type), newField, newFields);
+    protected void onNewActiveField(TypeMemoryState state, ActiveField newField) {
+        memory.onNewActiveField(state, newField);
     }
 
     @Override
-    public final void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
-        memory.onNewAlphaBucket(key, getAlphaEvaluators(key.getType()), meta);
+    public final void onNewAlphaBucket(TypeMemoryState newState, FieldsKey key, AlphaBucketMeta meta) {
+        memory.onNewAlphaBucket(newState, key, meta);
     }
 
     @Override

@@ -19,17 +19,14 @@ public final class TypeMemory extends MemoryComponent {
     private final MemoryActionBuffer buffer;
     private final FactStorage<FactRecord> factStorage;
     private final Type<?> type;
-    private ActiveField[] cachedActiveFields;
-    private AlphaEvaluator[] cashedAlphaEvaluators;
-    private Object[] cachedFieldValues;
-    private FieldToValue cachedValueFunction;
     //TODO !!!! performance, switch to ArrayOf
     private final Map<FieldsKey, FieldsMemory> betaMemories = new HashMap<>();
+    private final ReusableFieldValues reusableFieldValues;
 
 
-    TypeMemory(SessionMemory sessionMemory, Type<?> type, ActiveField[] activeFields, AlphaEvaluator[] alphaEvaluators) {
+    TypeMemory(SessionMemory sessionMemory, TypeMemoryState initialState) {
         super(sessionMemory);
-        this.type = type;
+        this.type = initialState.type;
         this.buffer = new MemoryActionBuffer(configuration.getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT));
         String identityMethod = configuration.getProperty(Configuration.OBJECT_COMPARE_METHOD);
         switch (identityMethod) {
@@ -42,21 +39,12 @@ public final class TypeMemory extends MemoryComponent {
             default:
                 throw new IllegalArgumentException("Invalid identity method '" + identityMethod + "' in the configuration. Expected values are '" + Configuration.IDENTITY_METHOD_EQUALS + "' or '" + Configuration.IDENTITY_METHOD_IDENTITY + "'");
         }
-        updateCachedData(activeFields, alphaEvaluators);
+        this.reusableFieldValues = new ReusableFieldValues(valueResolver);
+        updateCachedData(initialState);
     }
 
-    void updateCachedData(ActiveField[] activeFields, AlphaEvaluator[] alphaEvaluators) {
-        this.cachedActiveFields = activeFields;
-        this.cashedAlphaEvaluators = alphaEvaluators;
-
-        this.cachedFieldValues = new Object[cachedActiveFields.length];
-        this.cachedValueFunction = new FieldToValue() {
-            @Override
-            public Object apply(ActiveField activeField) {
-                return cachedFieldValues[activeField.getValueIndex()];
-            }
-        };
-
+    void updateCachedData(TypeMemoryState state) {
+        this.reusableFieldValues.updateStructure(state.activeFields, state.alphaEvaluators);
     }
 
     public Object getFact(FactHandle handle) {
@@ -70,7 +58,7 @@ public final class TypeMemory extends MemoryComponent {
         AtomicMemoryAction bufferedAction = buffer.get(handle);
         if (bufferedAction != null) {
             if (bufferedAction.action != Action.RETRACT) {
-                record = bufferedAction.factRecord.record;
+                record = bufferedAction.factRecord;
             }
         } else {
             record = getStoredRecord(handle);
@@ -82,8 +70,9 @@ public final class TypeMemory extends MemoryComponent {
         return factStorage.getFact(handle);
     }
 
-    public void add(Action action, FactHandle factHandle, LazyInsertState factRecord, MemoryActionListener listener) {
+    public FactHandle add(Action action, FactHandle factHandle, FactRecord factRecord, MemoryActionListener listener) {
         buffer.add(action, factHandle, factRecord, listener);
+        return factHandle;
     }
 
     /*
@@ -94,6 +83,7 @@ public final class TypeMemory extends MemoryComponent {
 */
 
 
+/*
     LazyInsertState buildFactRecord(Object instance) {
         ValueHandle[] cachedValueHandles = new ValueHandle[cachedActiveFields.length];
         FactRecord record = new FactRecord(instance, cachedValueHandles);
@@ -115,10 +105,25 @@ public final class TypeMemory extends MemoryComponent {
 
         return new LazyInsertState(record, alphaTests);
     }
+*/
 
-    FactHandle registerNewFact(LazyInsertState insertState) {
-        return this.factStorage.insert(insertState.record);
+/*
+    FactHandle registerNewFact(FactRecord record) {
+        return this.factStorage.insert(record);
     }
+*/
+
+    FactHandle externalInsert(Object fact, MemoryActionListener actionListener) {
+        FactRecord record = new FactRecord(fact);
+        FactHandle handle = factStorage.insert(record);
+        if (handle == null) {
+            LOGGER.warning("Fact " + fact + " has been already inserted");
+            return null;
+        } else {
+            return add(Action.INSERT, handle, record, actionListener);
+        }
+    }
+
 
     public Type<?> getType() {
         return type;
@@ -129,13 +134,13 @@ public final class TypeMemory extends MemoryComponent {
         factStorage.clear();
     }
 
-    private void processMemoryChange(Action action, FactHandle handle, LazyInsertState factRecord) {
+    private void processMemoryChange(Action action, FactHandle handle, FactRecord factRecord) {
         switch (action) {
             case RETRACT:
                 factStorage.delete(handle);
                 return;
             case INSERT:
-                insert(new FactHandleVersioned(handle), factRecord);
+                performInsert(factRecord, new FactHandleVersioned(handle));
                 return;
             case UPDATE:
                 performUpdate(handle, factRecord);
@@ -145,10 +150,29 @@ public final class TypeMemory extends MemoryComponent {
         }
     }
 
+    private void performInsert(FactRecord factRecord, FactHandleVersioned handle) {
+        reusableFieldValues.update(factRecord);
+        insert(reusableFieldValues, reusableFieldValues.alphaTests(), handle);
+    }
+
+    private void performUpdate(FactHandle handle, FactRecord factRecord) {
+        // Reading the previous version
+        FactRecord previous = factStorage.getFact(handle);
+        if (previous == null) {
+            LOGGER.warning("Unknown fact handle " + handle + ". Update operation skipped.");
+        } else {
+            int newVersion = previous.getVersion() + 1;
+            factRecord.updateVersion(newVersion);
+            factStorage.update(handle, factRecord);
+            FactHandleVersioned versioned = new FactHandleVersioned(handle, newVersion);
+            performInsert(factRecord, versioned);
+        }
+    }
+
     @Override
-    void insert(FactHandleVersioned value, LazyInsertState insertState) {
+    void insert(FieldToValueHandle key, Bits alphaTests, FactHandleVersioned value) {
         for (MemoryComponent child : childComponents()) {
-            child.insert(value, insertState);
+            child.insert(key, alphaTests, value);
         }
     }
 
@@ -159,20 +183,6 @@ public final class TypeMemory extends MemoryComponent {
         }
     }
 
-    private void performUpdate(FactHandle handle, LazyInsertState state) {
-        // Reading the previous version
-        FactRecord factRecord = state.record;
-        FactRecord previous = factStorage.getFact(handle);
-        if (previous == null) {
-            LOGGER.warning("Unknown fact handle " + handle + ". Update operation skipped.");
-        } else {
-            int newVersion = previous.getVersion() + 1;
-            factRecord.updateVersion(newVersion);
-            factStorage.update(handle, factRecord);
-            FactHandleVersioned versioned = new FactHandleVersioned(handle, newVersion);
-            insert(versioned, state);
-        }
-    }
 
     // TODO !!! two similar forEach, analyze usage
     private void forEachEntry(BiConsumer<FactHandle, FactRecord> consumer) {
@@ -195,7 +205,7 @@ public final class TypeMemory extends MemoryComponent {
                 } else {
                     if (bufferedAction.action != Action.RETRACT) {
                         // Reporting changed data
-                        consumer.accept(bufferedAction.handle, bufferedAction.factRecord.record.instance);
+                        consumer.accept(bufferedAction.handle, bufferedAction.factRecord.instance);
                     }
                 }
             }
@@ -229,8 +239,17 @@ public final class TypeMemory extends MemoryComponent {
 
     void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
         MemoryComponent mc = touchMemory(key, meta);
+        ReIterator<FactStorage.Entry<FactRecord>> allFacts = factStorage.iterator();
+        while (allFacts.hasNext()) {
+            FactStorage.Entry<FactRecord> rec = allFacts.next();
+            FactHandleVersioned fhv = new FactHandleVersioned(rec.getHandle(), rec.getInstance().getVersion());
+            reusableFieldValues.update(rec.getInstance());
+            mc.insert(reusableFieldValues, reusableFieldValues.alphaTests(), fhv);
+        }
+        mc.commitChanges();
 
 
+/*
         forEachEntry(new BiConsumer<FactHandle, FactRecord>() {
             @Override
             public void accept(FactHandle fh, FactRecord rec) {
@@ -260,25 +279,82 @@ public final class TypeMemory extends MemoryComponent {
 
             }
         });
-        mc.commitChanges();
+*/
     }
 
-    /**
-     * <p>
-     * Modifies existing facts by appending value of the newly
-     * created field
-     * </p>
-     *
-     * @param newField newly created field
-     */
-    final void onNewActiveField(ActiveField newField) {
-        ReIterator<FactStorage.Entry<FactRecord>> allFacts = factStorage.iterator();
-        while (allFacts.hasNext()) {
-            FactStorage.Entry<FactRecord> rec = allFacts.next();
-            Object fieldValue = newField.readValue(rec.getInstance().instance);
-            ValueHandle valueHandle = valueResolver.getValueHandle(newField.getValueType(), fieldValue);
-            rec.getInstance().appendValue(newField, valueHandle);
-            factStorage.update(rec.getHandle(), rec.getInstance());
+    private static class ReusableFieldValues implements FieldToValueHandle {
+        private static final Bits EMPTY_BITS = new Bits();
+        private final ValueResolver valueResolver;
+        boolean valueHandlesResolved;
+        private ActiveField[] activeFields;
+        private AlphaEvaluator[] alphaEvaluators;
+        private ValueHandle[] valueHandles;
+        private Object[] fieldValues;
+        private FieldToValue alphaFunction;
+        private Bits alphaTests;
+
+        ReusableFieldValues(ValueResolver valueResolver) {
+            this.valueResolver = valueResolver;
+        }
+
+        void updateStructure(ActiveField[] activeFields, AlphaEvaluator[] alphaEvaluators) {
+            this.activeFields = activeFields;
+            this.alphaEvaluators = alphaEvaluators;
+            this.fieldValues = new Object[activeFields.length];
+            this.valueHandles = new ValueHandle[activeFields.length];
+            this.alphaFunction = new FieldToValue() {
+                @Override
+                public Object apply(ActiveField activeField) {
+                    return fieldValues[activeField.getValueIndex()];
+                }
+            };
+        }
+
+        void update(FactRecord factRecord) {
+            this.valueHandlesResolved = false;
+            Object instance = factRecord.instance;
+            for (ActiveField field : activeFields) {
+                int idx = field.getValueIndex();
+                Object fieldValue = field.readValue(instance);
+                //cachedValueHandles[idx] = valueResolver.getValueHandle(field.getValueType(), fieldValue);
+                fieldValues[idx] = fieldValue;
+            }
+
+            if (alphaEvaluators.length == 0) {
+                this.alphaTests = EMPTY_BITS;
+            } else {
+                this.alphaTests = new Bits();
+                for (AlphaEvaluator evaluator : alphaEvaluators) {
+                    if (evaluator.test(alphaFunction)) {
+                        this.alphaTests.set(evaluator.getIndex());
+                    }
+                }
+            }
+
+
+        }
+
+        Bits alphaTests() {
+            return alphaTests;
+        }
+
+        private void resolve() {
+            if (!valueHandlesResolved) {
+                int idx;
+                Object fieldValue;
+                for (ActiveField field : activeFields) {
+                    idx = field.getValueIndex();
+                    fieldValue = fieldValues[idx];
+                    valueHandles[idx] = valueResolver.getValueHandle(field.getValueType(), fieldValue);
+                }
+                valueHandlesResolved = true;
+            }
+        }
+
+        @Override
+        public ValueHandle apply(ActiveField activeField) {
+            resolve();
+            return valueHandles[activeField.getValueIndex()];
         }
     }
 }

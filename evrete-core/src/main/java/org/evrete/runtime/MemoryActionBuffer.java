@@ -23,7 +23,7 @@ class MemoryActionBuffer {
         return queue.get(addr);
     }
 
-    void add(Action action, FactHandle factHandle, LazyInsertState factRecord, MemoryActionListener listener) {
+    void add(Action action, FactHandle factHandle, FactRecord factRecord, MemoryActionListener listener) {
         queue.resize();
         int hash = factHandle.hashCode();
         int addr = queue.findBinIndex(factHandle, hash, SEARCH_FUNCTION);
