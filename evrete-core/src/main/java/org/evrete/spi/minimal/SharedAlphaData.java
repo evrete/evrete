@@ -19,7 +19,7 @@ class SharedAlphaData implements SharedBetaFactStorage {
     }
 
     @Override
-    public void insert(FieldToValueHandle key, FactHandleVersioned fact) {
+    public void insert(FieldToValueHandle key, int keyHash, FactHandleVersioned fact) {
         get(KeyMode.KNOWN_UNKNOWN).add(fact);
     }
 

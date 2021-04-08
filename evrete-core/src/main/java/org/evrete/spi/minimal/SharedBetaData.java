@@ -2,13 +2,11 @@ package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
 
-import java.util.Objects;
-
 class SharedBetaData extends AbstractBetaFactStorage<FieldsFactMap> {
     private final ActiveField[] fields;
 
     SharedBetaData(int initialSize, ActiveField[] fields) {
-        super(FieldsFactMap.class, mode -> new FieldsFactMap(mode, initialSize));
+        super(FieldsFactMap.class, mode -> new FieldsFactMap(fields, mode, initialSize));
         this.fields = fields;
     }
 
@@ -29,30 +27,16 @@ class SharedBetaData extends AbstractBetaFactStorage<FieldsFactMap> {
         main.merge(get(KeyMode.KNOWN_UNKNOWN));
     }
 
-    private int hash(FieldToValueHandle key) {
-        int hash = 0;
-        for (ActiveField field : fields) {
-            hash ^= Objects.hashCode(key.apply(field));
-        }
-        return hash;
-    }
-
     @Override
-    public void insert(FieldToValueHandle key, FactHandleVersioned value) {
-        int hash = hash(key);
-        ValueHandle[] data = new ValueHandle[fields.length];
-        for (int i = 0; i < fields.length; i++) {
-            ActiveField field = fields[i];
-            data[i] = key.apply(field);
-        }
-        MemoryKeyImpl memoryKey = new MemoryKeyImpl(data, hash);
+    public void insert(FieldToValueHandle key, int keyHash, FactHandleVersioned value) {
+        MemoryKeyImpl memoryKey = new MemoryKeyImpl(fields, key, keyHash);
 
-        if (get(KeyMode.MAIN).hasKey(memoryKey)) {
+        if (get(KeyMode.MAIN).hasKey(keyHash, memoryKey)) {
             // Existing key
-            get(KeyMode.KNOWN_UNKNOWN).add(memoryKey, value);
+            get(KeyMode.KNOWN_UNKNOWN).add(memoryKey, keyHash, value);
         } else {
             // New key
-            get(KeyMode.UNKNOWN_UNKNOWN).add(memoryKey, value);
+            get(KeyMode.UNKNOWN_UNKNOWN).add(memoryKey, keyHash, value);
         }
     }
 }

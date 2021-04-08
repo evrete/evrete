@@ -208,6 +208,8 @@ public final class TypeMemory extends MemoryComponent {
         private FieldToValue alphaFunction;
         private Bits alphaTests;
         private FieldToValueHandle lazyValues;
+        private FieldToValueHandle lazyValuesStatic;
+        private int keyHash;
 
         ReusableFieldValues(ValueResolver valueResolver) {
             this.valueResolver = valueResolver;
@@ -219,32 +221,38 @@ public final class TypeMemory extends MemoryComponent {
             this.fieldValues = new Object[activeFields.length];
             this.valueHandles = new ValueHandle[activeFields.length];
             this.alphaFunction = field -> fieldValues[field.getValueIndex()];
+            this.lazyValuesStatic = field -> valueHandles[field.getValueIndex()];
         }
 
         @Override
         public FieldToValueHandle getValues() {
             if (lazyValues == null) {
                 int idx;
+                this.keyHash = 0;
                 Object fieldValue;
                 for (ActiveField field : activeFields) {
                     idx = field.getValueIndex();
                     fieldValue = fieldValues[idx];
-                    valueHandles[idx] = valueResolver.getValueHandle(field.getValueType(), fieldValue);
+                    ValueHandle h = valueResolver.getValueHandle(field.getValueType(), fieldValue);
+                    valueHandles[idx] = h;
+                    this.keyHash += 37 * h.hashCode();
                 }
 
-                lazyValues = field -> valueHandles[field.getValueIndex()];
+                lazyValues = lazyValuesStatic;
             }
             return lazyValues;
+        }
+
+        @Override
+        public int keyHash() {
+            return this.keyHash;
         }
 
         void update(FactRecord factRecord) {
             this.lazyValues = null;
             Object instance = factRecord.instance;
             for (ActiveField field : activeFields) {
-                int idx = field.getValueIndex();
-                Object fieldValue = field.readValue(instance);
-                //cachedValueHandles[idx] = valueResolver.getValueHandle(field.getValueType(), fieldValue);
-                fieldValues[idx] = fieldValue;
+                fieldValues[field.getValueIndex()] = field.readValue(instance);
             }
 
             if (alphaEvaluators.length == 0) {
@@ -257,33 +265,10 @@ public final class TypeMemory extends MemoryComponent {
                     }
                 }
             }
-
-
         }
 
         Bits alphaTests() {
             return alphaTests;
         }
-
-/*
-        private void resolve() {
-            if (!valueHandlesResolved) {
-                int idx;
-                Object fieldValue;
-                for (ActiveField field : activeFields) {
-                    idx = field.getValueIndex();
-                    fieldValue = fieldValues[idx];
-                    valueHandles[idx] = valueResolver.getValueHandle(field.getValueType(), fieldValue);
-                }
-                valueHandlesResolved = true;
-            }
-        }
-
-        @Override
-        public ValueHandle apply(ActiveField activeField) {
-            resolve();
-            return valueHandles[activeField.getValueIndex()];
-        }
-*/
     }
 }

@@ -29,9 +29,9 @@ class SharedBetaDataPlain extends AbstractBetaFactStorage<FieldsFactMapPlain> {
     }
 
     @Override
-    public void insert(FieldToValueHandle key, FactHandleVersioned value) {
+    public void insert(FieldToValueHandle key, int keyHash, FactHandleVersioned value) {
         ValueHandle h = key.apply(field);
-        int hash = h.hashCode();
+        int hash = keyHash;
         MemoryKeyImplPlain memoryKey = new MemoryKeyImplPlain(h, hash);
 
         if (get(KeyMode.MAIN).hasKey(memoryKey)) {

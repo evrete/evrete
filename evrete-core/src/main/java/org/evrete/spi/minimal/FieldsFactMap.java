@@ -1,9 +1,6 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.FactHandleVersioned;
-import org.evrete.api.KeyMode;
-import org.evrete.api.MemoryKey;
-import org.evrete.api.ReIterator;
+import org.evrete.api.*;
 import org.evrete.collections.LinearHashSet;
 
 import java.util.function.BiPredicate;
@@ -14,8 +11,10 @@ class FieldsFactMap extends AbstractFieldsFactMap {
     private final int myModeOrdinal;
     private static final Function<MapEntry, MemoryKey> ENTRY_MAPPER = entry -> entry.key;
     private final LinearHashSet<MapEntry> data;
+    private final ActiveField[] fields;
 
-    FieldsFactMap(KeyMode myMode, int minCapacity) {
+    FieldsFactMap(ActiveField[] fields, KeyMode myMode, int minCapacity) {
+        this.fields = fields;
         this.myModeOrdinal = myMode.ordinal();
         this.data = new LinearHashSet<>(minCapacity);
     }
@@ -31,7 +30,7 @@ class FieldsFactMap extends AbstractFieldsFactMap {
 
     private void merge(MapEntry otherEntry) {
         otherEntry.key.setMetaValue(myModeOrdinal);
-        int addr = addr(otherEntry.key);
+        int addr = addr(otherEntry.key, otherEntry.hashCode());
         MapEntry found = data.get(addr);
         if (found == null) {
             this.data.add(otherEntry);
@@ -46,16 +45,16 @@ class FieldsFactMap extends AbstractFieldsFactMap {
 
     ReIterator<FactHandleVersioned> values(MemoryKeyImpl key) {
         // TODO !!!! analyze usage, return null and call remove() on the corresponding key iterator
-        int addr = addr(key);
+        int addr = addr(key, key.hashCode());
         MapEntry entry = data.get(addr);
         return entry == null ? ReIterator.emptyIterator() : entry.facts.iterator();
     }
 
-    public void add(MemoryKeyImpl key, FactHandleVersioned factHandleVersioned) {
+    public void add(MemoryKeyImpl key, int hash, FactHandleVersioned factHandleVersioned) {
         key.setMetaValue(myModeOrdinal);
 
         data.resize();
-        int addr = addr(key);
+        int addr = addr(key, hash);
         MapEntry entry = data.get(addr);
         if (entry == null) {
             entry = new MapEntry(key);
@@ -65,14 +64,15 @@ class FieldsFactMap extends AbstractFieldsFactMap {
         entry.facts.add(factHandleVersioned);
     }
 
-    boolean hasKey(MemoryKeyImpl key) {
-        int addr = addr(key);
+    boolean hasKey(int hash, MemoryKeyImpl key) {
+        int addr = addr(key, hash);
         MapEntry entry = data.get(addr);
         return entry != null;
     }
 
-    private int addr(MemoryKeyImpl key) {
-        return data.findBinIndex(key, key.hashCode(), SEARCH_PREDICATE);
+
+    private int addr(MemoryKeyImpl key, int hash) {
+        return data.findBinIndex(key, hash, SEARCH_PREDICATE);
     }
 
     @Override
@@ -83,6 +83,7 @@ class FieldsFactMap extends AbstractFieldsFactMap {
     private static class MapEntry {
         final LinkedFactHandles facts = new LinkedFactHandles();
         private final MemoryKeyImpl key;
+
 
         MapEntry(MemoryKeyImpl key) {
             this.key = key;

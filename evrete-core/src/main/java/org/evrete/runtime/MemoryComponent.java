@@ -51,5 +51,7 @@ abstract class MemoryComponent {
 
     interface LazyValues {
         FieldToValueHandle getValues();
+
+        int keyHash();
     }
 }
