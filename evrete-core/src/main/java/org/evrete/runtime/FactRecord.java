@@ -8,7 +8,6 @@ class FactRecord {
         this.instance = instance;
     }
 
-
     public int getVersion() {
         return version;
     }

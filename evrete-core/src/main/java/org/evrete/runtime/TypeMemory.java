@@ -7,9 +7,9 @@ import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 import org.evrete.util.Bits;
 
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 public final class TypeMemory extends MemoryComponent {
@@ -19,6 +19,7 @@ public final class TypeMemory extends MemoryComponent {
     private final Type<?> type;
     private final ArrayOf<FieldsMemory> betaMemories;
     private final ReusableFieldValues reusableFieldValues;
+    private TypeMemoryState typeMemoryState;
 
     TypeMemory(SessionMemory sessionMemory, TypeMemoryState initialState) {
         super(sessionMemory);
@@ -41,6 +42,7 @@ public final class TypeMemory extends MemoryComponent {
     }
 
     void updateCachedData(TypeMemoryState state) {
+        this.typeMemoryState = state;
         this.reusableFieldValues.updateStructure(state.activeFields, state.alphaEvaluators);
     }
 
@@ -92,40 +94,13 @@ public final class TypeMemory extends MemoryComponent {
         factStorage.clear();
     }
 
-    private void processMemoryChange(Action action, FactHandle handle, FactRecord factRecord) {
-        switch (action) {
-            case RETRACT:
-                factStorage.delete(handle);
-                return;
-            case INSERT:
-                performInsert(factRecord, new FactHandleVersioned(handle));
-                return;
-            case UPDATE:
-                performUpdate(handle, factRecord);
-                return;
-            default:
-                throw new IllegalStateException();
-        }
-    }
 
+/*
     private void performInsert(FactRecord factRecord, FactHandleVersioned handle) {
         reusableFieldValues.update(factRecord);
         insert(reusableFieldValues, reusableFieldValues.alphaTests(), handle);
     }
-
-    private void performUpdate(FactHandle handle, FactRecord factRecord) {
-        // Reading the previous version
-        FactRecord previous = factStorage.getFact(handle);
-        if (previous == null) {
-            LOGGER.warning("Unknown fact handle " + handle + ". Update operation skipped.");
-        } else {
-            int newVersion = previous.getVersion() + 1;
-            factRecord.updateVersion(newVersion);
-            factStorage.update(handle, factRecord);
-            FactHandleVersioned versioned = new FactHandleVersioned(handle, newVersion);
-            performInsert(factRecord, versioned);
-        }
-    }
+*/
 
     @Override
     void insert(LazyValues values, Bits alphaTests, FactHandleVersioned value) {
@@ -133,6 +108,11 @@ public final class TypeMemory extends MemoryComponent {
             child.insert(values, alphaTests, value);
         }
     }
+
+    private void forEachMemoryComponent(Consumer<FieldsMemoryBucket> consumer) {
+        betaMemories.forEach(fm -> fm.forEachBucket(consumer));
+    }
+
 
     @Override
     public void commitChanges() {
@@ -158,11 +138,42 @@ public final class TypeMemory extends MemoryComponent {
         });
     }
 
-    void processBuffer() {
+    public void processBuffer() {
         Iterator<AtomicMemoryAction> it = buffer.actions();
+        Collection<RuntimeFact> runtimeFacts = new LinkedList<>();
         while (it.hasNext()) {
             AtomicMemoryAction a = it.next();
-            processMemoryChange(a.action, a.handle, a.factRecord);
+            switch (a.action) {
+                case RETRACT:
+                    factStorage.delete(a.handle);
+                    break;
+                case INSERT:
+                    runtimeFacts.add(new RuntimeFact(typeMemoryState, new FactHandleVersioned(a.handle), a.factRecord));
+                    //performInsert(a.factRecord, new FactHandleVersioned(a.handle));
+                    break;
+                case UPDATE:
+                    FactRecord previous = factStorage.getFact(a.handle);
+                    if (previous == null) {
+                        LOGGER.warning("Unknown fact handle " + a.handle + ". Update operation skipped.");
+                    } else {
+                        FactRecord factRecord = a.factRecord;
+                        FactHandle handle = a.handle;
+                        int newVersion = previous.getVersion() + 1;
+                        factRecord.updateVersion(newVersion);
+                        factStorage.update(handle, factRecord);
+                        FactHandleVersioned versioned = new FactHandleVersioned(handle, newVersion);
+                        //RuntimeFact runtimeFact = new RuntimeFact(typeMemoryState, versioned, factRecord);
+                        runtimeFacts.add(new RuntimeFact(typeMemoryState, versioned, factRecord));
+                        //performInsert(factRecord, versioned);
+                    }
+                    break;
+                default:
+                    throw new IllegalStateException();
+            }
+        }
+        // Performing insert
+        if (!runtimeFacts.isEmpty()) {
+            forEachMemoryComponent(b -> b.insert(runtimeFacts));
         }
         buffer.clear();
     }
@@ -187,15 +198,17 @@ public final class TypeMemory extends MemoryComponent {
 
 
     void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
-        MemoryComponent mc = touchMemory(key, meta);
+        FieldsMemoryBucket bucket = touchMemory(key, meta);
         ReIterator<FactStorage.Entry<FactRecord>> allFacts = factStorage.iterator();
+        List<RuntimeFact> runtimeFacts = new LinkedList<>();
         while (allFacts.hasNext()) {
             FactStorage.Entry<FactRecord> rec = allFacts.next();
             FactHandleVersioned fhv = new FactHandleVersioned(rec.getHandle(), rec.getInstance().getVersion());
-            reusableFieldValues.update(rec.getInstance());
-            mc.insert(reusableFieldValues, reusableFieldValues.alphaTests(), fhv);
+            runtimeFacts.add(new RuntimeFact(typeMemoryState, fhv, rec.getInstance()));
         }
-        mc.commitChanges();
+
+        bucket.insert(runtimeFacts);
+        bucket.commitChanges();
     }
 
     private static class ReusableFieldValues implements LazyValues {

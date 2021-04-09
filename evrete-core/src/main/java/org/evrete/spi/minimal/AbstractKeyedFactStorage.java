@@ -3,6 +3,7 @@ package org.evrete.spi.minimal;
 import org.evrete.api.*;
 import org.evrete.util.CollectionUtils;
 
+import java.util.Collection;
 import java.util.function.Function;
 
 abstract class AbstractKeyedFactStorage<T extends AbstractFactsMap<?>> implements KeyedFactStorage {
@@ -29,13 +30,13 @@ abstract class AbstractKeyedFactStorage<T extends AbstractFactsMap<?>> implement
     }
 
     @Override
-    public final void insert(FieldToValueHandle key, int keyHash, FactHandleVersioned value) {
+    public final void insert(FieldToValueHandle key, int keyHash, Collection<FactHandleVersioned> factHandles) {
         if (get(KeyMode.MAIN).hasKey(keyHash, key)) {
             // Existing key
-            get(KeyMode.KNOWN_UNKNOWN).add(key, keyHash, value);
+            get(KeyMode.KNOWN_UNKNOWN).add(key, keyHash, factHandles);
         } else {
             // New key
-            get(KeyMode.UNKNOWN_UNKNOWN).add(key, keyHash, value);
+            get(KeyMode.UNKNOWN_UNKNOWN).add(key, keyHash, factHandles);
         }
     }
 

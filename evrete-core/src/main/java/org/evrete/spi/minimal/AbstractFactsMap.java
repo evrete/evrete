@@ -3,6 +3,7 @@ package org.evrete.spi.minimal;
 import org.evrete.api.*;
 import org.evrete.collections.LinearHashSet;
 
+import java.util.Collection;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 
@@ -27,7 +28,7 @@ abstract class AbstractFactsMap<K extends MemoryKey> {
         return data.iterator(ENTRY_MAPPER);
     }
 
-    public final void add(FieldToValueHandle key, int keyHash, FactHandleVersioned factHandleVersioned) {
+    public final void add(FieldToValueHandle key, int keyHash, Collection<FactHandleVersioned> factHandles) {
         data.resize();
         int addr = data.findBinIndex(key, keyHash, search);
         MapKey<K> entry = data.get(addr);
@@ -38,7 +39,9 @@ abstract class AbstractFactsMap<K extends MemoryKey> {
             // TODO saveDirect is doing unnecessary job
             data.saveDirect(entry, addr);
         }
-        entry.facts.add(factHandleVersioned);
+        for (FactHandleVersioned h : factHandles) {
+            entry.facts.add(h);
+        }
 
     }
 

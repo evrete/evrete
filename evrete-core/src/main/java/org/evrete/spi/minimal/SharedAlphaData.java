@@ -2,6 +2,7 @@ package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
 
+import java.util.Collection;
 import java.util.NoSuchElementException;
 
 class SharedAlphaData implements KeyedFactStorage {
@@ -19,8 +20,11 @@ class SharedAlphaData implements KeyedFactStorage {
     }
 
     @Override
-    public void insert(FieldToValueHandle key, int keyHash, FactHandleVersioned fact) {
-        get(KeyMode.KNOWN_UNKNOWN).add(fact);
+    public void insert(FieldToValueHandle key, int keyHash, Collection<FactHandleVersioned> factHandles) {
+        LinkedFactHandles data = get(KeyMode.KNOWN_UNKNOWN);
+        for (FactHandleVersioned h : factHandles) {
+            data.add(h);
+        }
     }
 
     private LinkedFactHandles get(KeyMode mode) {

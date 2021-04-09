@@ -1,10 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.*;
-import org.evrete.runtime.async.Completer;
-import org.evrete.runtime.async.ForkJoinExecutor;
-import org.evrete.runtime.async.RuleHotDeploymentTask;
-import org.evrete.runtime.async.RuleMemoryInsertTask;
+import org.evrete.runtime.async.*;
 
 import java.util.*;
 import java.util.function.BooleanSupplier;
@@ -51,6 +48,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
             rule.mergeNodeDeltas();
             boolean ruleAdded = false;
 
+/*
             int ruleDeltaMask = 0;
             for (RhsFactGroup group : rule.getLhs().getFactGroups()) {
                 int groupDeltaMask = 0;
@@ -69,6 +67,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
 
                 }
             }
+*/
 
 
             for (TypeMemory tm : memory) {
@@ -228,9 +227,8 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
 
     private void processBuffer() {
         //TODO !!!! narrow the scope, all type memories are being processed
-        for (TypeMemory tm : memory) {
-            tm.processBuffer();
-        }
+        Iterator<TypeMemory> it = memory.iterator();
+        getExecutor().invoke(new MemoryDeltaTask(it));
         actionCounter.clear();
     }
 

@@ -8,6 +8,7 @@ import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.util.Bits;
 
 import java.util.StringJoiner;
+import java.util.function.Consumer;
 
 public class FieldsMemory extends MemoryComponent implements InnerFactMemory {
     private final FieldsKey typeFields;
@@ -23,6 +24,10 @@ public class FieldsMemory extends MemoryComponent implements InnerFactMemory {
     @Override
     protected void clearLocalData() {
         // Only child data present
+    }
+
+    public void forEachBucket(Consumer<? super FieldsMemoryBucket> consumer) {
+        alphaBuckets.forEach(consumer);
     }
 
     @Override

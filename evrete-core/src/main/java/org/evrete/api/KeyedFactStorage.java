@@ -1,5 +1,7 @@
 package org.evrete.api;
 
+import java.util.Collection;
+
 public interface KeyedFactStorage extends InnerFactMemory {
     ReIterator<MemoryKey> keys(KeyMode keyMode);
 
@@ -7,15 +9,15 @@ public interface KeyedFactStorage extends InnerFactMemory {
 
     /**
      * <p>
-     * Method stores fact handle under specific field values key. A precomputed
+     * Method stores fact handles under specific field values key. A precomputed
      * hash code of the key is also provided, however implementations may disregard it.
      * </p>
      *
-     * @param key     field values key
-     * @param keyHash precomputed key hash code
-     * @param value   fact handle to save
+     * @param key         field values key
+     * @param keyHash     precomputed key hash code
+     * @param factHandles fact handle to save
      */
-    void insert(FieldToValueHandle key, int keyHash, FactHandleVersioned value);
+    void insert(FieldToValueHandle key, int keyHash, Collection<FactHandleVersioned> factHandles);
 
     /**
      * <p>
