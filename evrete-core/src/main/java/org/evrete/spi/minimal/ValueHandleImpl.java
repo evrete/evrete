@@ -15,13 +15,13 @@ class ValueHandleImpl implements ValueHandle {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ValueHandleImpl handle = (ValueHandleImpl) o;
-        return Objects.equals(value, handle.value);
+        ValueHandleImpl that = (ValueHandleImpl) o;
+        return Objects.equals(value, that.value);
     }
 
     @Override
     public int hashCode() {
-        return System.identityHashCode(value);
+        return value == null ? 0 : value.hashCode();
     }
 
     @Override

@@ -25,10 +25,6 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
         ruleStorage.sort(getRuleComparator());
     }
 
-    private List<RuntimeRule> buildMemoryDeltas() {
-        return buildMemoryDeltasInsecure();
-    }
-
     @Override
     public RuntimeRule compileRule(RuleBuilder<?> builder) {
         RuleDescriptor rd = compileRuleBuilder(builder);
@@ -40,7 +36,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
         return ruleStorage.asList();
     }
 
-    private List<RuntimeRule> buildMemoryDeltasInsecure() {
+    private List<RuntimeRule> buildMemoryDeltas() {
         List<RuntimeRule> affectedRules = new LinkedList<>();
         Set<BetaEndNode> affectedEndNodes = new HashSet<>();
 

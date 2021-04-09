@@ -10,10 +10,12 @@ import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.evrete.api.FactBuilder.fact;
@@ -964,6 +966,44 @@ class SessionBaseTests {
 
         s.insertAndFire(a1, b1, a2, b2);
         rhsAssert.assertCount(4);
+    }
+
+    //TODO !!!! delete this test
+    @Test
+    void testUniType_tmp() {
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a1", TypeA.class,
+                "$a2", TypeA.class
+        );
+
+        knowledge.newRule("test alpha 1")
+                .forEach(
+                        "$a1", TypeA.class,
+                        "$a2", TypeA.class
+                )
+                .where("$a1.i == $a2.i")
+                .execute(rhsAssert.andThen(new Consumer<RhsContext>() {
+                    @Override
+                    public void accept(RhsContext ctx) {
+                        TypeA a1 = ctx.get("$a1");
+                        TypeA a2 = ctx.get("$a2");
+                        //System.out.println(a1 + "" + a2);
+                    }
+                }));
+
+        StatefulSession s = knowledge.createSession();
+
+        TypeA a1 = new TypeA("A1");
+        a1.setI(1);
+
+        TypeA a2 = new TypeA("A2");
+        a2.setI(1);
+
+        TypeA a3 = new TypeA("A3");
+        a3.setI(1);
+
+        s.insertAndFire(a1, a2, a3);
+        rhsAssert.assertCount(9);
     }
 
     @ParameterizedTest

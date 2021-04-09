@@ -63,11 +63,6 @@ class FieldsMemoryBucket extends MemoryComponent {
     @Override
     void insert(LazyValues values, Bits alphaTests, FactHandleVersioned handle) {
         throw new UnsupportedOperationException();
-/*
-        if (alphaMask.test(alphaTests)) {
-            fieldData.insert(values.getValues(), values.keyHash(), handle);
-        }
-*/
     }
 
     @Override
@@ -85,12 +80,7 @@ class FieldsMemoryBucket extends MemoryComponent {
             hash += valueHandle.hashCode() * 37;
             valueHandles[i] = valueHandle;
         }
-        FieldToValueHandle key = new FieldToValueHandle() {
-            @Override
-            public ValueHandle apply(ActiveField field) {
-                return valueHandles[field.getValueIndex()];
-            }
-        };
+        FieldToValueHandle key = field -> valueHandles[field.getValueIndex()];
         return new Helper(key, hash);
     }
 

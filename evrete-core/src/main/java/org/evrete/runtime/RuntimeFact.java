@@ -5,6 +5,9 @@ import org.evrete.api.FactHandleVersioned;
 import org.evrete.api.FieldToValue;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 import org.evrete.util.Bits;
+
+import java.util.Arrays;
+import java.util.Objects;
 //TODO !!!! create one-field implementation
 
 /**
@@ -41,10 +44,17 @@ class RuntimeFact {
     boolean sameValues(RuntimeFact other) {
         if (other == null) return false;
         for (int i = 0; i < fieldValues.length; i++) {
-            if (fieldValues[i] != other.fieldValues[i]) {
+            if (!Objects.equals(fieldValues[i], other.fieldValues[i])) {
                 return false;
             }
         }
-        return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "{handle=" + factHandle.getHandle() +
+                ", values=" + Arrays.toString(fieldValues) +
+                '}';
     }
 }
