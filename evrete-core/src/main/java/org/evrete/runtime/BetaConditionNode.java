@@ -2,6 +2,7 @@ package org.evrete.runtime;
 
 import org.evrete.api.*;
 import org.evrete.runtime.evaluation.BetaEvaluator;
+import org.evrete.runtime.evaluation.EvaluatorWrapper;
 
 import java.util.function.Consumer;
 
@@ -38,8 +39,21 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
             sourceMetas[i] = new SourceMeta(sources[i]);
         }
 
-        BetaEvaluationValues conditionValues = ref -> evaluationState[ref.getFactType().getInRuleIndex()].value(ref.getFieldIndex());
-        this.expression.setEvaluationState(conditionValues);
+        EvaluatorWrapper[] childConditions = this.expression.constituents();
+        for (EvaluatorWrapper e : childConditions) {
+            FieldReference[] refs = e.descriptor();
+            final ConditionValueReader[] valueReaders = new ConditionValueReader[refs.length];
+            for (int i = 0; i < refs.length; i++) {
+                FieldReference ref = refs[i];
+                FactType factType = rule.resolve(ref.type());
+                final int typeId = factType.getInRuleIndex();
+                final int fieldPosition = factType.findFieldPosition(ref.field());
+                valueReaders[i] = new ConditionValueReader(evaluationState, typeId, fieldPosition);
+            }
+
+            e.setStateValues(i -> valueReaders[i].get());
+        }
+
     }
 
     @Override
@@ -266,6 +280,22 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
                 cached = true;
             }
             return lastResponse;
+        }
+    }
+
+    private static class ConditionValueReader {
+        private final MemoryKeyNode[] evaluationState;
+        private final int type;
+        private final int field;
+
+        ConditionValueReader(MemoryKeyNode[] evaluationState, int type, int field) {
+            this.evaluationState = evaluationState;
+            this.type = type;
+            this.field = field;
+        }
+
+        Object get() {
+            return this.evaluationState[type].value(field);
         }
     }
 }

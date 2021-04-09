@@ -49,7 +49,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
 
     }
 
-
     void mergeNodeDeltas() {
         for (BetaEndNode endNode : lhs.getEndNodes()) {
             endNode.commitDelta();

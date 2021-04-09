@@ -2,15 +2,12 @@ package org.evrete.runtime.evaluation;
 
 import org.evrete.api.ActiveField;
 import org.evrete.api.ComplexityObject;
-import org.evrete.api.EvaluationListener;
-import org.evrete.runtime.BetaEvaluationValues;
 import org.evrete.runtime.FactType;
 import org.evrete.util.Bits;
 
 import java.util.*;
 
 public class BetaEvaluatorGroup implements BetaEvaluator {
-    public static final BetaEvaluatorGroup[] ZERO_ARRAY = new BetaEvaluatorGroup[0];
     private final BetaEvaluatorSingle[] evaluators;
     private final Bits factTypeMask;
     private final Set<FactType> descriptor;
@@ -41,7 +38,6 @@ public class BetaEvaluatorGroup implements BetaEvaluator {
         }
     }
 
-
     @Override
     public boolean evaluatesField(ActiveField field) {
         for (BetaEvaluatorSingle e : this.evaluators) {
@@ -58,17 +54,8 @@ public class BetaEvaluatorGroup implements BetaEvaluator {
     }
 
     @Override
-    public void addListener(EvaluationListener listener) {
-        for (BetaEvaluatorSingle e : evaluators) {
-            e.addListener(listener);
-        }
-    }
-
-    @Override
-    public void removeListener(EvaluationListener listener) {
-        for (BetaEvaluatorSingle e : evaluators) {
-            e.removeListener(listener);
-        }
+    public EvaluatorWrapper[] constituents() {
+        return evaluators;
     }
 
     @Override
@@ -83,12 +70,6 @@ public class BetaEvaluatorGroup implements BetaEvaluator {
             }
         }
         return true;
-    }
-
-    public void setEvaluationState(BetaEvaluationValues betaEvaluationValues) {
-        for (BetaEvaluatorSingle evaluator : evaluators) {
-            evaluator.setEvaluationState(betaEvaluationValues);
-        }
     }
 
     @Override

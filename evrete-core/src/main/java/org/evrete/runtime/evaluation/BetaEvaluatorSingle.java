@@ -4,7 +4,6 @@ import org.evrete.api.ActiveField;
 import org.evrete.api.FieldReference;
 import org.evrete.api.NamedType;
 import org.evrete.api.TypeField;
-import org.evrete.runtime.BetaEvaluationValues;
 import org.evrete.runtime.BetaFieldReference;
 import org.evrete.runtime.FactType;
 import org.evrete.util.Bits;
@@ -20,11 +19,13 @@ public class BetaEvaluatorSingle extends EvaluatorWrapper implements BetaEvaluat
     private final Bits factTypeMask;
     private final Set<FactType> descriptor1;
     private final Set<ActiveField> fields;
+    private final EvaluatorWrapper[] constituents;
 
     BetaEvaluatorSingle(EvaluatorWrapper delegate, Function<NamedType, FactType> typeFunction) {
         super(delegate);
         this.factTypeMask = new Bits();
         this.fields = new HashSet<>();
+        this.constituents = new EvaluatorWrapper[]{this};
         FieldReference[] evaluatorDescriptor = delegate.descriptor();
         this.descriptor = new BetaFieldReference[evaluatorDescriptor.length];
         Set<FactType> factTypes = new HashSet<>();
@@ -48,6 +49,12 @@ public class BetaEvaluatorSingle extends EvaluatorWrapper implements BetaEvaluat
         this.descriptor = other.descriptor;
         this.descriptor1 = other.descriptor1;
         this.fields = other.fields;
+        this.constituents = new EvaluatorWrapper[]{this};
+    }
+
+    @Override
+    public EvaluatorWrapper[] constituents() {
+        return constituents;
     }
 
     @Override
@@ -78,10 +85,4 @@ public class BetaEvaluatorSingle extends EvaluatorWrapper implements BetaEvaluat
     public BetaEvaluatorSingle copyOf() {
         return new BetaEvaluatorSingle(this);
     }
-
-    @Override
-    public void setEvaluationState(BetaEvaluationValues values) {
-        setStateValues(i -> values.apply(descriptor[i]));
-    }
-
 }

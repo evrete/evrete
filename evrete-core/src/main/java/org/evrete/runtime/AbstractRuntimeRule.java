@@ -1,14 +1,20 @@
 package org.evrete.runtime;
 
 import org.evrete.AbstractRule;
+import org.evrete.api.NamedType;
 import org.evrete.api.RuleScope;
 import org.evrete.api.Type;
 import org.evrete.util.Bits;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 public abstract class AbstractRuntimeRule extends AbstractRule {
     final FactType[] factTypes;
     private final AbstractRuntime<?, ?> runtime;
     private final Bits typeMask = new Bits();
+    private final Map<String, FactType> typeMapping = new HashMap<>();
 
     AbstractRuntimeRule(AbstractRuntime<?, ?> runtime, AbstractRule other, FactType[] factTypes) {
         this(runtime, other, other.getName(), other.getSalience(), factTypes);
@@ -20,9 +26,20 @@ public abstract class AbstractRuntimeRule extends AbstractRule {
         this.factTypes = factTypes;
         for (FactType factType : factTypes) {
             this.typeMask.set(factType.getType().getId());
+            if (typeMapping.put(factType.getVar(), factType) != null) {
+                throw new IllegalStateException();
+            }
         }
         appendImports(runtime.getImportsData());
         setRhs(getLiteralRhs());
+    }
+
+    private FactType resolve(String var) {
+        return Objects.requireNonNull(typeMapping.get(var), "No such type: '" + var + "'");
+    }
+
+    FactType resolve(NamedType type) {
+        return resolve(type.getVar());
     }
 
     final boolean dependsOn(Type<?> type) {
