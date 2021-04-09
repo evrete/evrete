@@ -32,7 +32,7 @@ public class FieldsMemory extends MemoryComponent implements InnerFactMemory {
 
     @Override
     void insert(LazyValues key, Bits alphaTests, FactHandleVersioned value) {
-        alphaBuckets.forEach(bucket -> bucket.insert(key, alphaTests, value));
+        throw new UnsupportedOperationException();
     }
 
     public KeyedFactStorage get(AlphaBucketMeta mask) {

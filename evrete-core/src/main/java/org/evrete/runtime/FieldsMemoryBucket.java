@@ -10,11 +10,14 @@ import java.util.LinkedList;
 class FieldsMemoryBucket extends MemoryComponent {
     private final KeyedFactStorage fieldData;
     private final AlphaBucketMeta alphaMask;
+    private final ActiveField[] activeFields;
+
 
     FieldsMemoryBucket(MemoryComponent runtime, FieldsKey typeFields, AlphaBucketMeta alphaMask) {
         super(runtime);
         this.alphaMask = alphaMask;
         this.fieldData = memoryFactory.newBetaStorage(typeFields.getFields());
+        this.activeFields = typeFields.getFields();
     }
 
     void insert(Iterable<RuntimeFact> facts) {
