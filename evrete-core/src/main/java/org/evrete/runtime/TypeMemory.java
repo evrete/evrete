@@ -4,7 +4,6 @@ import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
-import org.evrete.runtime.evaluation.AlphaEvaluator;
 import org.evrete.util.Bits;
 
 import java.util.*;
@@ -18,7 +17,6 @@ public final class TypeMemory extends MemoryComponent {
     private final FactStorage<FactRecord> factStorage;
     private final Type<?> type;
     private final ArrayOf<FieldsMemory> betaMemories;
-    private final ReusableFieldValues reusableFieldValues;
     private TypeMemoryState typeMemoryState;
 
     TypeMemory(SessionMemory sessionMemory, TypeMemoryState initialState) {
@@ -37,13 +35,11 @@ public final class TypeMemory extends MemoryComponent {
             default:
                 throw new IllegalArgumentException("Invalid identity method '" + identityMethod + "' in the configuration. Expected values are '" + Configuration.IDENTITY_METHOD_EQUALS + "' or '" + Configuration.IDENTITY_METHOD_IDENTITY + "'");
         }
-        this.reusableFieldValues = new ReusableFieldValues(valueResolver);
         updateCachedData(initialState);
     }
 
     void updateCachedData(TypeMemoryState state) {
         this.typeMemoryState = state;
-        this.reusableFieldValues.updateStructure(state.activeFields, state.alphaEvaluators);
     }
 
     public Object getFact(FactHandle handle) {
@@ -94,14 +90,6 @@ public final class TypeMemory extends MemoryComponent {
         factStorage.clear();
     }
 
-
-/*
-    private void performInsert(FactRecord factRecord, FactHandleVersioned handle) {
-        reusableFieldValues.update(factRecord);
-        insert(reusableFieldValues, reusableFieldValues.alphaTests(), handle);
-    }
-*/
-
     @Override
     void insert(LazyValues values, Bits alphaTests, FactHandleVersioned value) {
         for (MemoryComponent child : childComponents()) {
@@ -112,7 +100,6 @@ public final class TypeMemory extends MemoryComponent {
     private void forEachMemoryComponent(Consumer<FieldsMemoryBucket> consumer) {
         betaMemories.forEach(fm -> fm.forEachBucket(consumer));
     }
-
 
     @Override
     public void commitChanges() {
@@ -149,7 +136,6 @@ public final class TypeMemory extends MemoryComponent {
                     break;
                 case INSERT:
                     runtimeFacts.add(new RuntimeFact(typeMemoryState, new FactHandleVersioned(a.handle), a.factRecord));
-                    //performInsert(a.factRecord, new FactHandleVersioned(a.handle));
                     break;
                 case UPDATE:
                     FactRecord previous = factStorage.getFact(a.handle);
@@ -162,9 +148,7 @@ public final class TypeMemory extends MemoryComponent {
                         factRecord.updateVersion(newVersion);
                         factStorage.update(handle, factRecord);
                         FactHandleVersioned versioned = new FactHandleVersioned(handle, newVersion);
-                        //RuntimeFact runtimeFact = new RuntimeFact(typeMemoryState, versioned, factRecord);
                         runtimeFacts.add(new RuntimeFact(typeMemoryState, versioned, factRecord));
-                        //performInsert(factRecord, versioned);
                     }
                     break;
                 default:
@@ -209,79 +193,5 @@ public final class TypeMemory extends MemoryComponent {
 
         bucket.insert(runtimeFacts);
         bucket.commitChanges();
-    }
-
-    private static class ReusableFieldValues implements LazyValues {
-        private static final Bits EMPTY_BITS = new Bits();
-        private final ValueResolver valueResolver;
-        private ActiveField[] activeFields;
-        private AlphaEvaluator[] alphaEvaluators;
-        private ValueHandle[] valueHandles;
-        private Object[] fieldValues;
-        private FieldToValue alphaFunction;
-        private Bits alphaTests;
-        private FieldToValueHandle lazyValues;
-        private FieldToValueHandle lazyValuesStatic;
-        private int keyHash;
-
-        ReusableFieldValues(ValueResolver valueResolver) {
-            this.valueResolver = valueResolver;
-        }
-
-        void updateStructure(ActiveField[] activeFields, AlphaEvaluator[] alphaEvaluators) {
-            this.activeFields = activeFields;
-            this.alphaEvaluators = alphaEvaluators;
-            this.fieldValues = new Object[activeFields.length];
-            this.valueHandles = new ValueHandle[activeFields.length];
-            this.alphaFunction = field -> fieldValues[field.getValueIndex()];
-            this.lazyValuesStatic = field -> valueHandles[field.getValueIndex()];
-        }
-
-        @Override
-        public FieldToValueHandle getValues() {
-            if (lazyValues == null) {
-                int idx;
-                this.keyHash = 0;
-                Object fieldValue;
-                for (ActiveField field : activeFields) {
-                    idx = field.getValueIndex();
-                    fieldValue = fieldValues[idx];
-                    ValueHandle h = valueResolver.getValueHandle(field.getValueType(), fieldValue);
-                    valueHandles[idx] = h;
-                    this.keyHash += 37 * h.hashCode();
-                }
-
-                lazyValues = lazyValuesStatic;
-            }
-            return lazyValues;
-        }
-
-        @Override
-        public int keyHash() {
-            return this.keyHash;
-        }
-
-        void update(FactRecord factRecord) {
-            this.lazyValues = null;
-            Object instance = factRecord.instance;
-            for (ActiveField field : activeFields) {
-                fieldValues[field.getValueIndex()] = field.readValue(instance);
-            }
-
-            if (alphaEvaluators.length == 0) {
-                this.alphaTests = EMPTY_BITS;
-            } else {
-                this.alphaTests = new Bits();
-                for (AlphaEvaluator evaluator : alphaEvaluators) {
-                    if (evaluator.test(alphaFunction)) {
-                        this.alphaTests.set(evaluator.getIndex());
-                    }
-                }
-            }
-        }
-
-        Bits alphaTests() {
-            return alphaTests;
-        }
     }
 }
