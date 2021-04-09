@@ -26,4 +26,5 @@ public interface BetaEvaluator extends Copyable<BetaEvaluator>, EvaluationListen
     }
 
     Bits getFactTypeMask();
+
 }

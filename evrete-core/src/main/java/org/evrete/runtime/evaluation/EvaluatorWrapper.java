@@ -20,6 +20,7 @@ public class EvaluatorWrapper implements Evaluator, Listeners {
     };
     private final Set<NamedType> namedTypes = new HashSet<>();
     private ValuesPredicate active;
+    private IntToValue stateValues;
 
     public EvaluatorWrapper(Evaluator delegate) {
         this.delegate = unwrap(delegate);
@@ -27,6 +28,7 @@ public class EvaluatorWrapper implements Evaluator, Listeners {
             this.namedTypes.add(ref.type());
         }
         updateActiveEvaluator();
+        this.stateValues = null;
     }
 
     EvaluatorWrapper(EvaluatorWrapper other) {
@@ -34,6 +36,7 @@ public class EvaluatorWrapper implements Evaluator, Listeners {
         this.listeners.addAll(other.listeners);
         this.namedTypes.addAll(other.namedTypes);
         updateActiveEvaluator();
+        this.stateValues = null;
     }
 
     private static Evaluator unwrap(Evaluator e) {
@@ -81,6 +84,14 @@ public class EvaluatorWrapper implements Evaluator, Listeners {
     @Override
     public final boolean test(IntToValue intToValue) {
         return active.test(intToValue);
+    }
+
+    public final void setStateValues(IntToValue stateValues) {
+        this.stateValues = stateValues;
+    }
+
+    public final boolean test() {
+        return test(this.stateValues);
     }
 
     @Override
