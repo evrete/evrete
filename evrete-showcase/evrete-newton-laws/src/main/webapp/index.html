@@ -22,6 +22,7 @@
 <div class="grid-container">
     <div class="grid-x grid-padding-x">
         <div class="cell small-8">
+            <h2>Newton laws</h2>
             <div id="chart-wrapper">
                 <svg class="svg"
                      height="1600"
@@ -97,16 +98,16 @@
                     </button>
                     <button class="button secondary session-stop"
                             id="reset-button"
-                            onclick="onUiReset()"
+                            onclick="newtonLaws.onUiReset()"
                             title="Reset all">
                         <i class="lni lni-close"></i>
                     </button>
                 </div>
                 <div class="cell small-4 align-right button-group" id="zoom-controls">
-                    <button class="secondary button" id="zoom-in-button" onclick="zoomIn()">
+                    <button class="secondary button" id="zoom-in-button" onclick="newtonLaws.zoomIn()">
                         <i class="lni lni-circle-plus"></i>
                     </button>
-                    <button class="secondary button" id="zoom-out-button" onclick="zoomOut()">
+                    <button class="secondary button" id="zoom-out-button" onclick="newtonLaws.zoomOut()">
                         <i class="lni lni-circle-minus"></i>
                     </button>
                 </div>
@@ -122,8 +123,8 @@
                             <td style="width: 80%;">
                                 <input class="evrete" id="gravity" max="100"
                                        min="0"
-                                       onchange="onUiGravityChange()"
-                                       oninput="onUiGravityChange()"
+                                       onchange="newtonLaws.onUiGravityChange()"
+                                       oninput="newtonLaws.onUiGravityChange()"
                                        step="1"
                                        type="range"
                                        value="50"
@@ -157,7 +158,7 @@
                         <td style="width: 80%;">
                             <input class="evrete" id="mass" max="100"
                                    min="1"
-                                   oninput="onUiMassChange(this)"
+                                   oninput="newtonLaws.onUiMassChange()"
                                    step="1"
                                    type="range"
                                    value="50"

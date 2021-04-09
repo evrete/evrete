@@ -12,7 +12,7 @@ import javax.servlet.annotation.WebListener;
 
 @WebListener
 public class AppContext implements ServletContextListener {
-    static KnowledgeService knowledgeService;
+    private static KnowledgeService knowledgeService;
     static String DEFAULT_SOURCE;
     static String DEFAULT_PRESETS;
 

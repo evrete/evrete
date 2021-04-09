@@ -1,8 +1,8 @@
 package org.evrete.showcase.newton;
 
-import org.evrete.showcase.newton.types.ConfigMessage;
-import org.evrete.showcase.newton.types.MassChangeMessage;
-import org.evrete.showcase.newton.types.StartMessage;
+import org.evrete.showcase.newton.messages.ConfigMessage;
+import org.evrete.showcase.newton.messages.MassChangeMessage;
+import org.evrete.showcase.newton.messages.StartMessage;
 import org.evrete.showcase.shared.JsonMessage;
 import org.evrete.showcase.shared.Message;
 import org.evrete.showcase.shared.SocketMessenger;
@@ -54,7 +54,7 @@ public class NewtonSocketEndpoint {
         }
     }
 
-    private void process(String message, NewtonSessionWrapper sessionWrapper) throws Exception {
+    private static void process(String message, NewtonSessionWrapper sessionWrapper) throws Exception {
         SocketMessenger
                 messenger = sessionWrapper.getMessenger();
         JsonMessage m = Utils.fromJson(message, JsonMessage.class);

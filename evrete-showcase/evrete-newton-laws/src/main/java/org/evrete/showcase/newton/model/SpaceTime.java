@@ -1,4 +1,4 @@
-package org.evrete.showcase.newton.types;
+package org.evrete.showcase.newton.model;
 
 public class SpaceTime {
     public double value;

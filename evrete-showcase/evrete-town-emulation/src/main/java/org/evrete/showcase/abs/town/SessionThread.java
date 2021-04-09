@@ -61,8 +61,9 @@ class SessionThread extends Thread {
                 processState();
                 while (runPredicate()) {
                     Utils.delay(50);
-                    session.updateAndFire(worldTime.increment(intervalSeconds));
-                    processState();
+                    throw new UnsupportedOperationException();
+                    //session.updateAndFire(worldTime.increment(intervalSeconds));
+                    //processState();
                 }
             }
             messenger.sendUnchecked(new Message("LOG", "Session ended"));

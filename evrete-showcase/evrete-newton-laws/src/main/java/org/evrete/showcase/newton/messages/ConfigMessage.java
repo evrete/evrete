@@ -1,4 +1,4 @@
-package org.evrete.showcase.newton.types;
+package org.evrete.showcase.newton.messages;
 
 import org.evrete.showcase.shared.JsonMessage;
 

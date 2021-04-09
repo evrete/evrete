@@ -1,32 +1,40 @@
 package org.evrete.showcase.newton;
 
 import org.evrete.KnowledgeService;
-import org.evrete.api.*;
+import org.evrete.api.ActivationManager;
+import org.evrete.api.Knowledge;
+import org.evrete.api.RuntimeRule;
+import org.evrete.api.StatefulSession;
 import org.evrete.runtime.RuleDescriptor;
-import org.evrete.showcase.newton.types.Particle;
-import org.evrete.showcase.newton.types.SpaceTime;
-import org.evrete.showcase.newton.types.StartMessage;
-import org.evrete.showcase.newton.types.Vector;
-import org.evrete.showcase.shared.*;
+import org.evrete.showcase.newton.messages.StartMessage;
+import org.evrete.showcase.newton.model.Particle;
+import org.evrete.showcase.newton.model.SpaceTime;
+import org.evrete.showcase.newton.rules.MainRuleset;
+import org.evrete.showcase.shared.AbstractSocketSession;
+import org.evrete.showcase.shared.Message;
+import org.evrete.showcase.shared.SocketMessenger;
+import org.evrete.showcase.shared.Utils;
 
 import javax.websocket.Session;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 class NewtonSessionWrapper extends AbstractSocketSession {
     private final AtomicBoolean gate = new AtomicBoolean(true);
-    private final AtomicBoolean running = new AtomicBoolean(false);
     private final Map<String, Particle> initialData = new HashMap<>();
     private CountDownLatch latch = new CountDownLatch(0);
+    private SessionThread thread;
 
-
-    public NewtonSessionWrapper(Session session) {
+    NewtonSessionWrapper(Session session) {
         super(session);
     }
 
-    synchronized void pause(boolean flag) {
+    private synchronized void pause(boolean flag) {
         if (flag) {
             this.latch = new CountDownLatch(1);
         } else {
@@ -74,7 +82,7 @@ class NewtonSessionWrapper extends AbstractSocketSession {
         if (msg.particles.size() == 0) {
             throw new Exception("No objects provided");
         }
-        if (running.get()) {
+        if (thread != null && thread.isAlive()) {
             throw new Exception("Session already started");
         }
         // Close previous session if active
@@ -82,57 +90,33 @@ class NewtonSessionWrapper extends AbstractSocketSession {
 
         // Compile knowledge session
         Knowledge knowledge = buildKnowledge(msg);
-        System.out.println("Gravity " + msg.gravity);
-        StatefulSession knowledgeSession = knowledge
+        StatefulSession session = knowledge
                 .createSession()
-                .setActivationManager(new ReportingActivationManager())
                 .setFireCriteria(gate::get)
                 .set("G", msg.gravity)
                 .set("time-step", 0.000002);
 
-        super.setKnowledgeSession(knowledgeSession);
+        super.setKnowledgeSession(session);
 
         this.initialData.clear();
         this.initialData.putAll(msg.particles);
 
         this.gate.set(true);
-        SessionThread thread = new SessionThread();
+
+        session.setActivationManager(new ReportingActivationManager(session, getMessenger()));
+
+        this.thread = new SessionThread(session, getMessenger(), initialData.values());
         thread.start();
     }
 
     private Knowledge buildKnowledge(StartMessage msg) throws Exception {
-        List<LiteralRule> rules = LiteralRule.parse(msg.rules);
+        //List<LiteralRule> rules = LiteralRule.parse(msg.rules);
         KnowledgeService service = AppContext.knowledgeService();
-        Knowledge knowledge = service.newKnowledge();
-        knowledge.addImport(RuleScope.BOTH, Vector.class);
-        knowledge.addImport(RuleScope.BOTH, Particle.class);
-        for (LiteralRule rule : rules) {
-            Collection<FactBuilder> facts = new ArrayList<>();
-            for (String var : rule.factTypeVars()) {
-                if ("$subject".equals(var)) {
-                    facts.add(FactBuilder.fact(var, Particle.class));
-                }
-                if ("$other".equals(var)) {
-                    facts.add(FactBuilder.fact(var, Particle.class));
-                }
-                if ("$time".equals(var)) {
-                    facts.add(FactBuilder.fact(var, SpaceTime.class));
-                }
-            }
-
-            if (facts.isEmpty()) {
-                throw new Exception("No facts are selected in rule '" + rule.getName() + "'");
-            }
-
-            RuleBuilder<Knowledge> builder = knowledge.newRule(rule.getName())
-                    .forEach(facts)
-                    .where(rule.parsedConditions())
-                    .setRhs(rule.getBody());
-
-            RuleDescriptor descriptor = knowledge.compileRule(builder);
+        Knowledge knowledge = service.newKnowledge().appendDslRules("JAVA-CLASS", MainRuleset.class);
+        for (RuleDescriptor rule : knowledge.getRules()) {
             getMessenger().send(new Message(
                     "LOG",
-                    "Rule compiled: " + descriptor.getName()
+                    "Rule compiled: " + rule.getName()
             ));
         }
 
@@ -147,9 +131,48 @@ class NewtonSessionWrapper extends AbstractSocketSession {
         return super.closeSession();
     }
 
+    public static class SessionThread extends Thread {
+        final SocketMessenger messenger;
+        private final Collection<Particle> initialData;
+        private final StatefulSession session;
+
+
+        SessionThread(StatefulSession session, SocketMessenger messenger, Collection<Particle> initialData) {
+            this.initialData = initialData;
+            this.session = session;
+            this.messenger = messenger;
+        }
+
+        @Override
+        public void run() {
+            try {
+                run1();
+            } catch (Exception e) {
+                messenger.send(e);
+            } finally {
+                messenger.sendUnchecked(new Message("STOPPED"));
+            }
+        }
+
+        private void run1() throws Exception {
+            session.insert(initialData);
+            SpaceTime space = new SpaceTime();
+            session.insert(space);
+            messenger.send(new Message("STARTED"));
+            session.fire();
+        }
+    }
+
     private class ReportingActivationManager implements ActivationManager {
+        private final StatefulSession session;
+        private final SocketMessenger messenger;
         private static final int fps = 20;
         private final AtomicLong lastReported = new AtomicLong(System.currentTimeMillis());
+
+        ReportingActivationManager(StatefulSession session, SocketMessenger messenger) {
+            this.session = session;
+            this.messenger = messenger;
+        }
 
         @Override
         public void onAgenda(int sequenceId, List<RuntimeRule> agenda) {
@@ -163,7 +186,8 @@ class NewtonSessionWrapper extends AbstractSocketSession {
 
                     // Get current particles
                     Map<String, Particle> particles = new HashMap<>();
-                    getKnowledgeSession().forEachMemoryObject(o -> {
+
+                    session.forEachFact((handle, o) -> {
                         if (o instanceof Particle) {
                             Particle p = (Particle) o;
                             particles.put(String.valueOf(p.id), p);
@@ -171,7 +195,7 @@ class NewtonSessionWrapper extends AbstractSocketSession {
                     });
 
                     if (particles.size() == 1) {
-                        getMessenger().send(new Message(
+                        messenger.send(new Message(
                                 "LOG",
                                 "One particle left, simulation ends"
                         ));
@@ -190,31 +214,4 @@ class NewtonSessionWrapper extends AbstractSocketSession {
             }
         }
     }
-
-
-    public class SessionThread extends Thread {
-
-        public SessionThread() {
-        }
-
-        @Override
-        public void run() {
-            final StatefulSession session = getKnowledgeSession();
-            final SocketMessenger messenger = getMessenger();
-            session.insert(initialData.values());
-            session.insert(new SpaceTime());
-            try {
-                messenger.send(new Message("STARTED"));
-                running.set(true);
-                session.fire();
-            } catch (Exception e) {
-                messenger.send(e);
-            } finally {
-                running.set(false);
-                messenger.sendUnchecked(new Message("STOPPED"));
-
-            }
-        }
-    }
-
 }

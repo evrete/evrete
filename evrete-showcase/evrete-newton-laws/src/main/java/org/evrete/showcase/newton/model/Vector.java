@@ -1,4 +1,4 @@
-package org.evrete.showcase.newton.types;
+package org.evrete.showcase.newton.model;
 
 @SuppressWarnings("unused")
 public class Vector {
