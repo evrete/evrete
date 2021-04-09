@@ -54,7 +54,7 @@ abstract class AbstractLhsDescriptor {
         for (ConditionNodeDescriptor finalNode : finalNodes) {
             RhsFactGroupDescriptor descriptor = new RhsFactGroupDescriptor(finalNode);
             allFactGroups.add(descriptor);
-            keyedFactTypes.removeAll(Arrays.asList(descriptor.getTypes()));
+            Arrays.asList(descriptor.getTypes()).forEach(keyedFactTypes::remove);
         }
 
         assert keyedFactTypes.isEmpty();

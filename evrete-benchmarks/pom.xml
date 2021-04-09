@@ -107,13 +107,5 @@
             <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
-
-
-        <!-- rulebook -->
-        <dependency>
-            <groupId>com.deliveredtechnologies</groupId>
-            <artifactId>rulebook-core</artifactId>
-            <version>0.12</version>
-        </dependency>
     </dependencies>
 </project>

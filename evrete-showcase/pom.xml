@@ -12,7 +12,6 @@
     <name>evrete-showcase</name>
     <version>2.0.1-SNAPSHOT</version>
 
-
     <build>
         <plugins>
             <plugin>
@@ -49,13 +48,6 @@
                     <skipTests>true</skipTests>
                 </configuration>
             </plugin>
-
-            <plugin>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 
@@ -63,6 +55,12 @@
         <dependency>
             <groupId>org.evrete</groupId>
             <artifactId>evrete-core</artifactId>
+            <version>2.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.evrete</groupId>
+            <artifactId>evrete-dsl-java</artifactId>
             <version>2.0.1-SNAPSHOT</version>
         </dependency>
 

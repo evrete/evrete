@@ -35,5 +35,4 @@ public interface BetaEvaluator extends Copyable<BetaEvaluator>, EvaluationListen
             e.removeListener(listener);
         }
     }
-
 }

@@ -86,7 +86,7 @@ class FieldsMemoryBucket extends MemoryComponent {
         return new Helper(key, hash);
     }
 
-    private class Helper {
+    private static class Helper {
         final FieldToValueHandle key;
         final int hash;
 

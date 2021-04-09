@@ -114,16 +114,16 @@ class EvaluatorCompiler {
         String classJavaSource = String.format(
                 JAVA_EVALUATOR_TEMPLATE,
                 pkg,
-                importsBuilder.toString(),
+                importsBuilder,
                 clazz,
                 baseClass.getName(),
                 clazz,
                 IntToValue.class.getName() + ".class",
-                methodArgs.toString(),
+                methodArgs,
                 replaced,
                 IntToValue.class.getName() + " values",
-                "testInner(" + argCasts.toString() + ");",
-                "fields in use: " + argTypes.toString()
+                "testInner(" + argCasts + ");",
+                "fields in use: " + argTypes
         );
 
         String comparableClassSource = classJavaSource.replaceAll(clazz, "CLASS_STUB");

@@ -1,29 +1,27 @@
 package org.evrete.benchmarks.models.sales;
 
-public class Customer {
-    public final int id;
-    public final String name;
+import java.security.SecureRandom;
+import java.util.Random;
 
-    public Customer(int id, String name) {
-        this.id = id;
-        this.name = name;
-    }
+public class Customer {
+    private static final Random random = new SecureRandom();
+
+    public final int id;
+    public final double rating;
 
     public Customer(int id) {
-        this(id, "customer" + id);
+        this(id, random.nextInt(10) / 2.0);
     }
 
-    public boolean sameName(String name) {
-        waitNs(1000);
-        return name.equals(this.name);
+    public Customer(int id, double rating) {
+        this.id = id;
+        this.rating = rating;
     }
 
-    private void waitNs(long i) {
-        long start = System.nanoTime();
-        long end;
-        do {
-            end = System.nanoTime();
-        } while (start + i >= end);
+    @Override
+    public String toString() {
+        return "Customer{" +
+                "id=" + id +
+                '}';
     }
-
 }

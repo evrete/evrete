@@ -33,11 +33,11 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
 
     void onNewActiveField(TypeMemoryState state, ActiveField newField) {
         // This will update type memory's fields and alpha-conditions
-        getCreate(state);
+        getCreateUpdate(state);
     }
 
     void onNewAlphaBucket(TypeMemoryState newState, FieldsKey key, AlphaBucketMeta meta) {
-        getCreate(newState)
+        getCreateUpdate(newState)
                 .onNewAlphaBucket(key, meta);
     }
 
@@ -53,8 +53,7 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
         return get(t.getId());
     }
 
-    //TODO method updates type memory's state variables, rename
-    TypeMemory getCreate(TypeMemoryState state) {
+    TypeMemory getCreateUpdate(TypeMemoryState state) {
         Type<?> t = state.type;
         TypeMemory m = typedMemories.get(t.getId());
         if (m == null) {

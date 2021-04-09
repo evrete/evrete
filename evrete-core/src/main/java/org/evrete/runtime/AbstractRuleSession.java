@@ -106,7 +106,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
         for (FactType factType : descriptor.getLhs().getFactTypes()) {
             Type<?> t = factType.getType();
             TypeMemoryState state = getActiveSate(t);
-            TypeMemory tm = memory.getCreate(state);
+            TypeMemory tm = memory.getCreateUpdate(state);
             tm.touchMemory(factType.getFields(), factType.getAlphaMask());
         }
         RuntimeRuleImpl rule = ruleStorage.addRule(descriptor, this);

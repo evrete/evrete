@@ -67,12 +67,9 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
 
     private ActiveField getCreate(TypeField field) {
         TypeMeta meta = getTypeMeta(field.getDeclaringType());
-        return meta.getCreate(field, new NewActiveFieldListener() {
-            @Override
-            public void onNew(ActiveField newField) {
-                TypeMemoryState newState = meta.asState();
-                RuntimeMetaData.this.onNewActiveField(newState, newField);
-            }
+        return meta.getCreate(field, newField -> {
+            TypeMemoryState newState = meta.asState();
+            RuntimeMetaData.this.onNewActiveField(newState, newField);
         });
     }
 
@@ -205,7 +202,6 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         return properties.keySet();
     }
 
-    //TODO !!!! non-lazy initialization isn't working
     public abstract ExpressionResolver getExpressionResolver();
 
     @FunctionalInterface

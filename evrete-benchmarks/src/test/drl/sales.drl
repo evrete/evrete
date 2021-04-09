@@ -1,15 +1,16 @@
 import org.evrete.benchmarks.models.sales.Invoice;
-import org.evrete.benchmarks.models.sales.Department;
+import org.evrete.benchmarks.models.sales.SalesUnit;
 import org.evrete.benchmarks.models.sales.Customer;
 import org.evrete.benchmarks.models.sales.SalesReport;
 
 rule "sales"
   when
-      $i        : Invoice()
-      $c        : Customer(id == $i.customer.id)
+      $unit     : SalesUnit()
+      $i        : Invoice(salesUnit == $unit)
+      $c        : Customer(id == $i.customerId, rating > 4.0)
       $report   : SalesReport();
 
   then
-      $report.sales += $i.amount;
+      $report.add($unit, $i.amount);
 end
 
