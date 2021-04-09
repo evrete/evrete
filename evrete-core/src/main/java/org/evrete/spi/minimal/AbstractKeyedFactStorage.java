@@ -30,7 +30,7 @@ abstract class AbstractKeyedFactStorage<T extends AbstractFactsMap<?>> implement
     }
 
     @Override
-    public final void insert(FieldToValueHandle key, int keyHash, Collection<FactHandleVersioned> factHandles) {
+    public final void insert(IntToValueHandle key, int keyHash, Collection<FactHandleVersioned> factHandles) {
         if (get(KeyMode.MAIN).hasKey(keyHash, key)) {
             // Existing key
             get(KeyMode.KNOWN_UNKNOWN).add(key, keyHash, factHandles);

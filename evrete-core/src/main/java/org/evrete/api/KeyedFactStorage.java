@@ -17,7 +17,7 @@ public interface KeyedFactStorage extends InnerFactMemory {
      * @param keyHash     precomputed key hash code
      * @param factHandles fact handle to save
      */
-    void insert(FieldToValueHandle key, int keyHash, Collection<FactHandleVersioned> factHandles);
+    void insert(IntToValueHandle key, int keyHash, Collection<FactHandleVersioned> factHandles);
 
     /**
      * <p>

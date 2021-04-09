@@ -10,27 +10,33 @@ import java.util.function.Function;
 abstract class AbstractFactsMap<K extends MemoryKey> {
     final LinearHashSet<MapKey<K>> data;
     final BiPredicate<MapKey<K>, FieldToValueHandle> search;
+    final BiPredicate<MapKey<K>, IntToValueHandle> search1;
     final int myModeOrdinal;
     private final BiPredicate<MapKey<K>, K> SEARCH_PREDICATE = (entry, memoryKey) -> entry.key.equals(memoryKey);
     private final Function<MapKey<K>, MemoryKey> ENTRY_MAPPER = entry -> entry.key;
 
     AbstractFactsMap(KeyMode myMode, int minCapacity) {
         this.search = this::sameData;
+        this.search1 = this::sameData1;
         this.myModeOrdinal = myMode.ordinal();
         this.data = new LinearHashSet<>(minCapacity);
     }
 
     abstract boolean sameData(MapKey<K> mapEntry, FieldToValueHandle key);
 
+    abstract boolean sameData1(MapKey<K> mapEntry, IntToValueHandle key);
+
     abstract K newKeyInstance(FieldToValueHandle fieldValues, int hash);
+
+    abstract K newKeyInstance(IntToValueHandle fieldValues, int hash);
 
     final ReIterator<MemoryKey> keys() {
         return data.iterator(ENTRY_MAPPER);
     }
 
-    public final void add(FieldToValueHandle key, int keyHash, Collection<FactHandleVersioned> factHandles) {
+    public final void add(IntToValueHandle key, int keyHash, Collection<FactHandleVersioned> factHandles) {
         data.resize();
-        int addr = data.findBinIndex(key, keyHash, search);
+        int addr = data.findBinIndex(key, keyHash, search1);
         MapKey<K> entry = data.get(addr);
         if (entry == null) {
             K k = newKeyInstance(key, keyHash);
@@ -45,8 +51,8 @@ abstract class AbstractFactsMap<K extends MemoryKey> {
 
     }
 
-    final boolean hasKey(int hash, FieldToValueHandle key) {
-        int addr = data.findBinIndex(key, hash, search);
+    final boolean hasKey(int hash, IntToValueHandle key) {
+        int addr = data.findBinIndex(key, hash, search1);
         return data.get(addr) != null;
     }
 

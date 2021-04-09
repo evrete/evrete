@@ -76,24 +76,24 @@ class FieldsMemoryBucket extends MemoryComponent {
     }
 
     private Helper buildKeyAndHash(RuntimeFact fact) {
-        ValueHandle[] valueHandles = new ValueHandle[fact.fieldValues.length];
+        ValueHandle[] valueHandles = new ValueHandle[activeFields.length];
         int hash = 0;
-        for (int i = 0; i < valueHandles.length; i++) {
-            ActiveField field = fact.activeFields[i];
-            Object v = fact.fieldValues[i];
+        for (int i = 0; i < activeFields.length; i++) {
+            ActiveField field = activeFields[i];
+            Object v = fact.fieldValues[field.getValueIndex()];
             ValueHandle valueHandle = valueResolver.getValueHandle(field.getValueType(), v);
             hash += valueHandle.hashCode() * 37;
             valueHandles[i] = valueHandle;
         }
-        FieldToValueHandle key = field -> valueHandles[field.getValueIndex()];
+        IntToValueHandle key = i -> valueHandles[i];
         return new Helper(key, hash);
     }
 
     private static class Helper {
-        final FieldToValueHandle key;
+        final IntToValueHandle key;
         final int hash;
 
-        Helper(FieldToValueHandle key, int hash) {
+        Helper(IntToValueHandle key, int hash) {
             this.key = key;
             this.hash = hash;
         }
