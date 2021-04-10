@@ -8,6 +8,7 @@ import org.evrete.benchmarks.models.ml.DataModel;
 import org.evrete.benchmarks.models.ml.Image;
 import org.kie.api.runtime.KieContainer;
 import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.infra.Blackhole;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,7 +45,6 @@ public class ImageModel {
         s.close();
     }
 
-/*
     @Benchmark
     public void baseline(BenchmarkState state) {
         DataModel model = new DataModel();
@@ -58,7 +58,6 @@ public class ImageModel {
         int b = model.blackHoleData > 1000? 1:2;
         Blackhole.consumeCPU(b);
     }
-*/
 
     @SuppressWarnings("unused")
     @State(Scope.Benchmark)
@@ -66,8 +65,7 @@ public class ImageModel {
         private static final int LABELS = 4;
         private final Random random = new Random();
         List<Image> images;
-        //@Param({"1", "2", "4", "8", "16", "32", "64", "128", "256", "512"})
-        @Param({"512"})
+        @Param({"1", "2", "4", "8", "16", "32", "64", "128", "256", "512"})
         int scale;
         SessionWrapper droolsSession;
         SessionWrapper evreteSession;

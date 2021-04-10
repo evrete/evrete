@@ -10,6 +10,7 @@ import org.evrete.benchmarks.models.sales.SalesReport;
 import org.evrete.benchmarks.models.sales.SalesUnit;
 import org.kie.api.runtime.KieContainer;
 import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.infra.Blackhole;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,7 +43,6 @@ public class SalesModel {
         s.close();
     }
 
-/*
     @Benchmark
     public void baseline(BenchmarkState state) {
         SalesReport report = new SalesReport();
@@ -67,15 +67,14 @@ public class SalesModel {
         int b = report.hashCode() > 1000? 1:2;
         Blackhole.consumeCPU(b);
     }
-*/
+
 
     @SuppressWarnings("unused")
     @State(Scope.Benchmark)
     public static class BenchmarkState {
         private final Random random = new Random();
         List<Object> sessionObjects;
-        //@Param({"1", "2", "4", "8", "16", "32", "64", "128", "256", "512"})
-        @Param({"512"})
+        @Param({"1", "2", "4", "8", "16", "32", "64", "128", "256", "512"})
         int scale;
         SessionWrapper droolsSession;
         SessionWrapper evreteSession;
