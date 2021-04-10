@@ -8,14 +8,14 @@ import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
-public class FieldsMemory extends MemoryComponent implements InnerFactMemory {
+public class KeyMemory extends MemoryComponent implements InnerFactMemory {
     private final FieldsKey typeFields;
-    private final ArrayOf<FieldsMemoryBucket> alphaBuckets;
+    private final ArrayOf<KeyMemoryBucket> alphaBuckets;
 
-    FieldsMemory(MemoryComponent runtime, FieldsKey typeFields) {
+    KeyMemory(MemoryComponent runtime, FieldsKey typeFields) {
         super(runtime);
         this.typeFields = typeFields;
-        this.alphaBuckets = new ArrayOf<>(FieldsMemoryBucket.class);
+        this.alphaBuckets = new ArrayOf<>(KeyMemoryBucket.class);
     }
 
 
@@ -24,7 +24,7 @@ public class FieldsMemory extends MemoryComponent implements InnerFactMemory {
         // Only child data present
     }
 
-    void forEachBucket(Consumer<? super FieldsMemoryBucket> consumer) {
+    void forEachBucket(Consumer<? super KeyMemoryBucket> consumer) {
         alphaBuckets.forEach(consumer);
     }
 
@@ -44,13 +44,13 @@ public class FieldsMemory extends MemoryComponent implements InnerFactMemory {
 
     @Override
     public void commitChanges() {
-        for (FieldsMemoryBucket bucket : alphaBuckets.data) {
+        for (KeyMemoryBucket bucket : alphaBuckets.data) {
             bucket.commitChanges();
         }
     }
 
-    FieldsMemoryBucket getCreate(AlphaBucketMeta alphaMeta) {
-        return alphaBuckets.computeIfAbsent(alphaMeta.getBucketIndex(), k -> new FieldsMemoryBucket(FieldsMemory.this, typeFields, alphaMeta));
+    KeyMemoryBucket getCreate(AlphaBucketMeta alphaMeta) {
+        return alphaBuckets.computeIfAbsent(alphaMeta.getBucketIndex(), k -> new KeyMemoryBucket(KeyMemory.this, typeFields, alphaMeta));
     }
 
 

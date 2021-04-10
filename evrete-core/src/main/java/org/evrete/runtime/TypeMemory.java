@@ -15,12 +15,12 @@ public final class TypeMemory extends MemoryComponent {
     private final MemoryActionBuffer buffer;
     private final FactStorage<FactRecord> factStorage;
     private final Type<?> type;
-    private final ArrayOf<FieldsMemory> betaMemories;
+    private final ArrayOf<KeyMemory> betaMemories;
     private TypeMemoryState typeMemoryState;
 
     TypeMemory(SessionMemory sessionMemory, TypeMemoryState initialState) {
         super(sessionMemory);
-        this.betaMemories = new ArrayOf<>(new FieldsMemory[0]);
+        this.betaMemories = new ArrayOf<>(new KeyMemory[0]);
         this.type = initialState.type;
         this.buffer = new MemoryActionBuffer(configuration.getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT));
         String identityMethod = configuration.getProperty(Configuration.OBJECT_COMPARE_METHOD);
@@ -89,7 +89,7 @@ public final class TypeMemory extends MemoryComponent {
         factStorage.clear();
     }
 
-    private void forEachMemoryComponent(Consumer<FieldsMemoryBucket> consumer) {
+    private void forEachMemoryComponent(Consumer<KeyMemoryBucket> consumer) {
         betaMemories.forEach(fm -> fm.forEachBucket(consumer));
     }
 
@@ -154,8 +154,8 @@ public final class TypeMemory extends MemoryComponent {
         buffer.clear();
     }
 
-    public final FieldsMemory get(FieldsKey fields) {
-        FieldsMemory fm = betaMemories.get(fields.getId());
+    public final KeyMemory get(FieldsKey fields) {
+        KeyMemory fm = betaMemories.get(fields.getId());
         if (fm == null) {
             throw new IllegalArgumentException("No key memory exists for " + fields);
         } else {
@@ -163,18 +163,18 @@ public final class TypeMemory extends MemoryComponent {
         }
     }
 
-    FieldsMemoryBucket touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
+    KeyMemoryBucket touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
         return betaMemories
                 .computeIfAbsent(
                         key.getId(),
-                        i -> new FieldsMemory(TypeMemory.this, key)
+                        i -> new KeyMemory(TypeMemory.this, key)
                 )
                 .getCreate(alphaMeta);
     }
 
 
     void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
-        FieldsMemoryBucket bucket = touchMemory(key, meta);
+        KeyMemoryBucket bucket = touchMemory(key, meta);
         ReIterator<FactStorage.Entry<FactRecord>> allFacts = factStorage.iterator();
         List<RuntimeFact> runtimeFacts = new LinkedList<>();
         while (allFacts.hasNext()) {

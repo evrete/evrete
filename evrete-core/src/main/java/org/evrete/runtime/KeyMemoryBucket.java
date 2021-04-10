@@ -10,13 +10,14 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 //TODO !!! create implementation for zero, one, and multiple fields
-class FieldsMemoryBucket extends MemoryComponent {
+class KeyMemoryBucket extends MemoryComponent {
     private final KeyedFactStorage fieldData;
     private final AlphaBucketMeta alphaMask;
     private final ActiveField[] activeFields;
+    private final Collection<FactHandleVersioned> insertData = new LinkedList<>();
 
 
-    FieldsMemoryBucket(MemoryComponent runtime, FieldsKey typeFields, AlphaBucketMeta alphaMask) {
+    KeyMemoryBucket(MemoryComponent runtime, FieldsKey typeFields, AlphaBucketMeta alphaMask) {
         super(runtime);
         this.alphaMask = alphaMask;
         this.fieldData = memoryFactory.newBetaStorage(typeFields.getFields());
@@ -25,7 +26,6 @@ class FieldsMemoryBucket extends MemoryComponent {
 
     void insert(Iterable<RuntimeFact> facts) {
         RuntimeFact current = null;
-        Collection<FactHandleVersioned> insertData = new LinkedList<>();
         for (RuntimeFact fact : facts) {
             if (alphaMask.test(fact.alphaTests)) {
                 if (current == null) {
@@ -36,10 +36,8 @@ class FieldsMemoryBucket extends MemoryComponent {
                         insertData.add(fact.factHandle);
                     } else {
                         // Key changed, ready for batch insert
-                        Helper helper = buildKeyAndHash(current);
-                        helper.do1(fieldData, insertData);
-                        //fieldData.insert(helper.key, helper.hash, insertData);
-                        insertData.clear();
+                        doStuff(current);
+
                         insertData.add(fact.factHandle);
                         current = fact;
                     }
@@ -48,12 +46,17 @@ class FieldsMemoryBucket extends MemoryComponent {
         }
 
         if (!insertData.isEmpty()) {
-            Helper helper = buildKeyAndHash(current);
-            helper.do1(fieldData, insertData);
-            //fieldData.insert(helper.key, helper.hash, insertData);
+            doStuff(current);
         }
 
 
+    }
+
+    //TODO !!!! rename & refactor
+    private void doStuff(RuntimeFact current) {
+        Helper helper = buildKeyAndHash(current);
+        helper.do1(fieldData, insertData);
+        insertData.clear();
     }
 
     @Override
