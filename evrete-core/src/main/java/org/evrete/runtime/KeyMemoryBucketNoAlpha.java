@@ -1,8 +1,6 @@
 package org.evrete.runtime;
 
-import org.evrete.api.ActiveField;
-
-class KeyMemoryBucketNoAlpha extends KeyMemoryBucket {
+abstract class KeyMemoryBucketNoAlpha extends KeyMemoryBucket {
 
     KeyMemoryBucketNoAlpha(MemoryComponent runtime, FieldsKey typeFields) {
         super(runtime, typeFields);
@@ -23,17 +21,6 @@ class KeyMemoryBucketNoAlpha extends KeyMemoryBucket {
         }
         if (!insertData.isEmpty()) {
             flushBuffer();
-        }
-    }
-
-    @Override
-    final void flushBuffer() {
-        if (current != DUMMY_FACT) {
-            for (ActiveField field : activeFields) {
-                fieldData.write(currentFactField(field));
-            }
-            fieldData.write(insertData);
-            insertData.clear();
         }
     }
 }

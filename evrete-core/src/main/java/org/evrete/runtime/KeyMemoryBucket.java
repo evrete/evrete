@@ -30,9 +30,23 @@ abstract class KeyMemoryBucket extends MemoryComponent {
 
     static KeyMemoryBucket factory(MemoryComponent runtime, FieldsKey typeFields, AlphaBucketMeta alphaMask) {
         if (alphaMask.isEmpty()) {
-            return new KeyMemoryBucketNoAlpha(runtime, typeFields);
+            switch (typeFields.size()) {
+                case 0:
+                    return new KeyMemoryBucketNoAlpha0(runtime, typeFields);
+                case 1:
+                    return new KeyMemoryBucketNoAlpha1(runtime, typeFields);
+                default:
+                    return new KeyMemoryBucketNoAlphaN(runtime, typeFields);
+            }
         } else {
-            return new KeyMemoryBucketAlpha(runtime, typeFields, alphaMask);
+            switch (typeFields.size()) {
+                case 0:
+                    return new KeyMemoryBucketAlpha0(runtime, typeFields, alphaMask);
+                case 1:
+                    return new KeyMemoryBucketAlpha1(runtime, typeFields, alphaMask);
+                default:
+                    return new KeyMemoryBucketAlphaN(runtime, typeFields, alphaMask);
+            }
         }
     }
 
