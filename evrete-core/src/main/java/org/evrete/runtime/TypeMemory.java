@@ -127,7 +127,7 @@ public final class TypeMemory extends MemoryComponent {
                     factStorage.delete(a.handle);
                     break;
                 case INSERT:
-                    runtimeFacts.add(new RuntimeFact(typeMemoryState, new FactHandleVersioned(a.handle), a.factRecord));
+                    runtimeFacts.add(new RuntimeFact(valueResolver, typeMemoryState, new FactHandleVersioned(a.handle), a.factRecord));
                     break;
                 case UPDATE:
                     FactRecord previous = factStorage.getFact(a.handle);
@@ -140,7 +140,7 @@ public final class TypeMemory extends MemoryComponent {
                         factRecord.updateVersion(newVersion);
                         factStorage.update(handle, factRecord);
                         FactHandleVersioned versioned = new FactHandleVersioned(handle, newVersion);
-                        runtimeFacts.add(new RuntimeFact(typeMemoryState, versioned, factRecord));
+                        runtimeFacts.add(new RuntimeFact(valueResolver, typeMemoryState, versioned, factRecord));
                     }
                     break;
                 default:
@@ -180,7 +180,7 @@ public final class TypeMemory extends MemoryComponent {
         while (allFacts.hasNext()) {
             FactStorage.Entry<FactRecord> rec = allFacts.next();
             FactHandleVersioned fhv = new FactHandleVersioned(rec.getHandle(), rec.getInstance().getVersion());
-            runtimeFacts.add(new RuntimeFact(typeMemoryState, fhv, rec.getInstance()));
+            runtimeFacts.add(new RuntimeFact(valueResolver, typeMemoryState, fhv, rec.getInstance()));
         }
 
         bucket.insert(runtimeFacts);

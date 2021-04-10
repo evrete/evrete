@@ -1,8 +1,6 @@
 package org.evrete.runtime;
 
-import org.evrete.api.ActiveField;
-import org.evrete.api.FactHandleVersioned;
-import org.evrete.api.FieldToValue;
+import org.evrete.api.*;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 import org.evrete.util.Bits;
 
@@ -16,19 +14,25 @@ import java.util.Objects;
 class RuntimeFact {
     private static final Bits EMPTY = new Bits();
     final Object[] fieldValues;
+    final ValueHandle[] valueHandles;
     final FactHandleVersioned factHandle;
     final Bits alphaTests;
+    final ValueResolver resolver;
 
     RuntimeFact() {
         this.fieldValues = null;
         this.factHandle = null;
         this.alphaTests = null;
+        this.valueHandles = null;
+        this.resolver = null;
     }
 
-    RuntimeFact(TypeMemoryState typeMemoryState, FactHandleVersioned factHandle, FactRecord factRecord) {
+    RuntimeFact(ValueResolver resolver, TypeMemoryState typeMemoryState, FactHandleVersioned factHandle, FactRecord factRecord) {
         this.factHandle = factHandle;
+        this.resolver = resolver;
         ActiveField[] activeFields = typeMemoryState.activeFields;
         this.fieldValues = new Object[activeFields.length];
+        this.valueHandles = new ValueHandle[activeFields.length];
         for (int i = 0; i < fieldValues.length; i++) {
             this.fieldValues[i] = activeFields[i].readValue(factRecord.instance);
         }
@@ -44,6 +48,21 @@ class RuntimeFact {
                 }
             }
         }
+    }
+
+    ValueHandle getValue(ActiveField field) {
+        int idx = field.getValueIndex();
+        ValueHandle h = this.valueHandles[idx];
+        if (h == null) {
+            synchronized (valueHandles) {
+                h = this.valueHandles[idx];
+                if (h == null) {
+                    h = resolver.getValueHandle(field.getValueType(), fieldValues[idx]);
+                    valueHandles[idx] = h;
+                }
+            }
+        }
+        return h;
     }
 
     boolean sameValues(RuntimeFact other) {

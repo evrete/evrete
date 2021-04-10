@@ -51,7 +51,7 @@ abstract class KeyMemoryBucket extends MemoryComponent {
     }
 
     ValueHandle currentFactField(ActiveField field) {
-        return valueResolver.getValueHandle(field.getValueType(), current.fieldValues[field.getValueIndex()]);
+        return current.getValue(field);
     }
 
     abstract void flushBuffer();
