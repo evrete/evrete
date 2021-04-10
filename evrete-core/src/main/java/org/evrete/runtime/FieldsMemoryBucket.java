@@ -1,11 +1,15 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
+import org.evrete.api.ActiveField;
+import org.evrete.api.FactHandleVersioned;
+import org.evrete.api.KeyedFactStorage;
+import org.evrete.api.ValueHandle;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
 import java.util.Collection;
 import java.util.LinkedList;
 
+//TODO !!! create implementation for zero, one, and multiple fields
 class FieldsMemoryBucket extends MemoryComponent {
     private final KeyedFactStorage fieldData;
     private final AlphaBucketMeta alphaMask;
@@ -33,7 +37,8 @@ class FieldsMemoryBucket extends MemoryComponent {
                     } else {
                         // Key changed, ready for batch insert
                         Helper helper = buildKeyAndHash(current);
-                        fieldData.insert(helper.key, helper.hash, insertData);
+                        helper.do1(fieldData, insertData);
+                        //fieldData.insert(helper.key, helper.hash, insertData);
                         insertData.clear();
                         insertData.add(fact.factHandle);
                         current = fact;
@@ -44,7 +49,8 @@ class FieldsMemoryBucket extends MemoryComponent {
 
         if (!insertData.isEmpty()) {
             Helper helper = buildKeyAndHash(current);
-            fieldData.insert(helper.key, helper.hash, insertData);
+            helper.do1(fieldData, insertData);
+            //fieldData.insert(helper.key, helper.hash, insertData);
         }
 
 
@@ -71,25 +77,27 @@ class FieldsMemoryBucket extends MemoryComponent {
 
     private Helper buildKeyAndHash(RuntimeFact fact) {
         ValueHandle[] valueHandles = new ValueHandle[activeFields.length];
-        int hash = 0;
         for (int i = 0; i < activeFields.length; i++) {
             ActiveField field = activeFields[i];
             Object v = fact.fieldValues[field.getValueIndex()];
             ValueHandle valueHandle = valueResolver.getValueHandle(field.getValueType(), v);
-            hash += valueHandle.hashCode() * 37;
             valueHandles[i] = valueHandle;
         }
-        IntToValueHandle key = i -> valueHandles[i];
-        return new Helper(key, hash);
+        return new Helper(valueHandles);
     }
 
     private static class Helper {
-        final IntToValueHandle key;
-        final int hash;
+        ValueHandle[] valueHandles;
 
-        Helper(IntToValueHandle key, int hash) {
-            this.key = key;
-            this.hash = hash;
+        Helper(ValueHandle[] valueHandles) {
+            this.valueHandles = valueHandles;
+        }
+
+        void do1(KeyedFactStorage memory, Collection<FactHandleVersioned> facts) {
+            for (ValueHandle valueHandle : valueHandles) {
+                memory.write(valueHandle);
+            }
+            memory.write(facts);
         }
     }
 }

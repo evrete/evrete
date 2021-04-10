@@ -20,7 +20,12 @@ class SharedAlphaData implements KeyedFactStorage {
     }
 
     @Override
-    public void insert(IntToValueHandle key, int keyHash, Collection<FactHandleVersioned> factHandles) {
+    public void write(ValueHandle partialKey) {
+        // We have zero keys, this method won't be called
+    }
+
+    @Override
+    public void write(Collection<FactHandleVersioned> factHandles) {
         LinkedFactHandles data = get(KeyMode.KNOWN_UNKNOWN);
         for (FactHandleVersioned h : factHandles) {
             data.add(h);
