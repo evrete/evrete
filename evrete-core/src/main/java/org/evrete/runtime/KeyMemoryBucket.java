@@ -9,6 +9,13 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 abstract class KeyMemoryBucket extends MemoryComponent {
+    // A convenience fact instance that is never equal to others
+    static final RuntimeFact DUMMY_FACT = new RuntimeFact() {
+        @Override
+        boolean sameValues(RuntimeFact other) {
+            return false;
+        }
+    };
     final KeyedFactStorage fieldData;
     final ActiveField[] activeFields;
     final Collection<FactHandleVersioned> insertData = new LinkedList<>();
@@ -28,7 +35,7 @@ abstract class KeyMemoryBucket extends MemoryComponent {
         }
     }
 
-    abstract void doStuff();
+    abstract void flushBuffer();
 
     abstract void insert(Iterable<RuntimeFact> facts);
 

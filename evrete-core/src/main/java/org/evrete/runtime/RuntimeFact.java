@@ -19,6 +19,12 @@ class RuntimeFact {
     final FactHandleVersioned factHandle;
     final Bits alphaTests;
 
+    RuntimeFact() {
+        this.fieldValues = null;
+        this.factHandle = null;
+        this.alphaTests = null;
+    }
+
     RuntimeFact(TypeMemoryState typeMemoryState, FactHandleVersioned factHandle, FactRecord factRecord) {
         this.factHandle = factHandle;
         ActiveField[] activeFields = typeMemoryState.activeFields;

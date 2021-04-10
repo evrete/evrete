@@ -14,41 +14,37 @@ class KeyMemoryBucketNoAlpha extends KeyMemoryBucket {
     }
 
     @Override
-    void insert(Iterable<RuntimeFact> facts) {
-        current = null;
+    final void insert(Iterable<RuntimeFact> facts) {
+        current = DUMMY_FACT;
         for (RuntimeFact fact : facts) {
-            if (current == null) {
+            if (current.sameValues(fact)) {
+                insertData.add(fact.factHandle);
+            } else {
+                // Key changed, ready for batch insert
+                flushBuffer();
                 insertData.add(fact.factHandle);
                 current = fact;
-            } else {
-                if (fact.sameValues(current)) {
-                    insertData.add(fact.factHandle);
-                } else {
-                    // Key changed, ready for batch insert
-                    doStuff();
-                    insertData.add(fact.factHandle);
-                    current = fact;
-                }
             }
         }
-
         if (!insertData.isEmpty()) {
-            doStuff();
+            flushBuffer();
         }
     }
 
-    //TODO !!!! rename & refactor
-    void doStuff() {
-        Helper helper = buildKeyAndHash(current);
-        helper.do1(fieldData, insertData);
-        insertData.clear();
+    @Override
+    final void flushBuffer() {
+        if (current != DUMMY_FACT) {
+            Helper helper = buildKeyAndHash();
+            helper.do1(fieldData, insertData);
+            insertData.clear();
+        }
     }
 
-    private Helper buildKeyAndHash(RuntimeFact fact) {
+    private Helper buildKeyAndHash() {
         ValueHandle[] valueHandles = new ValueHandle[activeFields.length];
         for (int i = 0; i < activeFields.length; i++) {
             ActiveField field = activeFields[i];
-            Object v = fact.fieldValues[field.getValueIndex()];
+            Object v = current.fieldValues[field.getValueIndex()];
             ValueHandle valueHandle = valueResolver.getValueHandle(field.getValueType(), v);
             valueHandles[i] = valueHandle;
         }
