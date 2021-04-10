@@ -1,10 +1,11 @@
 package org.evrete.runtime;
 
 import org.evrete.Configuration;
-import org.evrete.api.*;
+import org.evrete.api.KeyedFactStorage;
+import org.evrete.api.MemoryFactory;
+import org.evrete.api.Type;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
-import org.evrete.util.Bits;
 
 import java.util.Iterator;
 
@@ -25,14 +26,7 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
         return typedMemories.iterator();
     }
 
-/*
-    void touchMemory(Type<?> t, ActiveField[] activeFields, AlphaEvaluator[] alphaEvaluators, FieldsKey key, AlphaBucketMeta alphaMeta) {
-        getCreate(t, activeFields, alphaEvaluators).touchMemory(key, alphaMeta);
-    }
-*/
-
-    void onNewActiveField(TypeMemoryState state, ActiveField newField) {
-        // This will update type memory's fields and alpha-conditions
+    void onNewActiveField(TypeMemoryState state) {
         getCreateUpdate(state);
     }
 
@@ -72,11 +66,6 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
             throw new IllegalStateException("Unknown type id: " + typeId);
         }
         return m;
-    }
-
-    @Override
-    void insert(LazyValues values, Bits alphaTests, FactHandleVersioned value) {
-        throw new UnsupportedOperationException("Direct insert not supported");
     }
 
     @Override

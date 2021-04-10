@@ -1,12 +1,9 @@
 package org.evrete.runtime;
 
 import org.evrete.Configuration;
-import org.evrete.api.FactHandleVersioned;
-import org.evrete.api.FieldToValueHandle;
 import org.evrete.api.MemoryFactory;
 import org.evrete.api.ValueResolver;
 import org.evrete.collections.ArrayOf;
-import org.evrete.util.Bits;
 
 abstract class MemoryComponent {
     final MemoryFactory memoryFactory;
@@ -27,8 +24,6 @@ abstract class MemoryComponent {
         parent.addChild(this);
     }
 
-    abstract void insert(LazyValues key, Bits alphaTests, FactHandleVersioned value);
-
     abstract void commitChanges();
 
     private void addChild(MemoryComponent childComponent) {
@@ -46,12 +41,5 @@ abstract class MemoryComponent {
         for (MemoryComponent child : childComponents.data) {
             child.clear();
         }
-    }
-
-
-    interface LazyValues {
-        FieldToValueHandle getValues();
-
-        int keyHash();
     }
 }

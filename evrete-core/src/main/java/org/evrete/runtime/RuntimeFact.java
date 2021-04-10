@@ -18,11 +18,10 @@ class RuntimeFact {
     final Object[] fieldValues;
     final FactHandleVersioned factHandle;
     final Bits alphaTests;
-    final ActiveField[] activeFields;
 
     RuntimeFact(TypeMemoryState typeMemoryState, FactHandleVersioned factHandle, FactRecord factRecord) {
         this.factHandle = factHandle;
-        this.activeFields = typeMemoryState.activeFields;
+        ActiveField[] activeFields = typeMemoryState.activeFields;
         this.fieldValues = new Object[activeFields.length];
         for (int i = 0; i < fieldValues.length; i++) {
             this.fieldValues[i] = activeFields[i].readValue(factRecord.instance);

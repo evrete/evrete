@@ -2,7 +2,6 @@ package org.evrete.runtime;
 
 import org.evrete.api.*;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
-import org.evrete.util.Bits;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -63,11 +62,6 @@ class FieldsMemoryBucket extends MemoryComponent {
     @Override
     public void commitChanges() {
         fieldData.commitChanges();
-    }
-
-    @Override
-    void insert(LazyValues values, Bits alphaTests, FactHandleVersioned handle) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

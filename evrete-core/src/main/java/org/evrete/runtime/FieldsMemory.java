@@ -1,11 +1,9 @@
 package org.evrete.runtime;
 
-import org.evrete.api.FactHandleVersioned;
 import org.evrete.api.InnerFactMemory;
 import org.evrete.api.KeyedFactStorage;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
-import org.evrete.util.Bits;
 
 import java.util.StringJoiner;
 import java.util.function.Consumer;
@@ -26,13 +24,8 @@ public class FieldsMemory extends MemoryComponent implements InnerFactMemory {
         // Only child data present
     }
 
-    public void forEachBucket(Consumer<? super FieldsMemoryBucket> consumer) {
+    void forEachBucket(Consumer<? super FieldsMemoryBucket> consumer) {
         alphaBuckets.forEach(consumer);
-    }
-
-    @Override
-    void insert(LazyValues key, Bits alphaTests, FactHandleVersioned value) {
-        throw new UnsupportedOperationException();
     }
 
     public KeyedFactStorage get(AlphaBucketMeta mask) {

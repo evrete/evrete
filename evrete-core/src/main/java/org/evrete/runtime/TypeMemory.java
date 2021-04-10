@@ -4,7 +4,6 @@ import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
-import org.evrete.util.Bits;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -88,13 +87,6 @@ public final class TypeMemory extends MemoryComponent {
     @Override
     protected void clearLocalData() {
         factStorage.clear();
-    }
-
-    @Override
-    void insert(LazyValues values, Bits alphaTests, FactHandleVersioned value) {
-        for (MemoryComponent child : childComponents()) {
-            child.insert(values, alphaTests, value);
-        }
     }
 
     private void forEachMemoryComponent(Consumer<FieldsMemoryBucket> consumer) {
