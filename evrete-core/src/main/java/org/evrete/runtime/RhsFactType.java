@@ -5,6 +5,8 @@ import org.evrete.api.FactHandleVersioned;
 import org.evrete.api.MemoryKey;
 import org.evrete.api.ReIterator;
 
+import java.util.Objects;
+
 /**
  * <p>A runtime FactType representation used in right-hand-side iteration.</p>
  */
@@ -30,7 +32,7 @@ class RhsFactType {
     }
 
     void setCurrentKey(MemoryKey key) {
-        if (key != this.currentKey) {
+        if (!Objects.equals(key, this.currentKey)) {
             this.currentKey = key;
             this.factIterator = group.factIterator(type, key);
             this.currentFactHandle = null;
@@ -38,7 +40,7 @@ class RhsFactType {
     }
 
     boolean setCurrentFact(FactHandleVersioned v) {
-        if (v == currentFactHandle) {
+        if (Objects.equals(v, currentFactHandle)) {
             // The same as previous, no need to query memory
             return true;
         } else {
