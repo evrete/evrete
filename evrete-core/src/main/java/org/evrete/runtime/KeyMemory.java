@@ -50,7 +50,7 @@ public class KeyMemory extends MemoryComponent implements InnerFactMemory {
     }
 
     KeyMemoryBucket getCreate(AlphaBucketMeta alphaMeta) {
-        return alphaBuckets.computeIfAbsent(alphaMeta.getBucketIndex(), k -> new KeyMemoryBucket(KeyMemory.this, typeFields, alphaMeta));
+        return alphaBuckets.computeIfAbsent(alphaMeta.getBucketIndex(), k -> KeyMemoryBucket.factory(KeyMemory.this, typeFields, alphaMeta));
     }
 
 
