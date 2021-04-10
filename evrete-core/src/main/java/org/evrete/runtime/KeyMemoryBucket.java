@@ -3,6 +3,7 @@ package org.evrete.runtime;
 import org.evrete.api.ActiveField;
 import org.evrete.api.FactHandleVersioned;
 import org.evrete.api.KeyedFactStorage;
+import org.evrete.api.ValueHandle;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
 import java.util.Collection;
@@ -33,6 +34,10 @@ abstract class KeyMemoryBucket extends MemoryComponent {
         } else {
             return new KeyMemoryBucketAlpha(runtime, typeFields, alphaMask);
         }
+    }
+
+    ValueHandle currentFactField(ActiveField field) {
+        return valueResolver.getValueHandle(field.getValueType(), current.fieldValues[field.getValueIndex()]);
     }
 
     abstract void flushBuffer();
