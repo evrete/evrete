@@ -11,4 +11,10 @@ import java.util.function.IntFunction;
  */
 @FunctionalInterface
 public interface IntToValue extends IntFunction<Object> {
+
+    @SuppressWarnings("unchecked")
+    default <T> T get(int i) {
+        return (T) apply(i);
+    }
+
 }

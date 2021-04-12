@@ -27,12 +27,8 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         //this.factSources = buildTypes(runtime, factTypes);
         this.lhs = new RuntimeLhs(this, rd.getLhs());
         RhsFactGroup[] rhsFactGroups = lhs.getFactGroups();
-        this.rhsGroupNodes = new RhsGroupNode[rhsFactGroups.length];
-        for (int i = 0; i < rhsFactGroups.length; i++) {
-            this.rhsGroupNodes[i] = new RhsGroupNode(rhsFactGroups[i]);
-        }
-
         this.factTypeNodes = new RhsFactType[rd.factTypes.length];
+
         for (RhsFactGroup group : rhsFactGroups) {
             for (FactType factType : group.types()) {
                 int idx = factType.getInRuleIndex();
@@ -41,6 +37,18 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
                 if (nameMapping.put(factType.getVar(), idx) != null) {
                     throw new IllegalStateException();
                 }
+            }
+        }
+
+
+        this.rhsGroupNodes = new RhsGroupNode[rhsFactGroups.length];
+        for (int i = 0; i < rhsFactGroups.length; i++) {
+            RhsFactGroup g = rhsFactGroups[i];
+            FactType[] types = g.types();
+            if (types.length == 1) {
+                this.rhsGroupNodes[i] = new RhsGroupNodeSingle(g, factTypeNodes);
+            } else {
+                this.rhsGroupNodes[i] = new RhsGroupNodeMulti(g, factTypeNodes);
             }
         }
 
@@ -87,17 +95,18 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
 
     private void forEachKey(int group, Consumer<RhsContext> consumer) {
         RhsGroupNode factGroup = this.rhsGroupNodes[group];
-        FactType[] types = factGroup.types;
         ReIterator<MemoryKey> iterator = factGroup.keyIterator;
-        // TODO !!!! performance check if removing the reset() helps
         if (iterator.reset() == 0) return;
         boolean last = group == this.rhsGroupNodes.length - 1;
 
-        while (iterator.hasNext()) {
-            copyKeyState(iterator, types);
-            if (last) {
+        if (last) {
+            while (iterator.hasNext()) {
+                factGroup.copyKeyState(iterator);
                 forEachFact(0, consumer);
-            } else {
+            }
+        } else {
+            while (iterator.hasNext()) {
+                factGroup.copyKeyState(iterator);
                 forEachKey(group + 1, consumer);
             }
         }
@@ -107,18 +116,25 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
         boolean last = type == factTypeNodes.length - 1;
         RhsFactType entry = this.factTypeNodes[type];
         ReIterator<FactHandleVersioned> it = entry.factIterator;
-        // TODO !!!! performance check if removing the reset() helps
         if (it.reset() == 0) return;
-        while (it.hasNext()) {
-            FactHandleVersioned handle = it.next();
-            if (entry.setCurrentFact(handle)) {
-                if (last) {
+
+        if (last) {
+            while (it.hasNext()) {
+                FactHandleVersioned handle = it.next();
+                if (entry.setCurrentFact(handle)) {
                     consumer.accept(rhsContext);
                 } else {
-                    forEachFact(type + 1, consumer);
+                    it.remove();
                 }
-            } else {
-                it.remove();
+            }
+        } else {
+            while (it.hasNext()) {
+                FactHandleVersioned handle = it.next();
+                if (entry.setCurrentFact(handle)) {
+                    forEachFact(type + 1, consumer);
+                } else {
+                    it.remove();
+                }
             }
         }
     }
@@ -137,13 +153,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     public RuntimeRule set(String property, Object value) {
         super.set(property, value);
         return this;
-    }
-
-    // TODO !!!! performance provide int[] array instead of fact types
-    private void copyKeyState(ReIterator<MemoryKey> iterator, FactType[] types) {
-        for (FactType type : types) {
-            this.factTypeNodes[type.getInRuleIndex()].setCurrentKey(iterator.next());
-        }
     }
 
     public RuleDescriptor getDescriptor() {
@@ -186,28 +195,53 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
                 "'}";
     }
 
-    private static class RhsGroupNode {
+    static abstract class RhsGroupNode {
         final RhsFactGroup group;
-        final FactType[] types;
         ReIterator<MemoryKey> keyIterator;
         boolean currentDelta;
 
         RhsGroupNode(RhsFactGroup group) {
             this.group = group;
-            this.types = group.types();
         }
 
-        void initIterator(boolean delta) {
+        final void initIterator(boolean delta) {
             this.currentDelta = delta;
             this.keyIterator = group.keyIterator(delta);
         }
 
-        @Override
-        public String toString() {
-            return "{" +
-                    "source=" + group.toString() +
-                    ", delta=" + currentDelta +
-                    '}';
+        abstract void copyKeyState(ReIterator<MemoryKey> iterator);
+
+    }
+
+    static class RhsGroupNodeMulti extends RhsGroupNode {
+        final RhsFactType[] myFactTypeNodes;
+
+        RhsGroupNodeMulti(RhsFactGroup group, RhsFactType[] factTypeNodes) {
+            super(group);
+            FactType[] types = group.types();
+            this.myFactTypeNodes = new RhsFactType[types.length];
+            for (int i = 0; i < types.length; i++) {
+                this.myFactTypeNodes[i] = factTypeNodes[types[i].getInRuleIndex()];
+            }
+        }
+
+        void copyKeyState(ReIterator<MemoryKey> iterator) {
+            for (RhsFactType t : myFactTypeNodes) {
+                t.setCurrentKey(iterator.next());
+            }
+        }
+    }
+
+    static class RhsGroupNodeSingle extends RhsGroupNode {
+        final RhsFactType factTypeNode;
+
+        RhsGroupNodeSingle(RhsFactGroup group, RhsFactType[] factTypeNodes) {
+            super(group);
+            this.factTypeNode = factTypeNodes[group.types()[0].getInRuleIndex()];
+        }
+
+        void copyKeyState(ReIterator<MemoryKey> iterator) {
+            this.factTypeNode.setCurrentKey(iterator.next());
         }
     }
 
@@ -237,7 +271,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
             Objects.requireNonNull(obj);
             for (RhsFactType state : factTypeNodes) {
                 if (state.value == obj) {
-                    //state.typeMemory.bufferDelete(state.handle);
                     runtime.delete(state.handle);
                     return this;
                 }
