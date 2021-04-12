@@ -46,8 +46,8 @@ public class AlphaEvaluator implements EvaluationListeners {
         return delegate;
     }
 
-    public boolean test(FieldToValue values) {
-        return delegate.test(i -> values.apply(activeDescriptor[i]));
+    public boolean test(ValueResolver resolver, FieldToValueHandle values) {
+        return delegate.test(i -> resolver.getValue(values.apply(activeDescriptor[i])));
     }
 
     @Override

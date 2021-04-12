@@ -13,37 +13,32 @@ import java.util.Objects;
  */
 class RuntimeFact {
     private static final Bits EMPTY = new Bits();
-    final Object[] fieldValues;
-    final ValueHandle[] valueHandles;
+    private final ValueHandle[] valueHandles;
     final FactHandleVersioned factHandle;
     final Bits alphaTests;
-    final ValueResolver resolver;
 
     RuntimeFact() {
-        this.fieldValues = null;
         this.factHandle = null;
         this.alphaTests = null;
         this.valueHandles = null;
-        this.resolver = null;
     }
 
     RuntimeFact(ValueResolver resolver, TypeMemoryState typeMemoryState, FactHandleVersioned factHandle, FactRecord factRecord) {
         this.factHandle = factHandle;
-        this.resolver = resolver;
         ActiveField[] activeFields = typeMemoryState.activeFields;
-        this.fieldValues = new Object[activeFields.length];
         this.valueHandles = new ValueHandle[activeFields.length];
-        for (int i = 0; i < fieldValues.length; i++) {
-            this.fieldValues[i] = activeFields[i].readValue(factRecord.instance);
+        for (int i = 0; i < valueHandles.length; i++) {
+            ActiveField field = activeFields[i];
+            this.valueHandles[i] = resolver.getValueHandle(field.getValueType(), field.readValue(factRecord.instance));
         }
         AlphaEvaluator[] alphaEvaluators = typeMemoryState.alphaEvaluators;
         if (alphaEvaluators.length == 0) {
             this.alphaTests = EMPTY;
         } else {
-            FieldToValue func = field -> fieldValues[field.getValueIndex()];
+            FieldToValueHandle func = field -> valueHandles[field.getValueIndex()];
             this.alphaTests = new Bits();
             for (AlphaEvaluator alphaEvaluator : alphaEvaluators) {
-                if (alphaEvaluator.test(func)) {
+                if (alphaEvaluator.test(resolver, func)) {
                     this.alphaTests.set(alphaEvaluator.getIndex());
                 }
             }
@@ -51,24 +46,13 @@ class RuntimeFact {
     }
 
     ValueHandle getValue(ActiveField field) {
-        int idx = field.getValueIndex();
-        ValueHandle h = this.valueHandles[idx];
-        if (h == null) {
-            synchronized (valueHandles) {
-                h = this.valueHandles[idx];
-                if (h == null) {
-                    h = resolver.getValueHandle(field.getValueType(), fieldValues[idx]);
-                    valueHandles[idx] = h;
-                }
-            }
-        }
-        return h;
+        return this.valueHandles[field.getValueIndex()];
     }
 
     boolean sameValues(RuntimeFact other) {
         if (other == null) return false;
-        for (int i = 0; i < fieldValues.length; i++) {
-            if (!Objects.equals(fieldValues[i], other.fieldValues[i])) {
+        for (int i = 0; i < valueHandles.length; i++) {
+            if (!Objects.equals(valueHandles[i], other.valueHandles[i])) {
                 return false;
             }
         }
@@ -78,7 +62,7 @@ class RuntimeFact {
     @Override
     public String toString() {
         return "{handle=" + factHandle.getHandle() +
-                ", values=" + Arrays.toString(fieldValues) +
+                ", values=" + Arrays.toString(valueHandles) +
                 '}';
     }
 }
