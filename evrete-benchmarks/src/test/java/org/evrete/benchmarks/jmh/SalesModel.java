@@ -52,11 +52,13 @@ public class SalesModel {
                 for(Object o2 : state.sessionObjects) {
                     if(o2 instanceof Customer) {
                         Customer c = (Customer) o2;
-                        for(Object o3 : state.sessionObjects) {
-                            if(o3 instanceof Invoice) {
-                                Invoice i = (Invoice) o3;
-                                if (i.salesUnit == u && i.customerId == c.id && c.rating > 4.0) {
-                                    report.add(u, i.amount);
+                        if (c.rating > 4.0) {
+                            for (Object o3 : state.sessionObjects) {
+                                if (o3 instanceof Invoice) {
+                                    Invoice i = (Invoice) o3;
+                                    if (i.salesUnit == u && i.customer.id == c.id) {
+                                        report.add(u, i.amount);
+                                    }
                                 }
                             }
                         }
@@ -86,19 +88,18 @@ public class SalesModel {
         public void initInvocationData() {
             sessionObjects = new ArrayList<>();
             List<SalesUnit> units = new ArrayList<>();
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 2; i++) {
                 SalesUnit unit = new SalesUnit(i);
                 units.add(unit);
                 sessionObjects.add(unit);
             }
 
-
             int customerId = 0;
             for (int s = 0; s < scale; s++) {
-                for (int c = 0; c < 8; c++) {
+                for (int c = 0; c < 2; c++) {
                     Customer customer = new Customer(customerId++);
                     sessionObjects.add(customer);
-                    for (int i = 0; i < 12; i++) {
+                    for (int i = 0; i < 24; i++) {
                         SalesUnit unit = units.get(i % units.size());
                         Invoice invoice = new Invoice(i + 0.0, customer, unit);
                         sessionObjects.add(invoice);
@@ -106,20 +107,20 @@ public class SalesModel {
                 }
             }
 
-            Collections.shuffle(sessionObjects);
         }
 
         @Setup(Level.Invocation)
         public void initSessions() {
             droolsSession = SessionWrapper.of(dKnowledge.newKieSession());
             evreteSession = SessionWrapper.of(eKnowledge.createSession());
+            Collections.shuffle(sessionObjects);
         }
 
         @Setup(Level.Trial)
         public void initKnowledge() {
             service = new KnowledgeService();
             eKnowledge = service.newKnowledge();
-            eKnowledge.newRule("sample01")
+            eKnowledge.newRule("sales")
                     .forEach(
                             "$report", SalesReport.class,
                             "$unit", SalesUnit.class,
@@ -127,7 +128,7 @@ public class SalesModel {
                             "$c", Customer.class
                     )
                     .where("$i.salesUnit == $unit")
-                    .where("$i.customerId == $c.id")
+                    .where("$i.customer.id == $c.id")
                     .where("$c.rating > 4.0")
                     .execute(ctx -> {
                         SalesReport report = ctx.get("$report");
@@ -137,7 +138,7 @@ public class SalesModel {
                     });
 
             // Drools
-            dKnowledge = TestUtils.droolsKnowledge("src/test/drl/sales.drl");
+            dKnowledge = TestUtils.droolsKnowledge("src/test/drl/sales-model.drl");
         }
 
         @TearDown(Level.Trial)

@@ -7,7 +7,7 @@ rule "sales"
   when
       $unit     : SalesUnit()
       $i        : Invoice(salesUnit == $unit)
-      $c        : Customer(id == $i.customerId, rating > 4.0)
+      $c        : Customer(id == $i.customer.id, rating > 4.0)
       $report   : SalesReport();
 
   then

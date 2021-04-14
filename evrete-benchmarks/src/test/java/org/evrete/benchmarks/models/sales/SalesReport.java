@@ -1,8 +1,9 @@
 package org.evrete.benchmarks.models.sales;
 
+import org.evrete.benchmarks.RuleEngines;
+
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class SalesReport {
     private final Map<SalesUnit, Double> sales = new HashMap<>();
@@ -15,6 +16,7 @@ public class SalesReport {
             total += amount;
         }
         sales.put(unit, total);
+        RuleEngines.rhsLoad();
     }
 
     @Override
@@ -22,18 +24,5 @@ public class SalesReport {
         return "SalesReport{" +
                 "sales=" + sales +
                 '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        SalesReport that = (SalesReport) o;
-        return Objects.equals(sales, that.sales);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(sales);
     }
 }

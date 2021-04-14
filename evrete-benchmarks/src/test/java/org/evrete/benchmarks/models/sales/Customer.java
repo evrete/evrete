@@ -13,7 +13,7 @@ public class Customer {
         this(id, random.nextInt(10) / 2.0);
     }
 
-    public Customer(int id, double rating) {
+    private Customer(int id, double rating) {
         this.id = id;
         this.rating = rating;
     }
