@@ -1,7 +1,6 @@
 # Evrete
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/andbi/evrete)
-![GitHub contributors](https://img.shields.io/github/contributors/andbi/evrete)
 ![GitHub stars](https://img.shields.io/github/stars/andbi/evrete?style=social)
 
 Evrete is a forward-chaining Java rule engine that implements the RETE algorithm and is fully compliant with the Java
