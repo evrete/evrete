@@ -4,6 +4,7 @@ import org.evrete.api.*;
 import org.evrete.runtime.async.*;
 
 import java.util.*;
+import java.util.concurrent.Future;
 import java.util.function.BooleanSupplier;
 
 abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWorkingMemory<S> {
@@ -43,28 +44,6 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
         for (RuntimeRuleImpl rule : ruleStorage) {
             rule.mergeNodeDeltas();
             boolean ruleAdded = false;
-
-/*
-            int ruleDeltaMask = 0;
-            for (RhsFactGroup group : rule.getLhs().getFactGroups()) {
-                int groupDeltaMask = 0;
-                for (FactType t : group.types()) {
-                    KeyedFactStorage m = memory.get(t.getType()).get(t.getFields()).get(t.getAlphaMask());
-                    int factDeltaMask = m.getDeltaStatus();
-                    if (factDeltaMask == 0) {
-                        groupDeltaMask = 0;
-                        break;
-                    } else {
-                        groupDeltaMask |= factDeltaMask;
-                    }
-                }
-
-                if (group instanceof BetaEndNode) {
-
-                }
-            }
-*/
-
 
             for (TypeMemory tm : memory) {
                 Type<?> t = tm.getType();
@@ -140,7 +119,6 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
     public void close() {
         synchronized (this) {
             invalidateSession();
-            //memory.destroy();
             knowledge.close(this);
         }
     }
@@ -178,6 +156,11 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
         }
     }
 
+    @Override
+    public <T> Future<T> fireAsync(final T result) {
+        return getExecutor().submit(this::fire, result);
+    }
+
     private void fireContinuous(ActivationContext ctx) {
         List<RuntimeRule> agenda;
         while (fireCriteria.getAsBoolean() && actionCounter.hasData()) {
@@ -185,6 +168,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
             if (!(agenda = buildMemoryDeltas()).isEmpty()) {
                 activationManager.onAgenda(ctx.incrementFireCount(), agenda);
                 for (RuntimeRule candidate : agenda) {
+                    if (Thread.currentThread().isInterrupted()) return;
                     RuntimeRuleImpl rule = (RuntimeRuleImpl) candidate;
                     if (activationManager.test(candidate)) {
                         activationManager.onActivation(rule, rule.executeRhs());
@@ -202,6 +186,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
             if (!(agenda = buildMemoryDeltas()).isEmpty()) {
                 activationManager.onAgenda(ctx.incrementFireCount(), agenda);
                 for (RuntimeRule candidate : agenda) {
+                    if (Thread.currentThread().isInterrupted()) return;
                     RuntimeRuleImpl rule = (RuntimeRuleImpl) candidate;
                     if (activationManager.test(candidate)) {
                         activationManager.onActivation(rule, rule.executeRhs());

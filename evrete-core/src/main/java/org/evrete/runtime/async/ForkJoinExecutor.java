@@ -1,6 +1,7 @@
 package org.evrete.runtime.async;
 
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -23,6 +24,10 @@ public class ForkJoinExecutor {
      */
     public void invoke(Completer task) {
         delegate.invoke(task);
+    }
+
+    public <T> ForkJoinTask<T> submit(Runnable task, T result) {
+        return delegate.submit(task, result);
     }
 
     private static final class EvreteForkJoinWorkerThreadFactory implements ForkJoinPool.ForkJoinWorkerThreadFactory {
