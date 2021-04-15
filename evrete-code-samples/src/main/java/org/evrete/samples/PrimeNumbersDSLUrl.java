@@ -25,7 +25,7 @@ public class PrimeNumbersDSLUrl {
             // Execute rules
             session.fire();
             // Printout current memory state
-            session.forEachFact((handle, o) -> System.out.print(o + " "));
+            session.forEachFact((handle, o) -> System.out.println(o));
         }
     }
 }
