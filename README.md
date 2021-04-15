@@ -51,41 +51,62 @@ Maven Central Repository
 
 Below is a simple rule that removes from session memory every integer except prime numbers.
 
+Creating rule inline:
 ```java
-class PrimeNumbers {
+public class PrimeNumbersInline {
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
-        StatefulSession session = service
+        Knowledge knowledge = service
                 .newKnowledge()
-                .newRule()
+                .newRule("prime numbers")
                 .forEach(
                         "$i1", Integer.class,
                         "$i2", Integer.class,
                         "$i3", Integer.class
                 )
                 .where("$i1 * $i2 == $i3")
-                .execute(
-                        ctx -> {
-                            int $i3 = ctx.get("$i3");
-                            ctx.delete($i3);
-                        }
-                )
-                .createSession();
+                .execute(ctx -> ctx.deleteFact("$i3"));
 
-        // Inject candidates
-        for (int i = 2; i <= 100; i++) {
-            session.insert(i);
+        try (StatefulSession session = knowledge.createSession()) {
+            // Inject candidates
+            for (int i = 2; i <= 100; i++) {
+                session.insert(i);
+            }
+
+            // Execute rules
+            session.fire();
+
+            // Print current memory state
+            session.forEachFact((handle, o) -> System.out.println(o));
         }
-
-        // Execute rules
-        session.fire();
-
-        // Print current memory state
-        session.forEachMemoryObject(System.out::println);
-
-        // Closing resources
-        session.close();
         service.shutdown();
+    }
+}
+```
+
+Using Java annotations:
+
+```java
+public class PrimeNumbersDSLUrl {
+    public static void main(String[] args) throws IOException {
+        KnowledgeService service = new KnowledgeService();
+        Knowledge knowledge = service
+                .newKnowledge()
+                .appendDslRules(
+                        "JAVA-SOURCE",
+                        new URL("https://www.evrete.org/examples/PrimeNumbersSource.java")
+                );
+
+        try (StatefulSession session = knowledge.createSession()) {
+            // Inject candidates
+            for (int i = 2; i <= 100; i++) {
+                session.insert(i);
+            }
+            // Execute rules
+            session.fire();
+            // Printout current memory state
+            session.forEachFact((handle, o) -> System.out.println(o));
+        }
     }
 }
 ```
