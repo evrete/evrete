@@ -37,9 +37,10 @@ Evrete is Java 8+ compatible and ships with zero dependencies.
 
 ## Installation
 
-Maven Central Repository
+Maven Central Repository, core module:
 
 ```xml
+
 <dependency>
     <groupId>org.evrete</groupId>
     <artifactId>evrete-core</artifactId>
@@ -47,11 +48,23 @@ Maven Central Repository
 </dependency>
 ```
 
+Support for annotated rules (optional):
+
+```xml
+
+<dependency>
+    <groupId>org.evrete</groupId>
+    <artifactId>evrete-dsl-java</artifactId>
+    <version>2.0.1</version>
+</dependency>
+```
+
 ## Quick start
 
-Below is a simple rule that removes from session memory every integer except prime numbers.
+Below is a simple example of rule that removes from session memory every integer except prime numbers.
 
-Creating rule inline:
+As inline Java code:
+
 ```java
 public class PrimeNumbersInline {
     public static void main(String[] args) {
@@ -84,8 +97,7 @@ public class PrimeNumbersInline {
 }
 ```
 
-Using Java annotations:
-
+As annotated Java source file:
 ```java
 public class PrimeNumbersDSLUrl {
     public static void main(String[] args) throws IOException {
@@ -111,16 +123,11 @@ public class PrimeNumbersDSLUrl {
 }
 ```
 
-## Contributing to Evrete
+where the rule itself is stored externally
+as [PrimeNumbersSource.java](https://www.evrete.org/examples/PrimeNumbersSource.java)
 
-To contribute to Evrete, follow the GitHub documentation on
-[creating a pull request](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request)
-.
+For further details see the official [documentation](https://www.evrete.org/docs/)
 
-## Contact
-
-If you want to contact me you can reach me
-at [feedback@evrete.org](mailto:feedback@evrete.org?subject=[GitHub]%20Feedback)
 
 ## License
 <!--- If you're not sure which open license to use see https://choosealicense.com/--->
