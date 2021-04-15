@@ -7,7 +7,6 @@ import org.evrete.api.StatefulSession;
 import java.io.IOException;
 import java.net.URL;
 
-@SuppressWarnings("unused")
 public class PrimeNumbersDSLUrl {
     public static void main(String[] args) throws IOException {
         KnowledgeService service = new KnowledgeService();

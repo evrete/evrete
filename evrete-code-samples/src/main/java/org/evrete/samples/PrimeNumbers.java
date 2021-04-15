@@ -6,7 +6,6 @@ import org.evrete.api.StatefulSession;
 
 class PrimeNumbers {
     public static void main(String[] args) {
-
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
                 .newKnowledge()
@@ -17,12 +16,7 @@ class PrimeNumbers {
                         "$i3", Integer.class
                 )
                 .where("$i1 * $i2 == $i3")
-                .execute(
-                        ctx -> {
-                            int $i3 = ctx.get("$i3");
-                            ctx.delete($i3);
-                        }
-                );
+                .execute(ctx -> ctx.deleteFact("$i3"));
 
         try (StatefulSession session = knowledge.createSession()) {
             // Inject candidates
