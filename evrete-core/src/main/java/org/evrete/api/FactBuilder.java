@@ -6,7 +6,7 @@ package org.evrete.api;
  * both as a Java {@link Class} or as a type name.
  * </p>
  */
-public final class FactBuilder {
+public class FactBuilder {
     private final String name;
     private final String unresolvedType;
     private final Class<?> resolvedType;
@@ -15,6 +15,14 @@ public final class FactBuilder {
         this.name = name;
         this.unresolvedType = unresolvedType;
         this.resolvedType = resolvedType;
+    }
+
+    protected FactBuilder(String name, Class<?> resolvedType) {
+        this(name, null, resolvedType);
+    }
+
+    protected FactBuilder(String name, String unresolvedType) {
+        this(name, unresolvedType, null);
     }
 
     /**
@@ -31,7 +39,7 @@ public final class FactBuilder {
         if (name == null || type == null) {
             throw new NullPointerException();
         } else {
-            return new FactBuilder(name, type, null);
+            return new FactBuilder(name, type);
         }
     }
 
@@ -49,7 +57,7 @@ public final class FactBuilder {
         if (name == null || type == null) {
             throw new NullPointerException();
         } else {
-            return new FactBuilder(name, null, type);
+            return new FactBuilder(name, type);
         }
     }
 
