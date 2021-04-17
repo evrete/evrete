@@ -1,6 +1,9 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
+import org.evrete.api.ActivationManager;
+import org.evrete.api.Named;
+import org.evrete.api.RuntimeRule;
+import org.evrete.api.StatefulSession;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,17 +15,6 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
 
     StatefulSessionImpl(KnowledgeRuntime knowledge) {
         super(knowledge);
-    }
-
-    @Override
-    public StatefulSession addImport(RuleScope scope, String imp) {
-        return (StatefulSession) super.addImport(scope, imp);
-    }
-
-    @Override
-    public StatefulSession addImport(RuleScope scope, Class<?> type) {
-        super.addImport(scope, type);
-        return this;
     }
 
     @Override
