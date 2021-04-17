@@ -6,14 +6,13 @@ import org.evrete.collections.CollectionReIterator;
 import org.evrete.collections.LinearHashSet;
 import org.evrete.collections.LinkedDataRW;
 import org.evrete.collections.LinkedDataRWD;
-import org.kie.api.KieBase;
 import org.kie.api.KieServices;
-import org.kie.api.builder.*;
-import org.kie.api.io.Resource;
-import org.kie.api.io.ResourceType;
+import org.kie.api.builder.KieBuilder;
+import org.kie.api.builder.KieFileSystem;
+import org.kie.api.builder.KieRepository;
+import org.kie.api.builder.Message;
 import org.kie.api.runtime.KieContainer;
 import org.kie.internal.io.ResourceFactory;
-import org.kie.internal.utils.KieHelper;
 
 import java.io.File;
 import java.util.Collection;
@@ -23,7 +22,6 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-@SuppressWarnings("unused")
 public final class TestUtils {
 
     public static long nanoExecTime(Runnable r) {
@@ -43,29 +41,12 @@ public final class TestUtils {
         }
     }
 
-    public static void sleep(long ms) {
-        try {
-            Thread.sleep(ms);
-        } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
     static Collection<FactEntry> sessionFacts(StatefulSession s) {
         Collection<FactEntry> col = new LinkedList<>();
         s.forEachFact((handle, fact) -> col.add(new FactEntry(handle, fact)));
         return col;
     }
 
-    public static <T> Collection<FactEntry> sessionFacts(StatefulSession s, Class<T> type) {
-        Collection<FactEntry> collection = new LinkedList<>();
-        s.forEachFact((handle, fact) -> {
-            if (fact.getClass().equals(type)) {
-                collection.add(new FactEntry(handle, fact));
-            }
-        });
-        return collection;
-    }
 
     public static KieContainer droolsKnowledge(String file) {
         KieServices ks = KieServices.get();
@@ -81,17 +62,6 @@ public final class TestUtils {
         return ks.newKieContainer(kr.getDefaultReleaseId());
     }
 
-    public static KieBase droolsKnowledge1(String file) {
-        KieHelper helper = new KieHelper();
-        Resource resource = ResourceFactory.newFileResource(file);
-        helper.addResource(resource, ResourceType.DRL);
-        Results results = helper.verify();
-        if (results.hasMessages(Message.Level.ERROR)) {
-            System.out.println(results.getMessages());
-            throw new RuntimeException("Build Errors:\n" + results.toString());
-        }
-        return helper.build();
-    }
 
     public static <Z> IterableSet<Z> setOf(Set<Z> set) {
         return new IterableSet<Z>() {
