@@ -27,9 +27,8 @@ public class ChessSessionWrapper extends AbstractSocketSession {
 
         try {
             this.knowledge = AppContext.knowledgeService()
-                    .newKnowledge()
-                    .setActivationMode(ActivationMode.CONTINUOUS)
-                    .appendDslRules("JAVA-CLASS", MainRuleSet.class);
+                    .newKnowledge("JAVA-CLASS", MainRuleSet.class)
+                    .setActivationMode(ActivationMode.CONTINUOUS);
             this.knowledge.set("SOCKET-SESSION", this);
         } catch (IOException e) {
             throw new IllegalStateException(e);

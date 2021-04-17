@@ -3,13 +3,15 @@ package org.evrete;
 import org.evrete.api.Knowledge;
 import org.evrete.api.OrderedServiceProvider;
 import org.evrete.api.StatefulSession;
-import org.evrete.api.spi.ExpressionResolverProvider;
-import org.evrete.api.spi.LiteralRhsCompiler;
-import org.evrete.api.spi.MemoryFactoryProvider;
-import org.evrete.api.spi.TypeResolverProvider;
+import org.evrete.api.spi.*;
 import org.evrete.runtime.KnowledgeRuntime;
 import org.evrete.runtime.async.ForkJoinExecutor;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.net.URL;
 import java.util.*;
 
 /**
@@ -76,16 +78,64 @@ public class KnowledgeService {
         return new KnowledgeRuntime(this);
     }
 
+    private static DSLKnowledgeProvider getDslProvider(String dsl) {
+        Objects.requireNonNull(dsl);
+        ServiceLoader<DSLKnowledgeProvider> loader = ServiceLoader.load(DSLKnowledgeProvider.class);
+
+        List<DSLKnowledgeProvider> found = new LinkedList<>();
+        StringJoiner knownProviders = new StringJoiner(",", "[", "]");
+        for (DSLKnowledgeProvider provider : loader) {
+            String name = provider.getName();
+            if (dsl.equals(name)) {
+                found.add(provider);
+            }
+            knownProviders.add("'" + name + "' = " + provider.getClass());
+        }
+
+        if (found.isEmpty()) {
+            throw new IllegalStateException("DSL provider '" + dsl + "' is not found. Make sure the corresponding implementation is available on the classpath. Available providers: " + knownProviders);
+        }
+
+        if (found.size() > 1) {
+            throw new IllegalStateException("Multiple DSL providers found implementing the '" + dsl + "' language. Known providers: " + knownProviders);
+        } else {
+            return found.iterator().next();
+        }
+    }
+
+    private static URL classToURL(Class<?> cl) {
+        String resource = cl.getName().replaceAll("\\.", "/") + ".class";
+        return cl.getClassLoader().getResource(resource);
+    }
+
     /**
-     * <p>
-     * This method is a shorthand for <code>newKnowledge().createSession()</code> which
-     * returns an empty session instance.
-     * </p>
-     *
-     * @return an empty {@link StatefulSession}
+     * @return a {@link Knowledge} instance built by DSL provider from given resources.
      */
-    public StatefulSession newSession() {
-        return newKnowledge().createSession();
+    public Knowledge newKnowledge(String dsl, URL... resources) throws IOException {
+        return getDslProvider(dsl).create(this, resources);
+    }
+
+    /**
+     * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     */
+    public Knowledge newKnowledge(String dsl, Reader... resources) throws IOException {
+        return getDslProvider(dsl).create(this, resources);
+    }
+
+    /**
+     * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     */
+    public Knowledge newKnowledge(String dsl, InputStream... resources) throws IOException {
+        return getDslProvider(dsl).create(this, resources);
+    }
+
+    public Knowledge newKnowledge(String dsl, Class<?>... resources) throws IOException {
+        if (resources == null || resources.length == 0) throw new IOException("Empty resources");
+        URL[] urls = new URL[resources.length];
+        for (int i = 0; i < resources.length; i++) {
+            urls[i] = classToURL(resources[i]);
+        }
+        return getDslProvider(dsl).create(this, urls);
     }
 
     public void shutdown() {
@@ -114,6 +164,28 @@ public class KnowledgeService {
 
     public TypeResolverProvider getTypeResolverProvider() {
         return typeResolverProvider;
+    }
+
+    public Knowledge newKnowledge(String dsl, String... resources) throws IOException {
+        if (resources == null || resources.length == 0) throw new IOException("Empty resources");
+        Reader[] urls = new Reader[resources.length];
+        for (int i = 0; i < resources.length; i++) {
+            urls[i] = new StringReader(resources[i]);
+        }
+        return getDslProvider(dsl).create(this, urls);
+    }
+
+    /**
+     * <p>
+     * This method is a shorthand for <code>newKnowledge().createSession()</code> which
+     * returns an empty session instance.
+     * </p>
+     *
+     * @return an empty {@link StatefulSession}
+     */
+    @SuppressWarnings("WeakerAccess")
+    public StatefulSession newSession() {
+        return newKnowledge().createSession();
     }
 
 

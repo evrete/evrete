@@ -1,6 +1,5 @@
 let newtonLaws = (function () {
     if (!('WebSocket' in window || 'MozWebSocket' in window)) {
-        $("body").html('<div class="cell small-12 callout alert">Web Sockets are not supported by your browser.</div>');
         throw new Error('WebSocket is not supported');
     }
 
@@ -9,86 +8,24 @@ let newtonLaws = (function () {
     const SVG = document.getElementById('plot');
     const DEFAULT_VIEW_WIDTH = Number.parseInt(SVG.getAttribute('width'));
     const DEFAULT_VIEW_HEIGHT = Number.parseInt(SVG.getAttribute('height'));
-    const SVG_DUMMY_POINT = SVG.createSVGPoint();
     const SVG_CANVAS = document.getElementById('svg-background');
 
-    const EDITOR_RULES = _createEditor('rule-editor', 'ace/mode/java');
     const ELEMENT_LOG = $('#logs');
-    const MODE_EDIT = 'EDIT';
     const MODE_RUNNING = 'RUNNNING';
     const MODE_STOPPED = 'STOPPED';
-    const MODE_PAUSED = 'PAUSED';
 
-    const DEFAULT_GRAVITY = 50;
+    $('#gravity').val(50);
 
-    SVG_CANVAS.onclick = function (evt) {
-        SVG_DUMMY_POINT.x = evt.clientX;
-        SVG_DUMMY_POINT.y = evt.clientY;
-
-        let converted = SVG_DUMMY_POINT.matrixTransform(SVG.getScreenCTM().inverse());
-        onUiSvgClick(converted.x, converted.y);
-    }
-
-    $('#gravity').val(DEFAULT_GRAVITY);
-
-    $('body').click(function (e) {
-        if (e.target.parentElement !== SVG) {
-            _nonSvgClick();
-        }
-    });
-
-    const CONFIGURATION = {
-        particles: {},
-        mode: MODE_EDIT,
-        gravity: _int2gravity(50),
-        view: {
-            center: {
-                x: DEFAULT_VIEW_WIDTH / 2,
-                y: DEFAULT_VIEW_HEIGHT / 2
-            },
-            zoom: 1.0
-        },
-        last: {},
-        presets: {},
-        counter: 0,
-        velocityMode: false,
-        viewerParticleId: null
-    };
-
+    const CONFIGURATION = {};
     const UI_ELEMENTS = {};
-// Init config sliders
-    onUiGravityChange();
-// Init grid
-    updateView();
-
-    function _nonSvgClick() {
-        CONFIGURATION.velocityMode = false;
-        SVG.removeAttribute('data-current-id');
-    }
 
     function _startEmulation() {
-        if (Object.keys(CONFIGURATION.particles).length > 0) {
-
-            // Save current config
-            let runConfig = {
-                gravity: CONFIGURATION.gravity,
-                particles: CONFIGURATION.particles,
-                view: CONFIGURATION.view,
-                counter: CONFIGURATION.counter
-            };
-
-            CONFIGURATION.last = JSON.stringify(runConfig);
-
-            $('.clearable').empty();
-            let msg = {
-                'type': 'START',
-                'particles': CONFIGURATION.particles,
-                'rules': EDITOR_RULES.getValue(),
-                'gravity': CONFIGURATION.gravity
-            }
-            SOCKET.send(JSON.stringify(msg, null, 2));
-            $('#start-button').prop('disabled', true);
+        $('.clearable').empty();
+        let msg = {
+            'type': 'START'
         }
+        SOCKET.send(JSON.stringify(msg, null, 2));
+        $('#start-button').prop('disabled', true);
     }
 
     function _pauseEmulation() {
@@ -108,36 +45,6 @@ let newtonLaws = (function () {
     }
 
     function onUiReset() {
-    }
-
-    function onUiRestart() {
-        _sendStop();
-        // Restoring last configuration
-        let last = CONFIGURATION.last;
-        if (last) {
-            let runConfig = JSON.parse(last);
-            CONFIGURATION.view = runConfig.view;
-            CONFIGURATION.particles = runConfig.particles;
-            if (!CONFIGURATION.particles) {
-                CONFIGURATION.particles = {};
-            }
-            CONFIGURATION.gravity = runConfig.gravity;
-            CONFIGURATION.counter = runConfig.counter;
-            updateView();
-            let particles = CONFIGURATION.particles;
-            for (let id in particles) {
-                if (particles.hasOwnProperty(id)) {
-                    let o = particles[id];
-                    if (o) {
-                        _paintParticle(o);
-                    }
-                }
-            }
-            $('#gravity').val(_gravity2int(CONFIGURATION.gravity))
-            onUiGravityChange();
-        }
-        CONFIGURATION.mode = MODE_EDIT;
-        updateControls();
     }
 
     function _clearAll() {
@@ -163,34 +70,11 @@ let newtonLaws = (function () {
 
     function onMessage(evt) {
         let msg = JSON.parse(evt.data);
+        console.log('Message', msg)
         switch (msg['type']) {
             case 'CONFIG':
-                EDITOR_RULES.setValue(msg.rules, -1);
-                CONFIGURATION.presets = JSON.parse(msg.presets);
-
-                // Init presets
-                Object.keys(CONFIGURATION.presets).forEach(function (name) {
-                    $('#saved-configs').append('<li data-config-name="' + name + '">' + name + '</li>');
-                })
-
-                $('#saved-configs li').click(function (e) {
-                    if (CONFIGURATION.mode === MODE_EDIT) {
-                        const name = e.target.getAttribute('data-config-name');
-                        const preset = JSON.parse(JSON.stringify(CONFIGURATION.presets[name]));
-
-                        _clearAll();
-                        Object.keys(preset).forEach(function (key) {
-                            CONFIGURATION[key] = preset[key];
-                        })
-
-                        // Repaint all particles
-                        Object.keys(CONFIGURATION.particles).forEach(function (key) {
-                            _paintParticle(CONFIGURATION.particles[key]);
-                        })
-                        updateControls();
-                        updateView();
-                    }
-                });
+                //TODO !!!
+                //EDITOR_RULES.setValue(msg.rules, -1);
 
                 break;
             case 'ERROR':
@@ -207,12 +91,14 @@ let newtonLaws = (function () {
                 for (let i in particles) {
                     if (particles.hasOwnProperty(i)) {
                         let existing = particles[i];
+                        console.log("Particle", existing)
                         let particle = updated[existing.id];
                         if (particle) {
                             _paintParticle(particle);
                             particles[i] = particle;
                         } else {
                             // No such particle anymore
+                            console.log('Not found');
                             deleteParticle(existing);
                             delete particles[i];
                             deletions = true;
@@ -244,9 +130,6 @@ let newtonLaws = (function () {
                 CONFIGURATION.mode = MODE_PAUSED;
                 break;
         }
-        updateControls();
-
-
     }
 
     function deleteParticle(particle) {
@@ -395,203 +278,50 @@ let newtonLaws = (function () {
         }
     }
 
-    function _mass2int(mass) {
-        return Math.round(20 * Math.log10(mass / 1000));
-    }
-
-    function _int2mass(i) {
-        return 1000 * Math.pow(10, i / 20.0);
-    }
-
-    function _velocity2vector(velocity) {
-        return velocity / 5.0;
-    }
-
-    function _vector2velocity(len) {
-        return 5.0 * len;
-    }
-
-    function onUiSvgClick(x, y) {
-        switch (CONFIGURATION.mode) {
-            case MODE_EDIT:
-                let particle;
-                if (CONFIGURATION.velocityMode) {
-                    let id = SVG.getAttribute('data-current-id').toString();
-                    if (id) {
-                        particle = CONFIGURATION.particles[id];
-                        let vx = x - particle.vectors.position.x;
-                        let vy = y - particle.vectors.position.y;
-                        let angle = Math.atan2(vy, vx);
-                        let vAbs = Math.sqrt(vx * vx + vy * vy) - Math.pow(particle.mass, 1 / 3.0);
-                        if (vAbs > 0) {
-                            let converted = _vector2velocity(vAbs);
-                            particle.vectors.velocity = {
-                                'x': Math.cos(angle) * converted,
-                                'y': Math.sin(angle) * converted
-                            };
-                        }
-                    }
-                    SVG.removeAttribute('data-current-id');
-                } else {
-                    // Create new particle
-                    particle = {};
-                    particle.id = (++CONFIGURATION.counter).toString();
-                    particle.color = generateRandomColor();
-                    particle.mass = _int2mass(30);
-                    particle.vectors = {};
-                    particle.vectors.position = {'x': x, 'y': y};
-                    particle.vectors.acceleration = {'x': 0, 'y': 0};
-                    particle.vectors.velocity = {'x': 0, 'y': 0};
-                    CONFIGURATION.particles[particle.id] = particle;
-                    SVG.setAttribute('data-current-id', particle.id);
-                }
-
-                _paintParticle(particle);
-                CONFIGURATION.velocityMode = !CONFIGURATION.velocityMode;
-                break;
-            case MODE_RUNNING:
-            case MODE_STOPPED:
-            case MODE_PAUSED:
-                CONFIGURATION.view.center = {
-                    'x': x,
-                    'y': y
-                }
-                updateView();
-                break;
-        }
-        updateControls();
-    }
-
-    function updateControls() {
-        let objectCount = Object.keys(CONFIGURATION.particles).length;
-        switch (CONFIGURATION.mode) {
-            case MODE_EDIT:
-                $('#start-button')
-                    .off('click')
-                    .click(_startEmulation);
-                _setRunView(false, objectCount === 0);
-                $('#restart-button')
-                    .off('click')
-                    .click(onUiRestart)
-                    .prop('disabled', true)
-                break;
-            case MODE_RUNNING:
-                _setRunView(true, false);
-                $('#start-button')
-                    .off('click')
-                    .click(_pauseEmulation);
-                $('#restart-button')
-                    .off('click')
-                    .click(onUiRestart)
-                    .prop('disabled', false);
-                break;
-            case MODE_PAUSED:
-                _setRunView(false, false);
-                $('#start-button')
-                    .off('click')
-                    .click(_pauseEmulation);
-                $('#restart-button')
-                    .off('click')
-                    .click(onUiRestart)
-                    .prop('disabled', false);
-                break;
-            case MODE_STOPPED:
-                _setRunView(false, true);
-                $('#restart-button')
-                    .off('click')
-                    .click(onUiRestart);
-                if (CONFIGURATION.last) {
-                    $('#restart-button').prop('disabled', false);
-                } else {
-                    $('#restart-button').prop('disabled', true);
-                }
-                break;
-        }
-    }
-
-    function _setRunView(pause, disabled) {
-        $('#start-button').prop('disabled', disabled);
-        if (pause) {
-            $('#icon-play').addClass('invisible');
-            $('#icon-pause').removeClass('invisible');
-        } else {
-            $('#icon-play').removeClass('invisible');
-            $('#icon-pause').addClass('invisible');
-        }
-    }
-
     function updateView() {
         // Update zoom controls
-        let zoom = Math.round(CONFIGURATION.view.zoom * 100) / 100 + 'x';
-        $('#zoom-value').text(zoom);
-        $('#gravity').val(_gravity2int(CONFIGURATION.gravity));
-        $('#gravity-value').text(CONFIGURATION.gravity.toExponential(1));
-
-        if (CONFIGURATION.view.zoom > 4) {
-            $('#zoom-in-button').prop('disabled', true);
-        } else if (CONFIGURATION.view.zoom < 0.1) {
-            $('#zoom-out-button').prop('disabled', true);
-
-        } else {
-            $('#zoom-out-button').prop('disabled', false);
-            $('#zoom-in-button').prop('disabled', false);
-        }
+        //$('#gravity').val(_gravity2int(CONFIGURATION.gravity));
+        //$('#gravity-value').text(CONFIGURATION.gravity.toExponential(1));
 
 
-        let width = DEFAULT_VIEW_WIDTH / CONFIGURATION.view.zoom;
-        let height = DEFAULT_VIEW_HEIGHT / CONFIGURATION.view.zoom;
+        /*
+                // Clear current grid
+                while (grid.lastChild) {
+                    grid.removeChild(grid.lastChild);
+                }
+                if (CONFIGURATION.view.zoom < 0.4) return;
 
-        let vbX = CONFIGURATION.view.center.x - (width / 2);
-        let vbY = CONFIGURATION.view.center.y - (height / 2);
+                const step = 100;
+                let minX = vbX - step;
+                let maxX = vbX + step + width;
+                let minY = vbY - step;
+                let maxY = vbY + step + height;
 
-        let viewBox = SVG.viewBox.baseVal
-        viewBox.x = vbX;
-        viewBox.y = vbY;
-        viewBox.width = width;
-        viewBox.height = height;
-
-
-        SVG_CANVAS.setAttribute('width', width);
-        SVG_CANVAS.setAttribute('height', height);
-        SVG_CANVAS.setAttribute('x', vbX);
-        SVG_CANVAS.setAttribute('y', vbY);
-
-        // Clear current grid
-        while (grid.lastChild) {
-            grid.removeChild(grid.lastChild);
-        }
-        if (CONFIGURATION.view.zoom < 0.4) return;
-
-        const step = 100;
-        let minX = vbX - step;
-        let maxX = vbX + step + width;
-        let minY = vbY - step;
-        let maxY = vbY + step + height;
-
-        // Round 'em up
-        minX = Math.floor(minX / step) * step;
-        maxX = Math.floor(maxX / step) * step;
-        minY = Math.floor(minY / step) * step;
-        maxY = Math.floor(maxY / step) * step;
+                // Round 'em up
+                minX = Math.floor(minX / step) * step;
+                maxX = Math.floor(maxX / step) * step;
+                minY = Math.floor(minY / step) * step;
+                maxY = Math.floor(maxY / step) * step;
 
 
-        // Draw new grid
-        for (let i = minX; i <= maxX; i = i + step) {
-            let line = document.createElementNS(SVG_NS, 'line');
-            line.setAttribute('x1', i);
-            line.setAttribute('x2', i);
-            line.setAttribute('y1', minY);
-            line.setAttribute('y2', maxY);
-            grid.appendChild(line);
-        }
-        for (let i = minY; i <= maxY; i = i + step) {
-            let line = document.createElementNS(SVG_NS, 'line');
-            line.setAttribute('x1', minX);
-            line.setAttribute('x2', maxX);
-            line.setAttribute('y1', i);
-            line.setAttribute('y2', i);
-            grid.appendChild(line);
-        }
+                // Draw new grid
+                for (let i = minX; i <= maxX; i = i + step) {
+                    let line = document.createElementNS(SVG_NS, 'line');
+                    line.setAttribute('x1', i);
+                    line.setAttribute('x2', i);
+                    line.setAttribute('y1', minY);
+                    line.setAttribute('y2', maxY);
+                    grid.appendChild(line);
+                }
+                for (let i = minY; i <= maxY; i = i + step) {
+                    let line = document.createElementNS(SVG_NS, 'line');
+                    line.setAttribute('x1', minX);
+                    line.setAttribute('x2', maxX);
+                    line.setAttribute('y1', i);
+                    line.setAttribute('y2', i);
+                    grid.appendChild(line);
+                }
+        */
     }
 
     /**
@@ -678,53 +408,21 @@ let newtonLaws = (function () {
     }
 
     return {
-        onUiMassChange: function () {
-            const editor = $('#object-viewer');
-            let currentEditorId = CONFIGURATION.viewerParticleId;
-            if (currentEditorId) {
-                let particle = CONFIGURATION.particles[currentEditorId];
-                if (particle) {
-                    let massInputValue = Number.parseInt($('#mass').val());
 
-                    if (CONFIGURATION.mode === MODE_RUNNING) {
-                        SOCKET.send(JSON.stringify({
-                            type: 'MASS_CHANGE',
-                            object: particle.id,
-                            mass: _int2mass(massInputValue)
-                        }));
-                    } else {
-                        particle.mass = _int2mass(massInputValue);
-                        _paintParticle(particle);
-                    }
-                }
-            }
-        },
-
-        onUiReset: function () {
+        reset: function () {
             _sendStop();
-            CONFIGURATION.mode = MODE_EDIT;
-            CONFIGURATION.last = null;
-            CONFIGURATION.view = {
-                center: {
-                    x: DEFAULT_VIEW_WIDTH / 2,
-                    y: DEFAULT_VIEW_HEIGHT / 2
-                },
-                zoom: 1.0
-            }
-            $('#gravity').val(DEFAULT_GRAVITY);
-            onUiGravityChange();
-            updateView();
-            updateControls();
+            //$('#gravity').val(DEFAULT_GRAVITY);
+            //updateView();
         },
 
-        zoomIn: function () {
-            CONFIGURATION.view.zoom = CONFIGURATION.view.zoom * 1.5;
-            updateView();
-        },
-
-        zoomOut: function () {
-            CONFIGURATION.view.zoom = CONFIGURATION.view.zoom / 1.5;
-            updateView();
+        start: function () {
+            SOCKET.send(JSON.stringify({
+                type: 'START',
+                text: CONFIGURATION.gravity
+            }));
+            //_sendStop();
+            //$('#gravity').val(DEFAULT_GRAVITY);
+            //updateView();
         },
 
         onUiGravityChange: function () {

@@ -1,6 +1,7 @@
 package org.evrete.dsl;
 
-import org.evrete.api.RuntimeContext;
+import org.evrete.KnowledgeService;
+import org.evrete.api.Knowledge;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,39 +11,42 @@ import java.net.URL;
 
 class CommonTestMethods {
 
-    static void applyToRuntimeAsStream(RuntimeContext<?> ctx, Class<?> ruleClass) {
+    static Knowledge applyToRuntimeAsStream(KnowledgeService service, Class<?> ruleClass) {
         try {
             String url = ruleClass.getName().replaceAll("\\.", "/") + ".class";
             InputStream is = ruleClass.getClassLoader().getResourceAsStream(url);
-            ctx.appendDslRules(AbstractJavaDSLProvider.PROVIDER_JAVA_C, is);
+            return service.newKnowledge(AbstractJavaDSLProvider.PROVIDER_JAVA_C, is);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
     }
 
-    static void applyToRuntimeAsURL(RuntimeContext<?> ctx, Class<?> ruleClass) {
+    static Knowledge applyToRuntimeAsURL(KnowledgeService service, Class<?> ruleClass) {
         try {
             String url = ruleClass.getName().replaceAll("\\.", "/") + ".class";
             URL u = ruleClass.getClassLoader().getResource(url);
-            ctx.appendDslRules(AbstractJavaDSLProvider.PROVIDER_JAVA_C, u);
+            return service.newKnowledge(AbstractJavaDSLProvider.PROVIDER_JAVA_C, u);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
     }
 
-    static void applyToRuntimeAsFile(RuntimeContext<?> ctx, String dsl, File... files) {
+    static Knowledge applyToRuntimeAsFile(KnowledgeService service, String dsl, File... files) {
         assert files != null && files.length > 0;
+        InputStream[] streams = new InputStream[files.length];
         try {
+            int i = 0;
             for (File f : files) {
                 assert f.exists() : "File " + f.getAbsolutePath() + " does not exist";
-                ctx.appendDslRules(dsl, new FileInputStream(f));
+                streams[i++] = new FileInputStream(f);
             }
+            return service.newKnowledge(dsl, streams);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
     }
 
-    static void applyToRuntimeAsURLs(RuntimeContext<?> runtime, String dsl, File... files) {
+    static Knowledge applyToRuntimeAsURLs(KnowledgeService service, String dsl, File... files) {
         assert files != null && files.length > 0;
         try {
             URL[] urls = new URL[files.length];
@@ -51,7 +55,7 @@ class CommonTestMethods {
                 assert f.exists();
                 urls[i] = f.toURI().toURL();
             }
-            runtime.appendDslRules(dsl, urls);
+            return service.newKnowledge(dsl, urls);
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

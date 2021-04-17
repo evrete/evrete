@@ -3,7 +3,6 @@ package org.evrete.runtime;
 import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
-import org.evrete.api.spi.DSLKnowledgeProvider;
 import org.evrete.runtime.async.ForkJoinExecutor;
 import org.evrete.runtime.builder.FactTypeBuilder;
 import org.evrete.runtime.builder.RuleBuilderImpl;
@@ -12,10 +11,6 @@ import org.evrete.runtime.evaluation.EvaluatorWrapper;
 import org.evrete.util.DefaultActivationManager;
 import org.evrete.util.compiler.CompilationException;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.net.URL;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -39,7 +34,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
      * @param service knowledge service
      */
     AbstractRuntime(KnowledgeService service) {
-        super();
+        super(service.getConfiguration());
         this.configuration = service.getConfiguration().copyOf();
         this.service = service;
         this.activationManagerFactory = DefaultActivationManager.class;
@@ -76,48 +71,8 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         return (C) this;
     }
 
-    private static DSLKnowledgeProvider getDslProvider(String dsl) {
-        Objects.requireNonNull(dsl);
-        ServiceLoader<DSLKnowledgeProvider> loader = ServiceLoader.load(DSLKnowledgeProvider.class);
 
-        List<DSLKnowledgeProvider> found = new LinkedList<>();
-        StringJoiner knownProviders = new StringJoiner(",", "[", "]");
-        for (DSLKnowledgeProvider provider : loader) {
-            String name = provider.getName();
-            if (dsl.equals(name)) {
-                found.add(provider);
-            }
-            knownProviders.add("'" + name + "' = " + provider.getClass());
-        }
-
-        if (found.isEmpty()) {
-            throw new IllegalStateException("DSL provider '" + dsl + "' is not found. Make sure the corresponding implementation is available on the classpath. Available providers: " + knownProviders);
-        }
-
-        if (found.size() > 1) {
-            throw new IllegalStateException("Multiple DSL providers found implementing the '" + dsl + "' language. Known providers: " + knownProviders);
-        } else {
-            return found.iterator().next();
-        }
-    }
-
-    protected void append(String dsl, InputStream... streams) throws IOException {
-        getDslProvider(dsl).apply(this, streams);
-    }
-
-    protected void append(String dsl, Reader... readers) throws IOException {
-        getDslProvider(dsl).apply(this, readers);
-    }
-
-    protected void append(String dsl, URL... resources) throws IOException {
-        getDslProvider(dsl).apply(this, resources);
-    }
-
-    private static URL classToURL(Class<?> cl) {
-        String resource = cl.getName().replaceAll("\\.", "/") + ".class";
-        return cl.getClassLoader().getResource(resource);
-    }
-
+/*
     protected void append(String dsl, Class<?>... classes) throws IOException {
         if (classes == null || classes.length == 0) return;
         URL[] urls = new URL[classes.length];
@@ -126,6 +81,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         }
         getDslProvider(dsl).apply(this, urls);
     }
+*/
 
     @Override
     public ClassLoader getClassLoader() {

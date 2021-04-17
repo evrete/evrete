@@ -14,11 +14,9 @@ public class PrimeNumbersDSLClass {
     public static void main(String[] args) throws IOException {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
-                .newKnowledge()
-                .appendDslRules(
+                .newKnowledge(
                         "JAVA-CLASS",
-                        PrimeNumbersDSLClass.class
-                );
+                        PrimeNumbersDSLClass.class);
 
         try (StatefulSession session = knowledge.createSession()) {
             // Inject candidates

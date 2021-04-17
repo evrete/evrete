@@ -3,12 +3,14 @@ package org.evrete.runtime;
 import org.evrete.api.Copyable;
 import org.evrete.api.RuleScope;
 
+import java.io.Serializable;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class Imports implements Copyable<Imports> {
+public class Imports implements Copyable<Imports>, Serializable {
+    private static final long serialVersionUID = -6504055142637422799L;
     private final EnumMap<RuleScope, Set<String>> imports = new EnumMap<>(RuleScope.class);
 
     public Imports() {

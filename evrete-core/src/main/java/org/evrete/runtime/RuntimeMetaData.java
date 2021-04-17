@@ -1,5 +1,6 @@
 package org.evrete.runtime;
 
+import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.builder.FactTypeBuilder;
@@ -20,8 +21,8 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     private final ArrayOf<FieldKeyMeta> keyMetas;
     private final ArrayOf<FieldsKey> memoryKeys;
 
-    RuntimeMetaData() {
-        this.imports = new Imports();
+    RuntimeMetaData(Configuration configuration) {
+        this.imports = configuration.getImports().copyOf();
         this.typeMetas = new ArrayOf<>(TypeMeta.class);
         this.memoryKeys = new ArrayOf<>(FieldsKey.class);
         this.properties = new ConcurrentHashMap<>();

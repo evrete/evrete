@@ -10,18 +10,19 @@ import org.evrete.showcase.newton.model.Vector;
 
 public class MainRuleset {
 
-    @Rule("Init computing acceleration")
-    public static void rule1(@Fact("$particle") Particle $subject) {
+    @Rule(value = "Init computing acceleration", salience = 10)
+    public static void rule1(RhsContext ctx, @Fact("$particle") Particle $p, @Fact("$t") SpaceTime time) {
         // Clearing particle acceleration vector
-        $subject.set("acceleration", new Vector());
+        $p.acceleration.x = 0.0;
+        $p.acceleration.y = 0.0;
     }
 
-    @Rule("Computing acceleration as a vector sum")
+    @Rule(value = "Computing acceleration as a vector sum", salience = 9)
     @Where("$subject != $other")
     public static void rule2(RhsContext ctx, @Fact("$subject") Particle $subject, @Fact("$other") Particle $other) {
-        double G = ctx.getRuntime().get("G");
+        double G = 0.0;//ctx.getRuntime().get("G");
 
-        Vector d = $other.get("position").minus($subject.get("position"));
+        Vector d = $other.position.minus($subject.position);
         double r = d.size();
 
         // Gravity acceleration, absolute value
@@ -29,37 +30,27 @@ public class MainRuleset {
 
         // Gravity acceleration, vector value
         Vector delta = d.unitVector().multiply(acc);
-        Vector current = $subject.get("acceleration");
-        $subject.set("acceleration", current.plus(delta));
+        Vector current = $subject.acceleration;
+        $subject.acceleration = current.plus(delta);
     }
 
-    @Rule("Update position")
-    public static void rule3(RhsContext ctx, @Fact("$particle") Particle particle) {
+    @Rule(value = "Update position", salience = 8)
+    public static void rule3(RhsContext ctx, @Fact("$particle") Particle particle, @Fact("$t") SpaceTime time) {
         double dt = ctx.getRuntime().get("time-step");
 
-        Vector position = particle.get("position");
-        Vector velocity = particle.get("velocity");
+        Vector position = particle.position;
+        Vector velocity = particle.velocity;
 
-        particle.set("position", position.plus(velocity.multiply(dt)));
+        particle.position = position.plus(velocity.multiply(dt));
     }
 
-    @Rule("Update velocity")
-    public static void rule4(RhsContext ctx, @Fact("$particle") Particle particle) {
+    @Rule(value = "Update velocity", salience = 7)
+    public static void rule4(RhsContext ctx, @Fact("$particle") Particle particle, @Fact("$t") SpaceTime time) {
         double dt = ctx.getRuntime().get("time-step");
 
-        Vector acceleration = particle.get("acceleration");
-        Vector velocity = particle.get("velocity");
+        Vector acceleration = particle.acceleration;
+        Vector velocity = particle.velocity;
 
-        particle.set("velocity", velocity.plus(acceleration.multiply(dt)));
+        particle.velocity = velocity.plus(acceleration.multiply(dt));
     }
-
-    @Rule("Update time")
-    public static void rule5(RhsContext ctx, @Fact("$t") SpaceTime time) {
-        double dt = ctx.getRuntime().get("time-step");
-        time.value = time.value + dt;
-        // As the time instance is declared in every previous rule,
-        // updating it will cause the session to start over
-        ctx.updateFact("$t");
-    }
-
 }

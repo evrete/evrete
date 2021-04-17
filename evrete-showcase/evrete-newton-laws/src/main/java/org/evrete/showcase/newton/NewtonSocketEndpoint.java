@@ -1,8 +1,6 @@
 package org.evrete.showcase.newton;
 
 import org.evrete.showcase.newton.messages.ConfigMessage;
-import org.evrete.showcase.newton.messages.MassChangeMessage;
-import org.evrete.showcase.newton.messages.StartMessage;
 import org.evrete.showcase.shared.JsonMessage;
 import org.evrete.showcase.shared.Message;
 import org.evrete.showcase.shared.SocketMessenger;
@@ -25,7 +23,6 @@ public class NewtonSocketEndpoint {
         // On new session we provide web client with default rules and stock price history
         SocketMessenger messenger = wrapper.getMessenger();
         try {
-
             messenger.send(new ConfigMessage(
                     AppContext.DEFAULT_SOURCE,
                     AppContext.DEFAULT_PRESETS
@@ -43,17 +40,6 @@ public class NewtonSocketEndpoint {
         }
     }
 
-    @OnMessage
-    public void processMessage(String message, Session session) {
-        NewtonSessionWrapper sessionWrapper = sessionMap.get(session);
-        try {
-            process(message, sessionWrapper);
-        } catch (Exception e) {
-            sessionWrapper.getMessenger().send(e);
-            stopSession(session);
-        }
-    }
-
     private static void process(String message, NewtonSessionWrapper sessionWrapper) throws Exception {
         SocketMessenger
                 messenger = sessionWrapper.getMessenger();
@@ -63,26 +49,32 @@ public class NewtonSocketEndpoint {
                 messenger.send(new Message("PONG"));
                 break;
             case "START":
-                StartMessage startMessage = Utils.fromJson(message, StartMessage.class);
-                sessionWrapper.initSession(startMessage);
+                //StartMessage startMessage = Utils.fromJson(message, StartMessage.class);
+                sessionWrapper.initSession();
                 break;
             case "STOP":
+                System.out.println("Stopping.......");
                 sessionWrapper.closeSession();
-                break;
-            case "PAUSE":
-                sessionWrapper.togglePause();
                 break;
             case "GRAVITY_CONSTANT":
                 Message gravityChange = Utils.fromJson(message, Message.class);
                 double gravity = Double.parseDouble(gravityChange.text);
                 sessionWrapper.updateGravity(gravity);
                 break;
-            case "MASS_CHANGE":
-                MassChangeMessage massChange = Utils.fromJson(message, MassChangeMessage.class);
-                sessionWrapper.updateMass(massChange.object, massChange.mass);
-                break;
             default:
                 messenger.send(Message.error("Unknown command " + m.getType()));
+        }
+    }
+
+    @OnMessage
+    public void processMessage(String message, Session session) {
+        NewtonSessionWrapper sessionWrapper = sessionMap.get(session);
+        try {
+            process(message, sessionWrapper);
+        } catch (Exception e) {
+            e.printStackTrace();
+            sessionWrapper.getMessenger().send(e);
+            stopSession(session);
         }
     }
 

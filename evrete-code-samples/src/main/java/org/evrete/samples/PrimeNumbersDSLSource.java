@@ -22,8 +22,7 @@ public class PrimeNumbersDSLSource {
                 "    }\n" +
                 "}\n";
         StatefulSession session = service
-                .newKnowledge()
-                .appendDslRules("JAVA-SOURCE", source)
+                .newKnowledge("JAVA-SOURCE", source)
                 .createSession();
 
         // Inject candidates

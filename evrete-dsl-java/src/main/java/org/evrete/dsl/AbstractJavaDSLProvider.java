@@ -1,9 +1,7 @@
 package org.evrete.dsl;
 
-import org.evrete.api.FactBuilder;
-import org.evrete.api.LhsBuilder;
-import org.evrete.api.RuleBuilder;
-import org.evrete.api.RuntimeContext;
+import org.evrete.KnowledgeService;
+import org.evrete.api.*;
 import org.evrete.api.spi.DSLKnowledgeProvider;
 import org.evrete.dsl.annotation.MethodPredicate;
 import org.evrete.dsl.annotation.Where;
@@ -53,6 +51,45 @@ abstract class AbstractJavaDSLProvider implements DSLKnowledgeProvider {
         }
     }
 
+    static JavaClassRuleSet processRuleSet(Knowledge targetContext, Class<?> javaClass) {
+        // Build rules
+
+        JavaClassRuleSet jcr = new JavaClassRuleSet(javaClass);
+
+        for (RuleMethod rm : jcr.getRuleMethods()) {
+            RuleBuilder<?> builder = targetContext.newRule(rm.getName());
+            builder.setSalience(rm.getSalience());
+            // Build LHS from method parameters
+            LhsParameter[] factParameters = rm.getLhsParameters();
+            FactBuilder[] facts = new FactBuilder[factParameters.length];
+
+            for (int i = 0; i < factParameters.length; i++) {
+                LhsParameter lhsParameter = factParameters[i];
+
+                facts[i] = FactBuilder.fact(lhsParameter.getLhsRef(), lhsParameter.getFactType());
+            }
+
+            // Apply condition annotations
+            // 1. String predicates
+            LhsBuilder<?> lhsBuilder = builder.forEach(facts);
+            Where predicates = rm.getPredicates();
+            if (predicates != null) {
+                // 1. String predicates
+                for (String stringPredicate : predicates.value()) {
+                    lhsBuilder = lhsBuilder.where(stringPredicate);
+                }
+
+                // 2. Method predicates
+                for (MethodPredicate methodPredicate : predicates.asMethods()) {
+                    lhsBuilder.where(jcr.resolve(lhsBuilder, rm, methodPredicate), methodPredicate.descriptor());
+                }
+            }
+            // Final step - RHS
+            lhsBuilder.execute(rm);
+        }
+        return jcr;
+    }
+
     static String[] toSourceString(Reader[] readers) throws IOException {
         String[] sources = new String[readers.length];
         for (int i = 0; i < readers.length; i++) {
@@ -78,17 +115,18 @@ abstract class AbstractJavaDSLProvider implements DSLKnowledgeProvider {
     }
 
     @Override
-    public final void apply(RuntimeContext<?> targetContext, URL... resources) throws IOException {
-        if (resources == null || resources.length == 0) return;
+    public final Knowledge create(KnowledgeService service, URL... resources) throws IOException {
+        if (resources == null || resources.length == 0) throw new IOException("Empty resources");
         InputStream[] streams = new InputStream[resources.length];
         for (int i = 0; i < resources.length; i++) {
             streams[i] = resources[i].openStream();
         }
-        apply(targetContext, streams);
+        Knowledge knowledge = create(service, streams);
 
         for (InputStream stream : streams) {
             stream.close();
         }
+        return knowledge;
     }
 
     static byte[] toByteArray(InputStream is) throws IOException {

@@ -13,16 +13,11 @@ import java.io.File;
 import java.io.FilePermission;
 
 class JavaJarSecurityTests extends CommonTestMethods {
-    private Knowledge runtime;
+    private KnowledgeService service;
 
     @BeforeEach
     void init() {
-        KnowledgeService service = new KnowledgeService();
-        runtime = service.newKnowledge();
-    }
-
-    private StatefulSession session() {
-        return runtime.createSession();
+        service = new KnowledgeService();
     }
 
     @Test
@@ -32,11 +27,11 @@ class JavaJarSecurityTests extends CommonTestMethods {
         Assertions.assertThrows(
                 SecurityException.class,
                 () -> {
-                    runtime
+                    service
                             .getConfiguration()
                             .setProperty(JavaDSLJarProvider.CLASSES_PROPERTY, "pkg1.evrete.tests.rule.RuleSet2");
-                    applyToRuntimeAsURLs(runtime, AbstractJavaDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar1/jar1-tests.jar"));
-                    StatefulSession session = session();
+                    Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractJavaDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar1/jar1-tests.jar"));
+                    StatefulSession session = knowledge.createSession();
                     assert session.getRules().size() == 2 : "Actual: " + session.getRules().size();
                     for (int i = 2; i < 100; i++) {
                         session.insert(i);
@@ -50,17 +45,16 @@ class JavaJarSecurityTests extends CommonTestMethods {
     void test1Pass() {
         assert System.getSecurityManager() != null;
 
-        runtime
-                .getService()
+        service
                 .getSecurity()
                 .addPermission(RuleScope.BOTH, new FilePermission("<<ALL FILES>>", "read"));
-        runtime
+        service
                 .getConfiguration()
                 .setProperty(JavaDSLJarProvider.CLASSES_PROPERTY, "pkg1.evrete.tests.rule.RuleSet2");
 
 
-        applyToRuntimeAsURLs(runtime, AbstractJavaDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar1/jar1-tests.jar"));
-        StatefulSession session = session();
+        Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractJavaDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar1/jar1-tests.jar"));
+        StatefulSession session = knowledge.createSession();
         assert session.getRules().size() == 2 : "Actual: " + session.getRules().size();
         for (int i = 2; i < 100; i++) {
             session.insert(i);

@@ -3,23 +3,22 @@ package org.evrete.dsl;
 import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.RuleScope;
-import org.evrete.api.RuntimeContext;
 import org.evrete.util.compiler.BytesClassLoader;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.security.ProtectionDomain;
 
 public class JavaDSLClassProvider extends AbstractJavaDSLProvider {
 
-    private static void apply(RuntimeContext<?> targetContext, byte[][] bytes) {
-        ClassLoader ctxClassLoader = targetContext.getClassLoader();
-        ProtectionDomain domain = targetContext.getService().getSecurity().getProtectionDomain(RuleScope.BOTH);
+    private static Knowledge apply(Knowledge knowledge, byte[][] bytes) {
+        ClassLoader ctxClassLoader = knowledge.getClassLoader();
+        ProtectionDomain domain = knowledge.getService().getSecurity().getProtectionDomain(RuleScope.BOTH);
         BytesClassLoader loader = new BytesClassLoader(ctxClassLoader, domain);
         for (byte[] arr : bytes) {
-            processRuleSet(targetContext, new JavaClassRuleSet(loader.buildClass(arr)));
+            JavaClassRuleSet jr = processRuleSet(knowledge, loader.buildClass(arr));
         }
+        return knowledge;
     }
 
     @Override
@@ -28,18 +27,14 @@ public class JavaDSLClassProvider extends AbstractJavaDSLProvider {
     }
 
     @Override
-    public Knowledge create(KnowledgeService service, URL... resources) throws IOException {
-        Knowledge knowledge = service.newKnowledge();
-        apply(knowledge, resources);
-        return knowledge;
-    }
-
-    @Override
-    public void apply(RuntimeContext<?> targetContext, InputStream... streams) throws IOException {
+    public Knowledge create(KnowledgeService service, InputStream... streams) throws IOException {
+        if (streams == null || streams.length == 0) throw new IOException("Empty sources");
         byte[][] bytes = new byte[streams.length][];
         for (int i = 0; i < streams.length; i++) {
             bytes[i] = toByteArray(streams[i]);
         }
-        apply(targetContext, bytes);
+
+        Knowledge delegate = service.newKnowledge();
+        return apply(delegate, bytes);
     }
 }

@@ -11,8 +11,7 @@ public class GuessingNumbersDSL {
     public static void main(String[] args) throws IOException {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
-                .newKnowledge()
-                .appendDslRules(
+                .newKnowledge(
                         "JAVA-CLASS",
                         GuessingNumbersKnowledge.class
                 );

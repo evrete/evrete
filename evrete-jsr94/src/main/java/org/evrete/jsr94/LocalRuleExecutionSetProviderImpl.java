@@ -25,9 +25,8 @@ class LocalRuleExecutionSetProviderImpl implements LocalRuleExecutionSetProvider
             throw new RuleExecutionSetCreateException("Missing DSL name property '" + Const.DSL_NAME + "'");
         }
         try {
-            Knowledge knowledge = knowledgeService.newKnowledge();
+            Knowledge knowledge = knowledgeService.newKnowledge(dsl, inputStream);
             Utils.copyConfiguration(knowledge, map);
-            knowledge.appendDslRules(dsl, inputStream);
             return new RuleExecutionSetImpl(knowledge, map);
         } catch (RuntimeException e) {
             throw new RuleExecutionSetCreateException("Unable to create RuleExecutionSet", e);
@@ -41,9 +40,8 @@ class LocalRuleExecutionSetProviderImpl implements LocalRuleExecutionSetProvider
             throw new RuleExecutionSetCreateException("Missing DSL name property '" + Const.DSL_NAME + "'");
         }
         try {
-            Knowledge knowledge = knowledgeService.newKnowledge();
+            Knowledge knowledge = knowledgeService.newKnowledge(dsl, reader);
             Utils.copyConfiguration(knowledge, map);
-            knowledge.appendDslRules(dsl, reader);
             return new RuleExecutionSetImpl(knowledge, map);
         } catch (RuntimeException e) {
             throw new RuleExecutionSetCreateException("Unable to create RuleExecutionSet", e);

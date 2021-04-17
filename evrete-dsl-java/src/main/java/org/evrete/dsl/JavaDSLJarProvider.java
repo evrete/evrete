@@ -1,15 +1,14 @@
 package org.evrete.dsl;
 
+import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.RuleScope;
-import org.evrete.api.RuntimeContext;
 import org.evrete.util.compiler.BytesClassLoader;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.security.ProtectionDomain;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,7 +30,7 @@ public class JavaDSLJarProvider extends AbstractJavaDSLProvider {
             "org.evrete.",
     };
 
-    private static void apply(RuntimeContext<?> targetContext, Set<String> ruleClasses, InputStream... streams) throws IOException {
+    private static Knowledge apply(Knowledge targetContext, Set<String> ruleClasses, InputStream... streams) throws IOException {
         ClassLoader ctxClassLoader = targetContext.getClassLoader();
         ProtectionDomain domain = targetContext.getService().getSecurity().getProtectionDomain(RuleScope.BOTH);
         BytesClassLoader classLoader = new BytesClassLoader(ctxClassLoader, domain);
@@ -40,19 +39,27 @@ public class JavaDSLJarProvider extends AbstractJavaDSLProvider {
         for (String ruleClass : ruleClasses) {
             try {
                 Class<?> cl = classLoader.loadClass(ruleClass);
-                processRuleSet(targetContext, new JavaClassRuleSet(cl));
+                JavaClassRuleSet jcr = processRuleSet(targetContext, cl);
             } catch (ClassNotFoundException e) {
                 // No such rule class
                 LOGGER.warning("Ruleset class '" + ruleClass + "' not found");
             }
         }
+        return targetContext;
     }
 
-    @Override
-    public Knowledge create(KnowledgeService service, URL... resources) throws IOException {
-        Knowledge knowledge = service.newKnowledge();
-        apply(knowledge, resources);
-        return knowledge;
+    private static Set<String> ruleClasses(Configuration configuration) {
+        Set<String> ruleClasses = new HashSet<>();
+        String ruleSets = (String) configuration.getOrDefault(CLASSES_PROPERTY, EMPTY_CLASSES);
+        if (!ruleSets.isEmpty()) {
+            String[] classNames = ruleSets.split("[\\s,;]");
+            for (String className : classNames) {
+                if (className != null && !className.isEmpty()) {
+                    ruleClasses.add(className);
+                }
+            }
+        }
+        return ruleClasses;
     }
 
     private static void fillClassLoader(BytesClassLoader classLoader, InputStream... resources) throws IOException {
@@ -109,18 +116,17 @@ public class JavaDSLJarProvider extends AbstractJavaDSLProvider {
         }
     }
 
-    private static Set<String> ruleClasses(RuntimeContext<?> targetContext) {
-        Set<String> ruleClasses = new HashSet<>();
-        String ruleSets = (String) targetContext.getConfiguration().getOrDefault(CLASSES_PROPERTY, EMPTY_CLASSES);
-        if (!ruleSets.isEmpty()) {
-            String[] classNames = ruleSets.split("[\\s,;]");
-            for (String className : classNames) {
-                if (className != null && !className.isEmpty()) {
-                    ruleClasses.add(className);
-                }
-            }
+    @Override
+    public Knowledge create(KnowledgeService service, InputStream... streams) throws IOException {
+        if (streams == null || streams.length == 0) throw new IOException("Empty streams");
+        Set<String> ruleClasses = ruleClasses(service.getConfiguration());
+        //TODO !!! check empty classes implementation and return valid knowledge if there's no ambiguity
+        if (ruleClasses.isEmpty()) {
+            LOGGER.warning("No ruleset classes were specified in the '" + CLASSES_PROPERTY + "', resources skipped.");
         }
-        return ruleClasses;
+        Knowledge knowledge = service.newKnowledge();
+        return apply(knowledge, ruleClasses, streams);
+
     }
 
     private static void validateClassName(String className) {
@@ -145,17 +151,6 @@ public class JavaDSLJarProvider extends AbstractJavaDSLProvider {
     @Override
     public String getName() {
         return PROVIDER_JAVA_J;
-    }
-
-    @Override
-    public void apply(RuntimeContext<?> targetContext, InputStream... streams) throws IOException {
-        if (streams == null || streams.length == 0) return;
-        Set<String> ruleClasses = ruleClasses(targetContext);
-        if (ruleClasses.isEmpty()) {
-            LOGGER.warning("No ruleset classes were specified in the '" + CLASSES_PROPERTY + "', resources skipped.");
-        } else {
-            apply(targetContext, ruleClasses, streams);
-        }
     }
 
 }

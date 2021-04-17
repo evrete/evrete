@@ -2,21 +2,20 @@ package org.evrete.dsl;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.ActivationMode;
+import org.evrete.api.Knowledge;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
 import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.io.File;
 import java.util.List;
 
-class JavaSourceSessionTests extends CommonTestMethods {
+class JavaSourceTests extends CommonTestMethods {
     private static KnowledgeService service;
-    private StatefulSession runtime;
 
     @BeforeAll
     static void setUpClass() {
@@ -28,20 +27,16 @@ class JavaSourceSessionTests extends CommonTestMethods {
         service.shutdown();
     }
 
-    @BeforeEach
-    void init() {
-        runtime = service.newSession();
-    }
 
-    private StatefulSession session(ActivationMode mode) {
-        return runtime.setActivationMode(mode);
+    private static StatefulSession session(Knowledge knowledge, ActivationMode mode) {
+        return knowledge.createSession().setActivationMode(mode);
     }
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void sort1(ActivationMode mode) {
-        applyToRuntimeAsFile(runtime, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/SortTest1.java"));
-        StatefulSession session = session(mode);
+        Knowledge knowledge = applyToRuntimeAsFile(service, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/SortTest1.java"));
+        StatefulSession session = session(knowledge, mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 3;
         assert rules.get(0).getName().endsWith("rule1");
@@ -52,8 +47,8 @@ class JavaSourceSessionTests extends CommonTestMethods {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void sort2(ActivationMode mode) {
-        applyToRuntimeAsFile(runtime, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/SortTest2.java"));
-        StatefulSession session = session(mode);
+        Knowledge knowledge = applyToRuntimeAsFile(service, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/SortTest2.java"));
+        StatefulSession session = session(knowledge, mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 3;
         assert rules.get(0).getName().endsWith("rule1");
@@ -64,8 +59,8 @@ class JavaSourceSessionTests extends CommonTestMethods {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void sort3(ActivationMode mode) {
-        applyToRuntimeAsFile(runtime, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/SortTest3.java"));
-        StatefulSession session = session(mode);
+        Knowledge knowledge = applyToRuntimeAsFile(service, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/SortTest3.java"));
+        StatefulSession session = session(knowledge, mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 3;
         assert rules.get(0).getName().endsWith("rule3");
@@ -76,8 +71,8 @@ class JavaSourceSessionTests extends CommonTestMethods {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void sort4(ActivationMode mode) {
-        applyToRuntimeAsFile(runtime, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/SortTest4.java"));
-        StatefulSession session = session(mode);
+        Knowledge knowledge = applyToRuntimeAsFile(service, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/SortTest4.java"));
+        StatefulSession session = session(knowledge, mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 5;
         assert rules.get(0).getName().endsWith("rule2"); // Salience 100
@@ -90,8 +85,8 @@ class JavaSourceSessionTests extends CommonTestMethods {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void primeNonStaticMethod(ActivationMode mode) {
-        applyToRuntimeAsFile(runtime, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/PrimeNumbers1.java"));
-        StatefulSession session = session(mode);
+        Knowledge knowledge = applyToRuntimeAsFile(service, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/PrimeNumbers1.java"));
+        StatefulSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
         for (int i = 2; i < 100; i++) {
@@ -109,8 +104,8 @@ class JavaSourceSessionTests extends CommonTestMethods {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void primeStaticMethod(ActivationMode mode) {
-        applyToRuntimeAsFile(runtime, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/PrimeNumbers2.java"));
-        StatefulSession session = session(mode);
+        Knowledge knowledge = applyToRuntimeAsFile(service, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/PrimeNumbers2.java"));
+        StatefulSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
         for (int i = 2; i < 100; i++) {
@@ -128,8 +123,8 @@ class JavaSourceSessionTests extends CommonTestMethods {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void primeNonStaticMethodNonStaticCondition(ActivationMode mode) {
-        applyToRuntimeAsFile(runtime, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/PrimeNumbers3.java"));
-        StatefulSession session = session(mode);
+        Knowledge knowledge = applyToRuntimeAsFile(service, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/PrimeNumbers3.java"));
+        StatefulSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
         for (int i = 2; i < 100; i++) {
@@ -146,8 +141,8 @@ class JavaSourceSessionTests extends CommonTestMethods {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void primeNonStaticMethodStaticCondition(ActivationMode mode) {
-        applyToRuntimeAsFile(runtime, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/PrimeNumbers4.java"));
-        StatefulSession session = session(mode);
+        Knowledge knowledge = applyToRuntimeAsFile(service, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/PrimeNumbers4.java"));
+        StatefulSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
         for (int i = 2; i < 100; i++) {
@@ -164,8 +159,8 @@ class JavaSourceSessionTests extends CommonTestMethods {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void primeStaticMethodStaticCondition(ActivationMode mode) {
-        applyToRuntimeAsURLs(runtime, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/PrimeNumbers5.java"));
-        StatefulSession session = session(mode);
+        Knowledge knowledge = applyToRuntimeAsFile(service, AbstractJavaDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/PrimeNumbers5.java"));
+        StatefulSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
         for (int i = 2; i < 100; i++) {

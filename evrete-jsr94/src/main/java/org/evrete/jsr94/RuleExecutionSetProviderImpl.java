@@ -110,8 +110,7 @@ class RuleExecutionSetProviderImpl implements RuleExecutionSetProvider {
         }
 
         try {
-            Knowledge knowledge = knowledgeService.newKnowledge();
-            knowledge.appendDslRules(dsl, new StringReader(s));
+            Knowledge knowledge = knowledgeService.newKnowledge(dsl, new StringReader(s));
             return new RuleExecutionSetImpl(knowledge, map);
         } catch (RuntimeException e) {
             throw new RuleExecutionSetCreateException("Unable to create RuleExecutionSet", e);
@@ -126,8 +125,7 @@ class RuleExecutionSetProviderImpl implements RuleExecutionSetProvider {
         }
 
         try {
-            Knowledge knowledge = knowledgeService.newKnowledge();
-            knowledge.appendDslRules(dsl, urls);
+            Knowledge knowledge = knowledgeService.newKnowledge(dsl, urls);
             return new RuleExecutionSetImpl(knowledge, map);
         } catch (RuntimeException e) {
             throw new RuleExecutionSetCreateException("Unable to create RuleExecutionSet", e);

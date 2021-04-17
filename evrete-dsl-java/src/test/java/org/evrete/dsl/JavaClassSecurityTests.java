@@ -13,17 +13,13 @@ import java.io.FilePermission;
 import java.util.PropertyPermission;
 
 class JavaClassSecurityTests extends CommonTestMethods {
-    private Knowledge runtime;
+    private KnowledgeService service;
 
     @BeforeEach
     void init() {
-        KnowledgeService service = new KnowledgeService();
-        runtime = service.newKnowledge();
+        service = new KnowledgeService();
     }
 
-    private StatefulSession session() {
-        return runtime.createSession();
-    }
 
     @Test
     void rule1TestFail() {
@@ -32,8 +28,8 @@ class JavaClassSecurityTests extends CommonTestMethods {
         Assertions.assertThrows(
                 SecurityException.class,
                 () -> {
-                    applyToRuntimeAsURL(runtime, SampleRuleSet4.class);
-                    StatefulSession session = session();
+                    Knowledge knowledge = applyToRuntimeAsURL(service, SampleRuleSet4.class);
+                    StatefulSession session = knowledge.createSession();
 
                     session.insert(2);
                     session.fire();
@@ -45,9 +41,9 @@ class JavaClassSecurityTests extends CommonTestMethods {
     void rule1TestPass() {
         assert System.getSecurityManager() != null;
 
-        runtime.getService().getSecurity().addPermission(RuleScope.BOTH, new FilePermission("<<ALL FILES>>", "read"));
-        applyToRuntimeAsURL(runtime, SampleRuleSet4.class);
-        StatefulSession session = session();
+        service.getSecurity().addPermission(RuleScope.BOTH, new FilePermission("<<ALL FILES>>", "read"));
+        Knowledge knowledge = applyToRuntimeAsURL(service, SampleRuleSet4.class);
+        StatefulSession session = knowledge.createSession();
 
         session.insert(2);
         session.fire();
@@ -61,8 +57,8 @@ class JavaClassSecurityTests extends CommonTestMethods {
         Assertions.assertThrows(
                 SecurityException.class,
                 () -> {
-                    applyToRuntimeAsURL(runtime, SampleRuleSet4.class);
-                    StatefulSession session = session();
+                    Knowledge knowledge = applyToRuntimeAsURL(service, SampleRuleSet4.class);
+                    StatefulSession session = knowledge.createSession();
 
                     session.insert(9L);
                     session.fire();
@@ -77,8 +73,8 @@ class JavaClassSecurityTests extends CommonTestMethods {
         Assertions.assertThrows(
                 SecurityException.class,
                 () -> {
-                    applyToRuntimeAsURL(runtime, SampleRuleSet4.class);
-                    StatefulSession session = session();
+                    Knowledge knowledge = applyToRuntimeAsURL(service, SampleRuleSet4.class);
+                    StatefulSession session = knowledge.createSession();
 
                     session.insert(9L);
                     session.fire();
@@ -90,12 +86,12 @@ class JavaClassSecurityTests extends CommonTestMethods {
     void rule2TestPass() {
         assert System.getSecurityManager() != null;
 
-        runtime.getService().getSecurity()
+        service.getSecurity()
                 .addPermission(RuleScope.BOTH, new FilePermission("<<ALL FILES>>", "read"))
                 .addPermission(RuleScope.BOTH, new PropertyPermission("some-unused-property", "write"))
         ;
-        applyToRuntimeAsURL(runtime, SampleRuleSet4.class);
-        StatefulSession session = session();
+        Knowledge knowledge = applyToRuntimeAsURL(service, SampleRuleSet4.class);
+        StatefulSession session = knowledge.createSession();
 
         session.insert(9L);
         session.fire();
