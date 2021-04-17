@@ -48,17 +48,6 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
     }
 
     @Override
-    public Knowledge addImport(RuleScope scope, String imp) {
-        return (Knowledge) super.addImport(scope, imp);
-    }
-
-    @Override
-    public Knowledge addImport(RuleScope scope, Class<?> type) {
-        super.addImport(scope, type);
-        return this;
-    }
-
-    @Override
     public Knowledge appendDslRules(String dsl, InputStream... streams) throws IOException {
         append(dsl, streams);
         return this;
