@@ -168,7 +168,6 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
             if (!(agenda = buildMemoryDeltas()).isEmpty()) {
                 activationManager.onAgenda(ctx.incrementFireCount(), agenda);
                 for (RuntimeRule candidate : agenda) {
-                    if (Thread.currentThread().isInterrupted()) return;
                     RuntimeRuleImpl rule = (RuntimeRuleImpl) candidate;
                     if (activationManager.test(candidate)) {
                         activationManager.onActivation(rule, rule.executeRhs());
@@ -186,7 +185,6 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
             if (!(agenda = buildMemoryDeltas()).isEmpty()) {
                 activationManager.onAgenda(ctx.incrementFireCount(), agenda);
                 for (RuntimeRule candidate : agenda) {
-                    if (Thread.currentThread().isInterrupted()) return;
                     RuntimeRuleImpl rule = (RuntimeRuleImpl) candidate;
                     if (activationManager.test(candidate)) {
                         activationManager.onActivation(rule, rule.executeRhs());
