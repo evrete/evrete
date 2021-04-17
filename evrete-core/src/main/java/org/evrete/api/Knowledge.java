@@ -9,12 +9,6 @@ public interface Knowledge extends RuntimeContext<Knowledge>, RuleSet<RuleDescri
 
     StatefulSession createSession();
 
-    @Override
-    Knowledge addImport(RuleScope scope, String imp);
-
-    @Override
-    Knowledge addImport(RuleScope scope, Class<?> type);
-
     default <A extends ActivationManager> Knowledge activationManager(Class<A> factory) {
         setActivationManagerFactory(factory);
         return this;
