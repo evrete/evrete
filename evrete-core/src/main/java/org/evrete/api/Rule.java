@@ -2,7 +2,7 @@ package org.evrete.api;
 
 import java.util.function.Consumer;
 
-public interface Rule extends PropertyAccess<Rule>, Named, FluentImports<Rule> {
+public interface Rule extends FluentEnvironment<Rule>, Named, FluentImports<Rule> {
 
     void setRhs(String literalRhs);
 
