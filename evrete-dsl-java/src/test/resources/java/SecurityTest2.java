@@ -1,12 +1,11 @@
 package org.mypackage;
 
-import org.evrete.dsl.DefaultSort;
 import org.evrete.dsl.annotation.Fact;
 import org.evrete.dsl.annotation.Rule;
-import org.evrete.dsl.annotation.RuleSortPolicy;
+import org.evrete.dsl.annotation.RuleSet;
 import org.evrete.dsl.annotation.Where;
 
-@RuleSortPolicy(DefaultSort.BY_NAME)
+@RuleSet(defaultSort = RuleSet.Sort.BY_NAME)
 public class SecurityTest2 {
 
     @Rule

@@ -3,7 +3,7 @@ package org.evrete.dsl;
 import org.evrete.api.*;
 import org.evrete.dsl.annotation.MethodPredicate;
 import org.evrete.dsl.annotation.Rule;
-import org.evrete.dsl.annotation.RuleSortPolicy;
+import org.evrete.dsl.annotation.RuleSet;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -51,16 +51,16 @@ class JavaClassRuleSet {
             LOGGER.warning("No rule methods found in the source, ruleset is empty");
         } else {
             // How to sort rules when no salience is specified
-            DefaultSort defaultSort = deriveSort(clazz);
-            defaultSort = defaultSort == null ? DefaultSort.DEFAULT : defaultSort;
+            RuleSet.Sort defaultSort = deriveSort(clazz);
+            defaultSort = defaultSort == null ? RuleSet.Sort.DEFAULT : defaultSort;
             ruleMethods.sort(new RuleComparator(defaultSort));
         }
     }
 
-    private static DefaultSort deriveSort(Class<?> clazz) {
-        RuleSortPolicy policy = clazz.getAnnotation(RuleSortPolicy.class);
+    private static RuleSet.Sort deriveSort(Class<?> clazz) {
+        RuleSet policy = clazz.getAnnotation(RuleSet.class);
         if (policy != null) {
-            return policy.value();
+            return policy.defaultSort();
         } else {
             Class<?> parent = clazz.getSuperclass();
             if (parent.equals(Object.class)) {

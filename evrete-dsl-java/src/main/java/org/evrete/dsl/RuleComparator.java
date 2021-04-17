@@ -1,13 +1,15 @@
 package org.evrete.dsl;
 
+import org.evrete.dsl.annotation.RuleSet;
+
 import java.io.Serializable;
 import java.util.Comparator;
 
 class RuleComparator implements Comparator<RuleMethod>, Serializable {
     private static final long serialVersionUID = 227921134207025747L;
-    private final DefaultSort nameSort;
+    private final RuleSet.Sort nameSort;
 
-    RuleComparator(DefaultSort nameSort) {
+    RuleComparator(RuleSet.Sort nameSort) {
         this.nameSort = nameSort;
     }
 

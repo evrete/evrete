@@ -1,11 +1,10 @@
 package pkg1.evrete.tests.rule;
 
 import org.evrete.api.RhsContext;
-import org.evrete.dsl.DefaultSort;
 import org.evrete.dsl.annotation.*;
 import pkg1.evrete.tests.classes.*;
 
-@RuleSortPolicy(DefaultSort.BY_NAME)
+@RuleSet(defaultSort = RuleSet.Sort.BY_NAME)
 public class RuleSet2 {
 
     @Rule

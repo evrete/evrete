@@ -3,7 +3,7 @@ package org.mypackage;
 import org.evrete.dsl.annotation.Fact;
 import org.evrete.dsl.annotation.Rule;
 
-public class RuleSet {
+public class RuleSet2 {
 
     @Rule
     public void rule1(@Fact("$o") Object o) {
