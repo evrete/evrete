@@ -4,34 +4,20 @@ import org.evrete.api.RhsContext;
 import org.evrete.dsl.annotation.Rule;
 import org.evrete.dsl.annotation.Where;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-class RuleMethod implements Consumer<RhsContext> {
-    final boolean staticMethod;
-    private final Method method;
+class RuleMethod extends RuleSetMethod implements Consumer<RhsContext> {
     private final Rule ruleAnn;
     private final LhsParameter[] lhsParameters;
     private final Where predicates;
-    private final MethodHandle handle;
     private final int contextParamId;
-    private final Object[] methodCurrentValues;
 
-    RuleMethod(Method method, Rule ruleAnnotation, Object instance) {
-        this.staticMethod = Modifier.isStatic(method.getModifiers());
-        try {
-            this.handle = MethodHandles.lookup().unreflect(method);
-        } catch (IllegalAccessException e) {
-            throw new MalformedResourceException("Rule method access exception", e);
-        }
-        this.ruleAnn = ruleAnnotation;
-        this.method = method;
+    RuleMethod(RuleSetMethod method, Object instance) {
+        super(method);
+        this.ruleAnn = method.getAnnotation(Rule.class);
         this.predicates = method.getAnnotation(Where.class);
         Parameter[] parameters = method.getParameters();
         List<LhsParameter> lhsParameters = new ArrayList<>(parameters.length);
@@ -43,7 +29,7 @@ class RuleMethod implements Consumer<RhsContext> {
                 if (contextParamId < 0) {
                     contextParamId = i;
                 } else {
-                    throw new MalformedResourceException("Duplicate context parameter in " + method.getName());
+                    throw new MalformedResourceException("Duplicate context parameter in " + method.getMethodName());
                 }
             } else {
                 // LHS Parameter
@@ -53,10 +39,8 @@ class RuleMethod implements Consumer<RhsContext> {
         }
 
         if (staticMethod) {
-            this.methodCurrentValues = new Object[parameters.length];
             this.contextParamId = contextParamId;
         } else {
-            this.methodCurrentValues = new Object[parameters.length + 1];
             this.methodCurrentValues[0] = instance;
             this.contextParamId = contextParamId + 1;
         }
@@ -89,7 +73,7 @@ class RuleMethod implements Consumer<RhsContext> {
     @Override
     public void accept(RhsContext ctx) {
         for (LhsParameter p : lhsParameters) {
-            this.methodCurrentValues[p.position] = ctx.getObject(p.lhsRef);
+            this.methodCurrentValues[p.position] = ctx.getObject(p.getName());
         }
         if (contextParamId >= 0) {
             this.methodCurrentValues[contextParamId] = ctx;

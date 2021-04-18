@@ -2,6 +2,7 @@ package org.evrete.dsl;
 
 import org.evrete.api.*;
 import org.evrete.dsl.annotation.MethodPredicate;
+import org.evrete.dsl.annotation.PhaseListener;
 import org.evrete.dsl.annotation.Rule;
 import org.evrete.dsl.annotation.RuleSet;
 
@@ -10,67 +11,71 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static org.evrete.dsl.JavaDSLSourceProvider.LOGGER;
 
 class JavaClassRuleSet {
+    private final RuntimeContext<?> runtime;
     private final List<RuleMethod> ruleMethods;
     private final Class<?> ruleSetClass;
     private final Object instance;
 
-    JavaClassRuleSet(Class<?> clazz) {
+    JavaClassRuleSet(RuntimeContext<?> runtime, Class<?> clazz) {
+        MethodHandles.Lookup lookup = MethodHandles.lookup().in(clazz);
         try {
             this.instance = clazz.getConstructor().newInstance();
         } catch (Throwable t) {
             throw new MalformedResourceException("Unable to create instance of " + clazz.getName() + ". Rule set must be a pubic class with zero-argument constructor.", t);
         }
-
+        this.runtime = runtime;
         this.ruleSetClass = clazz;
         // Scan and store methods via reflection
-        Method[] classMethods = clazz.getMethods();
-        this.ruleMethods = new ArrayList<>(classMethods.length);
-        for (Method m : classMethods) {
-            // Identify and save rule methods
-            Rule ann = m.getAnnotation(Rule.class);
-            if (ann != null) {
-                if (Modifier.isPublic(m.getModifiers())) {
-                    if (m.getReturnType().equals(void.class)) {
-                        ruleMethods.add(new RuleMethod(m, ann, instance));
-                    } else {
-                        throw new MalformedResourceException("Non-void method '" + m.getName() + "' is annotated as @Rule.");
-                    }
-                } else {
-                    throw new MalformedResourceException("Non-public method annotated as @Rule: " + m.getName());
-                }
+        this.ruleMethods = new ArrayList<>();
+
+        Map<String, List<RuleSetMethod>> nonAnnotatedMethods = new HashMap<>();
+        Collection<RuleSetMethod> ruleAnnotatedMethods = new ArrayList<>();
+        Collection<RuleSetMethod> phaseAnnotatedMethods = new ArrayList<>();
+        for (Method m : clazz.getMethods()) {
+            RuleSetMethod methodWrapper = new RuleSetMethod(lookup, m);
+
+            Rule ruleAnnotation = m.getAnnotation(Rule.class);
+            PhaseListener listenerAnnotation = m.getAnnotation(PhaseListener.class);
+            if (listenerAnnotation == null && ruleAnnotation == null) {
+                nonAnnotatedMethods.computeIfAbsent(m.getName(), k -> new ArrayList<>()).add(methodWrapper);
+                continue;
             }
+
+            if (listenerAnnotation != null && ruleAnnotation != null) {
+                throw new MalformedResourceException("Method '" + m.getName() + "' is annotated both as with a @Rule and as a @PhaseListener annotations.");
+            }
+
+            // When reached here, the method is either a rule method, or a listener method
+            if (Modifier.isPublic(m.getModifiers())) {
+                if (ruleAnnotation != null) {
+                    ruleAnnotatedMethods.add(methodWrapper);
+                } else {
+                    phaseAnnotatedMethods.add(methodWrapper);
+                }
+            } else {
+                throw new MalformedResourceException("Non-public method annotated as @Rule: " + m.getName());
+            }
+        }
+
+        for (RuleSetMethod m : ruleAnnotatedMethods) {
+            RuleMethod rm = new RuleMethod(m, instance);
+            this.ruleMethods.add(rm);
         }
 
         if (ruleMethods.isEmpty()) {
             LOGGER.warning("No rule methods found in the source, ruleset is empty");
         } else {
             // How to sort rules when no salience is specified
-            RuleSet.Sort defaultSort = deriveSort(clazz);
-            defaultSort = defaultSort == null ? RuleSet.Sort.DEFAULT : defaultSort;
+            RuleSet.Sort defaultSort = Utils.deriveSort(clazz);
             ruleMethods.sort(new RuleComparator(defaultSort));
         }
     }
 
-    private static RuleSet.Sort deriveSort(Class<?> clazz) {
-        RuleSet policy = clazz.getAnnotation(RuleSet.class);
-        if (policy != null) {
-            return policy.defaultSort();
-        } else {
-            Class<?> parent = clazz.getSuperclass();
-            if (parent.equals(Object.class)) {
-                return null;
-            } else {
-                return deriveSort(parent);
-            }
-        }
-
-    }
 
 
     List<RuleMethod> getRuleMethods() {
@@ -84,7 +89,7 @@ class JavaClassRuleSet {
         }
         Class<?>[] signature = new Class<?>[descriptor.length];
 
-        ExpressionResolver expressionResolver = lhs.getRuleBuilder().getRuntime().getExpressionResolver();
+        ExpressionResolver expressionResolver = runtime.getExpressionResolver();
         for (int i = 0; i < descriptor.length; i++) {
             FieldReference ref = expressionResolver.resolve(descriptor[i], lhs.getFactTypeMapper());
             signature[i] = ref.field().getValueType();

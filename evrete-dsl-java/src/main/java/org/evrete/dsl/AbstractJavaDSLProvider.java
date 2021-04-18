@@ -1,7 +1,9 @@
 package org.evrete.dsl;
 
 import org.evrete.KnowledgeService;
-import org.evrete.api.*;
+import org.evrete.api.Knowledge;
+import org.evrete.api.LhsBuilder;
+import org.evrete.api.RuleBuilder;
 import org.evrete.api.spi.DSLKnowledgeProvider;
 import org.evrete.dsl.annotation.MethodPredicate;
 import org.evrete.dsl.annotation.Where;
@@ -16,62 +18,20 @@ abstract class AbstractJavaDSLProvider implements DSLKnowledgeProvider {
     static final String PROVIDER_JAVA_C = "JAVA-CLASS";
     static final String PROVIDER_JAVA_J = "JAVA-JAR";
 
-    static void processRuleSet(RuntimeContext<?> targetContext, JavaClassRuleSet ruleSet) {
-        // Build rules
-        for (RuleMethod rm : ruleSet.getRuleMethods()) {
-            RuleBuilder<?> builder = targetContext.newRule(rm.getName());
-            builder.setSalience(rm.getSalience());
-            // Build LHS from method parameters
-            LhsParameter[] factParameters = rm.getLhsParameters();
-            FactBuilder[] facts = new FactBuilder[factParameters.length];
-
-            for (int i = 0; i < factParameters.length; i++) {
-                LhsParameter lhsParameter = factParameters[i];
-
-                facts[i] = FactBuilder.fact(lhsParameter.getLhsRef(), lhsParameter.getFactType());
-            }
-
-            // Apply condition annotations
-            // 1. String predicates
-            LhsBuilder<?> lhsBuilder = builder.forEach(facts);
-            Where predicates = rm.getPredicates();
-            if (predicates != null) {
-                // 1. String predicates
-                for (String stringPredicate : predicates.value()) {
-                    lhsBuilder = lhsBuilder.where(stringPredicate);
-                }
-
-                // 2. Method predicates
-                for (MethodPredicate methodPredicate : predicates.asMethods()) {
-                    lhsBuilder.where(ruleSet.resolve(lhsBuilder, rm, methodPredicate), methodPredicate.descriptor());
-                }
-            }
-            // Final step - RHS
-            lhsBuilder.execute(rm);
-        }
-    }
-
-    static JavaClassRuleSet processRuleSet(Knowledge targetContext, Class<?> javaClass) {
+    static JavaClassRuleSet processRuleSet(Knowledge knowledge, Class<?> javaClass) {
         // Build rules
 
-        JavaClassRuleSet jcr = new JavaClassRuleSet(javaClass);
+        JavaClassRuleSet jcr = new JavaClassRuleSet(knowledge, javaClass);
 
         for (RuleMethod rm : jcr.getRuleMethods()) {
-            RuleBuilder<?> builder = targetContext.newRule(rm.getName());
+            RuleBuilder<?> builder = knowledge.newRule(rm.getName());
             builder.setSalience(rm.getSalience());
             // Build LHS from method parameters
             LhsParameter[] factParameters = rm.getLhsParameters();
-            FactBuilder[] facts = new FactBuilder[factParameters.length];
-
-            for (int i = 0; i < factParameters.length; i++) {
-                LhsParameter lhsParameter = factParameters[i];
-
-                facts[i] = FactBuilder.fact(lhsParameter.getLhsRef(), lhsParameter.getFactType());
-            }
 
             // Apply condition annotations
             // 1. String predicates
-            LhsBuilder<?> lhsBuilder = builder.forEach(facts);
+            LhsBuilder<?> lhsBuilder = builder.forEach(factParameters);
             Where predicates = rm.getPredicates();
             if (predicates != null) {
                 // 1. String predicates
