@@ -149,22 +149,8 @@ class TypeImpl<T> implements Type<T> {
 
     private synchronized TypeField innerDeclare(final String name, final Class<?> type, final Function<Object, ?> function) {
         Const.assertName(name);
-
         TypeFieldImpl field = new TypeFieldImpl(fields.size(), this, name, type, function);
         this.fields.put(name, field);
-
-/*
-        TypeFieldImpl field = fields.get(name);
-        if (field == null) {
-            synchronized (fields) {
-                field = fields.get(name);
-                if (field == null) {
-                    field = new TypeFieldImpl(fields.size(), this, name, type, function);
-                    this.fields.put(name, field);
-                }
-            }
-        }
-*/
         return field;
     }
 
