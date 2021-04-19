@@ -29,8 +29,8 @@ class JavaJarSecurityTests extends CommonTestMethods {
                 () -> {
                     service
                             .getConfiguration()
-                            .setProperty(JavaDSLJarProvider.CLASSES_PROPERTY, "pkg1.evrete.tests.rule.RuleSet2");
-                    Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractJavaDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar1/jar1-tests.jar"));
+                            .setProperty(DSLJarProvider.CLASSES_PROPERTY, "pkg1.evrete.tests.rule.RuleSet2");
+                    Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar1/jar1-tests.jar"));
                     StatefulSession session = knowledge.createSession();
                     assert session.getRules().size() == 2 : "Actual: " + session.getRules().size();
                     for (int i = 2; i < 100; i++) {
@@ -50,10 +50,10 @@ class JavaJarSecurityTests extends CommonTestMethods {
                 .addPermission(RuleScope.BOTH, new FilePermission("<<ALL FILES>>", "read"));
         service
                 .getConfiguration()
-                .setProperty(JavaDSLJarProvider.CLASSES_PROPERTY, "pkg1.evrete.tests.rule.RuleSet2");
+                .setProperty(DSLJarProvider.CLASSES_PROPERTY, "pkg1.evrete.tests.rule.RuleSet2");
 
 
-        Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractJavaDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar1/jar1-tests.jar"));
+        Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar1/jar1-tests.jar"));
         StatefulSession session = knowledge.createSession();
         assert session.getRules().size() == 2 : "Actual: " + session.getRules().size();
         for (int i = 2; i < 100; i++) {

@@ -15,7 +15,7 @@ class CommonTestMethods {
         try {
             String url = ruleClass.getName().replaceAll("\\.", "/") + ".class";
             InputStream is = ruleClass.getClassLoader().getResourceAsStream(url);
-            return service.newKnowledge(AbstractJavaDSLProvider.PROVIDER_JAVA_C, is);
+            return service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, is);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
@@ -25,7 +25,7 @@ class CommonTestMethods {
         try {
             String url = ruleClass.getName().replaceAll("\\.", "/") + ".class";
             URL u = ruleClass.getClassLoader().getResource(url);
-            return service.newKnowledge(AbstractJavaDSLProvider.PROVIDER_JAVA_C, u);
+            return service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, u);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }

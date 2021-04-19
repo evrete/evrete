@@ -9,16 +9,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.ProtectionDomain;
 
-public class JavaDSLClassProvider extends AbstractJavaDSLProvider {
+public class DSLClassProvider extends AbstractDSLProvider {
 
     private static Knowledge apply(Knowledge knowledge, byte[][] bytes) {
         ClassLoader ctxClassLoader = knowledge.getClassLoader();
         ProtectionDomain domain = knowledge.getService().getSecurity().getProtectionDomain(RuleScope.BOTH);
         BytesClassLoader loader = new BytesClassLoader(ctxClassLoader, domain);
+        Knowledge current = knowledge;
         for (byte[] arr : bytes) {
-            JavaClassRuleSet jr = processRuleSet(knowledge, loader.buildClass(arr));
+            current = processRuleSet(current, loader.buildClass(arr));
         }
-        return knowledge;
+        return current;
     }
 
     @Override

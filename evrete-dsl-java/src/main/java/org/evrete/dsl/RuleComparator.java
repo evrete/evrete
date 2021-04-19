@@ -17,7 +17,7 @@ class RuleComparator implements Comparator<RuleMethod>, Serializable {
     public int compare(RuleMethod o1, RuleMethod o2) {
         int cmp = Integer.compare(o1.getSalience(), o2.getSalience());
         if (cmp == 0) {
-            cmp = nameSort.getModifier() * o1.getName().compareTo(o2.getName());
+            cmp = nameSort.getModifier() * o1.getRuleName().compareTo(o2.getRuleName());
         }
         return cmp;
     }

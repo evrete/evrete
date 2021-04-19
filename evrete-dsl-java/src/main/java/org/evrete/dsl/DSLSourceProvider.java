@@ -14,26 +14,27 @@ import java.nio.charset.Charset;
 import java.security.ProtectionDomain;
 import java.util.logging.Logger;
 
-public class JavaDSLSourceProvider extends AbstractJavaDSLProvider {
-    static final Logger LOGGER = Logger.getLogger(JavaDSLSourceProvider.class.getName());
+public class DSLSourceProvider extends AbstractDSLProvider {
+    static final Logger LOGGER = Logger.getLogger(DSLSourceProvider.class.getName());
     private static final String CHARSET_PROPERTY = "org.evrete.source-charset";
     private static final String CHARSET_DEFAULT = "UTF-8";
 
-    private static Knowledge apply(Knowledge targetContext, String[] sources) {
-        ClassLoader ctxClassLoader = targetContext.getClassLoader();
-        ProtectionDomain domain = targetContext.getService().getSecurity().getProtectionDomain(RuleScope.BOTH);
+    private static Knowledge build(Knowledge knowledge, String[] sources) {
+        ClassLoader ctxClassLoader = knowledge.getClassLoader();
+        ProtectionDomain domain = knowledge.getService().getSecurity().getProtectionDomain(RuleScope.BOTH);
         BytesClassLoader loader = new BytesClassLoader(ctxClassLoader, domain);
         SourceCompiler compiler = new SourceCompiler();
+        Knowledge current = knowledge;
         for (String source : sources) {
             try {
                 Class<?> ruleSet = compiler.compile(source, loader);
-                JavaClassRuleSet jcr = processRuleSet(targetContext, ruleSet);
+                current = processRuleSet(current, ruleSet);
             } catch (CompilationException e) {
                 LOGGER.warning("Source code: \n" + e.getSource());
                 throw new IllegalStateException(e);
             }
         }
-        return targetContext;
+        return current;
     }
 
     @Override
@@ -46,13 +47,13 @@ public class JavaDSLSourceProvider extends AbstractJavaDSLProvider {
         if (streams == null || streams.length == 0) throw new IOException("Empty resources");
         String charSet = service.getConfiguration().getProperty(CHARSET_PROPERTY, CHARSET_DEFAULT);
         Knowledge knowledge = service.newKnowledge();
-        return apply(knowledge, toSourceString(Charset.forName(charSet), streams));
+        return build(knowledge, toSourceString(Charset.forName(charSet), streams));
     }
 
     @Override
     public Knowledge create(KnowledgeService service, Reader... readers) throws IOException {
         if (readers == null || readers.length == 0) throw new IOException("Empty resources");
         Knowledge knowledge = service.newKnowledge();
-        return apply(knowledge, toSourceString(readers));
+        return build(knowledge, toSourceString(readers));
     }
 }

@@ -18,8 +18,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.logging.Logger;
 
-public class JavaDSLJarProvider extends AbstractJavaDSLProvider {
-    private static final Logger LOGGER = Logger.getLogger(JavaDSLJarProvider.class.getName());
+public class DSLJarProvider extends AbstractDSLProvider {
+    private static final Logger LOGGER = Logger.getLogger(DSLJarProvider.class.getName());
     static final String CLASSES_PROPERTY = "org.evrete.dsl.rule-classes";
     private static final String EMPTY_CLASSES = "";
     private static final String CLASS_ENTRY_SUFFIX = ".class";
@@ -30,22 +30,23 @@ public class JavaDSLJarProvider extends AbstractJavaDSLProvider {
             "org.evrete.",
     };
 
-    private static Knowledge apply(Knowledge targetContext, Set<String> ruleClasses, InputStream... streams) throws IOException {
-        ClassLoader ctxClassLoader = targetContext.getClassLoader();
-        ProtectionDomain domain = targetContext.getService().getSecurity().getProtectionDomain(RuleScope.BOTH);
+    private static Knowledge apply(Knowledge knowledge, Set<String> ruleClasses, InputStream... streams) throws IOException {
+        ClassLoader ctxClassLoader = knowledge.getClassLoader();
+        ProtectionDomain domain = knowledge.getService().getSecurity().getProtectionDomain(RuleScope.BOTH);
         BytesClassLoader classLoader = new BytesClassLoader(ctxClassLoader, domain);
         fillClassLoader(classLoader, streams);
 
+        Knowledge current = knowledge;
         for (String ruleClass : ruleClasses) {
             try {
                 Class<?> cl = classLoader.loadClass(ruleClass);
-                JavaClassRuleSet jcr = processRuleSet(targetContext, cl);
+                current = processRuleSet(current, cl);
             } catch (ClassNotFoundException e) {
                 // No such rule class
                 LOGGER.warning("Ruleset class '" + ruleClass + "' not found");
             }
         }
-        return targetContext;
+        return current;
     }
 
     private static Set<String> ruleClasses(Configuration configuration) {

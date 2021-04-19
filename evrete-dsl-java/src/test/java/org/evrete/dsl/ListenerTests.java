@@ -4,15 +4,13 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.ActivationMode;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
-import org.evrete.util.NextIntSupplier;
+import org.evrete.dsl.rules.ListenerRuleSet1;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-import java.io.File;
-
-class JavaJarTests extends CommonTestMethods {
+class ListenerTests extends CommonTestMethods {
     private static KnowledgeService service;
 
     @BeforeAll
@@ -25,7 +23,6 @@ class JavaJarTests extends CommonTestMethods {
         service.shutdown();
     }
 
-
     private static StatefulSession session(Knowledge knowledge, ActivationMode mode) {
         return knowledge.createSession().setActivationMode(mode);
     }
@@ -33,21 +30,25 @@ class JavaJarTests extends CommonTestMethods {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void test1(ActivationMode mode) {
-        service
-                .getConfiguration()
-                .setProperty(DSLJarProvider.CLASSES_PROPERTY, "pkg1.evrete.tests.rule.RuleSet1");
-        Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar1//jar1-tests.jar"));
+        ListenerInvocationData.reset();
+        Knowledge knowledge = applyToRuntimeAsStream(service, ListenerRuleSet1.class);
+        assert ListenerInvocationData.total() == 1 && ListenerInvocationData.count(Phase.BUILD) == 1;
+
         StatefulSession session = session(knowledge, mode);
-        assert session.getRules().size() == 2;
-        for (int i = 2; i < 100; i++) {
-            session.insert(i);
-        }
+        assert ListenerInvocationData.count(Phase.CREATE) == 3;
+        assert ListenerInvocationData.total() == 6; // 4 + additional two coming from the multiple() method
+        ListenerInvocationData.reset();
+        session.insert(1);
         session.fire();
+        assert ListenerInvocationData.total() == 4 : " " + ListenerInvocationData.EVENTS;
+        session.fire();
+        assert ListenerInvocationData.total() == 8 : " " + ListenerInvocationData.EVENTS;
 
-        NextIntSupplier primeCounter = new NextIntSupplier();
-        session.forEachFact((h, o) -> primeCounter.next());
 
-        assert primeCounter.get() == 25;
+        ListenerInvocationData.reset();
+        session.close();
+        assert ListenerInvocationData.total() == 4 : " " + ListenerInvocationData.EVENTS;
+
 
     }
 }
