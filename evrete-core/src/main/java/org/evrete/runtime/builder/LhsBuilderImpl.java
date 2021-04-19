@@ -1,5 +1,6 @@
 package org.evrete.runtime.builder;
 
+import org.evrete.api.FieldReference;
 import org.evrete.api.RhsContext;
 import org.evrete.api.RuleBuilder;
 import org.evrete.api.RuntimeContext;
@@ -42,5 +43,10 @@ public class LhsBuilderImpl<C extends RuntimeContext<C>> extends AbstractLhsBuil
     @Override
     public C execute() {
         return getRuleBuilder().build();
+    }
+
+    @Override
+    public FieldReference resolveField(String s) {
+        return getRuleBuilder().getRuntimeContext().resolveFieldReference(s, getFactTypeMapper());
     }
 }

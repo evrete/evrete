@@ -127,7 +127,7 @@ class TypeImpl<T> implements Type<T> {
     @Override
     @SuppressWarnings("unchecked")
     public <V> TypeField declareField(String name, Class<V> type, Function<T, V> function) {
-        return getCreateField(name, type, o -> function.apply((T) o));
+        return innerDeclare(name, type, o -> function.apply((T) o));
     }
 
     @Override
@@ -147,8 +147,13 @@ class TypeImpl<T> implements Type<T> {
                 '}';
     }
 
-    private TypeField getCreateField(final String name, final Class<?> type, final Function<Object, ?> function) {
+    private synchronized TypeField innerDeclare(final String name, final Class<?> type, final Function<Object, ?> function) {
         Const.assertName(name);
+
+        TypeFieldImpl field = new TypeFieldImpl(fields.size(), this, name, type, function);
+        this.fields.put(name, field);
+
+/*
         TypeFieldImpl field = fields.get(name);
         if (field == null) {
             synchronized (fields) {
@@ -159,6 +164,7 @@ class TypeImpl<T> implements Type<T> {
                 }
             }
         }
+*/
         return field;
     }
 
@@ -186,7 +192,7 @@ class TypeImpl<T> implements Type<T> {
                 new NestedFunction(getters.data);
 
 
-        return getCreateField(dottedProp, valueType, func);
+        return innerDeclare(dottedProp, valueType, func);
     }
 
     private enum MethodMeta {

@@ -72,17 +72,6 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     }
 
 
-/*
-    protected void append(String dsl, Class<?>... classes) throws IOException {
-        if (classes == null || classes.length == 0) return;
-        URL[] urls = new URL[classes.length];
-        for (int i = 0; i < classes.length; i++) {
-            urls[i] = classToURL(classes[i]);
-        }
-        getDslProvider(dsl).apply(this, urls);
-    }
-*/
-
     @Override
     public ClassLoader getClassLoader() {
         return classLoader;
@@ -214,6 +203,18 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
             Logger.getAnonymousLogger().warning("Failed source\n: " + e.getSource());
             throw new IllegalStateException(e);
         }
+    }
+
+    public FieldReference resolveFieldReference(String arg, Function<String, NamedType> typeMapper) {
+        return getExpressionResolver().resolve(arg, typeMapper);
+    }
+
+    public FieldReference[] resolveFieldReferences(String[] arg, Function<String, NamedType> typeMapper) {
+        FieldReference[] refs = new FieldReference[arg.length];
+        for (int i = 0; i < arg.length; i++) {
+            refs[i] = resolveFieldReference(arg[i], typeMapper);
+        }
+        return refs;
     }
 
     @Override

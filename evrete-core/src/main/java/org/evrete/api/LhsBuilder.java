@@ -44,6 +44,8 @@ public interface LhsBuilder<C extends RuntimeContext<C>> {
 
     NamedType addFactDeclaration(String name, String type);
 
+    FieldReference resolveField(String s);
+
     LhsBuilder<C> buildLhs(Collection<FactBuilder> facts);
 
     NamedType addFactDeclaration(String name, Class<?> type);

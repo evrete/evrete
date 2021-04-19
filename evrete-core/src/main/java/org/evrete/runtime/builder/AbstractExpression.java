@@ -1,6 +1,8 @@
 package org.evrete.runtime.builder;
 
-import org.evrete.api.*;
+import org.evrete.api.ComplexityObject;
+import org.evrete.api.Evaluator;
+import org.evrete.api.NamedType;
 import org.evrete.runtime.AbstractRuntime;
 
 import java.util.function.Function;
@@ -11,15 +13,6 @@ public abstract class AbstractExpression implements ComplexityObject {
 
     AbstractExpression(double complexity) {
         this.complexity = complexity;
-    }
-
-    static FieldReference[] resolveReferences(AbstractRuntime<?, ?> runtime, Function<String, NamedType> typeMapper, String[] references) {
-        FieldReference[] descriptor = new FieldReference[references.length];
-        ExpressionResolver expressionResolver = runtime.getExpressionResolver();
-        for (int i = 0; i < descriptor.length; i++) {
-            descriptor[i] = expressionResolver.resolve(references[i], typeMapper);
-        }
-        return descriptor;
     }
 
     @Override
