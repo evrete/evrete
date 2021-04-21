@@ -1,7 +1,6 @@
 package org.evrete.runtime;
 
 import org.evrete.api.*;
-import org.evrete.runtime.evaluation.AlphaEvaluator;
 import org.evrete.util.Bits;
 
 import java.util.Arrays;
@@ -31,13 +30,13 @@ class RuntimeFact {
             ActiveField field = activeFields[i];
             this.valueHandles[i] = resolver.getValueHandle(field.getValueType(), field.readValue(factRecord.instance));
         }
-        AlphaEvaluator[] alphaEvaluators = typeMemoryState.alphaEvaluators;
+        RuntimeAlphaEvaluator[] alphaEvaluators = typeMemoryState.alphaEvaluators1;
         if (alphaEvaluators.length == 0) {
             this.alphaTests = EMPTY;
         } else {
             FieldToValueHandle func = field -> valueHandles[field.getValueIndex()];
             this.alphaTests = new Bits();
-            for (AlphaEvaluator alphaEvaluator : alphaEvaluators) {
+            for (RuntimeAlphaEvaluator alphaEvaluator : alphaEvaluators) {
                 if (alphaEvaluator.test(resolver, func)) {
                     this.alphaTests.set(alphaEvaluator.getIndex());
                 }

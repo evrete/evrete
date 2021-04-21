@@ -2,10 +2,9 @@ package org.evrete.api;
 
 import java.util.Collection;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
-public interface LhsBuilder<C extends RuntimeContext<C>> {
+public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resolver {
     C execute(String literalRhs);
 
     RuleBuilder<C> setRhs(String literalConsumer);
@@ -15,8 +14,6 @@ public interface LhsBuilder<C extends RuntimeContext<C>> {
     C execute();
 
     C execute(Consumer<RhsContext> consumer);
-
-    Function<String, NamedType> getFactTypeMapper();
 
     RuleBuilder<C> getRuleBuilder();
 
@@ -43,8 +40,6 @@ public interface LhsBuilder<C extends RuntimeContext<C>> {
     NamedType addFactDeclaration(String name, Type<?> type);
 
     NamedType addFactDeclaration(String name, String type);
-
-    FieldReference resolveField(String s);
 
     LhsBuilder<C> buildLhs(Collection<FactBuilder> facts);
 

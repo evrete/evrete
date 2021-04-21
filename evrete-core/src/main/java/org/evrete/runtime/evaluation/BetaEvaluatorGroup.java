@@ -2,12 +2,14 @@ package org.evrete.runtime.evaluation;
 
 import org.evrete.api.ActiveField;
 import org.evrete.api.ComplexityObject;
+import org.evrete.api.EvaluatorHandle;
 import org.evrete.runtime.FactType;
 import org.evrete.util.Bits;
 
 import java.util.*;
 
 public class BetaEvaluatorGroup implements BetaEvaluator {
+    private final EvaluatorHandle[] constituents;
     private final BetaEvaluatorSingle[] evaluators;
     private final Bits factTypeMask;
     private final Set<FactType> descriptor;
@@ -19,23 +21,17 @@ public class BetaEvaluatorGroup implements BetaEvaluator {
         Arrays.sort(evaluators, Comparator.comparingDouble(ComplexityObject::getComplexity));
         Set<FactType> factTypes = new HashSet<>();
         double comp = 0.0;
-        for (BetaEvaluatorSingle ei : evaluators) {
+        this.constituents = new EvaluatorHandle[evaluators.length];
+        for (int i = 0; i < evaluators.length; i++) {
+            BetaEvaluatorSingle ei = evaluators[i];
             factTypes.addAll(ei.factTypes());
             factTypeMask.or(ei.getFactTypeMask());
+            this.constituents[i] = ei.constituents()[0];
             comp += ei.getComplexity();
         }
+
         this.complexity = comp;
         this.descriptor = Collections.unmodifiableSet(factTypes);
-    }
-
-    private BetaEvaluatorGroup(BetaEvaluatorGroup other) {
-        this.factTypeMask = other.factTypeMask;
-        this.complexity = other.complexity;
-        this.descriptor = other.descriptor;
-        this.evaluators = new BetaEvaluatorSingle[other.evaluators.length];
-        for (int i = 0; i < this.evaluators.length; i++) {
-            this.evaluators[i] = other.evaluators[i].copyOf();
-        }
     }
 
     @Override
@@ -49,27 +45,13 @@ public class BetaEvaluatorGroup implements BetaEvaluator {
     }
 
     @Override
-    public BetaEvaluatorGroup copyOf() {
-        return new BetaEvaluatorGroup(this);
-    }
-
-    @Override
-    public EvaluatorWrapper[] constituents() {
-        return evaluators;
+    public EvaluatorHandle[] constituents() {
+        return constituents;
     }
 
     @Override
     public double getComplexity() {
         return this.complexity;
-    }
-
-    public boolean test() {
-        for (BetaEvaluatorSingle evaluator : evaluators) {
-            if (!evaluator.test()) {
-                return false;
-            }
-        }
-        return true;
     }
 
     @Override

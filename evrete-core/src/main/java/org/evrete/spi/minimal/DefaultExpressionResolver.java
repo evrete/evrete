@@ -9,7 +9,6 @@ import org.evrete.util.compiler.CompilationException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,9 +25,8 @@ class DefaultExpressionResolver implements ExpressionResolver {
         this.conditionBaseClassName = requester.getConfiguration().getProperty(BASE_CLASS_PROPERTY, BaseConditionClass.class.getName());
     }
 
-
     @Override
-    public FieldReference resolve(String arg, Function<String, NamedType> resolver) {
+    public FieldReference resolve(String arg, NamedType.Resolver resolver) {
         Type<?> type;
         TypeField field;
         NamedType typeRef;
@@ -36,7 +34,7 @@ class DefaultExpressionResolver implements ExpressionResolver {
         int firstDot = arg.indexOf('.');
         if (firstDot < 0) {
             // Var references type
-            if ((typeRef = resolver.apply(arg)) == null) {
+            if ((typeRef = resolver.resolve(arg)) == null) {
                 throw new IllegalArgumentException("There's no declared reference '" + arg + "' in provided context.");
             }
 
@@ -53,7 +51,7 @@ class DefaultExpressionResolver implements ExpressionResolver {
             Const.assertName(dottedProp);
             Const.assertName(lhsFactType.substring(1));
 
-            if ((typeRef = resolver.apply(lhsFactType)) == null) {
+            if ((typeRef = resolver.resolve(lhsFactType)) == null) {
                 throw new IllegalArgumentException("There's no declared reference '" + lhsFactType + "' in provided context.");
             }
 
@@ -69,7 +67,7 @@ class DefaultExpressionResolver implements ExpressionResolver {
     }
 
     @Override
-    public synchronized Evaluator buildExpression(String rawExpression, Function<String, NamedType> resolver, Set<String> imports) throws CompilationException {
+    public synchronized Evaluator buildExpression(String rawExpression, NamedType.Resolver resolver, Set<String> imports) throws CompilationException {
         try {
             return buildExpression(rawExpression, resolver, imports, true);
         } catch (Throwable e) {
@@ -79,7 +77,7 @@ class DefaultExpressionResolver implements ExpressionResolver {
         }
     }
 
-    private Evaluator buildExpression(String rawExpression, Function<String, NamedType> resolver, Set<String> imports, boolean stripWhiteSpaces) throws CompilationException {
+    private Evaluator buildExpression(String rawExpression, NamedType.Resolver resolver, Set<String> imports, boolean stripWhiteSpaces) throws CompilationException {
         StringLiteralRemover remover = StringLiteralRemover.of(rawExpression, stripWhiteSpaces);
         String strippedExpression = remover.getConverted();
         Matcher m = REFERENCE_PATTERN.matcher(strippedExpression);

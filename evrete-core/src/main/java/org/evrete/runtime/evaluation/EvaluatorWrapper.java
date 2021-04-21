@@ -2,41 +2,63 @@ package org.evrete.runtime.evaluation;
 
 import org.evrete.api.*;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-public class EvaluatorWrapper implements Evaluator, Listeners {
-    private final Evaluator delegate;
-    private final Set<EvaluationListener> listeners = new HashSet<>();
-    private final ValuesPredicate verboseUnmapped = new ValuesPredicate() {
-        @Override
-        public boolean test(IntToValue intToValue) {
-            boolean b = delegate.test(intToValue);
-            for (EvaluationListener listener : listeners) {
-                listener.fire(delegate, intToValue, b);
+public class EvaluatorWrapper implements Evaluator, Copyable<EvaluatorWrapper> {
+    private Evaluator delegate;
+    private Collection<EvaluationListener> listeners = new HashSet<>();
+    /*
+        private final ValuesPredicate verbose = new ValuesPredicate() {
+            @Override
+            public boolean test(IntToValue intToValue) {
+                boolean b = delegate.test(intToValue);
+                for (EvaluationListener listener : listeners) {
+                    listener.fire(delegate, intToValue, b);
+                }
+                return b;
             }
-            return b;
-        }
-    };
-    private final Set<NamedType> namedTypes = new HashSet<>();
+        };
+    */
     private ValuesPredicate active;
     private IntToValue stateValues;
 
     public EvaluatorWrapper(Evaluator delegate) {
         this.delegate = unwrap(delegate);
-        for (FieldReference ref : delegate.descriptor()) {
-            this.namedTypes.add(ref.type());
-        }
-        updateActiveEvaluator();
         this.stateValues = null;
+        updateActiveEvaluator();
     }
 
-    EvaluatorWrapper(EvaluatorWrapper other) {
+    private EvaluatorWrapper(EvaluatorWrapper other) {
         this.delegate = unwrap(other.delegate);
         this.listeners.addAll(other.listeners);
-        this.namedTypes.addAll(other.namedTypes);
-        updateActiveEvaluator();
         this.stateValues = null;
+        updateActiveEvaluator();
+    }
+
+    @Override
+    public String toString() {
+        return "EW{" +
+                "d=" + delegate +
+                ", listeners=" + listeners +
+                ", hash=" + System.identityHashCode(this) +
+                '}';
+    }
+
+    @Override
+    public EvaluatorWrapper copyOf() {
+        return new EvaluatorWrapper(this);
+    }
+
+    public void update(Collection<EvaluationListener> listeners) {
+
+        this.listeners = listeners;
+        updateActiveEvaluator();
+    }
+
+    public Evaluator getDelegate() {
+        return delegate;
     }
 
     private static Evaluator unwrap(Evaluator e) {
@@ -48,28 +70,16 @@ public class EvaluatorWrapper implements Evaluator, Listeners {
         }
     }
 
-    Evaluator getDelegate() {
-        return delegate;
-    }
-
-    @Override
-    public String toString() {
-        return delegate.toString();
-    }
-
-    @Override
-    public final void addListener(EvaluationListener listener) {
-        this.listeners.add(listener);
-        updateActiveEvaluator();
-    }
-
-    @Override
-    public final void removeListener(EvaluationListener listener) {
-        this.listeners.remove(listener);
+    public final void setDelegate(Evaluator delegate) {
+        this.delegate = delegate;
         updateActiveEvaluator();
     }
 
     public Set<NamedType> getNamedTypes() {
+        Set<NamedType> namedTypes = new HashSet<>();
+        for (FieldReference ref : this.descriptor()) {
+            namedTypes.add(ref.type());
+        }
         return namedTypes;
     }
 
@@ -77,7 +87,18 @@ public class EvaluatorWrapper implements Evaluator, Listeners {
         if (listeners.isEmpty()) {
             this.active = delegate;
         } else {
-            this.active = verboseUnmapped;
+            //this.active = verbose;
+            this.active = new ValuesPredicate() {
+                @Override
+                public boolean test(IntToValue intToValue) {
+                    boolean b = delegate.test(intToValue);
+                    for (EvaluationListener listener : listeners) {
+                        listener.fire(delegate, intToValue, b);
+                    }
+                    return b;
+                }
+            };
+            ;
         }
     }
 

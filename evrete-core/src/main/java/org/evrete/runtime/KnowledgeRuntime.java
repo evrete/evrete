@@ -9,7 +9,7 @@ import java.util.*;
 public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge> implements Knowledge {
     private final WeakHashMap<RuleSession<?>, Object> sessions = new WeakHashMap<>();
     private final Object VALUE = new Object();
-    private final Set<EvaluationListener> evaluationListeners = new HashSet<>();
+    //private final Set<EvaluationListener> evaluationListeners = new HashSet<>();
     private final List<RuleDescriptor> ruleDescriptors = new ArrayList<>();
 
     public KnowledgeRuntime(KnowledgeService service) {
@@ -38,10 +38,12 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
         return ruleDescriptors;
     }
 
+/*
     @Override
     public void addListener(EvaluationListener listener) {
         this.evaluationListeners.add(listener);
     }
+*/
 
     void close(RuleSession<?> session) {
         synchronized (sessions) {
@@ -59,14 +61,19 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
         StatefulSessionImpl session = new StatefulSessionImpl(this);
         sessions.put(session, VALUE);
         // Copy evaluation listeners to the newly spawned session
+/*
         for (EvaluationListener listener : this.evaluationListeners) {
+            System.out.println("@@@@@@@@@@");
             session.addListener(listener);
         }
+*/
         return session;
     }
 
+/*
     @Override
     public void removeListener(EvaluationListener listener) {
         this.evaluationListeners.remove(listener);
     }
+*/
 }

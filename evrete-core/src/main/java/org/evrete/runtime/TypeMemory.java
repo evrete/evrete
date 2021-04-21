@@ -34,6 +34,8 @@ public final class TypeMemory extends MemoryComponent {
             default:
                 throw new IllegalArgumentException("Invalid identity method '" + identityMethod + "' in the configuration. Expected values are '" + Configuration.IDENTITY_METHOD_EQUALS + "' or '" + Configuration.IDENTITY_METHOD_IDENTITY + "'");
         }
+
+
         updateCachedData(initialState);
     }
 

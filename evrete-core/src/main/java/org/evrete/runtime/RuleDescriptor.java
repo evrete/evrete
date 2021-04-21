@@ -15,8 +15,7 @@ public class RuleDescriptor extends AbstractRuntimeRule {
     }
 
     static RuleDescriptor factory(AbstractRuntime<?, ?> runtime, RuleBuilderImpl<?> rule, String ruleName, int salience) {
-        RuleBuilderImpl<?> compiled = rule.compileConditions(runtime);
-        LhsDescriptor lhsDescriptor = new LhsDescriptor(runtime, compiled.getLhs(), new NextIntSupplier(), new MapFunction<>());
+        LhsDescriptor lhsDescriptor = new LhsDescriptor(runtime, rule.getLhs(), new NextIntSupplier(), new MapFunction<>());
         return new RuleDescriptor(runtime, rule, ruleName, salience, lhsDescriptor);
     }
 

@@ -1,11 +1,11 @@
 package org.evrete.runtime;
 
+import org.evrete.api.EvaluatorHandle;
 import org.evrete.api.NamedType;
+import org.evrete.api.TypeField;
 import org.evrete.runtime.builder.AbstractLhsBuilder;
-import org.evrete.runtime.builder.FactTypeBuilder;
 import org.evrete.runtime.evaluation.BetaEvaluator;
 import org.evrete.runtime.evaluation.EvaluatorFactory;
-import org.evrete.runtime.evaluation.EvaluatorWrapper;
 import org.evrete.util.MapFunction;
 import org.evrete.util.NextIntSupplier;
 
@@ -21,21 +21,24 @@ abstract class AbstractLhsDescriptor {
     private final FactType[] factTypes;
     private final RhsFactGroupDescriptor[] allFactGroups;
 
-    AbstractLhsDescriptor(AbstractRuntime<?, ?> runtime, AbstractLhsBuilder<?, ?> group, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
-        Set<FactTypeBuilder> declaredTypes = group.getDeclaredFactTypes();
-        AbstractLhsBuilder.Compiled compiledConditions = group.getCompiledData();
+    AbstractLhsDescriptor(AbstractRuntime<?, ?> runtime, AbstractLhsBuilder<?, ?> lhsBuilder, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
+        Set<NamedType> declaredTypes = lhsBuilder.getDeclaredFactTypes();
 
         Set<FactType> keyedFactTypes = new HashSet<>();
         Collection<FactType> plainFactTypes = new ArrayList<>();
         List<FactType> allFactTypes = new LinkedList<>();
-        for (FactTypeBuilder builder : declaredTypes) {
+        for (NamedType namedType : declaredTypes) {
+
+            Set<EvaluatorHandle> alphaConditions = lhsBuilder.getAlphaConditions(namedType);
+            Set<TypeField> fields = lhsBuilder.getBetaFields(namedType);
             // Building FactType
             FactType factType = runtime.buildFactType(
-                    builder,
-                    compiledConditions.getAlphaConditions(builder),
+                    namedType,
+                    fields,
+                    alphaConditions,
                     factIdGenerator.next()
             );
-            typeMapping.putNew(builder, factType);
+            typeMapping.putNew(namedType, factType);
 
             if (factType.getFields().size() == 0) {
                 plainFactTypes.add(factType);
@@ -47,7 +50,7 @@ abstract class AbstractLhsDescriptor {
 
         this.factTypes = allFactTypes.toArray(FactType.ZERO_ARRAY);
 
-        ConditionNodeDescriptor[] finalNodes = findBestAllocation(compiledConditions, typeMapping);
+        ConditionNodeDescriptor[] finalNodes = findBestAllocation(lhsBuilder, typeMapping);
 
         List<RhsFactGroupDescriptor> allFactGroups = new ArrayList<>();
 
@@ -66,9 +69,9 @@ abstract class AbstractLhsDescriptor {
         this.allFactGroups = allFactGroups.toArray(RhsFactGroupDescriptor.ZERO_ARRAY);
     }
 
-    private static ConditionNodeDescriptor[] findBestAllocation(AbstractLhsBuilder.Compiled lhsBuilder, MapFunction<NamedType, FactType> mapping) {
+    private static ConditionNodeDescriptor[] findBestAllocation(AbstractLhsBuilder<?, ?> lhsBuilder, MapFunction<NamedType, FactType> mapping) {
         // Compiling conditions
-        Set<EvaluatorWrapper> betaConditions = new HashSet<>(lhsBuilder.getBetaConditions());
+        Set<EvaluatorHandle> betaConditions = new HashSet<>(lhsBuilder.getBetaConditions());
         if (betaConditions.isEmpty()) return ConditionNodeDescriptor.ZERO_ARRAY;
 
         final List<BetaEvaluator> evaluators = new ArrayList<>(EvaluatorFactory.flattenEvaluators(betaConditions, mapping));

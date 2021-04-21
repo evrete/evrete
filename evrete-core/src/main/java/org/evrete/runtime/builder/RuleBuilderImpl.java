@@ -19,11 +19,6 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
         this.lhsBuilder = new LhsBuilderImpl<>(this);
     }
 
-    public RuleBuilderImpl<C> compileConditions(AbstractRuntime<?, ?> runtime) {
-        lhsBuilder.compileConditions(runtime);
-        return this;
-    }
-
     @Override
     public RuleBuilderImpl<C> set(String property, Object value) {
         super.set(property, value);
@@ -33,6 +28,11 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
     public RuleBuilderImpl<C> salience(int salience) {
         setSalience(salience);
         return this;
+    }
+
+    @Override
+    public NamedType resolve(String var) {
+        return lhsBuilder.resolve(var);
     }
 
     @Override

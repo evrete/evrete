@@ -104,17 +104,17 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
         }
     }
 
+/*
     @Override
     public void addListener(EvaluationListener listener) {
-        forEachAlphaCondition(a -> a.addListener(listener));
-        this.ruleStorage.addListener(listener);
+        getEvaluators().addListener(listener);
     }
 
     @Override
     public void removeListener(EvaluationListener listener) {
-        forEachAlphaCondition(a -> a.removeListener(listener));
-        this.ruleStorage.removeListener(listener);
+        getEvaluators().removeListener(listener);
     }
+*/
 
     public void close() {
         synchronized (this) {

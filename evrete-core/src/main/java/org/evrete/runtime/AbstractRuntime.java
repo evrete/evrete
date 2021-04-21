@@ -4,16 +4,13 @@ import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.runtime.async.ForkJoinExecutor;
-import org.evrete.runtime.builder.FactTypeBuilder;
 import org.evrete.runtime.builder.RuleBuilderImpl;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
-import org.evrete.runtime.evaluation.EvaluatorWrapper;
 import org.evrete.util.DefaultActivationManager;
 import org.evrete.util.compiler.CompilationException;
 
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.logging.Logger;
 
 public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C>> extends RuntimeMetaData<C> implements RuleSet<R> {
@@ -140,17 +137,26 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         return service.getExecutor();
     }
 
-    public Evaluator compile(String expression, Function<String, NamedType> resolver, Set<String> imports) {
+    public Evaluator compile(String expression, NamedType.Resolver resolver) {
         try {
-            return getExpressionResolver().buildExpression(expression, resolver, imports);
+            return getExpressionResolver().buildExpression(expression, resolver, getImports(RuleScope.LHS, RuleScope.BOTH));
         } catch (CompilationException e) {
             Logger.getAnonymousLogger().warning("Failed code:\n" + e.getSource());
             throw new RuntimeException(e);
         }
     }
 
-    FactType buildFactType(FactTypeBuilder builder, Set<EvaluatorWrapper> alphaEvaluators, int inRuleId) {
-        FieldsKey fieldsKey = getCreateMemoryKey(builder);
+    public Evaluator compile(String expression, NamedType.Resolver resolver, Imports imports) {
+        try {
+            return getExpressionResolver().buildExpression(expression, resolver, imports.get(RuleScope.LHS, RuleScope.BOTH));
+        } catch (CompilationException e) {
+            Logger.getAnonymousLogger().warning("Failed code:\n" + e.getSource());
+            throw new RuntimeException(e);
+        }
+    }
+
+    FactType buildFactType(NamedType builder, Set<TypeField> fields, Set<EvaluatorHandle> alphaEvaluators, int inRuleId) {
+        FieldsKey fieldsKey = getCreateMemoryKey(builder, fields);
         AlphaBucketMeta alphaMask = buildAlphaMask(fieldsKey, alphaEvaluators);
         return new FactType(builder.getVar(), alphaMask, fieldsKey, inRuleId);
     }
@@ -196,20 +202,31 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         }
     }
 
-    Consumer<RhsContext> compile(String literalRhs, FactType[] factTypes, Collection<String> imports) {
+/*
+    Consumer<RhsContext> compile(String literalRhs, FactType[] factTypes, RuleScope... scopes) {
         try {
-            return service.getLiteralRhsCompiler().compileRhs(this, literalRhs, Arrays.asList(factTypes), imports);
+            return service.getLiteralRhsCompiler().compileRhs(this, literalRhs, Arrays.asList(factTypes), getImports(scopes));
+        } catch (CompilationException e) {
+            Logger.getAnonymousLogger().warning("Failed source\n: " + e.getSource());
+            throw new IllegalStateException(e);
+        }
+    }
+*/
+
+    Consumer<RhsContext> compile(String literalRhs, FactType[] factTypes, Imports imports, RuleScope... scopes) {
+        try {
+            return service.getLiteralRhsCompiler().compileRhs(this, literalRhs, Arrays.asList(factTypes), imports.get(scopes));
         } catch (CompilationException e) {
             Logger.getAnonymousLogger().warning("Failed source\n: " + e.getSource());
             throw new IllegalStateException(e);
         }
     }
 
-    public FieldReference resolveFieldReference(String arg, Function<String, NamedType> typeMapper) {
+    private FieldReference resolveFieldReference(String arg, NamedType.Resolver typeMapper) {
         return getExpressionResolver().resolve(arg, typeMapper);
     }
 
-    public FieldReference[] resolveFieldReferences(String[] arg, Function<String, NamedType> typeMapper) {
+    public FieldReference[] resolveFieldReferences(String[] arg, NamedType.Resolver typeMapper) {
         FieldReference[] refs = new FieldReference[arg.length];
         for (int i = 0; i < arg.length; i++) {
             refs[i] = resolveFieldReference(arg[i], typeMapper);

@@ -1,13 +1,16 @@
 package org.evrete.runtime.evaluation;
 
-import org.evrete.api.*;
+import org.evrete.api.ActiveField;
+import org.evrete.api.Evaluator;
+import org.evrete.api.EvaluatorHandle;
+import org.evrete.runtime.Evaluators;
 
-public class AlphaEvaluator implements EvaluationListeners {
+public class AlphaEvaluator {
     private final ActiveField[] activeDescriptor;
-    private final EvaluatorWrapper delegate;
+    private final EvaluatorHandle delegate;
     private final int index;
 
-    public AlphaEvaluator(int index, EvaluatorWrapper e, ActiveField[] activeFields) {
+    public AlphaEvaluator(int index, EvaluatorHandle e, ActiveField[] activeFields) {
         this.activeDescriptor = activeFields;
         this.delegate = e;
         this.index = index;
@@ -17,17 +20,9 @@ public class AlphaEvaluator implements EvaluationListeners {
         return index;
     }
 
-    @Override
-    public String toString() {
-        return "AlphaEvaluator{" +
-                "delegate=" + delegate +
-                ", index=" + index +
-                '}';
-    }
-
-    public static Match search(AlphaEvaluator[] scope, EvaluatorWrapper subject) {
+    public static Match search(Evaluators evaluators, AlphaEvaluator[] scope, EvaluatorHandle subject) {
         for (AlphaEvaluator evaluator : scope) {
-            int cmp = evaluator.delegate.compare(subject);
+            int cmp = evaluators.compare(evaluator.delegate, subject);// evaluator.delegate.compare(subject);
             switch (cmp) {
                 case Evaluator.RELATION_EQUALS:
                     return new Match(evaluator, true);
@@ -42,22 +37,20 @@ public class AlphaEvaluator implements EvaluationListeners {
         return null;
     }
 
-    public EvaluatorWrapper getDelegate() {
+    @Override
+    public String toString() {
+        return "AlphaEvaluator{" +
+                "delegate=" + delegate +
+                ", index=" + index +
+                '}';
+    }
+
+    public ActiveField[] getActiveDescriptor() {
+        return activeDescriptor;
+    }
+
+    public EvaluatorHandle getDelegate() {
         return delegate;
-    }
-
-    public boolean test(ValueResolver resolver, FieldToValueHandle values) {
-        return delegate.test(i -> resolver.getValue(values.apply(activeDescriptor[i])));
-    }
-
-    @Override
-    public void addListener(EvaluationListener listener) {
-        delegate.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(EvaluationListener listener) {
-        delegate.removeListener(listener);
     }
 
     public static class Match {

@@ -56,4 +56,11 @@ public class Imports implements Copyable<Imports>, Serializable {
     public Imports copyOf() {
         return new Imports(this);
     }
+
+    @Override
+    public String toString() {
+        return "Imports{" +
+                "imports=" + imports +
+                '}';
+    }
 }

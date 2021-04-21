@@ -1,6 +1,6 @@
 package org.evrete.runtime.evaluation;
 
-import org.evrete.api.Evaluator;
+import org.evrete.api.EvaluatorHandle;
 import org.evrete.api.FieldReference;
 import org.evrete.api.NamedType;
 import org.evrete.runtime.BetaFieldReference;
@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 public final class EvaluatorFactory {
 
-    public static Collection<BetaEvaluator> flattenEvaluators(Collection<EvaluatorWrapper> rawEvaluators, Function<NamedType, FactType> typeFunction) {
+    public static Collection<BetaEvaluator> flattenEvaluators(Collection<EvaluatorHandle> rawEvaluators, Function<NamedType, FactType> typeFunction) {
         Collection<BetaEvaluatorSingle> evaluators = convert(rawEvaluators, typeFunction);
 
         MapOfSet<Set<FactType>, BetaEvaluatorSingle> groupedConditions = new MapOfSet<>();
@@ -38,9 +38,9 @@ public final class EvaluatorFactory {
         return result;
     }
 
-    private static Collection<BetaEvaluatorSingle> convert(Collection<EvaluatorWrapper> rawEvaluators, Function<NamedType, FactType> typeFunction) {
+    private static Collection<BetaEvaluatorSingle> convert(Collection<EvaluatorHandle> rawEvaluators, Function<NamedType, FactType> typeFunction) {
         Collection<BetaEvaluatorSingle> evaluators = new ArrayList<>(rawEvaluators.size());
-        for (EvaluatorWrapper e : rawEvaluators) {
+        for (EvaluatorHandle e : rawEvaluators) {
             validateExpression(e);
             evaluators.add(new BetaEvaluatorSingle(e, typeFunction));
         }
@@ -53,7 +53,7 @@ public final class EvaluatorFactory {
     }
 
 
-    private static void validateExpression(Evaluator expression) {
+    private static void validateExpression(EvaluatorHandle expression) {
         int refCount = expression.descriptor().length;
         Set<FieldReference> fields = new HashSet<>(Arrays.asList(expression.descriptor()));
         // Check duplicate fields

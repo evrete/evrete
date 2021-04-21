@@ -13,7 +13,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashSet;
 import java.util.Random;
 
 @SuppressWarnings("ALL")
@@ -46,7 +45,7 @@ class ExpressionsTest {
         NamedType b2 = root.addFactDeclaration("$c", TypeC.class.getName());
         assert b1.getType().getJavaType().equals(TypeB.class);
         assert b2.getType().getJavaType().equals(TypeC.class);
-        Evaluator ev = knowledge.compile("$a.i + $b.i + $c.i == 1", root.getFactTypeMapper(), new HashSet<>());
+        Evaluator ev = knowledge.compile("$a.i + $b.i + $c.i == 1", root);
 
         NextIntSupplier counter = new NextIntSupplier();
         Random random = new Random();
@@ -67,8 +66,8 @@ class ExpressionsTest {
     void test2() {
         LhsBuilder<Knowledge> root = rule.forEach();
         assert root.addFactDeclaration("$a", TypeA.class).getVar().equals("$a");
-        Evaluator ev1 = knowledge.compile("$a.i == 1", root.getFactTypeMapper(), new HashSet<>());
-        Evaluator ev2 = knowledge.compile("   $a.i ==     1     ", root.getFactTypeMapper(), new HashSet<>());
+        Evaluator ev1 = knowledge.compile("$a.i == 1", root);
+        Evaluator ev2 = knowledge.compile("   $a.i ==     1     ", root);
         assert ev1.compare(ev2) == Evaluator.RELATION_EQUALS;
     }
 

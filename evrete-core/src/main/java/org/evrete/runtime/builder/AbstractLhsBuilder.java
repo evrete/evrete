@@ -2,62 +2,68 @@ package org.evrete.runtime.builder;
 
 import org.evrete.api.*;
 import org.evrete.runtime.AbstractRuntime;
-import org.evrete.runtime.evaluation.EvaluatorWrapper;
+import org.evrete.runtime.evaluation.EvaluatorOfArray;
+import org.evrete.runtime.evaluation.EvaluatorOfPredicate;
 import org.evrete.util.MapOfSet;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends AbstractLhsBuilder<C, ?>> implements LhsBuilder<C> {
+    private static final Set<EvaluatorHandle> EMPTY_ALPHA_CONDITIONS = new HashSet<>();
+    private static final Set<TypeField> EMPTY_TYPE_FIELDS = new HashSet<>();
     private final RuleBuilderImpl<C> ruleBuilder;
-    private final Map<String, FactTypeBuilder> declaredLhsTypes;
-    private final Set<AbstractExpression> conditions = new HashSet<>();
-    private final Function<String, FactTypeBuilder> factTypeMapper;
-    private Compiled compiledData;
+    private final Map<String, NamedTypeImpl> declaredLhsTypes;
+    private final Set<EvaluatorHandle> betaConditions = new HashSet<>();
+    private final MapOfSet<String, EvaluatorHandle> alphaConditions = new MapOfSet<>();
+    private final MapOfSet<String, TypeField> betaFields = new MapOfSet<>();
+
+    private final AbstractRuntime<?, ?> runtime;
 
     AbstractLhsBuilder(RuleBuilderImpl<C> ruleBuilder) {
         this.ruleBuilder = ruleBuilder;
         this.declaredLhsTypes = new HashMap<>();
-        this.factTypeMapper = declaredLhsTypes::get;
+        this.runtime = ruleBuilder.getRuntimeContext();
     }
 
     protected abstract G self();
+
+    public Set<EvaluatorHandle> getAlphaConditions(NamedType type) {
+        return alphaConditions.getOrDefault(type.getVar(), EMPTY_ALPHA_CONDITIONS);
+    }
+
+    public Set<TypeField> getBetaFields(NamedType type) {
+        return betaFields.getOrDefault(type.getVar(), EMPTY_TYPE_FIELDS);
+    }
+
+    public Set<EvaluatorHandle> getBetaConditions() {
+        return betaConditions;
+    }
+
+    @Override
+    public NamedType resolve(String var) {
+        return declaredLhsTypes.get(var);
+    }
 
     private TypeResolver getTypeResolver() {
         return ruleBuilder.getRuntimeContext().getTypeResolver();
     }
 
-    public Compiled getCompiledData() {
-        if (compiledData == null) {
-            throw new IllegalStateException("Conditions not compiled");
-        }
-        return compiledData;
-    }
-
-    @Override
-    public Function<String, NamedType> getFactTypeMapper() {
-        return factTypeMapper::apply;
-    }
-
-    void compileConditions(AbstractRuntime<?, ?> runtime) {
-        if (compiledData != null) {
-            throw new IllegalStateException("Conditions already compiled");
+    private void addCondition(EvaluatorHandle handle) {
+        Set<NamedType> involvedTypes = handle.namedTypes();
+        if (involvedTypes.size() == 1) {
+            // This is an alpha condition
+            this.alphaConditions.add(involvedTypes.iterator().next().getVar(), handle);
         } else {
-            this.compiledData = new Compiled(runtime, this);
+            // This is a beta condition
+            this.betaConditions.add(handle);
+            for (FieldReference ref : handle.descriptor()) {
+                this.betaFields.add(ref.type().getVar(), ref.field());
+            }
         }
     }
 
-    private AbstractLhsBuilder<?, ?> locateLhsGroup(NamedType type) {
-        FactTypeBuilder builder = factTypeMapper.apply(type.getVar());
-        if (builder == null) {
-            throw new IllegalStateException();
-        } else {
-            return builder.getGroup();
-        }
-    }
-
-    public Set<FactTypeBuilder> getDeclaredFactTypes() {
+    public Set<NamedType> getDeclaredFactTypes() {
         return new HashSet<>(declaredLhsTypes.values());
     }
 
@@ -130,55 +136,62 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
     }
 
     private void addExpression(String expression, double complexity) {
-        this.conditions.add(new PredicateExpression0(expression, complexity, ruleBuilder.getImportsData()));
+        Evaluator evaluator = runtime.compile(expression, this, ruleBuilder.getImportsData());
+        addCondition(runtime.getEvaluators().save(evaluator, complexity));
     }
 
     private void addExpression(Predicate<Object[]> predicate, double complexity, String[] references) {
-        this.conditions.add(new PredicateExpression2(predicate, complexity, references));
+        FieldReference[] descriptor = runtime.resolveFieldReferences(references, this);
+        EvaluatorOfArray evaluator = new EvaluatorOfArray(predicate, descriptor);
+        addCondition(runtime.getEvaluators().save(evaluator, complexity));
     }
 
     private void addExpression(Predicate<Object[]> predicate, String[] references) {
-        this.conditions.add(new PredicateExpression2(predicate, references));
+        addExpression(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
     }
 
     private void addExpression(ValuesPredicate predicate, double complexity, String[] references) {
-        this.conditions.add(new PredicateExpression1(predicate, complexity, references));
+        FieldReference[] descriptor = runtime.resolveFieldReferences(references, this);
+        EvaluatorOfPredicate evaluator = new EvaluatorOfPredicate(predicate, descriptor);
+        addCondition(runtime.getEvaluators().save(evaluator, complexity));
     }
 
     private void addExpression(ValuesPredicate predicate, String[] references) {
-        this.conditions.add(new PredicateExpression1(predicate, references));
+        addExpression(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
     }
 
     private void addExpression(Predicate<Object[]> predicate, double complexity, FieldReference[] references) {
-        this.conditions.add(new PredicateExpression3(predicate, complexity, references));
+        EvaluatorOfArray evaluator = new EvaluatorOfArray(predicate, references);
+        addCondition(runtime.getEvaluators().save(evaluator, complexity));
     }
 
     private void addExpression(Predicate<Object[]> predicate, FieldReference[] references) {
-        this.conditions.add(new PredicateExpression3(predicate, references));
+        addExpression(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
     }
 
     private void addExpression(ValuesPredicate predicate, double complexity, FieldReference[] references) {
-        this.conditions.add(new PredicateExpression4(predicate, complexity, references));
+        EvaluatorOfPredicate evaluator = new EvaluatorOfPredicate(predicate, references);
+        addCondition(runtime.getEvaluators().save(evaluator, complexity));
     }
 
     private void addExpression(ValuesPredicate predicate, FieldReference[] references) {
-        this.conditions.add(new PredicateExpression4(predicate, references));
+        addExpression(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
     }
 
     private void addExpression(String expression) {
-        this.conditions.add(new PredicateExpression0(expression, ruleBuilder.getImportsData()));
+        addExpression(expression, EvaluatorHandle.DEFAULT_COMPLEXITY);
     }
 
     @Override
-    public synchronized FactTypeBuilder addFactDeclaration(String name, Type<?> type) {
+    public synchronized NamedTypeImpl addFactDeclaration(String name, Type<?> type) {
         checkRefName(name);
-        FactTypeBuilder factType = new FactTypeBuilder(this, name, type);
+        NamedTypeImpl factType = new NamedTypeImpl(name, type);
         this.declaredLhsTypes.put(name, factType);
         return factType;
     }
 
     @Override
-    public FactTypeBuilder addFactDeclaration(String name, String type) {
+    public NamedType addFactDeclaration(String name, String type) {
         return addFactDeclaration(name, getTypeResolver().getOrDeclare(type));
     }
 
@@ -199,7 +212,7 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
     }
 
     @Override
-    public FactTypeBuilder addFactDeclaration(String name, Class<?> type) {
+    public NamedType addFactDeclaration(String name, Class<?> type) {
         Type<?> t = getTypeResolver().getOrDeclare(type);
         return addFactDeclaration(name, t);
     }
@@ -214,11 +227,30 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         }
     }
 
+    static class NamedTypeImpl implements NamedType {
+        private final String name;
+        private final Type<?> type;
+
+        NamedTypeImpl(String name, Type<?> type) {
+            this.name = name;
+            this.type = type;
+        }
+
+        @Override
+        public Type<?> getType() {
+            return type;
+        }
+
+        @Override
+        public String getVar() {
+            return name;
+        }
+    }
+/*
     public static class Compiled {
         private static final Set<EvaluatorWrapper> EMPTY_ALPHA_CONDITIONS = new HashSet<>();
         private final Set<EvaluatorWrapper> betaConditions = new HashSet<>();
         private final MapOfSet<NamedType, EvaluatorWrapper> alphaConditions = new MapOfSet<>();
-        //private final Set<Evaluator> aggregateConditions = new HashSet<>();
         private final AbstractLhsBuilder<?, ?> lhsBuilder;
 
         Compiled(AbstractRuntime<?, ?> runtime, AbstractLhsBuilder<?, ?> lhsBuilder) {
@@ -279,4 +311,5 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
             return betaConditions;
         }
     }
+*/
 }

@@ -8,7 +8,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 
-public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule, EvaluationListeners {
+public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule {
     private static final boolean[] BOOLEANS = new boolean[]{true, false};
     private final AbstractRuleSession<?> runtime;
     private final RuleDescriptor descriptor;
@@ -168,20 +168,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule,
     public RuntimeRule addImport(RuleScope scope, String imp) {
         super.addImport(scope, imp);
         return this;
-    }
-
-    @Override
-    public void addListener(EvaluationListener listener) {
-        for (BetaEndNode node : lhs.getEndNodes()) {
-            node.forEachConditionNode(n -> n.getExpression().addListener(listener));
-        }
-    }
-
-    @Override
-    public void removeListener(EvaluationListener listener) {
-        for (BetaEndNode node : lhs.getEndNodes()) {
-            node.forEachConditionNode(n -> n.getExpression().removeListener(listener));
-        }
     }
 
     RuntimeLhs getLhs() {

@@ -3,7 +3,6 @@ package org.evrete.api;
 import org.evrete.util.compiler.CompilationException;
 
 import java.util.Set;
-import java.util.function.Function;
 
 /**
  * An interface with a set of basic methods that are necessary for parsing string expressions.
@@ -33,7 +32,7 @@ public interface ExpressionResolver {
      * @return returns {@link FieldReference} instance or throws an {@link IllegalArgumentException}
      * @throws IllegalArgumentException if the argument can not be resolved
      */
-    FieldReference resolve(String arg, Function<String, NamedType> resolver);
+    FieldReference resolve(String arg, NamedType.Resolver resolver);
 
     /**
      * <p>
@@ -46,7 +45,7 @@ public interface ExpressionResolver {
      * @return returns an {@link Evaluator} instance or throws an exception
      * @throws CompilationException     if the argument can not be compiled
      * @throws IllegalArgumentException if the any parts of the argument can not be resolved
-     * @see #resolve(String, Function)
+     * @see #resolve(String, NamedType.Resolver)
      */
-    Evaluator buildExpression(String stringExpression, Function<String, NamedType> resolver, Set<String> imports) throws CompilationException;
+    Evaluator buildExpression(String stringExpression, NamedType.Resolver resolver, Set<String> imports) throws CompilationException;
 }

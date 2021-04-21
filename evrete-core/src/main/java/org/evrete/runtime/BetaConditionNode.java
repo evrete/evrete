@@ -10,17 +10,19 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
     static final BetaConditionNode[] EMPTY_ARRAY = new BetaConditionNode[0];
     private final MemoryKeyNode[] evaluationState;
     private final SourceMeta[] sourceMetas;
-    private final BetaEvaluator expression;
+    //private final BetaEvaluator expression;
     private final CachingEvaluator cachingEvaluator;
 
     BetaConditionNode(RuntimeRuleImpl rule, ConditionNodeDescriptor descriptor, BetaMemoryNode[] sources) {
         super(rule, descriptor, sources);
-        this.expression = descriptor.getExpression().copyOf();
+        BetaEvaluator expression = descriptor.getExpression();
         ValueResolver valueResolver = rule.getRuntime().memory.memoryFactory.getValueResolver();
         FactType[] allFactTypes = rule.getFactTypes();
         this.evaluationState = new MemoryKeyNode[allFactTypes.length];
 
-        this.cachingEvaluator = new CachingEvaluator(this.expression);
+
+        RuntimeBetaEvaluator betaEvaluator = new RuntimeBetaEvaluator(getRuntime().getEvaluators(), expression);
+        this.cachingEvaluator = new CachingEvaluator(betaEvaluator);
 
         for (FactType type : allFactTypes) {
             MemoryKeyNode keyMeta;
@@ -39,7 +41,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
             sourceMetas[i] = new SourceMeta(sources[i]);
         }
 
-        EvaluatorWrapper[] childConditions = this.expression.constituents();
+        EvaluatorWrapper[] childConditions = betaEvaluator.constituents();
         for (EvaluatorWrapper e : childConditions) {
             FieldReference[] refs = e.descriptor();
             final ConditionValueReader[] valueReaders = new ConditionValueReader[refs.length];
@@ -50,7 +52,6 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
                 final int fieldPosition = factType.findFieldPosition(ref.field());
                 valueReaders[i] = new ConditionValueReader(evaluationState, typeId, fieldPosition);
             }
-
             e.setStateValues(i -> valueReaders[i].get());
         }
 
@@ -132,19 +133,8 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         }
     }
 
-    BetaEvaluator getExpression() {
-        return expression;
-    }
-
     void forEachConditionNode(Consumer<BetaConditionNode> consumer) {
         forEachConditionNode(this, consumer);
-    }
-
-    @Override
-    public String toString() {
-        return "{" +
-                "node=" + expression +
-                '}';
     }
 
     private static class SourceMeta {
@@ -262,11 +252,11 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
     }
 
     private static class CachingEvaluator {
-        private final BetaEvaluator delegate;
+        private final RuntimeBetaEvaluator delegate;
         private boolean cached = false;
         private boolean lastResponse;
 
-        CachingEvaluator(BetaEvaluator delegate) {
+        CachingEvaluator(RuntimeBetaEvaluator delegate) {
             this.delegate = delegate;
         }
 
@@ -298,4 +288,5 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
             return this.evaluationState[type].value(field);
         }
     }
+
 }

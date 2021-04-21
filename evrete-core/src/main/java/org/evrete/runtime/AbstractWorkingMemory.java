@@ -39,6 +39,28 @@ abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractR
         }
     }
 
+/*
+    @Override
+    public void addListener(EvaluationListener listener) {
+        super.addListener(listener);
+        for(TypeMemory tm : memory) {
+            Type<?> t = tm.getType();
+            TypeMemoryState state = getActiveSate(t);
+            tm.updateCachedData(state);
+        }
+    }
+
+    @Override
+    public void removeListener(EvaluationListener listener) {
+        super.removeListener(listener);
+        for(TypeMemory tm : memory) {
+            Type<?> t = tm.getType();
+            TypeMemoryState state = getActiveSate(t);
+            tm.updateCachedData(state);
+        }
+    }
+*/
+
     public final SessionMemory getMemory() {
         return memory;
     }

@@ -119,6 +119,4 @@ public abstract class AbstractRule implements Rule {
             setRhs(rhs.andThen(consumer));
         }
     }
-
-
 }

@@ -34,7 +34,8 @@ public abstract class AbstractRuntimeRule extends AbstractRule {
         setRhs(getLiteralRhs());
     }
 
-    private FactType resolve(String var) {
+    @Override
+    public FactType resolve(String var) {
         return Objects.requireNonNull(typeMapping.get(var), "No such type: '" + var + "'");
     }
 
@@ -53,7 +54,7 @@ public abstract class AbstractRuntimeRule extends AbstractRule {
     @Override
     public final void setRhs(String literalRhs) {
         if (literalRhs != null) {
-            setRhs(runtime.compile(literalRhs, factTypes, getImports(RuleScope.BOTH, RuleScope.RHS)));
+            setRhs(runtime.compile(literalRhs, factTypes, getImportsData(), RuleScope.BOTH, RuleScope.RHS));
         }
     }
 }

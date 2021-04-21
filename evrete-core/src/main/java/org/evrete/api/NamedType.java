@@ -24,4 +24,8 @@ public interface NamedType {
      * @return name of a fact declaration
      */
     String getVar();
+
+    interface Resolver {
+        NamedType resolve(String var);
+    }
 }

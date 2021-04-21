@@ -1356,7 +1356,7 @@ class SessionBaseTests {
         rhsAssert2.assertCount(4);
         rhsAssert3.assertCount(3);
 
-        assert uniqueEvaluators.size() == 3;
+        assert uniqueEvaluators.size() == 3 : "Actual: " + uniqueEvaluators.size();
     }
 
     @ParameterizedTest

@@ -10,11 +10,15 @@ import org.evrete.runtime.evaluation.AlphaEvaluator;
 class TypeMemoryState {
     Type<?> type;
     ActiveField[] activeFields;
-    AlphaEvaluator[] alphaEvaluators;
+    RuntimeAlphaEvaluator[] alphaEvaluators1;
 
-    TypeMemoryState(Type<?> type, ActiveField[] activeFields, AlphaEvaluator[] alphaEvaluators) {
+    TypeMemoryState(Type<?> type, ActiveField[] activeFields, Evaluators evaluators, AlphaEvaluator[] alphaEvaluators) {
         this.type = type;
         this.activeFields = activeFields;
-        this.alphaEvaluators = alphaEvaluators;
+        this.alphaEvaluators1 = new RuntimeAlphaEvaluator[alphaEvaluators.length];
+
+        for (int i = 0; i < alphaEvaluators.length; i++) {
+            this.alphaEvaluators1[i] = new RuntimeAlphaEvaluator(alphaEvaluators[i], evaluators);
+        }
     }
 }

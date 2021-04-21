@@ -1,9 +1,6 @@
 package org.evrete.runtime.evaluation;
 
-import org.evrete.api.ActiveField;
-import org.evrete.api.FieldReference;
-import org.evrete.api.NamedType;
-import org.evrete.api.TypeField;
+import org.evrete.api.*;
 import org.evrete.runtime.BetaFieldReference;
 import org.evrete.runtime.FactType;
 import org.evrete.util.Bits;
@@ -13,19 +10,20 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 
-public class BetaEvaluatorSingle extends EvaluatorWrapper implements BetaEvaluator {
+public class BetaEvaluatorSingle implements BetaEvaluator {
     public static final BetaEvaluatorSingle[] ZERO_ARRAY = new BetaEvaluatorSingle[0];
     private final BetaFieldReference[] descriptor;
     private final Bits factTypeMask;
-    private final Set<FactType> descriptor1;
+    private final Set<FactType> factTypes;
     private final Set<ActiveField> fields;
-    private final EvaluatorWrapper[] constituents;
+    private final EvaluatorHandle[] constituents;
+    private final EvaluatorHandle delegate;
 
-    BetaEvaluatorSingle(EvaluatorWrapper delegate, Function<NamedType, FactType> typeFunction) {
-        super(delegate);
+    BetaEvaluatorSingle(EvaluatorHandle delegate, Function<NamedType, FactType> typeFunction) {
+        this.delegate = delegate;
         this.factTypeMask = new Bits();
         this.fields = new HashSet<>();
-        this.constituents = new EvaluatorWrapper[]{this};
+        this.constituents = new EvaluatorHandle[]{delegate};
         FieldReference[] evaluatorDescriptor = delegate.descriptor();
         this.descriptor = new BetaFieldReference[evaluatorDescriptor.length];
         Set<FactType> factTypes = new HashSet<>();
@@ -40,21 +38,17 @@ public class BetaEvaluatorSingle extends EvaluatorWrapper implements BetaEvaluat
             factTypes.add(factType);
         }
 
-        this.descriptor1 = Collections.unmodifiableSet(factTypes);
-    }
-
-    private BetaEvaluatorSingle(BetaEvaluatorSingle other) {
-        super(other);
-        this.factTypeMask = other.factTypeMask;
-        this.descriptor = other.descriptor;
-        this.descriptor1 = other.descriptor1;
-        this.fields = other.fields;
-        this.constituents = new EvaluatorWrapper[]{this};
+        this.factTypes = Collections.unmodifiableSet(factTypes);
     }
 
     @Override
-    public EvaluatorWrapper[] constituents() {
+    public EvaluatorHandle[] constituents() {
         return constituents;
+    }
+
+    @Override
+    public double getComplexity() {
+        return delegate.getComplexity();
     }
 
     @Override
@@ -64,7 +58,7 @@ public class BetaEvaluatorSingle extends EvaluatorWrapper implements BetaEvaluat
 
     @Override
     public Set<FactType> factTypes() {
-        return descriptor1;
+        return factTypes;
     }
 
     BetaFieldReference[] betaDescriptor() {
@@ -73,16 +67,11 @@ public class BetaEvaluatorSingle extends EvaluatorWrapper implements BetaEvaluat
 
     @Override
     public String toString() {
-        return getDelegate().toString();
+        return delegate.toString();
     }
 
     @Override
     public Bits getFactTypeMask() {
         return factTypeMask;
-    }
-
-    @Override
-    public BetaEvaluatorSingle copyOf() {
-        return new BetaEvaluatorSingle(this);
     }
 }

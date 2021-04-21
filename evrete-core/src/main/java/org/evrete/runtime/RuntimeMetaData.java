@@ -3,10 +3,8 @@ package org.evrete.runtime;
 import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
-import org.evrete.runtime.builder.FactTypeBuilder;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
-import org.evrete.runtime.evaluation.EvaluatorWrapper;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,6 +18,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     private final ArrayOf<TypeMeta> typeMetas;
     private final ArrayOf<FieldKeyMeta> keyMetas;
     private final ArrayOf<FieldsKey> memoryKeys;
+    private final Evaluators evaluators;
 
     RuntimeMetaData(Configuration configuration) {
         this.imports = configuration.getImports().copyOf();
@@ -27,16 +26,18 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         this.memoryKeys = new ArrayOf<>(FieldsKey.class);
         this.properties = new ConcurrentHashMap<>();
         this.keyMetas = new ArrayOf<>(FieldKeyMeta.class);
+        this.evaluators = new Evaluators();
     }
 
     RuntimeMetaData(RuntimeMetaData<?> parent) {
         this.imports = parent.imports.copyOf();
+        this.evaluators = parent.evaluators.copyOf();
         this.properties = new ConcurrentHashMap<>(parent.properties);
         this.memoryKeys = new ArrayOf<>(parent.memoryKeys);
         this.typeMetas = new ArrayOf<>(TypeMeta.class);
         parent.typeMetas
                 .forEach(
-                        (meta, i) -> RuntimeMetaData.this.typeMetas.set(i, meta.copyOf())
+                        (meta, i) -> RuntimeMetaData.this.typeMetas.set(i, meta.copyOf(this.evaluators))
                 );
 
         this.keyMetas = new ArrayOf<>(FieldKeyMeta.class);
@@ -50,6 +51,10 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
 
     public abstract void onNewAlphaBucket(TypeMemoryState newState, FieldsKey key, AlphaBucketMeta meta);
 
+    public Evaluators getEvaluators() {
+        return evaluators;
+    }
+
     void forEachAlphaCondition(Consumer<AlphaEvaluator> consumer) {
         typeMetas.forEach(meta -> {
             for (AlphaEvaluator evaluator : meta.alphaEvaluators) {
@@ -58,8 +63,18 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         });
     }
 
+    @Override
+    public void addListener(EvaluationListener listener) {
+        this.evaluators.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(EvaluationListener listener) {
+        this.evaluators.removeListener(listener);
+    }
+
     private TypeMeta getTypeMeta(Type<?> type) {
-        return typeMetas.computeIfAbsent(type.getId(), k -> new TypeMeta(type));
+        return typeMetas.computeIfAbsent(type.getId(), k -> new TypeMeta(type, evaluators));
     }
 
     private FieldKeyMeta getKeyMeta(FieldsKey key) {
@@ -74,15 +89,15 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         });
     }
 
-    synchronized AlphaBucketMeta buildAlphaMask(FieldsKey key, Set<EvaluatorWrapper> alphaEvaluators) {
+    synchronized AlphaBucketMeta buildAlphaMask(FieldsKey key, Set<EvaluatorHandle> alphaEvaluators) {
         TypeMeta typeMeta = getTypeMeta(key.getType());
         AlphaEvaluator[] existing = typeMeta.alphaEvaluators;
         Set<AlphaEvaluator.Match> matches = new HashSet<>();
-        for (EvaluatorWrapper wrapper : alphaEvaluators) {
-            AlphaEvaluator.Match match = AlphaEvaluator.search(existing, wrapper);
+        for (EvaluatorHandle handle : alphaEvaluators) {
+            AlphaEvaluator.Match match = AlphaEvaluator.search(evaluators, existing, handle);
             if (match == null) {
                 // No such evaluator, creating a new one
-                AlphaEvaluator alphaEvaluator = typeMeta.append(wrapper, convertDescriptor(wrapper.descriptor()));
+                AlphaEvaluator alphaEvaluator = typeMeta.append(handle, convertDescriptor(handle.descriptor()));
                 existing = typeMeta.alphaEvaluators;
                 matches.add(new AlphaEvaluator.Match(alphaEvaluator, true));
             } else {
@@ -129,8 +144,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         return activeFields;
     }
 
-    FieldsKey getCreateMemoryKey(FactTypeBuilder builder) {
-        Set<TypeField> fields = builder.getBetaTypeFields();
+    FieldsKey getCreateMemoryKey(NamedType builder, Set<TypeField> fields) {
         ActiveField[] activeFields;
         Type<?> type = builder.getType();
         if (fields.isEmpty()) {
@@ -221,29 +235,32 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         }
     }
 
-    private static class TypeMeta implements Copyable<TypeMeta> {
+    private static class TypeMeta {
         private ActiveField[] activeFields;
         private AlphaEvaluator[] alphaEvaluators;
         private final Type<?> type;
+        private final Evaluators evaluators;
 
 
-        TypeMeta(Type<?> type) {
+        TypeMeta(Type<?> type, Evaluators evaluators) {
             this.activeFields = ActiveField.ZERO_ARRAY;
             this.alphaEvaluators = new AlphaEvaluator[0];
             this.type = type;
+            this.evaluators = evaluators;
         }
 
-        TypeMemoryState asState() {
-            return new TypeMemoryState(type, activeFields, alphaEvaluators);
-        }
-
-        TypeMeta(TypeMeta other) {
+        TypeMeta(TypeMeta other, Evaluators evaluators) {
             this.activeFields = Arrays.copyOf(other.activeFields, other.activeFields.length);
             this.alphaEvaluators = Arrays.copyOf(other.alphaEvaluators, other.alphaEvaluators.length);
             this.type = other.type;
+            this.evaluators = evaluators;
         }
 
-        private synchronized AlphaEvaluator append(EvaluatorWrapper wrapper, ActiveField[] descriptor) {
+        TypeMemoryState asState() {
+            return new TypeMemoryState(type, activeFields, evaluators, alphaEvaluators);
+        }
+
+        private synchronized AlphaEvaluator append(EvaluatorHandle wrapper, ActiveField[] descriptor) {
             int newId = this.alphaEvaluators.length;
             AlphaEvaluator alphaEvaluator = new AlphaEvaluator(newId, wrapper, descriptor);
             this.alphaEvaluators = Arrays.copyOf(this.alphaEvaluators, this.alphaEvaluators.length + 1);
@@ -251,9 +268,8 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
             return alphaEvaluator;
         }
 
-        @Override
-        public TypeMeta copyOf() {
-            return new TypeMeta(this);
+        public TypeMeta copyOf(Evaluators evaluators) {
+            return new TypeMeta(this, evaluators);
         }
 
         private synchronized ActiveField getCreate(TypeField field, NewActiveFieldListener listener) {

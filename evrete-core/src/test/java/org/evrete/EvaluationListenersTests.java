@@ -1,8 +1,6 @@
 package org.evrete;
 
-import org.evrete.api.ActivationMode;
-import org.evrete.api.Knowledge;
-import org.evrete.api.StatefulSession;
+import org.evrete.api.*;
 import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.helper.RhsAssert;
@@ -46,14 +44,39 @@ class EvaluationListenersTests {
                 .where("$n.intValue > 1")
                 .execute(rhsAssert);
 
-        knowledge.addListener((evaluator, values, result) -> knowledgeListenerCounter.next());
 
+        EvaluationListener kl = new EvaluationListener() {
+            @Override
+            public void fire(Evaluator evaluator, IntToValue values, boolean result) {
+                knowledgeListenerCounter.next();
+            }
+
+            @Override
+            public String toString() {
+                return "KN-LISTENER";
+            }
+        };
+
+
+        EvaluationListener sl = new EvaluationListener() {
+            @Override
+            public void fire(Evaluator evaluator, IntToValue values, boolean result) {
+                sessionListenerCounter.next();
+            }
+
+            @Override
+            public String toString() {
+                return "SN-LISTENER";
+            }
+        };
+
+        knowledge.addListener(kl);
         StatefulSession session = knowledge.createSession().setActivationMode(mode);
-        session.addListener((evaluator, values, result) -> sessionListenerCounter.next());
+        session.addListener(sl);
         session.insertAndFire(1, 2, 3);
         rhsAssert.assertCount(2).reset();
         assert knowledgeListenerCounter.get() == 3 : "Actual: " + knowledgeListenerCounter.get();
-        assert knowledgeListenerCounter.get() == sessionListenerCounter.get();
+        assert knowledgeListenerCounter.get() == sessionListenerCounter.get() : "Session count: " + sessionListenerCounter.get();
         session.close();
     }
 
