@@ -34,6 +34,14 @@ public interface ExpressionResolver {
      */
     FieldReference resolve(String arg, NamedType.Resolver resolver);
 
+    default FieldReference[] resolve(NamedType.Resolver resolver, String... strings) {
+        FieldReference[] references = new FieldReference[strings.length];
+        for (int i = 0; i < references.length; i++) {
+            references[i] = resolve(strings[i], resolver);
+        }
+        return references;
+    }
+
     /**
      * <p>
      * This method parses a string argument and returns an {@link Evaluator} if possible.

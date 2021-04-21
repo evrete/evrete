@@ -12,7 +12,7 @@ public class EvaluatorOfArray implements Evaluator {
     private final Predicate<Object[]> predicate;
     private final Object[] sharedValues;
 
-    public EvaluatorOfArray(Predicate<Object[]> predicate, FieldReference[] descriptor) {
+    public EvaluatorOfArray(Predicate<Object[]> predicate, FieldReference... descriptor) {
         this.descriptor = descriptor;
         this.predicate = predicate;
         this.sharedValues = new Object[descriptor.length];

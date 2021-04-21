@@ -11,7 +11,7 @@ public class EvaluatorOfPredicate implements Evaluator {
     private final FieldReference[] descriptor;
     private final ValuesPredicate predicate;
 
-    public EvaluatorOfPredicate(ValuesPredicate predicate, FieldReference[] descriptor) {
+    public EvaluatorOfPredicate(ValuesPredicate predicate, FieldReference... descriptor) {
         this.descriptor = descriptor;
         this.predicate = predicate;
     }
