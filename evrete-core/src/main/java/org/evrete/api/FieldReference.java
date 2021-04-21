@@ -6,4 +6,5 @@ public interface FieldReference {
     TypeField field();
 
     NamedType type();
+
 }
