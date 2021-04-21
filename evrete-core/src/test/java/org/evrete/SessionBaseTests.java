@@ -64,7 +64,7 @@ class SessionBaseTests {
 
         for (FieldReference ref : descriptor) {
 
-            String s = ref.type().getVar() + "." + ref.field().getName();
+            String s = ref.type().getName() + "." + ref.field().getName();
             joiner.add(s);
         }
         return joiner.toString();

@@ -4,10 +4,8 @@ package org.evrete.util.compiler;
 import javax.tools.*;
 import java.util.Collections;
 import java.util.StringJoiner;
-import java.util.logging.Logger;
 
 public class SourceCompiler {
-    private static final Logger LOGGER = Logger.getLogger(SourceCompiler.class.getName());
     private final JavaCompiler compiler;
 
     public SourceCompiler() {

@@ -5,7 +5,7 @@ import org.evrete.util.Bits;
 
 import java.util.Arrays;
 import java.util.Objects;
-//TODO !!!! create one-field implementation
+//TODO create one-field implementation
 
 /**
  * A runtime representation of a fact, ready for insert operation

@@ -34,7 +34,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule 
                 int idx = factType.getInRuleIndex();
                 assert factTypeNodes[idx] == null;
                 this.factTypeNodes[idx] = new RhsFactType(runtime.getMemory(), factType, group);
-                if (nameMapping.put(factType.getVar(), idx) != null) {
+                if (nameMapping.put(factType.getName(), idx) != null) {
                     throw new IllegalStateException();
                 }
             }
@@ -184,14 +184,12 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule 
     static abstract class RhsGroupNode {
         final RhsFactGroup group;
         ReIterator<MemoryKey> keyIterator;
-        boolean currentDelta;
 
         RhsGroupNode(RhsFactGroup group) {
             this.group = group;
         }
 
         final void initIterator(boolean delta) {
-            this.currentDelta = delta;
             this.keyIterator = group.keyIterator(delta);
         }
 

@@ -139,7 +139,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
 
     public Evaluator compile(String expression, NamedType.Resolver resolver) {
         try {
-            return getExpressionResolver().buildExpression(expression, resolver, getImports(RuleScope.LHS, RuleScope.BOTH));
+            return getExpressionResolver().buildExpression(expression, resolver, getJavaImports(RuleScope.LHS, RuleScope.BOTH));
         } catch (CompilationException e) {
             Logger.getAnonymousLogger().warning("Failed code:\n" + e.getSource());
             throw new RuntimeException(e);
@@ -158,7 +158,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     FactType buildFactType(NamedType builder, Set<TypeField> fields, Set<EvaluatorHandle> alphaEvaluators, int inRuleId) {
         FieldsKey fieldsKey = getCreateMemoryKey(builder, fields);
         AlphaBucketMeta alphaMask = buildAlphaMask(fieldsKey, alphaEvaluators);
-        return new FactType(builder.getVar(), alphaMask, fieldsKey, inRuleId);
+        return new FactType(builder.getName(), alphaMask, fieldsKey, inRuleId);
     }
 
     @Override
@@ -201,17 +201,6 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
             }
         }
     }
-
-/*
-    Consumer<RhsContext> compile(String literalRhs, FactType[] factTypes, RuleScope... scopes) {
-        try {
-            return service.getLiteralRhsCompiler().compileRhs(this, literalRhs, Arrays.asList(factTypes), getImports(scopes));
-        } catch (CompilationException e) {
-            Logger.getAnonymousLogger().warning("Failed source\n: " + e.getSource());
-            throw new IllegalStateException(e);
-        }
-    }
-*/
 
     Consumer<RhsContext> compile(String literalRhs, FactType[] factTypes, Imports imports, RuleScope... scopes) {
         try {

@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Evaluators implements Copyable<Evaluators>, EvaluationListeners {
     private final Map<EvaluatorHandleImpl, EvaluatorWrapper> conditions;
@@ -56,6 +55,15 @@ public class Evaluators implements Copyable<Evaluators>, EvaluationListeners {
     }
 
 
+    void replace(EvaluatorHandle handle, Evaluator evaluator) {
+        EvaluatorWrapper wrapper = conditions.get((EvaluatorHandleImpl) handle);
+        if (wrapper == null) {
+            throw new IllegalArgumentException("Unknown evaluator handle");
+        } else {
+            wrapper.setDelegate(evaluator);
+        }
+    }
+
     public EvaluatorWrapper get(EvaluatorHandle handle) {
         EvaluatorWrapper w = conditions.get((EvaluatorHandleImpl) Objects.requireNonNull(handle));
         if (w == null) {
@@ -97,16 +105,12 @@ public class Evaluators implements Copyable<Evaluators>, EvaluationListeners {
     }
 
     private static class EvaluatorHandleImpl implements EvaluatorHandle {
-        //TODO !!!! remove this
-        private static final AtomicInteger CNT = new AtomicInteger();
-        final int id;
         private final double complexity;
         private final FieldReference[] descriptor;
 
         EvaluatorHandleImpl(Evaluator evaluator, double complexity) {
             this.descriptor = evaluator.descriptor().clone();
             this.complexity = complexity;
-            this.id = CNT.incrementAndGet();
         }
 
         @Override
@@ -117,12 +121,6 @@ public class Evaluators implements Copyable<Evaluators>, EvaluationListeners {
         @Override
         public double getComplexity() {
             return complexity;
-        }
-
-        @Override
-        public String toString() {
-            return "[" + id +
-                    ']';
         }
     }
 }

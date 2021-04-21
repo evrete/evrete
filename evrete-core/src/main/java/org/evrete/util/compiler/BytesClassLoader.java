@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 
 public class BytesClassLoader extends SecureClassLoader {
     private static final Logger LOGGER = Logger.getLogger(BytesClassLoader.class.getName());
-    public final Map<String, byte[]> resources = new HashMap<>();
+    private final Map<String, byte[]> resources = new HashMap<>();
     private final ProtectionDomain protectionDomain;
 
     public BytesClassLoader(ClassLoader parent, ProtectionDomain protectionDomain) {

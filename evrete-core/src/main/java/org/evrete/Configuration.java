@@ -2,11 +2,10 @@ package org.evrete;
 
 import org.evrete.api.Copyable;
 import org.evrete.api.FluentImports;
+import org.evrete.api.Imports;
 import org.evrete.api.RuleScope;
-import org.evrete.runtime.Imports;
 
 import java.util.Properties;
-import java.util.Set;
 import java.util.logging.Logger;
 
 public class Configuration extends Properties implements Copyable<Configuration>, FluentImports<Configuration> {
@@ -58,6 +57,7 @@ public class Configuration extends Properties implements Copyable<Configuration>
         }
     }
 
+    @Override
     public Imports getImports() {
         return imports;
     }
@@ -65,11 +65,6 @@ public class Configuration extends Properties implements Copyable<Configuration>
     public final Configuration addImport(RuleScope scope, String imp) {
         this.imports.add(scope, imp);
         return this;
-    }
-
-    @Override
-    public Set<String> getImports(RuleScope... scopes) {
-        return imports.get(scopes);
     }
 
     @Override

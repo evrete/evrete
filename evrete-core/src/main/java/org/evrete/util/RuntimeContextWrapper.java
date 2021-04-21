@@ -6,11 +6,11 @@ import org.evrete.api.*;
 
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Set;
 
 public class RuntimeContextWrapper<C extends RuntimeContext<C>> implements RuntimeContext<C> {
     final C delegate;
 
+    @SuppressWarnings("WeakerAccess")
     protected RuntimeContextWrapper(C delegate) {
         this.delegate = delegate;
     }
@@ -46,8 +46,8 @@ public class RuntimeContextWrapper<C extends RuntimeContext<C>> implements Runti
     }
 
     @Override
-    public Set<String> getImports(RuleScope... scopes) {
-        return delegate.getImports(scopes);
+    public Imports getImports() {
+        return delegate.getImports();
     }
 
     @Override
@@ -78,6 +78,16 @@ public class RuntimeContextWrapper<C extends RuntimeContext<C>> implements Runti
     @Override
     public C setActivationMode(ActivationMode activationMode) {
         return delegate.setActivationMode(activationMode);
+    }
+
+    @Override
+    public EvaluatorHandle addEvaluator(Evaluator evaluator, double complexity) {
+        return delegate.addEvaluator(evaluator, complexity);
+    }
+
+    @Override
+    public void replaceEvaluator(EvaluatorHandle handle, Evaluator newEvaluator) {
+        delegate.replaceEvaluator(handle, newEvaluator);
     }
 
     @Override

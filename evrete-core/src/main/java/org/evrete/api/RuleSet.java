@@ -31,6 +31,8 @@ public interface RuleSet<R extends Rule> {
     R compileRule(RuleBuilder<?> builder);
 
     default boolean ruleExists(String name) {
-        return Named.find(getRules(), name) != null;
+        return getRule(name) != null;
     }
+
+    R getRule(String name);
 }

@@ -3,8 +3,7 @@ package org.evrete.api;
 import java.util.HashSet;
 import java.util.Set;
 
-public interface EvaluatorHandle {
-    double DEFAULT_COMPLEXITY = 1.0;
+public interface EvaluatorHandle extends ComplexityObject {
 
     FieldReference[] descriptor();
 
@@ -15,6 +14,4 @@ public interface EvaluatorHandle {
         }
         return set;
     }
-
-    double getComplexity();
 }

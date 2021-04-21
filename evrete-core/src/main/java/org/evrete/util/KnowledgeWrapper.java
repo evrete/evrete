@@ -36,7 +36,7 @@ public class KnowledgeWrapper extends RuntimeContextWrapper<Knowledge> implement
     }
 
     @Override
-    public boolean ruleExists(String name) {
-        return delegate.ruleExists(name);
+    public RuleDescriptor getRule(String name) {
+        return delegate.getRule(name);
     }
 }

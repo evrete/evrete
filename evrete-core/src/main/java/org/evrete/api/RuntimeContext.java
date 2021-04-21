@@ -8,7 +8,7 @@ import java.util.Comparator;
 /**
  * @param <C> context type parameter
  */
-public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, FluentImports<RuntimeContext<?>>, FluentEnvironment<C> {
+public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, FluentImports<RuntimeContext<?>>, FluentEnvironment<C>, EvaluatorsContext {
     Comparator<Rule> SALIENCE_COMPARATOR = (rule1, rule2) -> -1 * Integer.compare(rule1.getSalience(), rule2.getSalience());
 
     Comparator<Rule> getRuleComparator();

@@ -9,13 +9,13 @@ import java.util.function.Consumer;
 
 public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule implements RuleBuilder<C> {
     private final AbstractRuntime<?, C> runtime;
-    public static int NULL_SALIENCE = Integer.MIN_VALUE;
+    public static final int NULL_SALIENCE = Integer.MIN_VALUE;
     private final LhsBuilderImpl<C> lhsBuilder;
 
     public RuleBuilderImpl(AbstractRuntime<?, C> ctx, String name) {
         super(name, NULL_SALIENCE);
         this.runtime = ctx;
-        this.appendImports(ctx.getImportsData());
+        this.appendImports(ctx.getImports());
         this.lhsBuilder = new LhsBuilderImpl<>(this);
     }
 
@@ -53,11 +53,6 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
         return this;
     }
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public C getRuntime() {
-        return (C) runtime;
-    }
 
     @Override
     public LhsBuilderImpl<C> getLhs() {

@@ -3,7 +3,7 @@ package org.evrete.runtime;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class RhsFactGroupDescriptor {
+class RhsFactGroupDescriptor {
     static final RhsFactGroupDescriptor[] ZERO_ARRAY = new RhsFactGroupDescriptor[0];
     private final FactType[] types;
     private final boolean looseGroup;

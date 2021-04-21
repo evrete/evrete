@@ -49,12 +49,6 @@ public class EvaluatorOfArray implements Evaluator {
     }
 
     @Override
-    public double getComplexity() {
-        //TODO !!!!! remove
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String toString() {
         return predicate.toString();
     }

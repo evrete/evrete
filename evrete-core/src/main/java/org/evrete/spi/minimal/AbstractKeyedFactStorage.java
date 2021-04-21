@@ -8,7 +8,7 @@ import java.util.function.Function;
 
 abstract class AbstractKeyedFactStorage<T extends AbstractFactsMap<?>> implements KeyedFactStorage {
     private final T[] maps;// = new FieldsFactMap[KeyMode.values().length];
-    KeyState currentRecord = null;
+    private KeyState currentRecord = null;
 
     AbstractKeyedFactStorage(Class<T> mapType, Function<KeyMode, T> mapSupplier) {
         //this.fields = fields;

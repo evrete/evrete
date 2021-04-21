@@ -43,12 +43,6 @@ public class EvaluatorOfPredicate implements Evaluator {
     }
 
     @Override
-    public double getComplexity() {
-        //TODO !!!!! remove
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String toString() {
         return "{" +
                 "descriptor=" + Arrays.toString(descriptor) +

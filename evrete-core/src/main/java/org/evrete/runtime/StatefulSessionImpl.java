@@ -1,7 +1,6 @@
 package org.evrete.runtime;
 
 import org.evrete.api.ActivationManager;
-import org.evrete.api.Named;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
 
@@ -27,7 +26,6 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
 
     @Override
     public RuntimeRule getRule(String name) {
-        //TODO !!! create a map for that
-        return Named.find(getRules(), name);
+        return getRuleStorage().get(name);
     }
 }

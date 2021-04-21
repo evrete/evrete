@@ -5,12 +5,10 @@ import org.evrete.api.KeyMode;
 import org.evrete.api.ValueHandle;
 
 class KeyedFactStorageMulti extends AbstractKeyedFactStorage<FactsMapMulti> {
-    private final int keyCount;
     private final MultiState multiState;
 
     KeyedFactStorageMulti(int initialSize, ActiveField[] fields) {
         super(FactsMapMulti.class, mode -> new FactsMapMulti(fields, mode, initialSize));
-        this.keyCount = fields.length;
         this.multiState = new MultiState(fields.length);
     }
 

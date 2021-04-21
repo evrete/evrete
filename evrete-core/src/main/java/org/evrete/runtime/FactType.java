@@ -50,7 +50,7 @@ public class FactType implements NamedType {
     }
 
     @Override
-    public String getVar() {
+    public String getName() {
         return var;
     }
 

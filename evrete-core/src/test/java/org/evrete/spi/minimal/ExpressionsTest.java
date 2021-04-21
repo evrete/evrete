@@ -40,7 +40,7 @@ class ExpressionsTest {
     @Test
     void test1() {
         LhsBuilder<Knowledge> root = rule.forEach();
-        assert root.addFactDeclaration("$a", TypeA.class).getVar().equals("$a");
+        assert root.addFactDeclaration("$a", TypeA.class).getName().equals("$a");
         NamedType b1 = root.addFactDeclaration("$b", TypeB.class.getName());
         NamedType b2 = root.addFactDeclaration("$c", TypeC.class.getName());
         assert b1.getType().getJavaType().equals(TypeB.class);
@@ -65,7 +65,7 @@ class ExpressionsTest {
     @Test
     void test2() {
         LhsBuilder<Knowledge> root = rule.forEach();
-        assert root.addFactDeclaration("$a", TypeA.class).getVar().equals("$a");
+        assert root.addFactDeclaration("$a", TypeA.class).getName().equals("$a");
         Evaluator ev1 = knowledge.compile("$a.i == 1", root);
         Evaluator ev2 = knowledge.compile("   $a.i ==     1     ", root);
         assert ev1.compare(ev2) == Evaluator.RELATION_EQUALS;

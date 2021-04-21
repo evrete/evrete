@@ -42,7 +42,7 @@ class DefaultMemoryFactory implements MemoryFactory {
             return new SharedAlphaData();
         } else {
             return fields.length == 1 ?
-                    new KeyedFactStorageSingle(initialSize, fields[0])
+                    new KeyedFactStorageSingle(initialSize)
                     :
                     new KeyedFactStorageMulti(initialSize, fields)
                     ;

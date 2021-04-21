@@ -1,25 +1,21 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.*;
+import org.evrete.api.ActiveField;
+import org.evrete.api.IntToValueHandle;
+import org.evrete.api.MemoryKey;
+import org.evrete.api.ValueHandle;
 
 import java.util.Arrays;
 
 class MemoryKeyMulti implements MemoryKey {
+    private static final ValueHandle[] EMPTY = new ValueHandle[0];
     private final ValueHandle[] data;
     private final int hash;
     private transient int transientValue;
 
-    MemoryKeyMulti(ValueHandle[] data, int hash) {
-        this.data = data;
-        this.hash = hash;
-    }
-
-    MemoryKeyMulti(ActiveField[] fields, FieldToValueHandle key, int hash) {
-        this.data = new ValueHandle[fields.length];
-        for (int i = 0; i < fields.length; i++) {
-            this.data[i] = key.apply(fields[i]);
-        }
-        this.hash = hash;
+    MemoryKeyMulti() {
+        this.data = EMPTY;
+        this.hash = 0;
     }
 
     MemoryKeyMulti(ActiveField[] fields, IntToValueHandle key, int hash) {

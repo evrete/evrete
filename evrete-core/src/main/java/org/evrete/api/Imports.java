@@ -1,7 +1,4 @@
-package org.evrete.runtime;
-
-import org.evrete.api.Copyable;
-import org.evrete.api.RuleScope;
+package org.evrete.api;
 
 import java.io.Serializable;
 import java.util.EnumMap;

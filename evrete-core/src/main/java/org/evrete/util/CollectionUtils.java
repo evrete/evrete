@@ -135,7 +135,7 @@ public final class CollectionUtils {
      * @param toIndex   toIndex the index of the last element (exclusive)
      * @param value     value to be stored
      */
-    public static void systemFill(int[] array, int fromIndex, int toIndex, int value) {
+    private static void systemFill(int[] array, int fromIndex, int toIndex, int value) {
         int len;
         if ((len = toIndex - fromIndex) < 64) {
             fillIntegers(array, fromIndex, toIndex, value);

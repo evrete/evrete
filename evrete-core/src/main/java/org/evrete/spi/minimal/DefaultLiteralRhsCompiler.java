@@ -28,8 +28,8 @@ public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider imp
         StringJoiner methodArgs = new StringJoiner(", ");
         StringJoiner args = new StringJoiner(", ");
         for (NamedType t : types) {
-            methodArgs.add(t.getType().getJavaType().getName() + " " + t.getVar());
-            args.add(t.getVar());
+            methodArgs.add(t.getType().getJavaType().getName() + " " + t.getName());
+            args.add(t.getName());
         }
 
         StringBuilder sb = new StringBuilder(2048);
@@ -49,7 +49,7 @@ public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider imp
         sb.append("\t@").append(Override.class.getName()).append("\n");
         sb.append("\tprotected void doRhs() {\n");
         for (NamedType t : types) {
-            sb.append("\t\t").append(t.getType().getJavaType().getName()).append(" ").append(t.getVar()).append(" = ").append("get(\"").append(t.getVar()).append("\");\n");
+            sb.append("\t\t").append(t.getType().getJavaType().getName()).append(" ").append(t.getName()).append(" = ").append("get(\"").append(t.getName()).append("\");\n");
 
         }
         sb.append("\t\tdoRhs(").append(args).append(");\n");

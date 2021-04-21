@@ -33,6 +33,7 @@ public class SessionWrapper extends RuntimeContextWrapper<StatefulSession> imple
         return delegate.getParentContext();
     }
 
+
     @Override
     public void fire() {
         delegate.fire();

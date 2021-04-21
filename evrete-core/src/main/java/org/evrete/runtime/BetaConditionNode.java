@@ -21,7 +21,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         this.evaluationState = new MemoryKeyNode[allFactTypes.length];
 
 
-        RuntimeBetaEvaluator betaEvaluator = new RuntimeBetaEvaluator(getRuntime().getEvaluators(), expression);
+        RuntimeBetaEvaluator betaEvaluator = new RuntimeBetaEvaluator(getRuntime(), expression);
         this.cachingEvaluator = new CachingEvaluator(betaEvaluator);
 
         for (FactType type : allFactTypes) {
@@ -141,7 +141,6 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         final BetaMemoryNode source;
         final FactType[] factTypes;
         ReIterator<MemoryKey> currentIterator;
-        KeyMode currentMode;
 
         SourceMeta(BetaMemoryNode source) {
             this.source = source;
@@ -149,7 +148,6 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         }
 
         boolean setIterator(KeyMode mode) {
-            this.currentMode = mode;
             this.currentIterator = source.iterator(mode);
             return this.currentIterator.reset() > 0;
         }
@@ -165,7 +163,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
             this.currentKey = null;
         }
 
-        public void setKey(MemoryKey key) {
+        void setKey(MemoryKey key) {
             this.currentKey = key;
         }
 
@@ -214,7 +212,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
 
     private static class FieldNode {
         final ValueResolver valueResolver;
-        protected Object value;
+        Object value;
         ValueHandle lastHandle;
 
         FieldNode(ValueResolver valueResolver) {

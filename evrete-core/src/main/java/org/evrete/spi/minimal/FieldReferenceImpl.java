@@ -44,7 +44,7 @@ class FieldReferenceImpl implements FieldReference {
 
     @Override
     public String toString() {
-        return "'" + type.getVar() + "." + field.getName() +
+        return "'" + type.getName() + "." + field.getName() +
                 '\'';
     }
 }

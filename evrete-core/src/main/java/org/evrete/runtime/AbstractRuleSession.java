@@ -34,7 +34,11 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
 
     @Override
     public List<RuntimeRule> getRules() {
-        return ruleStorage.asList();
+        return Collections.unmodifiableList(ruleStorage.getList());
+    }
+
+    RuntimeRules getRuleStorage() {
+        return ruleStorage;
     }
 
     private List<RuntimeRule> buildMemoryDeltas() {
@@ -103,18 +107,6 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
             rule.clear();
         }
     }
-
-/*
-    @Override
-    public void addListener(EvaluationListener listener) {
-        getEvaluators().addListener(listener);
-    }
-
-    @Override
-    public void removeListener(EvaluationListener listener) {
-        getEvaluators().removeListener(listener);
-    }
-*/
 
     public void close() {
         synchronized (this) {

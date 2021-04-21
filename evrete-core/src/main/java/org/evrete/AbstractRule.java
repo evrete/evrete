@@ -1,13 +1,12 @@
 package org.evrete;
 
+import org.evrete.api.Imports;
 import org.evrete.api.RhsContext;
 import org.evrete.api.Rule;
 import org.evrete.api.RuleScope;
-import org.evrete.runtime.Imports;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
@@ -31,15 +30,11 @@ public abstract class AbstractRule implements Rule {
         this.imports = new Imports();
     }
 
-    protected AbstractRule(AbstractRule other) {
-        this(other, other.name, other.salience);
-    }
-
     protected AbstractRule(AbstractRule other, String ruleName, int salience) {
         this.name = ruleName;
         this.properties = new ConcurrentHashMap<>();
         this.properties.putAll(other.properties);
-        this.salience = other.salience;
+        this.salience = salience;
         this.nullRhs = other.nullRhs;
         this.rhs = other.rhs;
         this.literalRhs = other.literalRhs;
@@ -50,7 +45,8 @@ public abstract class AbstractRule implements Rule {
         imports.append(parent);
     }
 
-    public Imports getImportsData() {
+    @Override
+    public Imports getImports() {
         return imports;
     }
 
@@ -63,11 +59,6 @@ public abstract class AbstractRule implements Rule {
     @Override
     public Collection<String> getPropertyNames() {
         return properties.keySet();
-    }
-
-    @Override
-    public Set<String> getImports(RuleScope... scopes) {
-        return imports.get(scopes);
     }
 
     protected String getLiteralRhs() {

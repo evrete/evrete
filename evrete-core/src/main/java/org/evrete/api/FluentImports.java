@@ -15,5 +15,9 @@ public interface FluentImports<T> {
         }
     }
 
-    Set<String> getImports(RuleScope... scopes);
+    Imports getImports();
+
+    default Set<String> getJavaImports(RuleScope... scopes) {
+        return getImports().get(scopes);
+    }
 }

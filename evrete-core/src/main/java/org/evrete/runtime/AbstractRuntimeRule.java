@@ -26,11 +26,11 @@ public abstract class AbstractRuntimeRule extends AbstractRule {
         this.factTypes = factTypes;
         for (FactType factType : factTypes) {
             this.typeMask.set(factType.getType().getId());
-            if (typeMapping.put(factType.getVar(), factType) != null) {
+            if (typeMapping.put(factType.getName(), factType) != null) {
                 throw new IllegalStateException();
             }
         }
-        appendImports(runtime.getImportsData());
+        appendImports(runtime.getImports());
         setRhs(getLiteralRhs());
     }
 
@@ -40,7 +40,7 @@ public abstract class AbstractRuntimeRule extends AbstractRule {
     }
 
     FactType resolve(NamedType type) {
-        return resolve(type.getVar());
+        return resolve(type.getName());
     }
 
     final boolean dependsOn(Type<?> type) {
@@ -54,7 +54,7 @@ public abstract class AbstractRuntimeRule extends AbstractRule {
     @Override
     public final void setRhs(String literalRhs) {
         if (literalRhs != null) {
-            setRhs(runtime.compile(literalRhs, factTypes, getImportsData(), RuleScope.BOTH, RuleScope.RHS));
+            setRhs(runtime.compile(literalRhs, factTypes, getImports(), RuleScope.BOTH, RuleScope.RHS));
         }
     }
 }

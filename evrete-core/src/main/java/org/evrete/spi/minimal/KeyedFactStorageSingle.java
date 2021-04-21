@@ -1,6 +1,5 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.ActiveField;
 import org.evrete.api.KeyMode;
 import org.evrete.api.ValueHandle;
 
@@ -8,8 +7,8 @@ class KeyedFactStorageSingle extends AbstractKeyedFactStorage<FactsMapSingle> {
 
     private final SingleState state = new SingleState();
 
-    KeyedFactStorageSingle(int initialSize, ActiveField field) {
-        super(FactsMapSingle.class, mode -> new FactsMapSingle(field, mode, initialSize));
+    KeyedFactStorageSingle(int initialSize) {
+        super(FactsMapSingle.class, mode -> new FactsMapSingle(mode, initialSize));
     }
 
     @Override

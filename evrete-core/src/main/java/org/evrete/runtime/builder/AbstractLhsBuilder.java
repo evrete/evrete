@@ -29,11 +29,11 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
     protected abstract G self();
 
     public Set<EvaluatorHandle> getAlphaConditions(NamedType type) {
-        return alphaConditions.getOrDefault(type.getVar(), EMPTY_ALPHA_CONDITIONS);
+        return alphaConditions.getOrDefault(type.getName(), EMPTY_ALPHA_CONDITIONS);
     }
 
     public Set<TypeField> getBetaFields(NamedType type) {
-        return betaFields.getOrDefault(type.getVar(), EMPTY_TYPE_FIELDS);
+        return betaFields.getOrDefault(type.getName(), EMPTY_TYPE_FIELDS);
     }
 
     public Set<EvaluatorHandle> getBetaConditions() {
@@ -49,18 +49,19 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         return ruleBuilder.getRuntimeContext().getTypeResolver();
     }
 
-    private void addCondition(EvaluatorHandle handle) {
+    private EvaluatorHandle add(EvaluatorHandle handle) {
         Set<NamedType> involvedTypes = handle.namedTypes();
         if (involvedTypes.size() == 1) {
             // This is an alpha condition
-            this.alphaConditions.add(involvedTypes.iterator().next().getVar(), handle);
+            this.alphaConditions.add(involvedTypes.iterator().next().getName(), handle);
         } else {
             // This is a beta condition
             this.betaConditions.add(handle);
             for (FieldReference ref : handle.descriptor()) {
-                this.betaFields.add(ref.type().getVar(), ref.field());
+                this.betaFields.add(ref.type().getName(), ref.field());
             }
         }
+        return handle;
     }
 
     public Set<NamedType> getDeclaredFactTypes() {
@@ -76,110 +77,151 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
     public G where(String... expressions) {
         if (expressions == null || expressions.length == 0) return self();
         for (String expression : expressions) {
-            addExpression(expression);
+            whereInner(expression);
+        }
+        return self();
+    }
+
+    @Override
+    public G where(EvaluatorHandle... expressions) {
+        if (expressions == null || expressions.length == 0) return self();
+        for (EvaluatorHandle expression : expressions) {
+            add(expression);
         }
         return self();
     }
 
     @Override
     public G where(String expression, double complexity) {
-        addExpression(expression, complexity);
+        whereInner(expression, complexity);
         return self();
     }
 
     @Override
     public G where(Predicate<Object[]> predicate, double complexity, String... references) {
-        addExpression(predicate, complexity, references);
+        whereInner(predicate, complexity, references);
         return self();
     }
 
     @Override
     public G where(Predicate<Object[]> predicate, String... references) {
-        addExpression(predicate, references);
+        whereInner(predicate, references);
         return self();
     }
 
     @Override
     public G where(ValuesPredicate predicate, double complexity, String... references) {
-        addExpression(predicate, complexity, references);
+        whereInner(predicate, complexity, references);
         return self();
     }
 
     @Override
     public G where(ValuesPredicate predicate, String... references) {
-        addExpression(predicate, references);
+        whereInner(predicate, references);
         return self();
     }
 
     @Override
     public G where(Predicate<Object[]> predicate, double complexity, FieldReference... references) {
-        addExpression(predicate, complexity, references);
+        whereInner(predicate, complexity, references);
         return self();
     }
 
     @Override
     public G where(Predicate<Object[]> predicate, FieldReference... references) {
-        addExpression(predicate, references);
+        whereInner(predicate, references);
         return self();
     }
 
     @Override
     public G where(ValuesPredicate predicate, double complexity, FieldReference... references) {
-        addExpression(predicate, complexity, references);
+        whereInner(predicate, complexity, references);
         return self();
     }
 
     @Override
     public G where(ValuesPredicate predicate, FieldReference... references) {
-        addExpression(predicate, references);
+        whereInner(predicate, references);
         return self();
     }
 
-    private void addExpression(String expression, double complexity) {
-        Evaluator evaluator = runtime.compile(expression, this, ruleBuilder.getImportsData());
-        addCondition(runtime.getEvaluators().save(evaluator, complexity));
+    @Override
+    public EvaluatorHandle addWhere(String expression, double complexity) {
+        Evaluator evaluator = runtime.compile(expression, this, ruleBuilder.getImports());
+        return add(runtime.addEvaluator(evaluator));
     }
 
-    private void addExpression(Predicate<Object[]> predicate, double complexity, String[] references) {
-        FieldReference[] descriptor = runtime.resolveFieldReferences(references, this);
+    @Override
+    public EvaluatorHandle addWhere(ValuesPredicate predicate, double complexity, String... references) {
+        return addWhere(predicate, complexity, resolveFieldReferences(references));
+    }
+
+    @Override
+    public EvaluatorHandle addWhere(Predicate<Object[]> predicate, double complexity, String... references) {
+        return addWhere(predicate, complexity, resolveFieldReferences(references));
+    }
+
+    @Override
+    public EvaluatorHandle addWhere(ValuesPredicate predicate, double complexity, FieldReference... references) {
+        Evaluator evaluator = new EvaluatorOfPredicate(predicate, references);
+        return add(runtime.addEvaluator(evaluator));
+    }
+
+    @Override
+    public EvaluatorHandle addWhere(Predicate<Object[]> predicate, double complexity, FieldReference... references) {
+        Evaluator evaluator = new EvaluatorOfArray(predicate, references);
+        return add(runtime.addEvaluator(evaluator));
+    }
+
+    private void whereInner(String expression, double complexity) {
+        Evaluator evaluator = runtime.compile(expression, this, ruleBuilder.getImports());
+        add(runtime.addEvaluator(evaluator, complexity));
+    }
+
+    private void whereInner(Predicate<Object[]> predicate, double complexity, String[] references) {
+        FieldReference[] descriptor = resolveFieldReferences(references);
         EvaluatorOfArray evaluator = new EvaluatorOfArray(predicate, descriptor);
-        addCondition(runtime.getEvaluators().save(evaluator, complexity));
+        add(runtime.addEvaluator(evaluator, complexity));
     }
 
-    private void addExpression(Predicate<Object[]> predicate, String[] references) {
-        addExpression(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
+    private void whereInner(Predicate<Object[]> predicate, String[] references) {
+        whereInner(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
     }
 
-    private void addExpression(ValuesPredicate predicate, double complexity, String[] references) {
-        FieldReference[] descriptor = runtime.resolveFieldReferences(references, this);
+    private void whereInner(ValuesPredicate predicate, double complexity, String[] references) {
+        FieldReference[] descriptor = resolveFieldReferences(references);
         EvaluatorOfPredicate evaluator = new EvaluatorOfPredicate(predicate, descriptor);
-        addCondition(runtime.getEvaluators().save(evaluator, complexity));
+        add(runtime.addEvaluator(evaluator, complexity));
     }
 
-    private void addExpression(ValuesPredicate predicate, String[] references) {
-        addExpression(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
+    private void whereInner(ValuesPredicate predicate, String[] references) {
+        whereInner(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
     }
 
-    private void addExpression(Predicate<Object[]> predicate, double complexity, FieldReference[] references) {
+    private void whereInner(Predicate<Object[]> predicate, double complexity, FieldReference[] references) {
         EvaluatorOfArray evaluator = new EvaluatorOfArray(predicate, references);
-        addCondition(runtime.getEvaluators().save(evaluator, complexity));
+        add(runtime.addEvaluator(evaluator, complexity));
     }
 
-    private void addExpression(Predicate<Object[]> predicate, FieldReference[] references) {
-        addExpression(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
+    private void whereInner(Predicate<Object[]> predicate, FieldReference[] references) {
+        whereInner(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
     }
 
-    private void addExpression(ValuesPredicate predicate, double complexity, FieldReference[] references) {
+    private void whereInner(ValuesPredicate predicate, double complexity, FieldReference[] references) {
         EvaluatorOfPredicate evaluator = new EvaluatorOfPredicate(predicate, references);
-        addCondition(runtime.getEvaluators().save(evaluator, complexity));
+        add(runtime.addEvaluator(evaluator, complexity));
     }
 
-    private void addExpression(ValuesPredicate predicate, FieldReference[] references) {
-        addExpression(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
+    private void whereInner(ValuesPredicate predicate, FieldReference[] references) {
+        whereInner(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
     }
 
-    private void addExpression(String expression) {
-        addExpression(expression, EvaluatorHandle.DEFAULT_COMPLEXITY);
+    private void whereInner(String expression) {
+        whereInner(expression, EvaluatorHandle.DEFAULT_COMPLEXITY);
+    }
+
+    private FieldReference[] resolveFieldReferences(String[] references) {
+        return runtime.resolveFieldReferences(references, this);
     }
 
     @Override
@@ -195,8 +237,7 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         return addFactDeclaration(name, getTypeResolver().getOrDeclare(type));
     }
 
-    @Override
-    public G buildLhs(Collection<FactBuilder> facts) {
+    G buildLhs(Collection<FactBuilder> facts) {
         if (facts == null || facts.isEmpty()) return self();
         for (FactBuilder f : facts) {
             Class<?> c = f.getResolvedType();
@@ -242,74 +283,8 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
         }
 
         @Override
-        public String getVar() {
+        public String getName() {
             return name;
         }
     }
-/*
-    public static class Compiled {
-        private static final Set<EvaluatorWrapper> EMPTY_ALPHA_CONDITIONS = new HashSet<>();
-        private final Set<EvaluatorWrapper> betaConditions = new HashSet<>();
-        private final MapOfSet<NamedType, EvaluatorWrapper> alphaConditions = new MapOfSet<>();
-        private final AbstractLhsBuilder<?, ?> lhsBuilder;
-
-        Compiled(AbstractRuntime<?, ?> runtime, AbstractLhsBuilder<?, ?> lhsBuilder) {
-            this.lhsBuilder = lhsBuilder;
-            for (AbstractExpression condition : lhsBuilder.conditions) {
-                Evaluator evaluator = condition.build(runtime, lhsBuilder.getFactTypeMapper());
-                this.addCondition(evaluator);
-            }
-        }
-
-
-        private void addCondition(Evaluator e) {
-            // Wrap the evaluator
-            EvaluatorWrapper expression = new EvaluatorWrapper(e);
-
-            FieldReference[] descriptor = expression.descriptor();
-            Set<NamedType> involvedTypes = expression.getNamedTypes();
-
-            if (involvedTypes.size() == 1) {
-                // Alpha condition
-                NamedType type = involvedTypes.iterator().next();
-                this.alphaConditions.add(type, expression);
-            } else {
-                // Beta condition
-                Set<AbstractLhsBuilder<?, ?>> involvedGroups = new HashSet<>();
-                for (FieldReference ref : descriptor) {
-                    FactTypeBuilder factTypeBuilder = lhsBuilder.factTypeMapper.apply(ref.type().getVar());
-                    factTypeBuilder.addBetaField(ref);
-                    AbstractLhsBuilder<?, ?> refBuilder = lhsBuilder.locateLhsGroup(ref.type());
-                    involvedGroups.add(refBuilder);
-                }
-
-                if (!involvedGroups.contains(lhsBuilder)) {
-                    throw new IllegalStateException("Aggregate group contains external condition: " + expression);
-                }
-
-                if (involvedGroups.size() == 1) {
-                    // The condition spans this group only
-                    this.betaConditions.add(expression);
-                } else {
-                    // The condition spans several groups, which makes it an aggregate condition
-                    for (FieldReference ref : expression.descriptor()) {
-                        AbstractLhsBuilder<?, ?> group = lhsBuilder.locateLhsGroup(ref.type());
-                        if (group == lhsBuilder) {
-                            throw new UnsupportedOperationException("Aggregate groups are currently not supported");
-                        }
-                    }
-                }
-            }
-        }
-
-
-        public Set<EvaluatorWrapper> getAlphaConditions(FactTypeBuilder builder) {
-            return alphaConditions.getOrDefault(builder, EMPTY_ALPHA_CONDITIONS);
-        }
-
-        public Set<EvaluatorWrapper> getBetaConditions() {
-            return betaConditions;
-        }
-    }
-*/
 }

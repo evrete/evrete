@@ -60,12 +60,11 @@ class SharedAlphaData implements KeyedFactStorage {
     }
 
     private static class KeyIterator implements ReIterator<MemoryKey> {
-        private static final ValueHandle[] EMPTY = new ValueHandle[0];
         private final MemoryKeyMulti row;
         private boolean hasNext = true;
 
         KeyIterator(KeyMode mode) {
-            this.row = new MemoryKeyMulti(EMPTY, 0);
+            this.row = new MemoryKeyMulti();
             this.row.setMetaValue(mode.ordinal());
         }
 

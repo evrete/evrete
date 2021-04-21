@@ -50,7 +50,7 @@ public class LinkedDataRW<T> implements ReIterable<T> {
 
     static class Node<Z> {
         Node<Z> next;
-        Z data;
+        final Z data;
 
         Node(Z data) {
             this.data = data;

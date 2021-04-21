@@ -6,7 +6,7 @@ import org.evrete.api.ValueResolver;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 import org.evrete.runtime.evaluation.EvaluatorWrapper;
 
-public class RuntimeAlphaEvaluator {
+class RuntimeAlphaEvaluator {
     private final EvaluatorWrapper delegate;
     private final ActiveField[] activeDescriptor;
     private final int index;

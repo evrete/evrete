@@ -11,7 +11,7 @@ import java.util.LinkedList;
 
 abstract class KeyMemoryBucket extends MemoryComponent {
     // A convenience fact instance that is never equal to others
-    static final RuntimeFact DUMMY_FACT = new RuntimeFact() {
+    private static final RuntimeFact DUMMY_FACT = new RuntimeFact() {
         @Override
         boolean sameValues(RuntimeFact other) {
             return false;

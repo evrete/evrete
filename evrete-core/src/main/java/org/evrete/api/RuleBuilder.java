@@ -4,8 +4,6 @@ public interface RuleBuilder<C extends RuntimeContext<C>> extends Rule, LhsFactS
 
     LhsBuilder<C> getLhs();
 
-    C getRuntime();
-
     RuleBuilder<C> salience(int salience);
 
     @Override

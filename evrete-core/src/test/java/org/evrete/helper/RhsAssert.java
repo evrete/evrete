@@ -21,7 +21,7 @@ public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
         Entry[] entries = new Entry[types.length];
         int i = 0;
         for (FactType t : types) {
-            entries[i++] = new Entry(t.getVar(), t.getType().getName());
+            entries[i++] = new Entry(t.getName(), t.getType().getName());
         }
         return entries;
     };

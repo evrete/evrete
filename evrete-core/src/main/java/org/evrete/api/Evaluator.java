@@ -1,6 +1,9 @@
 package org.evrete.api;
 
-public interface Evaluator extends ValuesPredicate, ComplexityObject {
+/**
+ * An internal representation of every condition in the rule engine.
+ */
+public interface Evaluator extends ValuesPredicate {
     int RELATION_NONE = 0;
     int RELATION_EQUALS = 1;
     int RELATION_INVERSE = -1;

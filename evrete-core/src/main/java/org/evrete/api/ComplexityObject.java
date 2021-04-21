@@ -9,7 +9,6 @@ package org.evrete.api;
  * building the Rete evaluation graph.
  */
 public interface ComplexityObject {
-    //TODO !!!! doubled declaration
     double DEFAULT_COMPLEXITY = 1.0;
 
     default double getComplexity() {

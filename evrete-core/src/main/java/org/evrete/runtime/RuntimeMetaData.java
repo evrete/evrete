@@ -5,10 +5,10 @@ import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
+import org.evrete.runtime.evaluation.EvaluatorWrapper;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeContext<C> {
@@ -51,16 +51,18 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
 
     public abstract void onNewAlphaBucket(TypeMemoryState newState, FieldsKey key, AlphaBucketMeta meta);
 
-    public Evaluators getEvaluators() {
-        return evaluators;
+    @Override
+    public EvaluatorHandle addEvaluator(Evaluator evaluator, double complexity) {
+        return evaluators.save(evaluator, complexity);
     }
 
-    void forEachAlphaCondition(Consumer<AlphaEvaluator> consumer) {
-        typeMetas.forEach(meta -> {
-            for (AlphaEvaluator evaluator : meta.alphaEvaluators) {
-                consumer.accept(evaluator);
-            }
-        });
+    EvaluatorWrapper getEvaluatorWrapper(EvaluatorHandle handle) {
+        return evaluators.get(handle);
+    }
+
+    @Override
+    public void replaceEvaluator(EvaluatorHandle handle, Evaluator newEvaluator) {
+        evaluators.replace(handle, newEvaluator);
     }
 
     @Override
@@ -183,11 +185,8 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         return (C) this;
     }
 
-    public final Set<String> getImports(RuleScope... scopes) {
-        return imports.get(scopes);
-    }
-
-    public Imports getImportsData() {
+    @Override
+    public Imports getImports() {
         return imports;
     }
 
@@ -213,7 +212,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     public abstract ExpressionResolver getExpressionResolver();
 
     @FunctionalInterface
-    public interface NewActiveFieldListener {
+    interface NewActiveFieldListener {
 
         void onNew(ActiveField newField);
     }
@@ -268,7 +267,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
             return alphaEvaluator;
         }
 
-        public TypeMeta copyOf(Evaluators evaluators) {
+        TypeMeta copyOf(Evaluators evaluators) {
             return new TypeMeta(this, evaluators);
         }
 

@@ -1,6 +1,5 @@
 package org.evrete.api;
 
-import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -17,7 +16,39 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
 
     RuleBuilder<C> getRuleBuilder();
 
+    EvaluatorHandle addWhere(String expression, double complexity);
+
+    EvaluatorHandle addWhere(ValuesPredicate predicate, double complexity, String... references);
+
+    EvaluatorHandle addWhere(Predicate<Object[]> predicate, double complexity, String... references);
+
+    EvaluatorHandle addWhere(ValuesPredicate predicate, double complexity, FieldReference... references);
+
+    EvaluatorHandle addWhere(Predicate<Object[]> predicate, double complexity, FieldReference... references);
+
+    default EvaluatorHandle addWhere(String expression) {
+        return addWhere(expression, EvaluatorHandle.DEFAULT_COMPLEXITY);
+    }
+
+    default EvaluatorHandle addWhere(ValuesPredicate predicate, String... references) {
+        return addWhere(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
+    }
+
+    default EvaluatorHandle addWhere(Predicate<Object[]> predicate, String... references) {
+        return addWhere(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
+    }
+
+    default EvaluatorHandle addWhere(ValuesPredicate predicate, FieldReference... references) {
+        return addWhere(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
+    }
+
+    default EvaluatorHandle addWhere(Predicate<Object[]> predicate, FieldReference... references) {
+        return addWhere(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
+    }
+
     LhsBuilder<C> where(String... expressions);
+
+    LhsBuilder<C> where(EvaluatorHandle... expressions);
 
     LhsBuilder<C> where(String expression, double complexity);
 
@@ -40,8 +71,6 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
     NamedType addFactDeclaration(String name, Type<?> type);
 
     NamedType addFactDeclaration(String name, String type);
-
-    LhsBuilder<C> buildLhs(Collection<FactBuilder> facts);
 
     NamedType addFactDeclaration(String name, Class<?> type);
 }

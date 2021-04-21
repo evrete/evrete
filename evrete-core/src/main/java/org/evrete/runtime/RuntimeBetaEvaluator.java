@@ -7,11 +7,11 @@ import org.evrete.runtime.evaluation.EvaluatorWrapper;
 class RuntimeBetaEvaluator {
     private final EvaluatorWrapper[] constituents;
 
-    RuntimeBetaEvaluator(Evaluators evaluators, BetaEvaluator evaluator) {
+    RuntimeBetaEvaluator(AbstractRuntime<?, ?> ctx, BetaEvaluator evaluator) {
         EvaluatorHandle[] handles = evaluator.constituents();
         this.constituents = new EvaluatorWrapper[handles.length];
         for (int i = 0; i < handles.length; i++) {
-            this.constituents[i] = evaluators.get(handles[i]);
+            this.constituents[i] = ctx.getEvaluatorWrapper(handles[i]);
         }
     }
 

@@ -4,12 +4,10 @@ import org.evrete.api.*;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Set;
 
 public class EvaluatorWrapper implements Evaluator, Copyable<EvaluatorWrapper> {
     private Evaluator delegate;
     private Collection<EvaluationListener> listeners = new HashSet<>();
-    /*
         private final ValuesPredicate verbose = new ValuesPredicate() {
             @Override
             public boolean test(IntToValue intToValue) {
@@ -20,7 +18,6 @@ public class EvaluatorWrapper implements Evaluator, Copyable<EvaluatorWrapper> {
                 return b;
             }
         };
-    */
     private ValuesPredicate active;
     private IntToValue stateValues;
 
@@ -75,30 +72,11 @@ public class EvaluatorWrapper implements Evaluator, Copyable<EvaluatorWrapper> {
         updateActiveEvaluator();
     }
 
-    public Set<NamedType> getNamedTypes() {
-        Set<NamedType> namedTypes = new HashSet<>();
-        for (FieldReference ref : this.descriptor()) {
-            namedTypes.add(ref.type());
-        }
-        return namedTypes;
-    }
-
     private void updateActiveEvaluator() {
         if (listeners.isEmpty()) {
             this.active = delegate;
         } else {
-            //this.active = verbose;
-            this.active = new ValuesPredicate() {
-                @Override
-                public boolean test(IntToValue intToValue) {
-                    boolean b = delegate.test(intToValue);
-                    for (EvaluationListener listener : listeners) {
-                        listener.fire(delegate, intToValue, b);
-                    }
-                    return b;
-                }
-            };
-            ;
+            this.active = verbose;
         }
     }
 
@@ -113,11 +91,6 @@ public class EvaluatorWrapper implements Evaluator, Copyable<EvaluatorWrapper> {
 
     public final boolean test() {
         return test(this.stateValues);
-    }
-
-    @Override
-    public final double getComplexity() {
-        return delegate.getComplexity();
     }
 
     @Override
