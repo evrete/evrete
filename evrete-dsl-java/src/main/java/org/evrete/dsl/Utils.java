@@ -1,15 +1,19 @@
 package org.evrete.dsl;
 
+import org.evrete.api.FieldReference;
 import org.evrete.dsl.annotation.*;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.logging.Logger;
 
 public final class Utils {
+    static final Logger LOGGER = Logger.getLogger(Utils.class.getPackage().getName());
 
     static Collection<Method> allNonPublicAnnotated(Class<?> clazz) {
         Class<?> current = clazz;
@@ -25,6 +29,23 @@ public final class Utils {
             current = current.getSuperclass();
         }
         return methods;
+    }
+
+    static String factName(Parameter parameter) {
+        Fact fact = parameter.getAnnotation(Fact.class);
+        if (fact != null) {
+            return fact.value();
+        } else {
+            return parameter.getName();
+        }
+    }
+
+    static Class<?>[] asMethodSignature(FieldReference[] references) {
+        Class<?>[] signature = new Class<?>[references.length];
+        for (int i = 0; i < references.length; i++) {
+            signature[i] = references[i].field().getValueType();
+        }
+        return signature;
     }
 
     private static boolean hasDslAnnotation(Method m) {

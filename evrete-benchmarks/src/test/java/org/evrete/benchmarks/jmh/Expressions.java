@@ -13,7 +13,6 @@ import org.evrete.runtime.KnowledgeRuntime;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
-import java.util.HashSet;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -68,7 +67,7 @@ public class Expressions {
             rule.forEach().addFactDeclaration("$a", TypeA.class);
             rule.forEach().addFactDeclaration("$b", TypeB.class.getName());
             rule.forEach().addFactDeclaration("$c", TypeC.class.getName());
-            evaluator = knowledge.compile("$a.i + $b.i + $c.i > 10_000", rule.getLhs().getFactTypeMapper(), new HashSet<>());
+            evaluator = knowledge.compile("$a.i + $b.i + $c.i > 10_000", rule);
 
             Random random = new Random();
             Object[] vars = new Object[8192 * 256];

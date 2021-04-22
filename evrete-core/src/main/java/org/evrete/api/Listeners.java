@@ -1,5 +1,5 @@
 package org.evrete.api;
 
-public interface Listeners extends EvaluationListeners {
+interface Listeners extends EvaluationListeners {
 
 }

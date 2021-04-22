@@ -5,45 +5,45 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
+import java.util.function.Function;
 
-class MethodWithValues {
-    static final MethodWithValues[] EMPTY = new MethodWithValues[0];
+class ClassMethod {
     final boolean staticMethod;
     private final MethodHandle handle;
-    final Object[] methodCurrentValues;
+    final Object[] args;
 
-    MethodWithValues(MethodHandles.Lookup lookup, Method method) {
+    ClassMethod(MethodHandles.Lookup lookup, Method method) {
         this.staticMethod = Modifier.isStatic(method.getModifiers());
         try {
             this.handle = lookup.unreflect(method);
         } catch (IllegalAccessException e) {
             throw new MalformedResourceException("Rule method access exception", e);
         }
-        Parameter[] parameters = method.getParameters();
-
-        if (staticMethod) {
-            this.methodCurrentValues = new Object[parameters.length];
-        } else {
-            this.methodCurrentValues = new Object[parameters.length + 1];
-        }
+        this.args = new Object[handle.type().parameterCount()];
     }
 
-    private MethodWithValues(boolean staticMethod, MethodHandle handle) {
+    private ClassMethod(boolean staticMethod, MethodHandle handle) {
         this.staticMethod = staticMethod;
         this.handle = handle;
-        this.methodCurrentValues = new Object[handle.type().parameterArray().length];
+        this.args = new Object[handle.type().parameterCount()];
     }
 
-    MethodWithValues(MethodWithValues other) {
+    ClassMethod(ClassMethod method, Object instance) {
+        this.staticMethod = method.staticMethod;
+        this.handle = staticMethod ? method.handle : method.handle.bindTo(instance);
+        this.args = new Object[this.handle.type().parameterCount()];
+    }
+
+    ClassMethod(ClassMethod other) {
         this.staticMethod = other.staticMethod;
         this.handle = other.handle;
-        this.methodCurrentValues = new Object[other.methodCurrentValues.length];
+        this.args = other.args.clone();
     }
 
-    static MethodWithValues lookup(MethodHandles.Lookup lookup, Class<?> javaClass, String name, MethodType methodType) {
+    static ClassMethod lookup(MethodHandles.Lookup lookup, String name, MethodType methodType) {
         MethodHandle handle;
         boolean staticMethod;
+        Class<?> javaClass = lookup.lookupClass();
         try {
             handle = lookup.findStatic(javaClass, name, methodType);
             staticMethod = true;
@@ -55,20 +55,13 @@ class MethodWithValues {
                 throw new MalformedResourceException("Unable to find/access method '" + name + "' in " + javaClass + " of type " + methodType);
             }
         }
-        return new MethodWithValues(staticMethod, handle);
-    }
-
-    // For non-static methods
-    void setInstance(Object instance) {
-        if (!staticMethod) {
-            this.methodCurrentValues[0] = instance;
-        }
+        return new ClassMethod(staticMethod, handle);
     }
 
     @SuppressWarnings("unchecked")
     final <T> T call() {
         try {
-            return (T) handle.invokeWithArguments(methodCurrentValues);
+            return (T) handle.invokeWithArguments(args);
         } catch (RuntimeException e) {
             throw e;
         } catch (Throwable t) {
@@ -76,4 +69,19 @@ class MethodWithValues {
         }
     }
 
+    final <V, R> Function<V, R> asFunction() {
+        assert args.length == 1;
+        return new Function<V, R>() {
+            @Override
+            public R apply(V v) {
+                args[0] = v;
+                return call();
+            }
+
+            @Override
+            public String toString() {
+                return handle.toString();
+            }
+        };
+    }
 }

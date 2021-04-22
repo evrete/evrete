@@ -12,10 +12,11 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.security.ProtectionDomain;
-import java.util.logging.Logger;
+
+import static org.evrete.dsl.Utils.LOGGER;
 
 public class DSLSourceProvider extends AbstractDSLProvider {
-    static final Logger LOGGER = Logger.getLogger(DSLSourceProvider.class.getName());
+
     private static final String CHARSET_PROPERTY = "org.evrete.source-charset";
     private static final String CHARSET_DEFAULT = "UTF-8";
 

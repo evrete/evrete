@@ -3,6 +3,6 @@ package org.evrete.runtime;
 import org.evrete.api.Action;
 
 @FunctionalInterface
-public interface MemoryActionListener {
+interface MemoryActionListener {
     void apply(Action action, boolean addOrRemove);
 }

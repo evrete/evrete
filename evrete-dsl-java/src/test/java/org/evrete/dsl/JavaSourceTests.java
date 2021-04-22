@@ -135,7 +135,7 @@ class JavaSourceTests extends CommonTestMethods {
         NextIntSupplier primeCounter = new NextIntSupplier();
         session.forEachFact((h, o) -> primeCounter.next());
 
-        assert primeCounter.get() == 25;
+        assert primeCounter.get() == 25 : "Actual: " + primeCounter.get();
     }
 
     @ParameterizedTest

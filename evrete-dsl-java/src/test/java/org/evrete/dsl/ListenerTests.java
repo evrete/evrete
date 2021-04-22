@@ -35,7 +35,7 @@ class ListenerTests extends CommonTestMethods {
         assert ListenerInvocationData.total() == 1 && ListenerInvocationData.count(Phase.BUILD) == 1;
 
         StatefulSession session = session(knowledge, mode);
-        assert ListenerInvocationData.count(Phase.CREATE) == 3;
+        assert ListenerInvocationData.count(Phase.CREATE) == 3 : "Actual: " + ListenerInvocationData.EVENTS;
         assert ListenerInvocationData.total() == 6; // 4 + additional two coming from the multiple() method
         ListenerInvocationData.reset();
         session.insert(1);

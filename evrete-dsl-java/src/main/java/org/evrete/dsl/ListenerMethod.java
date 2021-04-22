@@ -12,10 +12,10 @@ import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Set;
 
-class ListenerMethod extends MethodWithValues {
+class ListenerMethod extends ClassMethod implements SessionCloneable<ListenerMethod> {
     final Set<Phase> phases = EnumSet.noneOf(Phase.class);
-    private int configIndex = -1;
-    private int environmentIndex = -1;
+    private int configIndex;
+    private int environmentIndex;
 
     ListenerMethod(MethodHandles.Lookup lookup, Method method) {
         super(lookup, method);
@@ -37,13 +37,13 @@ class ListenerMethod extends MethodWithValues {
             Class<?> type = parameters[i].getType();
             if (Configuration.class.isAssignableFrom(type)) {
                 if (configIndex < 0) {
-                    configIndex = staticMethod ? i : i + 1;
+                    configIndex = i;
                 } else {
                     throw new MalformedResourceException("Duplicate configuration argument in " + method);
                 }
             } else if (Environment.class.isAssignableFrom(type)) {
                 if (environmentIndex < 0) {
-                    environmentIndex = staticMethod ? i : i + 1;
+                    environmentIndex = i;
                 } else {
                     throw new MalformedResourceException("Duplicate environment argument in " + method);
                 }
@@ -53,14 +53,24 @@ class ListenerMethod extends MethodWithValues {
         }
     }
 
+    private ListenerMethod(ListenerMethod method, Object instance) {
+        super(method, instance);
+        this.configIndex = method.configIndex;
+        this.environmentIndex = method.environmentIndex;
+    }
+
     void call(Configuration configuration, Environment environment) {
         if (configIndex >= 0) {
-            this.methodCurrentValues[configIndex] = configuration;
+            this.args[configIndex] = configuration;
         }
         if (environmentIndex >= 0) {
-            this.methodCurrentValues[environmentIndex] = environment;
+            this.args[environmentIndex] = environment;
         }
         call();
     }
 
+    @Override
+    public ListenerMethod copy(Object sessionInstance) {
+        return new ListenerMethod(this, sessionInstance);
+    }
 }

@@ -7,7 +7,7 @@ import java.util.function.Function;
 
 class TypeFieldImpl implements TypeField {
     private final String name;
-    private final Function<Object, ?> function;
+    private Function<Object, ?> function;
     private final Class<?> valueType;
     private final TypeImpl<?> declaringType;
     private final int id;
@@ -22,6 +22,10 @@ class TypeFieldImpl implements TypeField {
 
     TypeFieldImpl(TypeFieldImpl other, TypeImpl<?> newType) {
         this(other.id, newType, other.name, other.valueType, other.function);
+    }
+
+    public void setFunction(Function<Object, ?> function) {
+        this.function = function;
     }
 
     TypeFieldImpl copy(TypeImpl<?> newType) {
@@ -59,7 +63,7 @@ class TypeFieldImpl implements TypeField {
         return "{" +
                 "name='" + name + '\'' +
                 ", valueType='" + valueType + '\'' +
-                ", declaringType='" + declaringType.getName() + '\'' +
+                ", function='" + function + '\'' +
                 '}';
     }
 

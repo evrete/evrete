@@ -11,9 +11,12 @@ import java.lang.annotation.Target;
  * parameter or the annotated method's name if the <code>name()</code> is empty.
  * </p>
  * <p>
- * The annotated method must be static, non-void, and have a single argument. The argument's type
+ * The annotated method must be non-void and have a single argument. The argument's type
  * denotes the fact type that we want to declare a new field on. The method's return type becomes
  * the field's type.
+ * </p>
+ * <p>
+ * The annotated method can use both instance and static class members to compute field value.
  * </p>
  */
 @Target(value = ElementType.METHOD)

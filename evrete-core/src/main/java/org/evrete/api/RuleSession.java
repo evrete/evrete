@@ -34,7 +34,7 @@ public interface RuleSession<S extends RuleSession<S>> extends WorkingMemory, Ru
     /**
      * <p>
      * Same as {@link #fireAsync(Object)}, with the Future's get method will returning
-     * <code>null</code> upon successful completion.
+     * the session itself.
      * </p>
      *
      * @return a Future representing pending completion of the {@link #fire()} command.
@@ -42,8 +42,9 @@ public interface RuleSession<S extends RuleSession<S>> extends WorkingMemory, Ru
      *                                    scheduled for execution
      * @see #fireAsync(Object)
      */
-    default Future<?> fireAsync() {
-        return fireAsync(null);
+    @SuppressWarnings("unchecked")
+    default Future<S> fireAsync() {
+        return (Future<S>) fireAsync(this);
     }
 
     void close();

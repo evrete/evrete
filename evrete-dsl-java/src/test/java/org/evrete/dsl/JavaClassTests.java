@@ -92,6 +92,7 @@ class JavaClassTests extends CommonTestMethods {
         Knowledge knowledge = applyToRuntimeAsURL(service, SortedRuleSet1.class);
         StatefulSession session = session(knowledge, mode);
         List<RuntimeRule> rules = session.getRules();
+
         assert rules.size() == 5;
         assert rules.get(0).getName().endsWith("rule2"); // Salience 100
         assert rules.get(1).getName().endsWith("rule3"); // Salience 10

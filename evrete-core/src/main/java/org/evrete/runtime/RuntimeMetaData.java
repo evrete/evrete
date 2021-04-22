@@ -138,18 +138,6 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         return newKey;
     }
 
-/*
-    TypeMemoryState getActiveSate(Type<?> t) {
-        TypeMemoryMetaData typeMeta = getTypeMeta(t.getId());
-        return new TypeMemoryState(
-                typeMeta.activeFields,
-                evaluators,
-                typeMeta.alphaEvaluators
-        );
-        //return getTypeMeta(t).asState();
-    }
-*/
-
     @SuppressWarnings("unchecked")
     public final C addImport(RuleScope scope, String imp) {
         this.imports.add(scope, imp);

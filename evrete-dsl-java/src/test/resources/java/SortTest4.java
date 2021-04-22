@@ -7,7 +7,7 @@ import org.evrete.dsl.annotation.RuleSet;
 @RuleSet(defaultSort = RuleSet.Sort.BY_NAME_INVERSE)
 public class RuleSet4 {
 
-    @Rule(salience = -1)
+    @Rule(salience = 1)
     public void rule1(@Fact("$o") Object o) {
 
     }

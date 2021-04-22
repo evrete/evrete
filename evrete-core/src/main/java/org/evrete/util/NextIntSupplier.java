@@ -5,7 +5,7 @@ import org.evrete.api.Copyable;
 public class NextIntSupplier implements Copyable<NextIntSupplier> {
     private int counter;
 
-    public NextIntSupplier(int counter) {
+    private NextIntSupplier(int counter) {
         this.counter = counter;
     }
 

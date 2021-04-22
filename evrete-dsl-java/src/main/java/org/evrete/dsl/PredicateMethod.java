@@ -1,55 +1,41 @@
 package org.evrete.dsl;
 
+import org.evrete.api.Evaluator;
+import org.evrete.api.EvaluatorHandle;
+import org.evrete.api.FieldReference;
 import org.evrete.api.IntToValue;
-import org.evrete.api.ValuesPredicate;
 
-abstract class PredicateMethod extends MethodWithValues implements ValuesPredicate {
+class PredicateMethod extends ClassMethod implements Evaluator, SessionCloneable<PredicateMethod> {
+    final EvaluatorHandle handle;
+    private final FieldReference[] references;
 
-    PredicateMethod(MethodWithValues method) {
+    PredicateMethod(ClassMethod method, FieldReference[] references, EvaluatorHandle handle) {
         super(method);
+        this.handle = handle;
+        this.references = references;
     }
 
-    static PredicateMethod factory(MethodWithValues method) {
-        if (method.staticMethod) {
-            return new Static(method);
-        } else {
-            return new NonStatic(method);
-        }
+    private PredicateMethod(PredicateMethod m, Object instance) {
+        super(m, instance);
+        this.handle = m.handle;
+        this.references = m.references;
     }
 
-    abstract void init(IntToValue values);
+    @Override
+    public FieldReference[] descriptor() {
+        return references;
+    }
+
+    @Override
+    public PredicateMethod copy(Object sessionInstance) {
+        return new PredicateMethod(this, sessionInstance);
+    }
 
     @Override
     public final boolean test(IntToValue values) {
-        init(values);
+        for (int i = 0; i < args.length; i++) {
+            this.args[i] = values.apply(i);
+        }
         return call();
-    }
-
-    private static class NonStatic extends PredicateMethod {
-
-        private NonStatic(MethodWithValues method) {
-            super(method);
-        }
-
-        @Override
-        void init(IntToValue values) {
-            for (int i = 1; i < methodCurrentValues.length; i++) {
-                this.methodCurrentValues[i] = values.apply(i - 1);
-            }
-        }
-    }
-
-    private static class Static extends PredicateMethod {
-
-        private Static(MethodWithValues method) {
-            super(method);
-        }
-
-        @Override
-        void init(IntToValue values) {
-            for (int i = 0; i < methodCurrentValues.length; i++) {
-                this.methodCurrentValues[i] = values.apply(i);
-            }
-        }
     }
 }

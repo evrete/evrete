@@ -37,6 +37,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
         return Collections.unmodifiableList(ruleStorage.getList());
     }
 
+
     RuntimeRules getRuleStorage() {
         return ruleStorage;
     }

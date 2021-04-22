@@ -49,7 +49,7 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
 
     @Override
     public <Z> RuleBuilder<C> property(String property, Z value) {
-        set(property, value);
+        this.set(property, value);
         return this;
     }
 

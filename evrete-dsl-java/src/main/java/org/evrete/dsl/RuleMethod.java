@@ -1,7 +1,7 @@
 package org.evrete.dsl;
 
-import org.evrete.api.*;
-import org.evrete.dsl.annotation.Fact;
+import org.evrete.api.RhsContext;
+import org.evrete.dsl.annotation.MethodPredicate;
 import org.evrete.dsl.annotation.Where;
 
 import java.lang.invoke.MethodHandles;
@@ -11,48 +11,66 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-class RuleMethod extends MethodWithValues implements Consumer<RhsContext> {
-    private final LhsParameter[] lhsParameters;
+class RuleMethod extends ClassMethod implements SessionCloneable<RuleMethod>, Consumer<RhsContext> {
     private final int contextParamId;
     private final int salience;
     private final String ruleName;
-    private final Where predicates;
+    final String[] stringPredicates;
+    final MethodPredicate[] methodPredicates;
+    final FactDeclaration[] factDeclarations;
 
-    RuleMethod(MethodHandles.Lookup lookup, Method method, TypeResolver typeResolver) {
+    RuleMethod(MethodHandles.Lookup lookup, Method method) {
         super(lookup, method);
         this.salience = Utils.salience(method);
         this.ruleName = Utils.ruleName(method);
-        this.predicates = method.getAnnotation(Where.class);
-        Parameter[] parameters = method.getParameters();
-        List<LhsParameter> lhsParameters = new ArrayList<>(parameters.length);
-        int contextParamId = Integer.MIN_VALUE;
+        Where predicates = method.getAnnotation(Where.class);
+        if (predicates == null) {
+            this.stringPredicates = new String[0];
+            this.methodPredicates = new MethodPredicate[0];
+        } else {
+            this.stringPredicates = predicates.value();
+            this.methodPredicates = predicates.asMethods();
+        }
+
+        int ctxIndex = Integer.MIN_VALUE;
         if (!method.getReturnType().equals(void.class)) {
             throw new MalformedResourceException("Rule methods must be void. " + method);
         }
+        Parameter[] parameters = method.getParameters();
+        List<FactDeclaration> rhsParameterList = new ArrayList<>();
         for (int i = 0; i < parameters.length; i++) {
             Parameter param = parameters[i];
             if (RhsContext.class.isAssignableFrom(param.getType())) {
                 // Context Parameter
-                if (contextParamId < 0) {
-                    contextParamId = i;
+                if (ctxIndex < 0) {
+                    ctxIndex = i;
                 } else {
                     throw new MalformedResourceException("Duplicate context parameter in " + method.getName());
                 }
             } else {
-                // LHS Parameter
-                int invocationIndex = staticMethod ? i : i + 1;
-                lhsParameters.add(new LhsParameter(typeResolver, param, invocationIndex));
+                FactDeclaration rhsParameter = new FactDeclaration(param, i);
+                rhsParameterList.add(rhsParameter);
             }
         }
-
-        if (staticMethod) {
-            this.contextParamId = contextParamId;
-        } else {
-            this.contextParamId = contextParamId + 1;
-        }
-        this.lhsParameters = lhsParameters.toArray(LhsParameter.EMPTY_ARRAY);
+        this.factDeclarations = rhsParameterList.toArray(FactDeclaration.EMPTY);
+        this.contextParamId = ctxIndex;
     }
 
+
+    private RuleMethod(RuleMethod other, Object instance) {
+        super(other, instance);
+        this.contextParamId = other.contextParamId;
+        this.salience = other.salience;
+        this.ruleName = other.ruleName;
+        this.stringPredicates = other.stringPredicates;
+        this.methodPredicates = other.methodPredicates;
+        this.factDeclarations = other.factDeclarations;
+    }
+
+    @Override
+    public RuleMethod copy(Object sessionInstance) {
+        return new RuleMethod(this, sessionInstance);
+    }
 
     String getRuleName() {
         return ruleName;
@@ -62,53 +80,27 @@ class RuleMethod extends MethodWithValues implements Consumer<RhsContext> {
         return salience;
     }
 
-    LhsParameter[] getLhsParameters() {
-        return lhsParameters;
-    }
-
-    Where getPredicates() {
-        return predicates;
-    }
-
     @Override
     public void accept(RhsContext ctx) {
-        for (LhsParameter p : lhsParameters) {
-            this.methodCurrentValues[p.position] = ctx.getObject(p.getName());
+        for (FactDeclaration p : factDeclarations) {
+            this.args[p.position] = ctx.getObject(p.name);
         }
         if (contextParamId >= 0) {
-            this.methodCurrentValues[contextParamId] = ctx;
+            this.args[contextParamId] = ctx;
         }
         call();
     }
 
-    private static class LhsParameter extends FactBuilder implements NamedType {
-        static LhsParameter[] EMPTY_ARRAY = new LhsParameter[0];
+    static class FactDeclaration {
+        static final FactDeclaration[] EMPTY = new FactDeclaration[0];
         final int position;
-        private final Type<?> type;
+        final String name;
+        final Class<?> type;
 
-        LhsParameter(TypeResolver typeResolver, Parameter parameter, int position) {
-            super(factName(parameter), Utils.box(parameter.getType()));
+        FactDeclaration(Parameter parameter, int position) {
+            this.name = Utils.factName(parameter);
             this.position = position;
-            this.type = typeResolver.getOrDeclare(getResolvedType());
-        }
-
-        private static String factName(Parameter parameter) {
-            Fact fact = parameter.getAnnotation(Fact.class);
-            if (fact != null) {
-                return fact.value();
-            } else {
-                return parameter.getName();
-            }
-        }
-
-        @Override
-        public Type<?> getType() {
-            return type;
-        }
-
-        @Override
-        public String getVar() {
-            return getName();
+            this.type = parameter.getType();
         }
     }
 }

@@ -1,6 +1,5 @@
 package org.evrete.dsl;
 
-import org.evrete.api.Knowledge;
 import org.evrete.api.RuleSession;
 
 /**
@@ -14,8 +13,7 @@ import org.evrete.api.RuleSession;
  *         referenced by <strong>static</strong> methods only.
  *     </li>
  *     <li>
- *         <code>CREATE</code> event happens before a new session is created off the given ruleset, namely
- *         before the {@link Knowledge#createSession()} is called.
+ *         <code>CREATE</code> event happens immediately after a new session is created off the given ruleset
  *     </li>
  *     <li>
  *         <code>FIRE</code> event happens before any of the {@link RuleSession#fire()}, {@link RuleSession#fireAsync(Object)},

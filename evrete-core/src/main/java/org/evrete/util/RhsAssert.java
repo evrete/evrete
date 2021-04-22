@@ -149,7 +149,7 @@ public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
         if (out != null) {
             StringJoiner joiner = new StringJoiner(" ", ">>> ", "\t");
             values.forEach((var, o) -> joiner.add(var + "=" + o));
-            out.println(joiner.toString());
+            out.println(joiner);
         }
 
     }

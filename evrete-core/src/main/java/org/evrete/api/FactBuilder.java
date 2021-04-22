@@ -17,7 +17,7 @@ public class FactBuilder {
         this.resolvedType = resolvedType;
     }
 
-    protected FactBuilder(String name, Class<?> resolvedType) {
+    private FactBuilder(String name, Class<?> resolvedType) {
         this(name, null, resolvedType);
     }
 

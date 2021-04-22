@@ -3,15 +3,34 @@ package org.evrete.dsl;
 import org.evrete.api.*;
 import org.evrete.util.SessionWrapper;
 
+import java.util.List;
 import java.util.concurrent.Future;
 import java.util.function.BooleanSupplier;
 
 class DSLSession extends SessionWrapper {
     private final Listeners listeners;
 
-    DSLSession(StatefulSession delegate, Listeners listeners) {
+
+    DSLSession(StatefulSession delegate, RulesetMeta meta, FieldDeclarations fieldDeclarations, List<DSLRule> rules, Object classInstance) {
         super(delegate);
-        this.listeners = listeners;
+        this.listeners = meta.listeners.copy(classInstance);
+
+
+        fieldDeclarations.applyNormal(getTypeResolver(), classInstance);
+        // Adjusting rules for class instance
+        for (DSLRule r : rules) {
+            RuntimeRule rule = getRule(r.ruleMethod.getRuleName());
+
+            // Replacing RHS
+            rule.setRhs(r.ruleMethod.copy(classInstance));
+
+            // Replacing evaluators
+            for (PredicateMethod pm : r.predicateMethods) {
+                this.replaceEvaluator(pm.handle, pm.copy(classInstance));
+            }
+        }
+
+        listeners.fire(Phase.CREATE, this);
     }
 
     @Override
@@ -61,4 +80,6 @@ class DSLSession extends SessionWrapper {
         super.setFireCriteria(fireCriteria);
         return this;
     }
+
+
 }

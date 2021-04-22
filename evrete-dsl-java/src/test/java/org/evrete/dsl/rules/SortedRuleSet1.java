@@ -5,7 +5,7 @@ import org.evrete.dsl.annotation.Rule;
 
 @SuppressWarnings("unused")
 public class SortedRuleSet1 extends SortedRuleSetBase1 {
-    @Rule(salience = -1)
+    @Rule(salience = 1)
     public void rule1(@Fact("$o") Object o) {
 
     }

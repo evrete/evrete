@@ -16,10 +16,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
-import java.util.logging.Logger;
+
+import static org.evrete.dsl.Utils.LOGGER;
 
 public class DSLJarProvider extends AbstractDSLProvider {
-    private static final Logger LOGGER = Logger.getLogger(DSLJarProvider.class.getName());
     static final String CLASSES_PROPERTY = "org.evrete.dsl.rule-classes";
     private static final String EMPTY_CLASSES = "";
     private static final String CLASS_ENTRY_SUFFIX = ".class";

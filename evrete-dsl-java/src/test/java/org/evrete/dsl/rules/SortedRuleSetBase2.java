@@ -9,7 +9,7 @@ import org.evrete.dsl.annotation.RuleSet;
 public class SortedRuleSetBase2 {
     private static final int SALIENCE_THAT_WILL_BE_OVERRIDDEN = 777;
 
-    @Rule(salience = -1)
+    @Rule(salience = 1)
     public final void rule1(@Fact("$o") Object o) {
 
     }

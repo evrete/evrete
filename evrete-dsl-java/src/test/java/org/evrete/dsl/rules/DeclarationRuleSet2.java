@@ -1,24 +1,22 @@
 package org.evrete.dsl.rules;
 
-import org.evrete.api.Environment;
 import org.evrete.api.RhsContext;
-import org.evrete.dsl.Phase;
-import org.evrete.dsl.annotation.*;
+import org.evrete.dsl.annotation.Fact;
+import org.evrete.dsl.annotation.FieldDeclaration;
+import org.evrete.dsl.annotation.Rule;
+import org.evrete.dsl.annotation.Where;
 
 public class DeclarationRuleSet2 {
 
     /*
      * declares an int field named "intValue" on String fact types
      */
+    @SuppressWarnings("MethodMayBeStatic")
     @FieldDeclaration()
-    public static int intValue(String fact) {
+    public int intValue(String fact) {
         return Integer.parseInt(fact);
     }
 
-    @PhaseListener(Phase.FIRE)
-    public static void init(Environment environment) {
-
-    }
 
     @Rule("Delete non-prime integers")
     @Where(value = {"$i3.intValue == $i1.intValue * $i2.intValue"})

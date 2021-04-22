@@ -1,43 +1,37 @@
 package org.evrete.dsl;
 
-import org.evrete.Configuration;
-import org.evrete.api.Environment;
-import org.evrete.api.RuntimeContext;
-
-import java.util.Collection;
-import java.util.EnumMap;
-import java.util.LinkedList;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
 class RulesetMeta {
-    private final EnumMap<Phase, List<ListenerMethod>> listeners = new EnumMap<>(Phase.class);
+    final Listeners listeners = new Listeners();
+    final FieldDeclarations fieldDeclarations = new FieldDeclarations();
+    final MethodHandles.Lookup lookup;
+    final Class<?> javaClass;
+    List<RuleMethod> ruleMethods = new ArrayList<>();
 
-    RulesetMeta() {
-        for (Phase phase : Phase.values()) {
-            listeners.put(phase, new LinkedList<>());
-        }
+    RulesetMeta(Class<?> javaClass) {
+        this.lookup = MethodHandles.lookup().in(javaClass);
+        ;
+        this.javaClass = javaClass;
     }
 
-    void add(Phase phase, ListenerMethod m) {
-        this.listeners.get(phase).add(m);
+    void addListener(Method m) {
+        ListenerMethod lm = new ListenerMethod(lookup, m);
+        listeners.add(lm);
     }
 
-    void add(ListenerMethod m) {
-        for (Phase phase : m.phases) {
-            add(phase, m);
-        }
+    void addRuleMethod(Method m) {
+        ruleMethods.add(new RuleMethod(lookup, m));
     }
 
+    void addFieldDeclaration(Method method) {
 
-    void fire(Phase phase, RuntimeContext<?> ctx) {
-        Collection<ListenerMethod> c = this.listeners.get(phase);
-        if (!c.isEmpty()) {
-            Configuration configuration = ctx.getConfiguration();
-            Environment environment = new MaskedEnvironment(ctx);
-            for (ListenerMethod m : c) {
-                m.call(configuration, environment);
-            }
-        }
+        //FieldDeclarationMethod<?, ?> fieldMethod = new FieldDeclarationMethod<>(lookup, m);
+        //fieldMethod.declareInitialField(knowledge.getTypeResolver());
+
+        fieldDeclarations.addFieldDeclaration(new FieldDeclarationMethod<>(lookup, method));
     }
-
 }

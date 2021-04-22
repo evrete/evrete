@@ -9,7 +9,7 @@ import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
 
-class Listeners {
+class Listeners implements SessionCloneable<Listeners> {
     private final EnumMap<Phase, List<ListenerMethod>> listeners = new EnumMap<>(Phase.class);
 
     Listeners() {
@@ -18,7 +18,18 @@ class Listeners {
         }
     }
 
-    void add(Phase phase, ListenerMethod m) {
+    @Override
+    public Listeners copy(Object sessionInstance) {
+        Listeners newInstance = new Listeners();
+        for (Phase phase : Phase.values()) {
+            for (ListenerMethod lm : listeners.get(phase)) {
+                newInstance.add(phase, lm.copy(sessionInstance));
+            }
+        }
+        return newInstance;
+    }
+
+    private void add(Phase phase, ListenerMethod m) {
         this.listeners.get(phase).add(m);
     }
 

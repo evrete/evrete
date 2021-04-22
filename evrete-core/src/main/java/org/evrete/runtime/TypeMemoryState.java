@@ -8,7 +8,7 @@ import org.evrete.runtime.evaluation.AlphaEvaluator;
  * A state instance to be used in memory initialization and hot deployment updates
  */
 class TypeMemoryState {
-    final Type<?> type;
+    private final Type<?> type;
     final TypeField[] fields;
     final RuntimeAlphaEvaluator[] alphaEvaluators;
 
