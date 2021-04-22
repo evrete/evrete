@@ -11,10 +11,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.ObjIntConsumer;
 
 class TypeImpl<T> implements Type<T> {
     static final String THIS_FIELD_NAME = "this";
+    private static final int THIS_FIELD_ID = 0;
     private final int id;
     private final String name;
     private final Class<T> javaType;
@@ -27,23 +27,26 @@ class TypeImpl<T> implements Type<T> {
         this.javaType = javaType;
         this.name = name;
         this.id = id;
-
         this.fieldsArray = new ArrayOf<>(TypeFieldImpl.class);
-        int thisIndex = 0;
-        TypeFieldImpl thisField = new TypeFieldImpl(thisIndex, this, name, javaType, o -> o);
-        this.fieldMap.put(THIS_FIELD_NAME, thisField);
-        this.fieldsArray.set(thisIndex, thisField);
+        TypeFieldImpl thisField = new TypeFieldImpl(THIS_FIELD_ID, this, THIS_FIELD_NAME, javaType, o -> o);
+        save(thisField);
     }
 
     private TypeImpl(TypeImpl<T> other) {
-        this(other.name, other.id, other.javaType);
         this.fieldMap.putAll(other.fieldMap);
-        other.fieldsArray.forEach(new ObjIntConsumer<TypeFieldImpl>() {
-            @Override
-            public void accept(TypeFieldImpl typeField, int value) {
-                TypeImpl.this.fieldsArray.set(value, typeField);
-            }
-        });
+        this.fieldsArray = new ArrayOf<>(TypeFieldImpl.class);
+        this.javaType = other.javaType;
+        this.name = other.name;
+        this.id = other.id;
+        for (Map.Entry<String, TypeFieldImpl> entry : other.fieldMap.entrySet()) {
+            TypeFieldImpl f = entry.getValue().copy(this);
+            save(f);
+        }
+    }
+
+    private void save(TypeFieldImpl f) {
+        this.fieldMap.put(f.getName(), f);
+        this.fieldsArray.set(f.getId(), f);
     }
 
     @Override

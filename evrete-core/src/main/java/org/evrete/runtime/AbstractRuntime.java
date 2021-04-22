@@ -31,7 +31,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
      * @param service knowledge service
      */
     AbstractRuntime(KnowledgeService service) {
-        super(service.getConfiguration());
+        super(service);
         this.configuration = service.getConfiguration().copyOf();
         this.service = service;
         this.activationManagerFactory = DefaultActivationManager.class;
@@ -156,7 +156,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     }
 
     FactType buildFactType(NamedType builder, Set<TypeField> fields, Set<EvaluatorHandle> alphaEvaluators, int inRuleId) {
-        FieldsKey fieldsKey = getCreateMemoryKey(builder, fields);
+        FieldsKey fieldsKey = getCreateMemoryKey(builder.getType(), fields);
         AlphaBucketMeta alphaMask = buildAlphaMask(fieldsKey, alphaEvaluators);
         return new FactType(builder.getName(), alphaMask, fieldsKey, inRuleId);
     }

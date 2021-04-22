@@ -20,6 +20,14 @@ class TypeFieldImpl implements TypeField {
         this.declaringType = declaringType;
     }
 
+    TypeFieldImpl(TypeFieldImpl other, TypeImpl<?> newType) {
+        this(other.id, newType, other.name, other.valueType, other.function);
+    }
+
+    TypeFieldImpl copy(TypeImpl<?> newType) {
+        return new TypeFieldImpl(this, newType);
+    }
+
     @Override
     public int getId() {
         return id;

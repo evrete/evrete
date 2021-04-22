@@ -1,6 +1,6 @@
 package org.evrete.runtime;
 
-import org.evrete.Configuration;
+import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
@@ -9,19 +9,20 @@ import org.evrete.runtime.evaluation.EvaluatorWrapper;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeContext<C> {
     private static final Comparator<ActiveField> DEFAULT_FIELD_COMPARATOR = Comparator.comparing(ActiveField::getValueIndex);
     private final Imports imports;
     private final Map<String, Object> properties;
-    private final ArrayOf<TypeMeta> typeMetas;
+    private final ArrayOf<TypeMemoryMetaData> typeMetas;
     private final ArrayOf<FieldKeyMeta> keyMetas;
     private final ArrayOf<FieldsKey> memoryKeys;
     private final Evaluators evaluators;
 
-    RuntimeMetaData(Configuration configuration) {
-        this.imports = configuration.getImports().copyOf();
-        this.typeMetas = new ArrayOf<>(TypeMeta.class);
+    RuntimeMetaData(KnowledgeService service) {
+        this.imports = service.getConfiguration().getImports().copyOf();
+        this.typeMetas = new ArrayOf<>(TypeMemoryMetaData.class);
         this.memoryKeys = new ArrayOf<>(FieldsKey.class);
         this.properties = new ConcurrentHashMap<>();
         this.keyMetas = new ArrayOf<>(FieldKeyMeta.class);
@@ -33,7 +34,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         this.evaluators = parent.evaluators.copyOf();
         this.properties = new ConcurrentHashMap<>(parent.properties);
         this.memoryKeys = new ArrayOf<>(parent.memoryKeys);
-        this.typeMetas = new ArrayOf<>(TypeMeta.class);
+        this.typeMetas = new ArrayOf<>(TypeMemoryMetaData.class);
         parent.typeMetas
                 .forEach(
                         (meta, i) -> RuntimeMetaData.this.typeMetas.set(i, meta.copyOf(this.evaluators))
@@ -74,8 +75,8 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         this.evaluators.removeListener(listener);
     }
 
-    private TypeMeta getTypeMeta(Type<?> type) {
-        return typeMetas.computeIfAbsent(type.getId(), k -> new TypeMeta(type, evaluators));
+    private TypeMemoryMetaData getTypeMeta(Type<?> type) {
+        return typeMetas.computeIfAbsent(type.getId(), k -> new TypeMemoryMetaData(type, evaluators));
     }
 
     private FieldKeyMeta getKeyMeta(FieldsKey key) {
@@ -83,7 +84,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     }
 
     private ActiveField getCreate(TypeField field) {
-        TypeMeta meta = getTypeMeta(field.getDeclaringType());
+        TypeMemoryMetaData meta = getTypeMeta(field.getDeclaringType());
         return meta.getCreate(field, newField -> {
             TypeMemoryState newState = meta.asState();
             RuntimeMetaData.this.onNewActiveField(newState, newField);
@@ -91,7 +92,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     }
 
     synchronized AlphaBucketMeta buildAlphaMask(FieldsKey key, Set<EvaluatorHandle> alphaEvaluators) {
-        TypeMeta typeMeta = getTypeMeta(key.getType());
+        TypeMemoryMetaData typeMeta = getTypeMeta(key.getType());
         AlphaEvaluator[] existing = typeMeta.alphaEvaluators;
         Set<AlphaEvaluator.Match> matches = new HashSet<>();
         for (EvaluatorHandle handle : alphaEvaluators) {
@@ -145,9 +146,8 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         return activeFields;
     }
 
-    FieldsKey getCreateMemoryKey(NamedType builder, Set<TypeField> fields) {
+    FieldsKey getCreateMemoryKey(Type<?> type, Set<TypeField> fields) {
         ActiveField[] activeFields;
-        Type<?> type = builder.getType();
         if (fields.isEmpty()) {
             activeFields = ActiveField.ZERO_ARRAY;
         } else {
@@ -205,12 +205,6 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
 
     public abstract ExpressionResolver getExpressionResolver();
 
-    @FunctionalInterface
-    interface NewActiveFieldListener {
-
-        void onNew(ActiveField newField);
-    }
-
     private static class FieldKeyMeta implements Copyable<FieldKeyMeta> {
         private AlphaBucketMeta[] alphaBuckets;
 
@@ -228,21 +222,21 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         }
     }
 
-    private static class TypeMeta {
+    static class TypeMemoryMetaData {
         private ActiveField[] activeFields;
         private AlphaEvaluator[] alphaEvaluators;
         private final Type<?> type;
         private final Evaluators evaluators;
 
 
-        TypeMeta(Type<?> type, Evaluators evaluators) {
+        TypeMemoryMetaData(Type<?> type, Evaluators evaluators) {
             this.activeFields = ActiveField.ZERO_ARRAY;
             this.alphaEvaluators = new AlphaEvaluator[0];
             this.type = type;
             this.evaluators = evaluators;
         }
 
-        TypeMeta(TypeMeta other, Evaluators evaluators) {
+        TypeMemoryMetaData(TypeMemoryMetaData other, Evaluators evaluators) {
             this.activeFields = Arrays.copyOf(other.activeFields, other.activeFields.length);
             this.alphaEvaluators = Arrays.copyOf(other.alphaEvaluators, other.alphaEvaluators.length);
             this.type = other.type;
@@ -261,11 +255,11 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
             return alphaEvaluator;
         }
 
-        TypeMeta copyOf(Evaluators evaluators) {
-            return new TypeMeta(this, evaluators);
+        TypeMemoryMetaData copyOf(Evaluators evaluators) {
+            return new TypeMemoryMetaData(this, evaluators);
         }
 
-        private synchronized ActiveField getCreate(TypeField field, NewActiveFieldListener listener) {
+        private synchronized ActiveField getCreate(TypeField field, Consumer<ActiveField> listener) {
             for (ActiveField af : activeFields) {
                 if (af.fieldId() == field.getId()) {
                     return af;
@@ -276,7 +270,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
             ActiveField af = new ActiveFieldImpl(field, id);
             this.activeFields = Arrays.copyOf(this.activeFields, id + 1);
             this.activeFields[id] = af;
-            listener.onNew(af);
+            listener.accept(af);
             return af;
         }
 
