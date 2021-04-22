@@ -107,13 +107,15 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         return keyMetas.computeIfAbsent(key.getId(), k -> new FieldKeyMeta());
     }
 
-    private ActiveField getCreate(TypeField field) {
+    private ActiveField getCreateActiveField(TypeField field) {
         TypeMemoryMetaData meta = getTypeMeta(field.getDeclaringType());
         return meta.getCreate(field);
     }
 
     synchronized AlphaBucketMeta buildAlphaMask(FieldsKey key, Set<EvaluatorHandle> alphaEvaluators) {
         TypeMemoryMetaData typeMeta = getTypeMeta(key.getType());
+        return typeMeta.buildAlphaMask(key, alphaEvaluators);
+/*
         AlphaEvaluator[] existing = typeMeta.alphaEvaluators;
         Set<AlphaEvaluator.Match> matches = new HashSet<>();
         for (EvaluatorHandle handle : alphaEvaluators) {
@@ -146,13 +148,14 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
 
         onNewAlphaBucket(typeMeta.asState(), key, newMeta);
         return newMeta;
+*/
     }
 
     private ActiveField[] convertDescriptor(FieldReference[] descriptor) {
         ActiveField[] converted = new ActiveField[descriptor.length];
         for (int i = 0; i < descriptor.length; i++) {
             TypeField field = descriptor[i].field();
-            ActiveField activeField = getCreate(field);
+            ActiveField activeField = getCreateActiveField(field);
             converted[i] = activeField;
         }
 
@@ -161,7 +164,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
 
     private ActiveField[] getCreate(Set<TypeField> fields) {
         Set<ActiveField> set = new HashSet<>(fields.size());
-        fields.forEach(f -> set.add(getCreate(f)));
+        fields.forEach(f -> set.add(getCreateActiveField(f)));
         ActiveField[] activeFields = set.toArray(ActiveField.ZERO_ARRAY);
         Arrays.sort(activeFields, DEFAULT_FIELD_COMPARATOR);
         return activeFields;
@@ -249,6 +252,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         private final Type<?> type;
         private final Evaluators evaluators;
         private final MetaChangeListener listener;
+        private final ArrayOf<FieldKeyMeta> keyMetas;
 
 
         TypeMemoryMetaData(Type<?> type, Evaluators evaluators, MetaChangeListener listener) {
@@ -257,6 +261,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
             this.type = type;
             this.evaluators = evaluators;
             this.listener = listener;
+            this.keyMetas = new ArrayOf<>(FieldKeyMeta.class);
         }
 
         TypeMemoryMetaData(TypeMemoryMetaData other, Evaluators evaluators, MetaChangeListener listener) {
@@ -265,6 +270,12 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
             this.type = other.type;
             this.evaluators = evaluators;
             this.listener = listener;
+            this.keyMetas = new ArrayOf<>(FieldKeyMeta.class);
+            other.keyMetas
+                    .forEach(
+                            (meta, i) -> TypeMemoryMetaData.this.keyMetas.set(i, meta.copyOf())
+                    );
+
         }
 
         TypeMemoryState asState() {
@@ -283,6 +294,52 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
             return new TypeMemoryMetaData(this, evaluators, listener);
         }
 
+        synchronized AlphaBucketMeta buildAlphaMask(FieldsKey key, Set<EvaluatorHandle> alphaEvaluators) {
+            AlphaEvaluator[] existing = this.alphaEvaluators;
+            Set<AlphaEvaluator.Match> matches = new HashSet<>();
+            for (EvaluatorHandle handle : alphaEvaluators) {
+                AlphaEvaluator.Match match = AlphaEvaluator.search(evaluators, existing, handle);
+                if (match == null) {
+                    // No such evaluator, creating a new one
+                    AlphaEvaluator alphaEvaluator = this.append(handle, convertDescriptor(handle.descriptor()));
+                    existing = this.alphaEvaluators;
+                    matches.add(new AlphaEvaluator.Match(alphaEvaluator, true));
+                } else {
+                    matches.add(match);
+                }
+            }
+
+            // Now that all evaluators are matched,
+            // their unique combinations are converted to a alpha bucket meta-data
+            FieldKeyMeta fieldKeyMeta = getKeyMeta(key);
+
+            for (AlphaBucketMeta meta : fieldKeyMeta.alphaBuckets) {
+                if (meta.sameKey(matches)) {
+                    return meta;
+                }
+            }
+
+            // Not found creating a new one
+            int bucketIndex = fieldKeyMeta.alphaBuckets.length;
+            AlphaBucketMeta newMeta = AlphaBucketMeta.factory(bucketIndex, matches);
+            fieldKeyMeta.alphaBuckets = Arrays.copyOf(fieldKeyMeta.alphaBuckets, fieldKeyMeta.alphaBuckets.length + 1);
+            fieldKeyMeta.alphaBuckets[bucketIndex] = newMeta;
+
+            listener.onNewAlphaBucket(asState(), key, newMeta);
+            return newMeta;
+        }
+
+        private ActiveField[] convertDescriptor(FieldReference[] descriptor) {
+            ActiveField[] converted = new ActiveField[descriptor.length];
+            for (int i = 0; i < descriptor.length; i++) {
+                TypeField field = descriptor[i].field();
+                ActiveField activeField = getCreate(field);
+                converted[i] = activeField;
+            }
+
+            return converted;
+        }
+
         private synchronized ActiveField getCreate(TypeField field) {
             for (ActiveField af : activeFields) {
                 if (af.fieldId() == field.getId()) {
@@ -296,6 +353,28 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
             this.activeFields[id] = af;
             listener.onNewActiveField(asState(), af);
             return af;
+        }
+
+        private FieldKeyMeta getKeyMeta(FieldsKey key) {
+            return keyMetas.computeIfAbsent(key.getId(), k -> new FieldKeyMeta());
+        }
+
+
+        private static class FieldKeyMeta implements Copyable<FieldKeyMeta> {
+            private AlphaBucketMeta[] alphaBuckets;
+
+            FieldKeyMeta() {
+                this.alphaBuckets = new AlphaBucketMeta[0];
+            }
+
+            FieldKeyMeta(FieldKeyMeta other) {
+                this.alphaBuckets = Arrays.copyOf(other.alphaBuckets, other.alphaBuckets.length);
+            }
+
+            @Override
+            public FieldKeyMeta copyOf() {
+                return new FieldKeyMeta(this);
+            }
         }
 
     }
