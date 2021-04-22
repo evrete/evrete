@@ -45,10 +45,9 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
     }
 
     TypeMemory getCreateUpdate(int type) {
-        Type<?> t = runtime.getTypeResolver().getType(type);
         TypeMemory m = typedMemories.get(type);
         if (m == null) {
-            m = new TypeMemory(this, t);
+            m = new TypeMemory(this, type);
             typedMemories.set(type, m);
         } else {
             // Making sure type uses the same alpha conditions

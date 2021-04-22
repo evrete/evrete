@@ -18,18 +18,19 @@ public final class TypeMemory extends MemoryComponent {
     private final ArrayOf<KeyMemory> betaMemories;
     private TypeMemoryState typeMemoryState;
 
-    TypeMemory(SessionMemory sessionMemory, Type<?> type) {
+    TypeMemory(SessionMemory sessionMemory, int type) {
         super(sessionMemory);
         this.betaMemories = new ArrayOf<>(new KeyMemory[0]);
-        this.type = type;
+        Type<?> t = runtime.getTypeResolver().getType(type);
+        this.type = t;
         this.buffer = new MemoryActionBuffer(configuration.getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT));
         String identityMethod = configuration.getProperty(Configuration.OBJECT_COMPARE_METHOD);
         switch (identityMethod) {
             case Configuration.IDENTITY_METHOD_EQUALS:
-                this.factStorage = memoryFactory.newFactStorage(type, FactRecord.class, (o1, o2) -> Objects.equals(o1.instance, o2.instance));
+                this.factStorage = memoryFactory.newFactStorage(t, FactRecord.class, (o1, o2) -> Objects.equals(o1.instance, o2.instance));
                 break;
             case Configuration.IDENTITY_METHOD_IDENTITY:
-                this.factStorage = memoryFactory.newFactStorage(type, FactRecord.class, (o1, o2) -> o1.instance == o2.instance);
+                this.factStorage = memoryFactory.newFactStorage(t, FactRecord.class, (o1, o2) -> o1.instance == o2.instance);
                 break;
             default:
                 throw new IllegalArgumentException("Invalid identity method '" + identityMethod + "' in the configuration. Expected values are '" + Configuration.IDENTITY_METHOD_EQUALS + "' or '" + Configuration.IDENTITY_METHOD_IDENTITY + "'");
@@ -40,12 +41,11 @@ public final class TypeMemory extends MemoryComponent {
     }
 
     void updateCachedData() {
-        int type = this.type.getId();
         TypeResolver resolver = runtime.getTypeResolver();
         Type<?> t = resolver.getType(this.type.getId());
-        ActiveField[] activeFields = runtime.getTypeMeta(type).activeFields;
+        TypeMemoryMetaData meta = runtime.getTypeMeta(t.getId());
 
-        this.typeMemoryState = new TypeMemoryState(t, activeFields, runtime.getEvaluators(), runtime.getTypeMeta(type).alphaEvaluators);
+        this.typeMemoryState = new TypeMemoryState(t, meta.activeFields, runtime.getEvaluators(), meta.alphaEvaluators);
     }
 
     public Object getFact(FactHandle handle) {

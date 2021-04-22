@@ -13,8 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 class TypeMemoryMetaData {
-    //final Type<?> type;
-    final int type;
+    private final int type;
     private final Evaluators evaluators;
     private final MetaChangeListener listener;
     private final ArrayOf<FieldKeyMeta> keyMetas;
