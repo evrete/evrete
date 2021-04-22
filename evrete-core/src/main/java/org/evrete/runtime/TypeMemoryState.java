@@ -1,7 +1,7 @@
 package org.evrete.runtime;
 
-import org.evrete.api.ActiveField;
 import org.evrete.api.Type;
+import org.evrete.api.TypeField;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 
 /**
@@ -9,16 +9,22 @@ import org.evrete.runtime.evaluation.AlphaEvaluator;
  */
 class TypeMemoryState {
     final Type<?> type;
-    final ActiveField[] activeFields;
-    final RuntimeAlphaEvaluator[] alphaEvaluators1;
+    final TypeField[] fields;
+    final RuntimeAlphaEvaluator[] alphaEvaluators;
 
     TypeMemoryState(Type<?> type, ActiveField[] activeFields, Evaluators evaluators, AlphaEvaluator[] alphaEvaluators) {
         this.type = type;
-        this.activeFields = activeFields;
-        this.alphaEvaluators1 = new RuntimeAlphaEvaluator[alphaEvaluators.length];
+        this.alphaEvaluators = new RuntimeAlphaEvaluator[alphaEvaluators.length];
+        this.fields = new TypeField[activeFields.length];
+        for (int i = 0; i < activeFields.length; i++) {
+            int fieldId = activeFields[i].fieldId();
+            TypeField field = type.getField(fieldId);
+            this.fields[i] = field;
+        }
+
 
         for (int i = 0; i < alphaEvaluators.length; i++) {
-            this.alphaEvaluators1[i] = new RuntimeAlphaEvaluator(alphaEvaluators[i], evaluators);
+            this.alphaEvaluators[i] = new RuntimeAlphaEvaluator(alphaEvaluators[i], evaluators);
         }
     }
 }

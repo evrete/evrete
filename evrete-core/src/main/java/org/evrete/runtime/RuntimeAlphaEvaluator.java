@@ -1,7 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.api.ActiveField;
-import org.evrete.api.FieldToValueHandle;
 import org.evrete.api.ValueResolver;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 import org.evrete.runtime.evaluation.EvaluatorWrapper;

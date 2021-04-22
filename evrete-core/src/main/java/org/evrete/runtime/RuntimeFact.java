@@ -1,6 +1,9 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
+import org.evrete.api.FactHandleVersioned;
+import org.evrete.api.TypeField;
+import org.evrete.api.ValueHandle;
+import org.evrete.api.ValueResolver;
 import org.evrete.util.Bits;
 
 import java.util.Arrays;
@@ -24,20 +27,22 @@ class RuntimeFact {
 
     RuntimeFact(ValueResolver resolver, TypeMemoryState typeMemoryState, FactHandleVersioned factHandle, FactRecord factRecord) {
         this.factHandle = factHandle;
-        ActiveField[] activeFields = typeMemoryState.activeFields;
-        this.valueHandles = new ValueHandle[activeFields.length];
+        TypeField[] fields = typeMemoryState.fields;
+        this.valueHandles = new ValueHandle[fields.length];
         for (int i = 0; i < valueHandles.length; i++) {
-            ActiveField field = activeFields[i];
-            this.valueHandles[i] = resolver.getValueHandle(field.getValueType(), field.readValue(factRecord.instance));
+            TypeField f = fields[i];
+            this.valueHandles[i] = resolver.getValueHandle(f.getValueType(), f.readValue(factRecord.instance));
         }
-        RuntimeAlphaEvaluator[] alphaEvaluators = typeMemoryState.alphaEvaluators1;
+
+        RuntimeAlphaEvaluator[] alphaEvaluators = typeMemoryState.alphaEvaluators;
         if (alphaEvaluators.length == 0) {
             this.alphaTests = EMPTY;
         } else {
-            FieldToValueHandle func = field -> valueHandles[field.getValueIndex()];
+            FieldToValueHandle funcOld = field -> valueHandles[field.getValueIndex()];
+            //IntToValueHandle func = i -> valueHandles[field.getValueIndex()];
             this.alphaTests = new Bits();
             for (RuntimeAlphaEvaluator alphaEvaluator : alphaEvaluators) {
-                if (alphaEvaluator.test(resolver, func)) {
+                if (alphaEvaluator.test(resolver, funcOld)) {
                     this.alphaTests.set(alphaEvaluator.getIndex());
                 }
             }

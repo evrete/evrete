@@ -1,6 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.api.ActiveField;
 import org.evrete.api.TypeField;
 
 public final class BetaFieldReference {

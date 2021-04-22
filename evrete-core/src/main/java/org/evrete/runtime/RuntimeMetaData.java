@@ -9,7 +9,6 @@ import org.evrete.runtime.evaluation.EvaluatorWrapper;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeContext<C> {
     private static final Comparator<ActiveField> DEFAULT_FIELD_COMPARATOR = Comparator.comparing(ActiveField::getValueIndex);
@@ -153,11 +152,6 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
             activeFields = ActiveField.ZERO_ARRAY;
         } else {
             activeFields = getCreate(fields);
-            Set<Type<?>> distinctTypes = Arrays
-                    .stream(activeFields)
-                    .map(ActiveField::getDeclaringType)
-                    .collect(Collectors.toSet());
-            assert distinctTypes.size() == 1 && distinctTypes.iterator().next().equals(type);
         }
 
         // Scanning existing data
@@ -273,7 +267,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
 
         private synchronized ActiveField getCreate(TypeField field, NewActiveFieldListener listener) {
             for (ActiveField af : activeFields) {
-                if (af.getName().equals(field.getName())) {
+                if (af.fieldId() == field.getId()) {
                     return af;
                 }
             }

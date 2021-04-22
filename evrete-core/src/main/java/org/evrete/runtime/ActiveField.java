@@ -1,4 +1,4 @@
-package org.evrete.api;
+package org.evrete.runtime;
 
 /**
  * <p>
@@ -6,8 +6,10 @@ package org.evrete.api;
  * wrapped, thus avoiding unnecessary value reads.
  * </p>
  */
-public interface ActiveField extends TypeField {
+public interface ActiveField {
     ActiveField[] ZERO_ARRAY = new ActiveField[0];
+
+    int fieldId();
 
     /**
      * @return index under which the value of this field is stored during insert/update in an Object[] array.

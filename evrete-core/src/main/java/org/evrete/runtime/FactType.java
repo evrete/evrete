@@ -1,6 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.api.ActiveField;
 import org.evrete.api.NamedType;
 import org.evrete.api.Type;
 import org.evrete.api.TypeField;
@@ -35,8 +34,8 @@ public class FactType implements NamedType {
     int findFieldPosition(TypeField field) {
         ActiveField[] arr = fields.getFields();
         for (int i = 0; i < arr.length; i++) {
-            ActiveFieldImpl f = (ActiveFieldImpl) arr[i];
-            if (f.getDelegate().equals(field)) return i;
+            ActiveField f = arr[i];
+            if (f.fieldId() == field.getId()) return i;
         }
         throw new IllegalStateException("Field not found");
     }

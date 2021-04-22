@@ -1,6 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.api.ActiveField;
 import org.evrete.api.FactHandleVersioned;
 import org.evrete.api.KeyedFactStorage;
 import org.evrete.api.ValueHandle;
@@ -25,7 +24,7 @@ abstract class KeyMemoryBucket extends MemoryComponent {
 
     KeyMemoryBucket(MemoryComponent runtime, FieldsKey typeFields) {
         super(runtime);
-        this.fieldData = memoryFactory.newBetaStorage(typeFields.getFields());
+        this.fieldData = memoryFactory.newBetaStorage(typeFields.getFields().length);
         this.activeFields = typeFields.getFields();
     }
 

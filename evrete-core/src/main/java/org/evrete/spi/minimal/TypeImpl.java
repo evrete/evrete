@@ -11,13 +11,15 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.ObjIntConsumer;
 
 class TypeImpl<T> implements Type<T> {
     static final String THIS_FIELD_NAME = "this";
     private final int id;
     private final String name;
     private final Class<T> javaType;
-    private final Map<String, TypeFieldImpl> fields = new HashMap<>();
+    private final Map<String, TypeFieldImpl> fieldMap = new HashMap<>();
+    private final ArrayOf<TypeFieldImpl> fieldsArray;
 
     TypeImpl(String name, int id, Class<T> javaType) {
         Objects.requireNonNull(name);
@@ -25,12 +27,28 @@ class TypeImpl<T> implements Type<T> {
         this.javaType = javaType;
         this.name = name;
         this.id = id;
-        this.fields.put(THIS_FIELD_NAME, new TypeFieldImpl(0, this, name, javaType, o -> o));
+
+        this.fieldsArray = new ArrayOf<>(TypeFieldImpl.class);
+        int thisIndex = 0;
+        TypeFieldImpl thisField = new TypeFieldImpl(thisIndex, this, name, javaType, o -> o);
+        this.fieldMap.put(THIS_FIELD_NAME, thisField);
+        this.fieldsArray.set(thisIndex, thisField);
     }
 
     private TypeImpl(TypeImpl<T> other) {
         this(other.name, other.id, other.javaType);
-        this.fields.putAll(other.fields);
+        this.fieldMap.putAll(other.fieldMap);
+        other.fieldsArray.forEach(new ObjIntConsumer<TypeFieldImpl>() {
+            @Override
+            public void accept(TypeFieldImpl typeField, int value) {
+                TypeImpl.this.fieldsArray.set(value, typeField);
+            }
+        });
+    }
+
+    @Override
+    public TypeField getField(int id) {
+        return this.fieldsArray.get(id);
     }
 
     private static ValueReader resolve(MethodHandles.Lookup lookup, Class<?> clazz, String prop) {
@@ -112,10 +130,10 @@ class TypeImpl<T> implements Type<T> {
 
     @Override
     public TypeField getField(String name) {
-        TypeField field = fields.get(name);
+        TypeField field = fieldMap.get(name);
         if (field == null) {
             synchronized (this) {
-                field = fields.get(name);
+                field = fieldMap.get(name);
                 if (field == null) {
                     field = inspectClass(name);
                 }
@@ -137,7 +155,7 @@ class TypeImpl<T> implements Type<T> {
 
     @Override
     public final Collection<TypeField> getDeclaredFields() {
-        return Collections.unmodifiableCollection(fields.values());
+        return Collections.unmodifiableCollection(fieldMap.values());
     }
 
     @Override
@@ -149,8 +167,10 @@ class TypeImpl<T> implements Type<T> {
 
     private synchronized TypeField innerDeclare(final String name, final Class<?> type, final Function<Object, ?> function) {
         Const.assertName(name);
-        TypeFieldImpl field = new TypeFieldImpl(fields.size(), this, name, type, function);
-        this.fields.put(name, field);
+        int newId = fieldMap.size();
+        TypeFieldImpl field = new TypeFieldImpl(newId, this, name, type, function);
+        this.fieldMap.put(name, field);
+        this.fieldsArray.set(newId, field);
         return field;
     }
 

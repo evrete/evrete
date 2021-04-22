@@ -1,22 +1,21 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.ActiveField;
 import org.evrete.api.IntToValueHandle;
 import org.evrete.api.KeyMode;
 
 import java.util.Objects;
 
 class FactsMapMulti extends AbstractFactsMap<MemoryKeyMulti> {
-    private final ActiveField[] fields;
+    private final int fieldCount;
 
-    FactsMapMulti(ActiveField[] fields, KeyMode myMode, int minCapacity) {
+    FactsMapMulti(int fieldCount, KeyMode myMode, int minCapacity) {
         super(myMode, minCapacity);
-        this.fields = fields;
+        this.fieldCount = fieldCount;
     }
 
     @Override
     boolean sameData(MapKey<MemoryKeyMulti> mapEntry, IntToValueHandle key) {
-        for (int i = 0; i < fields.length; i++) {
+        for (int i = 0; i < fieldCount; i++) {
             if (!Objects.equals(mapEntry.key.get(i), key.apply(i))) return false;
         }
         return true;
@@ -24,6 +23,6 @@ class FactsMapMulti extends AbstractFactsMap<MemoryKeyMulti> {
 
     @Override
     MemoryKeyMulti newKeyInstance(IntToValueHandle fieldValues, int hash) {
-        return new MemoryKeyMulti(fields, fieldValues, hash);
+        return new MemoryKeyMulti(fieldCount, fieldValues, hash);
     }
 }

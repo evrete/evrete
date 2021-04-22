@@ -1,7 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.api.ActiveField;
-import org.evrete.api.Type;
 import org.evrete.api.TypeField;
 
 final class ActiveFieldImpl implements ActiveField {
@@ -14,7 +12,7 @@ final class ActiveFieldImpl implements ActiveField {
     }
 
     @Override
-    public int getId() {
+    public int fieldId() {
         return delegate.getId();
     }
 
@@ -25,26 +23,6 @@ final class ActiveFieldImpl implements ActiveField {
 
     public TypeField getDelegate() {
         return delegate;
-    }
-
-    @Override
-    public Class<?> getValueType() {
-        return delegate.getValueType();
-    }
-
-    @Override
-    public <T> T readValue(Object subject) {
-        return delegate.readValue(subject);
-    }
-
-    @Override
-    public Type<?> getDeclaringType() {
-        return delegate.getDeclaringType();
-    }
-
-    @Override
-    public String getName() {
-        return delegate.getName();
     }
 
     @Override

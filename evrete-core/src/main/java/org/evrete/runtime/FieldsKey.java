@@ -1,6 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.api.ActiveField;
 import org.evrete.api.Type;
 
 import java.util.Arrays;

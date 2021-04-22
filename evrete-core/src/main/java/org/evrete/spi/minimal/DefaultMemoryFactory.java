@@ -36,15 +36,15 @@ class DefaultMemoryFactory implements MemoryFactory {
     }
 
     @Override
-    public KeyedFactStorage newBetaStorage(ActiveField[] fields) {
+    public KeyedFactStorage newBetaStorage(int fieldCount) {
         int initialSize = configuration.getAsInteger(CONFIG_BETA_INITIAL_SIZE, BETA_INITIAL_SIZE_DEFAULT);
-        if (fields.length == 0) {
+        if (fieldCount == 0) {
             return new SharedAlphaData();
         } else {
-            return fields.length == 1 ?
+            return fieldCount == 1 ?
                     new KeyedFactStorageSingle(initialSize)
                     :
-                    new KeyedFactStorageMulti(initialSize, fields)
+                    new KeyedFactStorageMulti(initialSize, fieldCount)
                     ;
         }
     }

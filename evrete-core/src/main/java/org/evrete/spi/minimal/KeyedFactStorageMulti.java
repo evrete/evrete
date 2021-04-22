@@ -1,15 +1,14 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.ActiveField;
 import org.evrete.api.KeyMode;
 import org.evrete.api.ValueHandle;
 
 class KeyedFactStorageMulti extends AbstractKeyedFactStorage<FactsMapMulti> {
     private final MultiState multiState;
 
-    KeyedFactStorageMulti(int initialSize, ActiveField[] fields) {
-        super(FactsMapMulti.class, mode -> new FactsMapMulti(fields, mode, initialSize));
-        this.multiState = new MultiState(fields.length);
+    KeyedFactStorageMulti(int initialSize, int fieldCount) {
+        super(FactsMapMulti.class, mode -> new FactsMapMulti(fieldCount, mode, initialSize));
+        this.multiState = new MultiState(fieldCount);
     }
 
     @Override

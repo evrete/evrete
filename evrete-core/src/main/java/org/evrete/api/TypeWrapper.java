@@ -45,6 +45,11 @@ public class TypeWrapper<T> implements Type<T> {
     }
 
     @Override
+    public TypeField getField(int id) {
+        return delegate.getField(id);
+    }
+
+    @Override
     public Type<T> copyOf() {
         return new TypeWrapper<>(delegate.copyOf());
     }

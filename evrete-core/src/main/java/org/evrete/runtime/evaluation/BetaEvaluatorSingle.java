@@ -1,6 +1,10 @@
 package org.evrete.runtime.evaluation;
 
-import org.evrete.api.*;
+import org.evrete.api.EvaluatorHandle;
+import org.evrete.api.FieldReference;
+import org.evrete.api.NamedType;
+import org.evrete.api.TypeField;
+import org.evrete.runtime.ActiveField;
 import org.evrete.runtime.BetaFieldReference;
 import org.evrete.runtime.FactType;
 import org.evrete.util.Bits;

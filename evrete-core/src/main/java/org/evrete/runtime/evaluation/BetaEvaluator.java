@@ -1,8 +1,8 @@
 package org.evrete.runtime.evaluation;
 
-import org.evrete.api.ActiveField;
 import org.evrete.api.ComplexityObject;
 import org.evrete.api.EvaluatorHandle;
+import org.evrete.runtime.ActiveField;
 import org.evrete.runtime.FactType;
 import org.evrete.util.Bits;
 

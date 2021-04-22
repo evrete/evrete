@@ -56,6 +56,17 @@ public interface Type<T> extends Named, Copyable<Type<T>> {
      */
     TypeField getField(String name);
 
+    /**
+     * <p>
+     * Returns a declared field with the given name, or null
+     * if no such field is found or resolved
+     * </p>
+     *
+     * @param id field name
+     * @return a declared field or null
+     */
+    TypeField getField(int id);
+
 
     /**
      * <p>
