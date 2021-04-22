@@ -1,6 +1,9 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
+import org.evrete.api.Copyable;
+import org.evrete.api.EvaluatorHandle;
+import org.evrete.api.FieldReference;
+import org.evrete.api.TypeField;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
@@ -10,7 +13,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 class TypeMemoryMetaData {
-    final Type<?> type;
+    //final Type<?> type;
+    final int type;
     private final Evaluators evaluators;
     private final MetaChangeListener listener;
     private final ArrayOf<FieldKeyMeta> keyMetas;
@@ -18,10 +22,10 @@ class TypeMemoryMetaData {
     AlphaEvaluator[] alphaEvaluators;
 
 
-    TypeMemoryMetaData(Type<?> type, Evaluators evaluators, MetaChangeListener listener) {
+    TypeMemoryMetaData(int type, Evaluators evaluators, MetaChangeListener listener) {
+        this.type = type;
         this.activeFields = ActiveField.ZERO_ARRAY;
         this.alphaEvaluators = new AlphaEvaluator[0];
-        this.type = type;
         this.evaluators = evaluators;
         this.listener = listener;
         this.keyMetas = new ArrayOf<>(FieldKeyMeta.class);
@@ -84,7 +88,7 @@ class TypeMemoryMetaData {
         fieldKeyMeta.alphaBuckets = Arrays.copyOf(fieldKeyMeta.alphaBuckets, fieldKeyMeta.alphaBuckets.length + 1);
         fieldKeyMeta.alphaBuckets[bucketIndex] = newMeta;
 
-        listener.onNewAlphaBucket(type.getId(), key, newMeta);
+        listener.onNewAlphaBucket(type, key, newMeta);
         return newMeta;
     }
 

@@ -41,8 +41,6 @@ public abstract class AbstractRuntimeRule extends AbstractRule {
         FactType factType = typeMapping.get(var);
         Type<?> t = runtime.getTypeResolver().getType(factType.type());
         return new NamedTypeImpl(t, factType.getName());
-
-        //return Objects.requireNonNull(typeMapping.get(var), "No such type: '" + var + "'");
     }
 
     FactType resolveFactType(NamedType type) {

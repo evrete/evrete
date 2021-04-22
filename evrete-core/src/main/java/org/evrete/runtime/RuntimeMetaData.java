@@ -45,6 +45,10 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
                 );
     }
 
+    public Evaluators getEvaluators() {
+        return evaluators;
+    }
+
     @Override
     public ClassLoader getClassLoader() {
         return Objects.requireNonNull(classLoader);
@@ -89,17 +93,17 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         this.evaluators.removeListener(listener);
     }
 
-    private TypeMemoryMetaData getTypeMeta(Type<?> type) {
-        return typeMetas.computeIfAbsent(type.getId(), k -> new TypeMemoryMetaData(type, evaluators, RuntimeMetaData.this));
+    TypeMemoryMetaData getTypeMeta(int type) {
+        return typeMetas.computeIfAbsent(type, k -> new TypeMemoryMetaData(type, evaluators, RuntimeMetaData.this));
     }
 
     private ActiveField getCreateActiveField(TypeField field) {
-        TypeMemoryMetaData meta = getTypeMeta(field.getDeclaringType());
+        TypeMemoryMetaData meta = getTypeMeta(field.getDeclaringType().getId());
         return meta.getCreate(field);
     }
 
     synchronized AlphaBucketMeta buildAlphaMask(FieldsKey key, Set<EvaluatorHandle> alphaEvaluators) {
-        TypeMemoryMetaData typeMeta = getTypeMeta(key.getType());
+        TypeMemoryMetaData typeMeta = getTypeMeta(key.type());
         return typeMeta.buildAlphaMask(key, alphaEvaluators);
     }
 
@@ -122,7 +126,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         // Scanning existing data
         for (int i = 0; i < memoryKeys.data.length; i++) {
             FieldsKey key = memoryKeys.getChecked(i);
-            if (Arrays.equals(key.getFields(), activeFields) && type.equals(key.getType())) {
+            if (Arrays.equals(key.getFields(), activeFields) && type.getId() == key.type()) {
                 return key;
             }
         }
@@ -134,16 +138,17 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         return newKey;
     }
 
+/*
     TypeMemoryState getActiveSate(Type<?> t) {
-        TypeMemoryMetaData typeMeta = getTypeMeta(t);
+        TypeMemoryMetaData typeMeta = getTypeMeta(t.getId());
         return new TypeMemoryState(
-                typeMeta.type,
                 typeMeta.activeFields,
                 evaluators,
                 typeMeta.alphaEvaluators
         );
         //return getTypeMeta(t).asState();
     }
+*/
 
     @SuppressWarnings("unchecked")
     public final C addImport(RuleScope scope, String imp) {

@@ -40,7 +40,12 @@ public final class TypeMemory extends MemoryComponent {
     }
 
     void updateCachedData() {
-        this.typeMemoryState = runtime.getActiveSate(type);
+        int type = this.type.getId();
+        TypeResolver resolver = runtime.getTypeResolver();
+        Type<?> t = resolver.getType(this.type.getId());
+        ActiveField[] activeFields = runtime.getTypeMeta(type).activeFields;
+
+        this.typeMemoryState = new TypeMemoryState(t, activeFields, runtime.getEvaluators(), runtime.getTypeMeta(type).alphaEvaluators);
     }
 
     public Object getFact(FactHandle handle) {

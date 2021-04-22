@@ -1,4 +1,4 @@
-package org.evrete.helper;
+package org.evrete.util;
 
 import org.evrete.api.Copyable;
 import org.evrete.api.RhsContext;
@@ -21,13 +21,12 @@ public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
         Entry[] entries = new Entry[types.length];
         int i = 0;
         for (FactType t : types) {
-            entries[i++] = new Entry(t.getName(), t.getType().getName());
+            entries[i++] = new Entry(t.getName());
         }
         return entries;
     };
     private static final Function<RuntimeRuleImpl, Entry[]> FROM_RULE = rule -> FROM_DESCRIPTOR.apply(rule.getDescriptor());
     private final Map<String, Collection<Object>> collector = new HashMap<>();
-    private final Map<String, String> types = new HashMap<>();
     private final AtomicInteger callCounter = new AtomicInteger(0);
     private final Entry[] entries;
     private PrintStream out;
@@ -39,7 +38,6 @@ public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
             if (collector.put(entry.name, new HashSet<>()) != null) {
                 throw new IllegalStateException("Duplicate entry name: " + entry.name);
             }
-            types.put(entry.name, entry.clazz);
         }
     }
 
@@ -62,53 +60,53 @@ public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
 
     public RhsAssert(String var, Class<?> type) {
         this(new Entry[]{
-                new Entry(var, type)
+                new Entry(var)
         });
     }
 
     public RhsAssert(String var1, Class<?> type1, String var2, Class<?> type2) {
         this(new Entry[]{
-                new Entry(var1, type1),
-                new Entry(var2, type2)
+                new Entry(var1),
+                new Entry(var2)
         });
     }
 
     public RhsAssert(String var1, Class<?> type1, String var2, Class<?> type2, String var3, Class<?> type3) {
         this(new Entry[]{
-                new Entry(var1, type1),
-                new Entry(var2, type2),
-                new Entry(var3, type3)
+                new Entry(var1),
+                new Entry(var2),
+                new Entry(var3)
         });
     }
 
     public RhsAssert(String var1, Class<?> type1, String var2, Class<?> type2, String var3, Class<?> type3, String var4, Class<?> type4) {
         this(new Entry[]{
-                new Entry(var1, type1),
-                new Entry(var2, type2),
-                new Entry(var3, type3),
-                new Entry(var4, type4)
+                new Entry(var1),
+                new Entry(var2),
+                new Entry(var3),
+                new Entry(var4)
         });
     }
 
     @SuppressWarnings("unused")
     public RhsAssert(String var1, Class<?> type1, String var2, Class<?> type2, String var3, Class<?> type3, String var4, Class<?> type4, String var5, Class<?> type5) {
         this(new Entry[]{
-                new Entry(var1, type1),
-                new Entry(var2, type2),
-                new Entry(var3, type3),
-                new Entry(var4, type4),
-                new Entry(var5, type5)
+                new Entry(var1),
+                new Entry(var2),
+                new Entry(var3),
+                new Entry(var4),
+                new Entry(var5)
         });
     }
 
     public RhsAssert(String var1, Class<?> type1, String var2, Class<?> type2, String var3, Class<?> type3, String var4, Class<?> type4, String var5, Class<?> type5, String var6, Class<?> type6) {
         this(new Entry[]{
-                new Entry(var1, type1),
-                new Entry(var2, type2),
-                new Entry(var3, type3),
-                new Entry(var4, type4),
-                new Entry(var5, type5),
-                new Entry(var6, type6)
+                new Entry(var1),
+                new Entry(var2),
+                new Entry(var3),
+                new Entry(var4),
+                new Entry(var5),
+                new Entry(var6)
         });
     }
 
@@ -145,20 +143,13 @@ public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
 
             Object o = ctx.get(var);
             values.put(var, o);
-            Class<?> cl = o.getClass();
-            String expected = types.get(var);
-            if (expected == null) throw new IllegalStateException("Unknown type");
-
-            if (!cl.getName().equals(expected))
-                throw new IllegalStateException("Type mismatch for '" + var + "'. Expected type: '" + expected + "', Found: " + cl.getName());
-
             entry.getValue().add(o);
         }
 
         if (out != null) {
             StringJoiner joiner = new StringJoiner(" ", ">>> ", "\t");
             values.forEach((var, o) -> joiner.add(var + "=" + o));
-            out.println(joiner);
+            out.println(joiner.toString());
         }
 
     }
@@ -208,15 +199,10 @@ public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
 
     private static class Entry {
         private final String name;
-        private final String clazz;
 
-        Entry(String name, String clazz) {
+        Entry(String name) {
             this.name = name;
-            this.clazz = clazz;
         }
 
-        Entry(String name, Class<?> clazz) {
-            this(name, clazz.getName());
-        }
     }
 }

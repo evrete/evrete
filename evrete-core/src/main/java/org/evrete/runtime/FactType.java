@@ -1,6 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.api.Type;
 import org.evrete.api.TypeField;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
@@ -47,18 +46,13 @@ public class FactType {
         return alphaMask;
     }
 
-    //@Override
     public String getName() {
         return name;
     }
 
-    //@Override
-    public Type<?> getType() {
-        return fields.getType();
-    }
 
     public int type() {
-        return fields.getType().getId();
+        return fields.type();
     }
 
     public int getInRuleIndex() {
@@ -69,7 +63,7 @@ public class FactType {
     public String toString() {
         return "{" +
                 "var='" + name + '\'' +
-                ", type='" + fields.getType().getName() +
+                ", type='" + fields.type() +
                 "'}";
     }
 }

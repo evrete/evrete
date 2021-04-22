@@ -19,6 +19,10 @@ public final class FieldsKey {
         return id;
     }
 
+    public int type() {
+        return type.getId();
+    }
+
     public Type<?> getType() {
         return type;
     }
