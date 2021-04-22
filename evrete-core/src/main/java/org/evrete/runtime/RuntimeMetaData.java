@@ -19,8 +19,12 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     private final ArrayOf<FieldKeyMeta> keyMetas;
     private final ArrayOf<FieldsKey> memoryKeys;
     private final Evaluators evaluators;
+    private TypeResolver typeResolver;
+    private ClassLoader classLoader;
 
     RuntimeMetaData(KnowledgeService service) {
+        this.classLoader = service.getClassLoader();
+        this.typeResolver = service.getTypeResolverProvider().instance(this);
         this.imports = service.getConfiguration().getImports().copyOf();
         this.typeMetas = new ArrayOf<>(TypeMemoryMetaData.class);
         this.memoryKeys = new ArrayOf<>(FieldsKey.class);
@@ -30,6 +34,8 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     }
 
     RuntimeMetaData(RuntimeMetaData<?> parent) {
+        this.classLoader = parent.classLoader;
+        this.typeResolver = parent.typeResolver.copyOf();
         this.imports = parent.imports.copyOf();
         this.evaluators = parent.evaluators.copyOf();
         this.properties = new ConcurrentHashMap<>(parent.properties);
@@ -50,6 +56,26 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     protected abstract void onNewActiveField(TypeMemoryState newState, ActiveField newField);
 
     public abstract void onNewAlphaBucket(TypeMemoryState newState, FieldsKey key, AlphaBucketMeta meta);
+
+    @Override
+    public ClassLoader getClassLoader() {
+        return Objects.requireNonNull(classLoader);
+    }
+
+    @Override
+    public void setClassLoader(ClassLoader classLoader) {
+        this.classLoader = classLoader;
+    }
+
+    @Override
+    public final void wrapTypeResolver(TypeResolverWrapper wrapper) {
+        this.typeResolver = wrapper;
+    }
+
+    @Override
+    public final TypeResolver getTypeResolver() {
+        return typeResolver;
+    }
 
     @Override
     public EvaluatorHandle addEvaluator(Evaluator evaluator, double complexity) {
@@ -267,7 +293,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
             }
             // Create and store new instance
             int id = activeFields.length;
-            ActiveField af = new ActiveFieldImpl(field, id);
+            ActiveField af = new ActiveField(field, id);
             this.activeFields = Arrays.copyOf(this.activeFields, id + 1);
             this.activeFields[id] = af;
             listener.accept(af);

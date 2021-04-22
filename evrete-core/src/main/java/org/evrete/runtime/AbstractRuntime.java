@@ -18,8 +18,6 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
 
     private final KnowledgeService service;
     private ExpressionResolver expressionResolver;
-    private TypeResolver typeResolver;
-    private ClassLoader classLoader;
     private Comparator<Rule> ruleComparator = SALIENCE_COMPARATOR;
     private Class<? extends ActivationManager> activationManagerFactory;
     private ActivationMode agendaMode;
@@ -35,9 +33,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         this.configuration = service.getConfiguration().copyOf();
         this.service = service;
         this.activationManagerFactory = DefaultActivationManager.class;
-        this.classLoader = service.getClassLoader();
         this.agendaMode = ActivationMode.DEFAULT;
-        this.typeResolver = service.getTypeResolverProvider().instance(this);
     }
 
     /**
@@ -51,9 +47,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         this.service = parent.service;
         this.ruleComparator = parent.ruleComparator;
         this.activationManagerFactory = parent.activationManagerFactory;
-        this.classLoader = parent.classLoader;
         this.agendaMode = parent.agendaMode;
-        this.typeResolver = parent.typeResolver.copyOf();
         this.expressionResolver = null;
     }
 
@@ -69,30 +63,12 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     }
 
 
-    @Override
-    public ClassLoader getClassLoader() {
-        return classLoader;
-    }
-
-    @Override
-    public void setClassLoader(ClassLoader classLoader) {
-        this.classLoader = classLoader;
-    }
 
     @Override
     public KnowledgeService getService() {
         return service;
     }
 
-    @Override
-    public final void wrapTypeResolver(TypeResolverWrapper wrapper) {
-        this.typeResolver = wrapper;
-    }
-
-    @Override
-    public final TypeResolver getTypeResolver() {
-        return typeResolver;
-    }
 
     @Override
     public Class<? extends ActivationManager> getActivationManagerFactory() {
@@ -108,7 +84,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     @Override
     public final void setActivationManagerFactory(String managerClass) {
         try {
-            Class<? extends ActivationManager> factory = (Class<? extends ActivationManager>) Class.forName(managerClass, true, classLoader);
+            Class<? extends ActivationManager> factory = (Class<? extends ActivationManager>) Class.forName(managerClass, true, getClassLoader());
             setActivationManagerFactory(factory);
         } catch (ClassNotFoundException e) {
             throw new IllegalArgumentException(managerClass);
