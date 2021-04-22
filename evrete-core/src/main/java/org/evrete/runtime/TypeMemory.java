@@ -18,10 +18,10 @@ public final class TypeMemory extends MemoryComponent {
     private final ArrayOf<KeyMemory> betaMemories;
     private TypeMemoryState typeMemoryState;
 
-    TypeMemory(SessionMemory sessionMemory, TypeMemoryState initialState) {
+    TypeMemory(SessionMemory sessionMemory, Type<?> type) {
         super(sessionMemory);
         this.betaMemories = new ArrayOf<>(new KeyMemory[0]);
-        this.type = initialState.type;
+        this.type = type;
         this.buffer = new MemoryActionBuffer(configuration.getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT));
         String identityMethod = configuration.getProperty(Configuration.OBJECT_COMPARE_METHOD);
         switch (identityMethod) {
@@ -36,11 +36,11 @@ public final class TypeMemory extends MemoryComponent {
         }
 
 
-        updateCachedData(initialState);
+        updateCachedData();
     }
 
-    void updateCachedData(TypeMemoryState state) {
-        this.typeMemoryState = state;
+    void updateCachedData() {
+        this.typeMemoryState = runtime.getActiveSate(type);
     }
 
     public Object getFact(FactHandle handle) {

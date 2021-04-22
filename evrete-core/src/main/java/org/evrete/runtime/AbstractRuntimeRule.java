@@ -25,7 +25,7 @@ public abstract class AbstractRuntimeRule extends AbstractRule {
         this.runtime = runtime;
         this.factTypes = factTypes;
         for (FactType factType : factTypes) {
-            this.typeMask.set(factType.getType().getId());
+            this.typeMask.set(factType.type());
             if (typeMapping.put(factType.getName(), factType) != null) {
                 throw new IllegalStateException();
             }

@@ -19,9 +19,9 @@ abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractR
         super(knowledge);
         this.knowledge = knowledge;
         this.actionCounter = new MemoryActionCounter();
-        MemoryFactory memoryFactory = knowledge.getService().getMemoryFactoryProvider().instance(this);
-        this.memory = new SessionMemory(knowledge.getConfiguration(), memoryFactory);
+        MemoryFactory memoryFactory = getService().getMemoryFactoryProvider().instance(this);
         this.warnUnknownTypes = knowledge.getConfiguration().getAsBoolean(Configuration.WARN_UNKNOWN_TYPES);
+        this.memory = new SessionMemory(this, memoryFactory);
     }
 
     void invalidateSession() {
@@ -96,13 +96,13 @@ abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractR
     }
 
     @Override
-    public void onNewActiveField(TypeMemoryState state, ActiveField newField) {
-        memory.onNewActiveField(state);
+    public void onNewActiveField(ActiveField newField) {
+        memory.onNewActiveField(newField);
     }
 
     @Override
-    public final void onNewAlphaBucket(TypeMemoryState newState, FieldsKey key, AlphaBucketMeta meta) {
-        memory.onNewAlphaBucket(newState, key, meta);
+    public final void onNewAlphaBucket(int type, FieldsKey key, AlphaBucketMeta meta) {
+        memory.onNewAlphaBucket(type, key, meta);
     }
 
     @Override

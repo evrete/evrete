@@ -16,14 +16,20 @@ public final class ActiveField implements Serializable {
     private static final long serialVersionUID = 1318511720324319967L;
     private final int valueIndex;
     private final int fieldId;
+    private final int type;
 
     ActiveField(TypeField delegate, int valueIndex) {
         this.valueIndex = valueIndex;
         this.fieldId = delegate.getId();
+        this.type = delegate.getDeclaringType().getId();
     }
 
-    int fieldId() {
+    int field() {
         return fieldId;
+    }
+
+    int type() {
+        return type;
     }
 
     /**

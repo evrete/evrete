@@ -23,7 +23,7 @@ class RhsFactType {
     RhsFactType(SessionMemory memory, FactType type, RhsFactGroup group) {
         this.type = type;
         this.group = group;
-        this.typeMemory = memory.get(type.getType().getId());
+        this.typeMemory = memory.get(type.type());
     }
 
     void resetState() {

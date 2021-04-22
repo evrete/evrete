@@ -36,7 +36,7 @@ public abstract class NodeDescriptor {
 
     private void setMaskBits(FactType t) {
         this.factTypeMask.set(t.getInRuleIndex());
-        this.typeMask.set(t.getType().getId());
+        this.typeMask.set(t.type());
     }
 
     public abstract boolean isConditionNode();

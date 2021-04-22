@@ -3,8 +3,8 @@ package org.evrete.runtime;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
 interface MetaChangeListener {
-    void onNewActiveField(TypeMemoryState newState, ActiveField newField);
+    void onNewActiveField(ActiveField newField);
 
-    void onNewAlphaBucket(TypeMemoryState newState, FieldsKey key, AlphaBucketMeta meta);
+    void onNewAlphaBucket(int type, FieldsKey key, AlphaBucketMeta meta);
 
 }

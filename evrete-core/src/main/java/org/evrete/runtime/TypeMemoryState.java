@@ -17,11 +17,10 @@ class TypeMemoryState {
         this.alphaEvaluators = new RuntimeAlphaEvaluator[alphaEvaluators.length];
         this.fields = new TypeField[activeFields.length];
         for (int i = 0; i < activeFields.length; i++) {
-            int fieldId = activeFields[i].fieldId();
+            int fieldId = activeFields[i].field();
             TypeField field = type.getField(fieldId);
             this.fields[i] = field;
         }
-
 
         for (int i = 0; i < alphaEvaluators.length; i++) {
             this.alphaEvaluators[i] = new RuntimeAlphaEvaluator(alphaEvaluators[i], evaluators);

@@ -23,12 +23,12 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
     }
 
     @Override
-    public void onNewActiveField(TypeMemoryState newState, ActiveField newField) {
+    public void onNewActiveField(ActiveField newField) {
         // Do nothing
     }
 
     @Override
-    public void onNewAlphaBucket(TypeMemoryState newState, FieldsKey key, AlphaBucketMeta meta) {
+    public void onNewAlphaBucket(int type, FieldsKey key, AlphaBucketMeta meta) {
         // Do nothing
     }
 

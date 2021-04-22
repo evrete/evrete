@@ -12,13 +12,13 @@ import java.util.Comparator;
 public class FactType implements NamedType {
     public static final FactType[] ZERO_ARRAY = new FactType[0];
     private static final Comparator<FactType> COMPARATOR = Comparator.comparingInt(FactType::getInRuleIndex);
-    private final String var;
+    private final String name;
     private final AlphaBucketMeta alphaMask;
     private final FieldsKey fields;
     private final int inRuleIndex;
 
-    FactType(String var, AlphaBucketMeta alphaMask, FieldsKey fields, int inRuleIndex) {
-        this.var = var;
+    FactType(String name, AlphaBucketMeta alphaMask, FieldsKey fields, int inRuleIndex) {
+        this.name = name;
         this.alphaMask = alphaMask;
         this.fields = fields;
         this.inRuleIndex = inRuleIndex;
@@ -35,7 +35,7 @@ public class FactType implements NamedType {
         ActiveField[] arr = fields.getFields();
         for (int i = 0; i < arr.length; i++) {
             ActiveField f = arr[i];
-            if (f.fieldId() == field.getId()) return i;
+            if (f.field() == field.getId()) return i;
         }
         throw new IllegalStateException("Field not found");
     }
@@ -50,12 +50,16 @@ public class FactType implements NamedType {
 
     @Override
     public String getName() {
-        return var;
+        return name;
     }
 
     @Override
     public Type<?> getType() {
         return fields.getType();
+    }
+
+    public int type() {
+        return fields.getType().getId();
     }
 
     public int getInRuleIndex() {
@@ -65,7 +69,7 @@ public class FactType implements NamedType {
     @Override
     public String toString() {
         return "{" +
-                "var='" + var + '\'' +
+                "var='" + name + '\'' +
                 ", type='" + fields.getType().getName() +
                 "'}";
     }

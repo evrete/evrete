@@ -1,6 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.Configuration;
 import org.evrete.api.KeyedFactStorage;
 import org.evrete.api.MemoryFactory;
 import org.evrete.api.Type;
@@ -12,8 +11,8 @@ import java.util.Iterator;
 public class SessionMemory extends MemoryComponent implements Iterable<TypeMemory> {
     private final ArrayOf<TypeMemory> typedMemories;
 
-    SessionMemory(Configuration configuration, MemoryFactory memoryFactory) {
-        super(memoryFactory, configuration);
+    SessionMemory(AbstractWorkingMemory<?> runtime, MemoryFactory memoryFactory) {
+        super(runtime, memoryFactory);
         this.typedMemories = new ArrayOf<>(new TypeMemory[]{});
     }
 
@@ -26,36 +25,34 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
         return typedMemories.iterator();
     }
 
-    void onNewActiveField(TypeMemoryState state) {
-        getCreateUpdate(state);
+    void onNewActiveField(ActiveField newField) {
+        getCreateUpdate(newField.type());
     }
 
-    void onNewAlphaBucket(TypeMemoryState newState, FieldsKey key, AlphaBucketMeta meta) {
-        getCreateUpdate(newState)
+    void onNewAlphaBucket(int type, FieldsKey key, AlphaBucketMeta meta) {
+        getCreateUpdate(type)
                 .onNewAlphaBucket(key, meta);
     }
 
     KeyedFactStorage getBetaFactStorage(FactType factType) {
-        Type<?> t = factType.getType();
         FieldsKey fields = factType.getFields();
         AlphaBucketMeta mask = factType.getAlphaMask();
-
-        return get(t).get(fields).get(mask);
+        return get(factType.type()).get(fields).get(mask);
     }
 
     public TypeMemory get(Type<?> t) {
         return get(t.getId());
     }
 
-    TypeMemory getCreateUpdate(TypeMemoryState state) {
-        Type<?> t = state.type;
-        TypeMemory m = typedMemories.get(t.getId());
+    TypeMemory getCreateUpdate(int type) {
+        Type<?> t = runtime.getTypeResolver().getType(type);
+        TypeMemory m = typedMemories.get(type);
         if (m == null) {
-            m = new TypeMemory(this, state);
-            typedMemories.set(t.getId(), m);
+            m = new TypeMemory(this, t);
+            typedMemories.set(type, m);
         } else {
             // Making sure type uses the same alpha conditions
-            m.updateCachedData(state);
+            m.updateCachedData();
         }
         return m;
     }
