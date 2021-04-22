@@ -96,7 +96,7 @@ abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractR
     }
 
     @Override
-    protected void onNewActiveField(TypeMemoryState state, ActiveField newField) {
+    public void onNewActiveField(TypeMemoryState state, ActiveField newField) {
         memory.onNewActiveField(state);
     }
 

@@ -1,7 +1,10 @@
 package org.evrete.runtime;
 
 import org.evrete.KnowledgeService;
-import org.evrete.api.*;
+import org.evrete.api.Knowledge;
+import org.evrete.api.RuleBuilder;
+import org.evrete.api.RuleSession;
+import org.evrete.api.StatefulSession;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.util.SearchList;
 
@@ -20,7 +23,7 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
     }
 
     @Override
-    protected void onNewActiveField(TypeMemoryState newState, ActiveField newField) {
+    public void onNewActiveField(TypeMemoryState newState, ActiveField newField) {
         // Do nothing
     }
 
