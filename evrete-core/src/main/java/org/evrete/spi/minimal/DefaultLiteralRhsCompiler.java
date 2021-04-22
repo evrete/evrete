@@ -71,6 +71,7 @@ public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider imp
 
     @Override
     public Consumer<RhsContext> compileRhs(RuntimeContext<?> requester, String literalRhs, Collection<NamedType> factTypes, Collection<String> imports) throws CompilationException {
+
         NamedType[] types = factTypes.toArray(new NamedType[0]);
 
         ProtectionDomain domain = requester.getService().getSecurity().getProtectionDomain(RuleScope.RHS);

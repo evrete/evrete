@@ -178,9 +178,9 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         }
     }
 
-    Consumer<RhsContext> compile(String literalRhs, FactType[] factTypes, Imports imports, RuleScope... scopes) {
+    Consumer<RhsContext> compile(String literalRhs, Collection<NamedType> namedTypes, Imports imports, RuleScope... scopes) {
         try {
-            return service.getLiteralRhsCompiler().compileRhs(this, literalRhs, Arrays.asList(factTypes), imports.get(scopes));
+            return service.getLiteralRhsCompiler().compileRhs(this, literalRhs, namedTypes, imports.get(scopes));
         } catch (CompilationException e) {
             Logger.getAnonymousLogger().warning("Failed source\n: " + e.getSource());
             throw new IllegalStateException(e);

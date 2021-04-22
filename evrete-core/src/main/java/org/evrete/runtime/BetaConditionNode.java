@@ -47,7 +47,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
             final ConditionValueReader[] valueReaders = new ConditionValueReader[refs.length];
             for (int i = 0; i < refs.length; i++) {
                 FieldReference ref = refs[i];
-                FactType factType = rule.resolve(ref.type());
+                FactType factType = rule.resolveFactType(ref.type());
                 final int typeId = factType.getInRuleIndex();
                 final int fieldPosition = factType.findFieldPosition(ref.field());
                 valueReaders[i] = new ConditionValueReader(evaluationState, typeId, fieldPosition);
