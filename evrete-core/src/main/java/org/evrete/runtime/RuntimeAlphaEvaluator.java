@@ -11,7 +11,7 @@ class RuntimeAlphaEvaluator {
 
     RuntimeAlphaEvaluator(AlphaEvaluator alphaEvaluator, Evaluators evaluators) {
         this.delegate = evaluators.get(alphaEvaluator.getDelegate());
-        this.activeDescriptor = alphaEvaluator.getActiveDescriptor();
+        this.activeDescriptor = alphaEvaluator.getDescriptor();
         this.index = alphaEvaluator.getIndex();
     }
 

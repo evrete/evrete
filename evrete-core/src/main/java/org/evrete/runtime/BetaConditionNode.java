@@ -10,8 +10,8 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
     static final BetaConditionNode[] EMPTY_ARRAY = new BetaConditionNode[0];
     private final MemoryKeyNode[] evaluationState;
     private final SourceMeta[] sourceMetas;
-    //private final BetaEvaluator expression;
     private final CachingEvaluator cachingEvaluator;
+    private final int[] descriptorIndices;
 
     BetaConditionNode(RuntimeRuleImpl rule, ConditionNodeDescriptor descriptor, BetaMemoryNode[] sources) {
         super(rule, descriptor, sources);
@@ -20,6 +20,11 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         FactType[] allFactTypes = rule.getFactTypes();
         this.evaluationState = new MemoryKeyNode[allFactTypes.length];
 
+        FactType[] types = getDescriptor().getTypes();
+        this.descriptorIndices = new int[types.length];
+        for (int i = 0; i < types.length; i++) {
+            this.descriptorIndices[i] = types[i].getInRuleIndex();
+        }
 
         RuntimeBetaEvaluator betaEvaluator = new RuntimeBetaEvaluator(getRuntime(), expression);
         this.cachingEvaluator = new CachingEvaluator(betaEvaluator);
@@ -110,26 +115,27 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         SourceMeta meta = this.sourceMetas[sourceIndex];
         ReIterator<MemoryKey> it = meta.currentIterator;
         if (it.reset() == 0) return;
-        FactType[] types = meta.factTypes;
-        boolean last = sourceIndex == this.sourceMetas.length - 1;
 
-        while (it.hasNext()) {
-            setState(it, types);
-            if (last) {
+        if (sourceIndex == this.sourceMetas.length - 1) {
+            while (it.hasNext()) {
+                setState(it, meta.factTypeIndices);
                 if (cachingEvaluator.test()) {
-                    for (FactType type : getDescriptor().getTypes()) {
-                        destination.add(evaluationState[type.getInRuleIndex()].currentKey);
+                    for (int ruleIndex : descriptorIndices) {
+                        destination.add(evaluationState[ruleIndex].currentKey);
                     }
                 }
-            } else {
+            }
+        } else {
+            while (it.hasNext()) {
+                setState(it, meta.factTypeIndices);
                 forEachMemoryKey(sourceIndex + 1, destination);
             }
         }
     }
 
-    private void setState(ReIterator<MemoryKey> it, FactType[] types) {
-        for (FactType type : types) {
-            this.evaluationState[type.getInRuleIndex()].setKey(it.next());
+    private void setState(ReIterator<MemoryKey> it, int[] indices) {
+        for (int idx : indices) {
+            this.evaluationState[idx].setKey(it.next());
         }
     }
 
@@ -139,12 +145,16 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
 
     private static class SourceMeta {
         final BetaMemoryNode source;
-        final FactType[] factTypes;
+        final int[] factTypeIndices;
         ReIterator<MemoryKey> currentIterator;
 
         SourceMeta(BetaMemoryNode source) {
             this.source = source;
-            this.factTypes = source.getDescriptor().getTypes();
+            FactType[] factTypes = source.getDescriptor().getTypes();
+            this.factTypeIndices = new int[factTypes.length];
+            for (int i = 0; i < factTypes.length; i++) {
+                this.factTypeIndices[i] = factTypes[i].getInRuleIndex();
+            }
         }
 
         boolean setIterator(KeyMode mode) {

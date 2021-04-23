@@ -6,12 +6,12 @@ import org.evrete.runtime.ActiveField;
 import org.evrete.runtime.Evaluators;
 
 public class AlphaEvaluator {
-    private final ActiveField[] activeDescriptor;
+    private final ActiveField[] descriptor;
     private final EvaluatorHandle delegate;
     private final int index;
 
     public AlphaEvaluator(int index, EvaluatorHandle e, ActiveField[] activeFields) {
-        this.activeDescriptor = activeFields;
+        this.descriptor = activeFields;
         this.delegate = e;
         this.index = index;
     }
@@ -45,8 +45,8 @@ public class AlphaEvaluator {
                 '}';
     }
 
-    public ActiveField[] getActiveDescriptor() {
-        return activeDescriptor;
+    public ActiveField[] getDescriptor() {
+        return descriptor;
     }
 
     public EvaluatorHandle getDelegate() {
