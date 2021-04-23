@@ -1,9 +1,6 @@
 package org.evrete.runtime;
 
-import org.evrete.api.FactHandle;
-import org.evrete.api.FactHandleVersioned;
-import org.evrete.api.MemoryKey;
-import org.evrete.api.ReIterator;
+import org.evrete.api.*;
 
 import java.util.Objects;
 
@@ -11,19 +8,17 @@ import java.util.Objects;
  * <p>A runtime FactType representation used in right-hand-side iteration.</p>
  */
 class RhsFactType {
-    private final FactType type;
+    private final RuntimeFactType type;
     private final RhsFactGroup group;
-    private final TypeMemory typeMemory;
     FactHandle handle;
     Object value;
     ReIterator<FactHandleVersioned> factIterator;
     private MemoryKey currentKey;
     private FactHandleVersioned currentFactHandle;
 
-    RhsFactType(SessionMemory memory, FactType type, RhsFactGroup group) {
+    RhsFactType(RuntimeFactType type, RhsFactGroup group) {
         this.type = type;
         this.group = group;
-        this.typeMemory = memory.get(type.type());
     }
 
     void resetState() {
@@ -35,7 +30,8 @@ class RhsFactType {
         if (!Objects.equals(key, this.currentKey)) {
             this.currentKey = key;
             this.currentFactHandle = null;
-            this.factIterator = group.factIterator(type, key);
+            KeyMode mode = KeyMode.values()[key.getMetaValue()];
+            this.factIterator = group.factIterator(type, mode, key);
         }
         return true;
     }
@@ -46,7 +42,7 @@ class RhsFactType {
             return true;
         } else {
             FactHandle handle = v.getHandle();
-            FactRecord fact = typeMemory.getStoredRecord(handle);
+            FactRecord fact = type.get(handle);
             if (fact == null || fact.getVersion() != v.getVersion()) {
                 System.out.println("!!!!!");
                 return false;

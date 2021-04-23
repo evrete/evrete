@@ -24,7 +24,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
         super(runtime, rd, build(runtime, rd.getLhs().getFactTypes()));
         this.descriptor = rd;
         this.runtime = runtime;
-        //this.factSources = buildTypes(runtime, factTypes);
         this.lhs = new RuntimeLhs(this, rd.getLhs());
         RhsFactGroup[] rhsFactGroups = lhs.getFactGroups();
         this.factTypeNodes = new RhsFactType[rd.factTypes.length];
@@ -32,8 +31,9 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
         for (RhsFactGroup group : rhsFactGroups) {
             for (FactType factType : group.types()) {
                 int idx = factType.getInRuleIndex();
+                RuntimeFactType runtimeFactType = getFactTypes()[idx];
                 assert factTypeNodes[idx] == null;
-                this.factTypeNodes[idx] = new RhsFactType(runtime.getMemory(), factType, group);
+                this.factTypeNodes[idx] = new RhsFactType(runtimeFactType, group);
                 if (nameMapping.put(factType.getName(), idx) != null) {
                     throw new IllegalStateException();
                 }

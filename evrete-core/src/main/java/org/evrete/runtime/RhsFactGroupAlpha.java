@@ -1,6 +1,9 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
+import org.evrete.api.KeyMode;
+import org.evrete.api.MemoryKey;
+import org.evrete.api.ReIterator;
+import org.evrete.api.ValueHandle;
 import org.evrete.collections.CollectionReIterator;
 
 import java.util.ArrayList;
@@ -13,14 +16,12 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
     private final RuntimeFactType[] types;
     private final ReIterator<MemoryKey> deltaKeyIterator;
     private final ReIterator<MemoryKey> mainKeyIterator;
-    private final SessionMemory memory;
 
     RhsFactGroupAlpha(RuntimeRuleImpl rule, RhsFactGroupDescriptor descriptor) {
         this.types = rule.asRuntimeTypes(descriptor.getTypes());
         assert types.length > 0;
         if (types.length > 24)
             throw new UnsupportedOperationException("Too many alpha nodes, another implementation required");
-        this.memory = rule.getRuntime().getMemory();
 
         // Main dummy iterator
         Collection<MemoryKey> mainCollection = new ArrayList<>();
@@ -47,12 +48,6 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
     @Override
     public RuntimeFactType[] types() {
         return types;
-    }
-
-    @Override
-    public ReIterator<FactHandleVersioned> factIterator(FactType type, MemoryKey row) {
-        KeyMode mode = KeyMode.values()[row.getMetaValue()];
-        return memory.get(type.type()).get(type.getFields()).get(type.getAlphaMask()).values(mode, row);
     }
 
     @Override

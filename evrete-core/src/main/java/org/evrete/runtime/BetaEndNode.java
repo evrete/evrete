@@ -1,6 +1,9 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
+import org.evrete.api.KeyMode;
+import org.evrete.api.MemoryKey;
+import org.evrete.api.ReIterator;
+import org.evrete.api.Type;
 import org.evrete.collections.JoinReIterator;
 
 public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
@@ -38,14 +41,6 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
                 JoinReIterator.of(iterator(KeyMode.UNKNOWN_UNKNOWN), iterator(KeyMode.KNOWN_UNKNOWN))
                 :
                 iterator(KeyMode.MAIN);
-    }
-
-    @Override
-    //TODO !!!! optimize, slow calls!!!!
-    public ReIterator<FactHandleVersioned> factIterator(FactType type, MemoryKey key) {
-        KeyMode mode = KeyMode.values()[key.getMetaValue()];
-        SessionMemory memory = getRuntime().memory;
-        return memory.get(type.type()).get(type.getFields()).get(type.getAlphaMask()).values(mode, key);
     }
 
     @Override
