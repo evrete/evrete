@@ -76,6 +76,14 @@ public final class TypeMemory extends MemoryComponent {
         return factHandle;
     }
 
+    public FactStorage<FactRecord> getFactStorage() {
+        return factStorage;
+    }
+
+    public ArrayOf<KeyMemory> getBetaMemories() {
+        return betaMemories;
+    }
+
     FactHandle externalInsert(Object fact, MemoryActionListener actionListener) {
         FactRecord record = new FactRecord(fact);
         FactHandle handle = factStorage.insert(record);
@@ -126,15 +134,19 @@ public final class TypeMemory extends MemoryComponent {
 
     public void processBuffer() {
         Iterator<AtomicMemoryAction> it = buffer.actions();
-        Collection<RuntimeFact> runtimeFacts = new LinkedList<>();
+        Collection<RuntimeFact> inserts = new LinkedList<>();
+
+        int purgeActions = 0;
+
         while (it.hasNext()) {
             AtomicMemoryAction a = it.next();
             switch (a.action) {
                 case RETRACT:
                     factStorage.delete(a.handle);
+                    purgeActions++;
                     break;
                 case INSERT:
-                    runtimeFacts.add(new RuntimeFact(valueResolver, typeMemoryState, new FactHandleVersioned(a.handle), a.factRecord));
+                    inserts.add(new RuntimeFact(valueResolver, typeMemoryState, new FactHandleVersioned(a.handle), a.factRecord));
                     break;
                 case UPDATE:
                     FactRecord previous = factStorage.getFact(a.handle);
@@ -147,16 +159,53 @@ public final class TypeMemory extends MemoryComponent {
                         factRecord.updateVersion(newVersion);
                         factStorage.update(handle, factRecord);
                         FactHandleVersioned versioned = new FactHandleVersioned(handle, newVersion);
-                        runtimeFacts.add(new RuntimeFact(valueResolver, typeMemoryState, versioned, factRecord));
+                        inserts.add(new RuntimeFact(valueResolver, typeMemoryState, versioned, factRecord));
+                        purgeActions++;
                     }
                     break;
                 default:
                     throw new IllegalStateException();
             }
         }
-        // Performing insert
-        if (!runtimeFacts.isEmpty()) {
-            forEachMemoryComponent(b -> b.insert(runtimeFacts));
+
+
+/*
+        if(purgeActions > 0) {
+            // Performing data purge
+            KeyMode scanMode = KeyMode.MAIN;
+            Iterator<KeyMemory> it1 = betaMemories.iterator();
+            while (it1.hasNext()) {
+                KeyMemory keyMemory = it1.next();
+                ReIterator<KeyMemoryBucket> buckets = keyMemory.getAlphaBuckets().iterator();
+                while (buckets.hasNext()) {
+                    KeyedFactStorage facts = buckets.next().getFieldData();
+                    ReIterator<MemoryKey> keys = facts.keys(scanMode);
+                    while (keys.hasNext()) {
+                        MemoryKey key = keys.next();
+                        ReIterator<FactHandleVersioned> handles = facts.values(scanMode, key);
+                        while (handles.hasNext()) {
+                            FactHandleVersioned handle = handles.next();
+                            FactRecord fact = factStorage.getFact(handle.getHandle());
+                            if(fact == null || fact.getVersion() != handle.getVersion()) {
+                                // No such fact, deleting
+                                handles.remove();
+                            }
+                        }
+
+                        long remaining = handles.reset();
+                        if(remaining == 0) {
+                            // Deleting key as well
+                            keys.remove();
+                        }
+                    }
+                }
+            }
+        }
+*/
+
+        if (!inserts.isEmpty()) {
+            // Performing insert
+            forEachMemoryComponent(b -> b.insert(inserts));
         }
         buffer.clear();
     }

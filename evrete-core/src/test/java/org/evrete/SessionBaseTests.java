@@ -164,7 +164,6 @@ class SessionBaseTests {
         Collection<FactEntry> sessionObjects = TestUtils.sessionFacts(s);
         assert sessionObjects.size() == objectCount * 4 : "Actual: " + sessionObjects.size() + ", expected: " + objectCount * 4;
 
-
         for (FactEntry e : sessionObjects) {
             s.delete(e.getHandle());
         }

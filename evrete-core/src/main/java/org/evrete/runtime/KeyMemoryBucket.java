@@ -8,7 +8,7 @@ import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import java.util.Collection;
 import java.util.LinkedList;
 
-abstract class KeyMemoryBucket extends MemoryComponent {
+public abstract class KeyMemoryBucket extends MemoryComponent {
     // A convenience fact instance that is never equal to others
     private static final RuntimeFact DUMMY_FACT = new RuntimeFact() {
         @Override
@@ -63,7 +63,7 @@ abstract class KeyMemoryBucket extends MemoryComponent {
         fieldData.clear();
     }
 
-    final KeyedFactStorage getFieldData() {
+    public final KeyedFactStorage getFieldData() {
         return fieldData;
     }
 

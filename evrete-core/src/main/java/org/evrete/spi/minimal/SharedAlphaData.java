@@ -7,15 +7,12 @@ import java.util.NoSuchElementException;
 
 class SharedAlphaData implements KeyedFactStorage {
     private final LinkedFactHandles[] dataWrappers;
-    private final KeyIterator[] keyIterators;
 
     SharedAlphaData() {
         this.dataWrappers = new LinkedFactHandles[KeyMode.values().length];
-        this.keyIterators = new KeyIterator[KeyMode.values().length];
         for (KeyMode mode : KeyMode.values()) {
             int idx = mode.ordinal();
             this.dataWrappers[idx] = new LinkedFactHandles();
-            this.keyIterators[idx] = new KeyIterator(mode);
         }
     }
 
@@ -32,13 +29,13 @@ class SharedAlphaData implements KeyedFactStorage {
         }
     }
 
-    private LinkedFactHandles get(KeyMode mode) {
+    LinkedFactHandles get(KeyMode mode) {
         return dataWrappers[mode.ordinal()];
     }
 
     @Override
     public ReIterator<MemoryKey> keys(KeyMode mode) {
-        return this.keyIterators[mode.ordinal()];
+        return new KeyIterator(mode);
     }
 
     @Override
@@ -72,6 +69,11 @@ class SharedAlphaData implements KeyedFactStorage {
         public long reset() {
             hasNext = true;
             return 1L;
+        }
+
+        @Override
+        public void remove() {
+            // silently skip
         }
 
         @Override

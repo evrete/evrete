@@ -3,6 +3,7 @@ package org.evrete.collections;
 import org.evrete.api.ReIterable;
 import org.evrete.api.ReIterator;
 
+import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.StringJoiner;
 
@@ -46,7 +47,17 @@ public class LinkedDataRWD<T> implements ReIterable<T> {
      *
      * @param other target data to consume and clear
      */
+    //TODO !!!! optimize
     public void consume(LinkedDataRWD<T> other) {
+        if (other.size > 0) {
+            Iterator<T> iterator = other.iterator();
+            while (iterator.hasNext()) {
+                T t = iterator.next();
+                add(t);
+                iterator.remove();
+            }
+        }
+/*
         if (other.lastNode == null) {
             assert other.firstNode == null && other.size == 0;
             return; // Nothing to append
@@ -63,6 +74,7 @@ public class LinkedDataRWD<T> implements ReIterable<T> {
         }
         updateSize(other.size);
         other.clear();
+*/
     }
 
     public long size() {

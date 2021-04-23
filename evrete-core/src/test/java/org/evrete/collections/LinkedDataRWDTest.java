@@ -40,6 +40,7 @@ class LinkedDataRWDTest {
             set.add(it.next());
         }
         assert set.size() == 3;
+        assert set.size() == ld.size();
         assert set.size() == it.reset();
     }
 
@@ -133,6 +134,7 @@ class LinkedDataRWDTest {
 
         assert ld.first() == null;
         assert ld.last() == null;
+        assert ld.size() == 0;
 
     }
 
@@ -210,6 +212,34 @@ class LinkedDataRWDTest {
 
             assert sameData(ld, ll);
         }
+    }
+
+    @Test
+    void remove5() {
+        LinkedDataRWD<String> ld = new LinkedDataRWD<>();
+        ld.add("a");
+
+        LinkedList<String> ll = new LinkedList<>();
+        ll.add("a");
+
+
+        Iterator<String> lli = ll.iterator();
+        Iterator<String> ldi = ld.iterator();
+
+
+        String s1 = lli.next();
+        String s2 = ldi.next();
+        assert s1.equals(s2);
+
+        ldi.remove();
+        lli.remove();
+
+        assert ll.size() == ld.size();
+
+        assert ld.first() == null;
+        assert ld.last() == null;
+        assert ld.size() == 0;
+
     }
 
     @Test

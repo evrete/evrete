@@ -5,7 +5,6 @@ import org.evrete.api.KeyedFactStorage;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaBucketMeta;
 
-import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 public class KeyMemory extends MemoryComponent implements InnerFactMemory {
@@ -26,6 +25,10 @@ public class KeyMemory extends MemoryComponent implements InnerFactMemory {
 
     void forEachBucket(Consumer<? super KeyMemoryBucket> consumer) {
         alphaBuckets.forEach(consumer);
+    }
+
+    public ArrayOf<KeyMemoryBucket> getAlphaBuckets() {
+        return alphaBuckets;
     }
 
     public KeyedFactStorage get(AlphaBucketMeta mask) {
@@ -54,10 +57,12 @@ public class KeyMemory extends MemoryComponent implements InnerFactMemory {
     }
 
 
+/*
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner("\n");
         alphaBuckets.forEach(bucket -> sj.add(bucket.toString()));
         return sj.toString();
     }
+*/
 }
