@@ -67,8 +67,7 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
         return fieldData;
     }
 
-    @Override
-    final public void commitChanges() {
+    void commitBuffer() {
         fieldData.commitChanges();
     }
 

@@ -47,8 +47,12 @@ public class KeyMemory extends MemoryComponent implements InnerFactMemory {
 
     @Override
     public void commitChanges() {
+        throw new UnsupportedOperationException();
+    }
+
+    void commitBuffer() {
         for (KeyMemoryBucket bucket : alphaBuckets.data) {
-            bucket.commitChanges();
+            bucket.commitBuffer();
         }
     }
 

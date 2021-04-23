@@ -27,8 +27,6 @@ abstract class MemoryComponent {
         parent.addChild(this);
     }
 
-    abstract void commitChanges();
-
     private void addChild(MemoryComponent childComponent) {
         this.childComponents.append(childComponent);
     }

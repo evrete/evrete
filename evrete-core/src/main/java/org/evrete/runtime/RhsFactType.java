@@ -31,12 +31,13 @@ class RhsFactType {
         this.currentKey = null;
     }
 
-    void setCurrentKey(MemoryKey key) {
+    boolean setCurrentKey(MemoryKey key) {
         if (!Objects.equals(key, this.currentKey)) {
             this.currentKey = key;
-            this.factIterator = group.factIterator(type, key);
             this.currentFactHandle = null;
+            this.factIterator = group.factIterator(type, key);
         }
+        return true;
     }
 
     boolean setCurrentFact(FactHandleVersioned v) {
@@ -60,6 +61,10 @@ class RhsFactType {
 
     @Override
     public String toString() {
-        return currentKey.toString();
+        return "{" +
+                "type=" + type +
+                ", key=" + currentKey +
+                ", fact=" + currentFactHandle +
+                '}';
     }
 }

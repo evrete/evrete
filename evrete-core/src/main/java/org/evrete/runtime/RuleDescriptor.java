@@ -6,7 +6,7 @@ import org.evrete.runtime.builder.RuleBuilderImpl;
 import org.evrete.util.MapFunction;
 import org.evrete.util.NextIntSupplier;
 
-public class RuleDescriptor extends AbstractRuntimeRule {
+public class RuleDescriptor extends AbstractRuntimeRule<FactType> {
     private final LhsDescriptor lhsDescriptor;
 
     private RuleDescriptor(AbstractRuntime<?, ?> runtime, AbstractRule other, String ruleName, int salience, LhsDescriptor lhsDescriptor) {

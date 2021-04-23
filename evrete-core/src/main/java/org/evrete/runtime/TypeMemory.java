@@ -17,6 +17,7 @@ public final class TypeMemory extends MemoryComponent {
     private final Type<?> type;
     private final ArrayOf<KeyMemory> betaMemories;
     private TypeMemoryState typeMemoryState;
+    private int purgeActions = 0;
 
     TypeMemory(SessionMemory sessionMemory, int type) {
         super(sessionMemory);
@@ -108,11 +109,42 @@ public final class TypeMemory extends MemoryComponent {
         betaMemories.forEach(fm -> fm.forEachBucket(consumer));
     }
 
-    @Override
-    public void commitChanges() {
-        for (MemoryComponent child : childComponents()) {
-            child.commitChanges();
+    void commitBuffer() {
+        betaMemories.forEach(KeyMemory::commitBuffer);
+
+        if (purgeActions < 0) {
+            // Performing data purge
+            KeyMode scanMode = KeyMode.MAIN;
+            Iterator<KeyMemory> it1 = betaMemories.iterator();
+            while (it1.hasNext()) {
+                KeyMemory keyMemory = it1.next();
+                ReIterator<KeyMemoryBucket> buckets = keyMemory.getAlphaBuckets().iterator();
+                while (buckets.hasNext()) {
+                    KeyedFactStorage facts = buckets.next().getFieldData();
+                    ReIterator<MemoryKey> keys = facts.keys(scanMode);
+                    while (keys.hasNext()) {
+                        MemoryKey key = keys.next();
+                        ReIterator<FactHandleVersioned> handles = facts.values(scanMode, key);
+                        while (handles.hasNext()) {
+                            FactHandleVersioned handle = handles.next();
+                            FactRecord fact = factStorage.getFact(handle.getHandle());
+                            if (fact == null || fact.getVersion() != handle.getVersion()) {
+                                // No such fact, deleting
+                                handles.remove();
+                            }
+                        }
+
+                        long remaining = handles.reset();
+                        if (remaining == 0) {
+                            // Deleting key as well
+                            keys.remove();
+                        }
+                    }
+                }
+            }
+            purgeActions = 0;
         }
+
     }
 
     void forEachFact(BiConsumer<FactHandle, Object> consumer) {
@@ -135,8 +167,6 @@ public final class TypeMemory extends MemoryComponent {
     public void processBuffer() {
         Iterator<AtomicMemoryAction> it = buffer.actions();
         Collection<RuntimeFact> inserts = new LinkedList<>();
-
-        int purgeActions = 0;
 
         while (it.hasNext()) {
             AtomicMemoryAction a = it.next();
@@ -167,41 +197,6 @@ public final class TypeMemory extends MemoryComponent {
                     throw new IllegalStateException();
             }
         }
-
-
-/*
-        if(purgeActions > 0) {
-            // Performing data purge
-            KeyMode scanMode = KeyMode.MAIN;
-            Iterator<KeyMemory> it1 = betaMemories.iterator();
-            while (it1.hasNext()) {
-                KeyMemory keyMemory = it1.next();
-                ReIterator<KeyMemoryBucket> buckets = keyMemory.getAlphaBuckets().iterator();
-                while (buckets.hasNext()) {
-                    KeyedFactStorage facts = buckets.next().getFieldData();
-                    ReIterator<MemoryKey> keys = facts.keys(scanMode);
-                    while (keys.hasNext()) {
-                        MemoryKey key = keys.next();
-                        ReIterator<FactHandleVersioned> handles = facts.values(scanMode, key);
-                        while (handles.hasNext()) {
-                            FactHandleVersioned handle = handles.next();
-                            FactRecord fact = factStorage.getFact(handle.getHandle());
-                            if(fact == null || fact.getVersion() != handle.getVersion()) {
-                                // No such fact, deleting
-                                handles.remove();
-                            }
-                        }
-
-                        long remaining = handles.reset();
-                        if(remaining == 0) {
-                            // Deleting key as well
-                            keys.remove();
-                        }
-                    }
-                }
-            }
-        }
-*/
 
         if (!inserts.isEmpty()) {
             // Performing insert
@@ -240,6 +235,6 @@ public final class TypeMemory extends MemoryComponent {
         }
 
         bucket.insert(runtimeFacts);
-        bucket.commitChanges();
+        bucket.commitBuffer();
     }
 }

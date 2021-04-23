@@ -20,7 +20,7 @@ abstract class AbstractRuntimeLhs {
             //int groupIndex = groupDescriptor.getFactGroupIndex();
             RhsFactGroup factGroup;
             if (groupDescriptor.isLooseGroup()) {
-                factGroup = new RhsFactGroupAlpha(rule.getRuntime().getMemory(), groupDescriptor);
+                factGroup = new RhsFactGroupAlpha(rule, groupDescriptor);
             } else {
                 ConditionNodeDescriptor finalNode = groupDescriptor.getFinalNode();
                 assert finalNode != null;
@@ -32,6 +32,7 @@ abstract class AbstractRuntimeLhs {
             rhsFactGroups[groupIndex++] = factGroup;
         }
     }
+
 
     RhsFactGroup[] getFactGroups() {
         return this.rhsFactGroups;

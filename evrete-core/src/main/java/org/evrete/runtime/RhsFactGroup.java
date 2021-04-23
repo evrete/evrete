@@ -9,5 +9,5 @@ interface RhsFactGroup {
 
     ReIterator<FactHandleVersioned> factIterator(FactType type, MemoryKey row);
 
-    FactType[] types();
+    RuntimeFactType[] types();
 }

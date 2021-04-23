@@ -10,17 +10,17 @@ import java.util.Collection;
 public class RhsFactGroupAlpha implements RhsFactGroup {
     private static final VR KEY_MAIN = new VR(KeyMode.MAIN.ordinal());
     private static final VR KEY_DELTA = new VR(KeyMode.KNOWN_UNKNOWN.ordinal());
-    private final FactType[] types;
+    private final RuntimeFactType[] types;
     private final ReIterator<MemoryKey> deltaKeyIterator;
     private final ReIterator<MemoryKey> mainKeyIterator;
     private final SessionMemory memory;
 
-    RhsFactGroupAlpha(SessionMemory memory, RhsFactGroupDescriptor descriptor) {
-        this.types = descriptor.getTypes();
+    RhsFactGroupAlpha(RuntimeRuleImpl rule, RhsFactGroupDescriptor descriptor) {
+        this.types = rule.asRuntimeTypes(descriptor.getTypes());
         assert types.length > 0;
         if (types.length > 24)
             throw new UnsupportedOperationException("Too many alpha nodes, another implementation required");
-        this.memory = memory;
+        this.memory = rule.getRuntime().getMemory();
 
         // Main dummy iterator
         Collection<MemoryKey> mainCollection = new ArrayList<>();
@@ -45,7 +45,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
     }
 
     @Override
-    public FactType[] types() {
+    public RuntimeFactType[] types() {
         return types;
     }
 

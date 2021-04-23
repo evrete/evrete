@@ -22,6 +22,13 @@ public class FactType {
         this.inRuleIndex = inRuleIndex;
     }
 
+    FactType(FactType other) {
+        this.name = other.name;
+        this.alphaMask = other.alphaMask;
+        this.fields = other.fields;
+        this.inRuleIndex = other.inRuleIndex;
+    }
+
     public static FactType[] toArray(Collection<FactType> set) {
         FactType[] arr = set.toArray(FactType.ZERO_ARRAY);
         Arrays.sort(arr, COMPARATOR);
@@ -61,9 +68,6 @@ public class FactType {
 
     @Override
     public String toString() {
-        return "{" +
-                "var='" + name + '\'' +
-                ", type='" + fields.type() +
-                "'}";
+        return name;
     }
 }

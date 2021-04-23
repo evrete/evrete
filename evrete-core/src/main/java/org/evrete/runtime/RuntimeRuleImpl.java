@@ -8,7 +8,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 
-public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule {
+public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implements RuntimeRule {
     private static final boolean[] BOOLEANS = new boolean[]{true, false};
     private final AbstractRuleSession<?> runtime;
     private final RuleDescriptor descriptor;
@@ -21,7 +21,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule 
     private long rhsCallCounter = 0;
 
     public RuntimeRuleImpl(RuleDescriptor rd, AbstractRuleSession<?> runtime) {
-        super(runtime, rd, rd.getLhs().getFactTypes());
+        super(runtime, rd, build(runtime, rd.getLhs().getFactTypes()));
         this.descriptor = rd;
         this.runtime = runtime;
         //this.factSources = buildTypes(runtime, factTypes);
@@ -57,10 +57,27 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule 
 
     }
 
+    private static RuntimeFactType[] build(AbstractRuleSession<?> runtime, FactType[] types) {
+        SessionMemory memory = runtime.getMemory();
+        RuntimeFactType[] arr = new RuntimeFactType[types.length];
+        for (int i = 0; i < types.length; i++) {
+            arr[i] = new RuntimeFactType(types[i], memory);
+        }
+        return arr;
+    }
+
     void mergeNodeDeltas() {
         for (BetaEndNode endNode : lhs.getEndNodes()) {
             endNode.commitDelta();
         }
+    }
+
+    RuntimeFactType[] asRuntimeTypes(FactType[] types) {
+        RuntimeFactType[] arr = new RuntimeFactType[types.length];
+        for (int i = 0; i < types.length; i++) {
+            arr[i] = getFactTypes()[types[i].getInRuleIndex()];
+        }
+        return arr;
     }
 
     final long executeRhs() {
@@ -102,6 +119,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule 
         if (last) {
             while (iterator.hasNext()) {
                 factGroup.copyKeyState(iterator);
+                System.out.println("\t\tfacts!");
                 forEachFact(0, consumer);
             }
         } else {
@@ -211,7 +229,9 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule implements RuntimeRule 
 
         void copyKeyState(ReIterator<MemoryKey> iterator) {
             for (RhsFactType t : myFactTypeNodes) {
-                t.setCurrentKey(iterator.next());
+                MemoryKey k = iterator.next();
+                t.setCurrentKey(k);
+                System.out.println("\t" + t);
             }
         }
     }

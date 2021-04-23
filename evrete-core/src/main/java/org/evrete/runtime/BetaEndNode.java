@@ -4,11 +4,11 @@ import org.evrete.api.*;
 import org.evrete.collections.JoinReIterator;
 
 public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
-    private final FactType[] entryNodes;
+    private final RuntimeFactType[] entryNodes;
 
     BetaEndNode(RuntimeRuleImpl rule, ConditionNodeDescriptor nodeDescriptor, boolean singleGroup) {
         super(rule, nodeDescriptor, create(nodeDescriptor.getSources(), rule));
-        this.entryNodes = nodeDescriptor.getTypes();
+        this.entryNodes = rule.asRuntimeTypes(nodeDescriptor.getTypes());
         setMergeToMain(!singleGroup);
     }
 
@@ -41,6 +41,7 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
     }
 
     @Override
+    //TODO !!!! optimize, slow calls!!!!
     public ReIterator<FactHandleVersioned> factIterator(FactType type, MemoryKey key) {
         KeyMode mode = KeyMode.values()[key.getMetaValue()];
         SessionMemory memory = getRuntime().memory;
@@ -48,7 +49,7 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
     }
 
     @Override
-    public FactType[] types() {
+    public RuntimeFactType[] types() {
         return entryNodes;
     }
 

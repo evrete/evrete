@@ -164,7 +164,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
                         activationManager.onActivation(rule, rule.executeRhs());
                     }
                 }
-                commitInserts();
+                commitBuffer();
             }
         }
     }
@@ -190,19 +190,18 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
                         }
                     }
                 }
-                commitInserts();
+                commitBuffer();
             }
         }
     }
 
     private void processBuffer() {
-        //TODO !!!! narrow the scope, all type memories are being processed
         Iterator<TypeMemory> it = memory.iterator();
         getExecutor().invoke(new MemoryDeltaTask(it));
         actionCounter.clear();
     }
 
-    private void commitInserts() {
-        memory.commitChanges();
+    private void commitBuffer() {
+        memory.commitBuffer();
     }
 }
