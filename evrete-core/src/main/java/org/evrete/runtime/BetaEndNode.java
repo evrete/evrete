@@ -44,6 +44,11 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
     }
 
     @Override
+    public ReIterator<MemoryKey> keyIterator(KeyMode mode) {
+        return iterator(mode);
+    }
+
+    @Override
     public RuntimeFactType[] types() {
         return entryNodes;
     }

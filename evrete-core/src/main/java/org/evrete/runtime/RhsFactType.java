@@ -31,7 +31,7 @@ class RhsFactType {
             this.currentKey = key;
             this.currentFactHandle = null;
             KeyMode mode = KeyMode.values()[key.getMetaValue()];
-            this.factIterator = group.factIterator(type, mode, key);
+            this.factIterator = type.factIterator(mode, key);
         }
         return true;
     }
