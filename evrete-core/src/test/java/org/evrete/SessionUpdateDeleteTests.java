@@ -245,7 +245,6 @@ class SessionUpdateDeleteTests {
         Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
         assert allObjects.size() == 0;
 
-
         int fireCount = 0;
 
         int objectCount = 16;
@@ -324,10 +323,9 @@ class SessionUpdateDeleteTests {
         Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
         assert allObjects.size() == 0;
 
-
         int fireCount = 0;
 
-        int objectCount = 1;
+        int objectCount = 2;
         while (fireCount++ < 2) {
             counter.set(0);
             for (int i = 0; i < objectCount; i++) {
@@ -341,7 +339,6 @@ class SessionUpdateDeleteTests {
                 s.insert(a, b, c);
             }
 
-            System.out.println("-------------- fire 1 ---------------");
             s.fire();
 
             allObjects = TestUtils.sessionFacts(s);
@@ -351,7 +348,6 @@ class SessionUpdateDeleteTests {
             Collection<FactEntry> cObjects = sessionFacts(s, TypeC.class);
             assert cObjects.size() == objectCount;
 
-            System.out.println("-------------- fire 2 ---------------");
             counter.set(0);
             for (FactEntry entry : cObjects) {
                 TypeC c = (TypeC) entry.getFact();

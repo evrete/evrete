@@ -5,7 +5,6 @@ import org.evrete.api.MemoryKey;
 import org.evrete.api.ReIterator;
 
 interface RhsFactGroup {
-    ReIterator<MemoryKey> keyIterator(boolean delta);
 
     ReIterator<MemoryKey> keyIterator(KeyMode mode);
 

@@ -16,6 +16,7 @@ public class MemoryDeltaTask extends Completer {
     protected void execute() {
         while (typeMemories.hasNext()) {
             TypeMemory item = typeMemories.next();
+
             Completer c = new TypeMemoryDeltaTask(this, item);
             addToPendingCount(1);
             if (typeMemories.hasNext()) {

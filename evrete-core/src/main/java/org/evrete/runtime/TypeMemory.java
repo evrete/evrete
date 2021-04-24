@@ -110,41 +110,48 @@ public final class TypeMemory extends MemoryComponent {
     }
 
     void commitBuffer() {
+        //purge(KeyMode.values());
+
         betaMemories.forEach(KeyMemory::commitBuffer);
 
-        if (purgeActions < 0) {
-            // Performing data purge
-            KeyMode scanMode = KeyMode.MAIN;
-            Iterator<KeyMemory> it1 = betaMemories.iterator();
-            while (it1.hasNext()) {
-                KeyMemory keyMemory = it1.next();
-                ReIterator<KeyMemoryBucket> buckets = keyMemory.getAlphaBuckets().iterator();
-                while (buckets.hasNext()) {
-                    KeyedFactStorage facts = buckets.next().getFieldData();
-                    ReIterator<MemoryKey> keys = facts.keys(scanMode);
-                    while (keys.hasNext()) {
-                        MemoryKey key = keys.next();
-                        ReIterator<FactHandleVersioned> handles = facts.values(scanMode, key);
-                        while (handles.hasNext()) {
-                            FactHandleVersioned handle = handles.next();
-                            FactRecord fact = factStorage.getFact(handle.getHandle());
-                            if (fact == null || fact.getVersion() != handle.getVersion()) {
-                                // No such fact, deleting
-                                handles.remove();
-                            }
-                        }
 
-                        long remaining = handles.reset();
-                        if (remaining == 0) {
-                            // Deleting key as well
-                            keys.remove();
+    }
+
+
+    public void purge(KeyMode... scanModes) {
+        if (purgeActions > 0) {
+            for (KeyMode scanMode : scanModes) {
+                // Performing data purge
+                Iterator<KeyMemory> it1 = betaMemories.iterator();
+                while (it1.hasNext()) {
+                    KeyMemory keyMemory = it1.next();
+                    ReIterator<KeyMemoryBucket> buckets = keyMemory.getAlphaBuckets().iterator();
+                    while (buckets.hasNext()) {
+                        KeyedFactStorage facts = buckets.next().getFieldData();
+                        ReIterator<MemoryKey> keys = facts.keys(scanMode);
+                        while (keys.hasNext()) {
+                            MemoryKey key = keys.next();
+                            ReIterator<FactHandleVersioned> handles = facts.values(scanMode, key);
+                            while (handles.hasNext()) {
+                                FactHandleVersioned handle = handles.next();
+                                FactRecord fact = factStorage.getFact(handle.getHandle());
+                                if (fact == null || fact.getVersion() != handle.getVersion()) {
+                                    // No such fact, deleting
+                                    handles.remove();
+                                }
+                            }
+
+                            long remaining = handles.reset();
+                            if (remaining == 0) {
+                                // Deleting key as well
+                                keys.remove();
+                            }
                         }
                     }
                 }
             }
             purgeActions = 0;
         }
-
     }
 
     void forEachFact(BiConsumer<FactHandle, Object> consumer) {

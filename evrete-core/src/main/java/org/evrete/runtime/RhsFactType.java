@@ -44,7 +44,6 @@ class RhsFactType {
             FactHandle handle = v.getHandle();
             FactRecord fact = type.get(handle);
             if (fact == null || fact.getVersion() != v.getVersion()) {
-                System.out.println("!!!!!");
                 return false;
             } else {
                 this.currentFactHandle = v;

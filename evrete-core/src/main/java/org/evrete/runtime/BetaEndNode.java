@@ -4,7 +4,6 @@ import org.evrete.api.KeyMode;
 import org.evrete.api.MemoryKey;
 import org.evrete.api.ReIterator;
 import org.evrete.api.Type;
-import org.evrete.collections.JoinReIterator;
 
 public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
     private final RuntimeFactType[] entryNodes;
@@ -33,14 +32,6 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
             result[i] = create(rule, sources[i]);
         }
         return result;
-    }
-
-    @Override
-    public ReIterator<MemoryKey> keyIterator(boolean delta) {
-        return delta ?
-                JoinReIterator.of(iterator(KeyMode.UNKNOWN_UNKNOWN), iterator(KeyMode.KNOWN_UNKNOWN))
-                :
-                iterator(KeyMode.MAIN);
     }
 
     @Override

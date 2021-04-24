@@ -9,7 +9,6 @@ import java.util.function.Consumer;
 
 
 public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implements RuntimeRule {
-    private static final boolean[] BOOLEANS = new boolean[]{true, false};
     private final AbstractRuleSession<?> runtime;
     private final RuleDescriptor descriptor;
     private final RuntimeLhs lhs;
@@ -97,8 +96,9 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
     private void forEachFactGroup(int group, boolean hasDelta, Consumer<RhsContext> consumer) {
         boolean last = group == this.rhsGroupNodes.length - 1;
         RhsGroupNode factGroup = this.rhsGroupNodes[group];
-        for (boolean b : BOOLEANS) {
-            factGroup.initIterator(b);
+        for (KeyMode mode : KeyMode.values()) {
+            boolean b = mode.isDelta();
+            factGroup.initIterator(mode);
             boolean newHasDelta = b || hasDelta;
             if (last) {
                 if (newHasDelta) {
@@ -119,7 +119,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
         if (last) {
             while (iterator.hasNext()) {
                 factGroup.copyKeyState(iterator);
-                System.out.println("\t\tfacts!");
                 forEachFact(0, consumer);
             }
         } else {
@@ -201,14 +200,16 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
 
     static abstract class RhsGroupNode {
         final RhsFactGroup group;
+        KeyMode currentMode;
         ReIterator<MemoryKey> keyIterator;
 
         RhsGroupNode(RhsFactGroup group) {
             this.group = group;
         }
 
-        final void initIterator(boolean delta) {
-            this.keyIterator = group.keyIterator(delta);
+        final void initIterator(KeyMode mode) {
+            this.currentMode = mode;
+            this.keyIterator = group.keyIterator(mode);
         }
 
         abstract void copyKeyState(ReIterator<MemoryKey> iterator);
@@ -231,7 +232,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
             for (RhsFactType t : myFactTypeNodes) {
                 MemoryKey k = iterator.next();
                 t.setCurrentKey(k);
-                System.out.println("\t" + t);
             }
         }
     }
