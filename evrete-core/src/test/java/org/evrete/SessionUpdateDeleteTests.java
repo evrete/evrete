@@ -6,6 +6,7 @@ import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.helper.FactEntry;
 import org.evrete.helper.TestUtils;
+import org.evrete.runtime.StatefulSessionImpl;
 import org.evrete.util.NextIntSupplier;
 import org.evrete.util.RhsAssert;
 import org.junit.jupiter.api.AfterAll;
@@ -306,6 +307,7 @@ class SessionUpdateDeleteTests {
     }
 
     @Test
+        //TODO !!!! delete once tested
     void updateBeta2_mini() {
         NextIntSupplier counter = new NextIntSupplier();
 
@@ -318,7 +320,7 @@ class SessionUpdateDeleteTests {
                 .where("$a.i == $b.i", 2.0)
                 .where("$a.i != $c.i", 10.0)
                 .execute(ctx -> counter.next());
-        StatefulSession s = knowledge.createSession().setActivationMode(ActivationMode.DEFAULT);
+        StatefulSessionImpl s = (StatefulSessionImpl) knowledge.createSession().setActivationMode(ActivationMode.DEFAULT);
 
         Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
         assert allObjects.size() == 0;
@@ -335,10 +337,9 @@ class SessionUpdateDeleteTests {
                 b.setI(i);
                 TypeC c = new TypeC("C" + i);
                 c.setI(i);
-
                 s.insert(a, b, c);
             }
-
+            System.out.println("[" + fireCount + "] -------------- 1 ---------------");
             s.fire();
 
             allObjects = TestUtils.sessionFacts(s);
@@ -354,6 +355,7 @@ class SessionUpdateDeleteTests {
                 c.setI(-1);
                 s.update(entry.getHandle(), c);
             }
+            System.out.println("[" + fireCount + "] -------------- 2 ---------------");
             s.fire();
 
             allObjects = TestUtils.sessionFacts(s);
@@ -369,6 +371,7 @@ class SessionUpdateDeleteTests {
                 }
             }
 
+            System.out.println("[" + fireCount + "] -------------- 3 ---------------");
             s.fire();
 
             allObjects = TestUtils.sessionFacts(s);

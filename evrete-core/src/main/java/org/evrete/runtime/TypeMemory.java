@@ -110,15 +110,18 @@ public final class TypeMemory extends MemoryComponent {
     }
 
     void commitBuffer() {
-        //purge(KeyMode.values());
 
         betaMemories.forEach(KeyMemory::commitBuffer);
 
+        //purge(KeyMode.values());
 
     }
 
+    void debug() {
 
-    public void purge(KeyMode... scanModes) {
+    }
+
+    private void purge(KeyMode... scanModes) {
         if (purgeActions > 0) {
             for (KeyMode scanMode : scanModes) {
                 // Performing data purge
@@ -209,6 +212,7 @@ public final class TypeMemory extends MemoryComponent {
             // Performing insert
             forEachMemoryComponent(b -> b.insert(inserts));
         }
+        //purge(KeyMode.MAIN);
         buffer.clear();
     }
 

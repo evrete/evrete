@@ -5,6 +5,7 @@ import org.evrete.api.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 
@@ -79,7 +80,49 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
         return arr;
     }
 
+    private static String toString(ReIterator<?> it, int group) {
+        it.reset();
+        StringJoiner main = new StringJoiner(" ");
+        StringJoiner inner = new StringJoiner(" ", "[", "]");
+        int counter = 1;
+        while (it.hasNext()) {
+            inner.add(it.next().toString());
+            if (counter == group) {
+                counter = 1;
+                main.add(inner.toString());
+                inner = new StringJoiner(" ", "[", "]");
+            } else {
+                counter++;
+            }
+/*
+            if(counter % group == 0 && (counter > 0)) {
+                main.add(inner.toString());
+                inner = new StringJoiner(",");
+            }
+            counter++;
+*/
+        }
+
+        it.reset();
+        return main.toString();
+    }
+
     final long executeRhs() {
+/*
+        System.out.print("\tPre RHS:\t\t");
+        RhsFactGroup g = this.rhsGroupNodes[0].group;
+        for (RuntimeFactType t : g.types()) {
+            System.out.printf("\t%s", t.getName());
+        }
+        System.out.println();
+        for (KeyMode mode : KeyMode.values()) {
+            ReIterator<MemoryKey> it = g.keyIterator(mode);
+            String data = toString(it, g.types().length);
+            System.out.printf("%1$20s\t%2$s\n", mode, data);
+        }
+*/
+
+
         this.rhsCallCounter = 0;
         // Reset state if any
         for (RhsFactType type : this.factTypeNodes) {
@@ -214,6 +257,10 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
 
         abstract void copyKeyState(ReIterator<MemoryKey> iterator);
 
+        @Override
+        public String toString() {
+            return group.toString();
+        }
     }
 
     static class RhsGroupNodeMulti extends RhsGroupNode {

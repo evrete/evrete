@@ -5,6 +5,7 @@ import org.evrete.runtime.KnowledgeRuntime;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class DefaultFactStorageTest {
     private static KnowledgeService service;
@@ -25,20 +26,15 @@ class DefaultFactStorageTest {
         knowledge = (KnowledgeRuntime) service.newKnowledge();
     }
 
-/*
     @Test
     void update() {
+/*
         NextIntSupplier counter = new NextIntSupplier();
         StatefulSessionImpl session = (StatefulSessionImpl) knowledge
                 .newRule()
                 .forEach("$a", TypeA.class)
                 .where("$a.i >= 0")
-                .execute(new Consumer<RhsContext>() {
-                    @Override
-                    public void accept(RhsContext ctx) {
-                        counter.next();
-                    }
-                })
+                .execute(ctx -> counter.next())
                 .createSession();
 
         TypeA a = new TypeA();
@@ -69,6 +65,6 @@ class DefaultFactStorageTest {
         assert main.iterator().reset() == 1 : " Actual: " + main.size();
         assert delta1.size() == 0;
         assert delta2.size() == 0;
-    }
 */
+    }
 }
