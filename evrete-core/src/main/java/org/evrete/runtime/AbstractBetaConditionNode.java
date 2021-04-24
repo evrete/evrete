@@ -29,20 +29,25 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode {
         this.rule = rule;
         this.descriptor = descriptor;
         for (KeyMode keyMode : KeyMode.values()) {
-            stores[keyMode.ordinal()] = rule.getRuntime().memory.memoryFactory.newMemoryKeyCollection(descriptor.getTypes());
+            MemoryKeyCollection store = rule.getRuntime().memory.memoryFactory.newMemoryKeyCollection(descriptor.getTypes());
+            stores[keyMode.ordinal()] = keyMode == KeyMode.OLD_OLD ?
+                    new MemoryKeyCollectionWrapper(store, keyMode)
+                    :
+                    store
+            ;
         }
     }
 
 
     void commitDelta1() {
-        MemoryKeyCollection delta1 = getStore(KeyMode.UNKNOWN_UNKNOWN);
-        MemoryKeyCollection delta2 = getStore(KeyMode.KNOWN_UNKNOWN);
+        MemoryKeyCollection delta1 = getStore(KeyMode.NEW_NEW);
+        MemoryKeyCollection delta2 = getStore(KeyMode.OLD_NEW);
         if (mergeToMain) {
-            MemoryKeyCollection main = getStore(KeyMode.MAIN);
+            MemoryKeyCollection main = getStore(KeyMode.OLD_OLD);
             ReIterator<MemoryKey> it = delta1.iterator();
             while (it.hasNext()) {
                 MemoryKey key = it.next();
-                key.setMetaValue(KeyMode.MAIN.ordinal());
+                //key.setMetaValue(KeyMode.MAIN.ordinal());
                 main.add(key);
             }
             //main.append(delta1);
@@ -89,6 +94,31 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode {
         }
         for (BetaMemoryNode source : getSources()) {
             source.clear();
+        }
+    }
+
+    private static class MemoryKeyCollectionWrapper implements MemoryKeyCollection {
+        MemoryKeyCollection delegate;
+        KeyMode forcedMode;
+
+        MemoryKeyCollectionWrapper(MemoryKeyCollection delegate, KeyMode forcedMode) {
+            this.delegate = delegate;
+            this.forcedMode = forcedMode;
+        }
+
+        @Override
+        public void clear() {
+            delegate.clear();
+        }
+
+        @Override
+        public void add(MemoryKey key) {
+            delegate.add(key);
+        }
+
+        @Override
+        public ReIterator<MemoryKey> iterator() {
+            return new MemoryKeyIterator(delegate.iterator(), forcedMode);
         }
     }
 }

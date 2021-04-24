@@ -1,5 +1,6 @@
 package org.evrete.spi.minimal;
 
+import org.evrete.api.KeyMode;
 import org.evrete.api.MemoryKey;
 import org.evrete.api.ValueHandle;
 
@@ -27,7 +28,7 @@ class MemoryKeySingle implements MemoryKey {
 
     @Override
     public String toString() {
-        return data + "/" + transientValue;
+        return data + "/" + KeyMode.values()[transientValue];
     }
 
     @Override
@@ -40,7 +41,7 @@ class MemoryKeySingle implements MemoryKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MemoryKeySingle other = (MemoryKeySingle) o;
-        return other.transientValue == this.transientValue && Objects.equals(other.data, data);
+        return Objects.equals(other.data, data);
     }
 
     @Override

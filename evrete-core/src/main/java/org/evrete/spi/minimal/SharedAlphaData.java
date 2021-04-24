@@ -23,7 +23,7 @@ class SharedAlphaData implements KeyedFactStorage {
 
     @Override
     public void write(Collection<FactHandleVersioned> factHandles) {
-        LinkedFactHandles data = get(KeyMode.KNOWN_UNKNOWN);
+        LinkedFactHandles data = get(KeyMode.OLD_NEW);
         for (FactHandleVersioned h : factHandles) {
             data.add(h);
         }
@@ -52,8 +52,8 @@ class SharedAlphaData implements KeyedFactStorage {
 
     @Override
     public void commitChanges() {
-        LinkedFactHandles delta = get(KeyMode.KNOWN_UNKNOWN);
-        get(KeyMode.MAIN).consume(delta);
+        LinkedFactHandles delta = get(KeyMode.OLD_NEW);
+        get(KeyMode.OLD_OLD).consume(delta);
     }
 
     private static class KeyIterator implements ReIterator<MemoryKey> {
@@ -62,7 +62,7 @@ class SharedAlphaData implements KeyedFactStorage {
 
         KeyIterator(KeyMode mode) {
             this.row = new MemoryKeyMulti();
-            this.row.setMetaValue(mode.ordinal());
+            //this.row.setMetaValue(mode.ordinal());
         }
 
         @Override

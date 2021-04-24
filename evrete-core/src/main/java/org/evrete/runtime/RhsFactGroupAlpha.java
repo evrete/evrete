@@ -12,8 +12,8 @@ import java.util.EnumMap;
 
 //TODO !!!! use RuntimeAware as parent class
 public class RhsFactGroupAlpha implements RhsFactGroup {
-    private static final MemoryKey KEY_MAIN = new VR(KeyMode.MAIN.ordinal());
-    private static final MemoryKey KEY_DELTA = new VR(KeyMode.KNOWN_UNKNOWN.ordinal());
+    private static final MemoryKey KEY_MAIN = new VR(KeyMode.OLD_OLD.ordinal());
+    private static final MemoryKey KEY_DELTA = new VR(KeyMode.OLD_NEW.ordinal());
     private final RuntimeFactType[] types;
     private final EnumMap<KeyMode, ReIterator<MemoryKey>> keyIterators = new EnumMap<>(KeyMode.class);
 
@@ -45,9 +45,9 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
         }
         ReIterator<MemoryKey> deltaKeyIterator = new CollectionReIterator<>(deltaCollection);
 
-        this.keyIterators.put(KeyMode.MAIN, mainKeyIterator);
-        this.keyIterators.put(KeyMode.KNOWN_UNKNOWN, deltaKeyIterator);
-        this.keyIterators.put(KeyMode.UNKNOWN_UNKNOWN, ReIterator.emptyIterator());
+        this.keyIterators.put(KeyMode.OLD_OLD, mainKeyIterator);
+        this.keyIterators.put(KeyMode.OLD_NEW, deltaKeyIterator);
+        this.keyIterators.put(KeyMode.NEW_NEW, ReIterator.emptyIterator());
     }
 
     @Override

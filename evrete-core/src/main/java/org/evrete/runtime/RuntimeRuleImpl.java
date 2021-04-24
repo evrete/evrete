@@ -5,7 +5,6 @@ import org.evrete.api.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 
@@ -33,7 +32,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
                 int idx = factType.getInRuleIndex();
                 RuntimeFactType runtimeFactType = getFactTypes()[idx];
                 assert factTypeNodes[idx] == null;
-                this.factTypeNodes[idx] = new RhsFactType(runtimeFactType, group);
+                this.factTypeNodes[idx] = new RhsFactType(runtimeFactType);
                 if (nameMapping.put(factType.getName(), idx) != null) {
                     throw new IllegalStateException();
                 }
@@ -80,6 +79,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
         return arr;
     }
 
+/*
     private static String toString(ReIterator<?> it, int group) {
         it.reset();
         StringJoiner main = new StringJoiner(" ");
@@ -94,31 +94,25 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
             } else {
                 counter++;
             }
-/*
-            if(counter % group == 0 && (counter > 0)) {
-                main.add(inner.toString());
-                inner = new StringJoiner(",");
-            }
-            counter++;
-*/
         }
 
         it.reset();
         return main.toString();
     }
+*/
 
     final long executeRhs() {
 /*
-        System.out.print("\tPre RHS:\t\t");
+        System.out.println("\tPre RHS:");
         RhsFactGroup g = this.rhsGroupNodes[0].group;
         for (RuntimeFactType t : g.types()) {
-            System.out.printf("\t%s", t.getName());
+            System.out.println("\t\t" +  t.getName() + "\t" + t.getKeyedFactStorage());
         }
         System.out.println();
         for (KeyMode mode : KeyMode.values()) {
             ReIterator<MemoryKey> it = g.keyIterator(mode);
             String data = toString(it, g.types().length);
-            System.out.printf("%1$20s\t%2$s\n", mode, data);
+            System.out.printf("\t\t%1s\t%2$s\n", mode, data);
         }
 */
 
@@ -145,6 +139,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
             boolean newHasDelta = b || hasDelta;
             if (last) {
                 if (newHasDelta) {
+                    //System.out.println("\t\t\tMode: " + mode);
                     forEachKey(0, consumer);
                 }
             } else {
@@ -243,7 +238,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
 
     static abstract class RhsGroupNode {
         final RhsFactGroup group;
-        KeyMode currentMode;
         ReIterator<MemoryKey> keyIterator;
 
         RhsGroupNode(RhsFactGroup group) {
@@ -251,7 +245,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
         }
 
         final void initIterator(KeyMode mode) {
-            this.currentMode = mode;
             this.keyIterator = group.keyIterator(mode);
         }
 
@@ -277,8 +270,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
 
         void copyKeyState(ReIterator<MemoryKey> iterator) {
             for (RhsFactType t : myFactTypeNodes) {
-                MemoryKey k = iterator.next();
-                t.setCurrentKey(k);
+                t.setCurrentKey(iterator.next());
             }
         }
     }

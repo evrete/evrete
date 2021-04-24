@@ -307,7 +307,6 @@ class SessionUpdateDeleteTests {
     }
 
     @Test
-        //TODO !!!! delete once tested
     void updateBeta2_mini() {
         NextIntSupplier counter = new NextIntSupplier();
 
@@ -327,7 +326,7 @@ class SessionUpdateDeleteTests {
 
         int fireCount = 0;
 
-        int objectCount = 2;
+        int objectCount = 1;
         while (fireCount++ < 2) {
             counter.set(0);
             for (int i = 0; i < objectCount; i++) {

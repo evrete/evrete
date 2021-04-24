@@ -1,15 +1,14 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.IntToValueHandle;
-import org.evrete.api.KeyMode;
 
 import java.util.Objects;
 
 class FactsMapMulti extends AbstractFactsMap<MemoryKeyMulti> {
     private final int fieldCount;
 
-    FactsMapMulti(int fieldCount, KeyMode myMode, int minCapacity) {
-        super(myMode, minCapacity);
+    FactsMapMulti(int fieldCount, int minCapacity) {
+        super(minCapacity);
         this.fieldCount = fieldCount;
     }
 

@@ -1,9 +1,7 @@
 package org.evrete.runtime.evaluation;
 
-import org.evrete.api.Evaluator;
 import org.evrete.api.EvaluatorHandle;
 import org.evrete.runtime.ActiveField;
-import org.evrete.runtime.Evaluators;
 
 public class AlphaEvaluator {
     private final ActiveField[] descriptor;
@@ -20,22 +18,6 @@ public class AlphaEvaluator {
         return index;
     }
 
-    public static Match search(Evaluators evaluators, AlphaEvaluator[] scope, EvaluatorHandle subject) {
-        for (AlphaEvaluator evaluator : scope) {
-            int cmp = evaluators.compare(evaluator.delegate, subject);// evaluator.delegate.compare(subject);
-            switch (cmp) {
-                case Evaluator.RELATION_EQUALS:
-                    return new Match(evaluator, true);
-                case Evaluator.RELATION_INVERSE:
-                    return new Match(evaluator, false);
-                case Evaluator.RELATION_NONE:
-                    continue;
-                default:
-                    throw new IllegalStateException();
-            }
-        }
-        return null;
-    }
 
     @Override
     public String toString() {

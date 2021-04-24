@@ -7,7 +7,7 @@ class KeyedFactStorageMulti extends AbstractKeyedFactStorage<FactsMapMulti> {
     private final MultiState multiState;
 
     KeyedFactStorageMulti(int initialSize, int fieldCount) {
-        super(FactsMapMulti.class, mode -> new FactsMapMulti(fieldCount, mode, initialSize));
+        super(FactsMapMulti.class, mode -> new FactsMapMulti(fieldCount, initialSize));
         this.multiState = new MultiState(fieldCount);
     }
 
@@ -18,9 +18,9 @@ class KeyedFactStorageMulti extends AbstractKeyedFactStorage<FactsMapMulti> {
 
     @Override
     public void commitChanges() {
-        FactsMapMulti main = get(KeyMode.MAIN);
-        main.merge(get(KeyMode.UNKNOWN_UNKNOWN));
-        main.merge(get(KeyMode.KNOWN_UNKNOWN));
+        FactsMapMulti main = get(KeyMode.OLD_OLD);
+        main.merge(get(KeyMode.NEW_NEW));
+        main.merge(get(KeyMode.OLD_NEW));
     }
 
     private static class MultiState extends AbstractKeyedFactStorage.KeyState {

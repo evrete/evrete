@@ -50,7 +50,7 @@ class MemoryKeyMulti implements MemoryKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MemoryKeyMulti other = (MemoryKeyMulti) o;
-        return other.transientValue == this.transientValue && Arrays.equals(other.data, data);
+        return Arrays.equals(other.data, data);
     }
 
     @Override

@@ -1,6 +1,9 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.*;
+import org.evrete.api.FactHandleVersioned;
+import org.evrete.api.IntToValueHandle;
+import org.evrete.api.MemoryKey;
+import org.evrete.api.ReIterator;
 import org.evrete.collections.LinearHashSet;
 
 import java.util.Collection;
@@ -8,15 +11,14 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 
 abstract class AbstractFactsMap<K extends MemoryKey> {
+    private static final ReIterator<FactHandleVersioned> EMPTY = ReIterator.emptyIterator();
     private final LinearHashSet<MapKey<K>> data;
     private final BiPredicate<MapKey<K>, IntToValueHandle> search;
-    private final int myModeOrdinal;
     private final BiPredicate<MapKey<K>, K> SEARCH_PREDICATE = (entry, memoryKey) -> entry.key.equals(memoryKey);
     private final Function<MapKey<K>, MemoryKey> ENTRY_MAPPER = entry -> entry.key;
 
-    AbstractFactsMap(KeyMode myMode, int minCapacity) {
+    AbstractFactsMap(int minCapacity) {
         this.search = this::sameData;
-        this.myModeOrdinal = myMode.ordinal();
         this.data = new LinearHashSet<>(minCapacity);
     }
 
@@ -34,7 +36,6 @@ abstract class AbstractFactsMap<K extends MemoryKey> {
         MapKey<K> entry = data.get(addr);
         if (entry == null) {
             K k = newKeyInstance(key, keyHash);
-            k.setMetaValue(myModeOrdinal);
             entry = new MapKey<>(k);
             // TODO saveDirect is doing unnecessary job
             data.saveDirect(entry, addr);
@@ -56,10 +57,9 @@ abstract class AbstractFactsMap<K extends MemoryKey> {
 
     @SuppressWarnings("unchecked")
     final ReIterator<FactHandleVersioned> values(MemoryKey k) {
-        // TODO !!!! analyze usage, return null and call remove() on the corresponding key iterator
         int addr = addr((K) k);
         MapKey<K> entry = data.get(addr);
-        return entry == null ? ReIterator.emptyIterator() : entry.facts.iterator();
+        return entry == null ? EMPTY : entry.facts.iterator();
     }
 
     final void merge(AbstractFactsMap<K> other) {
@@ -68,7 +68,7 @@ abstract class AbstractFactsMap<K extends MemoryKey> {
     }
 
     private void merge(MapKey<K> otherEntry) {
-        otherEntry.key.setMetaValue(myModeOrdinal);
+        //otherEntry.key.setMetaValue(myModeOrdinal);
         int addr = addr(otherEntry.key);
         MapKey<K> found = data.get(addr);
         if (found == null) {
@@ -109,5 +109,9 @@ abstract class AbstractFactsMap<K extends MemoryKey> {
             return key.hashCode();
         }
 
+        @Override
+        public String toString() {
+            return key + "={" + facts + '}';
+        }
     }
 }

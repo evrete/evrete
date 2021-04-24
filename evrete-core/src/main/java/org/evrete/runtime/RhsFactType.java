@@ -9,16 +9,14 @@ import java.util.Objects;
  */
 class RhsFactType {
     private final RuntimeFactType type;
-    private final RhsFactGroup group;
     FactHandle handle;
     Object value;
     ReIterator<FactHandleVersioned> factIterator;
     private MemoryKey currentKey;
     private FactHandleVersioned currentFactHandle;
 
-    RhsFactType(RuntimeFactType type, RhsFactGroup group) {
+    RhsFactType(RuntimeFactType type) {
         this.type = type;
-        this.group = group;
     }
 
     void resetState() {
@@ -26,14 +24,23 @@ class RhsFactType {
         this.currentKey = null;
     }
 
-    boolean setCurrentKey(MemoryKey key) {
-        if (!Objects.equals(key, this.currentKey)) {
+    void setCurrentKey(MemoryKey key) {
+        if (valueChanged(key)) {
             this.currentKey = key;
             this.currentFactHandle = null;
             KeyMode mode = KeyMode.values()[key.getMetaValue()];
             this.factIterator = type.factIterator(mode, key);
         }
-        return true;
+    }
+
+    private boolean valueChanged(MemoryKey key) {
+        if (currentKey == null) {
+            return true;
+        } else if (currentKey == key) {
+            return false;
+        } else if (currentKey.getMetaValue() != key.getMetaValue()) {
+            return true;
+        } else return !Objects.equals(key, this.currentKey);
     }
 
     boolean setCurrentFact(FactHandleVersioned v) {
@@ -59,7 +66,7 @@ class RhsFactType {
         return "{" +
                 "type=" + type +
                 ", key=" + currentKey +
-                ", fact=" + currentFactHandle +
+                //", fact=" + currentFactHandle +
                 '}';
     }
 }

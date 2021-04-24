@@ -83,11 +83,11 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
     private void forEachKeyMode(int sourceIndex, boolean hasDelta, boolean hasKnownKeys, KeyMode[] modes, boolean deltaOnly) {
         for (KeyMode mode : KeyMode.values()) {
             boolean newHasDelta = hasDelta || mode.isDelta();
-            boolean newHasKnownKeys = hasKnownKeys || (mode == KeyMode.KNOWN_UNKNOWN);
+            boolean newHasKnownKeys = hasKnownKeys || (mode == KeyMode.OLD_NEW);
             modes[sourceIndex] = mode;
             if (sourceIndex == sourceMetas.length - 1) {
                 if (newHasDelta || (!deltaOnly)) {
-                    KeyMode destinationMode = newHasKnownKeys ? KeyMode.KNOWN_UNKNOWN : KeyMode.UNKNOWN_UNKNOWN;
+                    KeyMode destinationMode = newHasKnownKeys ? KeyMode.OLD_NEW : KeyMode.NEW_NEW;
                     forEachModeSelection(destinationMode, modes);
                 }
             } else {

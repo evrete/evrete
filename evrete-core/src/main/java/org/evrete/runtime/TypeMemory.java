@@ -112,8 +112,7 @@ public final class TypeMemory extends MemoryComponent {
     void commitBuffer() {
 
         betaMemories.forEach(KeyMemory::commitBuffer);
-
-        //purge(KeyMode.values());
+        //purge(KeyMode.OLD_OLD);
 
     }
 
@@ -130,7 +129,8 @@ public final class TypeMemory extends MemoryComponent {
                     KeyMemory keyMemory = it1.next();
                     ReIterator<KeyMemoryBucket> buckets = keyMemory.getAlphaBuckets().iterator();
                     while (buckets.hasNext()) {
-                        KeyedFactStorage facts = buckets.next().getFieldData();
+                        KeyMemoryBucket bucket = buckets.next();
+                        KeyedFactStorage facts = bucket.getFieldData();
                         ReIterator<MemoryKey> keys = facts.keys(scanMode);
                         while (keys.hasNext()) {
                             MemoryKey key = keys.next();
@@ -140,6 +140,7 @@ public final class TypeMemory extends MemoryComponent {
                                 FactRecord fact = factStorage.getFact(handle.getHandle());
                                 if (fact == null || fact.getVersion() != handle.getVersion()) {
                                     // No such fact, deleting
+                                    //System.out.println("Deleting " + handle + " from " + bucket);
                                     handles.remove();
                                 }
                             }

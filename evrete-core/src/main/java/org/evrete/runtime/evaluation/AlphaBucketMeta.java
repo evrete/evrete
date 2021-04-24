@@ -4,9 +4,9 @@ import org.evrete.util.Bits;
 
 import java.util.*;
 
-public abstract class AlphaBucketMeta {
+public abstract class AlphaBucketMeta implements MemoryBucket {
     private static final Set<AlphaEvaluator.Match> EMPTY_COMPONENTS = new HashSet<>();
-    final int bucketIndex;
+    private final int bucketIndex;
     private final Set<AlphaEvaluator.Match> key;
 
     private AlphaBucketMeta(int bucketIndex, Set<AlphaEvaluator.Match> matches) {
@@ -25,8 +25,6 @@ public abstract class AlphaBucketMeta {
         }
     }
 
-    public abstract boolean test(Bits mask);
-
     public final boolean sameKey(Set<AlphaEvaluator.Match> other) {
         if (this.key.isEmpty() && other.isEmpty()) {
             return true;
@@ -39,10 +37,10 @@ public abstract class AlphaBucketMeta {
         return this.key.isEmpty();
     }
 
+    @Override
     public final int getBucketIndex() {
         return bucketIndex;
     }
-
 
     private static final class Empty extends AlphaBucketMeta {
 
@@ -74,7 +72,6 @@ public abstract class AlphaBucketMeta {
     }
 
     private static final class Multi extends AlphaBucketMeta {
-        private final AlphaEvaluator[] alphaEvaluators;
         private final int[] bitIndices;
         private final Bits expectedValues = new Bits();
 
@@ -82,13 +79,9 @@ public abstract class AlphaBucketMeta {
             super(bucketIndex, matches);
             List<AlphaEvaluator.Match> sortedMatches = new ArrayList<>(matches);
             sortedMatches.sort(Comparator.comparingDouble(o -> o.matched.getDelegate().getComplexity()));
-
-            this.alphaEvaluators = new AlphaEvaluator[sortedMatches.size()];
             this.bitIndices = new int[sortedMatches.size()];
-
             int i = 0;
             for (AlphaEvaluator.Match match : sortedMatches) {
-                this.alphaEvaluators[i] = match.matched;
                 this.bitIndices[i] = match.matched.getIndex();
                 if (match.direct) {
                     this.expectedValues.set(match.matched.getIndex());
@@ -108,8 +101,7 @@ public abstract class AlphaBucketMeta {
 
         @Override
         public String toString() {
-            return "{bucket=" + bucketIndex +
-                    ", evaluators=" + Arrays.toString(alphaEvaluators) +
+            return "{bucket=" + getBucketIndex() +
                     ", values=" + expectedValues +
                     '}';
         }

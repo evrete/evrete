@@ -10,11 +10,13 @@ import org.evrete.util.RhsAssert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static org.evrete.api.FactBuilder.fact;
 
@@ -1585,4 +1587,51 @@ class SessionBaseTests {
         rhsAssert.assertCount(3).reset();
 
     }
+
+    @Test
+    void multiStep1() {
+        Predicate<Object[]> beta = arr -> {
+            int a1i = (int) arr[0];
+            int b1i = (int) arr[1];
+            return a1i != b1i;
+        };
+
+
+        RhsAssert rhsAssert = new RhsAssert(
+                "$a", TypeA.class,
+                "$b", TypeB.class
+        );
+        knowledge.newRule("test alpha 1")
+                .forEach(
+                        "$a", TypeA.class,
+                        "$b", TypeB.class
+                )
+                .where(beta, "$a.i", "$b.i")
+                .execute(rhsAssert);
+
+        StatefulSession s1 = knowledge.createSession();
+
+
+        TypeA a1 = new TypeA("a1");
+        a1.setAllNumeric(1);
+
+        TypeA a2 = new TypeA("a2");
+        a2.setAllNumeric(1);
+
+        s1.insertAndFire(a1, a2);
+        rhsAssert.assertCount(0);
+        rhsAssert.reset();
+
+        TypeA a3 = new TypeA("a3");
+        a3.setAllNumeric(1);
+        TypeB b1 = new TypeB("b1");
+        b1.setAllNumeric(-1);
+
+        s1.insertAndFire(a3, b1);
+        rhsAssert.assertCount(3);
+        rhsAssert.reset();
+
+    }
+
+
 }

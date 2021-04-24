@@ -1,15 +1,14 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.IntToValueHandle;
-import org.evrete.api.KeyMode;
 import org.evrete.api.ValueHandle;
 
 import java.util.Objects;
 
 class FactsMapSingle extends AbstractFactsMap<MemoryKeySingle> {
 
-    FactsMapSingle(KeyMode myMode, int minCapacity) {
-        super(myMode, minCapacity);
+    FactsMapSingle(int minCapacity) {
+        super(minCapacity);
     }
 
     @Override

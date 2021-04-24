@@ -19,4 +19,8 @@ class RuntimeFactType extends FactType {
     ReIterator<FactHandleVersioned> factIterator(KeyMode mode, MemoryKey key) {
         return keyedFactStorage.values(mode, key);
     }
+
+    public KeyedFactStorage getKeyedFactStorage() {
+        return keyedFactStorage;
+    }
 }

@@ -60,7 +60,7 @@ class TypeMemoryMetaData {
         AlphaEvaluator[] existing = this.alphaEvaluators;
         Set<AlphaEvaluator.Match> matches = new HashSet<>();
         for (EvaluatorHandle handle : alphaEvaluators) {
-            AlphaEvaluator.Match match = AlphaEvaluator.search(evaluators, existing, handle);
+            AlphaEvaluator.Match match = evaluators.search(existing, handle);
             if (match == null) {
                 // No such evaluator, creating a new one
                 AlphaEvaluator alphaEvaluator = this.append(handle, convertDescriptor(handle.descriptor()));
@@ -81,7 +81,7 @@ class TypeMemoryMetaData {
             }
         }
 
-        // Not found creating a new one
+        // Not found, creating a new one
         int bucketIndex = fieldKeyMeta.alphaBuckets.length;
         AlphaBucketMeta newMeta = AlphaBucketMeta.factory(bucketIndex, matches);
         fieldKeyMeta.alphaBuckets = Arrays.copyOf(fieldKeyMeta.alphaBuckets, fieldKeyMeta.alphaBuckets.length + 1);
@@ -132,6 +132,7 @@ class TypeMemoryMetaData {
         FieldKeyMeta(FieldKeyMeta other) {
             this.alphaBuckets = Arrays.copyOf(other.alphaBuckets, other.alphaBuckets.length);
         }
+
 
         @Override
         public FieldKeyMeta copyOf() {

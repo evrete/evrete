@@ -8,7 +8,7 @@ class KeyedFactStorageSingle extends AbstractKeyedFactStorage<FactsMapSingle> {
     private final SingleState state = new SingleState();
 
     KeyedFactStorageSingle(int initialSize) {
-        super(FactsMapSingle.class, mode -> new FactsMapSingle(mode, initialSize));
+        super(FactsMapSingle.class, mode -> new FactsMapSingle(initialSize));
     }
 
     @Override
@@ -20,9 +20,9 @@ class KeyedFactStorageSingle extends AbstractKeyedFactStorage<FactsMapSingle> {
 
     @Override
     public void commitChanges() {
-        FactsMapSingle main = get(KeyMode.MAIN);
-        main.merge(get(KeyMode.UNKNOWN_UNKNOWN));
-        main.merge(get(KeyMode.KNOWN_UNKNOWN));
+        FactsMapSingle main = get(KeyMode.OLD_OLD);
+        main.merge(get(KeyMode.NEW_NEW));
+        main.merge(get(KeyMode.OLD_NEW));
     }
 
     private static class SingleState extends AbstractKeyedFactStorage.KeyState {

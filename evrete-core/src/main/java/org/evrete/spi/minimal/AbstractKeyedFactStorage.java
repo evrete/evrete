@@ -3,11 +3,12 @@ package org.evrete.spi.minimal;
 import org.evrete.api.*;
 import org.evrete.util.CollectionUtils;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Function;
 
 abstract class AbstractKeyedFactStorage<T extends AbstractFactsMap<?>> implements KeyedFactStorage {
-    private final T[] maps;// = new FieldsFactMap[KeyMode.values().length];
+    private final T[] maps;
     private KeyState currentRecord = null;
 
     AbstractKeyedFactStorage(Class<T> mapType, Function<KeyMode, T> mapSupplier) {
@@ -33,12 +34,12 @@ abstract class AbstractKeyedFactStorage<T extends AbstractFactsMap<?>> implement
     }
 
     private void insert(IntToValueHandle key, int keyHash, Collection<FactHandleVersioned> factHandles) {
-        if (get(KeyMode.MAIN).hasKey(keyHash, key)) {
+        if (get(KeyMode.OLD_OLD).hasKey(keyHash, key)) {
             // Existing key
-            get(KeyMode.KNOWN_UNKNOWN).add(key, keyHash, factHandles);
+            get(KeyMode.OLD_NEW).add(key, keyHash, factHandles);
         } else {
             // New key
-            get(KeyMode.UNKNOWN_UNKNOWN).add(key, keyHash, factHandles);
+            get(KeyMode.NEW_NEW).add(key, keyHash, factHandles);
         }
     }
 
@@ -65,5 +66,10 @@ abstract class AbstractKeyedFactStorage<T extends AbstractFactsMap<?>> implement
     static class KeyState {
         int hash;
         IntToValueHandle values;
+    }
+
+    @Override
+    public String toString() {
+        return Arrays.toString(maps);
     }
 }
