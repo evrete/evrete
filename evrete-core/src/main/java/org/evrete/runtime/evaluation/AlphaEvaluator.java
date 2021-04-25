@@ -18,7 +18,6 @@ public class AlphaEvaluator {
         return index;
     }
 
-
     @Override
     public String toString() {
         return "AlphaEvaluator{" +
@@ -33,29 +32,6 @@ public class AlphaEvaluator {
 
     public EvaluatorHandle getDelegate() {
         return delegate;
-    }
-
-    public static class Match {
-        final AlphaEvaluator matched;
-        final boolean direct;
-
-        public Match(AlphaEvaluator matched, boolean direct) {
-            this.matched = matched;
-            this.direct = direct;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Match match = (Match) o;
-            return direct == match.direct && matched.equals(match.matched);
-        }
-
-        @Override
-        public int hashCode() {
-            return matched.hashCode() + 37 * Boolean.hashCode(direct);
-        }
     }
 
 }

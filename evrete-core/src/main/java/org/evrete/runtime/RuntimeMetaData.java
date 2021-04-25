@@ -3,8 +3,8 @@ package org.evrete.runtime;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
-import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.EvaluatorWrapper;
+import org.evrete.runtime.evaluation.MemoryAddress;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -102,7 +102,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         return meta.getCreate(field);
     }
 
-    synchronized AlphaBucketMeta buildAlphaMask(FieldsKey key, Set<EvaluatorHandle> alphaEvaluators) {
+    synchronized MemoryAddress buildAlphaMask(FieldsKey key, Set<EvaluatorHandle> alphaEvaluators) {
         TypeMemoryMetaData typeMeta = getTypeMeta(key.type());
         return typeMeta.buildAlphaMask(key, alphaEvaluators);
     }

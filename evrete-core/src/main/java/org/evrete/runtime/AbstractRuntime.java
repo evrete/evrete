@@ -5,7 +5,7 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.runtime.async.ForkJoinExecutor;
 import org.evrete.runtime.builder.RuleBuilderImpl;
-import org.evrete.runtime.evaluation.AlphaBucketMeta;
+import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.DefaultActivationManager;
 import org.evrete.util.compiler.CompilationException;
 
@@ -133,8 +133,8 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
 
     FactType buildFactType(NamedType builder, Set<TypeField> fields, Set<EvaluatorHandle> alphaEvaluators, int inRuleId) {
         FieldsKey fieldsKey = getCreateMemoryKey(builder.getType(), fields);
-        AlphaBucketMeta alphaMask = buildAlphaMask(fieldsKey, alphaEvaluators);
-        return new FactType(builder.getName(), alphaMask, fieldsKey, inRuleId);
+        MemoryAddress memoryAddress = buildAlphaMask(fieldsKey, alphaEvaluators);
+        return new FactType(builder.getName(), memoryAddress, fieldsKey, inRuleId);
     }
 
     @Override

@@ -9,7 +9,7 @@ class RuntimeFactType extends FactType {
     RuntimeFactType(FactType type, SessionMemory memory) {
         super(type);
         this.typeMemory = memory.get(type.type());
-        this.keyedFactStorage = memory.get(type.type()).get(type.getFields()).get(type.getAlphaMask());
+        this.keyedFactStorage = memory.get(type.type()).get(type.getFields()).get(type.getMemoryBucket());
     }
 
     FactRecord get(FactHandle handle) {

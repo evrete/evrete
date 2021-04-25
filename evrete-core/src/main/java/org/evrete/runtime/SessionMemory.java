@@ -4,7 +4,7 @@ import org.evrete.api.KeyedFactStorage;
 import org.evrete.api.MemoryFactory;
 import org.evrete.api.Type;
 import org.evrete.collections.ArrayOf;
-import org.evrete.runtime.evaluation.AlphaBucketMeta;
+import org.evrete.runtime.evaluation.MemoryAddress;
 
 import java.util.Iterator;
 
@@ -29,14 +29,14 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
         getCreateUpdate(newField.type());
     }
 
-    void onNewAlphaBucket(int type, FieldsKey key, AlphaBucketMeta meta) {
-        getCreateUpdate(type)
-                .onNewAlphaBucket(key, meta);
+    void onNewAlphaBucket(MemoryAddress address) {
+        getCreateUpdate(address.fields().type())
+                .onNewAlphaBucket(address);
     }
 
     KeyedFactStorage getBetaFactStorage(FactType factType) {
         FieldsKey fields = factType.getFields();
-        AlphaBucketMeta mask = factType.getAlphaMask();
+        MemoryAddress mask = factType.getMemoryBucket();
         return get(factType.type()).get(fields).get(mask);
     }
 
@@ -66,9 +66,5 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
 
     void commitBuffer() {
         typedMemories.forEach(TypeMemory::commitBuffer);
-    }
-
-    public void debug() {
-        typedMemories.forEach(TypeMemory::debug);
     }
 }

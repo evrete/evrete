@@ -2,7 +2,7 @@ package org.evrete.runtime;
 
 import org.evrete.Configuration;
 import org.evrete.api.*;
-import org.evrete.runtime.evaluation.AlphaBucketMeta;
+import org.evrete.runtime.evaluation.MemoryAddress;
 
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
@@ -101,8 +101,8 @@ abstract class AbstractWorkingMemory<S extends RuleSession<S>> extends AbstractR
     }
 
     @Override
-    public final void onNewAlphaBucket(int type, FieldsKey key, AlphaBucketMeta meta) {
-        memory.onNewAlphaBucket(type, key, meta);
+    public final void onNewAlphaBucket(MemoryAddress address) {
+        memory.onNewAlphaBucket(address);
     }
 
     @Override

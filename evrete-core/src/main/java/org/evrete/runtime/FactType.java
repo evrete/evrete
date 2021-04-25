@@ -1,7 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.TypeField;
-import org.evrete.runtime.evaluation.AlphaBucketMeta;
+import org.evrete.runtime.evaluation.MemoryAddress;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -11,20 +11,20 @@ public class FactType {
     public static final FactType[] ZERO_ARRAY = new FactType[0];
     private static final Comparator<FactType> COMPARATOR = Comparator.comparingInt(FactType::getInRuleIndex);
     private final String name;
-    private final AlphaBucketMeta alphaMask;
+    private final MemoryAddress memoryAddress;
     private final FieldsKey fields;
     private final int inRuleIndex;
 
-    FactType(String name, AlphaBucketMeta alphaMask, FieldsKey fields, int inRuleIndex) {
+    FactType(String name, MemoryAddress memoryAddress, FieldsKey fields, int inRuleIndex) {
         this.name = name;
-        this.alphaMask = alphaMask;
+        this.memoryAddress = memoryAddress;
         this.fields = fields;
         this.inRuleIndex = inRuleIndex;
     }
 
     FactType(FactType other) {
         this.name = other.name;
-        this.alphaMask = other.alphaMask;
+        this.memoryAddress = other.memoryAddress;
         this.fields = other.fields;
         this.inRuleIndex = other.inRuleIndex;
     }
@@ -49,8 +49,8 @@ public class FactType {
         return fields;
     }
 
-    AlphaBucketMeta getAlphaMask() {
-        return alphaMask;
+    MemoryAddress getMemoryBucket() {
+        return memoryAddress;
     }
 
     public String getName() {

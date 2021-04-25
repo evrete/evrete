@@ -3,7 +3,7 @@ package org.evrete.runtime;
 import org.evrete.api.FactHandleVersioned;
 import org.evrete.api.KeyedFactStorage;
 import org.evrete.api.ValueHandle;
-import org.evrete.runtime.evaluation.AlphaBucketMeta;
+import org.evrete.runtime.evaluation.MemoryAddress;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -22,30 +22,32 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
     final Collection<FactHandleVersioned> insertData = new LinkedList<>();
     RuntimeFact current = null;
 
-    KeyMemoryBucket(MemoryComponent runtime, FieldsKey typeFields) {
+    KeyMemoryBucket(MemoryComponent runtime, MemoryAddress address) {
         super(runtime);
-        this.fieldData = memoryFactory.newBetaStorage(typeFields.getFields().length);
-        this.activeFields = typeFields.getFields();
+        FieldsKey fields = address.fields();
+        this.fieldData = memoryFactory.newBetaStorage(fields.getFields().length);
+        this.activeFields = fields.getFields();
     }
 
-    static KeyMemoryBucket factory(MemoryComponent runtime, FieldsKey typeFields, AlphaBucketMeta alphaMask) {
-        if (alphaMask.isEmpty()) {
-            switch (typeFields.size()) {
+    static KeyMemoryBucket factory(MemoryComponent runtime, MemoryAddress address) {
+        int fieldCount = address.fields().size();
+        if (address.isEmpty()) {
+            switch (fieldCount) {
                 case 0:
-                    return new KeyMemoryBucketNoAlpha.KeyMemoryBucketNoAlpha0(runtime, typeFields);
+                    return new KeyMemoryBucketNoAlpha.KeyMemoryBucketNoAlpha0(runtime, address);
                 case 1:
-                    return new KeyMemoryBucketNoAlpha.KeyMemoryBucketNoAlpha1(runtime, typeFields);
+                    return new KeyMemoryBucketNoAlpha.KeyMemoryBucketNoAlpha1(runtime, address);
                 default:
-                    return new KeyMemoryBucketNoAlpha.KeyMemoryBucketNoAlphaN(runtime, typeFields);
+                    return new KeyMemoryBucketNoAlpha.KeyMemoryBucketNoAlphaN(runtime, address);
             }
         } else {
-            switch (typeFields.size()) {
+            switch (fieldCount) {
                 case 0:
-                    return new KeyMemoryBucketAlpha.KeyMemoryBucketAlpha0(runtime, typeFields, alphaMask);
+                    return new KeyMemoryBucketAlpha.KeyMemoryBucketAlpha0(runtime, address);
                 case 1:
-                    return new KeyMemoryBucketAlpha.KeyMemoryBucketAlpha1(runtime, typeFields, alphaMask);
+                    return new KeyMemoryBucketAlpha.KeyMemoryBucketAlpha1(runtime, address);
                 default:
-                    return new KeyMemoryBucketAlpha.KeyMemoryBucketAlphaN(runtime, typeFields, alphaMask);
+                    return new KeyMemoryBucketAlpha.KeyMemoryBucketAlphaN(runtime, address);
             }
         }
     }
@@ -77,18 +79,18 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
     }
 
     abstract static class KeyMemoryBucketAlpha extends KeyMemoryBucket {
-        private final AlphaBucketMeta alphaMask;
+        private final MemoryAddress memoryAddress;
 
-        KeyMemoryBucketAlpha(MemoryComponent runtime, FieldsKey typeFields, AlphaBucketMeta alphaMask) {
-            super(runtime, typeFields);
-            this.alphaMask = alphaMask;
+        KeyMemoryBucketAlpha(MemoryComponent runtime, MemoryAddress address) {
+            super(runtime, address);
+            this.memoryAddress = address;
         }
 
         @Override
         final void insert(Iterable<RuntimeFact> facts) {
             current = DUMMY_FACT;
             for (RuntimeFact fact : facts) {
-                if (alphaMask.test(fact.alphaTests)) {
+                if (memoryAddress.testAlphaBits(fact.alphaTests)) {
                     if (current.sameValues(fact)) {
                         insertData.add(fact.factHandle);
                     } else {
@@ -107,8 +109,8 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
 
         static class KeyMemoryBucketAlpha0 extends KeyMemoryBucketAlpha {
 
-            KeyMemoryBucketAlpha0(MemoryComponent runtime, FieldsKey typeFields, AlphaBucketMeta alphaMask) {
-                super(runtime, typeFields, alphaMask);
+            KeyMemoryBucketAlpha0(MemoryComponent runtime, MemoryAddress address) {
+                super(runtime, address);
             }
 
             @Override
@@ -123,10 +125,10 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
         static class KeyMemoryBucketAlpha1 extends KeyMemoryBucketAlpha {
             private final ActiveField field;
 
-            KeyMemoryBucketAlpha1(MemoryComponent runtime, FieldsKey typeFields, AlphaBucketMeta alphaMask) {
-                super(runtime, typeFields, alphaMask);
-                assert typeFields.size() == 1;
-                this.field = typeFields.getFields()[0];
+            KeyMemoryBucketAlpha1(MemoryComponent runtime, MemoryAddress address) {
+                super(runtime, address);
+                assert address.fields().size() == 1;
+                this.field = address.fields().getFields()[0];
             }
 
             @Override
@@ -141,8 +143,8 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
 
         static class KeyMemoryBucketAlphaN extends KeyMemoryBucketAlpha {
 
-            KeyMemoryBucketAlphaN(MemoryComponent runtime, FieldsKey typeFields, AlphaBucketMeta alphaMask) {
-                super(runtime, typeFields, alphaMask);
+            KeyMemoryBucketAlphaN(MemoryComponent runtime, MemoryAddress address) {
+                super(runtime, address);
             }
 
             @Override
@@ -160,8 +162,8 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
 
     abstract static class KeyMemoryBucketNoAlpha extends KeyMemoryBucket {
 
-        KeyMemoryBucketNoAlpha(MemoryComponent runtime, FieldsKey typeFields) {
-            super(runtime, typeFields);
+        KeyMemoryBucketNoAlpha(MemoryComponent runtime, MemoryAddress address) {
+            super(runtime, address);
         }
 
         @Override
@@ -184,8 +186,8 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
 
         static class KeyMemoryBucketNoAlpha0 extends KeyMemoryBucketNoAlpha {
 
-            KeyMemoryBucketNoAlpha0(MemoryComponent runtime, FieldsKey typeFields) {
-                super(runtime, typeFields);
+            KeyMemoryBucketNoAlpha0(MemoryComponent runtime, MemoryAddress address) {
+                super(runtime, address);
             }
 
             @Override
@@ -200,10 +202,10 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
         static class KeyMemoryBucketNoAlpha1 extends KeyMemoryBucketNoAlpha {
             private final ActiveField field;
 
-            KeyMemoryBucketNoAlpha1(MemoryComponent runtime, FieldsKey typeFields) {
-                super(runtime, typeFields);
-                assert typeFields.size() == 1;
-                this.field = typeFields.getFields()[0];
+            KeyMemoryBucketNoAlpha1(MemoryComponent runtime, MemoryAddress address) {
+                super(runtime, address);
+                assert address.fields().size() == 1;
+                this.field = address.fields().getFields()[0];
             }
 
             @Override
@@ -218,8 +220,8 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
 
         static class KeyMemoryBucketNoAlphaN extends KeyMemoryBucketNoAlpha {
 
-            KeyMemoryBucketNoAlphaN(MemoryComponent runtime, FieldsKey typeFields) {
-                super(runtime, typeFields);
+            KeyMemoryBucketNoAlphaN(MemoryComponent runtime, MemoryAddress address) {
+                super(runtime, address);
             }
 
             @Override

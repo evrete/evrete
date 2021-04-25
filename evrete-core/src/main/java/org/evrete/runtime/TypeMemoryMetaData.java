@@ -1,16 +1,12 @@
 package org.evrete.runtime;
 
-import org.evrete.api.Copyable;
-import org.evrete.api.EvaluatorHandle;
-import org.evrete.api.FieldReference;
-import org.evrete.api.TypeField;
+import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
-import org.evrete.runtime.evaluation.AlphaBucketMeta;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
+import org.evrete.runtime.evaluation.MemoryAddress;
+import org.evrete.util.Bits;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 class TypeMemoryMetaData {
     private final int type;
@@ -19,7 +15,6 @@ class TypeMemoryMetaData {
     private final ArrayOf<FieldKeyMeta> keyMetas;
     ActiveField[] activeFields;
     AlphaEvaluator[] alphaEvaluators;
-
 
     TypeMemoryMetaData(int type, Evaluators evaluators, MetaChangeListener listener) {
         this.type = type;
@@ -56,16 +51,16 @@ class TypeMemoryMetaData {
         return new TypeMemoryMetaData(this, evaluators, listener);
     }
 
-    synchronized AlphaBucketMeta buildAlphaMask(FieldsKey key, Set<EvaluatorHandle> alphaEvaluators) {
+    synchronized TypeMemoryMeta buildAlphaMask(FieldsKey key, Set<EvaluatorHandle> alphaEvaluators) {
         AlphaEvaluator[] existing = this.alphaEvaluators;
-        Set<AlphaEvaluator.Match> matches = new HashSet<>();
+        Set<MatchedAlphaEvaluator> matches = new HashSet<>();
         for (EvaluatorHandle handle : alphaEvaluators) {
-            AlphaEvaluator.Match match = evaluators.search(existing, handle);
+            MatchedAlphaEvaluator match = MatchedAlphaEvaluator.search(evaluators, existing, handle);
             if (match == null) {
                 // No such evaluator, creating a new one
                 AlphaEvaluator alphaEvaluator = this.append(handle, convertDescriptor(handle.descriptor()));
                 existing = this.alphaEvaluators;
-                matches.add(new AlphaEvaluator.Match(alphaEvaluator, true));
+                matches.add(new MatchedAlphaEvaluator(alphaEvaluator, true));
             } else {
                 matches.add(match);
             }
@@ -75,19 +70,15 @@ class TypeMemoryMetaData {
         // their unique combinations are converted to a alpha bucket meta-data
         FieldKeyMeta fieldKeyMeta = getKeyMeta(key);
 
-        for (AlphaBucketMeta meta : fieldKeyMeta.alphaBuckets) {
+        for (TypeMemoryMeta meta : fieldKeyMeta.alphaBuckets) {
             if (meta.sameKey(matches)) {
                 return meta;
             }
         }
 
         // Not found, creating a new one
-        int bucketIndex = fieldKeyMeta.alphaBuckets.length;
-        AlphaBucketMeta newMeta = AlphaBucketMeta.factory(bucketIndex, matches);
-        fieldKeyMeta.alphaBuckets = Arrays.copyOf(fieldKeyMeta.alphaBuckets, fieldKeyMeta.alphaBuckets.length + 1);
-        fieldKeyMeta.alphaBuckets[bucketIndex] = newMeta;
-
-        listener.onNewAlphaBucket(type, key, newMeta);
+        TypeMemoryMeta newMeta = fieldKeyMeta.newMeta(matches);
+        listener.onNewAlphaBucket(newMeta);
         return newMeta;
     }
 
@@ -118,21 +109,31 @@ class TypeMemoryMetaData {
     }
 
     private FieldKeyMeta getKeyMeta(FieldsKey key) {
-        return keyMetas.computeIfAbsent(key.getId(), k -> new FieldKeyMeta());
+        return keyMetas.computeIfAbsent(key.getId(), k -> new FieldKeyMeta(key));
     }
 
 
     private static class FieldKeyMeta implements Copyable<FieldKeyMeta> {
-        private AlphaBucketMeta[] alphaBuckets;
+        private final FieldsKey fields;
+        private TypeMemoryMeta[] alphaBuckets;
 
-        FieldKeyMeta() {
-            this.alphaBuckets = new AlphaBucketMeta[0];
+        FieldKeyMeta(FieldsKey fields) {
+            this.fields = fields;
+            this.alphaBuckets = new TypeMemoryMeta[0];
         }
 
         FieldKeyMeta(FieldKeyMeta other) {
+            this.fields = other.fields;
             this.alphaBuckets = Arrays.copyOf(other.alphaBuckets, other.alphaBuckets.length);
         }
 
+        synchronized TypeMemoryMeta newMeta(Set<MatchedAlphaEvaluator> matches) {
+            int bucketIndex = alphaBuckets.length;
+            TypeMemoryMeta newMeta = TypeMemoryMeta.factory(bucketIndex, fields, matches);
+            alphaBuckets = Arrays.copyOf(alphaBuckets, alphaBuckets.length + 1);
+            alphaBuckets[bucketIndex] = newMeta;
+            return newMeta;
+        }
 
         @Override
         public FieldKeyMeta copyOf() {
@@ -140,4 +141,156 @@ class TypeMemoryMetaData {
         }
     }
 
+    static class MatchedAlphaEvaluator {
+        final AlphaEvaluator matched;
+        final boolean direct;
+
+        MatchedAlphaEvaluator(AlphaEvaluator matched, boolean direct) {
+            this.matched = matched;
+            this.direct = direct;
+        }
+
+        static TypeMemoryMetaData.MatchedAlphaEvaluator search(Evaluators evaluators, AlphaEvaluator[] scope, EvaluatorHandle subject) {
+            for (AlphaEvaluator evaluator : scope) {
+                int cmp = evaluators.compare(evaluator.getDelegate(), subject);// evaluator.delegate.compare(subject);
+                switch (cmp) {
+                    case Evaluator.RELATION_EQUALS:
+                        return new TypeMemoryMetaData.MatchedAlphaEvaluator(evaluator, true);
+                    case Evaluator.RELATION_INVERSE:
+                        return new TypeMemoryMetaData.MatchedAlphaEvaluator(evaluator, false);
+                    case Evaluator.RELATION_NONE:
+                        continue;
+                    default:
+                        throw new IllegalStateException();
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            MatchedAlphaEvaluator match = (MatchedAlphaEvaluator) o;
+            return direct == match.direct && matched.equals(match.matched);
+        }
+
+        @Override
+        public int hashCode() {
+            return matched.hashCode() + 37 * Boolean.hashCode(direct);
+        }
+
+    }
+
+    public abstract static class TypeMemoryMeta implements MemoryAddress {
+        private static final Set<MatchedAlphaEvaluator> EMPTY_COMPONENTS = new HashSet<>();
+        private final int bucketIndex;
+        private final FieldsKey typeFields;
+        private final Set<MatchedAlphaEvaluator> key;
+
+        private TypeMemoryMeta(int bucketIndex, FieldsKey fields, Set<MatchedAlphaEvaluator> matches) {
+            this.bucketIndex = bucketIndex;
+            this.key = matches;
+            this.typeFields = fields;
+        }
+
+        static TypeMemoryMeta factory(int bucketIndex, FieldsKey fields, Set<MatchedAlphaEvaluator> matches) {
+            switch (matches.size()) {
+                case 0:
+                    return new Empty(bucketIndex, fields);
+                case 1:
+                    return new Single(bucketIndex, fields, matches);
+                default:
+                    return new Multi(bucketIndex, fields, matches);
+            }
+        }
+
+        @Override
+        public FieldsKey fields() {
+            return typeFields;
+        }
+
+        final boolean sameKey(Set<MatchedAlphaEvaluator> other) {
+            if (this.key.isEmpty() && other.isEmpty()) {
+                return true;
+            } else {
+                return this.key.equals(other);
+            }
+        }
+
+        @Override
+        public final boolean isEmpty() {
+            return this.key.isEmpty();
+        }
+
+        @Override
+        public final int getBucketIndex() {
+            return bucketIndex;
+        }
+
+        public static final class Empty extends TypeMemoryMeta {
+
+            Empty(int bucketIndex, FieldsKey fields) {
+                super(bucketIndex, fields, EMPTY_COMPONENTS);
+            }
+
+            @Override
+            public boolean testAlphaBits(Bits mask) {
+                return true;
+            }
+        }
+
+        public static final class Single extends TypeMemoryMeta {
+            private final int bitIndex;
+            private final boolean expectedValue;
+
+            Single(int bucketIndex, FieldsKey fields, Set<MatchedAlphaEvaluator> matches) {
+                super(bucketIndex, fields, matches);
+                MatchedAlphaEvaluator match = matches.iterator().next();
+                this.expectedValue = match.direct;
+                this.bitIndex = match.matched.getIndex();
+            }
+
+            @Override
+            public boolean testAlphaBits(Bits mask) {
+                return mask.get(bitIndex) == expectedValue;
+            }
+        }
+
+        public static final class Multi extends TypeMemoryMeta {
+            private final int[] bitIndices;
+            private final Bits expectedValues = new Bits();
+
+            Multi(int bucketIndex, FieldsKey fields, Set<MatchedAlphaEvaluator> matches) {
+                super(bucketIndex, fields, matches);
+                List<MatchedAlphaEvaluator> sortedMatches = new ArrayList<>(matches);
+                sortedMatches.sort(Comparator.comparingDouble(o -> o.matched.getDelegate().getComplexity()));
+                this.bitIndices = new int[sortedMatches.size()];
+                int i = 0;
+                for (MatchedAlphaEvaluator match : sortedMatches) {
+                    this.bitIndices[i] = match.matched.getIndex();
+                    if (match.direct) {
+                        this.expectedValues.set(match.matched.getIndex());
+                    }
+                    i++;
+                }
+            }
+
+            public boolean testAlphaBits(Bits mask) {
+                for (int idx : bitIndices) {
+                    if (mask.get(idx) != expectedValues.get(idx)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            @Override
+            public String toString() {
+                return "{bucket=" + getBucketIndex() +
+                        ", values=" + expectedValues +
+                        '}';
+            }
+        }
+    }
 }

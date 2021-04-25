@@ -316,7 +316,7 @@ class SessionUpdateDeleteTests {
                         fact("$b", TypeB.class),
                         fact("$c", TypeC.class)
                 )
-                .where("$a.i == $b.i", 2.0)
+                .where("$a.i == $b.i", 20.0)
                 .where("$a.i != $c.i", 10.0)
                 .execute(ctx -> counter.next());
         StatefulSessionImpl s = (StatefulSessionImpl) knowledge.createSession().setActivationMode(ActivationMode.DEFAULT);
@@ -326,7 +326,7 @@ class SessionUpdateDeleteTests {
 
         int fireCount = 0;
 
-        int objectCount = 1;
+        int objectCount = 3;
         while (fireCount++ < 2) {
             counter.set(0);
             for (int i = 0; i < objectCount; i++) {
@@ -338,7 +338,6 @@ class SessionUpdateDeleteTests {
                 c.setI(i);
                 s.insert(a, b, c);
             }
-            System.out.println("[" + fireCount + "] -------------- 1 ---------------");
             s.fire();
 
             allObjects = TestUtils.sessionFacts(s);
@@ -354,7 +353,6 @@ class SessionUpdateDeleteTests {
                 c.setI(-1);
                 s.update(entry.getHandle(), c);
             }
-            System.out.println("[" + fireCount + "] -------------- 2 ---------------");
             s.fire();
 
             allObjects = TestUtils.sessionFacts(s);
@@ -370,7 +368,6 @@ class SessionUpdateDeleteTests {
                 }
             }
 
-            System.out.println("[" + fireCount + "] -------------- 3 ---------------");
             s.fire();
 
             allObjects = TestUtils.sessionFacts(s);

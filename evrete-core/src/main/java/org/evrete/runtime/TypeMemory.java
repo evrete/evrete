@@ -3,7 +3,7 @@ package org.evrete.runtime;
 import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
-import org.evrete.runtime.evaluation.AlphaBucketMeta;
+import org.evrete.runtime.evaluation.MemoryAddress;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -116,10 +116,6 @@ public final class TypeMemory extends MemoryComponent {
 
     }
 
-    void debug() {
-
-    }
-
     private void purge(KeyMode... scanModes) {
         if (purgeActions > 0) {
             for (KeyMode scanMode : scanModes) {
@@ -226,18 +222,17 @@ public final class TypeMemory extends MemoryComponent {
         }
     }
 
-    KeyMemoryBucket touchMemory(FieldsKey key, AlphaBucketMeta alphaMeta) {
+    KeyMemoryBucket touchMemory(MemoryAddress address) {
         return betaMemories
                 .computeIfAbsent(
-                        key.getId(),
-                        i -> new KeyMemory(TypeMemory.this, key)
+                        address.fields().getId(),
+                        i -> new KeyMemory(TypeMemory.this, address)
                 )
-                .getCreate(alphaMeta);
+                .getCreate(address);
     }
 
-
-    void onNewAlphaBucket(FieldsKey key, AlphaBucketMeta meta) {
-        KeyMemoryBucket bucket = touchMemory(key, meta);
+    void onNewAlphaBucket(MemoryAddress address) {
+        KeyMemoryBucket bucket = touchMemory(address);
         ReIterator<FactStorage.Entry<FactRecord>> allFacts = factStorage.iterator();
         List<RuntimeFact> runtimeFacts = new LinkedList<>();
         while (allFacts.hasNext()) {

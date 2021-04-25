@@ -5,7 +5,7 @@ import org.evrete.api.Knowledge;
 import org.evrete.api.RuleBuilder;
 import org.evrete.api.RuleSession;
 import org.evrete.api.StatefulSession;
-import org.evrete.runtime.evaluation.AlphaBucketMeta;
+import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.SearchList;
 
 import java.util.Collection;
@@ -28,7 +28,7 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
     }
 
     @Override
-    public void onNewAlphaBucket(int type, FieldsKey key, AlphaBucketMeta meta) {
+    public void onNewAlphaBucket(MemoryAddress address) {
         // Do nothing
     }
 

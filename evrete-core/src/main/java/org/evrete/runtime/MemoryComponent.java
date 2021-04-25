@@ -31,10 +31,6 @@ abstract class MemoryComponent {
         this.childComponents.append(childComponent);
     }
 
-    MemoryComponent[] childComponents() {
-        return childComponents.data;
-    }
-
     protected abstract void clearLocalData();
 
     public final void clear() {

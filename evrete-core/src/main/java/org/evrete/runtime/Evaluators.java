@@ -1,7 +1,6 @@
 package org.evrete.runtime;
 
 import org.evrete.api.*;
-import org.evrete.runtime.evaluation.AlphaEvaluator;
 import org.evrete.runtime.evaluation.EvaluatorWrapper;
 
 import java.util.HashMap;
@@ -54,24 +53,6 @@ public class Evaluators implements Copyable<Evaluators>, EvaluationListeners {
         EvaluatorWrapper w2 = get(h2);
         return w1.compare(w2);
     }
-
-    AlphaEvaluator.Match search(AlphaEvaluator[] scope, EvaluatorHandle subject) {
-        for (AlphaEvaluator evaluator : scope) {
-            int cmp = compare(evaluator.getDelegate(), subject);// evaluator.delegate.compare(subject);
-            switch (cmp) {
-                case Evaluator.RELATION_EQUALS:
-                    return new AlphaEvaluator.Match(evaluator, true);
-                case Evaluator.RELATION_INVERSE:
-                    return new AlphaEvaluator.Match(evaluator, false);
-                case Evaluator.RELATION_NONE:
-                    continue;
-                default:
-                    throw new IllegalStateException();
-            }
-        }
-        return null;
-    }
-
 
     void replace(EvaluatorHandle handle, Evaluator evaluator) {
         EvaluatorWrapper wrapper = conditions.get((EvaluatorHandleImpl) handle);
