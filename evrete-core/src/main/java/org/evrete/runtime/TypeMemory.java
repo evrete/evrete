@@ -2,41 +2,24 @@ package org.evrete.runtime;
 
 import org.evrete.Configuration;
 import org.evrete.api.*;
-import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.MemoryAddress;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.logging.Logger;
 
-public final class TypeMemory extends MemoryComponent {
+public final class TypeMemory extends TypeMemoryBase {
     private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
-    private final MemoryActionBuffer buffer;
-    private final FactStorage<FactRecord> factStorage;
-    private final Type<?> type;
-    private final ArrayOf<KeyMemory> betaMemories;
     private TypeMemoryState typeMemoryState;
     private int purgeActions = 0;
+    private final MemoryActionBuffer buffer;
 
     TypeMemory(SessionMemory sessionMemory, int type) {
-        super(sessionMemory);
-        this.betaMemories = new ArrayOf<>(new KeyMemory[0]);
-        Type<?> t = runtime.getTypeResolver().getType(type);
-        this.type = t;
+        super(sessionMemory, type);
         this.buffer = new MemoryActionBuffer(configuration.getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT));
-        String identityMethod = configuration.getProperty(Configuration.OBJECT_COMPARE_METHOD);
-        switch (identityMethod) {
-            case Configuration.IDENTITY_METHOD_EQUALS:
-                this.factStorage = memoryFactory.newFactStorage(t, FactRecord.class, (o1, o2) -> Objects.equals(o1.instance, o2.instance));
-                break;
-            case Configuration.IDENTITY_METHOD_IDENTITY:
-                this.factStorage = memoryFactory.newFactStorage(t, FactRecord.class, (o1, o2) -> o1.instance == o2.instance);
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid identity method '" + identityMethod + "' in the configuration. Expected values are '" + Configuration.IDENTITY_METHOD_EQUALS + "' or '" + Configuration.IDENTITY_METHOD_IDENTITY + "'");
-        }
-
         updateCachedData();
     }
 
@@ -45,11 +28,6 @@ public final class TypeMemory extends MemoryComponent {
         Type<?> t = resolver.getType(this.type.getId());
         TypeMemoryMetaData meta = runtime.getTypeMeta(t.getId());
         this.typeMemoryState = new TypeMemoryState(t, meta.activeFields, runtime.getEvaluators(), valueResolver, meta.alphaEvaluators);
-    }
-
-    public Object getFact(FactHandle handle) {
-        FactRecord record = getFactRecord(handle);
-        return record == null ? null : record.instance;
     }
 
     private FactRecord getFactRecord(FactHandle handle) {
@@ -66,86 +44,9 @@ public final class TypeMemory extends MemoryComponent {
         return record;
     }
 
-    FactRecord getStoredRecord(FactHandle handle) {
-        return factStorage.getFact(handle);
-    }
-
-    public FactHandle add(Action action, FactHandle factHandle, FactRecord factRecord, MemoryActionListener listener) {
-        buffer.add(action, factHandle, factRecord, listener);
-        return factHandle;
-    }
-
-    public FactStorage<FactRecord> getFactStorage() {
-        return factStorage;
-    }
-
-    FactHandle externalInsert(Object fact, MemoryActionListener actionListener) {
-        FactRecord record = new FactRecord(fact);
-        FactHandle handle = factStorage.insert(record);
-        if (handle == null) {
-            LOGGER.warning("Fact " + fact + " has been already inserted");
-            return null;
-        } else {
-            return add(Action.INSERT, handle, record, actionListener);
-        }
-    }
-
-    public Type<?> getType() {
-        return type;
-    }
-
-    @Override
-    protected void clearLocalData() {
-        factStorage.clear();
-    }
-
-    private void forEachMemoryComponent(Consumer<KeyMemoryBucket> consumer) {
-        betaMemories.forEach(fm -> fm.forEachBucket(consumer));
-    }
-
-    void commitBuffer() {
-
-        betaMemories.forEach(KeyMemory::commitBuffer);
-        //purge(KeyMode.OLD_OLD);
-
-    }
-
-    private void purge(KeyMode... scanModes) {
-        if (purgeActions > 0) {
-            for (KeyMode scanMode : scanModes) {
-                // Performing data purge
-                Iterator<KeyMemory> it1 = betaMemories.iterator();
-                while (it1.hasNext()) {
-                    KeyMemory keyMemory = it1.next();
-                    ReIterator<KeyMemoryBucket> buckets = keyMemory.getAlphaBuckets().iterator();
-                    while (buckets.hasNext()) {
-                        KeyMemoryBucket bucket = buckets.next();
-                        KeyedFactStorage facts = bucket.getFieldData();
-                        ReIterator<MemoryKey> keys = facts.keys(scanMode);
-                        while (keys.hasNext()) {
-                            MemoryKey key = keys.next();
-                            ReIterator<FactHandleVersioned> handles = facts.values(scanMode, key);
-                            while (handles.hasNext()) {
-                                FactHandleVersioned handle = handles.next();
-                                FactRecord fact = factStorage.getFact(handle.getHandle());
-                                if (fact == null || fact.getVersion() != handle.getVersion()) {
-                                    // No such fact, deleting
-                                    //System.out.println("Deleting " + handle + " from " + bucket);
-                                    handles.remove();
-                                }
-                            }
-
-                            long remaining = handles.reset();
-                            if (remaining == 0) {
-                                // Deleting key as well
-                                keys.remove();
-                            }
-                        }
-                    }
-                }
-            }
-            purgeActions = 0;
-        }
+    public Object getFact(FactHandle handle) {
+        FactRecord record = getFactRecord(handle);
+        return record == null ? null : record.instance;
     }
 
     void forEachFact(BiConsumer<FactHandle, Object> consumer) {
@@ -163,6 +64,51 @@ public final class TypeMemory extends MemoryComponent {
                 }
             }
         });
+    }
+
+    FactHandle externalInsert(Object fact, MemoryActionListener actionListener) {
+        FactRecord record = new FactRecord(fact);
+        FactHandle handle = factStorage.insert(record);
+        if (handle == null) {
+            LOGGER.warning("Fact " + fact + " has been already inserted");
+            return null;
+        } else {
+            return add(Action.INSERT, handle, record, actionListener);
+        }
+    }
+
+    private void purge(KeyMode... scanModes) {
+        if (purgeActions > 0) {
+            for (KeyMode scanMode : scanModes) {
+                // Performing data purge
+                Iterator<KeyMemoryBucket> buckets = memoryBuckets.iterator();
+                while (buckets.hasNext()) {
+                    KeyMemoryBucket bucket = buckets.next();
+                    KeyedFactStorage facts = bucket.getFieldData();
+                    ReIterator<MemoryKey> keys = facts.keys(scanMode);
+                    while (keys.hasNext()) {
+                        MemoryKey key = keys.next();
+                        ReIterator<FactHandleVersioned> handles = facts.values(scanMode, key);
+                        while (handles.hasNext()) {
+                            FactHandleVersioned handle = handles.next();
+                            FactRecord fact = factStorage.getFact(handle.getHandle());
+                            if (fact == null || fact.getVersion() != handle.getVersion()) {
+                                // No such fact, deleting
+                                //System.out.println("Deleting " + handle + " from " + bucket);
+                                handles.remove();
+                            }
+                        }
+
+                        long remaining = handles.reset();
+                        if (remaining == 0) {
+                            // Deleting key as well
+                            keys.remove();
+                        }
+                    }
+                }
+            }
+            purgeActions = 0;
+        }
     }
 
     public void processBuffer() {
@@ -201,23 +147,15 @@ public final class TypeMemory extends MemoryComponent {
 
         if (!inserts.isEmpty()) {
             // Performing insert
-            forEachMemoryComponent(b -> b.insert(inserts));
+            forEachBucket(b -> b.insert(inserts));
         }
         //purge(KeyMode.MAIN);
         buffer.clear();
     }
 
-    KeyMemoryBucket getMemoryBucket(MemoryAddress address) {
-        return betaMemories.get(address.fields().getId()).getMemoryBucket(address);
-    }
-
-    KeyMemoryBucket touchMemory(MemoryAddress address) {
-        return betaMemories
-                .computeIfAbsent(
-                        address.fields().getId(),
-                        i -> new KeyMemory(TypeMemory.this)
-                )
-                .getCreate(address);
+    public FactHandle add(Action action, FactHandle factHandle, FactRecord factRecord, MemoryActionListener listener) {
+        buffer.add(action, factHandle, factRecord, listener);
+        return factHandle;
     }
 
     void onNewAlphaBucket(MemoryAddress address) {
@@ -233,4 +171,5 @@ public final class TypeMemory extends MemoryComponent {
         bucket.insert(runtimeFacts);
         bucket.commitBuffer();
     }
+
 }

@@ -1,7 +1,13 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.KnowledgeService;
+import org.evrete.api.FactHandle;
+import org.evrete.api.KeyMode;
+import org.evrete.classes.TypeA;
 import org.evrete.runtime.KnowledgeRuntime;
+import org.evrete.runtime.StatefulSessionImpl;
+import org.evrete.runtime.TypeMemory;
+import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +34,6 @@ class DefaultFactStorageTest {
 
     @Test
     void update() {
-/*
         NextIntSupplier counter = new NextIntSupplier();
         StatefulSessionImpl session = (StatefulSessionImpl) knowledge
                 .newRule()
@@ -56,15 +61,15 @@ class DefaultFactStorageTest {
         assert counter.get() == updates + 1;
 
         // Memory key storage
-        SharedAlphaData bucket = (SharedAlphaData) tm.getBetaMemories().get(0).getAlphaBuckets().get(0).getFieldData();
+        SharedAlphaData bucket = (SharedAlphaData) tm.getMemoryBuckets().get(0).getFieldData();
 
-        LinkedFactHandles main = bucket.get(KeyMode.MAIN);
-        LinkedFactHandles delta1 = bucket.get(KeyMode.KNOWN_UNKNOWN);
-        LinkedFactHandles delta2 = bucket.get(KeyMode.UNKNOWN_UNKNOWN);
+        LinkedFactHandles main = bucket.get(KeyMode.OLD_OLD);
+        LinkedFactHandles delta1 = bucket.get(KeyMode.OLD_NEW);
+        LinkedFactHandles delta2 = bucket.get(KeyMode.NEW_NEW);
 
-        assert main.iterator().reset() == 1 : " Actual: " + main.size();
-        assert delta1.size() == 0;
-        assert delta2.size() == 0;
-*/
+        //assert main.iterator().reset() == 1 : " Actual: " + main.size();
+        //assert delta1.size() == 0;
+        //assert delta2.size() == 0;
+
     }
 }

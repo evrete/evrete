@@ -45,7 +45,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
                 );
     }
 
-    public Evaluators getEvaluators() {
+    Evaluators getEvaluators() {
         return evaluators;
     }
 
@@ -102,9 +102,10 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         return meta.getCreate(field);
     }
 
-    synchronized MemoryAddress buildAlphaMask(FieldsKey key, Set<EvaluatorHandle> alphaEvaluators) {
-        TypeMemoryMetaData typeMeta = getTypeMeta(key.type());
-        return typeMeta.buildAlphaMask(key, alphaEvaluators);
+    synchronized MemoryAddress buildMemoryAddress(Type<?> type, Set<TypeField> fields, Set<EvaluatorHandle> alphaEvaluators) {
+        TypeMemoryMetaData typeMeta = getTypeMeta(type.getId());
+        FieldsKey fieldsKey = getCreateMemoryKey(type, fields);
+        return typeMeta.buildAlphaMask(fieldsKey, alphaEvaluators);
     }
 
     private ActiveField[] getCreate(Set<TypeField> fields) {
@@ -115,7 +116,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         return activeFields;
     }
 
-    FieldsKey getCreateMemoryKey(Type<?> type, Set<TypeField> fields) {
+    private FieldsKey getCreateMemoryKey(Type<?> type, Set<TypeField> fields) {
         ActiveField[] activeFields;
         if (fields.isEmpty()) {
             activeFields = ActiveField.ZERO_ARRAY;

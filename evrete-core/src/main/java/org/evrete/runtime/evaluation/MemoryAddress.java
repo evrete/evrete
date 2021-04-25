@@ -6,8 +6,6 @@ import org.evrete.util.Bits;
 public interface MemoryAddress {
     boolean isEmpty();
 
-    int getBucketIndexOld();
-
     int getBucketIndex();
 
     boolean testAlphaBits(Bits mask);
