@@ -9,6 +9,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Bits implements Copyable<Bits> {
+    public static Bits EMPTY = new Bits();
     private final BitSet delegate;
 
     private Bits(BitSet delegate) {

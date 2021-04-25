@@ -2,7 +2,10 @@ package org.evrete.runtime;
 
 import org.evrete.Configuration;
 import org.evrete.api.*;
+import org.evrete.runtime.evaluation.AlphaEvaluator;
+import org.evrete.runtime.evaluation.EvaluatorWrapper;
 import org.evrete.runtime.evaluation.MemoryAddress;
+import org.evrete.util.Bits;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -13,7 +16,7 @@ import java.util.logging.Logger;
 
 public final class TypeMemory extends TypeMemoryBase {
     private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
-    private TypeMemoryState typeMemoryState;
+    private Cache cache;
     private int purgeActions = 0;
     private final MemoryActionBuffer buffer;
 
@@ -27,7 +30,7 @@ public final class TypeMemory extends TypeMemoryBase {
         TypeResolver resolver = runtime.getTypeResolver();
         Type<?> t = resolver.getType(this.type.getId());
         TypeMemoryMetaData meta = runtime.getTypeMeta(t.getId());
-        this.typeMemoryState = new TypeMemoryState(t, meta.activeFields, runtime.getEvaluators(), valueResolver, meta.alphaEvaluators);
+        this.cache = new Cache(t, meta.activeFields, runtime.getEvaluators(), valueResolver, meta.alphaEvaluators);
     }
 
     private FactRecord getFactRecord(FactHandle handle) {
@@ -123,7 +126,7 @@ public final class TypeMemory extends TypeMemoryBase {
                     purgeActions++;
                     break;
                 case INSERT:
-                    inserts.add(new RuntimeFact(typeMemoryState, new FactHandleVersioned(a.handle), a.factRecord));
+                    inserts.add(createFactRuntime(new FactHandleVersioned(a.handle), a.factRecord));
                     break;
                 case UPDATE:
                     FactRecord previous = factStorage.getFact(a.handle);
@@ -136,7 +139,7 @@ public final class TypeMemory extends TypeMemoryBase {
                         factRecord.updateVersion(newVersion);
                         factStorage.update(handle, factRecord);
                         FactHandleVersioned versioned = new FactHandleVersioned(handle, newVersion);
-                        inserts.add(new RuntimeFact(typeMemoryState, versioned, factRecord));
+                        inserts.add(createFactRuntime(versioned, factRecord));
                         purgeActions++;
                     }
                     break;
@@ -158,6 +161,37 @@ public final class TypeMemory extends TypeMemoryBase {
         return factHandle;
     }
 
+    private RuntimeFact createFactRuntime(FactHandleVersioned factHandle, FactRecord factRecord) {
+        TypeField[] fields = cache.fields;
+        ValueHandle[] valueHandles = new ValueHandle[fields.length];
+        Bits alphaTests;
+
+        if (cache.hasAlphaConditions) {
+            for (int i = 0; i < valueHandles.length; i++) {
+                TypeField f = fields[i];
+                Object fieldValue = f.readValue(factRecord.instance);
+                cache.currentValues[i] = fieldValue;
+                valueHandles[i] = valueResolver.getValueHandle(f.getValueType(), fieldValue);
+            }
+
+            alphaTests = new Bits();
+            for (AlphaPredicate alphaEvaluator : cache.alphaEvaluators) {
+                if (alphaEvaluator.test()) {
+                    alphaTests.set(alphaEvaluator.getIndex());
+                }
+            }
+
+        } else {
+            for (int i = 0; i < valueHandles.length; i++) {
+                TypeField f = fields[i];
+                valueHandles[i] = valueResolver.getValueHandle(f.getValueType(), f.readValue(factRecord.instance));
+            }
+            alphaTests = Bits.EMPTY;
+        }
+
+        return new RuntimeFact(factHandle, valueHandles, alphaTests);
+    }
+
     void onNewAlphaBucket(MemoryAddress address) {
         KeyMemoryBucket bucket = touchMemory(address);
         ReIterator<FactStorage.Entry<FactRecord>> allFacts = factStorage.iterator();
@@ -165,11 +199,60 @@ public final class TypeMemory extends TypeMemoryBase {
         while (allFacts.hasNext()) {
             FactStorage.Entry<FactRecord> rec = allFacts.next();
             FactHandleVersioned fhv = new FactHandleVersioned(rec.getHandle(), rec.getInstance().getVersion());
-            runtimeFacts.add(new RuntimeFact(typeMemoryState, fhv, rec.getInstance()));
+            runtimeFacts.add(createFactRuntime(fhv, rec.getInstance()));
         }
 
         bucket.insert(runtimeFacts);
         bucket.commitBuffer();
     }
 
+    /**
+     * A state class to be used in memory initialization and hot deployment updates
+     */
+    static class Cache {
+        final TypeField[] fields;
+        final AlphaPredicate[] alphaEvaluators;
+        final Object[] currentValues;
+        final ValueResolver resolver;
+        final boolean hasAlphaConditions;
+
+        Cache(Type<?> type, ActiveField[] activeFields, Evaluators evaluators, ValueResolver resolver, org.evrete.runtime.evaluation.AlphaEvaluator[] alphaEvaluators) {
+            this.fields = new TypeField[activeFields.length];
+            this.resolver = resolver;
+            for (int i = 0; i < activeFields.length; i++) {
+                this.fields[i] = type.getField(activeFields[i].field());
+            }
+            this.currentValues = new Object[this.fields.length];
+            this.hasAlphaConditions = alphaEvaluators.length > 0;
+            this.alphaEvaluators = new AlphaPredicate[alphaEvaluators.length];
+            if (hasAlphaConditions) {
+                for (int i = 0; i < alphaEvaluators.length; i++) {
+                    this.alphaEvaluators[i] = new AlphaPredicate(alphaEvaluators[i], evaluators, currentValues);
+                }
+            }
+        }
+    }
+
+    static class AlphaPredicate {
+        private final EvaluatorWrapper delegate;
+        private final ActiveField[] activeDescriptor;
+        private final Object[] values;
+        private final int index;
+
+        AlphaPredicate(AlphaEvaluator alphaEvaluator, Evaluators evaluators, Object[] values) {
+            this.delegate = evaluators.get(alphaEvaluator.getDelegate());
+            this.activeDescriptor = alphaEvaluator.getDescriptor();
+            this.index = alphaEvaluator.getIndex();
+            this.values = values;
+        }
+
+        int getIndex() {
+            return index;
+        }
+
+        public boolean test() {
+            return delegate.test(i -> values[activeDescriptor[i].getValueIndex()]);
+        }
+
+    }
 }

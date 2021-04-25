@@ -1,13 +1,11 @@
 package org.evrete.runtime;
 
 import org.evrete.api.FactHandleVersioned;
-import org.evrete.api.TypeField;
 import org.evrete.api.ValueHandle;
 import org.evrete.util.Bits;
 
 import java.util.Arrays;
 import java.util.Objects;
-//TODO create a one-field implementation
 
 /**
  * A runtime representation of a fact, ready for insert operation
@@ -27,29 +25,14 @@ class RuntimeFact {
 
     private RuntimeFact() {
         this.factHandle = null;
-        this.alphaTests = null;
-        this.valueHandles = null;
+        this.alphaTests = EMPTY;
+        this.valueHandles = new ValueHandle[0];
     }
 
-    RuntimeFact(TypeMemoryState state, FactHandleVersioned factHandle, FactRecord factRecord) {
+    RuntimeFact(FactHandleVersioned factHandle, ValueHandle[] valueHandles, Bits alphaTests) {
+        this.valueHandles = valueHandles;
         this.factHandle = factHandle;
-        TypeField[] fields = state.fields;
-        this.valueHandles = new ValueHandle[fields.length];
-        for (int i = 0; i < valueHandles.length; i++) {
-            TypeField f = fields[i];
-            this.valueHandles[i] = state.resolver.getValueHandle(f.getValueType(), f.readValue(factRecord.instance));
-        }
-
-        if (state.alphaEvaluators.length == 0) {
-            this.alphaTests = EMPTY;
-        } else {
-            this.alphaTests = new Bits();
-            for (RuntimeAlphaEvaluator alphaEvaluator : state.alphaEvaluators) {
-                if (alphaEvaluator.test(valueHandles)) {
-                    this.alphaTests.set(alphaEvaluator.getIndex());
-                }
-            }
-        }
+        this.alphaTests = alphaTests;
     }
 
     ValueHandle getValue(ActiveField field) {
@@ -68,7 +51,7 @@ class RuntimeFact {
 
     @Override
     public String toString() {
-        return "{handle=" + factHandle.getHandle() +
+        return "{handle=" + factHandle +
                 ", values=" + Arrays.toString(valueHandles) +
                 '}';
     }
