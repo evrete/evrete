@@ -22,7 +22,7 @@ class RhsFactGroupDescriptor {
     RhsFactGroupDescriptor(Collection<FactType> looseTypes) {
         this(null, looseTypes.toArray(FactType.ZERO_ARRAY), true);
         for (FactType t : looseTypes) {
-            if (t.getFields().size() > 0) {
+            if (t.getMemoryAddress().fields().size() > 0) {
                 throw new IllegalStateException();
             }
         }

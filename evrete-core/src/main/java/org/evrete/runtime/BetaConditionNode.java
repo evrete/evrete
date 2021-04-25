@@ -186,7 +186,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         private final FieldNode[] fieldNodes;
 
         ConditionMemoryKeyNode(FactType type, ValueResolver valueResolver, BetaEvaluator evaluator, CachingEvaluator cachingEvaluator) {
-            ActiveField[] fields = type.getFields().getFields();
+            ActiveField[] fields = type.getMemoryAddress().fields().getFields();
             this.fieldNodes = new FieldNode[fields.length];
 
             for (int i = 0; i < fields.length; i++) {

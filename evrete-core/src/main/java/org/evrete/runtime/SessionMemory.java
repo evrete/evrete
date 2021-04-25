@@ -34,10 +34,12 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
                 .onNewAlphaBucket(address);
     }
 
-    KeyedFactStorage getBetaFactStorage(FactType factType) {
-        FieldsKey fields = factType.getFields();
-        MemoryAddress mask = factType.getMemoryBucket();
-        return get(factType.type()).get(fields).get(mask);
+    KeyedFactStorage getBetaFactStorage(MemoryAddress address) {
+        return getMemoryBucket(address).getFieldData();
+    }
+
+    KeyMemoryBucket getMemoryBucket(MemoryAddress address) {
+        return get(address.fields().type()).getMemoryBucket(address);
     }
 
     public TypeMemory get(Type<?> t) {

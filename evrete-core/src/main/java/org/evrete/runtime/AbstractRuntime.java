@@ -134,7 +134,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     FactType buildFactType(NamedType builder, Set<TypeField> fields, Set<EvaluatorHandle> alphaEvaluators, int inRuleId) {
         FieldsKey fieldsKey = getCreateMemoryKey(builder.getType(), fields);
         MemoryAddress memoryAddress = buildAlphaMask(fieldsKey, alphaEvaluators);
-        return new FactType(builder.getName(), memoryAddress, fieldsKey, inRuleId);
+        return new FactType(builder.getName(), memoryAddress, inRuleId);
     }
 
     @Override

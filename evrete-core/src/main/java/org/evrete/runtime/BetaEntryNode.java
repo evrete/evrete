@@ -12,8 +12,9 @@ public class BetaEntryNode implements BetaMemoryNode {
 
     BetaEntryNode(AbstractRuleSession<?> runtime, EntryNodeDescriptor node) {
         this.descriptor = node;
+        KeyMemoryBucket bucket = runtime.getMemory().getMemoryBucket(node.getFactType().getMemoryAddress());
         for (KeyMode mode : KeyMode.values()) {
-            ReIterator<MemoryKey> delegate = runtime.getMemory().getBetaFactStorage(node.getFactType()).keys(mode);
+            ReIterator<MemoryKey> delegate = bucket.getFieldData().keys(mode);
             ReIterator<MemoryKey> mapped = new MemoryKeyIterator(delegate, mode);
             stores.put(mode, mapped);
         }

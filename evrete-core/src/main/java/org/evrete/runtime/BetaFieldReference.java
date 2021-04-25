@@ -4,22 +4,20 @@ import org.evrete.api.TypeField;
 
 public final class BetaFieldReference {
     private final FactType factType;
+    //TODO !!!! unused var 'fieldIndex'
     private final int fieldIndex;
     private final ActiveField activeField;
 
     public BetaFieldReference(FactType factType, TypeField field) {
         this.factType = factType;
         this.fieldIndex = factType.findFieldPosition(field);
-        this.activeField = factType.getFields().getFields()[this.fieldIndex];
+        this.activeField = factType.getMemoryAddress().fields().getFields()[this.fieldIndex];
     }
 
     public FactType getFactType() {
         return factType;
     }
 
-    int getFieldIndex() {
-        return fieldIndex;
-    }
 
     public ActiveField getActiveField() {
         return activeField;

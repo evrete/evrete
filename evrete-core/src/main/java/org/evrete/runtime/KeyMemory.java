@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 public class KeyMemory extends MemoryComponent implements InnerFactMemory {
     private final ArrayOf<KeyMemoryBucket> alphaBuckets;
 
-    KeyMemory(MemoryComponent runtime, MemoryAddress address) {
+    KeyMemory(MemoryComponent runtime) {
         super(runtime);
         this.alphaBuckets = new ArrayOf<>(KeyMemoryBucket.class);
     }
@@ -29,11 +29,15 @@ public class KeyMemory extends MemoryComponent implements InnerFactMemory {
     }
 
     public KeyedFactStorage get(MemoryAddress bucket) {
-        int bucketIndex = bucket.getBucketIndex();
+        return getMemoryBucket(bucket).getFieldData();
+    }
+
+    public KeyMemoryBucket getMemoryBucket(MemoryAddress bucket) {
+        int bucketIndex = bucket.getBucketIndexOld();
         if (bucketIndex >= alphaBuckets.data.length) {
             throw new IllegalArgumentException("No alpha bucket created for " + bucket);
         } else {
-            KeyedFactStorage storage = alphaBuckets.data[bucketIndex].getFieldData();
+            KeyMemoryBucket storage = alphaBuckets.data[bucketIndex];
             if (storage == null) {
                 throw new IllegalArgumentException("No alpha bucket created for " + bucket);
             } else {
@@ -54,6 +58,6 @@ public class KeyMemory extends MemoryComponent implements InnerFactMemory {
     }
 
     KeyMemoryBucket getCreate(MemoryAddress address) {
-        return alphaBuckets.computeIfAbsent(address.getBucketIndex(), k -> KeyMemoryBucket.factory(KeyMemory.this, address));
+        return alphaBuckets.computeIfAbsent(address.getBucketIndexOld(), k -> KeyMemoryBucket.factory(KeyMemory.this, address));
     }
 }

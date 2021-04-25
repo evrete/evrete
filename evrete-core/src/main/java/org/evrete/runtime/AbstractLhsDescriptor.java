@@ -40,7 +40,7 @@ abstract class AbstractLhsDescriptor {
             );
             typeMapping.putNew(namedType, factType);
 
-            if (factType.getFields().size() == 0) {
+            if (factType.getMemoryAddress().fields().size() == 0) {
                 plainFactTypes.add(factType);
             } else {
                 keyedFactTypes.add(factType);

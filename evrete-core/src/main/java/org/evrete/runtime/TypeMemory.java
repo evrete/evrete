@@ -37,7 +37,6 @@ public final class TypeMemory extends MemoryComponent {
                 throw new IllegalArgumentException("Invalid identity method '" + identityMethod + "' in the configuration. Expected values are '" + Configuration.IDENTITY_METHOD_EQUALS + "' or '" + Configuration.IDENTITY_METHOD_IDENTITY + "'");
         }
 
-
         updateCachedData();
     }
 
@@ -45,8 +44,7 @@ public final class TypeMemory extends MemoryComponent {
         TypeResolver resolver = runtime.getTypeResolver();
         Type<?> t = resolver.getType(this.type.getId());
         TypeMemoryMetaData meta = runtime.getTypeMeta(t.getId());
-
-        this.typeMemoryState = new TypeMemoryState(t, meta.activeFields, runtime.getEvaluators(), meta.alphaEvaluators);
+        this.typeMemoryState = new TypeMemoryState(t, meta.activeFields, runtime.getEvaluators(), valueResolver, meta.alphaEvaluators);
     }
 
     public Object getFact(FactHandle handle) {
@@ -79,10 +77,6 @@ public final class TypeMemory extends MemoryComponent {
 
     public FactStorage<FactRecord> getFactStorage() {
         return factStorage;
-    }
-
-    public ArrayOf<KeyMemory> getBetaMemories() {
-        return betaMemories;
     }
 
     FactHandle externalInsert(Object fact, MemoryActionListener actionListener) {
@@ -183,7 +177,7 @@ public final class TypeMemory extends MemoryComponent {
                     purgeActions++;
                     break;
                 case INSERT:
-                    inserts.add(new RuntimeFact(valueResolver, typeMemoryState, new FactHandleVersioned(a.handle), a.factRecord));
+                    inserts.add(new RuntimeFact(typeMemoryState, new FactHandleVersioned(a.handle), a.factRecord));
                     break;
                 case UPDATE:
                     FactRecord previous = factStorage.getFact(a.handle);
@@ -196,7 +190,7 @@ public final class TypeMemory extends MemoryComponent {
                         factRecord.updateVersion(newVersion);
                         factStorage.update(handle, factRecord);
                         FactHandleVersioned versioned = new FactHandleVersioned(handle, newVersion);
-                        inserts.add(new RuntimeFact(valueResolver, typeMemoryState, versioned, factRecord));
+                        inserts.add(new RuntimeFact(typeMemoryState, versioned, factRecord));
                         purgeActions++;
                     }
                     break;
@@ -213,20 +207,15 @@ public final class TypeMemory extends MemoryComponent {
         buffer.clear();
     }
 
-    public final KeyMemory get(FieldsKey fields) {
-        KeyMemory fm = betaMemories.get(fields.getId());
-        if (fm == null) {
-            throw new IllegalArgumentException("No key memory exists for " + fields);
-        } else {
-            return fm;
-        }
+    KeyMemoryBucket getMemoryBucket(MemoryAddress address) {
+        return betaMemories.get(address.fields().getId()).getMemoryBucket(address);
     }
 
     KeyMemoryBucket touchMemory(MemoryAddress address) {
         return betaMemories
                 .computeIfAbsent(
                         address.fields().getId(),
-                        i -> new KeyMemory(TypeMemory.this, address)
+                        i -> new KeyMemory(TypeMemory.this)
                 )
                 .getCreate(address);
     }
@@ -238,7 +227,7 @@ public final class TypeMemory extends MemoryComponent {
         while (allFacts.hasNext()) {
             FactStorage.Entry<FactRecord> rec = allFacts.next();
             FactHandleVersioned fhv = new FactHandleVersioned(rec.getHandle(), rec.getInstance().getVersion());
-            runtimeFacts.add(new RuntimeFact(valueResolver, typeMemoryState, fhv, rec.getInstance()));
+            runtimeFacts.add(new RuntimeFact(typeMemoryState, fhv, rec.getInstance()));
         }
 
         bucket.insert(runtimeFacts);

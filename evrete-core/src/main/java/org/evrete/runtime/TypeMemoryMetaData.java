@@ -7,6 +7,7 @@ import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.Bits;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 class TypeMemoryMetaData {
     private final int type;
@@ -15,6 +16,7 @@ class TypeMemoryMetaData {
     private final ArrayOf<FieldKeyMeta> keyMetas;
     ActiveField[] activeFields;
     AlphaEvaluator[] alphaEvaluators;
+    private final AtomicInteger bucketCounter;
 
     TypeMemoryMetaData(int type, Evaluators evaluators, MetaChangeListener listener) {
         this.type = type;
@@ -23,6 +25,7 @@ class TypeMemoryMetaData {
         this.evaluators = evaluators;
         this.listener = listener;
         this.keyMetas = new ArrayOf<>(FieldKeyMeta.class);
+        this.bucketCounter = new AtomicInteger(0);
     }
 
     private TypeMemoryMetaData(TypeMemoryMetaData other, Evaluators evaluators, MetaChangeListener listener) {
@@ -32,6 +35,7 @@ class TypeMemoryMetaData {
         this.evaluators = evaluators;
         this.listener = listener;
         this.keyMetas = new ArrayOf<>(FieldKeyMeta.class);
+        this.bucketCounter = new AtomicInteger(other.bucketCounter.get());
         other.keyMetas
                 .forEach(
                         (meta, i) -> TypeMemoryMetaData.this.keyMetas.set(i, meta.copyOf())
@@ -77,7 +81,7 @@ class TypeMemoryMetaData {
         }
 
         // Not found, creating a new one
-        TypeMemoryMeta newMeta = fieldKeyMeta.newMeta(matches);
+        TypeMemoryMeta newMeta = fieldKeyMeta.newMeta(matches, bucketCounter);
         listener.onNewAlphaBucket(newMeta);
         return newMeta;
     }
@@ -127,11 +131,12 @@ class TypeMemoryMetaData {
             this.alphaBuckets = Arrays.copyOf(other.alphaBuckets, other.alphaBuckets.length);
         }
 
-        synchronized TypeMemoryMeta newMeta(Set<MatchedAlphaEvaluator> matches) {
-            int bucketIndex = alphaBuckets.length;
-            TypeMemoryMeta newMeta = TypeMemoryMeta.factory(bucketIndex, fields, matches);
+        synchronized TypeMemoryMeta newMeta(Set<MatchedAlphaEvaluator> matches, AtomicInteger bucketCounter) {
+            int bucketIndexOld = alphaBuckets.length;
+            int bucketIndex = bucketCounter.getAndIncrement();
+            TypeMemoryMeta newMeta = TypeMemoryMeta.factory(bucketIndexOld, bucketIndex, fields, matches);
             alphaBuckets = Arrays.copyOf(alphaBuckets, alphaBuckets.length + 1);
-            alphaBuckets[bucketIndex] = newMeta;
+            alphaBuckets[bucketIndexOld] = newMeta;
             return newMeta;
         }
 
@@ -184,25 +189,32 @@ class TypeMemoryMetaData {
 
     public abstract static class TypeMemoryMeta implements MemoryAddress {
         private static final Set<MatchedAlphaEvaluator> EMPTY_COMPONENTS = new HashSet<>();
+        private final int bucketIndexOld;
         private final int bucketIndex;
         private final FieldsKey typeFields;
         private final Set<MatchedAlphaEvaluator> key;
 
-        private TypeMemoryMeta(int bucketIndex, FieldsKey fields, Set<MatchedAlphaEvaluator> matches) {
-            this.bucketIndex = bucketIndex;
+        private TypeMemoryMeta(int bucketIndexOld, int bucketIndex, FieldsKey fields, Set<MatchedAlphaEvaluator> matches) {
+            this.bucketIndexOld = bucketIndexOld;
             this.key = matches;
             this.typeFields = fields;
+            this.bucketIndex = bucketIndex;
         }
 
-        static TypeMemoryMeta factory(int bucketIndex, FieldsKey fields, Set<MatchedAlphaEvaluator> matches) {
+        static TypeMemoryMeta factory(int bucketIndexOld, int bucketIndex, FieldsKey fields, Set<MatchedAlphaEvaluator> matches) {
             switch (matches.size()) {
                 case 0:
-                    return new Empty(bucketIndex, fields);
+                    return new Empty(bucketIndexOld, bucketIndex, fields);
                 case 1:
-                    return new Single(bucketIndex, fields, matches);
+                    return new Single(bucketIndexOld, bucketIndex, fields, matches);
                 default:
-                    return new Multi(bucketIndex, fields, matches);
+                    return new Multi(bucketIndexOld, bucketIndex, fields, matches);
             }
+        }
+
+        @Override
+        public int getBucketIndex() {
+            return bucketIndex;
         }
 
         @Override
@@ -224,14 +236,14 @@ class TypeMemoryMetaData {
         }
 
         @Override
-        public final int getBucketIndex() {
-            return bucketIndex;
+        public final int getBucketIndexOld() {
+            return bucketIndexOld;
         }
 
         public static final class Empty extends TypeMemoryMeta {
 
-            Empty(int bucketIndex, FieldsKey fields) {
-                super(bucketIndex, fields, EMPTY_COMPONENTS);
+            Empty(int bucketIndexOld, int bucketIndex, FieldsKey fields) {
+                super(bucketIndexOld, bucketIndex, fields, EMPTY_COMPONENTS);
             }
 
             @Override
@@ -244,8 +256,8 @@ class TypeMemoryMetaData {
             private final int bitIndex;
             private final boolean expectedValue;
 
-            Single(int bucketIndex, FieldsKey fields, Set<MatchedAlphaEvaluator> matches) {
-                super(bucketIndex, fields, matches);
+            Single(int bucketIndexOld, int bucketIndex, FieldsKey fields, Set<MatchedAlphaEvaluator> matches) {
+                super(bucketIndexOld, bucketIndex, fields, matches);
                 MatchedAlphaEvaluator match = matches.iterator().next();
                 this.expectedValue = match.direct;
                 this.bitIndex = match.matched.getIndex();
@@ -261,8 +273,8 @@ class TypeMemoryMetaData {
             private final int[] bitIndices;
             private final Bits expectedValues = new Bits();
 
-            Multi(int bucketIndex, FieldsKey fields, Set<MatchedAlphaEvaluator> matches) {
-                super(bucketIndex, fields, matches);
+            Multi(int bucketIndexOld, int bucketIndex, FieldsKey fields, Set<MatchedAlphaEvaluator> matches) {
+                super(bucketIndexOld, bucketIndex, fields, matches);
                 List<MatchedAlphaEvaluator> sortedMatches = new ArrayList<>(matches);
                 sortedMatches.sort(Comparator.comparingDouble(o -> o.matched.getDelegate().getComplexity()));
                 this.bitIndices = new int[sortedMatches.size()];

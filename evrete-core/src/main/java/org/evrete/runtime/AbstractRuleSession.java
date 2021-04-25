@@ -89,7 +89,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
     private synchronized RuntimeRule deployRule(RuleDescriptor descriptor, boolean hotDeployment) {
         for (FactType factType : descriptor.getLhs().getFactTypes()) {
             TypeMemory tm = memory.getCreateUpdate(factType.type());
-            tm.touchMemory(factType.getMemoryBucket());
+            tm.touchMemory(factType.getMemoryAddress());
         }
         RuntimeRuleImpl rule = ruleStorage.addRule(descriptor, this);
         if (hotDeployment) {

@@ -8,18 +8,12 @@ import org.evrete.runtime.evaluation.MemoryAddress;
 import java.util.Collection;
 import java.util.LinkedList;
 
-public abstract class KeyMemoryBucket extends MemoryComponent {
-    // A convenience fact instance that is never equal to others
-    private static final RuntimeFact DUMMY_FACT = new RuntimeFact() {
-        @Override
-        boolean sameValues(RuntimeFact other) {
-            return false;
-        }
-    };
+import static org.evrete.runtime.RuntimeFact.DUMMY_FACT;
 
+public abstract class KeyMemoryBucket extends MemoryComponent {
     final KeyedFactStorage fieldData;
     final ActiveField[] activeFields;
-    final Collection<FactHandleVersioned> insertData = new LinkedList<>();
+    final Collection<FactHandleVersioned> buffer = new LinkedList<>();
     RuntimeFact current = null;
 
     KeyMemoryBucket(MemoryComponent runtime, MemoryAddress address) {
@@ -92,17 +86,17 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
             for (RuntimeFact fact : facts) {
                 if (memoryAddress.testAlphaBits(fact.alphaTests)) {
                     if (current.sameValues(fact)) {
-                        insertData.add(fact.factHandle);
+                        buffer.add(fact.factHandle);
                     } else {
                         // Key changed, ready for batch insert
                         flushBuffer();
-                        insertData.add(fact.factHandle);
+                        buffer.add(fact.factHandle);
                         current = fact;
                     }
                 }
             }
 
-            if (!insertData.isEmpty()) {
+            if (!buffer.isEmpty()) {
                 flushBuffer();
             }
         }
@@ -116,8 +110,8 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
             @Override
             final void flushBuffer() {
                 if (current != DUMMY_FACT) {
-                    fieldData.write(insertData);
-                    insertData.clear();
+                    fieldData.write(buffer);
+                    buffer.clear();
                 }
             }
         }
@@ -135,8 +129,8 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
             final void flushBuffer() {
                 if (current != DUMMY_FACT) {
                     fieldData.write(currentFactField(field));
-                    fieldData.write(insertData);
-                    insertData.clear();
+                    fieldData.write(buffer);
+                    buffer.clear();
                 }
             }
         }
@@ -153,8 +147,8 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
                     for (ActiveField field : activeFields) {
                         fieldData.write(currentFactField(field));
                     }
-                    fieldData.write(insertData);
-                    insertData.clear();
+                    fieldData.write(buffer);
+                    buffer.clear();
                 }
             }
         }
@@ -171,15 +165,15 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
             current = DUMMY_FACT;
             for (RuntimeFact fact : facts) {
                 if (current.sameValues(fact)) {
-                    insertData.add(fact.factHandle);
+                    buffer.add(fact.factHandle);
                 } else {
                     // Key changed, ready for batch insert
                     flushBuffer();
-                    insertData.add(fact.factHandle);
+                    buffer.add(fact.factHandle);
                     current = fact;
                 }
             }
-            if (!insertData.isEmpty()) {
+            if (!buffer.isEmpty()) {
                 flushBuffer();
             }
         }
@@ -193,8 +187,8 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
             @Override
             final void flushBuffer() {
                 if (current != DUMMY_FACT) {
-                    fieldData.write(insertData);
-                    insertData.clear();
+                    fieldData.write(buffer);
+                    buffer.clear();
                 }
             }
         }
@@ -212,8 +206,8 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
             final void flushBuffer() {
                 if (current != DUMMY_FACT) {
                     fieldData.write(currentFactField(field));
-                    fieldData.write(insertData);
-                    insertData.clear();
+                    fieldData.write(buffer);
+                    buffer.clear();
                 }
             }
         }
@@ -230,8 +224,8 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
                     for (ActiveField field : activeFields) {
                         fieldData.write(currentFactField(field));
                     }
-                    fieldData.write(insertData);
-                    insertData.clear();
+                    fieldData.write(buffer);
+                    buffer.clear();
                 }
             }
         }

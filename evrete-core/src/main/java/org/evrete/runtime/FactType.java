@@ -12,20 +12,17 @@ public class FactType {
     private static final Comparator<FactType> COMPARATOR = Comparator.comparingInt(FactType::getInRuleIndex);
     private final String name;
     private final MemoryAddress memoryAddress;
-    private final FieldsKey fields;
     private final int inRuleIndex;
 
-    FactType(String name, MemoryAddress memoryAddress, FieldsKey fields, int inRuleIndex) {
+    FactType(String name, MemoryAddress memoryAddress, int inRuleIndex) {
         this.name = name;
         this.memoryAddress = memoryAddress;
-        this.fields = fields;
         this.inRuleIndex = inRuleIndex;
     }
 
     FactType(FactType other) {
         this.name = other.name;
         this.memoryAddress = other.memoryAddress;
-        this.fields = other.fields;
         this.inRuleIndex = other.inRuleIndex;
     }
 
@@ -37,7 +34,7 @@ public class FactType {
 
 
     int findFieldPosition(TypeField field) {
-        ActiveField[] arr = fields.getFields();
+        ActiveField[] arr = memoryAddress.fields().getFields();
         for (int i = 0; i < arr.length; i++) {
             ActiveField f = arr[i];
             if (f.field() == field.getId()) return i;
@@ -45,11 +42,8 @@ public class FactType {
         throw new IllegalStateException("Field not found");
     }
 
-    public FieldsKey getFields() {
-        return fields;
-    }
 
-    MemoryAddress getMemoryBucket() {
+    MemoryAddress getMemoryAddress() {
         return memoryAddress;
     }
 
@@ -57,9 +51,8 @@ public class FactType {
         return name;
     }
 
-
     public int type() {
-        return fields.type();
+        return memoryAddress.fields().type();
     }
 
     public int getInRuleIndex() {

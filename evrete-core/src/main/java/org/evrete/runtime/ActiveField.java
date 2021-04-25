@@ -34,7 +34,6 @@ public final class ActiveField implements Serializable {
 
     /**
      * @return index under which the value of this field is stored during insert/update in an Object[] array.
-     * @see FieldToValueHandle
      */
     int getValueIndex() {
         return valueIndex;
