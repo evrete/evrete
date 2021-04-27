@@ -18,7 +18,6 @@ import java.util.logging.Logger;
 public final class TypeMemory extends TypeMemoryBase {
     private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
     private Cache cache;
-    private final Mask<MemoryAddress> purgeTargets = Mask.addressMask();
     private final MemoryActionBuffer buffer;
 
     TypeMemory(SessionMemory sessionMemory, int type) {
@@ -82,6 +81,7 @@ public final class TypeMemory extends TypeMemoryBase {
         }
     }
 
+/*
     private void purge(KeyMode... scanModes) {
         if (purgeTargets.bitsSet() > 0) {
 
@@ -103,6 +103,7 @@ public final class TypeMemory extends TypeMemoryBase {
             purgeTargets.clear();
         }
     }
+*/
 
     public void processBuffer() {
         Iterator<AtomicMemoryAction> it = buffer.actions();
@@ -114,7 +115,7 @@ public final class TypeMemory extends TypeMemoryBase {
                 case RETRACT:
                     FactRecord record = factStorage.getFact(a.handle);
                     if (record != null) {
-                        purgeTargets.or(record.getBucketsMask());
+                        //purgeTargets.or(record.getBucketsMask());
                     }
                     factStorage.delete(a.handle);
                     break;
@@ -127,11 +128,12 @@ public final class TypeMemory extends TypeMemoryBase {
                         LOGGER.warning("Unknown fact handle " + a.handle + ". Update operation skipped.");
                     } else {
                         FactRecord factRecord = a.factRecord;
-                        purgeTargets.or(factRecord.getBucketsMask());
+                        //purgeTargets.or(factRecord.getBucketsMask());
+
+                        //TODO !!! fix this versioning mess
                         FactHandle handle = a.handle;
                         int newVersion = previous.getVersion() + 1;
                         factRecord.updateVersion(newVersion);
-                        //factRecord = factRecord.nextVersion();
                         factStorage.update(handle, factRecord);
                         FactHandleVersioned versioned = new FactHandleVersioned(handle, newVersion);
                         inserts.add(createFactRuntime(versioned, factRecord));

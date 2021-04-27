@@ -115,7 +115,6 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
     }
 
     private void processBuffer() {
-        //Iterator<TypeMemory> it = memory.iterator();
         for (TypeMemory tm : memory) {
             tm.processBuffer();
         }

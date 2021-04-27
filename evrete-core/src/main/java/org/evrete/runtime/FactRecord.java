@@ -29,12 +29,6 @@ class FactRecord {
         this.version = newVersion;
     }
 
-    FactRecord nextVersion() {
-        FactRecord updated = new FactRecord(this.instance);
-        updated.version = this.version + 1;
-        return updated;
-    }
-
     @Override
     public String toString() {
         return "{obj=" + instance +

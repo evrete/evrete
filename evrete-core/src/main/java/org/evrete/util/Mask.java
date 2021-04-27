@@ -8,7 +8,7 @@ import java.util.function.ToIntFunction;
 public class Mask<T> extends Bits {
     private final ToIntFunction<T> intMapper;
 
-    Mask(ToIntFunction<T> intMapper) {
+    private Mask(ToIntFunction<T> intMapper) {
         this.intMapper = intMapper;
     }
 

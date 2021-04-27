@@ -73,7 +73,11 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
 
     abstract void flushBuffer();
 
-    abstract void insert(Iterable<RuntimeFact> facts);
+    /**
+     * @param facts
+     * @return true if at least one fact passed alpha tests and got saved
+     */
+    abstract boolean insert(Iterable<RuntimeFact> facts);
 
     @Override
     protected final void clearLocalData() {
@@ -100,10 +104,12 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
         }
 
         @Override
-        final void insert(Iterable<RuntimeFact> facts) {
+        final boolean insert(Iterable<RuntimeFact> facts) {
             current = DUMMY_FACT;
+            boolean ret = false;
             for (RuntimeFact fact : facts) {
                 if (address.testAlphaBits(fact.alphaTests)) {
+                    ret = true;
                     fact.factRecord.markLocation(address);
                     if (current.sameValues(fact)) {
                         buffer.add(fact.factHandle);
@@ -119,6 +125,7 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
             if (!buffer.isEmpty()) {
                 flushBuffer();
             }
+            return ret;
         }
 
         static class KeyMemoryBucketAlpha0 extends KeyMemoryBucketAlpha {
@@ -181,9 +188,11 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
         }
 
         @Override
-        final void insert(Iterable<RuntimeFact> facts) {
+        final boolean insert(Iterable<RuntimeFact> facts) {
             current = DUMMY_FACT;
+            boolean ret = false;
             for (RuntimeFact fact : facts) {
+                ret = true;
                 fact.factRecord.markLocation(address);
                 if (current.sameValues(fact)) {
                     buffer.add(fact.factHandle);
@@ -197,6 +206,7 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
             if (!buffer.isEmpty()) {
                 flushBuffer();
             }
+            return ret;
         }
 
         static class KeyMemoryBucketNoAlpha0 extends KeyMemoryBucketNoAlpha {
