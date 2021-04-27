@@ -263,8 +263,8 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
                         activationManager.onActivation(rule, rule.executeRhs());
                     }
                 }
-                commitBuffer();
             }
+            commitBuffer();
         }
     }
 
