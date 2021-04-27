@@ -4,7 +4,6 @@ import org.evrete.AbstractRule;
 import org.evrete.api.NamedType;
 import org.evrete.api.RuleScope;
 import org.evrete.api.Type;
-import org.evrete.util.Bits;
 import org.evrete.util.NamedTypeImpl;
 
 import java.util.Collection;
@@ -15,7 +14,6 @@ import java.util.Map;
 public abstract class AbstractRuntimeRule<T extends FactType> extends AbstractRule {
     final T[] factTypes;
     private final AbstractRuntime<?, ?> runtime;
-    private final Bits typeMask = new Bits();
     private final Map<String, T> typeMapping = new HashMap<>();
 
     AbstractRuntimeRule(AbstractRuntime<?, ?> runtime, AbstractRule other, T[] factTypes) {
@@ -27,7 +25,7 @@ public abstract class AbstractRuntimeRule<T extends FactType> extends AbstractRu
         this.runtime = runtime;
         this.factTypes = factTypes;
         for (T factType : factTypes) {
-            this.typeMask.set(factType.type());
+            //this.typeMask.set(factType.type());
             if (typeMapping.put(factType.getName(), factType) != null) {
                 throw new IllegalStateException();
             }
@@ -47,9 +45,11 @@ public abstract class AbstractRuntimeRule<T extends FactType> extends AbstractRu
         return typeMapping.get(type.getName());
     }
 
+/*
     final boolean dependsOn(Type<?> type) {
         return typeMask.get(type.getId());
     }
+*/
 
     public T[] getFactTypes() {
         return factTypes;

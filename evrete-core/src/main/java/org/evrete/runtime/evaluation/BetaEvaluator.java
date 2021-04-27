@@ -4,7 +4,7 @@ import org.evrete.api.ComplexityObject;
 import org.evrete.api.EvaluatorHandle;
 import org.evrete.runtime.ActiveField;
 import org.evrete.runtime.FactType;
-import org.evrete.util.Bits;
+import org.evrete.util.Mask;
 
 import java.util.Set;
 
@@ -18,7 +18,7 @@ public interface BetaEvaluator extends ComplexityObject {
         return factTypes().size();
     }
 
-    Bits getFactTypeMask();
+    Mask<FactType> getFactTypeMask();
 
     EvaluatorHandle[] constituents();
 }

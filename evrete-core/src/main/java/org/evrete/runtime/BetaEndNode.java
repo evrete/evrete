@@ -3,13 +3,17 @@ package org.evrete.runtime;
 import org.evrete.api.KeyMode;
 import org.evrete.api.MemoryKey;
 import org.evrete.api.ReIterator;
+import org.evrete.runtime.evaluation.MemoryAddress;
+import org.evrete.util.Mask;
 
 public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
     private final RuntimeFactType[] entryNodes;
+    private final Mask<MemoryAddress> memoryMask;
 
     BetaEndNode(RuntimeRuleImpl rule, ConditionNodeDescriptor nodeDescriptor, boolean singleGroup) {
         super(rule, nodeDescriptor, create(nodeDescriptor.getSources(), rule));
         this.entryNodes = rule.asRuntimeTypes(nodeDescriptor.getTypes());
+        this.memoryMask = nodeDescriptor.getMemoryMask();
         setMergeToMain(!singleGroup);
     }
 
@@ -47,5 +51,10 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
     //TODO !!!! bad interfaces/abstract methods
     public void commitDelta() {
         forEachConditionNode(AbstractBetaConditionNode::commitDelta1);
+    }
+
+    @Override
+    public Mask<MemoryAddress> getMemoryMask() {
+        return memoryMask;
     }
 }

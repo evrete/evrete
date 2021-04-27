@@ -1,7 +1,6 @@
 package org.evrete.runtime;
 
 import org.evrete.runtime.evaluation.MemoryAddress;
-import org.evrete.util.Bits;
 import org.evrete.util.Mask;
 
 import java.util.Arrays;
@@ -9,7 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public abstract class NodeDescriptor {
-    private final Bits factTypeMask = new Bits();
+    private final Mask<FactType> factTypeMask = Mask.factTypeMask();
     private final Mask<MemoryAddress> memoryMask = Mask.addressMask();
     private final NodeDescriptor[] sources;
     private final FactType[] factTypes;
@@ -37,13 +36,13 @@ public abstract class NodeDescriptor {
     }
 
     private void setMaskBits(FactType t) {
-        this.factTypeMask.set(t.getInRuleIndex());
+        this.factTypeMask.set(t);
         this.memoryMask.set(t.getMemoryAddress());
     }
 
     public abstract boolean isConditionNode();
 
-    Bits getFactTypeMask() {
+    Mask<FactType> getFactTypeMask() {
         return factTypeMask;
     }
 

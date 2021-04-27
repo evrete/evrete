@@ -4,19 +4,19 @@ import org.evrete.api.ComplexityObject;
 import org.evrete.api.EvaluatorHandle;
 import org.evrete.runtime.ActiveField;
 import org.evrete.runtime.FactType;
-import org.evrete.util.Bits;
+import org.evrete.util.Mask;
 
 import java.util.*;
 
 public class BetaEvaluatorGroup implements BetaEvaluator {
     private final EvaluatorHandle[] constituents;
     private final BetaEvaluatorSingle[] evaluators;
-    private final Bits factTypeMask;
+    private final Mask<FactType> factTypeMask;
     private final Set<FactType> descriptor;
     private final double complexity;
 
     BetaEvaluatorGroup(Collection<BetaEvaluatorSingle> collection) {
-        this.factTypeMask = new Bits();
+        this.factTypeMask = Mask.factTypeMask();
         this.evaluators = collection.toArray(BetaEvaluatorSingle.ZERO_ARRAY);
         Arrays.sort(evaluators, Comparator.comparingDouble(ComplexityObject::getComplexity));
         Set<FactType> factTypes = new HashSet<>();
@@ -60,7 +60,7 @@ public class BetaEvaluatorGroup implements BetaEvaluator {
     }
 
     @Override
-    public Bits getFactTypeMask() {
+    public Mask<FactType> getFactTypeMask() {
         return factTypeMask;
     }
 

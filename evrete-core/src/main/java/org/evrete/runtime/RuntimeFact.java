@@ -2,9 +2,9 @@ package org.evrete.runtime;
 
 import org.evrete.api.FactHandleVersioned;
 import org.evrete.api.ValueHandle;
-import org.evrete.util.Bits;
 
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Objects;
 
 /**
@@ -18,10 +18,10 @@ class RuntimeFact {
             return false;
         }
     };
-    private static final Bits EMPTY = new Bits();
+    private static final BitSet EMPTY = new BitSet();
     private final ValueHandle[] valueHandles;
     final FactHandleVersioned factHandle;
-    final Bits alphaTests;
+    final BitSet alphaTests;
     final FactRecord factRecord;
 
     private RuntimeFact() {
@@ -31,7 +31,7 @@ class RuntimeFact {
         this.factRecord = null;
     }
 
-    RuntimeFact(FactRecord factRecord, FactHandleVersioned factHandle, ValueHandle[] valueHandles, Bits alphaTests) {
+    RuntimeFact(FactRecord factRecord, FactHandleVersioned factHandle, ValueHandle[] valueHandles, BitSet alphaTests) {
         this.valueHandles = valueHandles;
         this.factHandle = factHandle;
         this.alphaTests = alphaTests;

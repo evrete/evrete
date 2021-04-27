@@ -1,9 +1,10 @@
 package org.evrete.runtime;
 
 import org.evrete.runtime.evaluation.BetaEvaluator;
-import org.evrete.util.Bits;
 
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class ConditionNodeDescriptor extends NodeDescriptor {
     public static final ConditionNodeDescriptor[] ZERO_ARRAY = new ConditionNodeDescriptor[0];
@@ -26,7 +27,17 @@ public class ConditionNodeDescriptor extends NodeDescriptor {
         // Loop through the expressions one by one
         // The initial order of expressions defines the outcome.
         for (BetaEvaluator evaluator : evaluatorSequence) {
-            Set<NodeDescriptor> matching = Bits.matchesOR(evaluator.getFactTypeMask(), unallocatedNodes, NodeDescriptor::getFactTypeMask);
+            Set<NodeDescriptor> matching = unallocatedNodes
+                    .stream()
+                    .filter(new Predicate<NodeDescriptor>() {
+                        @Override
+                        public boolean test(NodeDescriptor nodeDescriptor) {
+                            return nodeDescriptor.getFactTypeMask().intersects(evaluator.getFactTypeMask());
+                        }
+                    })
+                    .collect(Collectors.toSet());
+
+            //Set<NodeDescriptor> matching = Bits.matchesOR(evaluator.getFactTypeMask(), unallocatedNodes, NodeDescriptor::getFactTypeMask);
             assert !matching.isEmpty();
             // replace the matching nodes with a new one
             unallocatedNodes.removeAll(matching);

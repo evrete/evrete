@@ -118,7 +118,7 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
         for (TypeMemory tm : memory) {
             tm.processBuffer();
         }
-        deltaMemoryManager.clear();
+        deltaMemoryManager.clearBufferData();
     }
 
     private void commitBuffer() {
@@ -140,7 +140,8 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
 
             for (TypeMemory tm : memory) {
                 Type<?> t = tm.getType();
-                if (!ruleAdded && rule.dependsOn(t)) {
+                //TODO !!!!!!! condition this
+                if (!ruleAdded) {
                     affectedRules.add(rule);
                     ruleAdded = true;
                 }

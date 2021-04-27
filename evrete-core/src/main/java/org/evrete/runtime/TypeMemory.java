@@ -5,14 +5,11 @@ import org.evrete.api.*;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 import org.evrete.runtime.evaluation.EvaluatorWrapper;
 import org.evrete.runtime.evaluation.MemoryAddress;
-import org.evrete.util.Bits;
 import org.evrete.util.Mask;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 public final class TypeMemory extends TypeMemoryBase {
@@ -146,7 +143,15 @@ public final class TypeMemory extends TypeMemoryBase {
 
         if (!inserts.isEmpty()) {
             // Performing insert
-            forEachBucket(b -> b.insert(inserts));
+
+            forEachBucket(new Consumer<KeyMemoryBucket>() {
+                @Override
+                public void accept(KeyMemoryBucket bucket) {
+                    if (bucket.insert(inserts)) {
+                        runtime.deltaMemoryManager.onInsert(bucket.address);
+                    }
+                }
+            });
             // After insert, each RuntimeFact's record contains an updated mask of all the memory buckets
             // where that fact has gotten into. For a remote fact storage implementation we need to update
             // its entries.
@@ -224,8 +229,9 @@ public final class TypeMemory extends TypeMemoryBase {
         }
 
         private RuntimeFact createFactRuntime(FactHandleVersioned factHandle, FactRecord factRecord, ValueResolver valueResolver) {
+
             ValueHandle[] valueHandles = new ValueHandle[fields.length];
-            Bits alphaTests;
+            BitSet alphaTests;
 
             if (hasAlphaConditions) {
                 for (int i = 0; i < valueHandles.length; i++) {
@@ -235,7 +241,7 @@ public final class TypeMemory extends TypeMemoryBase {
                     valueHandles[i] = valueResolver.getValueHandle(f.getValueType(), fieldValue);
                 }
 
-                alphaTests = new Bits();
+                alphaTests = new BitSet();
                 for (AlphaPredicate alphaEvaluator : alphaEvaluators) {
                     if (alphaEvaluator.test()) {
                         alphaTests.set(alphaEvaluator.getIndex());
@@ -247,7 +253,7 @@ public final class TypeMemory extends TypeMemoryBase {
                     TypeField f = fields[i];
                     valueHandles[i] = valueResolver.getValueHandle(f.getValueType(), f.readValue(factRecord.instance));
                 }
-                alphaTests = Bits.EMPTY;
+                alphaTests = Mask.EMPTY;
             }
 
             return new RuntimeFact(factRecord, factHandle, valueHandles, alphaTests);

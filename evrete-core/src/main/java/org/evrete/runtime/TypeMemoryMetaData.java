@@ -4,7 +4,6 @@ import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 import org.evrete.runtime.evaluation.MemoryAddress;
-import org.evrete.util.Bits;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -251,7 +250,7 @@ class TypeMemoryMetaData {
             }
 
             @Override
-            public boolean testAlphaBits(Bits mask) {
+            public boolean testAlphaBits(BitSet mask) {
                 return true;
             }
         }
@@ -268,14 +267,14 @@ class TypeMemoryMetaData {
             }
 
             @Override
-            public boolean testAlphaBits(Bits mask) {
+            public boolean testAlphaBits(BitSet mask) {
                 return mask.get(bitIndex) == expectedValue;
             }
         }
 
         public static final class Multi extends TypeMemoryMeta {
             private final int[] bitIndices;
-            private final Bits expectedValues = new Bits();
+            private final BitSet expectedValues = new BitSet();
 
             Multi(int id, int bucketIndex, FieldsKey fields, Set<MatchedAlphaEvaluator> matches) {
                 super(id, bucketIndex, fields, matches);
@@ -292,7 +291,8 @@ class TypeMemoryMetaData {
                 }
             }
 
-            public boolean testAlphaBits(Bits mask) {
+            @Override
+            public boolean testAlphaBits(BitSet mask) {
                 for (int idx : bitIndices) {
                     if (mask.get(idx) != expectedValues.get(idx)) {
                         return false;

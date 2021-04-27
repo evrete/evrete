@@ -5,6 +5,8 @@ import org.evrete.api.MemoryKey;
 import org.evrete.api.ReIterator;
 import org.evrete.api.ValueHandle;
 import org.evrete.collections.CollectionReIterator;
+import org.evrete.runtime.evaluation.MemoryAddress;
+import org.evrete.util.Mask;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,6 +18,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
     private static final MemoryKey KEY_DELTA = new VR(KeyMode.OLD_NEW.ordinal());
     private final RuntimeFactType[] types;
     private final EnumMap<KeyMode, ReIterator<MemoryKey>> keyIterators = new EnumMap<>(KeyMode.class);
+    private final Mask<MemoryAddress> memoryMask = Mask.addressMask();
 
 
     RhsFactGroupAlpha(RuntimeRuleImpl rule, RhsFactGroupDescriptor descriptor) {
@@ -28,6 +31,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
         Collection<MemoryKey> mainCollection = new ArrayList<>();
         for (int i = 0; i < types.length; i++) {
             mainCollection.add(KEY_MAIN);
+            this.memoryMask.set(types[i].getMemoryAddress());
         }
         ReIterator<MemoryKey> mainKeyIterator = new CollectionReIterator<>(mainCollection);
 
@@ -58,6 +62,11 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
     @Override
     public ReIterator<MemoryKey> keyIterator(KeyMode mode) {
         return keyIterators.get(mode);
+    }
+
+    @Override
+    public Mask<MemoryAddress> getMemoryMask() {
+        return memoryMask;
     }
 
     private static class VR implements MemoryKey {

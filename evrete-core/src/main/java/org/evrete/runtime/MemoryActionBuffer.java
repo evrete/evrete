@@ -78,7 +78,7 @@ class MemoryActionBuffer {
     }
 
     private void reportAction(Action action, boolean addOrRemove) {
-        listener.apply(type, action, addOrRemove ? 1 : -1);
+        listener.onBufferAction(type, action, addOrRemove ? 1 : -1);
     }
 
     Iterator<AtomicMemoryAction> actions() {

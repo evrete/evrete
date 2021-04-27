@@ -7,7 +7,7 @@ import org.evrete.api.TypeField;
 import org.evrete.runtime.ActiveField;
 import org.evrete.runtime.BetaFieldReference;
 import org.evrete.runtime.FactType;
-import org.evrete.util.Bits;
+import org.evrete.util.Mask;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -17,7 +17,7 @@ import java.util.function.Function;
 public class BetaEvaluatorSingle implements BetaEvaluator {
     public static final BetaEvaluatorSingle[] ZERO_ARRAY = new BetaEvaluatorSingle[0];
     private final BetaFieldReference[] descriptor;
-    private final Bits factTypeMask;
+    private final Mask<FactType> factTypeMask;
     private final Set<FactType> factTypes;
     private final Set<ActiveField> fields;
     private final EvaluatorHandle[] constituents;
@@ -25,7 +25,7 @@ public class BetaEvaluatorSingle implements BetaEvaluator {
 
     BetaEvaluatorSingle(EvaluatorHandle delegate, Function<NamedType, FactType> typeFunction) {
         this.delegate = delegate;
-        this.factTypeMask = new Bits();
+        this.factTypeMask = Mask.factTypeMask();
         this.fields = new HashSet<>();
         this.constituents = new EvaluatorHandle[]{delegate};
         FieldReference[] evaluatorDescriptor = delegate.descriptor();
@@ -37,7 +37,7 @@ public class BetaEvaluatorSingle implements BetaEvaluator {
             TypeField field = fieldReference.field();
             BetaFieldReference bfr = new BetaFieldReference(factType, field);
             this.descriptor[i] = bfr;
-            factTypeMask.set(factType.getInRuleIndex());
+            factTypeMask.set(factType);
             fields.add(bfr.getActiveField());
             factTypes.add(factType);
         }
@@ -75,7 +75,7 @@ public class BetaEvaluatorSingle implements BetaEvaluator {
     }
 
     @Override
-    public Bits getFactTypeMask() {
+    public Mask<FactType> getFactTypeMask() {
         return factTypeMask;
     }
 }

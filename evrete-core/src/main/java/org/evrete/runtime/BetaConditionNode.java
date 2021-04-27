@@ -31,7 +31,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
 
         for (FactType type : allFactTypes) {
             MemoryKeyNode keyMeta;
-            if (expression.getFactTypeMask().get(type.getInRuleIndex())) {
+            if (expression.getFactTypeMask().get(type)) {
                 // This fact type is a part of condition evaluation
                 keyMeta = new ConditionMemoryKeyNode(type, valueResolver, expression, cachingEvaluator);
             } else {

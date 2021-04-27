@@ -1,7 +1,8 @@
 package org.evrete.runtime.evaluation;
 
 import org.evrete.runtime.FieldsKey;
-import org.evrete.util.Bits;
+
+import java.util.BitSet;
 
 public interface MemoryAddress {
     boolean isEmpty();
@@ -16,7 +17,7 @@ public interface MemoryAddress {
      */
     int getBucketIndex();
 
-    boolean testAlphaBits(Bits mask);
+    boolean testAlphaBits(BitSet mask);
 
     FieldsKey fields();
 }
