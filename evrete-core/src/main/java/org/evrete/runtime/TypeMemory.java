@@ -24,7 +24,7 @@ public final class TypeMemory extends TypeMemoryBase {
     TypeMemory(SessionMemory sessionMemory, int type) {
         super(sessionMemory, type);
         int bufferSize = configuration.getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT);
-        this.buffer = new MemoryActionBuffer(type, bufferSize, sessionMemory.runtime.memoryActionListener);
+        this.buffer = new MemoryActionBuffer(type, bufferSize, sessionMemory.runtime.deltaMemoryManager);
         updateCachedData();
     }
 

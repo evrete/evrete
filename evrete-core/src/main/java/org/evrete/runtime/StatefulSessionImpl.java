@@ -6,10 +6,12 @@ import org.evrete.api.StatefulSession;
 import org.evrete.api.Type;
 import org.evrete.runtime.async.Completer;
 import org.evrete.runtime.async.ForkJoinExecutor;
-import org.evrete.runtime.async.MemoryDeltaTask;
 import org.evrete.runtime.async.RuleMemoryInsertTask;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.function.BooleanSupplier;
 
 public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> implements StatefulSession {
@@ -67,7 +69,7 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
 
     private void fireContinuous(ActivationContext ctx) {
         List<RuntimeRule> agenda;
-        while (fireCriteria.getAsBoolean() && memoryActionListener.hasData()) {
+        while (fireCriteria.getAsBoolean() && deltaMemoryManager.hasMemoryChanges()) {
             processBuffer();
             if (!(agenda = buildMemoryDeltas()).isEmpty()) {
                 activationManager.onAgenda(ctx.incrementFireCount(), agenda);
@@ -85,16 +87,17 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
 
     private void fireDefault(ActivationContext ctx) {
         List<RuntimeRule> agenda;
-        while (fireCriteria.getAsBoolean() && memoryActionListener.hasData()) {
+        while (fireCriteria.getAsBoolean() && deltaMemoryManager.hasMemoryChanges()) {
             processBuffer();
-            if (!(agenda = buildMemoryDeltas()).isEmpty()) {
+            agenda = buildMemoryDeltas();
+            if (!agenda.isEmpty()) {
                 activationManager.onAgenda(ctx.incrementFireCount(), agenda);
                 for (RuntimeRule candidate : agenda) {
                     RuntimeRuleImpl rule = (RuntimeRuleImpl) candidate;
                     if (activationManager.test(candidate)) {
                         activationManager.onActivation(rule, rule.executeRhs());
                         // Analyzing buffer
-                        int deltaOperations = memoryActionListener.deltaOperations();
+                        int deltaOperations = deltaMemoryManager.deltaOperations();
                         if (deltaOperations > 0) {
                             // Breaking the agenda
                             break;
@@ -112,9 +115,11 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
     }
 
     private void processBuffer() {
-        Iterator<TypeMemory> it = memory.iterator();
-        getExecutor().invoke(new MemoryDeltaTask(it));
-        memoryActionListener.clear();
+        //Iterator<TypeMemory> it = memory.iterator();
+        for (TypeMemory tm : memory) {
+            tm.processBuffer();
+        }
+        deltaMemoryManager.clear();
     }
 
     private void commitBuffer() {

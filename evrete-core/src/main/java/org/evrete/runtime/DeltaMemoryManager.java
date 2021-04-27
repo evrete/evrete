@@ -4,11 +4,11 @@ import org.evrete.api.Action;
 
 import java.util.Arrays;
 
-class MemoryActionListenerImpl implements MemoryActionListener {
+class DeltaMemoryManager implements MemoryActionListener {
     private final int[] actionCounts = new int[Action.values().length];
     private int totalActions = 0;
 
-    boolean hasData() {
+    boolean hasMemoryChanges() {
         return totalActions > 0;
     }
 

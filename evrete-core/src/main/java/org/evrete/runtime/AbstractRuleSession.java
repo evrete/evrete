@@ -16,14 +16,14 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
     private static final Logger LOGGER = Logger.getLogger(AbstractRuleSession.class.getName());
     private final RuntimeRules ruleStorage;
     final SessionMemory memory;
-    final MemoryActionListenerImpl memoryActionListener;
+    final DeltaMemoryManager deltaMemoryManager;
     private final KnowledgeRuntime knowledge;
     private final boolean warnUnknownTypes;
     private boolean active = true;
 
     AbstractRuleSession(KnowledgeRuntime knowledge) {
         super(knowledge);
-        this.memoryActionListener = new MemoryActionListenerImpl();
+        this.deltaMemoryManager = new DeltaMemoryManager();
         this.ruleStorage = new RuntimeRules();
         MemoryFactory memoryFactory = getService().getMemoryFactoryProvider().instance(this);
         this.memory = new SessionMemory(this, memoryFactory);
