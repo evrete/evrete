@@ -154,7 +154,7 @@ public final class TypeMemory extends TypeMemoryBase {
             // Checking what kind of storage we're dealing with
             for (RuntimeFact fact : inserts) {
                 Mask<MemoryAddress> mask = fact.factRecord.getBucketsMask();
-                if (mask.bitsSet() > 0) {
+                if (mask.cardinality() > 0) {
                     // The fact has passed at least one alpha-condition and was saved in one or more buckets.
                     FactHandle handle = fact.factHandle.getHandle();
                     FactRecord record = factStorage.getFact(handle);

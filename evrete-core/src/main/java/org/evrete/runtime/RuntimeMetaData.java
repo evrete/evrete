@@ -8,6 +8,7 @@ import org.evrete.runtime.evaluation.MemoryAddress;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeContext<C>, MetaChangeListener {
     private static final Comparator<ActiveField> DEFAULT_FIELD_COMPARATOR = Comparator.comparing(ActiveField::getValueIndex);
@@ -18,6 +19,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     private final Evaluators evaluators;
     private TypeResolver typeResolver;
     private ClassLoader classLoader;
+    private final AtomicInteger bucketIds;
 
     RuntimeMetaData(KnowledgeService service) {
         this.classLoader = service.getClassLoader();
@@ -27,6 +29,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         this.memoryKeys = new ArrayOf<>(FieldsKey.class);
         this.properties = new ConcurrentHashMap<>();
         this.evaluators = new Evaluators();
+        this.bucketIds = new AtomicInteger(0);
     }
 
     RuntimeMetaData(RuntimeMetaData<?> parent) {
@@ -34,14 +37,14 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         this.typeResolver = parent.typeResolver.copyOf();
         this.imports = parent.imports.copyOf();
         this.evaluators = parent.evaluators.copyOf();
+        this.bucketIds = new AtomicInteger(parent.bucketIds.get());
         this.properties = new ConcurrentHashMap<>(parent.properties);
         this.memoryKeys = new ArrayOf<>(parent.memoryKeys);
         this.typeMetas = new ArrayOf<>(TypeMemoryMetaData.class);
 
-        MetaChangeListener listener = this;
         parent.typeMetas
                 .forEach(
-                        (meta, i) -> RuntimeMetaData.this.typeMetas.set(i, meta.copyOf(this.evaluators, listener))
+                        (meta, i) -> RuntimeMetaData.this.typeMetas.set(i, meta.copyOf(this.evaluators, this.bucketIds, this))
                 );
     }
 
@@ -94,7 +97,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     }
 
     TypeMemoryMetaData getTypeMeta(int type) {
-        return typeMetas.computeIfAbsent(type, k -> new TypeMemoryMetaData(type, evaluators, RuntimeMetaData.this));
+        return typeMetas.computeIfAbsent(type, k -> new TypeMemoryMetaData(type, evaluators, bucketIds, RuntimeMetaData.this));
     }
 
     private ActiveField getCreateActiveField(TypeField field) {

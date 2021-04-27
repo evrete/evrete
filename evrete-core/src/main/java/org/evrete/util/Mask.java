@@ -3,9 +3,11 @@ package org.evrete.util;
 import org.evrete.api.Type;
 import org.evrete.runtime.evaluation.MemoryAddress;
 
+import java.util.BitSet;
 import java.util.function.ToIntFunction;
 
-public class Mask<T> extends Bits {
+public class Mask<T> {
+    private final BitSet delegate = new BitSet();
     private final ToIntFunction<T> intMapper;
 
     private Mask(ToIntFunction<T> intMapper) {
@@ -17,16 +19,18 @@ public class Mask<T> extends Bits {
     }
 
     public static Mask<MemoryAddress> addressMask() {
-        return new Mask<>(MemoryAddress::getBucketIndex);
+        return new Mask<>(MemoryAddress::getId);
     }
 
     public void set(T obj) {
-        super.set(intMapper.applyAsInt(obj));
+        delegate.set(intMapper.applyAsInt(obj));
     }
 
     public boolean get(T obj) {
-        return super.get(intMapper.applyAsInt(obj));
+        return delegate.get(intMapper.applyAsInt(obj));
     }
 
-
+    public int cardinality() {
+        return delegate.cardinality();
+    }
 }

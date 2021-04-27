@@ -146,9 +146,12 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
                 }
 
                 for (BetaEndNode endNode : rule.getLhs().getEndNodes()) {
+                    //TODO !!!!!!! condition this
+                    affectedEndNodes.add(endNode);
+/*
                     if (endNode.dependsOn(t)) {
-                        affectedEndNodes.add(endNode);
                     }
+*/
                 }
             }
         }

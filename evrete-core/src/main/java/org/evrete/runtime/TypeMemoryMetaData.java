@@ -17,8 +17,9 @@ class TypeMemoryMetaData {
     ActiveField[] activeFields;
     AlphaEvaluator[] alphaEvaluators;
     private final AtomicInteger bucketCounter;
+    private final AtomicInteger bucketIds;
 
-    TypeMemoryMetaData(int type, Evaluators evaluators, MetaChangeListener listener) {
+    TypeMemoryMetaData(int type, Evaluators evaluators, AtomicInteger bucketIds, MetaChangeListener listener) {
         this.type = type;
         this.activeFields = ActiveField.ZERO_ARRAY;
         this.alphaEvaluators = new AlphaEvaluator[0];
@@ -26,9 +27,10 @@ class TypeMemoryMetaData {
         this.listener = listener;
         this.keyMetas = new ArrayOf<>(FieldKeyMeta.class);
         this.bucketCounter = new AtomicInteger(0);
+        this.bucketIds = bucketIds;
     }
 
-    private TypeMemoryMetaData(TypeMemoryMetaData other, Evaluators evaluators, MetaChangeListener listener) {
+    private TypeMemoryMetaData(TypeMemoryMetaData other, Evaluators evaluators, AtomicInteger bucketIds, MetaChangeListener listener) {
         this.activeFields = Arrays.copyOf(other.activeFields, other.activeFields.length);
         this.alphaEvaluators = Arrays.copyOf(other.alphaEvaluators, other.alphaEvaluators.length);
         this.type = other.type;
@@ -36,6 +38,7 @@ class TypeMemoryMetaData {
         this.listener = listener;
         this.keyMetas = new ArrayOf<>(FieldKeyMeta.class);
         this.bucketCounter = new AtomicInteger(other.bucketCounter.get());
+        this.bucketIds = bucketIds;
         other.keyMetas
                 .forEach(
                         (meta, i) -> TypeMemoryMetaData.this.keyMetas.set(i, meta.copyOf())
@@ -51,8 +54,8 @@ class TypeMemoryMetaData {
         return alphaEvaluator;
     }
 
-    TypeMemoryMetaData copyOf(Evaluators evaluators, MetaChangeListener listener) {
-        return new TypeMemoryMetaData(this, evaluators, listener);
+    TypeMemoryMetaData copyOf(Evaluators evaluators, AtomicInteger bucketIds, MetaChangeListener listener) {
+        return new TypeMemoryMetaData(this, evaluators, bucketIds, listener);
     }
 
     synchronized TypeMemoryMeta buildAlphaMask(FieldsKey key, Set<EvaluatorHandle> alphaEvaluators) {
@@ -81,7 +84,7 @@ class TypeMemoryMetaData {
         }
 
         // Not found, creating a new one
-        TypeMemoryMeta newMeta = fieldKeyMeta.newMeta(matches, bucketCounter);
+        TypeMemoryMeta newMeta = fieldKeyMeta.newMeta(matches, bucketIds, bucketCounter);
         listener.onNewAlphaBucket(newMeta);
         return newMeta;
     }
@@ -131,10 +134,11 @@ class TypeMemoryMetaData {
             this.alphaBuckets = Arrays.copyOf(other.alphaBuckets, other.alphaBuckets.length);
         }
 
-        synchronized TypeMemoryMeta newMeta(Set<MatchedAlphaEvaluator> matches, AtomicInteger bucketCounter) {
+        synchronized TypeMemoryMeta newMeta(Set<MatchedAlphaEvaluator> matches, AtomicInteger bucketIds, AtomicInteger bucketCounter) {
             int idx = alphaBuckets.length;
             int bucketIndex = bucketCounter.getAndIncrement();
-            TypeMemoryMeta newMeta = TypeMemoryMeta.factory(bucketIndex, fields, matches);
+            int id = bucketIds.getAndIncrement();
+            TypeMemoryMeta newMeta = TypeMemoryMeta.factory(id, bucketIndex, fields, matches);
             alphaBuckets = Arrays.copyOf(alphaBuckets, alphaBuckets.length + 1);
             alphaBuckets[idx] = newMeta;
             return newMeta;
@@ -190,29 +194,36 @@ class TypeMemoryMetaData {
     public abstract static class TypeMemoryMeta implements MemoryAddress {
         private static final Set<MatchedAlphaEvaluator> EMPTY_COMPONENTS = new HashSet<>();
         private final int bucketIndex;
+        private final int id;
         private final FieldsKey typeFields;
         private final Set<MatchedAlphaEvaluator> key;
 
-        private TypeMemoryMeta(int bucketIndex, FieldsKey fields, Set<MatchedAlphaEvaluator> matches) {
+        private TypeMemoryMeta(int id, int bucketIndex, FieldsKey fields, Set<MatchedAlphaEvaluator> matches) {
+            this.id = id;
             this.key = matches;
             this.typeFields = fields;
             this.bucketIndex = bucketIndex;
         }
 
-        static TypeMemoryMeta factory(int bucketIndex, FieldsKey fields, Set<MatchedAlphaEvaluator> matches) {
+        static TypeMemoryMeta factory(int id, int bucketIndex, FieldsKey fields, Set<MatchedAlphaEvaluator> matches) {
             switch (matches.size()) {
                 case 0:
-                    return new Empty(bucketIndex, fields);
+                    return new Empty(id, bucketIndex, fields);
                 case 1:
-                    return new Single(bucketIndex, fields, matches);
+                    return new Single(id, bucketIndex, fields, matches);
                 default:
-                    return new Multi(bucketIndex, fields, matches);
+                    return new Multi(id, bucketIndex, fields, matches);
             }
         }
 
         @Override
         public int getBucketIndex() {
             return bucketIndex;
+        }
+
+        @Override
+        public int getId() {
+            return id;
         }
 
         @Override
@@ -235,8 +246,8 @@ class TypeMemoryMetaData {
 
         public static final class Empty extends TypeMemoryMeta {
 
-            Empty(int bucketIndex, FieldsKey fields) {
-                super(bucketIndex, fields, EMPTY_COMPONENTS);
+            Empty(int id, int bucketIndex, FieldsKey fields) {
+                super(id, bucketIndex, fields, EMPTY_COMPONENTS);
             }
 
             @Override
@@ -249,8 +260,8 @@ class TypeMemoryMetaData {
             private final int bitIndex;
             private final boolean expectedValue;
 
-            Single(int bucketIndex, FieldsKey fields, Set<MatchedAlphaEvaluator> matches) {
-                super(bucketIndex, fields, matches);
+            Single(int id, int bucketIndex, FieldsKey fields, Set<MatchedAlphaEvaluator> matches) {
+                super(id, bucketIndex, fields, matches);
                 MatchedAlphaEvaluator match = matches.iterator().next();
                 this.expectedValue = match.direct;
                 this.bitIndex = match.matched.getIndex();
@@ -266,8 +277,8 @@ class TypeMemoryMetaData {
             private final int[] bitIndices;
             private final Bits expectedValues = new Bits();
 
-            Multi(int bucketIndex, FieldsKey fields, Set<MatchedAlphaEvaluator> matches) {
-                super(bucketIndex, fields, matches);
+            Multi(int id, int bucketIndex, FieldsKey fields, Set<MatchedAlphaEvaluator> matches) {
+                super(id, bucketIndex, fields, matches);
                 List<MatchedAlphaEvaluator> sortedMatches = new ArrayList<>(matches);
                 sortedMatches.sort(Comparator.comparingDouble(o -> o.matched.getDelegate().getComplexity()));
                 this.bitIndices = new int[sortedMatches.size()];

@@ -3,7 +3,6 @@ package org.evrete.runtime;
 import org.evrete.api.KeyMode;
 import org.evrete.api.MemoryKey;
 import org.evrete.api.ReIterator;
-import org.evrete.api.Type;
 
 public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
     private final RuntimeFactType[] entryNodes;
@@ -42,10 +41,6 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
     @Override
     public RuntimeFactType[] types() {
         return entryNodes;
-    }
-
-    boolean dependsOn(Type<?> type) {
-        return getDescriptor().getTypeMask().get(type);
     }
 
     @Override

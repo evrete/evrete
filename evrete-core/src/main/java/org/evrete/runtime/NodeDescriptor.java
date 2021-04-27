@@ -1,6 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.api.Type;
 import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.Bits;
 import org.evrete.util.Mask;
@@ -11,7 +10,6 @@ import java.util.Set;
 
 public abstract class NodeDescriptor {
     private final Bits factTypeMask = new Bits();
-    private final Mask<Type<?>> typeMask = Mask.typeMask();
     private final Mask<MemoryAddress> memoryMask = Mask.addressMask();
     private final NodeDescriptor[] sources;
     private final FactType[] factTypes;
@@ -40,7 +38,6 @@ public abstract class NodeDescriptor {
 
     private void setMaskBits(FactType t) {
         this.factTypeMask.set(t.getInRuleIndex());
-        this.typeMask.set(t.type());
         this.memoryMask.set(t.getMemoryAddress());
     }
 
@@ -54,9 +51,6 @@ public abstract class NodeDescriptor {
         return memoryMask;
     }
 
-    Mask<Type<?>> getTypeMask() {
-        return typeMask;
-    }
 
     public FactType[] getTypes() {
         return factTypes;
