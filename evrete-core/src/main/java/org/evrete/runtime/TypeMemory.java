@@ -6,6 +6,7 @@ import org.evrete.runtime.evaluation.AlphaEvaluator;
 import org.evrete.runtime.evaluation.EvaluatorWrapper;
 import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.Bits;
+import org.evrete.util.Mask;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -17,7 +18,7 @@ import java.util.logging.Logger;
 public final class TypeMemory extends TypeMemoryBase {
     private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
     private Cache cache;
-    private int purgeActions = 0;
+    private final Mask<MemoryAddress> purgeTargets = Mask.addressMask();
     private final MemoryActionBuffer buffer;
 
     TypeMemory(SessionMemory sessionMemory, int type) {
@@ -81,36 +82,24 @@ public final class TypeMemory extends TypeMemoryBase {
     }
 
     private void purge(KeyMode... scanModes) {
-        if (purgeActions > 0) {
+        if (purgeTargets.bitsSet() > 0) {
+
+            // Purging fact memories
             for (KeyMode scanMode : scanModes) {
                 // Performing data purge
                 Iterator<KeyMemoryBucket> buckets = memoryBuckets.iterator();
                 while (buckets.hasNext()) {
                     KeyMemoryBucket bucket = buckets.next();
-                    KeyedFactStorage facts = bucket.getFieldData();
-                    ReIterator<MemoryKey> keys = facts.keys(scanMode);
-                    while (keys.hasNext()) {
-                        MemoryKey key = keys.next();
-                        ReIterator<FactHandleVersioned> handles = facts.values(scanMode, key);
-                        while (handles.hasNext()) {
-                            FactHandleVersioned handle = handles.next();
-                            FactRecord fact = factStorage.getFact(handle.getHandle());
-                            if (fact == null || fact.getVersion() != handle.getVersion()) {
-                                // No such fact, deleting
-                                //System.out.println("Deleting " + handle + " from " + bucket);
-                                handles.remove();
-                            }
-                        }
-
-                        long remaining = handles.reset();
-                        if (remaining == 0) {
-                            // Deleting key as well
-                            keys.remove();
-                        }
+                    if (purgeTargets.get(bucket.address)) {
+                        bucket.purgeDeleted(factStorage, scanMode);
                     }
                 }
             }
-            purgeActions = 0;
+
+            // Purging rule beta-memories
+
+
+            purgeTargets.clear();
         }
     }
 
@@ -122,8 +111,11 @@ public final class TypeMemory extends TypeMemoryBase {
             AtomicMemoryAction a = it.next();
             switch (a.action) {
                 case RETRACT:
+                    FactRecord record = factStorage.getFact(a.handle);
+                    if (record != null) {
+                        purgeTargets.or(record.getBucketsMask());
+                    }
                     factStorage.delete(a.handle);
-                    purgeActions++;
                     break;
                 case INSERT:
                     inserts.add(createFactRuntime(new FactHandleVersioned(a.handle), a.factRecord));
@@ -134,13 +126,14 @@ public final class TypeMemory extends TypeMemoryBase {
                         LOGGER.warning("Unknown fact handle " + a.handle + ". Update operation skipped.");
                     } else {
                         FactRecord factRecord = a.factRecord;
+                        purgeTargets.or(factRecord.getBucketsMask());
                         FactHandle handle = a.handle;
                         int newVersion = previous.getVersion() + 1;
                         factRecord.updateVersion(newVersion);
+                        //factRecord = factRecord.nextVersion();
                         factStorage.update(handle, factRecord);
                         FactHandleVersioned versioned = new FactHandleVersioned(handle, newVersion);
                         inserts.add(createFactRuntime(versioned, factRecord));
-                        purgeActions++;
                     }
                     break;
                 default:
@@ -151,7 +144,30 @@ public final class TypeMemory extends TypeMemoryBase {
         if (!inserts.isEmpty()) {
             // Performing insert
             forEachBucket(b -> b.insert(inserts));
+            // After insert, each RuntimeFact's record contains an updated mask of all the memory buckets
+            // where that fact has gotten into. For a remote fact storage implementation we need to update
+            // its entries.
+
+            // Checking what kind of storage we're dealing with
+            for (RuntimeFact fact : inserts) {
+                Mask<MemoryAddress> mask = fact.factRecord.getBucketsMask();
+                if (mask.bitsSet() > 0) {
+                    // The fact has passed at least one alpha-condition and was saved in one or more buckets.
+                    FactHandle handle = fact.factHandle.getHandle();
+                    FactRecord record = factStorage.getFact(handle);
+                    if (record != null) {
+                        if (record.getBucketsMask().equals(mask)) {
+                            // If the same mask is stored in the fact storage, then we have nothing to do
+                            break;
+                        } else {
+                            // Fact storage is not a pass-by-reference one, so we need to update the record
+                            factStorage.update(handle, fact.factRecord);
+                        }
+                    }
+                }
+            }
         }
+
         //purge(KeyMode.MAIN);
         buffer.clear();
     }
@@ -162,6 +178,8 @@ public final class TypeMemory extends TypeMemoryBase {
     }
 
     private RuntimeFact createFactRuntime(FactHandleVersioned factHandle, FactRecord factRecord) {
+        return cache.createFactRuntime(factHandle, factRecord, valueResolver);
+/*
         TypeField[] fields = cache.fields;
         ValueHandle[] valueHandles = new ValueHandle[fields.length];
         Bits alphaTests;
@@ -190,6 +208,7 @@ public final class TypeMemory extends TypeMemoryBase {
         }
 
         return new RuntimeFact(factHandle, valueHandles, alphaTests);
+*/
     }
 
     void onNewAlphaBucket(MemoryAddress address) {
@@ -231,19 +250,54 @@ public final class TypeMemory extends TypeMemoryBase {
                 }
             }
         }
+
+        private RuntimeFact createFactRuntime(FactHandleVersioned factHandle, FactRecord factRecord, ValueResolver valueResolver) {
+            ValueHandle[] valueHandles = new ValueHandle[fields.length];
+            Bits alphaTests;
+
+            if (hasAlphaConditions) {
+                for (int i = 0; i < valueHandles.length; i++) {
+                    TypeField f = fields[i];
+                    Object fieldValue = f.readValue(factRecord.instance);
+                    currentValues[i] = fieldValue;
+                    valueHandles[i] = valueResolver.getValueHandle(f.getValueType(), fieldValue);
+                }
+
+                alphaTests = new Bits();
+                for (AlphaPredicate alphaEvaluator : alphaEvaluators) {
+                    if (alphaEvaluator.test()) {
+                        alphaTests.set(alphaEvaluator.getIndex());
+                    }
+                }
+
+            } else {
+                for (int i = 0; i < valueHandles.length; i++) {
+                    TypeField f = fields[i];
+                    valueHandles[i] = valueResolver.getValueHandle(f.getValueType(), f.readValue(factRecord.instance));
+                }
+                alphaTests = Bits.EMPTY;
+            }
+
+            return new RuntimeFact(factRecord, factHandle, valueHandles, alphaTests);
+        }
+
     }
 
     static class AlphaPredicate {
         private final EvaluatorWrapper delegate;
-        private final ActiveField[] activeDescriptor;
-        private final Object[] values;
         private final int index;
+        private final IntToValue func;
 
         AlphaPredicate(AlphaEvaluator alphaEvaluator, Evaluators evaluators, Object[] values) {
             this.delegate = evaluators.get(alphaEvaluator.getDelegate());
-            this.activeDescriptor = alphaEvaluator.getDescriptor();
+            ActiveField[] activeDescriptor = alphaEvaluator.getDescriptor();
             this.index = alphaEvaluator.getIndex();
-            this.values = values;
+
+            int[] valueIndices = new int[activeDescriptor.length];
+            for (int i = 0; i < valueIndices.length; i++) {
+                valueIndices[i] = activeDescriptor[i].getValueIndex();
+            }
+            this.func = i -> values[valueIndices[i]];
         }
 
         int getIndex() {
@@ -251,7 +305,7 @@ public final class TypeMemory extends TypeMemoryBase {
         }
 
         public boolean test() {
-            return delegate.test(i -> values[activeDescriptor[i].getValueIndex()]);
+            return delegate.test(func);
         }
 
     }

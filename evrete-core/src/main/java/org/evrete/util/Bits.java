@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 public class Bits implements Copyable<Bits> {
     public static Bits EMPTY = new Bits();
-    private final BitSet delegate;
+    private BitSet delegate;
 
     private Bits(BitSet delegate) {
         this.delegate = delegate;
@@ -51,6 +51,10 @@ public class Bits implements Copyable<Bits> {
         return delegate.equals(bits.delegate);
     }
 
+    public void clear() {
+        this.delegate = new BitSet();
+    }
+
     @Override
     public int hashCode() {
         return delegate.hashCode();
@@ -65,4 +69,10 @@ public class Bits implements Copyable<Bits> {
     public String toString() {
         return delegate.toString();
     }
+
+
+    public int bitsSet() {
+        return delegate.cardinality();
+    }
+
 }

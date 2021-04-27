@@ -1,8 +1,6 @@
 package org.evrete.runtime;
 
-import org.evrete.api.FactHandleVersioned;
-import org.evrete.api.KeyedFactStorage;
-import org.evrete.api.ValueHandle;
+import org.evrete.api.*;
 import org.evrete.runtime.evaluation.MemoryAddress;
 
 import java.util.Collection;
@@ -15,12 +13,35 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
     final ActiveField[] activeFields;
     final Collection<FactHandleVersioned> buffer = new LinkedList<>();
     RuntimeFact current = null;
+    final MemoryAddress address;
 
     KeyMemoryBucket(MemoryComponent runtime, MemoryAddress address) {
         super(runtime);
         FieldsKey fields = address.fields();
         this.fieldData = memoryFactory.newBetaStorage(fields.getFields().length);
         this.activeFields = fields.getFields();
+        this.address = address;
+    }
+
+    void purgeDeleted(FactStorage<FactRecord> factStorage, KeyMode scanMode) {
+        ReIterator<MemoryKey> keys = fieldData.keys(scanMode);
+        while (keys.hasNext()) {
+            MemoryKey key = keys.next();
+            ReIterator<FactHandleVersioned> handles = fieldData.values(scanMode, key);
+            while (handles.hasNext()) {
+                FactHandleVersioned handle = handles.next();
+                FactRecord fact = factStorage.getFact(handle.getHandle());
+                if (fact == null || fact.getVersion() != handle.getVersion()) {
+                    // No such fact, deleting
+                    handles.remove();
+                }
+            }
+            long remaining = handles.reset();
+            if (remaining == 0) {
+                // Deleting key as well
+                keys.remove();
+            }
+        }
     }
 
     static KeyMemoryBucket factory(MemoryComponent runtime, MemoryAddress address) {
@@ -73,18 +94,17 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
     }
 
     abstract static class KeyMemoryBucketAlpha extends KeyMemoryBucket {
-        private final MemoryAddress memoryAddress;
 
         KeyMemoryBucketAlpha(MemoryComponent runtime, MemoryAddress address) {
             super(runtime, address);
-            this.memoryAddress = address;
         }
 
         @Override
         final void insert(Iterable<RuntimeFact> facts) {
             current = DUMMY_FACT;
             for (RuntimeFact fact : facts) {
-                if (memoryAddress.testAlphaBits(fact.alphaTests)) {
+                if (address.testAlphaBits(fact.alphaTests)) {
+                    fact.factRecord.markLocation(address);
                     if (current.sameValues(fact)) {
                         buffer.add(fact.factHandle);
                     } else {
@@ -164,6 +184,7 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
         final void insert(Iterable<RuntimeFact> facts) {
             current = DUMMY_FACT;
             for (RuntimeFact fact : facts) {
+                fact.factRecord.markLocation(address);
                 if (current.sameValues(fact)) {
                     buffer.add(fact.factHandle);
                 } else {

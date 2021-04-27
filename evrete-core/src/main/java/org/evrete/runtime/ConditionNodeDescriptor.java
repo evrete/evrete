@@ -32,6 +32,7 @@ public class ConditionNodeDescriptor extends NodeDescriptor {
             unallocatedNodes.removeAll(matching);
             unallocatedNodes.add(new ConditionNodeDescriptor(evaluator, matching));
         }
+
         Collection<ConditionNodeDescriptor> finalNodes = new ArrayList<>(unallocatedNodes.size());
         for (NodeDescriptor nd : unallocatedNodes) {
             if (nd.isConditionNode()) {

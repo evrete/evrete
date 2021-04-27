@@ -22,17 +22,20 @@ class RuntimeFact {
     private final ValueHandle[] valueHandles;
     final FactHandleVersioned factHandle;
     final Bits alphaTests;
+    final FactRecord factRecord;
 
     private RuntimeFact() {
         this.factHandle = null;
         this.alphaTests = EMPTY;
         this.valueHandles = new ValueHandle[0];
+        this.factRecord = null;
     }
 
-    RuntimeFact(FactHandleVersioned factHandle, ValueHandle[] valueHandles, Bits alphaTests) {
+    RuntimeFact(FactRecord factRecord, FactHandleVersioned factHandle, ValueHandle[] valueHandles, Bits alphaTests) {
         this.valueHandles = valueHandles;
         this.factHandle = factHandle;
         this.alphaTests = alphaTests;
+        this.factRecord = factRecord;
     }
 
     ValueHandle getValue(ActiveField field) {
