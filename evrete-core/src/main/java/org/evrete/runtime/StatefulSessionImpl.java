@@ -3,7 +3,6 @@ package org.evrete.runtime;
 import org.evrete.api.ActivationManager;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
-import org.evrete.api.Type;
 import org.evrete.runtime.async.Completer;
 import org.evrete.runtime.async.ForkJoinExecutor;
 import org.evrete.runtime.async.RuleMemoryInsertTask;
@@ -138,6 +137,22 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
         for (RuntimeRuleImpl rule : getRuleStorage()) {
             boolean ruleAdded = false;
 
+            for (RhsFactGroup group : rule.getLhs().getFactGroups()) {
+                if (deltaMemoryManager.getInsertDeltaMask().intersects(group.getMemoryMask())) {
+                    if (!ruleAdded) {
+                        // Mark rule as active
+                        affectedRules.add(rule);
+                        ruleAdded = true;
+                    }
+
+                    if (group instanceof BetaEndNode) {
+                        affectedEndNodes.add((BetaEndNode) group);
+                    }
+                }
+            }
+
+
+/*
             for (TypeMemory tm : memory) {
                 Type<?> t = tm.getType();
                 //TODO !!!!!!! condition this
@@ -149,12 +164,9 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
                 for (BetaEndNode endNode : rule.getLhs().getEndNodes()) {
                     //TODO !!!!!!! condition this
                     affectedEndNodes.add(endNode);
-/*
-                    if (endNode.dependsOn(t)) {
-                    }
-*/
                 }
             }
+*/
         }
 
         // Ordered task 1 - process beta nodes, i.e. evaluate conditions
@@ -169,6 +181,8 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
                 executor.invoke(task);
             }
         }
+
+        deltaMemoryManager.clearDeltaData();
         return affectedRules;
     }
 
