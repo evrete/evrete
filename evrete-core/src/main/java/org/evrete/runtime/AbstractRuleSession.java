@@ -289,8 +289,8 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
                         }
                     }
                 }
-                commitBuffer();
             }
+            commitBuffer();
         }
     }
 
