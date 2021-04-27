@@ -78,6 +78,7 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
                     }
                 }
             }
+            commitRuleDeltas();
             commitBuffer();
         }
     }
@@ -103,6 +104,8 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
                         }
                     }
                 }
+                commitRuleDeltas();
+
             }
             commitBuffer();
         }
@@ -118,12 +121,17 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
         memory.commitBuffer();
     }
 
+    private void commitRuleDeltas() {
+        for (RuntimeRuleImpl rule : getRuleStorage()) {
+            rule.commitDeltas();
+        }
+    }
+
     private List<RuntimeRule> buildMemoryDeltas() {
         List<RuntimeRule> affectedRules = new LinkedList<>();
         Set<BetaEndNode> affectedEndNodes = new HashSet<>();
 
         for (RuntimeRuleImpl rule : getRuleStorage()) {
-            rule.commitDeltas();
             boolean ruleAdded = false;
 
             for (TypeMemory tm : memory) {
