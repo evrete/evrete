@@ -10,9 +10,9 @@ abstract class MemoryComponent {
     final Configuration configuration;
     final ValueResolver valueResolver;
     private final ArrayOf<MemoryComponent> childComponents = new ArrayOf<>(MemoryComponent.class);
-    final AbstractWorkingMemory<?> runtime;
+    final AbstractRuleSession<?> runtime;
 
-    MemoryComponent(AbstractWorkingMemory<?> runtime, MemoryFactory memoryFactory) {
+    MemoryComponent(AbstractRuleSession<?> runtime, MemoryFactory memoryFactory) {
         this.memoryFactory = memoryFactory;
         this.configuration = runtime.getConfiguration();
         this.valueResolver = memoryFactory.getValueResolver();

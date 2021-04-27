@@ -23,7 +23,8 @@ public final class TypeMemory extends TypeMemoryBase {
 
     TypeMemory(SessionMemory sessionMemory, int type) {
         super(sessionMemory, type);
-        this.buffer = new MemoryActionBuffer(configuration.getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT));
+        int bufferSize = configuration.getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT);
+        this.buffer = new MemoryActionBuffer(type, bufferSize, sessionMemory.runtime.memoryActionListener);
         updateCachedData();
     }
 
@@ -70,14 +71,14 @@ public final class TypeMemory extends TypeMemoryBase {
         });
     }
 
-    FactHandle externalInsert(Object fact, MemoryActionListener actionListener) {
+    FactHandle externalInsert(Object fact) {
         FactRecord record = new FactRecord(fact);
         FactHandle handle = factStorage.insert(record);
         if (handle == null) {
             LOGGER.warning("Fact " + fact + " has been already inserted");
             return null;
         } else {
-            return add(Action.INSERT, handle, record, actionListener);
+            return add(Action.INSERT, handle, record);
         }
     }
 
@@ -168,47 +169,16 @@ public final class TypeMemory extends TypeMemoryBase {
             }
         }
 
-        //purge(KeyMode.MAIN);
         buffer.clear();
     }
 
-    public FactHandle add(Action action, FactHandle factHandle, FactRecord factRecord, MemoryActionListener listener) {
-        buffer.add(action, factHandle, factRecord, listener);
+    public FactHandle add(Action action, FactHandle factHandle, FactRecord factRecord) {
+        buffer.add(action, factHandle, factRecord);
         return factHandle;
     }
 
     private RuntimeFact createFactRuntime(FactHandleVersioned factHandle, FactRecord factRecord) {
         return cache.createFactRuntime(factHandle, factRecord, valueResolver);
-/*
-        TypeField[] fields = cache.fields;
-        ValueHandle[] valueHandles = new ValueHandle[fields.length];
-        Bits alphaTests;
-
-        if (cache.hasAlphaConditions) {
-            for (int i = 0; i < valueHandles.length; i++) {
-                TypeField f = fields[i];
-                Object fieldValue = f.readValue(factRecord.instance);
-                cache.currentValues[i] = fieldValue;
-                valueHandles[i] = valueResolver.getValueHandle(f.getValueType(), fieldValue);
-            }
-
-            alphaTests = new Bits();
-            for (AlphaPredicate alphaEvaluator : cache.alphaEvaluators) {
-                if (alphaEvaluator.test()) {
-                    alphaTests.set(alphaEvaluator.getIndex());
-                }
-            }
-
-        } else {
-            for (int i = 0; i < valueHandles.length; i++) {
-                TypeField f = fields[i];
-                valueHandles[i] = valueResolver.getValueHandle(f.getValueType(), f.readValue(factRecord.instance));
-            }
-            alphaTests = Bits.EMPTY;
-        }
-
-        return new RuntimeFact(factHandle, valueHandles, alphaTests);
-*/
     }
 
     void onNewAlphaBucket(MemoryAddress address) {
@@ -235,7 +205,7 @@ public final class TypeMemory extends TypeMemoryBase {
         final ValueResolver resolver;
         final boolean hasAlphaConditions;
 
-        Cache(Type<?> type, ActiveField[] activeFields, Evaluators evaluators, ValueResolver resolver, org.evrete.runtime.evaluation.AlphaEvaluator[] alphaEvaluators) {
+        Cache(Type<?> type, ActiveField[] activeFields, Evaluators evaluators, ValueResolver resolver, AlphaEvaluator[] alphaEvaluators) {
             this.fields = new TypeField[activeFields.length];
             this.resolver = resolver;
             for (int i = 0; i < activeFields.length; i++) {

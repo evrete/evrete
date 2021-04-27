@@ -4,7 +4,7 @@ import org.evrete.api.Action;
 
 import java.util.Arrays;
 
-class MemoryActionCounter implements MemoryActionListener {
+class MemoryActionListenerImpl implements MemoryActionListener {
     private final int[] actionCounts = new int[Action.values().length];
     private int totalActions = 0;
 
@@ -17,8 +17,7 @@ class MemoryActionCounter implements MemoryActionListener {
     }
 
     @Override
-    public void apply(Action action, boolean flag) {
-        int delta = flag ? 1 : -1;
+    public void apply(int type, Action action, int delta) {
         totalActions += delta;
         actionCounts[action.ordinal()] += delta;
     }

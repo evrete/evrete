@@ -11,7 +11,7 @@ import java.util.Iterator;
 public class SessionMemory extends MemoryComponent implements Iterable<TypeMemory> {
     private final ArrayOf<TypeMemory> typedMemories;
 
-    SessionMemory(AbstractWorkingMemory<?> runtime, MemoryFactory memoryFactory) {
+    SessionMemory(AbstractRuleSession<?> runtime, MemoryFactory memoryFactory) {
         super(runtime, memoryFactory);
         this.typedMemories = new ArrayOf<>(new TypeMemory[]{});
     }

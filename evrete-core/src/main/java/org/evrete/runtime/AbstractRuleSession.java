@@ -1,21 +1,37 @@
 package org.evrete.runtime;
 
+import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.runtime.async.*;
+import org.evrete.runtime.evaluation.MemoryAddress;
 
 import java.util.*;
 import java.util.concurrent.Future;
+import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
+import java.util.logging.Logger;
 
-abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWorkingMemory<S> {
+abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRuntime<RuntimeRule, S> implements RuleSession<S> {
+    private static final Logger LOGGER = Logger.getLogger(AbstractRuleSession.class.getName());
     private final RuntimeRules ruleStorage;
     private ActivationManager activationManager;
     private BooleanSupplier fireCriteria = () -> true;
+    final SessionMemory memory;
+    final MemoryActionListenerImpl memoryActionListener;
+    private final KnowledgeRuntime knowledge;
+    private final boolean warnUnknownTypes;
+    private boolean active = true;
 
     AbstractRuleSession(KnowledgeRuntime knowledge) {
         super(knowledge);
         this.activationManager = newActivationManager();
+        this.memoryActionListener = new MemoryActionListenerImpl();
         this.ruleStorage = new RuntimeRules();
+        MemoryFactory memoryFactory = getService().getMemoryFactoryProvider().instance(this);
+        this.memory = new SessionMemory(this, memoryFactory);
+        this.knowledge = knowledge;
+        this.warnUnknownTypes = knowledge.getConfiguration().getAsBoolean(Configuration.WARN_UNKNOWN_TYPES);
+
         // Deploy existing rules
         for (RuleDescriptor descriptor : knowledge.getRules()) {
             deployRule(descriptor, false);
@@ -99,13 +115,6 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
         return rule;
     }
 
-    @Override
-    public void clear() {
-        super.clear();
-        for (RuntimeRuleImpl rule : ruleStorage) {
-            rule.clear();
-        }
-    }
 
     public void close() {
         synchronized (this) {
@@ -147,6 +156,96 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
         }
     }
 
+    private void invalidateSession() {
+        this.active = false;
+    }
+
+    @Override
+    public Knowledge getParentContext() {
+        return knowledge;
+    }
+
+    private void _assertActive() {
+        if (!active) {
+            throw new IllegalStateException("Session has been closed");
+        }
+    }
+
+    public final SessionMemory getMemory() {
+        return memory;
+    }
+
+    @Override
+    public final FactHandle insert(Object fact) {
+        _assertActive();
+        return insert(getTypeResolver().resolve(fact), fact);
+    }
+
+    @SuppressWarnings("unused")
+    @Override
+    public final FactHandle insert(String type, Object fact) {
+        _assertActive();
+        return insert(getTypeResolver().getType(type), fact);
+    }
+
+    @Override
+    public Object getFact(FactHandle handle) {
+        return memory.get(handle.getTypeId()).getFact(handle);
+    }
+
+    private FactHandle insert(Type<?> type, Object fact) {
+        if (fact == null) throw new NullPointerException("Null facts are not supported");
+        if (type == null) {
+            if (warnUnknownTypes) {
+                LOGGER.warning("Can not resolve type for " + fact + ", insert operation skipped.");
+            }
+            return null;
+        } else {
+            return memory.get(type).externalInsert(fact);
+        }
+    }
+
+    @Override
+    public final void update(FactHandle handle, Object newValue) {
+        _assertActive();
+        if (handle == null) {
+            throw new NullPointerException("Null handle provided during update");
+        }
+        memory.get(handle.getTypeId()).add(Action.UPDATE, handle, new FactRecord(newValue));
+    }
+
+    @Override
+    public final void delete(FactHandle handle) {
+        _assertActive();
+        memory.get(handle.getTypeId()).add(Action.RETRACT, handle, null);
+    }
+
+    public final void forEachFact(BiConsumer<FactHandle, Object> consumer) {
+        // Scanning main memory and making sure fact handles are not deleted
+        for (TypeMemory tm : memory) {
+            tm.forEachFact(consumer);
+        }
+    }
+
+    @Override
+    public void onNewActiveField(ActiveField newField) {
+        memory.onNewActiveField(newField);
+    }
+
+    @Override
+    public final void onNewAlphaBucket(MemoryAddress address) {
+        memory.onNewAlphaBucket(address);
+    }
+
+    @Override
+    public void clear() {
+        for (RuntimeRuleImpl rule : ruleStorage) {
+            rule.clear();
+        }
+        memory.clear();
+    }
+
+
     @Override
     public <T> Future<T> fireAsync(final T result) {
         return getExecutor().submit(this::fire, result);
@@ -154,7 +253,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
 
     private void fireContinuous(ActivationContext ctx) {
         List<RuntimeRule> agenda;
-        while (fireCriteria.getAsBoolean() && actionCounter.hasData()) {
+        while (fireCriteria.getAsBoolean() && memoryActionListener.hasData()) {
             processBuffer();
             if (!(agenda = buildMemoryDeltas()).isEmpty()) {
                 activationManager.onAgenda(ctx.incrementFireCount(), agenda);
@@ -171,7 +270,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
 
     private void fireDefault(ActivationContext ctx) {
         List<RuntimeRule> agenda;
-        while (fireCriteria.getAsBoolean() && actionCounter.hasData()) {
+        while (fireCriteria.getAsBoolean() && memoryActionListener.hasData()) {
             processBuffer();
             if (!(agenda = buildMemoryDeltas()).isEmpty()) {
                 activationManager.onAgenda(ctx.incrementFireCount(), agenda);
@@ -180,7 +279,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
                     if (activationManager.test(candidate)) {
                         activationManager.onActivation(rule, rule.executeRhs());
                         // Analyzing buffer
-                        int deltaOperations = actionCounter.deltaOperations();
+                        int deltaOperations = memoryActionListener.deltaOperations();
                         if (deltaOperations > 0) {
                             // Breaking the agenda
                             break;
@@ -198,7 +297,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractWor
     private void processBuffer() {
         Iterator<TypeMemory> it = memory.iterator();
         getExecutor().invoke(new MemoryDeltaTask(it));
-        actionCounter.clear();
+        memoryActionListener.clear();
     }
 
     private void commitBuffer() {

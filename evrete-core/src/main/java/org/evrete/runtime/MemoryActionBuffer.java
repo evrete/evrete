@@ -12,9 +12,13 @@ class MemoryActionBuffer {
     private static final Logger LOGGER = Logger.getLogger(MemoryActionBuffer.class.getName());
     private static final BiPredicate<AtomicMemoryAction, FactHandle> SEARCH_FUNCTION = (existing, factHandle) -> existing.handle.equals(factHandle);
     private final LinearHashSet<AtomicMemoryAction> queue;
+    private final int type;
+    private final MemoryActionListener listener;
 
-    MemoryActionBuffer(int minCapacity) {
+    MemoryActionBuffer(int type, int minCapacity, MemoryActionListener listener) {
         this.queue = new LinearHashSet<>(minCapacity);
+        this.type = type;
+        this.listener = listener;
     }
 
     AtomicMemoryAction get(FactHandle factHandle) {
@@ -23,14 +27,14 @@ class MemoryActionBuffer {
         return queue.get(addr);
     }
 
-    void add(Action action, FactHandle factHandle, FactRecord factRecord, MemoryActionListener listener) {
+    void add(Action action, FactHandle factHandle, FactRecord factRecord) {
         queue.resize();
         int hash = factHandle.hashCode();
         int addr = queue.findBinIndex(factHandle, hash, SEARCH_FUNCTION);
         AtomicMemoryAction existingAction = queue.get(addr);
         if (existingAction == null) {
             queue.saveDirect(new AtomicMemoryAction(action, factHandle, factRecord), addr);
-            listener.apply(action, true);
+            reportAction(action, true);
         } else {
             switch (action) {
                 case INSERT:
@@ -56,14 +60,14 @@ class MemoryActionBuffer {
                         case INSERT:
                             // Deleting a fact that has been just inserted
                             existingAction.action = Action.RETRACT;
-                            listener.apply(Action.INSERT, false);
-                            listener.apply(Action.RETRACT, true);
+                            reportAction(Action.INSERT, false);
+                            reportAction(Action.RETRACT, true);
                             break;
                         case UPDATE:
                             // Deleting a fact that has been queued for update, updating the action
                             existingAction.action = Action.RETRACT;
-                            listener.apply(Action.UPDATE, false);
-                            listener.apply(Action.RETRACT, true);
+                            reportAction(Action.UPDATE, false);
+                            reportAction(Action.RETRACT, true);
                             break;
                     }
                     break;
@@ -71,6 +75,10 @@ class MemoryActionBuffer {
                     throw new IllegalStateException();
             }
         }
+    }
+
+    private void reportAction(Action action, boolean addOrRemove) {
+        listener.apply(type, action, addOrRemove ? 1 : -1);
     }
 
     Iterator<AtomicMemoryAction> actions() {
