@@ -62,13 +62,10 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         return (C) this;
     }
 
-
-
     @Override
     public KnowledgeService getService() {
         return service;
     }
-
 
     @Override
     public Class<? extends ActivationManager> getActivationManagerFactory() {

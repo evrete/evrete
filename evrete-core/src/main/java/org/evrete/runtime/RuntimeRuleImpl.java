@@ -65,7 +65,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
         return arr;
     }
 
-    void mergeNodeDeltas() {
+    void commitDeltas() {
         for (BetaEndNode endNode : lhs.getEndNodes()) {
             endNode.commitDelta();
         }

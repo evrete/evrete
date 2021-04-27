@@ -2,20 +2,19 @@ package org.evrete.runtime;
 
 import org.evrete.Configuration;
 import org.evrete.api.*;
-import org.evrete.runtime.async.*;
+import org.evrete.runtime.async.RuleHotDeploymentTask;
 import org.evrete.runtime.evaluation.MemoryAddress;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
-import java.util.function.BooleanSupplier;
 import java.util.logging.Logger;
 
 abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRuntime<RuntimeRule, S> implements RuleSession<S> {
     private static final Logger LOGGER = Logger.getLogger(AbstractRuleSession.class.getName());
     private final RuntimeRules ruleStorage;
-    private ActivationManager activationManager;
-    private BooleanSupplier fireCriteria = () -> true;
     final SessionMemory memory;
     final MemoryActionListenerImpl memoryActionListener;
     private final KnowledgeRuntime knowledge;
@@ -24,7 +23,6 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
 
     AbstractRuleSession(KnowledgeRuntime knowledge) {
         super(knowledge);
-        this.activationManager = newActivationManager();
         this.memoryActionListener = new MemoryActionListenerImpl();
         this.ruleStorage = new RuntimeRules();
         MemoryFactory memoryFactory = getService().getMemoryFactoryProvider().instance(this);
@@ -53,47 +51,8 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
         return Collections.unmodifiableList(ruleStorage.getList());
     }
 
-
     RuntimeRules getRuleStorage() {
         return ruleStorage;
-    }
-
-    private List<RuntimeRule> buildMemoryDeltas() {
-        List<RuntimeRule> affectedRules = new LinkedList<>();
-        Set<BetaEndNode> affectedEndNodes = new HashSet<>();
-
-        for (RuntimeRuleImpl rule : ruleStorage) {
-            rule.mergeNodeDeltas();
-            boolean ruleAdded = false;
-
-            for (TypeMemory tm : memory) {
-                Type<?> t = tm.getType();
-                if (!ruleAdded && rule.dependsOn(t)) {
-                    affectedRules.add(rule);
-                    ruleAdded = true;
-                }
-
-                for (BetaEndNode endNode : rule.getLhs().getEndNodes()) {
-                    if (endNode.dependsOn(t)) {
-                        affectedEndNodes.add(endNode);
-                    }
-                }
-            }
-        }
-
-        // Ordered task 1 - process beta nodes, i.e. evaluate conditions
-        List<Completer> tasks = new LinkedList<>();
-        if (!affectedEndNodes.isEmpty()) {
-            tasks.add(new RuleMemoryInsertTask(affectedEndNodes, true));
-        }
-
-        if (tasks.size() > 0) {
-            ForkJoinExecutor executor = getExecutor();
-            for (Completer task : tasks) {
-                executor.invoke(task);
-            }
-        }
-        return affectedRules;
     }
 
     @Override
@@ -120,39 +79,6 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
         synchronized (this) {
             invalidateSession();
             knowledge.close(this);
-        }
-    }
-
-    @Override
-    public ActivationManager getActivationManager() {
-        return activationManager;
-    }
-
-    void applyActivationManager(ActivationManager activationManager) {
-        this.activationManager = activationManager;
-    }
-
-    @Override
-    public <A extends ActivationManager> void setActivationManagerFactory(Class<A> managerClass) {
-        super.setActivationManagerFactory(managerClass);
-        this.activationManager = newActivationManager();
-    }
-
-    void applyFireCriteria(BooleanSupplier fireCriteria) {
-        this.fireCriteria = fireCriteria;
-    }
-
-    @Override
-    public void fire() {
-        switch (getAgendaMode()) {
-            case DEFAULT:
-                fireDefault(new ActivationContext());
-                break;
-            case CONTINUOUS:
-                fireContinuous(new ActivationContext());
-                break;
-            default:
-                throw new IllegalStateException("Unknown mode " + getAgendaMode());
         }
     }
 
@@ -251,56 +177,4 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
         return getExecutor().submit(this::fire, result);
     }
 
-    private void fireContinuous(ActivationContext ctx) {
-        List<RuntimeRule> agenda;
-        while (fireCriteria.getAsBoolean() && memoryActionListener.hasData()) {
-            processBuffer();
-            if (!(agenda = buildMemoryDeltas()).isEmpty()) {
-                activationManager.onAgenda(ctx.incrementFireCount(), agenda);
-                for (RuntimeRule candidate : agenda) {
-                    RuntimeRuleImpl rule = (RuntimeRuleImpl) candidate;
-                    if (activationManager.test(candidate)) {
-                        activationManager.onActivation(rule, rule.executeRhs());
-                    }
-                }
-            }
-            commitBuffer();
-        }
-    }
-
-    private void fireDefault(ActivationContext ctx) {
-        List<RuntimeRule> agenda;
-        while (fireCriteria.getAsBoolean() && memoryActionListener.hasData()) {
-            processBuffer();
-            if (!(agenda = buildMemoryDeltas()).isEmpty()) {
-                activationManager.onAgenda(ctx.incrementFireCount(), agenda);
-                for (RuntimeRule candidate : agenda) {
-                    RuntimeRuleImpl rule = (RuntimeRuleImpl) candidate;
-                    if (activationManager.test(candidate)) {
-                        activationManager.onActivation(rule, rule.executeRhs());
-                        // Analyzing buffer
-                        int deltaOperations = memoryActionListener.deltaOperations();
-                        if (deltaOperations > 0) {
-                            // Breaking the agenda
-                            break;
-                        } else {
-                            // Processing deletes if any
-                            processBuffer();
-                        }
-                    }
-                }
-            }
-            commitBuffer();
-        }
-    }
-
-    private void processBuffer() {
-        Iterator<TypeMemory> it = memory.iterator();
-        getExecutor().invoke(new MemoryDeltaTask(it));
-        memoryActionListener.clear();
-    }
-
-    private void commitBuffer() {
-        memory.commitBuffer();
-    }
 }
