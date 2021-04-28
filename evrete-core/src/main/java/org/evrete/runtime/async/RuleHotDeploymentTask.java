@@ -21,7 +21,7 @@ public class RuleHotDeploymentTask extends Completer {
         // Terminal nodes for each beta graph should be evaluated
         List<NodeDeltaTask> deltaTasks = new LinkedList<>();
         for (BetaEndNode endNode : rule.getEndNodes()) {
-            NodeDeltaTask dt = new NodeDeltaTask(this, endNode, false);
+            NodeDeltaTask dt = new NodeDeltaTask(this, null, endNode, false);
             deltaTasks.add(dt);
         }
         Iterator<NodeDeltaTask> it = deltaTasks.iterator();

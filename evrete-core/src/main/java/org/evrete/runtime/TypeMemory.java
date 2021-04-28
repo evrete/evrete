@@ -77,30 +77,6 @@ public final class TypeMemory extends TypeMemoryBase {
         }
     }
 
-/*
-    private void purge(KeyMode... scanModes) {
-        if (purgeTargets.bitsSet() > 0) {
-
-            // Purging fact memories
-            for (KeyMode scanMode : scanModes) {
-                // Performing data purge
-                Iterator<KeyMemoryBucket> buckets = memoryBuckets.iterator();
-                while (buckets.hasNext()) {
-                    KeyMemoryBucket bucket = buckets.next();
-                    if (purgeTargets.get(bucket.address)) {
-                        bucket.purgeDeleted(factStorage, scanMode);
-                    }
-                }
-            }
-
-            // Purging rule beta-memories
-
-
-            purgeTargets.clear();
-        }
-    }
-*/
-
     public void processBuffer() {
         Iterator<AtomicMemoryAction> it = buffer.actions();
         Collection<RuntimeFact> inserts = new LinkedList<>();

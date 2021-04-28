@@ -46,7 +46,7 @@ public abstract class NodeDescriptor {
         return factTypeMask;
     }
 
-    Mask<MemoryAddress> getMemoryMask() {
+    public Mask<MemoryAddress> getMemoryMask() {
         return memoryMask;
     }
 

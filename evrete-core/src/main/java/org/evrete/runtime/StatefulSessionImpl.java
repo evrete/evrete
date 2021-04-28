@@ -157,7 +157,7 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
         // Ordered task 1 - process beta nodes, i.e. evaluate conditions
         List<Completer> tasks = new LinkedList<>();
         if (!affectedEndNodes.isEmpty()) {
-            tasks.add(new RuleMemoryInsertTask(affectedEndNodes, true));
+            tasks.add(new RuleMemoryInsertTask(affectedEndNodes, matchMask, true));
         }
 
         if (tasks.size() > 0) {

@@ -55,7 +55,6 @@ public class TypeMemoryBase extends MemoryComponent {
         for (KeyMemoryBucket bucket : memoryBuckets.data) {
             bucket.commitBuffer();
         }
-        //purge(KeyMode.OLD_OLD);
     }
 
     public ArrayOf<KeyMemoryBucket> getMemoryBuckets() {
