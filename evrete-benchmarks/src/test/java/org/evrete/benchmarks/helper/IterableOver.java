@@ -1,8 +1,7 @@
 package org.evrete.benchmarks.helper;
 
-import java.util.function.Consumer;
-
+//TODO !!!! delete this
 public interface IterableOver<T> {
 
-    void forEach(Consumer<T> consumer);
+    //void forEach(Consumer<T> consumer);
 }

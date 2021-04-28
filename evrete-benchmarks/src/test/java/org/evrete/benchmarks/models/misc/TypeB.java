@@ -12,4 +12,13 @@ public class TypeB extends Base {
 
     public TypeB() {
     }
+
+    @Override
+    public String toString() {
+        return "TypeB{" +
+                "id='" + getId() +
+                "', i=" + i +
+                '}';
+    }
+
 }

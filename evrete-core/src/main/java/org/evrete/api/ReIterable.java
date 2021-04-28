@@ -2,7 +2,7 @@ package org.evrete.api;
 
 import java.util.function.Function;
 
-public interface ReIterable<T> {
+public interface ReIterable<T> extends Iterable<T> {
 
     ReIterator<T> iterator();
 

@@ -9,7 +9,6 @@ import org.evrete.util.Mask;
 
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 public final class TypeMemory extends TypeMemoryBase {
@@ -112,7 +111,7 @@ public final class TypeMemory extends TypeMemoryBase {
                 case RETRACT:
                     FactRecord record = factStorage.getFact(a.handle);
                     if (record != null) {
-                        //purgeTargets.or(record.getBucketsMask());
+                        runtime.deltaMemoryManager.onDelete(record.getBucketsMask());
                     }
                     factStorage.delete(a.handle);
                     break;
@@ -125,7 +124,7 @@ public final class TypeMemory extends TypeMemoryBase {
                         LOGGER.warning("Unknown fact handle " + a.handle + ". Update operation skipped.");
                     } else {
                         FactRecord factRecord = a.factRecord;
-                        //purgeTargets.or(factRecord.getBucketsMask());
+                        runtime.deltaMemoryManager.onDelete(factRecord.getBucketsMask());
 
                         //TODO !!! fix this versioning mess
                         FactHandle handle = a.handle;
@@ -144,12 +143,9 @@ public final class TypeMemory extends TypeMemoryBase {
         if (!inserts.isEmpty()) {
             // Performing insert
 
-            forEachBucket(new Consumer<KeyMemoryBucket>() {
-                @Override
-                public void accept(KeyMemoryBucket bucket) {
-                    if (bucket.insert(inserts)) {
-                        runtime.deltaMemoryManager.onInsert(bucket.address);
-                    }
+            forEachBucket(bucket -> {
+                if (bucket.insert(inserts)) {
+                    runtime.deltaMemoryManager.onInsert(bucket.address);
                 }
             });
             // After insert, each RuntimeFact's record contains an updated mask of all the memory buckets

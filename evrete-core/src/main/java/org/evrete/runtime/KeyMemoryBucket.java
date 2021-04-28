@@ -5,6 +5,7 @@ import org.evrete.runtime.evaluation.MemoryAddress;
 
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.function.Predicate;
 
 import static org.evrete.runtime.RuntimeFact.DUMMY_FACT;
 
@@ -23,16 +24,15 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
         this.address = address;
     }
 
-    void purgeDeleted(FactStorage<FactRecord> factStorage, KeyMode scanMode) {
-        ReIterator<MemoryKey> keys = fieldData.keys(scanMode);
+    boolean purgeDeleted(Predicate<FactHandleVersioned> predicate) {
+        ReIterator<MemoryKey> keys = fieldData.keys(KeyMode.OLD_OLD);
+        boolean ret = false;
         while (keys.hasNext()) {
             MemoryKey key = keys.next();
-            ReIterator<FactHandleVersioned> handles = fieldData.values(scanMode, key);
+            ReIterator<FactHandleVersioned> handles = fieldData.values(KeyMode.OLD_OLD, key);
             while (handles.hasNext()) {
                 FactHandleVersioned handle = handles.next();
-                FactRecord fact = factStorage.getFact(handle.getHandle());
-                if (fact == null || fact.getVersion() != handle.getVersion()) {
-                    // No such fact, deleting
+                if (predicate.test(handle)) {
                     handles.remove();
                 }
             }
@@ -40,8 +40,10 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
             if (remaining == 0) {
                 // Deleting key as well
                 keys.remove();
+                ret = true;
             }
         }
+        return ret;
     }
 
     static KeyMemoryBucket factory(MemoryComponent runtime, MemoryAddress address) {

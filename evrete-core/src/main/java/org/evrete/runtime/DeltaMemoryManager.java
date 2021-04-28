@@ -10,6 +10,7 @@ class DeltaMemoryManager implements MemoryActionListener {
     private final int[] actionCounts = new int[Action.values().length];
     private int totalActions = 0;
     private final Mask<MemoryAddress> insertDeltaMask = Mask.addressMask();
+    private final Mask<MemoryAddress> deleteBufferMask = Mask.addressMask();
 
     boolean hasMemoryChanges() {
         return totalActions > 0;
@@ -29,6 +30,10 @@ class DeltaMemoryManager implements MemoryActionListener {
         insertDeltaMask.set(address);
     }
 
+    void onDelete(Mask<MemoryAddress> mask) {
+        deleteBufferMask.or(mask);
+    }
+
     void clearBufferData() {
         Arrays.fill(actionCounts, 0);
         totalActions = 0;
@@ -40,6 +45,14 @@ class DeltaMemoryManager implements MemoryActionListener {
 
     void clearDeltaData() {
         this.insertDeltaMask.clear();
+    }
+
+    public Mask<MemoryAddress> getDeleteDeltaMask() {
+        return deleteBufferMask;
+    }
+
+    void clearDeleteData() {
+        this.deleteBufferMask.clear();
     }
 
     @Override

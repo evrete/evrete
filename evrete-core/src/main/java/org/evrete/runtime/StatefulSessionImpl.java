@@ -1,17 +1,18 @@
 package org.evrete.runtime;
 
-import org.evrete.api.ActivationManager;
-import org.evrete.api.RuntimeRule;
-import org.evrete.api.StatefulSession;
+import org.evrete.api.*;
 import org.evrete.runtime.async.Completer;
 import org.evrete.runtime.async.ForkJoinExecutor;
 import org.evrete.runtime.async.RuleMemoryInsertTask;
+import org.evrete.runtime.evaluation.MemoryAddress;
+import org.evrete.util.Mask;
 
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
+import java.util.function.Predicate;
 
 public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> implements StatefulSession {
     private ActivationManager activationManager;
@@ -133,12 +134,13 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
     private List<RuntimeRule> buildMemoryDeltas() {
         List<RuntimeRule> affectedRules = new LinkedList<>();
         Set<BetaEndNode> affectedEndNodes = new HashSet<>();
+        Mask<MemoryAddress> matchMask = deltaMemoryManager.getInsertDeltaMask();
 
         for (RuntimeRuleImpl rule : getRuleStorage()) {
             boolean ruleAdded = false;
 
             for (RhsFactGroup group : rule.getLhs().getFactGroups()) {
-                if (deltaMemoryManager.getInsertDeltaMask().intersects(group.getMemoryMask())) {
+                if (matchMask.intersects(group.getMemoryMask())) {
                     if (!ruleAdded) {
                         // Mark rule as active
                         affectedRules.add(rule);
@@ -150,23 +152,6 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
                     }
                 }
             }
-
-
-/*
-            for (TypeMemory tm : memory) {
-                Type<?> t = tm.getType();
-                //TODO !!!!!!! condition this
-                if (!ruleAdded) {
-                    affectedRules.add(rule);
-                    ruleAdded = true;
-                }
-
-                for (BetaEndNode endNode : rule.getLhs().getEndNodes()) {
-                    //TODO !!!!!!! condition this
-                    affectedEndNodes.add(endNode);
-                }
-            }
-*/
         }
 
         // Ordered task 1 - process beta nodes, i.e. evaluate conditions
@@ -184,6 +169,36 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
 
         deltaMemoryManager.clearDeltaData();
         return affectedRules;
+    }
+
+
+    private void purge() {
+        Mask<MemoryAddress> factPurgeMask = deltaMemoryManager.getDeleteDeltaMask();
+        if (factPurgeMask.cardinality() > 0) {
+            Mask<MemoryAddress> keyPurgeMask = Mask.addressMask();
+            // Purging fact memories
+            for (TypeMemory tm : memory) {
+                FactStorage<FactRecord> factStorage = tm.factStorage;
+                // TODO Predicate could be an instance variable of the TypeMemory class (or a method reference)
+                Predicate<FactHandleVersioned> predicate = handle -> {
+                    FactRecord fact = factStorage.getFact(handle.getHandle());
+                    return fact == null || fact.getVersion() != handle.getVersion();
+                };
+
+                for (KeyMemoryBucket bucket : tm.memoryBuckets) {
+                    if (factPurgeMask.get(bucket.address)) {
+                        if (bucket.purgeDeleted(predicate)) {
+                            keyPurgeMask.set(bucket.address);
+                        }
+                    }
+                }
+            }
+
+            // Purging rule beta-memories
+
+
+            deltaMemoryManager.clearDeleteData();
+        }
     }
 
 }

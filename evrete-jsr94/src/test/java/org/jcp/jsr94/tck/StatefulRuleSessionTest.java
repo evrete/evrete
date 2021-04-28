@@ -298,6 +298,7 @@ class StatefulRuleSessionTest {
             assert handles != null;
             assert handles.size() == 2;
 
+
             // Execute the rules.
             ruleSession.executeRules();
 

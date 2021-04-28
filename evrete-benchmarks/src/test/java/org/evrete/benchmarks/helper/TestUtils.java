@@ -106,7 +106,7 @@ public final class TestUtils {
             }
 
             @Override
-            public void forEach(Consumer<Z> consumer) {
+            public void forEach(Consumer<? super Z> consumer) {
                 set.forEach(consumer);
             }
 
@@ -151,7 +151,7 @@ public final class TestUtils {
             }
 
             @Override
-            public void forEach(Consumer<Z> consumer) {
+            public void forEach(Consumer<? super Z> consumer) {
                 list.iterator().forEachRemaining(consumer);
             }
         };
@@ -191,7 +191,7 @@ public final class TestUtils {
             }
 
             @Override
-            public void forEach(Consumer<Z> consumer) {
+            public void forEach(Consumer<? super Z> consumer) {
                 list.iterator().forEachRemaining(consumer);
             }
         };
@@ -231,7 +231,7 @@ public final class TestUtils {
             }
 
             @Override
-            public void forEach(Consumer<Z> consumer) {
+            public void forEach(Consumer<? super Z> consumer) {
                 list.iterator().forEachRemaining(consumer);
             }
         };
@@ -280,7 +280,7 @@ public final class TestUtils {
             }
 
             @Override
-            public void forEach(Consumer<Z> consumer) {
+            public void forEach(Consumer<? super Z> consumer) {
                 set.forEach(consumer);
             }
 
