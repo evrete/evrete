@@ -94,7 +94,7 @@ public final class CollectionUtils {
     }
 
     public static void systemFill(int[] array, int value) {
-        systemFill(array, 0, array.length, value);
+        systemFill(array, array.length, value);
     }
 
     public static void systemFill(boolean[] array, boolean value) {
@@ -130,19 +130,18 @@ public final class CollectionUtils {
      * This method is an alternative to Arrays.fill() with the same
      * method signature
      *
-     * @param array     the array to be filled
-     * @param fromIndex the index of the first element (inclusive)
-     * @param toIndex   toIndex the index of the last element (exclusive)
-     * @param value     value to be stored
+     * @param array   the array to be filled
+     * @param toIndex toIndex the index of the last element (exclusive)
+     * @param value   value to be stored
      */
-    private static void systemFill(int[] array, int fromIndex, int toIndex, int value) {
+    private static void systemFill(int[] array, int toIndex, int value) {
         int len;
-        if ((len = toIndex - fromIndex) < 64) {
-            fillIntegers(array, fromIndex, toIndex, value);
+        if ((len = toIndex) < 64) {
+            fillIntegers(array, toIndex, value);
         } else {
-            array[fromIndex] = value;
+            array[0] = value;
             for (int i = 1; i < len; i += i) {
-                System.arraycopy(array, fromIndex, array, i + fromIndex, Math.min((len - i), i));
+                System.arraycopy(array, 0, array, i, Math.min((len - i), i));
             }
         }
     }
@@ -171,8 +170,8 @@ public final class CollectionUtils {
         for (int i = 0; i < toIndex; i++) a[i] = val;
     }
 
-    private static void fillIntegers(int[] a, int fromIndex, int toIndex, int val) {
-        for (int i = fromIndex; i < toIndex; i++) a[i] = val;
+    private static void fillIntegers(int[] a, int toIndex, int val) {
+        for (int i = 0; i < toIndex; i++) a[i] = val;
     }
 
     private static <T> void fillObjects(T[] a, int toIndex, T val) {

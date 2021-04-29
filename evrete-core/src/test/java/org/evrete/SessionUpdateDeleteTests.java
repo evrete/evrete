@@ -306,6 +306,85 @@ class SessionUpdateDeleteTests {
         }
     }
 
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void updateBeta3(ActivationMode mode) {
+        NextIntSupplier counter = new NextIntSupplier();
+
+        knowledge.newRule("update2")
+                .forEach(
+                        fact("$a", TypeA.class),
+                        fact("$b", TypeB.class),
+                        fact("$c", TypeC.class)
+                )
+                .where("$a.i == $b.i", 20.0)
+                .where("$a.i != $c.i", 10.0)
+                .execute(ctx -> counter.next());
+        StatefulSession s = knowledge.createSession().setActivationMode(mode);
+
+        Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
+        assert allObjects.size() == 0;
+
+        int fireCount = 0;
+
+        int objectCount = 16;
+        while (fireCount++ < 32) {
+            counter.set(0);
+            for (int i = 0; i < objectCount; i++) {
+                TypeA a = new TypeA("A" + i);
+                a.setI(i);
+                TypeB b = new TypeB("B" + i);
+                b.setI(i);
+                TypeC c = new TypeC("C" + i);
+                c.setI(i);
+
+                s.insert(a, b, c);
+            }
+
+            s.fire();
+
+            allObjects = TestUtils.sessionFacts(s);
+            assert allObjects.size() == objectCount * 3;
+            assert counter.get() == objectCount * (objectCount - 1) : counter.get() + " vs expected " + objectCount * (objectCount - 1);
+
+            Collection<FactEntry> cObjects = sessionFacts(s, TypeC.class);
+            assert cObjects.size() == objectCount;
+
+            counter.set(0);
+            for (FactEntry entry : cObjects) {
+                TypeC c = (TypeC) entry.getFact();
+                c.setI(-1);
+                s.update(entry.getHandle(), c);
+            }
+            s.fire();
+
+            allObjects = TestUtils.sessionFacts(s);
+            assert allObjects.size() == 3 * objectCount : allObjects.size() + " vs " + (3 * objectCount);
+
+            assert counter.get() == objectCount * objectCount : "Actual " + counter.get() + " vs expected " + (objectCount * objectCount);
+            counter.set(0);
+
+            FactEntry single = cObjects.iterator().next();
+            for (FactEntry c : cObjects) {
+                if (c != single) {
+                    s.delete(c.getHandle());
+                }
+            }
+
+            s.fire();
+
+            allObjects = TestUtils.sessionFacts(s);
+            assert allObjects.size() == 2 * objectCount + 1;
+
+            // Retract ALL objects
+            allObjects.forEach(o -> s.delete(o.getHandle()));
+            s.fire();
+
+            allObjects = TestUtils.sessionFacts(s);
+            assert allObjects.size() == 0;
+        }
+    }
+
     @Test
     void updateBeta2_mini() {
         NextIntSupplier counter = new NextIntSupplier();
@@ -316,7 +395,7 @@ class SessionUpdateDeleteTests {
                         fact("$b", TypeB.class),
                         fact("$c", TypeC.class)
                 )
-                .where("$a.i == $b.i", 20.0)
+                .where("$a.i == $b.i", 2.0)
                 .where("$a.i != $c.i", 10.0)
                 .execute(ctx -> counter.next());
         StatefulSessionImpl s = (StatefulSessionImpl) knowledge.createSession().setActivationMode(ActivationMode.DEFAULT);

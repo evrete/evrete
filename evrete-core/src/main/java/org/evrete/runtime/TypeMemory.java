@@ -100,7 +100,7 @@ public final class TypeMemory extends TypeMemoryBase {
                         LOGGER.warning("Unknown fact handle " + a.handle + ". Update operation skipped.");
                     } else {
                         FactRecord factRecord = a.factRecord;
-                        runtime.deltaMemoryManager.onDelete(factRecord.getBucketsMask());
+                        runtime.deltaMemoryManager.onDelete(previous.getBucketsMask());
 
                         //TODO !!! fix this versioning mess
                         FactHandle handle = a.handle;
@@ -254,7 +254,7 @@ public final class TypeMemory extends TypeMemoryBase {
             return index;
         }
 
-        public boolean test() {
+        boolean test() {
             return delegate.test(func);
         }
 

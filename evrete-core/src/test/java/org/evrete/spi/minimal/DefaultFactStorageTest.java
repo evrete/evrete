@@ -67,9 +67,9 @@ class DefaultFactStorageTest {
         LinkedFactHandles delta1 = bucket.get(KeyMode.OLD_NEW);
         LinkedFactHandles delta2 = bucket.get(KeyMode.NEW_NEW);
 
-        //assert main.iterator().reset() == 1 : " Actual: " + main.size();
-        //assert delta1.size() == 0;
-        //assert delta2.size() == 0;
+        assert main.iterator().reset() == 1 : " Actual: " + main;
+        assert delta1.size() == 0;
+        assert delta2.size() == 0;
 
     }
 }

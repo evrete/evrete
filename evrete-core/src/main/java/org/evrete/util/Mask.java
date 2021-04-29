@@ -7,7 +7,7 @@ import java.util.BitSet;
 import java.util.function.ToIntFunction;
 
 public class Mask<T> {
-    public static BitSet EMPTY = new BitSet();
+    public static final BitSet EMPTY = new BitSet();
     private final BitSet delegate = new BitSet();
     private final ToIntFunction<T> intMapper;
 
@@ -45,5 +45,10 @@ public class Mask<T> {
 
     public boolean intersects(Mask<T> other) {
         return delegate.intersects(other.delegate);
+    }
+
+    @Override
+    public String toString() {
+        return delegate.toString();
     }
 }

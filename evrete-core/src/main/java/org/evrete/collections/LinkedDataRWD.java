@@ -57,24 +57,6 @@ public class LinkedDataRWD<T> implements ReIterable<T> {
                 iterator.remove();
             }
         }
-/*
-        if (other.lastNode == null) {
-            assert other.firstNode == null && other.size == 0;
-            return; // Nothing to append
-        }
-        if (this.lastNode == null) {
-            // This collection is empty
-            this.firstNode = other.first();
-            this.lastNode = other.last();
-            this.size = other.size;
-        } else {
-            this.lastNode.next = other.firstNode;
-            other.firstNode.prev = this.lastNode;
-            this.lastNode = other.lastNode;
-        }
-        updateSize(other.size);
-        other.clear();
-*/
     }
 
     public long size() {

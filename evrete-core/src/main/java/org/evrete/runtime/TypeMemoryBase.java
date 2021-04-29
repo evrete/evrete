@@ -48,7 +48,11 @@ public class TypeMemoryBase extends MemoryComponent {
 
     @Override
     protected void clearLocalData() {
-        factStorage.clear();
+        this.factStorage.clear();
+    }
+
+    void destroy() {
+        this.memoryBuckets.clear();
     }
 
     void commitBuffer() {

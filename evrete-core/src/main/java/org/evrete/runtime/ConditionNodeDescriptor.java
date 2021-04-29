@@ -3,7 +3,6 @@ package org.evrete.runtime;
 import org.evrete.runtime.evaluation.BetaEvaluator;
 
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class ConditionNodeDescriptor extends NodeDescriptor {
@@ -29,12 +28,7 @@ public class ConditionNodeDescriptor extends NodeDescriptor {
         for (BetaEvaluator evaluator : evaluatorSequence) {
             Set<NodeDescriptor> matching = unallocatedNodes
                     .stream()
-                    .filter(new Predicate<NodeDescriptor>() {
-                        @Override
-                        public boolean test(NodeDescriptor nodeDescriptor) {
-                            return nodeDescriptor.getFactTypeMask().intersects(evaluator.getFactTypeMask());
-                        }
-                    })
+                    .filter(node -> node.getFactTypeMask().intersects(evaluator.getFactTypeMask()))
                     .collect(Collectors.toSet());
 
             //Set<NodeDescriptor> matching = Bits.matchesOR(evaluator.getFactTypeMask(), unallocatedNodes, NodeDescriptor::getFactTypeMask);

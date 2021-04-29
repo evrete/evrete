@@ -39,6 +39,7 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
             long remaining = handles.reset();
             if (remaining == 0) {
                 // Deleting key as well
+                key.setMetaValue(-1);
                 keys.remove();
                 ret = true;
             }
@@ -76,7 +77,7 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
     abstract void flushBuffer();
 
     /**
-     * @param facts
+     * @param facts facts to insert
      * @return true if at least one fact passed alpha tests and got saved
      */
     abstract boolean insert(Iterable<RuntimeFact> facts);
@@ -84,6 +85,7 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
     @Override
     protected final void clearLocalData() {
         fieldData.clear();
+        buffer.clear();
     }
 
     public final KeyedFactStorage getFieldData() {

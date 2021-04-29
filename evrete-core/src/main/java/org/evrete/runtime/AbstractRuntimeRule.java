@@ -45,12 +45,6 @@ public abstract class AbstractRuntimeRule<T extends FactType> extends AbstractRu
         return typeMapping.get(type.getName());
     }
 
-/*
-    final boolean dependsOn(Type<?> type) {
-        return typeMask.get(type.getId());
-    }
-*/
-
     public T[] getFactTypes() {
         return factTypes;
     }

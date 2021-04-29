@@ -24,6 +24,13 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
         return typedMemories.iterator();
     }
 
+    void destroy() {
+        clear();
+        for (TypeMemory tm : typedMemories) {
+            tm.destroy();
+        }
+    }
+
     void onNewActiveField(ActiveField newField) {
         getCreateUpdate(newField.type());
     }

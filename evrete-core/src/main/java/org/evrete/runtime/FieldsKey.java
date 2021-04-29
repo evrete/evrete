@@ -23,10 +23,6 @@ public final class FieldsKey {
         return type.getId();
     }
 
-    public Type<?> getType() {
-        return type;
-    }
-
     public int size() {
         return fields.length;
     }

@@ -10,7 +10,7 @@ public class RuleMemoryInsertTask extends Completer {
     private static final long serialVersionUID = 7911593735990639599L;
     private final Collection<BetaEndNode> deltaEndNodes;
     private final boolean deltaOnly;
-    private final Mask<MemoryAddress> matchMask;
+    private final transient Mask<MemoryAddress> matchMask;
 
 
     public RuleMemoryInsertTask(Collection<BetaEndNode> deltaEndNodes, Mask<MemoryAddress> matchMask, boolean deltaOnly) {

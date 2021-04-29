@@ -39,7 +39,7 @@ class DeltaMemoryManager implements MemoryActionListener {
         totalActions = 0;
     }
 
-    public Mask<MemoryAddress> getInsertDeltaMask() {
+    Mask<MemoryAddress> getInsertDeltaMask() {
         return insertDeltaMask;
     }
 
@@ -47,7 +47,7 @@ class DeltaMemoryManager implements MemoryActionListener {
         this.insertDeltaMask.clear();
     }
 
-    public Mask<MemoryAddress> getDeleteDeltaMask() {
+    Mask<MemoryAddress> getDeleteDeltaMask() {
         return deleteBufferMask;
     }
 

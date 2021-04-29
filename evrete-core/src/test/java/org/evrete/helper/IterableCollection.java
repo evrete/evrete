@@ -5,7 +5,7 @@ import org.evrete.api.ReIterable;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public interface IterableCollection<T> extends IterableOver<T>, ReIterable<T> {
+public interface IterableCollection<T> extends ReIterable<T> {
 
     boolean add(T element);
 

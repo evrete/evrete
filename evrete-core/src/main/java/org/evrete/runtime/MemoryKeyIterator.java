@@ -8,7 +8,7 @@ public class MemoryKeyIterator implements ReIterator<MemoryKey> {
     private final ReIterator<MemoryKey> delegate;
     private final KeyMode forceMode;
 
-    public MemoryKeyIterator(ReIterator<MemoryKey> delegate, KeyMode forceMode) {
+    MemoryKeyIterator(ReIterator<MemoryKey> delegate, KeyMode forceMode) {
         this.delegate = delegate;
         this.forceMode = forceMode;
     }
@@ -26,7 +26,9 @@ public class MemoryKeyIterator implements ReIterator<MemoryKey> {
     @Override
     public MemoryKey next() {
         MemoryKey key = delegate.next();
-        key.setMetaValue(forceMode.ordinal());
+        if (key.getMetaValue() != -1) {
+            key.setMetaValue(forceMode.ordinal());
+        }
         return key;
     }
 

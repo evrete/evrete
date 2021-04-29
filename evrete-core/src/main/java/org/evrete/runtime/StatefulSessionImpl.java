@@ -65,6 +65,7 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
             default:
                 throw new IllegalStateException("Unknown mode " + getAgendaMode());
         }
+        purge();
     }
 
     private void fireContinuous(ActivationContext ctx) {
@@ -108,7 +109,6 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
                     }
                 }
                 commitRuleDeltas();
-
             }
             commitBuffer();
         }

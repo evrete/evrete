@@ -84,6 +84,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
 
     private void invalidateSession() {
         this.active = false;
+        this.memory.destroy();
     }
 
     @Override

@@ -44,12 +44,11 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode {
         MemoryKeyCollection delta2 = getStore(KeyMode.OLD_NEW);
         if (mergeToMain) {
             MemoryKeyCollection main = getStore(KeyMode.OLD_OLD);
-            ReIterator<MemoryKey> it = delta1.iterator();
-            while (it.hasNext()) {
-                MemoryKey key = it.next();
+            for (MemoryKey key : delta1) {
                 //key.setMetaValue(KeyMode.MAIN.ordinal());
                 main.add(key);
             }
+            //TODO !!! make the append working
             //main.append(delta1);
         }
         delta1.clear();
@@ -98,8 +97,8 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode {
     }
 
     private static class MemoryKeyCollectionWrapper implements MemoryKeyCollection {
-        MemoryKeyCollection delegate;
-        KeyMode forcedMode;
+        final MemoryKeyCollection delegate;
+        final KeyMode forcedMode;
 
         MemoryKeyCollectionWrapper(MemoryKeyCollection delegate, KeyMode forcedMode) {
             this.delegate = delegate;

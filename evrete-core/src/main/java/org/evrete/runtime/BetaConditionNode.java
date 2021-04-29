@@ -118,25 +118,32 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
 
         if (sourceIndex == this.sourceMetas.length - 1) {
             while (it.hasNext()) {
-                setState(it, meta.factTypeIndices);
-                if (cachingEvaluator.test()) {
-                    for (int ruleIndex : descriptorIndices) {
-                        destination.add(evaluationState[ruleIndex].currentKey);
+                if (setState(it, meta.factTypeIndices)) {
+                    if (cachingEvaluator.test()) {
+                        for (int ruleIndex : descriptorIndices) {
+                            destination.add(evaluationState[ruleIndex].currentKey);
+                        }
                     }
                 }
             }
         } else {
             while (it.hasNext()) {
-                setState(it, meta.factTypeIndices);
-                forEachMemoryKey(sourceIndex + 1, destination);
+                if (setState(it, meta.factTypeIndices)) {
+                    forEachMemoryKey(sourceIndex + 1, destination);
+                }
             }
         }
     }
 
-    private void setState(ReIterator<MemoryKey> it, int[] indices) {
+    private boolean setState(ReIterator<MemoryKey> it, int[] indices) {
+        MemoryKey key;
+        boolean ret = true;
         for (int idx : indices) {
-            this.evaluationState[idx].setKey(it.next());
+            key = it.next();
+            ret = ret & key.getMetaValue() != -1;
+            this.evaluationState[idx].setKey(key);
         }
+        return ret;
     }
 
     void forEachConditionNode(Consumer<BetaConditionNode> consumer) {

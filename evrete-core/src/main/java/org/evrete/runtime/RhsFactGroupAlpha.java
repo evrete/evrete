@@ -29,9 +29,9 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
 
         // Main dummy iterator
         Collection<MemoryKey> mainCollection = new ArrayList<>();
-        for (int i = 0; i < types.length; i++) {
+        for (RuntimeFactType type : types) {
             mainCollection.add(KEY_MAIN);
-            this.memoryMask.set(types[i].getMemoryAddress());
+            this.memoryMask.set(type.getMemoryAddress());
         }
         ReIterator<MemoryKey> mainKeyIterator = new CollectionReIterator<>(mainCollection);
 

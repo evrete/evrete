@@ -79,44 +79,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
         return arr;
     }
 
-/*
-    private static String toString(ReIterator<?> it, int group) {
-        it.reset();
-        StringJoiner main = new StringJoiner(" ");
-        StringJoiner inner = new StringJoiner(" ", "[", "]");
-        int counter = 1;
-        while (it.hasNext()) {
-            inner.add(it.next().toString());
-            if (counter == group) {
-                counter = 1;
-                main.add(inner.toString());
-                inner = new StringJoiner(" ", "[", "]");
-            } else {
-                counter++;
-            }
-        }
-
-        it.reset();
-        return main.toString();
-    }
-*/
-
     final long executeRhs() {
-/*
-        System.out.println("\tPre RHS:");
-        RhsFactGroup g = this.rhsGroupNodes[0].group;
-        for (RuntimeFactType t : g.types()) {
-            System.out.println("\t\t" +  t.getName() + "\t" + t.getKeyedFactStorage());
-        }
-        System.out.println();
-        for (KeyMode mode : KeyMode.values()) {
-            ReIterator<MemoryKey> it = g.keyIterator(mode);
-            String data = toString(it, g.types().length);
-            System.out.printf("\t\t%1s\t%2$s\n", mode, data);
-        }
-*/
-
-
         this.rhsCallCounter = 0;
         // Reset state if any
         for (RhsFactType type : this.factTypeNodes) {
@@ -156,13 +119,15 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
 
         if (last) {
             while (iterator.hasNext()) {
-                factGroup.copyKeyState(iterator);
-                forEachFact(0, consumer);
+                if (factGroup.copyKeyState(iterator)) {
+                    forEachFact(0, consumer);
+                }
             }
         } else {
             while (iterator.hasNext()) {
-                factGroup.copyKeyState(iterator);
-                forEachKey(group + 1, consumer);
+                if (factGroup.copyKeyState(iterator)) {
+                    forEachKey(group + 1, consumer);
+                }
             }
         }
     }
@@ -248,7 +213,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
             this.keyIterator = group.keyIterator(mode);
         }
 
-        abstract void copyKeyState(ReIterator<MemoryKey> iterator);
+        abstract boolean copyKeyState(ReIterator<MemoryKey> iterator);
 
         @Override
         public String toString() {
@@ -268,10 +233,15 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
             }
         }
 
-        void copyKeyState(ReIterator<MemoryKey> iterator) {
+        boolean copyKeyState(ReIterator<MemoryKey> iterator) {
+            MemoryKey key;
+            boolean ret = true;
             for (RhsFactType t : myFactTypeNodes) {
-                t.setCurrentKey(iterator.next());
+                key = iterator.next();
+                ret = ret & key.getMetaValue() != -1;
+                t.setCurrentKey(key);
             }
+            return ret;
         }
     }
 
@@ -283,8 +253,10 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
             this.factTypeNode = factTypeNodes[group.types()[0].getInRuleIndex()];
         }
 
-        void copyKeyState(ReIterator<MemoryKey> iterator) {
-            this.factTypeNode.setCurrentKey(iterator.next());
+        boolean copyKeyState(ReIterator<MemoryKey> iterator) {
+            MemoryKey key = iterator.next();
+            this.factTypeNode.setCurrentKey(key);
+            return key.getMetaValue() != -1;
         }
     }
 

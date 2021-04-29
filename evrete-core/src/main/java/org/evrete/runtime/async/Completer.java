@@ -78,24 +78,6 @@ public abstract class Completer extends CountedCompleter<Void> {
         }
     }
 
-    <Z> void tailCall(Z[] collection, Function<Z, Completer> mapper) {
-        if (directInvoke) {
-            for (Z o : collection) {
-                mapper.apply(o).invokeDirect();
-            }
-        } else {
-            for (int i = 0; i < collection.length; i++) {
-                Completer c = mapper.apply(collection[i]);
-                addToPendingCount(1);
-                if (i == 0) {
-                    c.compute();
-                } else {
-                    c.fork();
-                }
-            }
-        }
-    }
-
     private static class MultiRunnableCompleter extends Completer {
         private static final long serialVersionUID = -243409304205835246L;
         private final Collection<? extends Runnable> collection;
