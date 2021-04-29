@@ -10,7 +10,7 @@ import java.util.Objects;
 /**
  * A runtime representation of a fact, ready for insert operation
  */
-class RuntimeFact {
+public class RuntimeFact {
     // A convenience fact instance that is never equal to others
     static final RuntimeFact DUMMY_FACT = new RuntimeFact() {
         @Override
@@ -20,9 +20,9 @@ class RuntimeFact {
     };
     private static final BitSet EMPTY = new BitSet();
     private final ValueHandle[] valueHandles;
-    final FactHandleVersioned factHandle;
+    public final FactHandleVersioned factHandle;
     final BitSet alphaTests;
-    final FactRecord factRecord;
+    public final FactRecord factRecord;
 
     private RuntimeFact() {
         this.factHandle = null;

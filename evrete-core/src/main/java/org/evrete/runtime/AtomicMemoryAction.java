@@ -3,10 +3,10 @@ package org.evrete.runtime;
 import org.evrete.api.Action;
 import org.evrete.api.FactHandle;
 
-class AtomicMemoryAction {
-    final FactHandle handle;
-    Action action;
-    FactRecord factRecord;
+public class AtomicMemoryAction {
+    public final FactHandle handle;
+    public Action action;
+    public FactRecord factRecord;
 
     AtomicMemoryAction(Action action, FactHandle handle, FactRecord factRecord) {
         this.action = action;

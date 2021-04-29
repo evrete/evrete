@@ -3,7 +3,7 @@ package org.evrete.runtime;
 import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.Mask;
 
-class FactRecord {
+public class FactRecord {
     final Object instance;
     private int version = 0;
     private final Mask<MemoryAddress> bucketsMask;
@@ -25,7 +25,7 @@ class FactRecord {
         return version;
     }
 
-    void updateVersion(int newVersion) {
+    public void updateVersion(int newVersion) {
         this.version = newVersion;
     }
 

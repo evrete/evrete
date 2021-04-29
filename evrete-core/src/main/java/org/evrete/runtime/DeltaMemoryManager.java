@@ -6,7 +6,7 @@ import org.evrete.util.Mask;
 
 import java.util.Arrays;
 
-class DeltaMemoryManager implements MemoryActionListener {
+public class DeltaMemoryManager implements MemoryActionListener {
     private final int[] actionCounts = new int[Action.values().length];
     private int totalActions = 0;
     private final Mask<MemoryAddress> insertDeltaMask = Mask.addressMask();
@@ -27,12 +27,12 @@ class DeltaMemoryManager implements MemoryActionListener {
     }
 
     //TODO !!!! no synchronized!!
-    synchronized void onInsert(MemoryAddress address) {
+    public synchronized void onInsert(MemoryAddress address) {
         insertDeltaMask.set(address);
     }
 
     //TODO !!!! no synchronized!!
-    synchronized void onDelete(Mask<MemoryAddress> mask) {
+    public synchronized void onDelete(Mask<MemoryAddress> mask) {
         deleteBufferMask.or(mask);
     }
 

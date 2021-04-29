@@ -7,7 +7,9 @@ import org.evrete.runtime.evaluation.EvaluatorWrapper;
 import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.Mask;
 
-import java.util.*;
+import java.util.BitSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
@@ -49,6 +51,10 @@ public final class TypeMemory extends TypeMemoryBase {
         return record == null ? null : record.instance;
     }
 
+    public MemoryActionBuffer getBuffer() {
+        return buffer;
+    }
+
     void forEachFact(BiConsumer<FactHandle, Object> consumer) {
         factStorage.iterator().forEachRemaining(record -> {
             FactHandle handle = record.getHandle();
@@ -77,6 +83,7 @@ public final class TypeMemory extends TypeMemoryBase {
         }
     }
 
+/*
     public void processBuffer() {
         Iterator<AtomicMemoryAction> it = buffer.actions();
         Collection<RuntimeFact> inserts = new LinkedList<>();
@@ -150,13 +157,14 @@ public final class TypeMemory extends TypeMemoryBase {
 
         buffer.clear();
     }
+*/
 
     public FactHandle add(Action action, FactHandle factHandle, FactRecord factRecord) {
         buffer.add(action, factHandle, factRecord);
         return factHandle;
     }
 
-    private RuntimeFact createFactRuntime(FactHandleVersioned factHandle, FactRecord factRecord) {
+    public RuntimeFact createFactRuntime(FactHandleVersioned factHandle, FactRecord factRecord) {
         return cache.createFactRuntime(factHandle, factRecord, valueResolver);
     }
 

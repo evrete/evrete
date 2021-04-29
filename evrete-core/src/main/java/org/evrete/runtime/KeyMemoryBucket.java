@@ -14,7 +14,7 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
     final ActiveField[] activeFields;
     final Collection<FactHandleVersioned> buffer = new LinkedList<>();
     RuntimeFact current = null;
-    final MemoryAddress address;
+    public final MemoryAddress address;
 
     KeyMemoryBucket(MemoryComponent runtime, MemoryAddress address) {
         super(runtime);
@@ -80,7 +80,7 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
      * @param facts facts to insert
      * @return true if at least one fact passed alpha tests and got saved
      */
-    abstract boolean insert(Iterable<RuntimeFact> facts);
+    public abstract boolean insert(Iterable<RuntimeFact> facts);
 
     @Override
     protected final void clearLocalData() {
@@ -108,7 +108,7 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
         }
 
         @Override
-        final boolean insert(Iterable<RuntimeFact> facts) {
+        public final boolean insert(Iterable<RuntimeFact> facts) {
             current = DUMMY_FACT;
             boolean ret = false;
             for (RuntimeFact fact : facts) {
@@ -192,7 +192,7 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
         }
 
         @Override
-        final boolean insert(Iterable<RuntimeFact> facts) {
+        public final boolean insert(Iterable<RuntimeFact> facts) {
             current = DUMMY_FACT;
             boolean ret = false;
             for (RuntimeFact fact : facts) {

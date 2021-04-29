@@ -8,7 +8,7 @@ import java.util.Iterator;
 import java.util.function.BiPredicate;
 import java.util.logging.Logger;
 
-class MemoryActionBuffer {
+public class MemoryActionBuffer {
     private static final Logger LOGGER = Logger.getLogger(MemoryActionBuffer.class.getName());
     private static final BiPredicate<AtomicMemoryAction, FactHandle> SEARCH_FUNCTION = (existing, factHandle) -> existing.handle.equals(factHandle);
     private final LinearHashSet<AtomicMemoryAction> queue;
@@ -81,11 +81,11 @@ class MemoryActionBuffer {
         listener.onBufferAction(type, action, addOrRemove ? 1 : -1);
     }
 
-    Iterator<AtomicMemoryAction> actions() {
+    public Iterator<AtomicMemoryAction> actions() {
         return queue.iterator();
     }
 
-    void clear() {
+    public void clear() {
         this.queue.clear();
     }
 

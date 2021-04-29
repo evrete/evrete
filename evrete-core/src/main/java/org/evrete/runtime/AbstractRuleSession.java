@@ -12,11 +12,11 @@ import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
-abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRuntime<RuntimeRule, S> implements RuleSession<S> {
+public abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRuntime<RuntimeRule, S> implements RuleSession<S> {
     private static final Logger LOGGER = Logger.getLogger(AbstractRuleSession.class.getName());
     private final RuntimeRules ruleStorage;
     final SessionMemory memory;
-    final DeltaMemoryManager deltaMemoryManager;
+    public final DeltaMemoryManager deltaMemoryManager;
     private final KnowledgeRuntime knowledge;
     private final boolean warnUnknownTypes;
     private boolean active = true;

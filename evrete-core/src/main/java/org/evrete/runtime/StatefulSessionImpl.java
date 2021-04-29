@@ -116,7 +116,7 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
     }
 
     private void processBuffer() {
-        MemoryDeltaTask deltaTask = new MemoryDeltaTask(memory.iterator());
+        MemoryDeltaTask deltaTask = new MemoryDeltaTask(this, memory.iterator());
         getExecutor().invoke(deltaTask);
 /*
         for (TypeMemory tm : memory) {

@@ -81,7 +81,7 @@ public class TypeMemoryBase extends MemoryComponent {
         return getMemoryBucket(bucket).getFieldData();
     }
 
-    void forEachBucket(Consumer<? super KeyMemoryBucket> consumer) {
+    public void forEachBucket(Consumer<? super KeyMemoryBucket> consumer) {
         memoryBuckets.forEach(consumer);
     }
 
