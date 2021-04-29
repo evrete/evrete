@@ -89,10 +89,15 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
 
     private void fireDefault(ActivationContext ctx) {
         List<RuntimeRule> agenda;
+        boolean bufferProcessed = false;
         while (fireCriteria.getAsBoolean() && deltaMemoryManager.hasMemoryChanges()) {
-            processBuffer();
+            if (!bufferProcessed) {
+                processBuffer();
+                bufferProcessed = true;
+            }
             agenda = buildMemoryDeltas();
             if (!agenda.isEmpty()) {
+                //bufferProcessed = false;
                 activationManager.onAgenda(ctx.incrementFireCount(), agenda);
                 for (RuntimeRule candidate : agenda) {
                     RuntimeRuleImpl rule = (RuntimeRuleImpl) candidate;
@@ -102,10 +107,12 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
                         int deltaOperations = deltaMemoryManager.deltaOperations();
                         if (deltaOperations > 0) {
                             // Breaking the agenda
+                            bufferProcessed = false;
                             break;
                         } else {
                             // Processing deletes if any
                             processBuffer();
+                            bufferProcessed = true;
                         }
                     }
                 }

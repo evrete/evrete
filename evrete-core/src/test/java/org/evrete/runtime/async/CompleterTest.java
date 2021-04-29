@@ -37,6 +37,7 @@ class CompleterTest {
         executor.shutdown();
     }
 
+
     private static class R implements Runnable {
         private final long wait;
         private final Consumer<Thread> threadConsumer;

@@ -10,6 +10,8 @@ import org.evrete.util.Mask;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.concurrent.CountedCompleter;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 public class MemoryDeltaTask extends Completer {
@@ -17,28 +19,44 @@ public class MemoryDeltaTask extends Completer {
     private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
     private final Iterator<TypeMemory> typeMemories;
     private final AbstractRuleSession<?> runtime;
+    private static final AtomicInteger tmp = new AtomicInteger();
+    private final Collection<TypeMemoryDeltaTask> subtasks = new LinkedList<>();
 
     public MemoryDeltaTask(AbstractRuleSession<?> runtime, Iterator<TypeMemory> typeMemories) {
         this.typeMemories = typeMemories;
         this.runtime = runtime;
+        typeMemories.forEachRemaining(t -> subtasks.add(new TypeMemoryDeltaTask(MemoryDeltaTask.this, runtime, t)));
     }
 
     @Override
     protected void execute() {
+        tailCall(subtasks, o -> o);
+/*
         while (typeMemories.hasNext()) {
             TypeMemory item = typeMemories.next();
 
-            Completer c = new TypeMemoryDeltaTask(this, runtime, item);
+            TypeMemoryDeltaTask c = new TypeMemoryDeltaTask(this, runtime, item);
             addToPendingCount(1);
             if (typeMemories.hasNext()) {
+                //System.out.println("!!!!! forked new " + c );
                 c.fork();
             } else {
                 // Execute the tail in current thread
                 c.compute();
             }
         }
+*/
     }
 
+    @Override
+    public void onCompletion(CountedCompleter<?> caller) {
+        if (caller instanceof TypeMemoryDeltaTask) {
+            //System.out.println("Sub task completed " + tmp.incrementAndGet() + " " + caller);
+        } else {
+            assert caller == this;
+            //System.out.println("Full completion " + tmp.incrementAndGet());
+        }
+    }
 
     static class TypeMemoryDeltaTask extends Completer {
         private static final long serialVersionUID = 7844452444442224060L;
@@ -61,7 +79,7 @@ public class MemoryDeltaTask extends Completer {
         }
 
 
-        public void processBuffer() {
+        private void processBuffer() {
             Iterator<AtomicMemoryAction> it = buffer.actions();
             Collection<RuntimeFact> inserts = new LinkedList<>();
 
