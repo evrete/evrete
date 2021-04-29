@@ -3,6 +3,7 @@ package org.evrete.runtime;
 import org.evrete.api.*;
 import org.evrete.runtime.async.Completer;
 import org.evrete.runtime.async.ForkJoinExecutor;
+import org.evrete.runtime.async.MemoryDeltaTask;
 import org.evrete.runtime.async.RuleMemoryInsertTask;
 import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.Mask;
@@ -115,9 +116,13 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
     }
 
     private void processBuffer() {
+        MemoryDeltaTask deltaTask = new MemoryDeltaTask(memory.iterator());
+        getExecutor().invoke(deltaTask);
+/*
         for (TypeMemory tm : memory) {
             tm.processBuffer();
         }
+*/
         deltaMemoryManager.clearBufferData();
     }
 

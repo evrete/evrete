@@ -26,11 +26,13 @@ class DeltaMemoryManager implements MemoryActionListener {
         actionCounts[action.ordinal()] += delta;
     }
 
-    void onInsert(MemoryAddress address) {
+    //TODO !!!! no synchronized!!
+    synchronized void onInsert(MemoryAddress address) {
         insertDeltaMask.set(address);
     }
 
-    void onDelete(Mask<MemoryAddress> mask) {
+    //TODO !!!! no synchronized!!
+    synchronized void onDelete(Mask<MemoryAddress> mask) {
         deleteBufferMask.or(mask);
     }
 
