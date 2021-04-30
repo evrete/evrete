@@ -6,7 +6,6 @@ import org.evrete.runtime.RuntimeRuleImpl;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.CountedCompleter;
 
 public class RuleHotDeploymentTask extends Completer {
     private static final long serialVersionUID = 2586111817691770826L;
@@ -38,7 +37,7 @@ public class RuleHotDeploymentTask extends Completer {
     }
 
     @Override
-    public void onCompletion(CountedCompleter<?> caller) {
+    protected void onCompletion() {
         // Merging nodes' deltas
         for (BetaEndNode endNode : rule.getEndNodes()) {
             endNode.commitDelta();

@@ -10,22 +10,15 @@ import org.evrete.util.Mask;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.concurrent.CountedCompleter;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 public class MemoryDeltaTask extends Completer {
     private static final long serialVersionUID = 7911593735990639599L;
     private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
-    private final Iterator<TypeMemory> typeMemories;
-    private final AbstractRuleSession<?> runtime;
-    private static final AtomicInteger tmp = new AtomicInteger();
     private final Collection<TypeMemoryDeltaTask> subtasks = new LinkedList<>();
-    private final Mask<MemoryAddress> deleteMask = Mask.addressMask();
+    private final transient Mask<MemoryAddress> deleteMask = Mask.addressMask();
 
     public MemoryDeltaTask(AbstractRuleSession<?> runtime, Iterator<TypeMemory> typeMemories) {
-        this.typeMemories = typeMemories;
-        this.runtime = runtime;
         typeMemories.forEachRemaining(t -> subtasks.add(new TypeMemoryDeltaTask(MemoryDeltaTask.this, runtime, t)));
     }
 
@@ -39,7 +32,7 @@ public class MemoryDeltaTask extends Completer {
     }
 
     @Override
-    public void onCompletion(CountedCompleter<?> caller) {
+    protected void onCompletion() {
         Iterator<TypeMemoryDeltaTask> it = subtasks.iterator();
         while (it.hasNext()) {
             this.deleteMask.or(it.next().deleteMask);
@@ -53,8 +46,8 @@ public class MemoryDeltaTask extends Completer {
         private final transient MemoryActionBuffer buffer;
         private final transient FactStorage<FactRecord> factStorage;
         private final AbstractRuleSession<?> runtime;
-        private final Mask<MemoryAddress> deleteMask = Mask.addressMask();
-        private final Mask<MemoryAddress> insertMask = Mask.addressMask();
+        private final transient Mask<MemoryAddress> deleteMask = Mask.addressMask();
+        private final transient Mask<MemoryAddress> insertMask = Mask.addressMask();
 
         TypeMemoryDeltaTask(Completer completer, AbstractRuleSession<?> runtime, TypeMemory tm) {
             super(completer);
@@ -66,11 +59,6 @@ public class MemoryDeltaTask extends Completer {
 
         @Override
         protected void execute() {
-            processBuffer();
-        }
-
-
-        private void processBuffer() {
             Iterator<AtomicMemoryAction> it = buffer.actions();
             Collection<RuntimeFact> inserts = new LinkedList<>();
 
@@ -80,7 +68,7 @@ public class MemoryDeltaTask extends Completer {
                     case RETRACT:
                         FactRecord record = factStorage.getFact(a.handle);
                         if (record != null) {
-                            runtime.deltaMemoryManager.onDelete(record.getBucketsMask());
+                            //runtime.deltaMemoryManager.onDelete(record.getBucketsMask());
                             deleteMask.or(record.getBucketsMask());
                         }
                         factStorage.delete(a.handle);
@@ -94,7 +82,7 @@ public class MemoryDeltaTask extends Completer {
                             LOGGER.warning("Unknown fact handle " + a.handle + ". Update operation skipped.");
                         } else {
                             FactRecord factRecord = a.factRecord;
-                            runtime.deltaMemoryManager.onDelete(previous.getBucketsMask());
+                            //runtime.deltaMemoryManager.onDelete(previous.getBucketsMask());
                             deleteMask.or(previous.getBucketsMask());
 
                             //TODO !!! fix this versioning mess
@@ -113,12 +101,11 @@ public class MemoryDeltaTask extends Completer {
 
             if (!inserts.isEmpty()) {
                 // Performing insert
-
-                tm.forEachBucket(bucket -> {
+                for (KeyMemoryBucket bucket : tm) {
                     if (bucket.insert(inserts)) {
                         runtime.deltaMemoryManager.onInsert(bucket.address);
                     }
-                });
+                }
                 // After insert, each RuntimeFact's record contains an updated mask of all the memory buckets
                 // where that fact has gotten into. For a remote fact storage implementation we need to update
                 // its entries.

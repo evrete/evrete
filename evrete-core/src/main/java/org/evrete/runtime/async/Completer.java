@@ -48,6 +48,31 @@ public abstract class Completer extends CountedCompleter<Void> {
         tryComplete();
     }
 
+    /**
+     * <p>
+     * A less confusing implementation of the {@link CountedCompleter#onCompletion(CountedCompleter)}
+     * method with zero arguments.
+     * </p>
+     */
+    protected void onCompletion() {
+
+    }
+
+    /**
+     * <p>
+     * This is a convenience method stub that forwards the {@link CountedCompleter#onCompletion(CountedCompleter)}
+     * to a method without arguments.
+     * </p>
+     *
+     * @param caller this task or a subtask
+     * @see CountedCompleter#onCompletion(CountedCompleter)
+     * @see #onCompletion()
+     */
+    @Override
+    public final void onCompletion(CountedCompleter<?> caller) {
+        onCompletion();
+    }
+
     void forkNew(Completer completer) {
         if (directInvoke) {
             completer.invokeDirect();

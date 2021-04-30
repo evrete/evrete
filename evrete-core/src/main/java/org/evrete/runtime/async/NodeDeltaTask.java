@@ -6,7 +6,6 @@ import org.evrete.util.Mask;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.concurrent.CountedCompleter;
 import java.util.stream.Collectors;
 
 public class NodeDeltaTask extends Completer {
@@ -45,7 +44,7 @@ public class NodeDeltaTask extends Completer {
 
     @Override
     // Compute this node's delta
-    public void onCompletion(CountedCompleter<?> caller) {
+    protected void onCompletion() {
         node.computeDelta(deltaOnly);
     }
 }

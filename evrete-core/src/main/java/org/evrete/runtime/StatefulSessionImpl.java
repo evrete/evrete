@@ -125,7 +125,7 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
     private void processBuffer() {
         MemoryDeltaTask deltaTask = new MemoryDeltaTask(this, memory.iterator());
         getExecutor().invoke(deltaTask);
-        //deltaMemoryManager.onDelete(deltaTask.getDeleteMask());
+        deltaMemoryManager.onDelete(deltaTask.getDeleteMask());
         deltaMemoryManager.clearBufferData();
     }
 

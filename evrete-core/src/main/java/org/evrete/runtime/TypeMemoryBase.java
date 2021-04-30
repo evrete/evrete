@@ -8,10 +8,11 @@ import org.evrete.api.Type;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.MemoryAddress;
 
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class TypeMemoryBase extends MemoryComponent {
+public class TypeMemoryBase extends MemoryComponent implements Iterable<KeyMemoryBucket> {
     final FactStorage<FactRecord> factStorage;
     final Type<?> type;
     final ArrayOf<KeyMemoryBucket> memoryBuckets;
@@ -40,6 +41,11 @@ public class TypeMemoryBase extends MemoryComponent {
 
     public FactStorage<FactRecord> getFactStorage() {
         return factStorage;
+    }
+
+    @Override
+    public Iterator<KeyMemoryBucket> iterator() {
+        return memoryBuckets.iterator();
     }
 
     public Type<?> getType() {
