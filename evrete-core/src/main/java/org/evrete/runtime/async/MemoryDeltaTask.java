@@ -21,6 +21,7 @@ public class MemoryDeltaTask extends Completer {
     private final AbstractRuleSession<?> runtime;
     private static final AtomicInteger tmp = new AtomicInteger();
     private final Collection<TypeMemoryDeltaTask> subtasks = new LinkedList<>();
+    private final Mask<MemoryAddress> deleteMask = Mask.addressMask();
 
     public MemoryDeltaTask(AbstractRuleSession<?> runtime, Iterator<TypeMemory> typeMemories) {
         this.typeMemories = typeMemories;
@@ -31,30 +32,18 @@ public class MemoryDeltaTask extends Completer {
     @Override
     protected void execute() {
         tailCall(subtasks, o -> o);
-/*
-        while (typeMemories.hasNext()) {
-            TypeMemory item = typeMemories.next();
+    }
 
-            TypeMemoryDeltaTask c = new TypeMemoryDeltaTask(this, runtime, item);
-            addToPendingCount(1);
-            if (typeMemories.hasNext()) {
-                //System.out.println("!!!!! forked new " + c );
-                c.fork();
-            } else {
-                // Execute the tail in current thread
-                c.compute();
-            }
-        }
-*/
+    public Mask<MemoryAddress> getDeleteMask() {
+        return deleteMask;
     }
 
     @Override
     public void onCompletion(CountedCompleter<?> caller) {
-        if (caller instanceof TypeMemoryDeltaTask) {
-            //System.out.println("Sub task completed " + tmp.incrementAndGet() + " " + caller);
-        } else {
-            assert caller == this;
-            //System.out.println("Full completion " + tmp.incrementAndGet());
+        Iterator<TypeMemoryDeltaTask> it = subtasks.iterator();
+        while (it.hasNext()) {
+            this.deleteMask.or(it.next().deleteMask);
+            it.remove();
         }
     }
 
@@ -64,6 +53,8 @@ public class MemoryDeltaTask extends Completer {
         private final transient MemoryActionBuffer buffer;
         private final transient FactStorage<FactRecord> factStorage;
         private final AbstractRuleSession<?> runtime;
+        private final Mask<MemoryAddress> deleteMask = Mask.addressMask();
+        private final Mask<MemoryAddress> insertMask = Mask.addressMask();
 
         TypeMemoryDeltaTask(Completer completer, AbstractRuleSession<?> runtime, TypeMemory tm) {
             super(completer);
@@ -90,6 +81,7 @@ public class MemoryDeltaTask extends Completer {
                         FactRecord record = factStorage.getFact(a.handle);
                         if (record != null) {
                             runtime.deltaMemoryManager.onDelete(record.getBucketsMask());
+                            deleteMask.or(record.getBucketsMask());
                         }
                         factStorage.delete(a.handle);
                         break;
@@ -103,6 +95,7 @@ public class MemoryDeltaTask extends Completer {
                         } else {
                             FactRecord factRecord = a.factRecord;
                             runtime.deltaMemoryManager.onDelete(previous.getBucketsMask());
+                            deleteMask.or(previous.getBucketsMask());
 
                             //TODO !!! fix this versioning mess
                             FactHandle handle = a.handle;

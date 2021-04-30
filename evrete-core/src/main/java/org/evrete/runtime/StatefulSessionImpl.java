@@ -87,6 +87,7 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
         }
     }
 
+    //TODO !!! fix this mess with the buffer and its status, it can be simplified
     private void fireDefault(ActivationContext ctx) {
         List<RuntimeRule> agenda;
         boolean bufferProcessed = false;
@@ -97,7 +98,6 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
             }
             agenda = buildMemoryDeltas();
             if (!agenda.isEmpty()) {
-                //bufferProcessed = false;
                 activationManager.onAgenda(ctx.incrementFireCount(), agenda);
                 for (RuntimeRule candidate : agenda) {
                     RuntimeRuleImpl rule = (RuntimeRuleImpl) candidate;
@@ -125,11 +125,7 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
     private void processBuffer() {
         MemoryDeltaTask deltaTask = new MemoryDeltaTask(this, memory.iterator());
         getExecutor().invoke(deltaTask);
-/*
-        for (TypeMemory tm : memory) {
-            tm.processBuffer();
-        }
-*/
+        //deltaMemoryManager.onDelete(deltaTask.getDeleteMask());
         deltaMemoryManager.clearBufferData();
     }
 
