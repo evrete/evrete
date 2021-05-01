@@ -395,8 +395,8 @@ class SessionUpdateDeleteTests {
                         fact("$b", TypeB.class),
                         fact("$c", TypeC.class)
                 )
+                .where("$a.i != $c.i", 1.0)
                 .where("$a.i == $b.i", 2.0)
-                .where("$a.i != $c.i", 10.0)
                 .execute(ctx -> counter.next());
         StatefulSessionImpl s = (StatefulSessionImpl) knowledge.createSession().setActivationMode(ActivationMode.DEFAULT);
 
@@ -427,12 +427,14 @@ class SessionUpdateDeleteTests {
             assert cObjects.size() == objectCount;
 
             counter.set(0);
+            System.out.println("!!! 1");
             for (FactEntry entry : cObjects) {
                 TypeC c = (TypeC) entry.getFact();
                 c.setI(-1);
                 s.update(entry.getHandle(), c);
             }
             s.fire();
+            System.out.println("!!! 2");
 
             allObjects = TestUtils.sessionFacts(s);
             assert allObjects.size() == 3 * objectCount : allObjects.size() + " vs " + (3 * objectCount);
@@ -459,6 +461,8 @@ class SessionUpdateDeleteTests {
             allObjects = TestUtils.sessionFacts(s);
             assert allObjects.size() == 0;
         }
+
+        System.out.println("-----------------------------");
     }
 
     @ParameterizedTest

@@ -1,9 +1,6 @@
 package org.evrete.runtime;
 
-import org.evrete.api.KeyMode;
-import org.evrete.api.MemoryKey;
-import org.evrete.api.MemoryKeyCollection;
-import org.evrete.api.ReIterator;
+import org.evrete.api.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +11,7 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode {
     private final BetaConditionNode[] conditionSources;
     private final RuntimeRuleImpl rule;
     private final MemoryKeyCollection[] stores = new MemoryKeyCollection[KeyMode.values().length];
+    private final MemoryKeyCollection tempCollection;
 
     private boolean mergeToMain = true;
 
@@ -25,19 +23,26 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode {
                 conditionNodeList.add((BetaConditionNode) source);
             }
         }
+
+        MemoryFactory memoryFactory = rule.getRuntime().memory.memoryFactory;
         this.conditionSources = conditionNodeList.toArray(BetaConditionNode.EMPTY_ARRAY);
         this.rule = rule;
         this.descriptor = descriptor;
         for (KeyMode keyMode : KeyMode.values()) {
-            MemoryKeyCollection store = rule.getRuntime().memory.memoryFactory.newMemoryKeyCollection(descriptor.getTypes());
+            MemoryKeyCollection store = memoryFactory.newMemoryKeyCollection(descriptor.getTypes());
             stores[keyMode.ordinal()] = keyMode == KeyMode.OLD_OLD ?
                     new MemoryKeyCollectionWrapper(store, keyMode)
                     :
                     store
             ;
         }
+        this.tempCollection = memoryFactory.newMemoryKeyCollection(descriptor.getTypes());
     }
 
+
+    public boolean hasMainStorage() {
+        return mergeToMain;
+    }
 
     void commitDelta1() {
         MemoryKeyCollection delta1 = getStore(KeyMode.NEW_NEW);
@@ -59,8 +64,12 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode {
         this.mergeToMain = mergeToMain;
     }
 
-    MemoryKeyCollection getStore(KeyMode mode) {
+    public MemoryKeyCollection getStore(KeyMode mode) {
         return stores[mode.ordinal()];
+    }
+
+    public MemoryKeyCollection getTempCollection() {
+        return tempCollection;
     }
 
     AbstractRuleSession<?> getRuntime() {
@@ -118,6 +127,11 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode {
         @Override
         public ReIterator<MemoryKey> iterator() {
             return new MemoryKeyIterator(delegate.iterator(), forcedMode);
+        }
+
+        @Override
+        public String toString() {
+            return delegate.toString();
         }
     }
 }

@@ -4,6 +4,8 @@ import org.evrete.api.KeyMode;
 import org.evrete.api.MemoryKey;
 import org.evrete.api.ReIterator;
 
+import static org.evrete.util.Constants.DELETED_MEMORY_KEY_FLAG;
+
 public class MemoryKeyIterator implements ReIterator<MemoryKey> {
     private final ReIterator<MemoryKey> delegate;
     private final KeyMode forceMode;
@@ -26,7 +28,7 @@ public class MemoryKeyIterator implements ReIterator<MemoryKey> {
     @Override
     public MemoryKey next() {
         MemoryKey key = delegate.next();
-        if (key.getMetaValue() != -1) {
+        if (key.getMetaValue() != DELETED_MEMORY_KEY_FLAG) {
             key.setMetaValue(forceMode.ordinal());
         }
         return key;

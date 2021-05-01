@@ -2,6 +2,7 @@ package org.evrete.runtime;
 
 import org.evrete.api.TypeField;
 import org.evrete.runtime.evaluation.MemoryAddress;
+import org.evrete.util.Mask;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -13,17 +14,25 @@ public class FactType {
     private final String name;
     private final MemoryAddress memoryAddress;
     private final int inRuleIndex;
+    private final Mask<MemoryAddress> memoryMask;
 
     FactType(String name, MemoryAddress memoryAddress, int inRuleIndex) {
         this.name = name;
         this.memoryAddress = memoryAddress;
         this.inRuleIndex = inRuleIndex;
+        this.memoryMask = Mask.addressMask();
+        this.memoryMask.set(memoryAddress);
     }
 
     FactType(FactType other) {
         this.name = other.name;
         this.memoryAddress = other.memoryAddress;
         this.inRuleIndex = other.inRuleIndex;
+        this.memoryMask = other.memoryMask;
+    }
+
+    public Mask<MemoryAddress> getMemoryMask() {
+        return memoryMask;
     }
 
     public static FactType[] toArray(Collection<FactType> set) {
@@ -43,7 +52,7 @@ public class FactType {
     }
 
 
-    MemoryAddress getMemoryAddress() {
+    public MemoryAddress getMemoryAddress() {
         return memoryAddress;
     }
 

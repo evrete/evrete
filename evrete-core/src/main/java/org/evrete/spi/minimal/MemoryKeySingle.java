@@ -28,7 +28,11 @@ class MemoryKeySingle implements MemoryKey {
 
     @Override
     public String toString() {
-        return data + "/" + KeyMode.values()[transientValue];
+        if (transientValue < 0) {
+            return data + "/UNKNOWN";
+        } else {
+            return data + "/" + KeyMode.values()[transientValue];
+        }
     }
 
     @Override

@@ -6,6 +6,8 @@ import org.evrete.runtime.evaluation.EvaluatorWrapper;
 
 import java.util.function.Consumer;
 
+import static org.evrete.util.Constants.DELETED_MEMORY_KEY_FLAG;
+
 public class BetaConditionNode extends AbstractBetaConditionNode {
     static final BetaConditionNode[] EMPTY_ARRAY = new BetaConditionNode[0];
     private final MemoryKeyNode[] evaluationState;
@@ -67,7 +69,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         throw new UnsupportedOperationException();
     }
 
-    private static void forEachConditionNode(BetaConditionNode node, Consumer<BetaConditionNode> consumer) {
+    public static void forEachConditionNode(BetaConditionNode node, Consumer<BetaConditionNode> consumer) {
         consumer.accept(node);
         for (BetaMemoryNode parent : node.getSources()) {
             if (parent.getDescriptor().isConditionNode()) {
@@ -140,7 +142,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
         boolean ret = true;
         for (int idx : indices) {
             key = it.next();
-            ret = ret & key.getMetaValue() != -1;
+            ret = ret & key.getMetaValue() != DELETED_MEMORY_KEY_FLAG;
             this.evaluationState[idx].setKey(key);
         }
         return ret;

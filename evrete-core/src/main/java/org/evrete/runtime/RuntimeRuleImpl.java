@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import static org.evrete.util.Constants.DELETED_MEMORY_KEY_FLAG;
+
 
 public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implements RuntimeRule {
     private final AbstractRuleSession<?> runtime;
@@ -190,7 +192,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
         return this;
     }
 
-    RuntimeLhs getLhs() {
+    public RuntimeLhs getLhs() {
         return lhs;
     }
 
@@ -238,7 +240,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
             boolean ret = true;
             for (RhsFactType t : myFactTypeNodes) {
                 key = iterator.next();
-                ret = ret & key.getMetaValue() != -1;
+                ret = ret & key.getMetaValue() != DELETED_MEMORY_KEY_FLAG;
                 t.setCurrentKey(key);
             }
             return ret;
@@ -256,7 +258,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
         boolean copyKeyState(ReIterator<MemoryKey> iterator) {
             MemoryKey key = iterator.next();
             this.factTypeNode.setCurrentKey(key);
-            return key.getMetaValue() != -1;
+            return key.getMetaValue() != DELETED_MEMORY_KEY_FLAG;
         }
     }
 

@@ -5,9 +5,11 @@ import org.evrete.runtime.evaluation.MemoryAddress;
 
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import static org.evrete.runtime.RuntimeFact.DUMMY_FACT;
+import static org.evrete.util.Constants.DELETED_MEMORY_KEY_FLAG;
 
 public abstract class KeyMemoryBucket extends MemoryComponent {
     final KeyedFactStorage fieldData;
@@ -24,9 +26,9 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
         this.address = address;
     }
 
-    boolean purgeDeleted(Predicate<FactHandleVersioned> predicate) {
+    public void purgeDeleted(Predicate<FactHandleVersioned> predicate, Consumer<MemoryKey> emptyKeysConsumer) {
         ReIterator<MemoryKey> keys = fieldData.keys(KeyMode.OLD_OLD);
-        boolean ret = false;
+        long remaining;
         while (keys.hasNext()) {
             MemoryKey key = keys.next();
             ReIterator<FactHandleVersioned> handles = fieldData.values(KeyMode.OLD_OLD, key);
@@ -36,15 +38,14 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
                     handles.remove();
                 }
             }
-            long remaining = handles.reset();
+            remaining = handles.reset();
             if (remaining == 0) {
                 // Deleting key as well
-                key.setMetaValue(-1);
+                key.setMetaValue(DELETED_MEMORY_KEY_FLAG);
+                emptyKeysConsumer.accept(key);
                 keys.remove();
-                ret = true;
             }
         }
-        return ret;
     }
 
     static KeyMemoryBucket factory(MemoryComponent runtime, MemoryAddress address) {

@@ -106,10 +106,12 @@ public class Evaluators implements Copyable<Evaluators>, EvaluationListeners {
     private static class EvaluatorHandleImpl implements EvaluatorHandle {
         private final double complexity;
         private final FieldReference[] descriptor;
+        private final String asString;
 
         EvaluatorHandleImpl(Evaluator evaluator, double complexity) {
             this.descriptor = evaluator.descriptor().clone();
             this.complexity = complexity;
+            this.asString = evaluator.toString();
         }
 
         @Override
@@ -120,6 +122,11 @@ public class Evaluators implements Copyable<Evaluators>, EvaluationListeners {
         @Override
         public double getComplexity() {
             return complexity;
+        }
+
+        @Override
+        public String toString() {
+            return asString;
         }
     }
 }

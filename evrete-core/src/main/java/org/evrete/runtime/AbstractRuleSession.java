@@ -10,13 +10,14 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 public abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRuntime<RuntimeRule, S> implements RuleSession<S> {
     private static final Logger LOGGER = Logger.getLogger(AbstractRuleSession.class.getName());
     private final RuntimeRules ruleStorage;
     final SessionMemory memory;
-    public final DeltaMemoryManager deltaMemoryManager;
+    final DeltaMemoryManager deltaMemoryManager;
     private final KnowledgeRuntime knowledge;
     private final boolean warnUnknownTypes;
     private boolean active = true;
@@ -151,6 +152,19 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         // Scanning main memory and making sure fact handles are not deleted
         for (TypeMemory tm : memory) {
             tm.forEachFact(consumer);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> void forEachFact(String type, Consumer<T> consumer) {
+        Type<?> t = getTypeResolver().getType(type);
+        if (t == null) {
+            throw new IllegalArgumentException("Type not found: '" + type + "'");
+        } else {
+            memory
+                    .getCreateUpdate(t.getId())
+                    .forEachFact((handle, o) -> consumer.accept((T) o));
         }
     }
 

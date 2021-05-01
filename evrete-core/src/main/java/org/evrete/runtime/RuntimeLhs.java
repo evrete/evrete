@@ -3,7 +3,7 @@ package org.evrete.runtime;
 import java.util.ArrayList;
 import java.util.Collection;
 
-class RuntimeLhs {
+public class RuntimeLhs {
     private final Collection<BetaEndNode> endNodes = new ArrayList<>();
     private final AbstractLhsDescriptor descriptor;
     private final RhsFactGroup[] rhsFactGroups;
@@ -36,7 +36,7 @@ class RuntimeLhs {
         return this.rhsFactGroups;
     }
 
-    Collection<BetaEndNode> getEndNodes() {
+    public Collection<BetaEndNode> getEndNodes() {
         return endNodes;
     }
 

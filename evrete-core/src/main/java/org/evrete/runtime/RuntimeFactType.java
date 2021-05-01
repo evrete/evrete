@@ -2,7 +2,7 @@ package org.evrete.runtime;
 
 import org.evrete.api.*;
 
-class RuntimeFactType extends FactType {
+public class RuntimeFactType extends FactType {
     private final TypeMemory typeMemory;
     private final KeyedFactStorage keyedFactStorage;
 

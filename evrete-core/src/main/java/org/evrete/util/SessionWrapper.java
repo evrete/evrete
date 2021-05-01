@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 
 public class SessionWrapper extends RuntimeContextWrapper<StatefulSession> implements StatefulSession {
 
@@ -26,6 +27,11 @@ public class SessionWrapper extends RuntimeContextWrapper<StatefulSession> imple
     @Override
     public void forEachFact(BiConsumer<FactHandle, Object> consumer) {
         delegate.forEachFact(consumer);
+    }
+
+    @Override
+    public <T> void forEachFact(String type, Consumer<T> consumer) {
+        delegate.forEachFact(type, consumer);
     }
 
     @Override

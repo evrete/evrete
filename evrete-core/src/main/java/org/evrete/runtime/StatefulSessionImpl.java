@@ -1,10 +1,9 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
-import org.evrete.runtime.async.Completer;
-import org.evrete.runtime.async.ForkJoinExecutor;
-import org.evrete.runtime.async.MemoryDeltaTask;
-import org.evrete.runtime.async.RuleMemoryInsertTask;
+import org.evrete.api.ActivationManager;
+import org.evrete.api.RuntimeRule;
+import org.evrete.api.StatefulSession;
+import org.evrete.runtime.async.*;
 import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.Mask;
 
@@ -13,7 +12,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
-import java.util.function.Predicate;
 
 public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> implements StatefulSession {
     private ActivationManager activationManager;
@@ -123,9 +121,10 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
     }
 
     private void processBuffer() {
-        MemoryDeltaTask deltaTask = new MemoryDeltaTask(this, memory.iterator());
+        MemoryDeltaTask deltaTask = new MemoryDeltaTask(memory.iterator());
         getExecutor().invoke(deltaTask);
         deltaMemoryManager.onDelete(deltaTask.getDeleteMask());
+        deltaMemoryManager.onInsert(deltaTask.getInsertMask());
         deltaMemoryManager.clearBufferData();
     }
 
@@ -179,32 +178,17 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
         return affectedRules;
     }
 
-
     private void purge() {
         Mask<MemoryAddress> factPurgeMask = deltaMemoryManager.getDeleteDeltaMask();
         if (factPurgeMask.cardinality() > 0) {
-            Mask<MemoryAddress> keyPurgeMask = Mask.addressMask();
-            // Purging fact memories
-            for (TypeMemory tm : memory) {
-                FactStorage<FactRecord> factStorage = tm.factStorage;
-                // TODO Predicate could be an instance variable of the TypeMemory class (or a method reference)
-                Predicate<FactHandleVersioned> predicate = handle -> {
-                    FactRecord fact = factStorage.getFact(handle.getHandle());
-                    return fact == null || fact.getVersion() != handle.getVersion();
-                };
-
-                for (KeyMemoryBucket bucket : tm.memoryBuckets) {
-                    if (factPurgeMask.get(bucket.address)) {
-                        if (bucket.purgeDeleted(predicate)) {
-                            keyPurgeMask.set(bucket.address);
-                        }
-                    }
-                }
+            ForkJoinExecutor executor = getExecutor();
+            MemoryPurgeTask purgeTask = new MemoryPurgeTask(memory, factPurgeMask);
+            executor.invoke(purgeTask);
+            Mask<MemoryAddress> emptyKeysMask = purgeTask.getKeyPurgeMask();
+            if (emptyKeysMask.cardinality() > 0) {
+                // Purging rule beta-memories
+                executor.invoke(new ConditionMemoryPurgeTask(getRuleStorage(), emptyKeysMask));
             }
-
-            // Purging rule beta-memories
-
-
             deltaMemoryManager.clearDeleteData();
         }
     }
