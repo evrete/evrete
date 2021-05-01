@@ -28,7 +28,7 @@ class PrimeNumbers {
             session.fire();
 
             // Print current memory state
-            session.forEachFact((handle, o) -> System.out.println(o));
+            session.forEachFact(Integer.class, System.out::println);
         }
         service.shutdown();
     }
