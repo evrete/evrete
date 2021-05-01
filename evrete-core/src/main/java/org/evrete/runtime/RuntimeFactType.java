@@ -2,7 +2,7 @@ package org.evrete.runtime;
 
 import org.evrete.api.*;
 
-public class RuntimeFactType extends FactType {
+class RuntimeFactType extends FactType {
     private final TypeMemory typeMemory;
     private final KeyedFactStorage keyedFactStorage;
 
@@ -18,9 +18,5 @@ public class RuntimeFactType extends FactType {
 
     ReIterator<FactHandleVersioned> factIterator(KeyMode mode, MemoryKey key) {
         return keyedFactStorage.values(mode, key);
-    }
-
-    public KeyedFactStorage getKeyedFactStorage() {
-        return keyedFactStorage;
     }
 }

@@ -54,7 +54,7 @@ public abstract class Completer extends CountedCompleter<Void> {
      * method with zero arguments.
      * </p>
      */
-    protected void onCompletion() {
+    void onCompletion() {
 
     }
 

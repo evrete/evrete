@@ -29,7 +29,7 @@ public final class TypeMemory extends TypeMemoryBase {
         TypeResolver resolver = runtime.getTypeResolver();
         Type<?> t = resolver.getType(this.type.getId());
         TypeMemoryMetaData meta = runtime.getTypeMeta(t.getId());
-        this.cache = new Cache(t, meta.activeFields, runtime.getEvaluators(), valueResolver, meta.alphaEvaluators);
+        this.cache = new Cache(t, meta.activeFields, runtime.getEvaluators(), meta.alphaEvaluators);
     }
 
     private FactRecord getFactRecord(FactHandle handle) {
@@ -113,12 +113,10 @@ public final class TypeMemory extends TypeMemoryBase {
         final TypeField[] fields;
         final AlphaPredicate[] alphaEvaluators;
         final Object[] currentValues;
-        final ValueResolver resolver;
         final boolean hasAlphaConditions;
 
-        Cache(Type<?> type, ActiveField[] activeFields, Evaluators evaluators, ValueResolver resolver, AlphaEvaluator[] alphaEvaluators) {
+        Cache(Type<?> type, ActiveField[] activeFields, Evaluators evaluators, AlphaEvaluator[] alphaEvaluators) {
             this.fields = new TypeField[activeFields.length];
-            this.resolver = resolver;
             for (int i = 0; i < activeFields.length; i++) {
                 this.fields[i] = type.getField(activeFields[i].field());
             }

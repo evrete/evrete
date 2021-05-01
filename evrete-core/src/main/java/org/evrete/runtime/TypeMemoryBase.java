@@ -10,12 +10,11 @@ import org.evrete.runtime.evaluation.MemoryAddress;
 
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 public class TypeMemoryBase extends MemoryComponent implements Iterable<KeyMemoryBucket> {
     final FactStorage<FactRecord> factStorage;
     final Type<?> type;
-    final ArrayOf<KeyMemoryBucket> memoryBuckets;
+    private final ArrayOf<KeyMemoryBucket> memoryBuckets;
 
     TypeMemoryBase(SessionMemory sessionMemory, int type) {
         super(sessionMemory);
@@ -85,10 +84,6 @@ public class TypeMemoryBase extends MemoryComponent implements Iterable<KeyMemor
 
     public KeyedFactStorage get(MemoryAddress bucket) {
         return getMemoryBucket(bucket).getFieldData();
-    }
-
-    public void forEachBucket(Consumer<? super KeyMemoryBucket> consumer) {
-        memoryBuckets.forEach(consumer);
     }
 
     KeyMemoryBucket getMemoryBucket(MemoryAddress bucket) {
