@@ -389,66 +389,6 @@ class SessionBaseTests {
         rhsAssert.assertCount(3);
     }
 
-    @Test
-        //TODO !!! delete this test
-    void tmp() {
-        String ruleName = "testMultiFinal2";
-
-        knowledge.newRule(ruleName)
-                .forEach(
-                        fact("$a", TypeA.class),
-                        fact("$b", TypeB.class),
-                        fact("$c", TypeC.class)
-                )
-                .where(
-                        "$a.i == $b.i",
-                        "$c.l == $b.l"
-                ).execute();
-
-        StatefulSession s = knowledge.createSession();
-
-        TypeA a = new TypeA("A");
-        a.setI(1);
-        a.setL(1);
-
-        TypeA aa = new TypeA("AA");
-        aa.setI(2);
-        aa.setL(2);
-
-        TypeA aaa = new TypeA("AAA");
-        aaa.setI(3);
-        aaa.setL(3);
-
-        TypeB b = new TypeB("B");
-        b.setI(1);
-        b.setL(1);
-
-        TypeB bb = new TypeB("BB");
-        bb.setI(2);
-        bb.setL(2);
-
-        TypeB bbb = new TypeB("BBB");
-        bbb.setI(3);
-        bbb.setL(3);
-
-        TypeC c = new TypeC("C");
-        c.setI(1);
-        c.setL(1);
-
-        TypeC cc = new TypeC("CC");
-        cc.setI(2);
-        cc.setL(2);
-
-        TypeC ccc = new TypeC("CCC");
-        ccc.setI(3);
-        ccc.setL(3);
-
-        RhsAssert rhsAssert = new RhsAssert(s, ruleName);
-
-        s.insertAndFire(a, aa, aaa, b, bb, bbb, c, cc, ccc);
-        rhsAssert.assertCount(3);
-    }
-
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void testSingleFinalNode1(ActivationMode mode) {
@@ -464,7 +404,6 @@ class SessionBaseTests {
                 .where("$a.i != $c.i")
                 .where("$a.i != $d.i")
                 .execute();
-
 
         StatefulSession s = knowledge.createSession().setActivationMode(mode);
 

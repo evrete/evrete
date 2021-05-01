@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
 
-//TODO !!!! use RuntimeAware as parent class
+//TODO use a RuntimeAware as parent class
 public class RhsFactGroupAlpha implements RhsFactGroup {
     private static final MemoryKey KEY_MAIN = new VR(KeyMode.OLD_OLD.ordinal());
     private static final MemoryKey KEY_DELTA = new VR(KeyMode.OLD_NEW.ordinal());
