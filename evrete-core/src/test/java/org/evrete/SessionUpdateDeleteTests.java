@@ -427,14 +427,12 @@ class SessionUpdateDeleteTests {
             assert cObjects.size() == objectCount;
 
             counter.set(0);
-            System.out.println("!!! 1");
             for (FactEntry entry : cObjects) {
                 TypeC c = (TypeC) entry.getFact();
                 c.setI(-1);
                 s.update(entry.getHandle(), c);
             }
             s.fire();
-            System.out.println("!!! 2");
 
             allObjects = TestUtils.sessionFacts(s);
             assert allObjects.size() == 3 * objectCount : allObjects.size() + " vs " + (3 * objectCount);
@@ -461,8 +459,6 @@ class SessionUpdateDeleteTests {
             allObjects = TestUtils.sessionFacts(s);
             assert allObjects.size() == 0;
         }
-
-        System.out.println("-----------------------------");
     }
 
     @ParameterizedTest

@@ -104,7 +104,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
             boolean newHasDelta = b || hasDelta;
             if (last) {
                 if (newHasDelta) {
-                    //System.out.println("\t\t\tMode: " + mode);
                     forEachKey(0, consumer);
                 }
             } else {
