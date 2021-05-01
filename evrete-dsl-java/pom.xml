@@ -4,12 +4,12 @@
     <parent>
         <artifactId>evrete</artifactId>
         <groupId>org.evrete</groupId>
-        <version>2.0.2</version>
+        <version>2.0.3-SNAPSHOT</version>
     </parent>
     <artifactId>evrete-dsl-java</artifactId>
     <packaging>jar</packaging>
     <name>evrete-dsl-java</name>
-    <version>2.0.2</version>
+    <version>2.0.3-SNAPSHOT</version>
 
     <build>
         <plugins>
@@ -114,7 +114,7 @@
         <dependency>
             <groupId>org.evrete</groupId>
             <artifactId>evrete-core</artifactId>
-            <version>2.0.2</version>
+            <version>2.0.3-SNAPSHOT</version>
         </dependency>
 
 
