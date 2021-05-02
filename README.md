@@ -102,8 +102,7 @@ public class PrimeNumbersDSLUrl {
     public static void main(String[] args) throws IOException {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
-                .newKnowledge()
-                .appendDslRules(
+                .newKnowledge(
                         "JAVA-SOURCE",
                         new URL("https://www.evrete.org/examples/PrimeNumbersSource.java")
                 );
