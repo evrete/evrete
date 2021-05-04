@@ -77,6 +77,17 @@ class DefaultExpressionResolver implements ExpressionResolver {
         }
     }
 
+    private static ConditionStringTerm resolveTerm(int start, int actualEnd, FieldReference ref, NextIntSupplier fieldCounter, List<ConditionStringTerm> terms) {
+        // Scanning existing terms
+        for (ConditionStringTerm t : terms) {
+            if (t.type().equals(ref.type()) && t.field().equals(ref.field())) {
+                // Found the same reference
+                return new ConditionStringTerm(start, actualEnd, t);
+            }
+        }
+        return new ConditionStringTerm(start, actualEnd, ref, fieldCounter);
+    }
+
     private Evaluator buildExpression(String rawExpression, NamedType.Resolver resolver, Set<String> imports, boolean stripWhiteSpaces) throws CompilationException {
         StringLiteralRemover remover = StringLiteralRemover.of(rawExpression, stripWhiteSpaces);
         String strippedExpression = remover.getConverted();
@@ -96,7 +107,7 @@ class DefaultExpressionResolver implements ExpressionResolver {
             FieldReference fieldReference = resolve(s, resolver);
 
 
-            ConditionStringTerm t = new ConditionStringTerm(start, actualEnd, fieldReference, fieldCounter);
+            ConditionStringTerm t = resolveTerm(start, actualEnd, fieldReference, fieldCounter, terms);
             terms.add(t);
         }
 
@@ -106,7 +117,6 @@ class DefaultExpressionResolver implements ExpressionResolver {
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("Unable to load class '" + conditionBaseClassName + "'");
         }
-
     }
 
 }

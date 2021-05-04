@@ -130,6 +130,23 @@ class ExpressionsTest {
         assert counter.get() == 1 : "Actual: " + counter.get();
     }
 
+    @Test
+    void testRepeatedReference() {
+        NextIntSupplier counter = new NextIntSupplier();
+        StatefulSession session = rule
+                .forEach(
+                        "$i", Integer.class
+                )
+                .where("$i > 0 || $i < 0")
+                .execute(ctx -> counter.next())
+                .createSession();
+
+
+        session.insertAndFire(1, 2);
+
+        assert counter.get() == 2 : "Actual: " + counter.get();
+    }
+
     public static class Nested1 {
         public final Nested1 parent;
         public final int id;

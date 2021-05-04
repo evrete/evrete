@@ -14,4 +14,11 @@ class ConditionStringTerm extends FieldReferenceImpl {
         this.end = end;
         this.varName = "var" + fieldCounter.next();
     }
+
+    ConditionStringTerm(int start, int end, ConditionStringTerm existing) {
+        super(existing);
+        this.start = start;
+        this.end = end;
+        this.varName = existing.varName;
+    }
 }
