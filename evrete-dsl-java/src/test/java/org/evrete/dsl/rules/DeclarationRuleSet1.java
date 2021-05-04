@@ -1,11 +1,9 @@
 package org.evrete.dsl.rules;
 
 import org.evrete.api.RhsContext;
-import org.evrete.dsl.annotation.Fact;
-import org.evrete.dsl.annotation.FieldDeclaration;
-import org.evrete.dsl.annotation.Rule;
-import org.evrete.dsl.annotation.Where;
+import org.evrete.dsl.annotation.*;
 
+@RuleSet
 public class DeclarationRuleSet1 {
 
     /*

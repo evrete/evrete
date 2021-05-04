@@ -110,7 +110,7 @@ public class StatefulSessionImpl extends AbstractRuleSession implements Stateful
     }
 
     @Override
-    public void reset() throws RemoteException, InvalidRuleSessionException {
+    public void reset() throws InvalidRuleSessionException {
         try {
             delegate.clear();
         } catch (Exception e) {

@@ -52,11 +52,7 @@ public class GuessingNumbers {
             session.fire();
 
             // Printing the winner
-            session.forEachFact((handle, o) -> {
-                if (o instanceof Player) {
-                    System.out.println("\nThe winner is " + o);
-                }
-            });
+            session.forEachFact(Player.class, o -> System.out.println("\nThe winner is " + o));
         }
         service.shutdown();
     }

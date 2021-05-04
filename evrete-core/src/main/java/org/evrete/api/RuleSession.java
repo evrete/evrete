@@ -121,8 +121,19 @@ public interface RuleSession<S extends RuleSession<S>> extends WorkingMemory, Ru
         return (Future<S>) fireAsync(this);
     }
 
+    /**
+     * <p>
+     * Closes the session and destroys its memory. A closed session can not be reused.
+     * </p>
+     */
     void close();
 
+    /**
+     * <p>
+     * This method clears session's working memory and its beta-memory nodes as if the session
+     * had never been used.
+     * </p>
+     */
     void clear();
 
 }

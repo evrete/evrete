@@ -1,11 +1,13 @@
-package org.evrete.dsl.rules;
+package org.evrete.samples;
 
 import org.evrete.api.Environment;
 import org.evrete.api.RhsContext;
 import org.evrete.dsl.Phase;
 import org.evrete.dsl.annotation.*;
 
-public class DeclarationRuleSet4 {
+@SuppressWarnings("ALL")
+@RuleSet
+public class PrimeStringsSource {
     private int offset;
 
     @PhaseListener(Phase.FIRE)
@@ -25,8 +27,7 @@ public class DeclarationRuleSet4 {
                     descriptor = {"$i1.intValue", "$i2.intValue", "$i3.intValue"}
             )
     )
-    @SuppressWarnings({"MethodMayBeStatic"})
-    public void rule(RhsContext ctx, @Fact("$i1") String $i1, @Fact("$i2") String i2, @Fact("$i3") String $i3) {
+    public void rule(RhsContext ctx, String $i1, String $i2, String $i3) {
         ctx.delete($i3);
     }
 

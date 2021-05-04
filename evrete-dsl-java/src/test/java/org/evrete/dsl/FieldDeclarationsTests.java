@@ -80,7 +80,7 @@ class FieldDeclarationsTests extends CommonTestMethods {
     void test3(ActivationMode mode) {
         Knowledge knowledge = applyToRuntimeAsStream(service, DeclarationRuleSet3.class);
         StatefulSession session = session(knowledge, mode);
-        session.set("random-shift", 0);
+        session.set("random-offset", 0);
 
         for (int i = 2; i < 100; i++) {
             session.insert(String.valueOf(i));
@@ -105,7 +105,7 @@ class FieldDeclarationsTests extends CommonTestMethods {
         Random random = new Random();
         for (int shift = 1; shift < 10; shift++) {
             StatefulSession session = session(knowledge, mode);
-            session.set("random-shift", random.nextInt(1000) + 1);
+            session.set("random-offset", random.nextInt(1000) + 1);
             for (int i = 2; i < 100; i++) {
                 session.insert(String.valueOf(i));
             }

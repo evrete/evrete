@@ -19,7 +19,7 @@ public @interface RuleSet {
      * (Compiled Java classes do not keep any sorting information)
      * </p>
      *
-     * @return
+     * @return sort mode
      */
     Sort defaultSort() default Sort.BY_NAME;
 
