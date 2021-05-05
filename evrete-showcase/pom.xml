@@ -44,6 +44,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <version></version>
                 <configuration>
                     <skipTests>true</skipTests>
                 </configuration>
@@ -82,7 +83,6 @@
     <modules>
         <module>showcase-shared</module>
         <module>evrete-stock-app</module>
-        <module>evrete-newton-laws</module>
         <module>evrete-chess-queens</module>
         <module>evrete-town-emulation</module>
     </modules>
