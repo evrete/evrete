@@ -36,6 +36,7 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
     public RuleDescriptor compileRule(RuleBuilder<?> builder) {
         RuleDescriptor rd = super.compileRuleBuilder(builder);
         this.ruleDescriptors.add(rd);
+        this.ruleDescriptors.sort(getRuleComparator());
         return rd;
     }
 
