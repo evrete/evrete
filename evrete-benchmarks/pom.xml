@@ -5,12 +5,12 @@
     <parent>
         <artifactId>evrete</artifactId>
         <groupId>org.evrete</groupId>
-        <version>2.0.3-SNAPSHOT</version>
+        <version>2.0.4-SNAPSHOT</version>
     </parent>
     <artifactId>evrete-benchmarks</artifactId>
     <packaging>jar</packaging>
     <name>evrete-benchmarks</name>
-    <version>2.0.3-SNAPSHOT</version>
+    <version>2.0.4-SNAPSHOT</version>
 
     <properties>
         <drools.version>7.48.0.Final</drools.version>
@@ -42,13 +42,13 @@
         <dependency>
             <groupId>org.evrete</groupId>
             <artifactId>evrete-core</artifactId>
-            <version>2.0.3-SNAPSHOT</version>
+            <version>2.0.4-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>org.evrete</groupId>
             <artifactId>evrete-dsl-java</artifactId>
-            <version>2.0.3-SNAPSHOT</version>
+            <version>2.0.4-SNAPSHOT</version>
         </dependency>
 
         <dependency>
