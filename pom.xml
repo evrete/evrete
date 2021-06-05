@@ -186,8 +186,6 @@
         </pluginManagement>
     </build>
 
-
-
     <profiles>
         <profile>
             <id>normal</id>

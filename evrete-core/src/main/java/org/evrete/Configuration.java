@@ -12,6 +12,10 @@ public class Configuration extends Properties implements Copyable<Configuration>
     public static final String OBJECT_COMPARE_METHOD = "evrete.core.fact-identity-strategy";
     public static final String INSERT_BUFFER_SIZE = "evrete.core.insert-buffer-size";
     public static final String WARN_UNKNOWN_TYPES = "evrete.core.warn-unknown-types";
+    static final String SPI_MEMORY_FACTORY = "evrete.spi.memory-factory";
+    static final String SPI_EXPRESSION_RESOLVER = "evrete.spi.expression-resolver";
+    static final String SPI_TYPE_RESOLVER = "evrete.spi.type-resolver";
+    static final String SPI_RHS_COMPILER = "evrete.spi.rhs-compiler";
     public static final int INSERT_BUFFER_SIZE_DEFAULT = 4096;
     static final String PARALLELISM = "evrete.core.parallelism";
     private static final Logger LOGGER = Logger.getLogger(Configuration.class.getName());
@@ -36,10 +40,18 @@ public class Configuration extends Properties implements Copyable<Configuration>
     }
 
     public Configuration() {
-        setProperty(WARN_UNKNOWN_TYPES, Boolean.TRUE.toString());
-        setProperty(OBJECT_COMPARE_METHOD, IDENTITY_METHOD_IDENTITY);
-        setProperty(INSERT_BUFFER_SIZE, String.valueOf(INSERT_BUFFER_SIZE_DEFAULT));
+        super(System.getProperties());
+
+        setIfAbsent(WARN_UNKNOWN_TYPES, Boolean.TRUE.toString());
+        setIfAbsent(OBJECT_COMPARE_METHOD, IDENTITY_METHOD_IDENTITY);
+        setIfAbsent(INSERT_BUFFER_SIZE, String.valueOf(INSERT_BUFFER_SIZE_DEFAULT));
         this.imports = new Imports();
+    }
+
+    private void setIfAbsent(String key, String value) {
+        if (!contains(key)) {
+            setProperty(key, value);
+        }
     }
 
     public boolean getAsBoolean(String property) {

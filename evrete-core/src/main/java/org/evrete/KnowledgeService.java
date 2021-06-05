@@ -34,10 +34,10 @@ public class KnowledgeService {
     public KnowledgeService(Configuration conf) {
         this.configuration = conf;
         this.executor = new ForkJoinExecutor(conf.getAsInteger(Configuration.PARALLELISM, Runtime.getRuntime().availableProcessors()));
-        this.collectionsServiceProvider = loadService(MemoryFactoryProvider.class);
-        this.expressionResolverProvider = loadService(ExpressionResolverProvider.class);
-        this.typeResolverProvider = loadService(TypeResolverProvider.class);
-        this.literalRhsProvider = loadService(LiteralRhsCompiler.class);
+        this.collectionsServiceProvider = loadService(conf, MemoryFactoryProvider.class, Configuration.SPI_MEMORY_FACTORY);
+        this.expressionResolverProvider = loadService(conf, ExpressionResolverProvider.class, Configuration.SPI_EXPRESSION_RESOLVER);
+        this.typeResolverProvider = loadService(conf, TypeResolverProvider.class, Configuration.SPI_TYPE_RESOLVER);
+        this.literalRhsProvider = loadService(conf, LiteralRhsCompiler.class, Configuration.SPI_RHS_COMPILER);
         this.classLoader = Thread.currentThread().getContextClassLoader();
     }
 
@@ -45,7 +45,7 @@ public class KnowledgeService {
         this(new Configuration());
     }
 
-    private static <Z extends OrderedServiceProvider> Z loadService(Class<Z> clazz) {
+    private static <Z extends OrderedServiceProvider> Z loadService(Configuration conf, Class<Z> clazz, String propertyName) {
         List<Z> providers = new LinkedList<>();
         Iterator<Z> sl = ServiceLoader.load(clazz).iterator();
         sl.forEachRemaining(providers::add);
@@ -53,10 +53,19 @@ public class KnowledgeService {
         if (providers.isEmpty()) {
             throw new IllegalStateException("Implementation missing: " + clazz);
         } else {
-            return providers.iterator().next();
+            String className = conf.getProperty(propertyName);
+            if (className == null) {
+                return providers.iterator().next();
+            } else {
+                for (Z provider : providers) {
+                    if (provider.getClass().getName().equals(className)) {
+                        return provider;
+                    }
+                }
+                throw new IllegalArgumentException("No such service implementation found: '" + className + "'");
+            }
         }
     }
-
 
     public SourceSecurity getSecurity() {
         return security;
