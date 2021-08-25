@@ -22,6 +22,6 @@ public class RuleSet2 {
     }
 
     public static boolean test(int i1, IntValue i2, int i3) {
-        return i3 == i1 * i2.value;
+        return i3 == i1 * i2.value();
     }
 }

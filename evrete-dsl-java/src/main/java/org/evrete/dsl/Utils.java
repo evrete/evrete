@@ -93,7 +93,7 @@ public final class Utils {
     }
 
 
-    public static Class<?> box(Class<?> type) {
+    static Class<?> box(Class<?> type) {
         if (type.isPrimitive()) {
             // Primitive types can not be used as fact types and need to be boxed
             switch (type.getName()) {

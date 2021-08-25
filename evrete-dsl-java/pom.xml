@@ -45,6 +45,24 @@
                             </outputDirectory>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>jar2-compile</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <failOnError>false</failOnError>
+                            <source>16</source>
+                            <target>16</target>
+                            <compileSourceRoots>
+                                ${project.basedir}/src/test/resources/jars/jar2
+                            </compileSourceRoots>
+                            <outputDirectory>
+                                ${project.build.testOutputDirectory}/jar2
+                            </outputDirectory>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
 
@@ -102,6 +120,26 @@
                                 ${project.build.testOutputDirectory}/jar1
                             </testClassesDirectory>
                             <outputDirectory>${project.basedir}/src/test/resources/jars/jar1</outputDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>jar2-package</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                        <configuration>
+                            <archive>
+                                <manifestEntries/>
+                                <addMavenDescriptor>false</addMavenDescriptor>
+                            </archive>
+
+                            <finalName>jar2</finalName>
+                            <forceCreation>true</forceCreation>
+                            <testClassesDirectory>
+                                ${project.build.testOutputDirectory}/jar2
+                            </testClassesDirectory>
+                            <outputDirectory>${project.basedir}/src/test/resources/jars/jar2</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>

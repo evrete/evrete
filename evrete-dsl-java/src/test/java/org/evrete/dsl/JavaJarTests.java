@@ -32,11 +32,38 @@ class JavaJarTests extends CommonTestMethods {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void test1(ActivationMode mode) {
+    void test(ActivationMode mode) {
         service
                 .getConfiguration()
                 .setProperty(DSLJarProvider.CLASSES_PROPERTY, "pkg1.evrete.tests.rule.RuleSet1");
-        Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar1//jar1-tests.jar"));
+        Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar1/jar1-tests.jar"));
+        StatefulSession session = session(knowledge, mode);
+        assert session.getRules().size() == 2;
+        for (int i = 2; i < 100; i++) {
+            session.insert(i);
+        }
+        session.fire();
+
+        NextIntSupplier primeCounter = new NextIntSupplier();
+        session.forEachFact((h, o) -> primeCounter.next());
+
+        assert primeCounter.get() == 25;
+
+    }
+
+
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testWithRecords(ActivationMode mode) {
+        int version = TestUtils.getJavaVersion();
+        if (version < 16) {
+            System.out.println("Skipping test od Java records for JVM version " + version);
+        }
+
+        service
+                .getConfiguration()
+                .setProperty(DSLJarProvider.CLASSES_PROPERTY, "pkg2.evrete.tests.rule.RuleSet1");
+        Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar2/jar2-tests.jar"));
         StatefulSession session = session(knowledge, mode);
         assert session.getRules().size() == 2;
         for (int i = 2; i < 100; i++) {
