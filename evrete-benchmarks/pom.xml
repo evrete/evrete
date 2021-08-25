@@ -13,8 +13,8 @@
     <version>2.0.4-SNAPSHOT</version>
 
     <properties>
-        <drools.version>7.48.0.Final</drools.version>
-        <slf4j.version>1.7.30</slf4j.version>
+        <drools.version>7.56.0.Final</drools.version>
+        <slf4j.version>1.7.32</slf4j.version>
     </properties>
 
     <build>

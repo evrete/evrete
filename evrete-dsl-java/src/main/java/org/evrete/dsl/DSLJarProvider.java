@@ -121,7 +121,6 @@ public class DSLJarProvider extends AbstractDSLProvider {
     public Knowledge create(KnowledgeService service, InputStream... streams) throws IOException {
         if (streams == null || streams.length == 0) throw new IOException("Empty streams");
         Set<String> ruleClasses = ruleClasses(service.getConfiguration());
-        //TODO !!! check empty classes implementation and return valid knowledge if there's no ambiguity
         if (ruleClasses.isEmpty()) {
             LOGGER.warning("No ruleset classes were specified in the '" + CLASSES_PROPERTY + "', resources skipped.");
         }

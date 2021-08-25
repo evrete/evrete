@@ -25,4 +25,5 @@ benchmark*.csv
 # Local dev/test files
 ######################
 XLocalDev*.*
+*tests.jar
 
