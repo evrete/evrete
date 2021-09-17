@@ -57,7 +57,8 @@ class JavaJarTests extends CommonTestMethods {
     void testWithRecords(ActivationMode mode) {
         int version = TestUtils.getJavaVersion();
         if (version < 16) {
-            System.out.println("Skipping test od Java records for JVM version " + version);
+            System.out.println("Skipping test of Java Records for JVM version " + version);
+            return;
         }
 
         service
