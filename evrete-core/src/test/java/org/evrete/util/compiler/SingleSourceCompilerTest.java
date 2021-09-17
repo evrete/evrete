@@ -29,11 +29,8 @@ class SingleSourceCompilerTest {
         try {
             Class<?> clazz = compiler.compile(code, classLoader);
             assert clazz.getClassLoader() == classLoader;
-            assert clazz.getPackage().getName().equals("test.pkg");
         } catch (CompilationException e) {
             throw new IllegalStateException(e);
         }
     }
-
-
 }
