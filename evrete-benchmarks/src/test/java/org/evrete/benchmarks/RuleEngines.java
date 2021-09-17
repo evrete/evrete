@@ -15,8 +15,8 @@ public class RuleEngines {
     private static final int ITERATIONS = 10;
     private static final TimeValue DURATION = TimeValue.milliseconds(1000L);
     private static final String[] JVM_ARGS = new String[]{
-            "-Xms8G",
-            "-Xmx8G",
+            "-Xms1G",
+            "-Xmx1G",
             "-Djava.util.logging.config.file=src/test/resources/logging.properties"
     };
 

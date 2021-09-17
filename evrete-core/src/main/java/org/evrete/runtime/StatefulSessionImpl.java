@@ -1,6 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.ActivationManager;
+import org.evrete.api.FactHandle;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
 import org.evrete.runtime.async.*;
@@ -11,7 +12,9 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Future;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 
 public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> implements StatefulSession {
     private ActivationManager activationManager;
@@ -43,6 +46,15 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
         return getRuleStorage().get(name);
     }
 
+    public <T> void forEachFact(String type, Consumer<T> consumer) {
+        forEachFactInner(type, consumer);
+    }
+
+    @Override
+    public <T> T getFact(FactHandle handle) {
+        return getFactInner(handle);
+    }
+
     @Override
     public ActivationManager getActivationManager() {
         return activationManager;
@@ -65,6 +77,26 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
                 throw new IllegalStateException("Unknown mode " + getAgendaMode());
         }
         purge();
+    }
+
+    @Override
+    public void clear() {
+        clearInner();
+    }
+
+    @Override
+    public final void update(FactHandle handle, Object newValue) {
+        updateInner(handle, newValue);
+    }
+
+    @Override
+    public final void delete(FactHandle handle) {
+        deleteInner(handle);
+    }
+
+    @Override
+    public <T> Future<T> fireAsync(final T result) {
+        return getExecutor().submit(this::fire, result);
     }
 
     private void fireContinuous(ActivationContext ctx) {

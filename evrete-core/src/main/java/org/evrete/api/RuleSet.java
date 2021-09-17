@@ -35,4 +35,9 @@ public interface RuleSet<R extends Rule> {
     }
 
     R getRule(String name);
+
+    default R getRule(Named named) {
+        return getRule(named.getName());
+    }
+
 }

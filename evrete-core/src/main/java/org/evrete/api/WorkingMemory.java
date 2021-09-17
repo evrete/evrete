@@ -22,15 +22,6 @@ public interface WorkingMemory {
      */
     FactHandle insert(Object fact);
 
-    /**
-     * <p>
-     * Returns fact by its handle.
-     * </p>
-     *
-     * @param handle fact handle
-     * @return fact or <code>null</code> if fact is not found
-     */
-    Object getFact(FactHandle handle);
 
     /**
      * <p>
@@ -43,25 +34,6 @@ public interface WorkingMemory {
      * @throws NullPointerException if argument is null
      */
     FactHandle insert(String type, Object fact);
-
-    /**
-     * <p>
-     * Updates a fact that already exists in the working memory
-     * </p>
-     *
-     * @param handle   fact handle, previously assigned to original fact
-     * @param newValue an updated version of the fact
-     */
-    void update(FactHandle handle, Object newValue);
-
-    /**
-     * <p>
-     * Deletes a fact from working memory.
-     * </p>
-     *
-     * @param handle fact handle
-     */
-    void delete(FactHandle handle);
 
     /**
      * <p>

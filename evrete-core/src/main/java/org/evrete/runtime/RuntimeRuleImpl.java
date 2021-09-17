@@ -275,7 +275,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
             Objects.requireNonNull(obj);
             for (RhsFactType state : factTypeNodes) {
                 if (state.value == obj) {
-                    runtime.update(state.handle, state.value);
+                    runtime.updateInner(state.handle, state.value);
                     return this;
                 }
             }
@@ -287,7 +287,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
             Objects.requireNonNull(obj);
             for (RhsFactType state : factTypeNodes) {
                 if (state.value == obj) {
-                    runtime.delete(state.handle);
+                    runtime.deleteInner(state.handle);
                     return this;
                 }
             }

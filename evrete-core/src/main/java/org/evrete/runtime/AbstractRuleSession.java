@@ -8,7 +8,6 @@ import org.evrete.runtime.evaluation.MemoryAddress;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
@@ -116,9 +115,9 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         return insert(getTypeResolver().getType(type), fact);
     }
 
-    @Override
-    public Object getFact(FactHandle handle) {
-        return memory.get(handle.getTypeId()).getFact(handle);
+    @SuppressWarnings("unchecked")
+    <T> T getFactInner(FactHandle handle) {
+        return (T) memory.get(handle.getTypeId()).getFact(handle);
     }
 
     private FactHandle insert(Type<?> type, Object fact) {
@@ -133,8 +132,7 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         }
     }
 
-    @Override
-    public final void update(FactHandle handle, Object newValue) {
+    final void updateInner(FactHandle handle, Object newValue) {
         _assertActive();
         if (handle == null) {
             throw new NullPointerException("Null handle provided during update");
@@ -142,8 +140,7 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         memory.get(handle.getTypeId()).add(Action.UPDATE, handle, new FactRecord(newValue));
     }
 
-    @Override
-    public final void delete(FactHandle handle) {
+    final void deleteInner(FactHandle handle) {
         _assertActive();
         memory.get(handle.getTypeId()).add(Action.RETRACT, handle, null);
     }
@@ -155,9 +152,8 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         }
     }
 
-    @Override
     @SuppressWarnings("unchecked")
-    public <T> void forEachFact(String type, Consumer<T> consumer) {
+    <T> void forEachFactInner(String type, Consumer<T> consumer) {
         Type<?> t = getTypeResolver().getType(type);
         if (t == null) {
             throw new IllegalArgumentException("Type not found: '" + type + "'");
@@ -178,18 +174,10 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         memory.onNewAlphaBucket(address);
     }
 
-    @Override
-    public void clear() {
+    void clearInner() {
         for (RuntimeRuleImpl rule : ruleStorage) {
             rule.clear();
         }
         memory.clear();
     }
-
-
-    @Override
-    public <T> Future<T> fireAsync(final T result) {
-        return getExecutor().submit(this::fire, result);
-    }
-
 }
