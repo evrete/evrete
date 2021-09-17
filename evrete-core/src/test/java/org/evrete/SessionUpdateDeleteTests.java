@@ -6,7 +6,6 @@ import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.helper.FactEntry;
 import org.evrete.helper.TestUtils;
-import org.evrete.runtime.StatefulSessionImpl;
 import org.evrete.util.NextIntSupplier;
 import org.evrete.util.RhsAssert;
 import org.junit.jupiter.api.AfterAll;
@@ -398,7 +397,7 @@ class SessionUpdateDeleteTests {
                 .where("$a.i != $c.i", 1.0)
                 .where("$a.i == $b.i", 2.0)
                 .execute(ctx -> counter.next());
-        StatefulSessionImpl s = (StatefulSessionImpl) knowledge.newStatefulSession().setActivationMode(ActivationMode.DEFAULT);
+        StatefulSession s = knowledge.newStatefulSession().setActivationMode(ActivationMode.DEFAULT);
 
         Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
         assert allObjects.size() == 0;

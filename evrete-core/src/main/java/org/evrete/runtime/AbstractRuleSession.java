@@ -2,13 +2,13 @@ package org.evrete.runtime;
 
 import org.evrete.Configuration;
 import org.evrete.api.*;
-import org.evrete.runtime.async.RuleHotDeploymentTask;
+import org.evrete.runtime.async.*;
 import org.evrete.runtime.evaluation.MemoryAddress;
+import org.evrete.util.Mask;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
@@ -20,6 +20,9 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
     private final KnowledgeRuntime knowledge;
     private final boolean warnUnknownTypes;
     private boolean active = true;
+    private ActivationManager activationManager;
+    private BooleanSupplier fireCriteria = () -> true;
+
 
     AbstractRuleSession(KnowledgeRuntime knowledge) {
         super(knowledge);
@@ -29,11 +32,170 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         this.memory = new SessionMemory(this, memoryFactory);
         this.knowledge = knowledge;
         this.warnUnknownTypes = knowledge.getConfiguration().getAsBoolean(Configuration.WARN_UNKNOWN_TYPES);
-
+        this.activationManager = newActivationManager();
         // Deploy existing rules
         for (RuleDescriptor descriptor : knowledge.getRules()) {
             deployRule(descriptor, false);
         }
+    }
+
+    void fireInner() {
+        switch (getAgendaMode()) {
+            case DEFAULT:
+                fireDefault(new ActivationContext());
+                break;
+            case CONTINUOUS:
+                fireContinuous(new ActivationContext());
+                break;
+            default:
+                throw new IllegalStateException("Unknown mode " + getAgendaMode());
+        }
+        purge();
+    }
+
+    private void fireContinuous(ActivationContext ctx) {
+
+        List<RuntimeRule> agenda;
+        while (fireCriteriaMet() && deltaMemoryManager.hasMemoryChanges()) {
+            processBuffer();
+            if (!(agenda = buildMemoryDeltas()).isEmpty()) {
+                activationManager.onAgenda(ctx.incrementFireCount(), agenda);
+                for (RuntimeRule candidate : agenda) {
+                    RuntimeRuleImpl rule = (RuntimeRuleImpl) candidate;
+                    if (activationManager.test(candidate)) {
+                        activationManager.onActivation(rule, rule.executeRhs());
+                    }
+                }
+            }
+            commitRuleDeltas();
+            commitBuffer();
+        }
+    }
+
+    //TODO !!! fix this mess with the buffer and its status, it can be simplified
+    private void fireDefault(ActivationContext ctx) {
+        List<RuntimeRule> agenda;
+        boolean bufferProcessed = false;
+        while (fireCriteriaMet() && deltaMemoryManager.hasMemoryChanges()) {
+            if (!bufferProcessed) {
+                processBuffer();
+                bufferProcessed = true;
+            }
+            agenda = buildMemoryDeltas();
+            if (!agenda.isEmpty()) {
+                activationManager.onAgenda(ctx.incrementFireCount(), agenda);
+                for (RuntimeRule candidate : agenda) {
+                    RuntimeRuleImpl rule = (RuntimeRuleImpl) candidate;
+                    if (activationManager.test(candidate)) {
+                        activationManager.onActivation(rule, rule.executeRhs());
+                        // Analyzing buffer
+                        int deltaOperations = deltaMemoryManager.deltaOperations();
+                        if (deltaOperations > 0) {
+                            // Breaking the agenda
+                            bufferProcessed = false;
+                            break;
+                        } else {
+                            // Processing deletes if any
+                            processBuffer();
+                        }
+                    }
+                }
+                commitRuleDeltas();
+            }
+            commitBuffer();
+        }
+    }
+
+
+    private void processBuffer() {
+        MemoryDeltaTask deltaTask = new MemoryDeltaTask(memory.iterator());
+        getExecutor().invoke(deltaTask);
+        deltaMemoryManager.onDelete(deltaTask.getDeleteMask());
+        deltaMemoryManager.onInsert(deltaTask.getInsertMask());
+        deltaMemoryManager.clearBufferData();
+    }
+
+    private List<RuntimeRule> buildMemoryDeltas() {
+        List<RuntimeRule> affectedRules = new LinkedList<>();
+        Set<BetaEndNode> affectedEndNodes = new HashSet<>();
+        Mask<MemoryAddress> matchMask = deltaMemoryManager.getInsertDeltaMask();
+
+        for (RuntimeRuleImpl rule : ruleStorage) {
+            boolean ruleAdded = false;
+
+            for (RhsFactGroup group : rule.getLhs().getFactGroups()) {
+                if (matchMask.intersects(group.getMemoryMask())) {
+                    if (!ruleAdded) {
+                        // Marking the rule as active
+                        affectedRules.add(rule);
+                        ruleAdded = true;
+                    }
+
+                    if (group instanceof BetaEndNode) {
+                        affectedEndNodes.add((BetaEndNode) group);
+                    }
+                }
+            }
+        }
+
+        // Ordered task 1 - process beta nodes, i.e. evaluate conditions
+        List<Completer> tasks = new LinkedList<>();
+        if (!affectedEndNodes.isEmpty()) {
+            tasks.add(new RuleMemoryInsertTask(affectedEndNodes, matchMask, true));
+        }
+
+        if (tasks.size() > 0) {
+            ForkJoinExecutor executor = getExecutor();
+            for (Completer task : tasks) {
+                executor.invoke(task);
+            }
+        }
+
+        deltaMemoryManager.clearDeltaData();
+        return affectedRules;
+    }
+
+    private void purge() {
+        Mask<MemoryAddress> factPurgeMask = deltaMemoryManager.getDeleteDeltaMask();
+        if (factPurgeMask.cardinality() > 0) {
+            ForkJoinExecutor executor = getExecutor();
+            MemoryPurgeTask purgeTask = new MemoryPurgeTask(memory, factPurgeMask);
+            executor.invoke(purgeTask);
+            Mask<MemoryAddress> emptyKeysMask = purgeTask.getKeyPurgeMask();
+            if (emptyKeysMask.cardinality() > 0) {
+                // Purging rule beta-memories
+                executor.invoke(new ConditionMemoryPurgeTask(ruleStorage, emptyKeysMask));
+            }
+            deltaMemoryManager.clearDeleteData();
+        }
+    }
+
+    private void commitBuffer() {
+        memory.commitBuffer();
+    }
+
+    private void commitRuleDeltas() {
+        for (RuntimeRuleImpl rule : ruleStorage) {
+            rule.commitDeltas();
+        }
+    }
+
+
+    @Override
+    public final ActivationManager getActivationManager() {
+        return activationManager;
+    }
+
+    private boolean fireCriteriaMet() {
+        return this.fireCriteria.getAsBoolean();
+    }
+
+    void applyFireCriteria(BooleanSupplier fireCriteria) {
+        this.fireCriteria = fireCriteria;
+    }
+
+    void applyActivationManager(ActivationManager activationManager) {
+        this.activationManager = activationManager;
     }
 
     private void reSortRules() {
@@ -47,12 +209,13 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
     }
 
     @Override
-    public List<RuntimeRule> getRules() {
-        return Collections.unmodifiableList(ruleStorage.getList());
+    public final RuntimeRule getRule(String name) {
+        return ruleStorage.get(name);
     }
 
-    RuntimeRules getRuleStorage() {
-        return ruleStorage;
+    @Override
+    public List<RuntimeRule> getRules() {
+        return Collections.unmodifiableList(ruleStorage.getList());
     }
 
     @Override
@@ -75,7 +238,7 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
     }
 
 
-    public void close() {
+    void closeInner() {
         synchronized (this) {
             invalidateSession();
             knowledge.close(this);

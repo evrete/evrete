@@ -42,7 +42,6 @@ public class ListCollections {
         }
     }
 
-
     @Benchmark
     public void insert(BenchState state) {
         IterableCollection<TypeA> scanCollection = state.addData.get(state.collection);

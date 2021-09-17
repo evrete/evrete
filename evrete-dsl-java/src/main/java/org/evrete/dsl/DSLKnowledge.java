@@ -79,9 +79,13 @@ class DSLKnowledge extends KnowledgeWrapper {
 
     @Override
     public StatefulSession newStatefulSession() {
-        return new DSLSession(super.newStatefulSession(), meta, meta.fieldDeclarations, rules, classInstance());
+        return new DSLStatefulSession(super.newStatefulSession(), meta, meta.fieldDeclarations, rules, classInstance());
     }
 
+    @Override
+    public StatelessSession newStatelessSession() {
+        throw new UnsupportedOperationException();
+    }
 
     private Object classInstance() {
         try {

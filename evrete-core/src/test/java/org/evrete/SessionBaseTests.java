@@ -4,7 +4,6 @@ import org.evrete.api.*;
 import org.evrete.classes.*;
 import org.evrete.helper.FactEntry;
 import org.evrete.helper.TestUtils;
-import org.evrete.runtime.StatefulSessionImpl;
 import org.evrete.util.NextIntSupplier;
 import org.evrete.util.RhsAssert;
 import org.junit.jupiter.api.AfterAll;
@@ -1343,7 +1342,7 @@ class SessionBaseTests {
                 .execute(rhsAssert3);
 
 
-        StatefulSessionImpl session = (StatefulSessionImpl) knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession session = knowledge.newStatefulSession().setActivationMode(mode);
 
         // This insert cycle will result in 5 matching As
         for (int i = 0; i < 10; i++) {
@@ -1380,7 +1379,7 @@ class SessionBaseTests {
                 .execute(rhsAssert3);
 
 
-        StatefulSessionImpl s = (StatefulSessionImpl) knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
 
         // This insert cycle will result in 5 matching As
         for (int i = 0; i < 10; i++) {
@@ -1415,7 +1414,7 @@ class SessionBaseTests {
                 .where("!$a.id.equals('A5')") // Inverse to rule 1
                 .execute(rhsAssert3);
 
-        StatefulSessionImpl s = (StatefulSessionImpl) knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
 
         for (int i = 0; i < 10; i++) {
             String id = "A" + i;

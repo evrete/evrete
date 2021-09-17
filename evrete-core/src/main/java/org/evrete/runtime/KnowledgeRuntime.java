@@ -60,13 +60,16 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
 
     @Override
     public StatefulSession newStatefulSession() {
-        StatefulSessionImpl session = new StatefulSessionImpl(this);
-        sessions.put(session, VALUE);
-        return session;
+        return register(new StatefulSessionImpl(this));
     }
 
     @Override
     public StatelessSession newStatelessSession() {
-        throw new UnsupportedOperationException();
+        return register(new StatelessSessionImpl(this));
+    }
+
+    private <S extends RuleSession<S>> S register(S session) {
+        sessions.put(session, VALUE);
+        return session;
     }
 }

@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.concurrent.Future;
 import java.util.function.BooleanSupplier;
 
-class DSLSession extends SessionWrapperStateful {
+class DSLStatefulSession extends SessionWrapperStateful {
     private final Listeners listeners;
 
 
-    DSLSession(StatefulSession delegate, RulesetMeta meta, FieldDeclarations fieldDeclarations, List<DSLRule> rules, Object classInstance) {
+    DSLStatefulSession(StatefulSession delegate, RulesetMeta meta, FieldDeclarations fieldDeclarations, List<DSLRule> rules, Object classInstance) {
         super(delegate);
         this.listeners = meta.listeners.copy(classInstance);
 

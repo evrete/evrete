@@ -2,6 +2,12 @@ package org.evrete.api;
 
 import java.util.Collection;
 
+/**
+ * <p>
+ * TypeResolver provides dynamic mapping of Java types to engine's internal {@link Type}. It is
+ * particularly useful when developers have to deal with XML or JSON objects.
+ * </p>
+ */
 public interface TypeResolver extends Copyable<TypeResolver> {
 
     <T> Type<T> getType(String name);

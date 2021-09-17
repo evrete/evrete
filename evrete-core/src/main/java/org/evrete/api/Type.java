@@ -7,7 +7,7 @@ import java.util.function.*;
  * <p>
  * An engine's internal type which is assigned to every fact before it gets
  * into the session's working memory. It allows for dynamic, real-time field declarations
- * either as functional interfaces or via reflection mechanisms.
+ * either as functional interfaces or via the Java Reflection API.
  * </p>
  *
  * @param <T> Java type associated with this type
