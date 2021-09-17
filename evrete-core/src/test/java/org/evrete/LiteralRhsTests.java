@@ -41,7 +41,7 @@ public class LiteralRhsTests {
                 .execute("SystemOut.out($n);");
 
 
-        StatefulSession session = knowledge.createSession();
+        StatefulSession session = knowledge.newStatefulSession();
         session.insertAndFire(10, 20);
         SystemOut.assertSize(2);
         assert SystemOut.collector.containsAll(Arrays.asList(10, 20));
@@ -60,7 +60,7 @@ public class LiteralRhsTests {
         RuleDescriptor descriptor = knowledge.compileRule(builder);
         descriptor.setRhs("SystemOut.out($n);");
 
-        StatefulSession session = knowledge.createSession();
+        StatefulSession session = knowledge.newStatefulSession();
         session.insertAndFire(10, 20);
         SystemOut.assertSize(2);
         assert SystemOut.collector.containsAll(Arrays.asList(10, 20));
@@ -82,7 +82,7 @@ public class LiteralRhsTests {
                 .addImport(RuleScope.RHS, SystemOut.class)
                 .setRhs("SystemOut.out($n);");
 
-        StatefulSession session = knowledge.createSession();
+        StatefulSession session = knowledge.newStatefulSession();
 
         session.insertAndFire(10, 20);
         SystemOut.assertSize(2);

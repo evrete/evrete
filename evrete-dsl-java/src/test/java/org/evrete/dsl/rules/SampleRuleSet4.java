@@ -9,7 +9,7 @@ import org.evrete.dsl.annotation.Where;
 import java.io.File;
 import java.util.Random;
 
-@SuppressWarnings({"unused", "MethodMayBeStatic", "ResultOfMethodCallIgnored"})
+@SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
 public class SampleRuleSet4 {
     private static final String PROP = "some-unused-property";
 

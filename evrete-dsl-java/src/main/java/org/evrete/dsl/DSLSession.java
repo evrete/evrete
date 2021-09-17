@@ -1,13 +1,13 @@
 package org.evrete.dsl;
 
 import org.evrete.api.*;
-import org.evrete.util.SessionWrapper;
+import org.evrete.util.SessionWrapperStateful;
 
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.function.BooleanSupplier;
 
-class DSLSession extends SessionWrapper {
+class DSLSession extends SessionWrapperStateful {
     private final Listeners listeners;
 
 

@@ -56,7 +56,7 @@ class SessionUpdateDeleteTests {
                     ctx.update($a);
                     counter.next();
                 });
-        StatefulSession s = knowledge.createSession().setActivationMode(mode);
+        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
 
         s.insertAndFire(a);
         assert counter.get() == 10 : "Actual: " + counter.get();
@@ -78,7 +78,7 @@ class SessionUpdateDeleteTests {
                     ctx.update($a);
                     counter.next();
                 });
-        StatefulSession s = knowledge.createSession().setActivationMode(mode);
+        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
         s.insertAndFire(ref);
         assert counter.get() == 10 : "Actual: " + counter.get();
         assert ref.getD() == 10.1;
@@ -105,7 +105,7 @@ class SessionUpdateDeleteTests {
 
         AtomicReference<TypeA> ref = new AtomicReference<>(new TypeA());
 
-        knowledge.createSession().setActivationMode(mode).insertAndFire(ref.get());
+        knowledge.newStatefulSession().setActivationMode(mode).insertAndFire(ref.get());
         assert counter.get() == 10 : "Actual " + counter.get() + " vs expected " + 10;
         assert ref.get().getStr().equals("0123456789");
     }
@@ -123,7 +123,7 @@ class SessionUpdateDeleteTests {
                 .where("$a.i == $c.i")
                 .execute(ctx -> {
                 });
-        StatefulSession s = knowledge.createSession().setActivationMode(mode);
+        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
 
         for (int i = 1; i < 3; i++) {
             TypeA a = new TypeA("A" + i);
@@ -161,7 +161,7 @@ class SessionUpdateDeleteTests {
                 )
                 .where("$a.i == $b.i")
                 .execute(rhsAssert);
-        StatefulSession s = knowledge.createSession().setActivationMode(mode);
+        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
 
         Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
         assert allObjects.size() == 0;
@@ -241,7 +241,7 @@ class SessionUpdateDeleteTests {
                 .where("$a.i == $b.i", 2.0)
                 .where("$a.i != $c.i", 10.0)
                 .execute(ctx -> counter.next());
-        StatefulSession s = knowledge.createSession().setActivationMode(mode);
+        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
 
         Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
         assert allObjects.size() == 0;
@@ -320,7 +320,7 @@ class SessionUpdateDeleteTests {
                 .where("$a.i == $b.i", 20.0)
                 .where("$a.i != $c.i", 10.0)
                 .execute(ctx -> counter.next());
-        StatefulSession s = knowledge.createSession().setActivationMode(mode);
+        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
 
         Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
         assert allObjects.size() == 0;
@@ -398,7 +398,7 @@ class SessionUpdateDeleteTests {
                 .where("$a.i != $c.i", 1.0)
                 .where("$a.i == $b.i", 2.0)
                 .execute(ctx -> counter.next());
-        StatefulSessionImpl s = (StatefulSessionImpl) knowledge.createSession().setActivationMode(ActivationMode.DEFAULT);
+        StatefulSessionImpl s = (StatefulSessionImpl) knowledge.newStatefulSession().setActivationMode(ActivationMode.DEFAULT);
 
         Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
         assert allObjects.size() == 0;
@@ -473,7 +473,7 @@ class SessionUpdateDeleteTests {
                 )
                 .where("$a.i == $b.i")
                 .execute(ctx -> counter.next());
-        StatefulSession s = knowledge.createSession().setActivationMode(mode);
+        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
         //RuntimeRule rule = s.getRules().iterator().next();
 
         Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
@@ -533,7 +533,7 @@ class SessionUpdateDeleteTests {
                 .where("$a.i == $b.i")
                 .where("$a.i != $c.i")
                 .execute(ctx -> counter.next());
-        StatefulSession s = knowledge.createSession().setActivationMode(mode);
+        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
 
         // Initial state, zero objects
         Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
@@ -619,7 +619,7 @@ class SessionUpdateDeleteTests {
                         }
                 );
 
-        StatefulSession s = knowledge.createSession().setActivationMode(mode);
+        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
 
         for (int i = 2; i <= 100; i++) {
             s.insert(i);
@@ -651,7 +651,7 @@ class SessionUpdateDeleteTests {
                         }
                 );
 
-        StatefulSession s = knowledge.createSession().setActivationMode(mode);
+        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
 
         for (int i = 2; i <= 100; i++) {
             s.insert(i);
@@ -680,7 +680,7 @@ class SessionUpdateDeleteTests {
                 .execute(
                         ctx -> counter.next()
                 )
-                .createSession()
+                .newStatefulSession()
                 .setActivationMode(mode);
 
         TypeA a = new TypeA();
@@ -719,7 +719,7 @@ class SessionUpdateDeleteTests {
                 .execute(
                         ctx -> counter.next()
                 )
-                .createSession()
+                .newStatefulSession()
                 .setActivationMode(mode);
 
         TypeA a = new TypeA();
@@ -777,7 +777,7 @@ class SessionUpdateDeleteTests {
                             counter.next();
                         }
                 )
-                .createSession()
+                .newStatefulSession()
                 .setActivationMode(ActivationMode.DEFAULT);
 
         TypeA a = new TypeA();

@@ -5,7 +5,7 @@ import org.evrete.api.StatefulSession;
 
 import java.io.IOException;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "UseOfSystemOutOrSystemErr"})
 public class PrimeNumbersDSLSource {
     public static void main(String[] args) throws IOException {
         KnowledgeService service = new KnowledgeService();
@@ -23,7 +23,7 @@ public class PrimeNumbersDSLSource {
                 "}\n";
         StatefulSession session = service
                 .newKnowledge("JAVA-SOURCE", source)
-                .createSession();
+                .newStatefulSession();
 
         // Inject candidates
         for (int i = 2; i <= 100; i++) {

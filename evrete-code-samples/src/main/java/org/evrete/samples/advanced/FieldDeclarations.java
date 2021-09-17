@@ -3,6 +3,7 @@ package org.evrete.samples.advanced;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 
+@SuppressWarnings("UseOfSystemOutOrSystemErr")
 class FieldDeclarations {
 
     public static void main(String[] args) {
@@ -36,7 +37,7 @@ class FieldDeclarations {
                     System.out.printf("i1: %d (%d)\t\ti2: %d (%d)\n", i1, factorial1, i2, factorial2);
 
                 })
-                .createSession();
+                .newStatefulSession();
 
 
         session.insertAndFire(4, 5, 6);

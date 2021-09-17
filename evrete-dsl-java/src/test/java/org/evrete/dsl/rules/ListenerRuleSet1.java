@@ -28,26 +28,22 @@ public class ListenerRuleSet1 {
     public void rule(RhsContext ctx, @Fact("$i") int $i) {
     }
 
-    @SuppressWarnings("MethodMayBeStatic")
     @PhaseListener(Phase.CREATE)
     public void onCreate2(Environment e) {
         event(Phase.CREATE);
     }
 
-    @SuppressWarnings("MethodMayBeStatic")
     @PhaseListener(Phase.FIRE)
     public void onFire(Environment e) {
         event(Phase.FIRE);
     }
 
-    @SuppressWarnings("MethodMayBeStatic")
     @PhaseListener(Phase.CLOSE)
     public void onClose(Environment e) {
         event(Phase.CLOSE);
     }
 
 
-    @SuppressWarnings("MethodMayBeStatic")
     @PhaseListener({Phase.CREATE, Phase.FIRE, Phase.CLOSE})
     public void multiple() {
         event(Phase.CREATE, Phase.FIRE, Phase.CLOSE);

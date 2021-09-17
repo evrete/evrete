@@ -28,7 +28,7 @@ public interface ExpressionResolver {
      * </ol>
      *
      * @param arg      a String to parse
-     * @param resolver a mapping function between fact names and their full {@link NamedType}
+     * @param resolver a mapping function between fact name and full {@link NamedType}
      * @return returns {@link FieldReference} instance or throws an {@link IllegalArgumentException}
      * @throws IllegalArgumentException if the argument can not be resolved
      */
@@ -47,8 +47,8 @@ public interface ExpressionResolver {
      * This method parses a string argument and returns an {@link Evaluator} if possible.
      * </p>
      *
-     * @param stringExpression - an String condition expression to parse
-     * @param resolver         a mapping function between fact names and their full {@link NamedType}
+     * @param stringExpression - a String condition expression to parse
+     * @param resolver         a mapping function between fact name and {@link NamedType}
      * @param imports          a collection of class imports
      * @return returns an {@link Evaluator} instance or throws an exception
      * @throws CompilationException     if the argument can not be compiled

@@ -14,7 +14,7 @@ public class RuntimeFact {
     // A convenience fact instance that is never equal to others
     static final RuntimeFact DUMMY_FACT = new RuntimeFact() {
         @Override
-        final boolean sameValues(RuntimeFact other) {
+        boolean sameValues(RuntimeFact other) {
             return false;
         }
     };

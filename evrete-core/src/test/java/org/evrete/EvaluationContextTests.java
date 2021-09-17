@@ -67,13 +67,13 @@ class EvaluationContextTests {
 
         lhsBuilder.execute(rhsAssert);
 
-        StatefulSession session1 = knowledge.createSession().setActivationMode(mode);
+        StatefulSession session1 = knowledge.newStatefulSession().setActivationMode(mode);
         session1.insertAndFire(facts);
         rhsAssert.assertCount(count - 2).reset(); // With zero 'i' values excluded
         rhsAssert.reset();
 
         // Updating conditions for a new session
-        StatefulSession session2 = knowledge.createSession().setActivationMode(mode);
+        StatefulSession session2 = knowledge.newStatefulSession().setActivationMode(mode);
 
         FieldReference[] fieldReferences = knowledge.getExpressionResolver().resolve(lhsBuilder, "$a.i", "$b.i");
 

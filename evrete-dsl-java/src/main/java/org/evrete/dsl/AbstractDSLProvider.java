@@ -49,47 +49,6 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider {
         } else {
             return new DSLKnowledge(knowledge, meta);
         }
-
-/*
-        // Rule builders
-        for (RuleMethod rm : ruleMethods) {
-            RuleBuilder<?> builder = knowledge.newRule(rm.getRuleName());
-            builder.setSalience(rm.getSalience());
-            LhsBuilder<?> lhsBuilder = builder.forEach(rm.getLhsParameters());
-            Where predicates = rm.getPredicates();
-            if (predicates != null) {
-                // String predicates
-                for (String s : predicates.value()) {
-                    lhsBuilder.where(s);
-                }
-
-                // Method predicates
-                for (MethodPredicate mp : predicates.asMethods()) {
-                    String methodName = mp.method();
-                    String[] descriptor = mp.descriptor();
-                    // We need method arg types for lookup
-                    Class<?>[] signature = new Class<?>[descriptor.length];
-                    FieldReference[] references = new FieldReference[descriptor.length];
-                    for (int i = 0; i < descriptor.length; i++) {
-                        FieldReference ref = lhsBuilder.resolveField(descriptor[i]);
-                        references[i] = ref;
-                        signature[i] = ref.field().getValueType();
-                    }
-
-                    MethodType methodType = MethodType.methodType(boolean.class, signature);
-                    MethodWithValues method = RuleMethod.lookup(lookup, javaClass, methodName, methodType);
-                    PredicateMethod predicate = PredicateMethod.factory(method);
-                    //predicateMethods.add(predicate);
-                    lhsBuilder.where(predicate, references);
-                }
-
-            }
-            // RHS
-            lhsBuilder.execute(rm);
-        }
-*/
-        //}
-        //return new DSLKnowledge(knowledge, meta);
     }
 
     static String[] toSourceString(Reader[] readers) throws IOException {

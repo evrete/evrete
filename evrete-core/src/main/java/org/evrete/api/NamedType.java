@@ -12,7 +12,7 @@ public interface NamedType {
      * Method returns engine's internal {@link Type} of a fact declaration
      * </p>
      *
-     * @return runtime type of a fact declaration
+     * @return runtime type of fact declaration
      */
     Type<?> getType();
 

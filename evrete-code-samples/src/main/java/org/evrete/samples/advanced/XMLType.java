@@ -58,7 +58,7 @@ public class XMLType {
                             System.out.printf("An active customer processed:\n\tname='%s', \n\tactive='%s', \n\tsource='%s'\n", nameValue, activeValue, asString(customer));
                         }
                 )
-                .createSession();
+                .newStatefulSession();
 
         Document customer1 = newCustomer("ABC Ltd", true);
         Document customer2 = newCustomer("XYZ Ltd", false);

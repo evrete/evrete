@@ -29,7 +29,7 @@ class JavaClassSecurityTests extends CommonTestMethods {
                 SecurityException.class,
                 () -> {
                     Knowledge knowledge = applyToRuntimeAsURL(service, SampleRuleSet4.class);
-                    StatefulSession session = knowledge.createSession();
+                    StatefulSession session = knowledge.newStatefulSession();
 
                     session.insert(2);
                     session.fire();
@@ -43,7 +43,7 @@ class JavaClassSecurityTests extends CommonTestMethods {
 
         service.getSecurity().addPermission(RuleScope.BOTH, new FilePermission("<<ALL FILES>>", "read"));
         Knowledge knowledge = applyToRuntimeAsURL(service, SampleRuleSet4.class);
-        StatefulSession session = knowledge.createSession();
+        StatefulSession session = knowledge.newStatefulSession();
 
         session.insert(2);
         session.fire();
@@ -58,7 +58,7 @@ class JavaClassSecurityTests extends CommonTestMethods {
                 SecurityException.class,
                 () -> {
                     Knowledge knowledge = applyToRuntimeAsURL(service, SampleRuleSet4.class);
-                    StatefulSession session = knowledge.createSession();
+                    StatefulSession session = knowledge.newStatefulSession();
 
                     session.insert(9L);
                     session.fire();
@@ -74,7 +74,7 @@ class JavaClassSecurityTests extends CommonTestMethods {
                 SecurityException.class,
                 () -> {
                     Knowledge knowledge = applyToRuntimeAsURL(service, SampleRuleSet4.class);
-                    StatefulSession session = knowledge.createSession();
+                    StatefulSession session = knowledge.newStatefulSession();
 
                     session.insert(9L);
                     session.fire();
@@ -91,7 +91,7 @@ class JavaClassSecurityTests extends CommonTestMethods {
                 .addPermission(RuleScope.BOTH, new PropertyPermission("some-unused-property", "write"))
         ;
         Knowledge knowledge = applyToRuntimeAsURL(service, SampleRuleSet4.class);
-        StatefulSession session = knowledge.createSession();
+        StatefulSession session = knowledge.newStatefulSession();
 
         session.insert(9L);
         session.fire();

@@ -16,7 +16,6 @@ public class DeclarationRuleSet1 {
 
     @Rule("Delete non-prime integers")
     @Where(value = {"$i3.intValue == $i1.intValue * $i2.intValue"})
-    @SuppressWarnings({"MethodMayBeStatic"})
     public void rule(RhsContext ctx, @Fact("$i1") String $i1, @Fact("$i2") String i2, @Fact("$i3") String $i3) {
         ctx.delete($i3);
     }

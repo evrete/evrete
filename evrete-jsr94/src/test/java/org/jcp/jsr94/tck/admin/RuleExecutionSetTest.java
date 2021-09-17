@@ -53,9 +53,7 @@ class RuleExecutionSetTest {
      * LocalRuleExecutionSetProvider from the Administrator. Create a
      * RuleExecutionSet via the LocalRuleExecutionSetProvider. An input
      * stream to the tck_res_1.xml rule execution set is used to
-     * construct the rule execution set. Test whether or not properties
-     * can be set and retrieved, object filters can be set and
-     * retrieved. Iterate through the rules of this rule execution set.
+     * construct the rule execution set.
      *
      * <p>
      * <b>Description:</b><br>

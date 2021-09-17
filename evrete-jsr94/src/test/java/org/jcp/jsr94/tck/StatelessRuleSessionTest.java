@@ -86,7 +86,7 @@ class StatelessRuleSessionTest {
      * Test the compliance for javax.rules.StatelessRuleSession.
      * Create a stateless rule session and execute the rules on a
      * Customer and Invoice object. The execution of the rule will be
-     * invoked with an without an object filter. The object filter is
+     * invoked with or without an object filter. The object filter is
      * the TestObjectFilter of the TCK.
      *
      * <p>
@@ -133,7 +133,7 @@ class StatelessRuleSessionTest {
             Invoice inputInvoice = new Invoice("test");
             inputInvoice.setAmount(2000);
 
-            // Create a input list.
+            // Create an input list.
             List<Object> input = new ArrayList<>();
             input.add(inputCustomer);
             input.add(inputInvoice);
@@ -163,7 +163,7 @@ class StatelessRuleSessionTest {
             assert resultInvoice != null;
 
             // Verify the results (although technically speaking we
-            // shouldn't verify of the rule engine works.
+            // shouldn't verify of the rule engine works).
             assert resultCustomer.getCreditLimit() == 3000;
             assert resultInvoice.getStatus().equals("paid");
 
@@ -177,7 +177,7 @@ class StatelessRuleSessionTest {
             inputInvoice = new Invoice("test");
             inputInvoice.setAmount(2000);
 
-            // Create a input list.
+            // Create an input list.
             input = new ArrayList<>();
             input.add(inputCustomer);
             input.add(inputInvoice);

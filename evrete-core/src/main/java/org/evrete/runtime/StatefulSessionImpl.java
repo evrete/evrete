@@ -142,7 +142,6 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
                         } else {
                             // Processing deletes if any
                             processBuffer();
-                            bufferProcessed = true;
                         }
                     }
                 }
@@ -181,7 +180,7 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
             for (RhsFactGroup group : rule.getLhs().getFactGroups()) {
                 if (matchMask.intersects(group.getMemoryMask())) {
                     if (!ruleAdded) {
-                        // Mark rule as active
+                        // Marking the rule as active
                         affectedRules.add(rule);
                         ruleAdded = true;
                     }

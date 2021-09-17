@@ -7,6 +7,7 @@ import org.evrete.api.StatefulSession;
 import java.io.IOException;
 import java.net.URL;
 
+@SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class PrimeNumbersDSLUrl {
     public static void main(String[] args) throws IOException {
         KnowledgeService service = new KnowledgeService();
@@ -16,7 +17,7 @@ public class PrimeNumbersDSLUrl {
                         new URL("https://www.evrete.org/examples/PrimeNumbersSource.java")
                 );
 
-        try (StatefulSession session = knowledge.createSession()) {
+        try (StatefulSession session = knowledge.newStatefulSession()) {
             // Inject candidates
             for (int i = 2; i <= 100; i++) {
                 session.insert(i);

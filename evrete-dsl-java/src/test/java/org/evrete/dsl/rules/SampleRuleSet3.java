@@ -8,7 +8,7 @@ import org.evrete.dsl.annotation.Where;
 
 public class SampleRuleSet3 extends SuperRuleSet3 {
 
-    @SuppressWarnings({"unused", "MethodMayBeStatic"})
+    @SuppressWarnings({"unused"})
     @Rule("Delete non-prime integers")
     @Where(
             asMethods = {@MethodPredicate(method = "test", descriptor = {"$i1", "$i2", "$i3"})}

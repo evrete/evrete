@@ -40,7 +40,7 @@ class DefaultFactStorageTest {
                 .forEach("$a", TypeA.class)
                 .where("$a.i >= 0")
                 .execute(ctx -> counter.next())
-                .createSession();
+                .newStatefulSession();
 
         TypeA a = new TypeA();
         a.setAllNumeric(0);

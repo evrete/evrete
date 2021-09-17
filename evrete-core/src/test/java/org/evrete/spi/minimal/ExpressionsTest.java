@@ -79,7 +79,7 @@ class ExpressionsTest {
                 .where("$o.parent.parent.id > 0")
                 .where("$o.id > 2")
                 .execute(ctx -> counter.next())
-                .createSession();
+                .newStatefulSession();
 
 
         Nested1 level1 = new Nested1(10);
@@ -100,7 +100,7 @@ class ExpressionsTest {
                 .where("$o.parent.ida > 0")
                 .where("$o.idb > 2")
                 .execute(ctx -> counter.next())
-                .createSession();
+                .newStatefulSession();
 
 
         NestedA level1 = new NestedA(10);
@@ -122,7 +122,7 @@ class ExpressionsTest {
                 )
                 .where("$i1 > $i2")
                 .execute(ctx -> counter.next())
-                .createSession();
+                .newStatefulSession();
 
 
         session.insertAndFire(1, 2);
@@ -139,7 +139,7 @@ class ExpressionsTest {
                 )
                 .where("$i > 0 || $i < 0")
                 .execute(ctx -> counter.next())
-                .createSession();
+                .newStatefulSession();
 
 
         session.insertAndFire(1, 2);

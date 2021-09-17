@@ -145,7 +145,7 @@ class RuleRuntimeTest {
             // Check that we retrieved registrations.
             assert registrations != null;
 
-            // We should have at least two registrations. However other
+            // We should have at least two registrations. However, other
             // test runs might have created registrations as well, so
             // test for at least 2.
             assert 2 <= registrations.size() : "Actual: " + registrations.size();

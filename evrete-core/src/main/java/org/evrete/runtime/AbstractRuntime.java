@@ -23,11 +23,6 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     private ActivationMode agendaMode;
     private final Configuration configuration;
 
-    /**
-     * Constructor for a Knowledge object
-     *
-     * @param service knowledge service
-     */
     AbstractRuntime(KnowledgeService service) {
         super(service);
         this.configuration = service.getConfiguration().copyOf();

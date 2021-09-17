@@ -51,7 +51,7 @@ class RuleExecutionSetProviderTest {
      * specified in the tck.conf configuration file. Get the
      * RuleAdministrator from this service provider which will have a
      * reference to a RuleExecutionSetProvider. The test will
-     * continue with constructing a RuleExecutionSet from an
+     * continue with constructing a RuleExecutionSet from a
      * String (uri) and a DOM Document element.
      * In both cases the "tck_res_1.xml" rule execution set definition
      * will be used as input.

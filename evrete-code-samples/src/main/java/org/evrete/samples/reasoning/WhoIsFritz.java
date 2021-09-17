@@ -63,7 +63,7 @@ class WhoIsFritz {
                             }
                         }
                 )
-                .createSession();
+                .newStatefulSession();
 
         // Fritz and his known properties
         Subject fritz = new Subject();

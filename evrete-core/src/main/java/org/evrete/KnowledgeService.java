@@ -3,6 +3,7 @@ package org.evrete;
 import org.evrete.api.Knowledge;
 import org.evrete.api.OrderedServiceProvider;
 import org.evrete.api.StatefulSession;
+import org.evrete.api.StatelessSession;
 import org.evrete.api.spi.*;
 import org.evrete.runtime.KnowledgeRuntime;
 import org.evrete.runtime.async.ForkJoinExecutor;
@@ -186,15 +187,41 @@ public class KnowledgeService {
 
     /**
      * <p>
-     * This method is a shorthand for <code>newKnowledge().createSession()</code> which
+     * Deprecated method, use {@link #newStatefulSession()} instead.
+     * </p>
+     *
+     * @return an empty {@link StatefulSession}
+     */
+    @SuppressWarnings("WeakerAccess")
+    @Deprecated
+    public StatefulSession newSession() {
+        return newStatefulSession();
+    }
+
+    /**
+     * <p>
+     * This method is a shorthand for <code>newKnowledge().newStatefulSession()</code> which
      * returns an empty session instance.
      * </p>
      *
      * @return an empty {@link StatefulSession}
      */
     @SuppressWarnings("WeakerAccess")
-    public StatefulSession newSession() {
-        return newKnowledge().createSession();
+    public StatefulSession newStatefulSession() {
+        return newKnowledge().newStatefulSession();
+    }
+
+    /**
+     * <p>
+     * This method is a shorthand for <code>newKnowledge().newStatelessSession()</code> which
+     * returns an empty session instance.
+     * </p>
+     *
+     * @return an empty {@link StatelessSession}
+     */
+    @SuppressWarnings("WeakerAccess")
+    public StatelessSession newStatelessSession() {
+        return newKnowledge().newStatelessSession();
     }
 
 

@@ -72,8 +72,6 @@ class TypeMemoryMetaData {
             }
         }
 
-        // Now that all evaluators are matched,
-        // their unique combinations are converted to a alpha bucket meta-data
         FieldKeyMeta fieldKeyMeta = getKeyMeta(key);
 
         for (TypeMemoryMeta meta : fieldKeyMeta.alphaBuckets) {

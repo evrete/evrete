@@ -28,7 +28,7 @@ class JavaClassTests extends CommonTestMethods {
     }
 
     private static StatefulSession session(Knowledge knowledge, ActivationMode mode) {
-        return knowledge.createSession().setActivationMode(mode);
+        return knowledge.newStatefulSession().setActivationMode(mode);
     }
 
     @ParameterizedTest

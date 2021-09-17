@@ -3,6 +3,7 @@ package org.evrete.samples.advanced;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 
+@SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class HelloWorldType {
     private static final String HELLO_WORLD_CONST = "Hello World";
 
@@ -33,7 +34,7 @@ public class HelloWorldType {
                     int lenSquared = lenSquaredField.readValue(s);
                     System.out.println(s + ", lenSquared = " + lenSquared);
                 })
-                .createSession();
+                .newStatefulSession();
 
 
         session.insertAndFire("a", "bb", "ccc", "dddd");

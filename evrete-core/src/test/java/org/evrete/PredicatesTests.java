@@ -64,7 +64,7 @@ class PredicatesTests {
                 .execute();
 
 
-        StatefulSession s = knowledge.createSession();
+        StatefulSession s = knowledge.newStatefulSession();
         RhsAssert rhsAssert = new RhsAssert(s);
 
         int ai = new Random().nextInt(10) + 1;
@@ -147,7 +147,7 @@ class PredicatesTests {
                 .where(p3, "$c.i", "$a.l")
                 .execute();
 
-        StatefulSession s = knowledge.createSession();
+        StatefulSession s = knowledge.newStatefulSession();
 
         TypeA a = new TypeA("A");
         a.setI(1);
@@ -216,7 +216,7 @@ class PredicatesTests {
                 }, "$c.l", "$b.l")
                 .execute();
 
-        StatefulSession s = knowledge.createSession();
+        StatefulSession s = knowledge.newStatefulSession();
 
         TypeA a = new TypeA("AA");
         a.setI(1);
@@ -277,7 +277,7 @@ class PredicatesTests {
                 .where(predicate, "$a.i", "$b.l", "$b.s", "$a.l")
                 .execute();
 
-        StatefulSession s = knowledge.createSession();
+        StatefulSession s = knowledge.newStatefulSession();
 
         TypeA a1 = new TypeA("A1");
         a1.setI(2);
@@ -370,7 +370,7 @@ class PredicatesTests {
                 .where(rule2_3, "$b.f")
                 .execute(rhsAssert2);
 
-        StatefulSession s = knowledge.createSession();
+        StatefulSession s = knowledge.newStatefulSession();
 
         TypeA a = new TypeA("A");
         a.setAllNumeric(0);
@@ -435,7 +435,7 @@ class PredicatesTests {
                         }
                 );
 
-        StatefulSession s = knowledge.createSession();
+        StatefulSession s = knowledge.newStatefulSession();
 
         TypeA a1 = new TypeA("A3");
         a1.setI(3);
@@ -510,7 +510,7 @@ class PredicatesTests {
                 .where(p2, "$b.i")
                 .execute(rhsAssert);
 
-        StatefulSession s = knowledge.createSession();
+        StatefulSession s = knowledge.newStatefulSession();
 
         // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
         for (int i = 0; i < 10; i++) {
@@ -574,7 +574,7 @@ class PredicatesTests {
                 .execute(rhsAssert)
         ;
 
-        StatefulSession s = knowledge.createSession();
+        StatefulSession s = knowledge.newStatefulSession();
 
         // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
         for (int i = 0; i < 10; i++) {
@@ -618,7 +618,7 @@ class PredicatesTests {
                     TypeA a2 = ctx.get("$a2");
                     assert Objects.equals(a1.getStr(), a2.getStr());
                 })
-                .createSession();
+                .newStatefulSession();
 
         int count = 16;
         for (int i = 0; i < count; i++) {
@@ -647,7 +647,7 @@ class PredicatesTests {
                     TypeA a1 = ctx.get("$a1");
                     assert !Objects.equals(a1.getStr(), "0");
                 })
-                .createSession();
+                .newStatefulSession();
 
         int count = 16;
         for (int i = 0; i < count; i++) {
@@ -676,7 +676,7 @@ class PredicatesTests {
                     TypeA a1 = ctx.get("$a1");
                     assert !Objects.equals(a1.getStr(), "0");
                 })
-                .createSession();
+                .newStatefulSession();
 
         int count = 16;
         for (int i = 0; i < count; i++) {
@@ -705,7 +705,7 @@ class PredicatesTests {
                     TypeA a1 = ctx.get("$a1");
                     assert !Objects.equals(a1.getStr(), "0");
                 })
-                .createSession();
+                .newStatefulSession();
 
         int count = 16;
         for (int i = 0; i < count; i++) {
@@ -739,7 +739,7 @@ class PredicatesTests {
                     assert Objects.equals(a1.getStr(), a2.getStr());
                     assert Objects.equals(a1.getStr(), a3.getStr());
                 })
-                .createSession();
+                .newStatefulSession();
 
         int count = 16;
         for (int i = 0; i < count; i++) {

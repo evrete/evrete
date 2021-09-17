@@ -38,7 +38,6 @@ public abstract class Base {
         this.i = i;
     }
 
-    @SuppressWarnings("MethodMayBeStatic")
     public boolean testHello(String s) {
         return "Hello world".equals(s);
     }

@@ -8,9 +8,9 @@ import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
-public class SessionWrapper extends RuntimeContextWrapper<StatefulSession> implements StatefulSession {
+public class SessionWrapperStateful extends RuntimeContextWrapper<StatefulSession> implements StatefulSession {
 
-    protected SessionWrapper(StatefulSession delegate) {
+    protected SessionWrapperStateful(StatefulSession delegate) {
         super(delegate);
     }
 
@@ -86,7 +86,7 @@ public class SessionWrapper extends RuntimeContextWrapper<StatefulSession> imple
     }
 
     @Override
-    public Object getFact(FactHandle handle) {
+    public <T> T getFact(FactHandle handle) {
         return delegate.getFact(handle);
     }
 

@@ -71,7 +71,7 @@ class EvaluationListenersTests {
         };
 
         knowledge.addListener(kl);
-        StatefulSession session = knowledge.createSession().setActivationMode(mode);
+        StatefulSession session = knowledge.newStatefulSession().setActivationMode(mode);
         session.addListener(sl);
         session.insertAndFire(1, 2, 3);
         rhsAssert.assertCount(2).reset();
@@ -103,7 +103,7 @@ class EvaluationListenersTests {
 
         knowledge.addListener((evaluator, values, result) -> knowledgeListenerCounter.incrementAndGet());
 
-        StatefulSession s = knowledge.createSession().setActivationMode(mode);
+        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
         s.addListener((evaluator, values, result) -> sessionListenerCounter.incrementAndGet());
 
         TypeA a1 = new TypeA("A1");
@@ -152,7 +152,7 @@ class EvaluationListenersTests {
                 .execute(rhsAssert);
 
 
-        StatefulSession s = knowledge.createSession().setActivationMode(mode);
+        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
         s.addListener((evaluator, values, result) -> sessionListenerCounter.incrementAndGet());
 
         int mod = 4;

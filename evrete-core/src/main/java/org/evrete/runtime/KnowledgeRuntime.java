@@ -1,10 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.KnowledgeService;
-import org.evrete.api.Knowledge;
-import org.evrete.api.RuleBuilder;
-import org.evrete.api.RuleSession;
-import org.evrete.api.StatefulSession;
+import org.evrete.api.*;
 import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.SearchList;
 
@@ -62,9 +59,14 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
     }
 
     @Override
-    public StatefulSession createSession() {
+    public StatefulSession newStatefulSession() {
         StatefulSessionImpl session = new StatefulSessionImpl(this);
         sessions.put(session, VALUE);
         return session;
+    }
+
+    @Override
+    public StatelessSession newStatelessSession() {
+        throw new UnsupportedOperationException();
     }
 }

@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-@SuppressWarnings("MethodMayBeStatic")
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @Fork(value = 1, warmups = 1)
@@ -76,7 +75,7 @@ public class ImageModel1 {
         @Setup(Level.Invocation)
         public void initSessions() {
             droolsSession = SessionWrapper.of(dKnowledge.newKieSession());
-            evreteSession = SessionWrapper.of(eKnowledge.createSession());
+            evreteSession = SessionWrapper.of(eKnowledge.newStatefulSession());
             Collections.shuffle(images);
         }
 

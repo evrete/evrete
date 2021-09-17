@@ -19,15 +19,13 @@ import java.util.concurrent.atomic.AtomicLong;
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @Fork(value = 1, warmups = 1)
-@SuppressWarnings({"MethodMayBeStatic", "unused"})
+@SuppressWarnings({"unused"})
 public class ListCollections {
     private static final AtomicLong counter = new AtomicLong();
 
     @Benchmark
     public void iterator(BenchState state) {
-        ReIterator<TypeA> it = state.scanData.get(state.collection).iterator();
-        while (it.hasNext()) {
-            TypeA a = it.next();
+        for (TypeA a : state.scanData.get(state.collection)) {
             Blackhole.consumeCPU(1 + (System.identityHashCode(a) >> 31));
         }
     }

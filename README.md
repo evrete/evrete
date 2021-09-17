@@ -79,7 +79,7 @@ public class PrimeNumbersInline {
                 .where("$i1 * $i2 == $i3")
                 .execute(ctx -> ctx.deleteFact("$i3"));
 
-        try (StatefulSession session = knowledge.createSession()) {
+        try (StatefulSession session = knowledge.newStatefulSession()) {
             // Inject candidates
             for (int i = 2; i <= 100; i++) {
                 session.insert(i);
@@ -107,7 +107,7 @@ public class PrimeNumbersDSLUrl {
                         new URL("https://www.evrete.org/examples/PrimeNumbersSource.java")
                 );
 
-        try (StatefulSession session = knowledge.createSession()) {
+        try (StatefulSession session = knowledge.newStatefulSession()) {
             // Inject candidates
             for (int i = 2; i <= 100; i++) {
                 session.insert(i);

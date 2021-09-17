@@ -21,7 +21,7 @@ class RuleRuntimeImpl implements RuleRuntime {
         StatefulSession delegate;
         RuleExecutionSetMetadataImpl metadata;
         try {
-            delegate = set.getKnowledge().createSession();
+            delegate = set.getKnowledge().newStatefulSession();
             Utils.copyConfiguration(delegate, map);
             metadata = new RuleExecutionSetMetadataImpl(s, delegate);
         } catch (Exception e) {

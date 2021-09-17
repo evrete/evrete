@@ -7,7 +7,7 @@ import org.evrete.dsl.annotation.Where;
 import org.jcp.jsr94.tck.model.Customer;
 import org.jcp.jsr94.tck.model.Invoice;
 
-@SuppressWarnings({"unused", "MethodMayBeStatic"})
+@SuppressWarnings({"unused"})
 public class Example1 {
 
     /*

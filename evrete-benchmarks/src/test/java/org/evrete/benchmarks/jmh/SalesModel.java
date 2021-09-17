@@ -112,7 +112,7 @@ public class SalesModel {
         @Setup(Level.Invocation)
         public void initSessions() {
             droolsSession = SessionWrapper.of(dKnowledge.newKieSession());
-            evreteSession = SessionWrapper.of(eKnowledge.createSession());
+            evreteSession = SessionWrapper.of(eKnowledge.newStatefulSession());
             Collections.shuffle(sessionObjects);
         }
 

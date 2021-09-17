@@ -10,6 +10,7 @@ import org.evrete.dsl.annotation.Where;
 
 import java.io.IOException;
 
+@SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class PrimeNumbersDSLClass {
     public static void main(String[] args) throws IOException {
         KnowledgeService service = new KnowledgeService();
@@ -18,7 +19,7 @@ public class PrimeNumbersDSLClass {
                         "JAVA-CLASS",
                         PrimeNumbersDSLClass.class);
 
-        try (StatefulSession session = knowledge.createSession()) {
+        try (StatefulSession session = knowledge.newStatefulSession()) {
             // Inject candidates
             for (int i = 2; i <= 100; i++) {
                 session.insert(i);

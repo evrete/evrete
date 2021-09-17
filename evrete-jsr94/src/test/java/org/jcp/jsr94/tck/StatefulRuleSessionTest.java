@@ -33,7 +33,7 @@ import java.util.List;
  * process this input and keep the state of the execution.
  * A subsequent invocation will add additional information to the
  * rule execution set and the processing will involve both the newly
- * provided information as well as the processed information of the
+ * provided information and the processed information of the
  * previous execution.
  * <p>
  * The rule execution set must have support for the following business
@@ -177,7 +177,7 @@ class StatefulRuleSessionTest {
             Invoice inputInvoice = new Invoice("test");
             inputInvoice.setAmount(2000);
 
-            // Create a input list.
+            // Create an input list.
             List<Object> input = new ArrayList<>();
             input.add(inputCustomer);
             input.add(inputInvoice);
@@ -261,7 +261,7 @@ class StatefulRuleSessionTest {
             // Remove the customer object.
             ruleSession.removeObject(customerHandle);
 
-            // Retrieve all the objects and check whether not not the
+            // Retrieve all the objects and check whether the
             // customer has been removed.
             list = ruleSession.getObjects();
             assert list != null;
@@ -324,7 +324,7 @@ class StatefulRuleSessionTest {
             assert resultCustomer != null;
             assert resultInvoice != null;
             // Verify the results (although technically speaking we
-            // shouldn't verify how the rule engine works.
+            // shouldn't verify how the rule engine works).
             assert resultCustomer.getCreditLimit() == 3000;
             assert resultInvoice.getStatus().equals("paid");
 
@@ -367,7 +367,7 @@ class StatefulRuleSessionTest {
             assert resultInvoice == null;
 
             // Verify the results (although technically speaking we
-            // shouldn't verify how the rule engine works.
+            // shouldn't verify how the rule engine works).
             // The Customer's credit limit was down to 3000 in  the
             // first session, since we kept state it should now be down
             // to 1500.

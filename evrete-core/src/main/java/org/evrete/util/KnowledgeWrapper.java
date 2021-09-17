@@ -1,9 +1,6 @@
 package org.evrete.util;
 
-import org.evrete.api.Knowledge;
-import org.evrete.api.RuleBuilder;
-import org.evrete.api.RuleSession;
-import org.evrete.api.StatefulSession;
+import org.evrete.api.*;
 import org.evrete.runtime.RuleDescriptor;
 
 import java.util.Collection;
@@ -21,8 +18,13 @@ public class KnowledgeWrapper extends RuntimeContextWrapper<Knowledge> implement
     }
 
     @Override
-    public StatefulSession createSession() {
-        return delegate.createSession();
+    public StatefulSession newStatefulSession() {
+        return delegate.newStatefulSession();
+    }
+
+    @Override
+    public StatelessSession newStatelessSession() {
+        return delegate.newStatelessSession();
     }
 
     @Override

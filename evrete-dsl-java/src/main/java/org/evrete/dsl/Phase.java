@@ -1,7 +1,5 @@
 package org.evrete.dsl;
 
-import org.evrete.api.RuleSession;
-
 /**
  * <p>
  * An event variable that binds listener methods to a specific lifecycle event:
@@ -16,11 +14,11 @@ import org.evrete.api.RuleSession;
  *         <code>CREATE</code> event happens immediately after a new session is created off the given ruleset
  *     </li>
  *     <li>
- *         <code>FIRE</code> event happens before any of the {@link RuleSession#fire()}, {@link RuleSession#fireAsync(Object)},
- *         or {@link RuleSession#fireAsync()} are called on a session instance.
+ *         <code>FIRE</code> event happens before any of the {@link org.evrete.api.StatefulSession#fire()}, {@link org.evrete.api.StatefulSession#fireAsync(Object)},
+ *         or {@link org.evrete.api.StatefulSession#fireAsync()} are called on a session instance.
  *     </li>
  *     <li>
- *         <code>CLOSE</code> event happens right before the session's {@link RuleSession#close()} method is called.
+ *         <code>CLOSE</code> event happens right before the session's {@link org.evrete.api.StatefulSession#close()} method is called.
  *     </li>
  * </ul>
  */

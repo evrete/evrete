@@ -31,7 +31,7 @@ class JavaJarSecurityTests extends CommonTestMethods {
                             .getConfiguration()
                             .setProperty(DSLJarProvider.CLASSES_PROPERTY, "pkg1.evrete.tests.rule.RuleSet2");
                     Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar1/jar1-tests.jar"));
-                    StatefulSession session = knowledge.createSession();
+                    StatefulSession session = knowledge.newStatefulSession();
                     assert session.getRules().size() == 2 : "Actual: " + session.getRules().size();
                     for (int i = 2; i < 100; i++) {
                         session.insert(i);
@@ -54,7 +54,7 @@ class JavaJarSecurityTests extends CommonTestMethods {
 
 
         Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar1/jar1-tests.jar"));
-        StatefulSession session = knowledge.createSession();
+        StatefulSession session = knowledge.newStatefulSession();
         assert session.getRules().size() == 2 : "Actual: " + session.getRules().size();
         for (int i = 2; i < 100; i++) {
             session.insert(i);

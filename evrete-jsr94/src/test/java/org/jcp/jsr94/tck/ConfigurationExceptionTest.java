@@ -13,7 +13,6 @@ package org.jcp.jsr94.tck;
 import org.junit.jupiter.api.Test;
 
 import javax.rules.ConfigurationException;
-import javax.rules.RuleException;
 
 /**
  * Test the javax.rules.ConfigurationException class.
@@ -78,9 +77,6 @@ class ConfigurationExceptionTest {
             ce2 = new ConfigurationException(
                     "jsr94-test-embedded-configuration-exception", ce1);
 
-            // A ConfigurationException must be a subclass of a
-            // RuleException.
-            assert (ce1 instanceof RuleException);
 
             // Throw it.
             throw ce2;

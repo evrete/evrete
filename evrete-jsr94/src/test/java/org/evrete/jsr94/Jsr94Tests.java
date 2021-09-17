@@ -89,7 +89,7 @@ class Jsr94Tests {
         Invoice inputInvoice = new Invoice("Invoice 1");
         inputInvoice.setAmount(2000);
 
-        // Create a input list.
+        // Create an input list.
         List<Object> input = new ArrayList<>();
         input.add(inputCustomer);
         input.add(inputInvoice);

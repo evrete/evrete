@@ -13,7 +13,7 @@ public class SampleRuleSet2 {
         return i3 == i1 * i2;
     }
 
-    @SuppressWarnings({"unused", "MethodMayBeStatic"})
+    @SuppressWarnings({"unused"})
     @Rule("Delete non-prime integers")
     @Where(
             asMethods = {@MethodPredicate(method = "test", descriptor = {"$i1", "$i2", "$i3"})}

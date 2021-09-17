@@ -74,7 +74,7 @@ public abstract class TestCaseUtil {
      * this test.
      *
      * @param uri  The registration name of this rule service provider.
-     * @param urls The URLs which provide the rule service provoider classes.
+     * @param urls The URLs which provide the rule service provider classes.
      * @return The registered provider.
      */
     public static RuleServiceProvider getRuleServiceProvider(String uri,
@@ -88,11 +88,6 @@ public abstract class TestCaseUtil {
 
         ClassLoader cl = new URLClassLoader(urls);
         Class<?> ruleServiceProviderClass = cl.loadClass(ruleServiceProvider);
-/*
-        TestCase.assertNotNull("[TestCaseUtil] Class loading on " +
-                        ruleServiceProvider + " failed. ",
-                ruleServiceProviderClass);
-*/
         assert ruleServiceProviderClass != null;
 
         // Register the provider.
@@ -106,7 +101,7 @@ public abstract class TestCaseUtil {
      * Get a RuleServiceProvider.
      * <p>
      * Get a rule engine vendor specific rule service provider. The
-     * provider is constucted in the following manner:<br>
+     * provider is constructed in the following manner:<br>
      * <ul>
      * <li>Get the "rule-service-provider" from the configuration file.
      * <li>Load the RuleServiceProvider class specified by this property.
@@ -144,7 +139,7 @@ public abstract class TestCaseUtil {
     /**
      * Get a StatefulRuleSession.
      * <p>
-     * Get a stateful rule session. The provider is constucted in the
+     * Get a stateful rule session. The provider is constructed in the
      * following manner:<br>
      * <ul>
      * <li>Get a RuleServiceProvider {@link #getRuleServiceProvider}.
@@ -207,10 +202,6 @@ public abstract class TestCaseUtil {
 
         // create a stateless RuleSession
         RuleRuntime ruleRuntime = serviceProvider.getRuleRuntime();
-/*
-        TestCase.assertNotNull("[TestCaseUtil] RuleRuntime not created.",
-                ruleRuntime);
-*/
         assert ruleRuntime != null;
 
         StatefulRuleSession session = (StatefulRuleSession)
@@ -218,10 +209,6 @@ public abstract class TestCaseUtil {
                         null,
                         RuleRuntime.STATEFUL_SESSION_TYPE);
 
-/*
-        TestCase.assertNotNull("[TestCaseUtil] StatefulRuleSession not created.",
-                session);
-*/
         assert session != null;
 
         return session;
@@ -230,7 +217,7 @@ public abstract class TestCaseUtil {
     /**
      * Get a StatelessRuleSession.
      * <p>
-     * Get a stateless rule session. The provider is constucted in the
+     * Get a stateless rule session. The provider is constructed in the
      * following manner:<br>
      * <ul>
      * <li>Get a RuleServiceProvider {@link #getRuleServiceProvider}.
@@ -254,19 +241,10 @@ public abstract class TestCaseUtil {
             throws Exception {
         // Get the RuleServiceProvider
         RuleServiceProvider serviceProvider = getRuleServiceProvider(uri);
-/*
-        TestCase.assertNotNull("[TestCaseUtil] RuleServiceProvider " +
-                uri + " not found.", serviceProvider);
-*/
-
         assert serviceProvider != null;
 
         // Get the RuleAdministrator
         RuleAdministrator ruleAdministration = serviceProvider.getRuleAdministrator();
-/*
-        TestCase.assertNotNull("[TestCaseUtil] RuleAdministrator not found.",
-                ruleAdministration);
-*/
 
         assert ruleAdministration != null;
 
@@ -289,13 +267,6 @@ public abstract class TestCaseUtil {
         resourceConfig.put("org.evrete.jsr94.dsl-name", dsl);
         // parse the ruleset from the XML document
         RuleExecutionSet res = ruleAdministration.getLocalRuleExecutionSetProvider(null).createRuleExecutionSet(inStream, resourceConfig);
-/*
-        TestCase.assertNotNull("[TestCaseUtil] RuleExecutionSet " +
-                        ruleExecutionSetUri +
-                        " could not be created.",
-                res);
-*/
-
         assert res != null;
         inStream.close();
 
@@ -304,10 +275,6 @@ public abstract class TestCaseUtil {
 
         // create a stateless RuleSession
         RuleRuntime ruleRuntime = serviceProvider.getRuleRuntime();
-/*
-        TestCase.assertNotNull("[TestCaseUtil] RuleRuntime not created.",
-                ruleRuntime);
-*/
 
         assert ruleRuntime != null;
 
@@ -330,7 +297,7 @@ public abstract class TestCaseUtil {
      * @return The InputStream to the specified rule execution set.
      */
     public static InputStream getRuleExecutionSetInputStream(String ruleExecutionSetUri) {
-        InputStream inStream = null;
+        InputStream inStream;
 
         try {
             // Get an input stream to a test XML rule execution set.
@@ -391,7 +358,7 @@ public abstract class TestCaseUtil {
             // Is there a system property defined for the location of
             // the configuration file?
             InputStream inStream = new FileInputStream("src/test/resources/tck.xml");
-            Document configurationDoc = null;
+            Document configurationDoc;
 
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = dbf.newDocumentBuilder();
@@ -423,49 +390,4 @@ public abstract class TestCaseUtil {
             ex.printStackTrace();
         }
     }
-
-    /**
-     * Processes an unexpected exception thrown in a JUnit test method.
-     * This message extracts (if possible) the line number from the exception
-     * and displays appropriate information for easy debugging. Then
-     * it fails the test by calling <code>fail</code>.
-     *
-     * @param e        The target exception to be processed.
-     * @param test     The test case.
-     * @param methName The method name in which the exception is caught.
-     */
-/*
-    public static void processTestException(Exception e,
-                                            TestCase test,
-                                            String methName) {
-        StringWriter writer = new StringWriter();
-        PrintWriter printer = new PrintWriter(writer);
-        e.printStackTrace(printer);
-        printer.flush();
-        String msg = writer.toString();
-        String lineno = null;
-
-        String fullname = test.getClass().getName() + "." + methName;
-        StringTokenizer tokens = new StringTokenizer(msg, "\n\r");
-        while (tokens.hasMoreElements()) {
-            String next = (String) tokens.nextElement();
-            if (next.indexOf(fullname) >= 0) {
-                // return next;
-                int i1 = next.lastIndexOf(':');
-                if (i1 >= 0) {
-                    int i2 = next.lastIndexOf(')');
-                    if ((i2 >= 0) && (i2 > i1)) {
-                        lineno = next.substring(i1 + 1, i2);
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (lineno != null)
-            Assert.fail("Exception thrown at line " + lineno + ":\n" + e.getMessage());
-        else
-            Assert.fail("Exception thrown:\n" + e.getMessage());
-    }
-*/
 }

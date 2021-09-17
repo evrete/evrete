@@ -46,7 +46,7 @@ class WhoIsFritzDynamicFields {
                             ctx.update($s);
                         }
                 )
-                .createSession();
+                .newStatefulSession();
 
         // Fritz and his known properties
         Subject fritz = new Subject();
@@ -57,7 +57,7 @@ class WhoIsFritzDynamicFields {
         session.insertAndFire(fritz);
 
         // Fritz should have been identified as a green frog
-        System.out.println(fritz.toString());
+        System.out.println(fritz);
 
         session.close();
         service.shutdown();

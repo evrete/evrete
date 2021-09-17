@@ -14,7 +14,6 @@ class RulesetMeta {
 
     RulesetMeta(Class<?> javaClass) {
         this.lookup = MethodHandles.lookup().in(javaClass);
-        ;
         this.javaClass = javaClass;
     }
 
@@ -28,10 +27,6 @@ class RulesetMeta {
     }
 
     void addFieldDeclaration(Method method) {
-
-        //FieldDeclarationMethod<?, ?> fieldMethod = new FieldDeclarationMethod<>(lookup, m);
-        //fieldMethod.declareInitialField(knowledge.getTypeResolver());
-
         fieldDeclarations.addFieldDeclaration(new FieldDeclarationMethod<>(lookup, method));
     }
 }

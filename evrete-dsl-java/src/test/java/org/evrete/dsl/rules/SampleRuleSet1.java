@@ -9,7 +9,7 @@ public class SampleRuleSet1 {
 
     @Rule("Delete non-prime integers")
     @Where(value = {"$i3 == $i1 * $i2"})
-    @SuppressWarnings({"unused", "MethodMayBeStatic"})
+    @SuppressWarnings({"unused"})
     public void rule(RhsContext ctx, @Fact("$i1") int $i1, @Fact("$i2") int i2, @Fact("$i3") int $i3) {
         ctx.delete($i3);
     }

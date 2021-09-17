@@ -80,7 +80,7 @@ class RuleServiceProviderTest {
             // Create the provider.
             Object obj = TestRuleServiceProvider.createInstance(providerName);
 
-            // Check whether or not it is indeed a rule service
+            // Check whether it is indeed a rule service
             // provider.
             assert obj != null;
             assert obj instanceof RuleServiceProvider;
@@ -92,13 +92,13 @@ class RuleServiceProviderTest {
             // Get the rule administrator.
             obj = provider.getRuleAdministrator();
 
-            // Check whether or not it is indeed a rule administrator.
+            // Check whether it is indeed a rule administrator.
             assert obj != null;
 
             // Get the rule runtime.
             obj = provider.getRuleRuntime();
 
-            // Check whether or not it is indeed a rule runtime.
+            // Check whether it is indeed a rule runtime.
             assert obj != null;
         } catch (Exception e) {
             throw new IllegalStateException(e);

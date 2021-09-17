@@ -22,7 +22,6 @@ public class DeclarationRuleSet3 {
 
     @Rule("Delete non-prime integers")
     @Where(asMethods = {@MethodPredicate(method = "test", descriptor = {"$i1.intValue", "$i2.intValue", "$i3.intValue"})})
-    @SuppressWarnings({"MethodMayBeStatic"})
     public void rule(RhsContext ctx, @Fact("$i1") String $i1, @Fact("$i2") String i2, @Fact("$i3") String $i3) {
         ctx.delete($i3);
     }

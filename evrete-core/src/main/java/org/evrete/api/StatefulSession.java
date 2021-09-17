@@ -70,7 +70,6 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
      *                                    scheduled for execution
      * @see #fireAsync(Object)
      */
-    @SuppressWarnings("unchecked")
     default Future<StatefulSession> fireAsync() {
         return fireAsync(this);
     }

@@ -4,6 +4,7 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
 
+@SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class GuessingNumbers {
 
     public static void main(String[] args) {
@@ -38,13 +39,13 @@ public class GuessingNumbers {
                         }
                 );
 
-        try (StatefulSession session = knowledge.createSession()) {
+        try (StatefulSession session = knowledge.newStatefulSession()) {
             Player p1 = new Player("Ana");
             Player p2 = new Player("Andrew");
 
             session.insert(p1, p2);
             session.fire();
-            // And nothing happens because there no rules matching Player instances only.
+            // And nothing happens because there are no rules matching Player instances only.
 
             // To kickstart the session we need initial Guess
             Guess initialGuess = new Guess(p1);

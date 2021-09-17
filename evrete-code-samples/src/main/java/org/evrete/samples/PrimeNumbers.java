@@ -4,6 +4,7 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
 
+@SuppressWarnings("UseOfSystemOutOrSystemErr")
 class PrimeNumbers {
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
@@ -18,7 +19,7 @@ class PrimeNumbers {
                 .where("$i1 * $i2 == $i3")
                 .execute(ctx -> ctx.deleteFact("$i3"));
 
-        try (StatefulSession session = knowledge.createSession()) {
+        try (StatefulSession session = knowledge.newStatefulSession()) {
             // Inject candidates
             for (int i = 2; i <= 100; i++) {
                 session.insert(i);

@@ -5,6 +5,7 @@ import org.evrete.api.Knowledge;
 import org.evrete.api.RhsContext;
 import org.evrete.api.StatefulSession;
 
+@SuppressWarnings("UseOfSystemOutOrSystemErr")
 class PrimeNumbersJava8 {
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
@@ -21,7 +22,7 @@ class PrimeNumbersJava8 {
                         "$i1", "$i2", "$i3")
                 .execute(); // No RHS
 
-        try (StatefulSession session = knowledge.createSession()) {
+        try (StatefulSession session = knowledge.newStatefulSession()) {
             // Change RHS on an active session
             session.getRule("prime numbers").setRhs(PrimeNumbersJava8::rhsMethod);
 

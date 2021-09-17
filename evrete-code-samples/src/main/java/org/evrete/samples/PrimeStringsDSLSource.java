@@ -18,7 +18,7 @@ public class PrimeStringsDSLSource {
                         "JAVA-SOURCE",
                         new URL("https://www.evrete.org/examples/PrimeStringsSource.java")
                 );
-        try (StatefulSession session = knowledge.createSession()) {
+        try (StatefulSession session = knowledge.newStatefulSession()) {
             session.set("random-offset", new Random().nextInt());
             // Inject candidates
             for (int i = 2; i <= 100; i++) {
