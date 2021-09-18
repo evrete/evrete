@@ -5,7 +5,7 @@ import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
-class PrimeNumbers {
+public class PrimeNumbers {
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
