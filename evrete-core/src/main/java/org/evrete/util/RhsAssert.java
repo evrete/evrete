@@ -2,8 +2,8 @@ package org.evrete.util;
 
 import org.evrete.api.Copyable;
 import org.evrete.api.RhsContext;
+import org.evrete.api.RuleSession;
 import org.evrete.api.RuntimeRule;
-import org.evrete.api.StatefulSession;
 import org.evrete.runtime.FactType;
 import org.evrete.runtime.RuleDescriptor;
 import org.evrete.runtime.RuntimeRuleImpl;
@@ -50,12 +50,12 @@ public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
         rule.chainRhs(this);
     }
 
-    public RhsAssert(StatefulSession statefulSession, String name) {
-        this((RuntimeRuleImpl) statefulSession.getRule(name));
+    public RhsAssert(RuleSession<?> session, String name) {
+        this((RuntimeRuleImpl) session.getRule(name));
     }
 
-    public RhsAssert(StatefulSession statefulSession) {
-        this(getSingleRule(statefulSession));
+    public RhsAssert(RuleSession<?> session) {
+        this(getSingleRule(session));
     }
 
     public RhsAssert(String var, Class<?> type) {
@@ -110,7 +110,7 @@ public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
         });
     }
 
-    private static RuntimeRuleImpl getSingleRule(StatefulSession s) {
+    private static RuntimeRuleImpl getSingleRule(RuleSession<?> s) {
         List<RuntimeRule> rules = s.getRules();
         if (rules.size() == 0) {
             throw new IllegalStateException("Zero rule count, one expected");

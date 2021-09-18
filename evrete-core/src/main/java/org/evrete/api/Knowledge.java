@@ -22,10 +22,18 @@ public interface Knowledge extends RuntimeContext<Knowledge>, RuleSet<RuleDescri
      */
     StatefulSession newStatefulSession();
 
+    default StatefulSession newStatefulSession(ActivationMode mode) {
+        return newStatefulSession().setActivationMode(mode);
+    }
+
     /**
      * @return new stateless session
      */
     StatelessSession newStatelessSession();
+
+    default StatelessSession newStatelessSession(ActivationMode mode) {
+        return newStatelessSession().setActivationMode(mode);
+    }
 
     default <A extends ActivationManager> Knowledge activationManager(Class<A> factory) {
         setActivationManagerFactory(factory);

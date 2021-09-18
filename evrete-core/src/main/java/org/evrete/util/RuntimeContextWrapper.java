@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.Comparator;
 
 public class RuntimeContextWrapper<C extends RuntimeContext<C>> implements RuntimeContext<C> {
-    final C delegate;
+    protected final C delegate;
 
     @SuppressWarnings("WeakerAccess")
     protected RuntimeContextWrapper(C delegate) {
@@ -36,13 +36,17 @@ public class RuntimeContextWrapper<C extends RuntimeContext<C>> implements Runti
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public C set(String property, Object value) {
-        return delegate.set(property, value);
+        delegate.set(property, value);
+        return (C) this;
     }
 
     @Override
-    public RuntimeContext<?> addImport(RuleScope scope, String imp) {
-        return delegate.addImport(scope, imp);
+    @SuppressWarnings("unchecked")
+    public C addImport(RuleScope scope, String imp) {
+        delegate.addImport(scope, imp);
+        return (C) this;
     }
 
     @Override
@@ -76,8 +80,10 @@ public class RuntimeContextWrapper<C extends RuntimeContext<C>> implements Runti
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public C setActivationMode(ActivationMode activationMode) {
-        return delegate.setActivationMode(activationMode);
+        delegate.setActivationMode(activationMode);
+        return (C) this;
     }
 
     @Override

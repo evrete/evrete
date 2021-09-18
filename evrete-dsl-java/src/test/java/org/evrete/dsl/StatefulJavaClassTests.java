@@ -14,7 +14,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.List;
 
-class JavaClassTests extends CommonTestMethods {
+class StatefulJavaClassTests extends CommonTestMethods {
     private static KnowledgeService service;
 
     @BeforeAll

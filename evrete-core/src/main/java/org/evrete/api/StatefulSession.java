@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.function.BiConsumer;
-import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -13,7 +12,7 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
     /**
      * Fire all rules.
      */
-    void fire();
+    StatefulSession fire();
 
     /**
      * <p>
@@ -23,7 +22,7 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
      * @param handle   fact handle, previously assigned to original fact
      * @param newValue an updated version of the fact
      */
-    void update(FactHandle handle, Object newValue);
+    StatefulSession update(FactHandle handle, Object newValue);
 
     /**
      * <p>
@@ -32,7 +31,7 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
      *
      * @param handle fact handle
      */
-    void delete(FactHandle handle);
+    StatefulSession delete(FactHandle handle);
 
     /**
      * <p>
@@ -89,9 +88,8 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
      */
     void clear();
 
-    StatefulSession setFireCriteria(BooleanSupplier fireCriteria);
 
-    void forEachFact(BiConsumer<FactHandle, Object> consumer);
+    StatefulSession forEachFact(BiConsumer<FactHandle, Object> consumer);
 
     /**
      * <p>
@@ -105,8 +103,8 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
      * @throws IllegalArgumentException if no such type exists
      * @see TypeResolver
      */
-    default <T> void forEachFact(Class<T> type, Consumer<T> consumer) {
-        forEachFact(type.getName(), consumer);
+    default <T> StatefulSession forEachFact(Class<T> type, Consumer<T> consumer) {
+        return forEachFact(type.getName(), consumer);
     }
 
     /**
@@ -123,7 +121,7 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
      * @throws IllegalArgumentException if no such type exists
      * @see TypeResolver
      */
-    <T> void forEachFact(String type, Consumer<T> consumer);
+    <T> StatefulSession forEachFact(String type, Consumer<T> consumer);
 
     /**
      * <p>
@@ -136,8 +134,8 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
      * @param filter   filtering predicate
      * @see #forEachFact(Class, Consumer)
      */
-    default <T> void forEachFact(Class<T> type, Predicate<T> filter, Consumer<T> consumer) {
-        forEachFact(type, t -> {
+    default <T> StatefulSession forEachFact(Class<T> type, Predicate<T> filter, Consumer<T> consumer) {
+        return forEachFact(type, t -> {
             if (filter.test(t)) {
                 consumer.accept(t);
             }
@@ -156,8 +154,8 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
      * @see #forEachFact(String, Consumer)
      */
     @SuppressWarnings("unchecked")
-    default <T> void forEachFact(String type, Predicate<T> filter, Consumer<T> consumer) {
-        forEachFact(type, o -> {
+    default <T> StatefulSession forEachFact(String type, Predicate<T> filter, Consumer<T> consumer) {
+        return forEachFact(type, o -> {
             T t = (T) o;
             if (filter.test(t)) {
                 consumer.accept(t);
@@ -165,14 +163,14 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
         });
     }
 
-    default void insertAndFire(Collection<?> objects) {
+    default StatefulSession insertAndFire(Collection<?> objects) {
         insert(objects);
-        fire();
+        return fire();
     }
 
-    default void insertAndFire(Object... objects) {
+    default StatefulSession insertAndFire(Object... objects) {
         insert(objects);
-        fire();
+        return fire();
     }
 
 }

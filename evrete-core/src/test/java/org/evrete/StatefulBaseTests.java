@@ -19,7 +19,7 @@ import java.util.function.Predicate;
 
 import static org.evrete.api.FactBuilder.fact;
 
-class SessionBaseTests {
+class StatefulBaseTests {
     private static KnowledgeService service;
     private Knowledge knowledge;
 
@@ -31,45 +31,6 @@ class SessionBaseTests {
     @AfterAll
     static void shutDownClass() {
         service.shutdown();
-    }
-
-    private static String randomCondition(FieldReference[][] references) {
-        Random random = new Random(System.nanoTime());
-
-        int varCount = 0;
-
-        while (varCount > references.length || varCount < 2) {
-            varCount = 1 + random.nextInt(references.length);
-        }
-        FieldReference[] descriptor = new FieldReference[varCount];
-        for (int i = 0; i < varCount; i++) {
-            boolean exists;
-            FieldReference ref;
-            do {
-                exists = false;
-                int type = random.nextInt(2048) % references.length;
-                int field = random.nextInt(2048) % references[type].length;
-                ref = references[type][field];
-                for (int k = 0; k < i; k++) {
-                    FieldReference test = descriptor[k];
-                    if (test.type().equals(ref.type())) {
-                        exists = true;
-                        break;
-                    }
-                }
-            } while (exists);
-            descriptor[i] = ref;
-        }
-
-        StringJoiner joiner = new StringJoiner(" + ", "", " >= 0");
-
-        for (FieldReference ref : descriptor) {
-
-            String s = ref.type().getName() + "." + ref.field().getName();
-            joiner.add(s);
-        }
-        return joiner.toString();
-
     }
 
     @SuppressWarnings("unchecked")
@@ -138,7 +99,7 @@ class SessionBaseTests {
         rootGroup.execute();
 
 
-        StatefulSession s = kn.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = kn.newStatefulSession(mode);
         RhsAssert rhsAssert = new RhsAssert(s);
         s.getRule("random").setRhs(rhsAssert);
         for (int i = 0; i < objectCount; i++) {
@@ -176,6 +137,53 @@ class SessionBaseTests {
 
     }
 
+    private StatefulSession newSession() {
+        return knowledge.newStatefulSession();
+    }
+
+    private static String randomCondition(FieldReference[][] references) {
+        Random random = new Random(System.nanoTime());
+
+        int varCount = 0;
+
+        while (varCount > references.length || varCount < 2) {
+            varCount = 1 + random.nextInt(references.length);
+        }
+        FieldReference[] descriptor = new FieldReference[varCount];
+        for (int i = 0; i < varCount; i++) {
+            boolean exists;
+            FieldReference ref;
+            do {
+                exists = false;
+                int type = random.nextInt(2048) % references.length;
+                int field = random.nextInt(2048) % references[type].length;
+                ref = references[type][field];
+                for (int k = 0; k < i; k++) {
+                    FieldReference test = descriptor[k];
+                    if (test.type().equals(ref.type())) {
+                        exists = true;
+                        break;
+                    }
+                }
+            } while (exists);
+            descriptor[i] = ref;
+        }
+
+        StringJoiner joiner = new StringJoiner(" + ", "", " >= 0");
+
+        for (FieldReference ref : descriptor) {
+
+            String s = ref.type().getName() + "." + ref.field().getName();
+            joiner.add(s);
+        }
+        return joiner.toString();
+
+    }
+
+    private StatefulSession newSession(ActivationMode mode) {
+        return knowledge.newStatefulSession(mode);
+    }
+
     @BeforeEach
     void init() {
         knowledge = service.newKnowledge();
@@ -190,13 +198,12 @@ class SessionBaseTests {
                 .execute(rhsAssert);
 
 
-        StatefulSession session = knowledge.newStatefulSession();
+        StatefulSession session = newSession(mode);
         // Chaining RHS
         RuntimeRule rule = session.getRules().iterator().next();
         NextIntSupplier counter = new NextIntSupplier();
         rule.chainRhs(ctx -> counter.next());
 
-        session.setActivationMode(mode);
         session.insertAndFire(1, 2);
         rhsAssert.assertCount(2).reset();
         assert counter.get() == 2;
@@ -214,7 +221,7 @@ class SessionBaseTests {
                 .where("$n.intValue >= 0 ")
                 .execute(rhsAssert);
 
-        StatefulSession session = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession session = newSession(mode);
         session.insertAndFire(1, 2);
         rhsAssert.assertCount(2).reset();
         session.insertAndFire(3);
@@ -238,8 +245,8 @@ class SessionBaseTests {
                 )
                 .where("$a1.id == $a2.id");
 
-        StatefulSession session1 = knowledge.newStatefulSession().setActivationMode(mode);
-        StatefulSession session2 = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession session1 = newSession(mode);
+        StatefulSession session2 = newSession(mode);
         session1.newRule();
 
         assert knowledge.getSessions().size() == 2;
@@ -262,7 +269,7 @@ class SessionBaseTests {
                 )
                 .execute(rhsAssert);
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         TypeA a = new TypeA();
         FactHandle ah = s.insert(a);
@@ -272,8 +279,7 @@ class SessionBaseTests {
         s.fire();
         rhsAssert.assertCount(1).reset();
         s.insert(new TypeA());
-        s.setFireCriteria(() -> false);
-        s.fire();
+        s.setExecutionPredicate(() -> false).fire();
         rhsAssert.assertCount(0);
 
         assert TestUtils.sessionFacts(s).size() == 2;
@@ -293,7 +299,7 @@ class SessionBaseTests {
                 .where("$c.l != $b.l")
                 .execute();
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         assert s.getParentContext() == knowledge;
         RhsAssert rhsAssert = new RhsAssert(s);
@@ -344,7 +350,7 @@ class SessionBaseTests {
                         "$c.l == $b.l"
                 ).execute();
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         TypeA a = new TypeA("A");
         a.setI(1);
@@ -404,7 +410,7 @@ class SessionBaseTests {
                 .where("$a.i != $d.i")
                 .execute();
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         RhsAssert rhsAssert = new RhsAssert(s);
 
@@ -469,7 +475,7 @@ class SessionBaseTests {
                 "$c.i == $a.l")
                 .execute();
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         TypeA a = new TypeA("A");
         a.setI(1);
@@ -544,7 +550,7 @@ class SessionBaseTests {
                 )
                 .execute();
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         TypeA a = new TypeA("AA");
         a.setI(1);
@@ -598,7 +604,7 @@ class SessionBaseTests {
                 )
                 .execute();
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         TypeA a1 = new TypeA("A1");
         a1.setI(2);
@@ -642,7 +648,7 @@ class SessionBaseTests {
                 .where("$a.i == $c.i")
                 .where("$a.i == $d.i")
                 .execute();
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
         RhsAssert rhsAssert = new RhsAssert(s);
 
         int count = new Random().nextInt(100) + 1;
@@ -695,7 +701,7 @@ class SessionBaseTests {
                 .where("$a.i == $b.i")
                 .execute(rhsAssert);
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         TypeA a1 = new TypeA("A1");
         a1.setAllNumeric(1);
@@ -753,7 +759,7 @@ class SessionBaseTests {
                 .execute(rhsAssert2)
         ;
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         TypeA a = new TypeA("A");
         a.setAllNumeric(0);
@@ -809,7 +815,7 @@ class SessionBaseTests {
                 .execute(rhsAssert);
 
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         TypeA a1 = new TypeA("A1");
         a1.setI(1);
@@ -845,7 +851,7 @@ class SessionBaseTests {
                 .where("$a.f < $b.l")
                 .execute(rhsAssert);
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         TypeA a1 = new TypeA("A1");
         a1.setI(1);
@@ -893,7 +899,7 @@ class SessionBaseTests {
                 .where("$c.f < $d.l")
                 .execute(rhsAssert);
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         TypeA a1 = new TypeA("A1");
         a1.setI(1);
@@ -947,7 +953,7 @@ class SessionBaseTests {
                 .where("$a.i != $b.i")
                 .execute(rhsAssert);
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         TypeA a1 = new TypeA("A1");
         a1.setI(1);
@@ -981,7 +987,7 @@ class SessionBaseTests {
                 .where("$a1.i != $a2.i")
                 .execute(rhsAssert);
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         TypeA a1 = new TypeA("A1");
         a1.setI(1);
@@ -1013,7 +1019,7 @@ class SessionBaseTests {
                         }
                 );
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         TypeA a1 = new TypeA("A3");
         a1.setI(3);
@@ -1081,7 +1087,7 @@ class SessionBaseTests {
                 .where("$a2.i > $a1.i")
                 .execute(rhsAssert);
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         TypeA a1 = new TypeA("A1");
         a1.setI(1);
@@ -1118,7 +1124,7 @@ class SessionBaseTests {
                 .where("$a2.i > $a1.i")
                 .execute(rhsAssert);
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         TypeA a1 = new TypeA("A1-1");
         a1.setI(1);
@@ -1164,7 +1170,7 @@ class SessionBaseTests {
                 .where("$b.i > 3")
                 .execute(rhsAssert);
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         // This insert cycle will result in 5 matching pairs of [A,B] with i=5,6,7,8,9
         for (int i = 0; i < 10; i++) {
@@ -1206,7 +1212,7 @@ class SessionBaseTests {
                 .where("$b.i > 3")
                 .execute(rhsAssert);
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
         for (int i = 0; i < 10; i++) {
@@ -1239,7 +1245,7 @@ class SessionBaseTests {
                 .where("$b.i > 3")
                 .execute(rhsAssert);
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
         for (int i = 0; i < 10; i++) {
@@ -1287,7 +1293,7 @@ class SessionBaseTests {
                 .where("$c.i > 6")
                 .execute(rhsAssert);
 
-        StatefulSession session = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession session = newSession(mode);
 
         // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
         for (int i = 0; i < 10; i++) {
@@ -1342,7 +1348,7 @@ class SessionBaseTests {
                 .execute(rhsAssert3);
 
 
-        StatefulSession session = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession session = newSession(mode);
 
         // This insert cycle will result in 5 matching As
         for (int i = 0; i < 10; i++) {
@@ -1379,7 +1385,7 @@ class SessionBaseTests {
                 .execute(rhsAssert3);
 
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         // This insert cycle will result in 5 matching As
         for (int i = 0; i < 10; i++) {
@@ -1414,7 +1420,7 @@ class SessionBaseTests {
                 .where("!$a.id.equals('A5')") // Inverse to rule 1
                 .execute(rhsAssert3);
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         for (int i = 0; i < 10; i++) {
             String id = "A" + i;
@@ -1444,7 +1450,7 @@ class SessionBaseTests {
                 .where("$b.i > 3")
                 .execute(rhsAssert);
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         TypeA $a1 = new TypeA("A1");
         TypeA $a2 = new TypeA("A2");
@@ -1502,7 +1508,7 @@ class SessionBaseTests {
                 .where("$c.i > 0")
                 .execute(rhsAssert);
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
         TypeA a1 = new TypeA("A1");
         a1.setI(1);
@@ -1557,7 +1563,7 @@ class SessionBaseTests {
                 .where("$a.i != $b.i")
                 .execute(rhsAssert);
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = newSession(mode);
 
 
         TypeA a1 = new TypeA();
@@ -1607,7 +1613,7 @@ class SessionBaseTests {
                 .where(beta, "$a.i", "$b.i")
                 .execute(rhsAssert);
 
-        StatefulSession s1 = knowledge.newStatefulSession();
+        StatefulSession s1 = newSession();
 
 
         TypeA a1 = new TypeA("a1");

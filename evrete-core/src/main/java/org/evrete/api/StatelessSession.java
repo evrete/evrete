@@ -25,6 +25,25 @@ public interface StatelessSession extends RuleSession<StatelessSession> {
 
     /**
      * <p>
+     * Fires the session and performs no memory scan. This method might be useful if developer is
+     * holding references to fact variables and only interested in changes of those facts:
+     * </p>
+     * <pre><code>
+     * Customer c = new Customer();
+     * session.insert(c);
+     * session.fire();
+     * System.out.println(c.getSomeUpdatedProperty());
+     * </code></pre>
+     * <p>
+     * While this method is the fastest among the other <code>fire(..)</code> methods, it is only
+     * applicable if the provided {@link FactStorage} SPI implementation stores facts by reference
+     * (e.g. does not serialize/deserialize objects)
+     * </p>
+     */
+    void fire();
+
+    /**
+     * <p>
      * Fires the session and calls the consumer for each memory object.
      * </p>
      *
@@ -49,4 +68,10 @@ public interface StatelessSession extends RuleSession<StatelessSession> {
      * @param consumer consumer for session memory
      */
     <T> void fire(Class<T> type, Consumer<T> consumer);
+
+
+    default void insertAndFire(Object... objects) {
+        insert(objects);
+        fire();
+    }
 }

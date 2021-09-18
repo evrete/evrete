@@ -5,7 +5,7 @@ import org.evrete.api.FactHandle;
 import org.evrete.api.StatefulSession;
 
 import java.util.concurrent.Future;
-import java.util.function.BooleanSupplier;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> implements StatefulSession {
@@ -14,21 +14,21 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
         super(knowledge);
     }
 
-
     @Override
     public StatefulSession setActivationManager(ActivationManager activationManager) {
         applyActivationManager(activationManager);
         return this;
     }
 
-    @Override
-    public StatefulSession setFireCriteria(BooleanSupplier fireCriteria) {
-        applyFireCriteria(fireCriteria);
+    public <T> StatefulSession forEachFact(String type, Consumer<T> consumer) {
+        forEachFactInner(type, consumer);
         return this;
     }
 
-    public <T> void forEachFact(String type, Consumer<T> consumer) {
-        forEachFactInner(type, consumer);
+    @Override
+    public StatefulSession forEachFact(BiConsumer<FactHandle, Object> consumer) {
+        forEachFactInner(consumer);
+        return this;
     }
 
     @Override
@@ -42,8 +42,9 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
     }
 
     @Override
-    public void fire() {
+    public StatefulSession fire() {
         fireInner();
+        return this;
     }
 
     @Override
@@ -52,13 +53,15 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
     }
 
     @Override
-    public final void update(FactHandle handle, Object newValue) {
+    public final StatefulSession update(FactHandle handle, Object newValue) {
         updateInner(handle, newValue);
+        return this;
     }
 
     @Override
-    public final void delete(FactHandle handle) {
+    public final StatefulSession delete(FactHandle handle) {
         deleteInner(handle);
+        return this;
     }
 
     @Override

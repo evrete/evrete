@@ -23,6 +23,8 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
     private ActivationManager activationManager;
     private BooleanSupplier fireCriteria = () -> true;
 
+    private final List<SessionLifecycleListener> lifecycleListeners = new ArrayList<>();
+
 
     AbstractRuleSession(KnowledgeRuntime knowledge) {
         super(knowledge);
@@ -40,6 +42,9 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
     }
 
     void fireInner() {
+        for (SessionLifecycleListener e : lifecycleListeners) {
+            e.onEvent(SessionLifecycleListener.Event.PRE_FIRE);
+        }
         switch (getAgendaMode()) {
             case DEFAULT:
                 fireDefault(new ActivationContext());
@@ -180,6 +185,12 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         }
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public S setExecutionPredicate(BooleanSupplier criteria) {
+        applyFireCriteria(criteria);
+        return (S) this;
+    }
 
     @Override
     public final ActivationManager getActivationManager() {
@@ -190,7 +201,7 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         return this.fireCriteria.getAsBoolean();
     }
 
-    void applyFireCriteria(BooleanSupplier fireCriteria) {
+    private void applyFireCriteria(BooleanSupplier fireCriteria) {
         this.fireCriteria = fireCriteria;
     }
 
@@ -237,9 +248,25 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         return rule;
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public S addEventListener(SessionLifecycleListener listener) {
+        this.lifecycleListeners.add(listener);
+        return (S) this;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public S removeEventListener(SessionLifecycleListener listener) {
+        this.lifecycleListeners.remove(listener);
+        return (S) this;
+    }
 
     void closeInner() {
         synchronized (this) {
+            for (SessionLifecycleListener e : lifecycleListeners) {
+                e.onEvent(SessionLifecycleListener.Event.PRE_CLOSE);
+            }
             invalidateSession();
             knowledge.close(this);
         }
@@ -255,7 +282,8 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         return knowledge;
     }
 
-    private void _assertActive() {
+    @Override
+    void _assertActive() {
         if (!active) {
             throw new IllegalStateException("Session has been closed");
         }
@@ -308,7 +336,7 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         memory.get(handle.getTypeId()).add(Action.RETRACT, handle, null);
     }
 
-    public final void forEachFact(BiConsumer<FactHandle, Object> consumer) {
+    final void forEachFactInner(BiConsumer<FactHandle, Object> consumer) {
         // Scanning main memory and making sure fact handles are not deleted
         for (TypeMemory tm : memory) {
             tm.forEachFact(consumer);

@@ -31,6 +31,15 @@ class StatelessSessionImpl extends AbstractRuleSession<StatelessSession> impleme
     }
 
     @Override
+    public void fire() {
+        try {
+            fireInner();
+        } finally {
+            closeInner();
+        }
+    }
+
+    @Override
     public void fire(Consumer<Object> consumer) {
         try {
             fireInner();
@@ -39,6 +48,7 @@ class StatelessSessionImpl extends AbstractRuleSession<StatelessSession> impleme
             closeInner();
         }
     }
+
 
     @Override
     @SuppressWarnings("unchecked")

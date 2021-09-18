@@ -3,14 +3,14 @@ package org.evrete.dsl;
 import org.evrete.KnowledgeService;
 import org.evrete.api.ActivationMode;
 import org.evrete.api.Knowledge;
-import org.evrete.api.StatefulSession;
+import org.evrete.api.StatelessSession;
 import org.evrete.dsl.rules.ListenerRuleSet1;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-class ListenerTests extends CommonTestMethods {
+class StatelessListenerTests extends CommonTestMethods {
     private static KnowledgeService service;
 
     @BeforeAll
@@ -23,8 +23,8 @@ class ListenerTests extends CommonTestMethods {
         service.shutdown();
     }
 
-    private static StatefulSession session(Knowledge knowledge, ActivationMode mode) {
-        return knowledge.newStatefulSession().setActivationMode(mode);
+    private static StatelessSession session(Knowledge knowledge, ActivationMode mode) {
+        return knowledge.newStatelessSession(mode);
     }
 
     @ParameterizedTest
@@ -34,21 +34,12 @@ class ListenerTests extends CommonTestMethods {
         Knowledge knowledge = applyToRuntimeAsStream(service, ListenerRuleSet1.class);
         assert ListenerInvocationData.total() == 1 && ListenerInvocationData.count(Phase.BUILD) == 1;
 
-        StatefulSession session = session(knowledge, mode);
+        StatelessSession session = session(knowledge, mode);
         assert ListenerInvocationData.count(Phase.CREATE) == 3 : "Actual: " + ListenerInvocationData.EVENTS;
         assert ListenerInvocationData.total() == 6; // 4 + additional two coming from the multiple() method
         ListenerInvocationData.reset();
         session.insert(1);
         session.fire();
-        assert ListenerInvocationData.total() == 4 : " " + ListenerInvocationData.EVENTS;
-        session.fire();
         assert ListenerInvocationData.total() == 8 : " " + ListenerInvocationData.EVENTS;
-
-
-        ListenerInvocationData.reset();
-        session.close();
-        assert ListenerInvocationData.total() == 4 : " " + ListenerInvocationData.EVENTS;
-
-
     }
 }

@@ -49,6 +49,11 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
     }
 
     @Override
+    void _assertActive() {
+
+    }
+
+    @Override
     public RuleDescriptor getRule(String name) {
         return ruleDescriptors.get(name);
     }

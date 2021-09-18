@@ -6,7 +6,7 @@ import org.evrete.runtime.RuleDescriptor;
 import java.util.Collection;
 import java.util.List;
 
-public class KnowledgeWrapper extends RuntimeContextWrapper<Knowledge> implements Knowledge {
+public abstract class KnowledgeWrapper extends RuntimeContextWrapper<Knowledge> implements Knowledge {
 
     protected KnowledgeWrapper(Knowledge delegate) {
         super(delegate);
