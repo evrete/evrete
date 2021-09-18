@@ -5,7 +5,7 @@ public interface FactStorage<T> extends ReIterable<FactStorage.Entry<T>> {
     /**
      * <p>
      * Creates and returns new FactHandle for each inserted fact. The contract is that the implementation must
-     * return <code>null</code> if object is already known and not deleted.
+     * return {@code null} if object is already known and not deleted.
      * </p>
      *
      * @param fact the fact being inserted in the working memory

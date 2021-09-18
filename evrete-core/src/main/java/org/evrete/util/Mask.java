@@ -6,7 +6,7 @@ import org.evrete.runtime.evaluation.MemoryAddress;
 import java.util.BitSet;
 import java.util.function.ToIntFunction;
 
-public class Mask<T> {
+public final class Mask<T> {
     public static final BitSet EMPTY = new BitSet();
     private final BitSet delegate = new BitSet();
     private final ToIntFunction<T> intMapper;

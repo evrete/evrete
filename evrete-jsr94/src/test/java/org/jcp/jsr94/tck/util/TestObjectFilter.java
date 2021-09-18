@@ -54,9 +54,6 @@ public class TestObjectFilter implements ObjectFilter {
         filterType = type;
     }
 
-    /**
-     * @see javax.rules.ObjectFilter#filter
-     */
     public Object filter(Object object) {
         switch (filterType) {
             case CUSTOMER_FILTER: {
@@ -73,9 +70,6 @@ public class TestObjectFilter implements ObjectFilter {
         return null;
     }
 
-    /**
-     * @see javax.rules.ObjectFilter#reset
-     */
     public void reset() {
     }
 }

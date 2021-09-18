@@ -6,7 +6,7 @@ package org.evrete.api;
  * both as a Java {@link Class} or as a type name.
  * </p>
  */
-public class FactBuilder {
+public final class FactBuilder {
     private final String name;
     private final String unresolvedType;
     private final Class<?> resolvedType;
@@ -77,7 +77,7 @@ public class FactBuilder {
      * Returns fact's type as String
      * </p>
      *
-     * @return fact's String type or <code>null</code> if the fact is declared as Java class.
+     * @return fact's String type or {@code null} if the fact is declared as Java class.
      */
     public String getUnresolvedType() {
         return unresolvedType;
@@ -88,7 +88,7 @@ public class FactBuilder {
      * Returns fact's type as Java Class
      * </p>
      *
-     * @return fact's declared Class or <code>null</code> if the fact's type is declared as named type.
+     * @return fact's declared Class or {@code null} if the fact's type is declared as named type.
      */
     public Class<?> getResolvedType() {
         return resolvedType;

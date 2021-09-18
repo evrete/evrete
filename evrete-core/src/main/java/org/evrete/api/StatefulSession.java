@@ -39,8 +39,8 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
      * </p>
      *
      * @param handle fact handle
-     * @param <T>    type of the fact (use <code>Object</code>  or wildcard if type is unknown)
-     * @return fact or <code>null</code> if fact is not found
+     * @param <T>    type of the fact (use {@code Object}  or wildcard if type is unknown)
+     * @return fact or {@code null} if fact is not found
      */
     <T> T getFact(FactHandle handle);
 
@@ -111,7 +111,7 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
      * <p>
      * A memory inspection method that accepts fact type as an argument. Type name can be either
      * a class name or a name of explicitly declared type. In the latter case, the generic type
-     * parameter <code>T</code> must match the declared type's Java type (see {@link Type#getJavaType()})
+     * parameter {@code T} must match the declared type's Java type (see {@link Type#getJavaType()})
      * </p>
      *
      * @param type     type name

@@ -7,8 +7,8 @@ import java.lang.annotation.Target;
 
 /**
  * <p>
- * Marks a method as a field declaration. New field's name becomes this annotation's <code>name()</code>
- * parameter or the annotated method's name if the <code>name()</code> is empty.
+ * Marks a method as a field declaration. New field's name becomes this annotation's {@code name()}
+ * parameter or the annotated method's name if the {@code name()} is empty.
  * </p>
  * <p>
  * The annotated method must be non-void and have a single argument. The argument's type

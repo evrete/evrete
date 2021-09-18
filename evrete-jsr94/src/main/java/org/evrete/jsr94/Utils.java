@@ -4,6 +4,7 @@ import org.evrete.api.RuntimeContext;
 import org.evrete.api.StatefulSession;
 
 import javax.rules.InvalidRuleSessionException;
+import javax.rules.admin.RuleExecutionSetCreateException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +41,16 @@ final class Utils {
             return (String) o;
         } else {
             return null;
+        }
+    }
+
+
+    static String dslName(Map map) throws RuleExecutionSetCreateException {
+        String dsl = Utils.getStringProperty(map, Const.DSL_NAME);
+        if (dsl == null) {
+            throw new RuleExecutionSetCreateException("Missing DSL name property '" + Const.DSL_NAME + "'");
+        } else {
+            return dsl;
         }
     }
 

@@ -12,7 +12,7 @@ public interface FactHandle extends Serializable {
 
     /**
      * <p>
-     *      Returns the id of the <code>Type</code> which inserted instance was initially associated with.
+     * Returns the id of the {@code Type} which inserted instance was initially associated with.
      * </p>
      *
      * @return the id of the associated instance type

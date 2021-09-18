@@ -33,7 +33,7 @@ public interface RuleSession<S extends RuleSession<S>> extends RuntimeContext<S>
     /**
      * <p>
      * Session call's the supplier's {@link BooleanSupplier#getAsBoolean()} method prior to each
-     * activation cycle. If the provided value is <code>false</code> then the cycle gets interrupted
+     * activation cycle. If the provided value is {@code false} then the cycle gets interrupted
      * and session exits its fire(...) method.
      * </p>
      * <p>

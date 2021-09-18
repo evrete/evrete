@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
-class JavaSource extends SimpleJavaFileObject {
+final class JavaSource extends SimpleJavaFileObject {
     private final String code;
     private final static String KEYWORD_CLASS = "class";
     private final static String KEYWORD_INTERFACE = "interface";

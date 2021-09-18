@@ -4,7 +4,7 @@ import org.evrete.api.ReIterator;
 
 import java.util.Objects;
 
-public class JoinReIterator<V> implements ReIterator<V> {
+public final class JoinReIterator<V> implements ReIterator<V> {
     private final ReIterator<V>[] iterators;
     private ReIterator<V> current;
     private int currentIndex;

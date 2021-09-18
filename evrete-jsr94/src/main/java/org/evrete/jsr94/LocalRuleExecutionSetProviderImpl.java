@@ -20,12 +20,8 @@ class LocalRuleExecutionSetProviderImpl implements LocalRuleExecutionSetProvider
 
     @Override
     public RuleExecutionSet createRuleExecutionSet(InputStream inputStream, Map map) throws RuleExecutionSetCreateException, IOException {
-        String dsl = Utils.getStringProperty(map, Const.DSL_NAME);
-        if (dsl == null) {
-            throw new RuleExecutionSetCreateException("Missing DSL name property '" + Const.DSL_NAME + "'");
-        }
         try {
-            Knowledge knowledge = knowledgeService.newKnowledge(dsl, inputStream);
+            Knowledge knowledge = knowledgeService.newKnowledge(Utils.dslName(map), inputStream);
             Utils.copyConfiguration(knowledge, map);
             return new RuleExecutionSetImpl(knowledge, map);
         } catch (RuntimeException e) {
@@ -35,12 +31,8 @@ class LocalRuleExecutionSetProviderImpl implements LocalRuleExecutionSetProvider
 
     @Override
     public RuleExecutionSet createRuleExecutionSet(Reader reader, Map map) throws RuleExecutionSetCreateException, IOException {
-        String dsl = Utils.getStringProperty(map, Const.DSL_NAME);
-        if (dsl == null) {
-            throw new RuleExecutionSetCreateException("Missing DSL name property '" + Const.DSL_NAME + "'");
-        }
         try {
-            Knowledge knowledge = knowledgeService.newKnowledge(dsl, reader);
+            Knowledge knowledge = knowledgeService.newKnowledge(Utils.dslName(map), reader);
             Utils.copyConfiguration(knowledge, map);
             return new RuleExecutionSetImpl(knowledge, map);
         } catch (RuntimeException e) {

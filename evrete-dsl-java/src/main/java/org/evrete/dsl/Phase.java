@@ -6,19 +6,19 @@ package org.evrete.dsl;
  * </p>
  * <ul>
  *     <li>
- *         <code>BUILD</code> event happens when a new {@link org.evrete.api.Knowledge} is created from Java
- *         sources, classes or archives. Unlike the rest of the events, the <code>BUILD</code> event can be
+ *         {@code BUILD} event happens when a new {@link org.evrete.api.Knowledge} is created from Java
+ *         sources, classes or archives. Unlike the rest of the events, the {@code BUILD} event can be
  *         referenced by <strong>static</strong> methods only.
  *     </li>
  *     <li>
- *         <code>CREATE</code> event happens immediately after a new session is created off the given ruleset
+ *         {@code CREATE} event happens immediately after a new session is created off the given ruleset
  *     </li>
  *     <li>
- *         <code>FIRE</code> event happens before any of the {@link org.evrete.api.StatefulSession#fire()}, {@link org.evrete.api.StatefulSession#fireAsync(Object)},
+ *         {@code FIRE} event happens before any of the {@link org.evrete.api.StatefulSession#fire()}, {@link org.evrete.api.StatefulSession#fireAsync(Object)},
  *         or {@link org.evrete.api.StatefulSession#fireAsync()} are called on a session instance.
  *     </li>
  *     <li>
- *         <code>CLOSE</code> event happens right before the session's {@link org.evrete.api.StatefulSession#close()} method is called.
+ *         {@code CLOSE} event happens right before the session's {@link org.evrete.api.StatefulSession#close()} method is called.
  *     </li>
  * </ul>
  */

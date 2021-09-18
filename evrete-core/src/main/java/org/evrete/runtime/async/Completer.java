@@ -58,16 +58,6 @@ public abstract class Completer extends CountedCompleter<Void> {
 
     }
 
-    /**
-     * <p>
-     * This is a convenience method stub that forwards the {@link CountedCompleter#onCompletion(CountedCompleter)}
-     * to a method without arguments.
-     * </p>
-     *
-     * @param caller this task or a subtask
-     * @see CountedCompleter#onCompletion(CountedCompleter)
-     * @see #onCompletion()
-     */
     @Override
     public final void onCompletion(CountedCompleter<?> caller) {
         onCompletion();

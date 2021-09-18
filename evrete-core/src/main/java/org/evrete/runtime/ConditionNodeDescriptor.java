@@ -5,7 +5,7 @@ import org.evrete.runtime.evaluation.BetaEvaluator;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ConditionNodeDescriptor extends NodeDescriptor {
+public final class ConditionNodeDescriptor extends NodeDescriptor {
     public static final ConditionNodeDescriptor[] ZERO_ARRAY = new ConditionNodeDescriptor[0];
     private final BetaEvaluator expression;
 

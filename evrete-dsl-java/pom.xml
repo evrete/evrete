@@ -53,10 +53,6 @@
                         </goals>
                         <configuration>
                             <failOnError>false</failOnError>
-<!--
-                            <source>16</source>
-                            <target>16</target>
--->
                             <compileSourceRoots>
                                 ${project.basedir}/src/test/resources/jars/jar2
                             </compileSourceRoots>

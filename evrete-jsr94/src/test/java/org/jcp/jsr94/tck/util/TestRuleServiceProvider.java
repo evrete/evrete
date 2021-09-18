@@ -15,16 +15,13 @@ import javax.rules.RuleServiceProvider;
 /**
  * Utility class for the JSR-94 TCK.
  * <p>
- * This class extends the <code>javax.rules.RuleServiceProvider</code> and
- * is used to call the protected <code>createInstance</code> method.
+ * This class extends the {@code javax.rules.RuleServiceProvider} and
+ * is used to call the protected {@code createInstance} method.
  *
  * @version 1.0
  * @since JSR-94 1.0
  */
 public abstract class TestRuleServiceProvider extends RuleServiceProvider {
-    /**
-     * @see javax.rules.RuleServiceProvider#createInstance
-     */
     public static Object createInstance(String className)
             throws ClassNotFoundException,
             InstantiationException,

@@ -200,7 +200,7 @@ public class KnowledgeService {
 
     /**
      * <p>
-     * This method is a shorthand for <code>newKnowledge().newStatefulSession()</code> which
+     * This method is a shorthand for {@code newKnowledge().newStatefulSession()} which
      * returns an empty session instance.
      * </p>
      *
@@ -213,7 +213,7 @@ public class KnowledgeService {
 
     /**
      * <p>
-     * This method is a shorthand for <code>newKnowledge().newStatelessSession()</code> which
+     * This method is a shorthand for {@code newKnowledge().newStatelessSession()} which
      * returns an empty session instance.
      * </p>
      *

@@ -24,9 +24,9 @@ import javax.rules.StatefulRuleSession;
  * This class performs the following test scenario:
  * <ul>
  * <li> An object is added to a stateful rule session and a handle is obtained.
- *      That object has defined properly the <code>equals</code> and
- *      <code>hashCode</code> methods.
- * <li> The obtained handle must be an instance of <code>Handle</code>.
+ *      That object has defined properly the {@code equals} and
+ *      {@code hashCode} methods.
+ * <li> The obtained handle must be an instance of {@code Handle}.
  * <li> The rule session then must contain the handle.
  * <li> The object returned by {@link StatefulRuleSession#getObject(Handle)} must be
  *      equals to the initial object.
@@ -77,7 +77,7 @@ class HandleTest {
     }
 
     /**
-     * A test for <code>javax.rules.Handle</code> implementation classes.
+     * A test for {@code javax.rules.Handle} implementation classes.
      */
     @Test
     void testHandle() throws Exception {

@@ -387,7 +387,7 @@ public abstract class TestCaseUtil {
             }
         } catch (Exception ex) {
             // Print the stack trace.
-            ex.printStackTrace();
+            throw new IllegalStateException(ex);
         }
     }
 }

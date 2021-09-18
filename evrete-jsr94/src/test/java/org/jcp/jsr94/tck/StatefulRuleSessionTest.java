@@ -102,6 +102,7 @@ import java.util.List;
  * @see javax.rules.StatefulRuleSession
  * @since JSR-94 1.0
  */
+@SuppressWarnings("ConstantConditions")
 class StatefulRuleSessionTest {
     /**
      * Test the compliance for javax.rules.StatefulRuleSession.

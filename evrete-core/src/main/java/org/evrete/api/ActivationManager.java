@@ -41,7 +41,7 @@ public interface ActivationManager extends Predicate<RuntimeRule> {
 
     /**
      * This method is called after rule activation. Developers use this method to track activation history.
-     * this manager's <code>test()</code> method
+     * this manager's {@code test()} method
      *
      * @param rule  the rule that has been activated
      * @param count the number of times the rule's RHS part has been called

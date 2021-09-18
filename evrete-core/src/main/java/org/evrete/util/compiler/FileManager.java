@@ -8,7 +8,7 @@ import java.util.Set;
 import static javax.tools.StandardLocation.CLASS_PATH;
 import static javax.tools.StandardLocation.SOURCE_PATH;
 
-class FileManager<M extends JavaFileManager> extends ForwardingJavaFileManager<M> {
+final class FileManager<M extends JavaFileManager> extends ForwardingJavaFileManager<M> {
     private final ByteArrayOutputStream bos;
     private final ClassLoader classLoader;
     private final PackageExplorer finder;

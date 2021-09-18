@@ -308,7 +308,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         assert this.data.length >= minDataSize;
     }
 
-    private class It implements ReIterator<E> {
+    private final class It implements ReIterator<E> {
         int pos = 0;
         int nextIndex;
         int currentIndex = -1;

@@ -71,7 +71,7 @@ public interface RhsContext {
     /**
      * <p>
      * Provides access to the runtime context, an equivalent to
-     * <code>getRule().getRuntime()</code>.
+     * {@code getRule().getRuntime()}.
      * </p>
      *
      * @return runtime context (session)
@@ -100,7 +100,7 @@ public interface RhsContext {
 
     /**
      * <p>
-     * A typed version of the <code>getObject()</code> method.
+     * A typed version of the {@code getObject()} method.
      * </p>
      *
      * @param name fact name

@@ -26,7 +26,7 @@ public interface Type<T> extends Named, Copyable<Type<T>> {
 
     /**
      * <p>
-     * There can be only one {@link Type} with the given name, but there could be
+     * There can be only one Type with the given name, but there could be
      * many types associated with a specific Java Class. This method returns the
      * associated Java type.
      * </p>
@@ -83,7 +83,7 @@ public interface Type<T> extends Named, Copyable<Type<T>> {
 
     /**
      * <p>
-     * Method declares a primitive <code>int</code> field.
+     * Method declares a primitive {@code int} field.
      * </p>
      *
      * @param name     field name
@@ -96,7 +96,7 @@ public interface Type<T> extends Named, Copyable<Type<T>> {
 
     /**
      * <p>
-     * Method declares a primitive <code>long</code> field.
+     * Method declares a primitive {@code long} field.
      * </p>
      *
      * @param name     field name
@@ -109,7 +109,7 @@ public interface Type<T> extends Named, Copyable<Type<T>> {
 
     /**
      * <p>
-     * Method declares a primitive <code>double</code> field.
+     * Method declares a primitive {@code double} field.
      * </p>
      *
      * @param name     field name
@@ -122,7 +122,7 @@ public interface Type<T> extends Named, Copyable<Type<T>> {
 
     /**
      * <p>
-     * Method declares a primitive <code>boolean</code> field.
+     * Method declares a primitive {@code boolean} field.
      * </p>
      *
      * @param name     field name

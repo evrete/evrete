@@ -3,7 +3,7 @@ package org.evrete.util;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StringLiteralRemover {
+public final class StringLiteralRemover {
     private static final String PREFIX = "${const";
     private static final String SUFFIX = "}";
     private static final char[] QUOTES = new char[]{'\'', '"', '`'};
