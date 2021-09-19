@@ -11,4 +11,7 @@ public class Invoice {
         this.salesUnit = salesUnit;
     }
 
+    public Invoice() {
+        this(0, null, null);
+    }
 }

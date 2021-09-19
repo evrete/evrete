@@ -1,6 +1,7 @@
 package org.evrete.samples;
 
 import org.evrete.KnowledgeService;
+import org.evrete.api.Knowledge;
 import org.evrete.api.StatelessSession;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -9,22 +10,46 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class StatelessSimple {
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
+        withKnowledge(service);
+        withoutKnowledge(service);
+        service.shutdown();
+    }
 
+    private static void withoutKnowledge(KnowledgeService service) {
+        Knowledge knowledge = service
+                .newKnowledge()
+                .newRule()
+                .forEach("$ai", AtomicInteger.class)
+                .where("$ai.get() < 10")
+                .execute(context -> {
+                    AtomicInteger obj = context.get("$ai");
+                    obj.incrementAndGet();
+                    context.update(obj);
+                });
+
+        StatelessSession session = knowledge.newStatelessSession();
+
+        AtomicInteger obj = new AtomicInteger(0);
+        System.out.println("Pre-value: " + obj.get()); // Prints 0
+        session.insertAndFire(obj);
+        System.out.println("Post-value: " + obj.get()); // Prints 10
+    }
+
+    private static void withKnowledge(KnowledgeService service) {
         StatelessSession session = service
                 .newStatelessSession()
                 .newRule()
                 .forEach("$ai", AtomicInteger.class)
-                .where("$ai.get < 10")
-                .execute(ctx -> {
-                    AtomicInteger i = ctx.get("$ai");
-                    i.incrementAndGet();
-                    ctx.update(i);
+                .where("$ai.get() < 10")
+                .execute(context -> {
+                    AtomicInteger obj = context.get("$ai");
+                    obj.incrementAndGet();
+                    context.update(obj);
                 });
 
         AtomicInteger obj = new AtomicInteger(0);
-        System.out.println("Pre-value: " + obj.get());
+        System.out.println("Pre-value: " + obj.get()); // Prints 0
         session.insertAndFire(obj);
-        System.out.println("Post-value: " + obj.get());
-        service.shutdown();
+        System.out.println("Post-value: " + obj.get()); // Prints 10
     }
 }
