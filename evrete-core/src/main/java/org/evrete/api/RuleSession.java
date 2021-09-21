@@ -3,6 +3,7 @@ package org.evrete.api;
 
 import java.util.Collection;
 import java.util.function.BooleanSupplier;
+import java.util.stream.Collector;
 
 /**
  * <p>
@@ -21,6 +22,18 @@ public interface RuleSession<S extends RuleSession<S>> extends RuntimeContext<S>
      * @see FactHandle
      */
     FactHandle insert(Object fact);
+
+
+    /**
+     * <p>
+     * A convenience method that returns an instance of {@link Collector} for inserting
+     * streams of facts.
+     * </p>
+     *
+     * @return collector
+     */
+    <T> Collector<T, ?, S> asCollector();
+
 
     /**
      * Method renamed, use the {@link #setExecutionPredicate(BooleanSupplier)} instead.
@@ -124,4 +137,5 @@ public interface RuleSession<S extends RuleSession<S>> extends RuntimeContext<S>
 
     Knowledge getParentContext();
 
+    Object fire();
 }

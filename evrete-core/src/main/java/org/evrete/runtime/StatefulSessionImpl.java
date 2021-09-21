@@ -1,6 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.api.ActivationManager;
 import org.evrete.api.FactHandle;
 import org.evrete.api.StatefulSession;
 
@@ -15,8 +14,7 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
     }
 
     @Override
-    public StatefulSession setActivationManager(ActivationManager activationManager) {
-        applyActivationManager(activationManager);
+    protected StatefulSession thisInstance() {
         return this;
     }
 

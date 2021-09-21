@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -89,7 +90,22 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
     void clear();
 
 
+    /**
+     * <p>
+     * A full-scan memory inspection method.
+     * </p>
+     *
+     * @param consumer consumer for the facts
+     */
     StatefulSession forEachFact(BiConsumer<FactHandle, Object> consumer);
+
+    default StatefulSession forEachFact(BiPredicate<FactHandle, Object> filter, BiConsumer<FactHandle, Object> consumer) {
+        return forEachFact((factHandle, o) -> {
+            if (filter.test(factHandle, o)) {
+                consumer.accept(factHandle, o);
+            }
+        });
+    }
 
     /**
      * <p>

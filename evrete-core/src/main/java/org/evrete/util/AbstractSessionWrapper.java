@@ -4,9 +4,10 @@ import org.evrete.api.*;
 
 import java.util.List;
 import java.util.function.BooleanSupplier;
+import java.util.stream.Collector;
 
-public abstract class SessionWrapper<S extends RuleSession<S>> extends RuntimeContextWrapper<S> implements RuleSession<S> {
-    protected SessionWrapper(S delegate) {
+public abstract class AbstractSessionWrapper<S extends RuleSession<S>> extends RuntimeContextWrapper<S> implements RuleSession<S> {
+    protected AbstractSessionWrapper(S delegate) {
         super(delegate);
     }
 
@@ -25,32 +26,35 @@ public abstract class SessionWrapper<S extends RuleSession<S>> extends RuntimeCo
         return delegate.getActivationManager();
     }
 
+    protected abstract S thisInstance();
+
     @Override
-    @SuppressWarnings("unchecked")
+    public <T> Collector<T, ?, S> asCollector() {
+        return new SessionCollector<>(thisInstance());
+    }
+
+    @Override
     public S setActivationManager(ActivationManager activationManager) {
         delegate.setActivationManager(activationManager);
-        return (S) this;
+        return thisInstance();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public S setExecutionPredicate(BooleanSupplier criteria) {
         delegate.setExecutionPredicate(criteria);
-        return (S) this;
+        return thisInstance();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public S addEventListener(SessionLifecycleListener listener) {
         delegate.addEventListener(listener);
-        return (S) this;
+        return thisInstance();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public S removeEventListener(SessionLifecycleListener listener) {
         delegate.removeEventListener(listener);
-        return (S) this;
+        return thisInstance();
     }
 
     @Override

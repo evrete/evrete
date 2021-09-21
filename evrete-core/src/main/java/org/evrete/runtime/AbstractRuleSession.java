@@ -5,12 +5,14 @@ import org.evrete.api.*;
 import org.evrete.runtime.async.*;
 import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.Mask;
+import org.evrete.util.SessionCollector;
 
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
+import java.util.stream.Collector;
 
 public abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRuntime<RuntimeRule, S> implements RuleSession<S> {
     private static final Logger LOGGER = Logger.getLogger(AbstractRuleSession.class.getName());
@@ -39,6 +41,19 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         for (RuleDescriptor descriptor : knowledge.getRules()) {
             deployRule(descriptor, false);
         }
+    }
+
+    protected abstract S thisInstance();
+
+    @Override
+    public <T> Collector<T, ?, S> asCollector() {
+        return new SessionCollector<>(thisInstance());
+    }
+
+    @Override
+    public S setActivationManager(ActivationManager activationManager) {
+        this.activationManager = activationManager;
+        return thisInstance();
     }
 
     void fireInner() {
@@ -186,10 +201,9 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public S setExecutionPredicate(BooleanSupplier criteria) {
         applyFireCriteria(criteria);
-        return (S) this;
+        return thisInstance();
     }
 
     @Override
@@ -205,8 +219,10 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         this.fireCriteria = fireCriteria;
     }
 
-    void applyActivationManager(ActivationManager activationManager) {
+    //TODO move to the usage method
+    private S applyActivationManager1(ActivationManager activationManager) {
         this.activationManager = activationManager;
+        return thisInstance();
     }
 
     private void reSortRules() {

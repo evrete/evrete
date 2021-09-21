@@ -20,8 +20,13 @@ class DSLStatelessSession extends AbstractDSLSession<StatelessSession> implement
     }
 
     @Override
-    public void fire() {
-        delegate.fire();
+    public Void fire() {
+        return delegate.fire();
+    }
+
+    @Override
+    protected StatelessSession thisInstance() {
+        return this;
     }
 
     @Override

@@ -2,12 +2,12 @@ package org.evrete.dsl;
 
 import org.evrete.api.RuleSession;
 import org.evrete.api.RuntimeRule;
-import org.evrete.util.SessionWrapper;
+import org.evrete.util.AbstractSessionWrapper;
 
 import java.util.List;
 
-class AbstractDSLSession<S extends RuleSession<S>> extends SessionWrapper<S> {
-    final Listeners listeners;
+abstract class AbstractDSLSession<S extends RuleSession<S>> extends AbstractSessionWrapper<S> {
+    private final Listeners listeners;
 
 
     AbstractDSLSession(S delegate, RulesetMeta meta, FieldDeclarations fieldDeclarations, List<DSLRule> rules, Object classInstance) {

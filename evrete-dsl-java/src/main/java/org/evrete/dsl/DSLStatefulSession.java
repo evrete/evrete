@@ -17,6 +17,11 @@ class DSLStatefulSession extends AbstractDSLSession<StatefulSession> implements 
     @Override
     public StatefulSession fire() {
         delegate.fire();
+        return thisInstance();
+    }
+
+    @Override
+    protected StatefulSession thisInstance() {
         return this;
     }
 
@@ -33,7 +38,7 @@ class DSLStatefulSession extends AbstractDSLSession<StatefulSession> implements 
     @Override
     public StatefulSession update(FactHandle handle, Object newValue) {
         delegate.update(handle, newValue);
-        return this;
+        return thisInstance();
     }
 
     @Override

@@ -1,6 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.api.ActivationManager;
 import org.evrete.api.FactHandle;
 import org.evrete.api.StatelessSession;
 import org.evrete.api.Type;
@@ -15,8 +14,7 @@ class StatelessSessionImpl extends AbstractRuleSession<StatelessSession> impleme
     }
 
     @Override
-    public StatelessSession setActivationManager(ActivationManager activationManager) {
-        applyActivationManager(activationManager);
+    protected StatelessSession thisInstance() {
         return this;
     }
 
@@ -31,9 +29,10 @@ class StatelessSessionImpl extends AbstractRuleSession<StatelessSession> impleme
     }
 
     @Override
-    public void fire() {
+    public Void fire() {
         try {
             fireInner();
+            return null;
         } finally {
             closeInner();
         }

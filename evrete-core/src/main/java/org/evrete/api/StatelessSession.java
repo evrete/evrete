@@ -2,6 +2,7 @@ package org.evrete.api;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * <p>
@@ -40,7 +41,23 @@ public interface StatelessSession extends RuleSession<StatelessSession> {
      * (e.g. does not serialize/deserialize objects)
      * </p>
      */
-    void fire();
+    Void fire();
+
+    /**
+     * <p>
+     * Fires the session and calls the consumer for each memory object that satisfies given filter
+     * </p>
+     *
+     * @param consumer consumer for session memory
+     * @param filter   filtering predicate
+     */
+    default void fire(Predicate<Object> filter, Consumer<Object> consumer) {
+        fire(o -> {
+            if (filter.test(o)) {
+                consumer.accept(o);
+            }
+        });
+    }
 
     /**
      * <p>
@@ -62,6 +79,23 @@ public interface StatelessSession extends RuleSession<StatelessSession> {
 
     /**
      * <p>
+     * A convenience method to retrieve facts of a specific type name and
+     * matching given predicate
+     * </p>
+     *
+     * @param consumer consumer for session memory
+     * @param filter   filtering predicate
+     */
+    default <T> void fire(String type, Predicate<T> filter, Consumer<T> consumer) {
+        fire(type, (Consumer<T>) t -> {
+            if (filter.test(t)) {
+                consumer.accept(t);
+            }
+        });
+    }
+
+    /**
+     * <p>
      * A convenience method to retrieve the resulting instances of a specific Java class.
      * </p>
      *
@@ -69,6 +103,22 @@ public interface StatelessSession extends RuleSession<StatelessSession> {
      */
     <T> void fire(Class<T> type, Consumer<T> consumer);
 
+    /**
+     * <p>
+     * A convenience method to retrieve facts of a specific Java type and
+     * matching given predicate
+     * </p>
+     *
+     * @param consumer consumer for session memory
+     * @param filter   filtering predicate
+     */
+    default <T> void fire(Class<T> type, Predicate<T> filter, Consumer<T> consumer) {
+        fire(type, t -> {
+            if (filter.test(t)) {
+                consumer.accept(t);
+            }
+        });
+    }
 
     default void insertAndFire(Object... objects) {
         insert(objects);
