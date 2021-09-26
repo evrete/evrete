@@ -29,7 +29,7 @@ public class PrimeNumbers {
             session.fire();
 
             // Print current memory state
-            session.forEachFact(Integer.class, System.out::println);
+            session.forEachFact(System.out::println);
         }
         service.shutdown();
     }

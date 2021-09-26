@@ -107,6 +107,12 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
         });
     }
 
+    default StatefulSession forEachFact(Consumer<Object> consumer) {
+        return forEachFact((factHandle, o) -> {
+            consumer.accept(o);
+        });
+    }
+
     /**
      * <p>
      * A memory inspection method that accepts fact type as an argument.
