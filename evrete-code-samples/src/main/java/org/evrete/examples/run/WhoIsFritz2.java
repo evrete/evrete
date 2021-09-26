@@ -1,4 +1,4 @@
-package org.evrete.examples;
+package org.evrete.examples.run;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.StatefulSession;
@@ -41,7 +41,7 @@ class WhoIsFritz2 {
 
         // Fritz should have been identified as a green frog
         System.out.println("Is Fritz a frog?\t" + fritz.isFrog);
-        System.out.println("Is Fritz green?\t\t" + fritz.green);
+        System.out.println("Is Fritz green? \t" + fritz.green);
 
         session.close();
         service.shutdown();
