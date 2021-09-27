@@ -27,7 +27,7 @@ public class PrimeNumbersInline {
             // Execute rules
             session.fire();
             // Print current memory state
-            session.forEachFact(System.out::println);
+            session.forEachFact(o -> System.out.print(o + " "));
         }
         service.shutdown();
     }
