@@ -130,7 +130,7 @@ class EvaluatorCompiler {
 
         FieldReference[] descriptor = descriptorBuilder.toArray(FieldReference.ZERO_ARRAY);
         if (descriptor.length == 0)
-            throw new IllegalStateException("No field references were resolved in '" + strippedExpression + "'");
+            throw new IllegalArgumentException("No field references were resolved in the '" + strippedExpression + "'");
         MethodHandle methodHandle = compileExpression(classJavaSource);
         return new CompiledEvaluator(methodHandle, remover.getOriginal(), comparableClassSource, descriptor);
 
