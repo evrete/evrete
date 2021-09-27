@@ -1,4 +1,4 @@
-package org.evrete.samples;
+package org.evrete.examples.run;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
@@ -10,14 +10,13 @@ import org.evrete.dsl.annotation.Where;
 
 import java.io.IOException;
 
-@SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class PrimeNumbersDSLClass {
     public static void main(String[] args) throws IOException {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
                 .newKnowledge(
                         "JAVA-CLASS",
-                        PrimeNumbersDSLClass.class);
+                        PrimeNumbersDSLClass.Ruleset.class);
 
         try (StatefulSession session = knowledge.newStatefulSession()) {
             // Inject candidates
@@ -32,9 +31,12 @@ public class PrimeNumbersDSLClass {
         service.shutdown();
     }
 
-    @Rule
-    @Where(value = "$i1 * $i2 == $i3")
-    public static void rule(RhsContext ctx, @Fact("$i1") int i1, @Fact("$i2") int i2, @Fact("$i3") int i3) {
-        ctx.deleteFact("$i3");
+
+    public static class Ruleset {
+        @Rule
+        @Where(value = "$i1 * $i2 == $i3")
+        public static void rule(RhsContext ctx, @Fact("$i1") int i1, @Fact("$i2") int i2, @Fact("$i3") int i3) {
+            ctx.deleteFact("$i3");
+        }
     }
 }

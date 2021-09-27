@@ -4,7 +4,7 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
 
-public class PrimeNumbers {
+public class PrimeNumbersInline {
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service

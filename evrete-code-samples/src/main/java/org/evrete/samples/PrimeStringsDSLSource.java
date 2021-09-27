@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Random;
 
-@SuppressWarnings("unused")
 public class PrimeStringsDSLSource {
     public static void main(String[] args) throws IOException {
         KnowledgeService service = new KnowledgeService();
