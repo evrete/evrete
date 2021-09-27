@@ -40,10 +40,7 @@ class WhoIsFritzAdvanced {
 
         // Insert Fritz and fire all rules
         session.insertAndFire(fritz);
-
-        // Fritz should have been identified as a green frog
         System.out.println(fritz);
-
         service.shutdown();
     }
 
