@@ -15,7 +15,7 @@ public class WhoIsFritzAnnotated {
                         "JAVA-CLASS",
                         WhoIsFritzAnnotated.RuleSet.class);
 
-        // Init subject and it's known properties
+        // Init subject and its known properties
         Subject fritz = new Subject();
         fritz.croaks = true;
         fritz.eatsFlies = true;
