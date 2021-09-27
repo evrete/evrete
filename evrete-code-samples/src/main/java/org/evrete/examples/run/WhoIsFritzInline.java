@@ -3,10 +3,6 @@ package org.evrete.examples.run;
 import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 
-/**
- * A classical forward chaining example from
- * https://en.wikipedia.org/wiki/Forward_chaining
- */
 class WhoIsFritzInline {
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();

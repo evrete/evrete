@@ -7,10 +7,8 @@ import org.evrete.dsl.annotation.Fact;
 import org.evrete.dsl.annotation.Rule;
 import org.evrete.dsl.annotation.Where;
 
-import java.io.IOException;
-
 public class WhoIsFritzAnnotated {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
                 .newKnowledge(
@@ -40,7 +38,6 @@ public class WhoIsFritzAnnotated {
     }
 
     public static class RuleSet {
-
         @Rule
         @Where({"$s.isFrog", "!$s.green"})
         public void rule1(RhsContext ctx, @Fact("$s") Subject $s) {
