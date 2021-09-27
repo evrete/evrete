@@ -1,4 +1,4 @@
-package org.evrete.samples.reasoning;
+package org.evrete.examples.run;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
@@ -6,16 +6,7 @@ import org.evrete.api.*;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * <p>
- * A classical forward chaining example from
- * https://en.wikipedia.org/wiki/Forward_chaining
- * </p>
- * <p>
- * This example shows how type fields can be created on the fly.
- * </p>
- */
-class WhoIsFritzDynamicFields {
+class WhoIsFritzAdvanced {
     public static void main(String[] args) {
 
         KnowledgeService service = new KnowledgeService();
@@ -67,19 +58,13 @@ class WhoIsFritzDynamicFields {
     @SuppressWarnings("unused")
     public static class Subject {
         private final Map<String, Boolean> properties = new HashMap<>();
-
         void set(String prop) {
             properties.put(prop, true);
-        }
-
-        void unSet(String prop) {
-            properties.put(prop, false);
         }
 
         boolean isNot(String prop) {
             Boolean s = properties.get(prop);
             return !Boolean.TRUE.equals(s);
-
         }
 
         @Override
@@ -98,7 +83,6 @@ class WhoIsFritzDynamicFields {
         public TypeField getField(String name) {
             TypeField found = super.getField(name);
             if (found == null) {
-                //Declaring field right in the get method
                 found = declareBooleanField(name, subject -> {
                     Boolean state = subject.properties.get(name);
                     return Boolean.TRUE.equals(state);

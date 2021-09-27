@@ -1,17 +1,16 @@
 package org.evrete.examples.run;
 
 import org.evrete.KnowledgeService;
-import org.evrete.api.StatefulSession;
+import org.evrete.api.Knowledge;
 
 /**
  * A classical forward chaining example from
  * https://en.wikipedia.org/wiki/Forward_chaining
  */
-class WhoIsFritz2 {
+class WhoIsFritzInline {
     public static void main(String[] args) {
-
         KnowledgeService service = new KnowledgeService();
-        StatefulSession session = service
+        Knowledge knowledge = service
                 .newKnowledge()
                 .newRule()
                 .forEach("$s", Subject.class)
@@ -28,27 +27,23 @@ class WhoIsFritz2 {
                     Subject $s = ctx.get("$s");
                     $s.isFrog = true;
                     ctx.update($s);
-                })
-                .newStatefulSession();
+                });
 
-        // Fritz and his known properties
+        // Init subject and it's known properties
         Subject fritz = new Subject();
         fritz.croaks = true;
         fritz.eatsFlies = true;
 
         // Insert Fritz and fire all rules
-        session.insertAndFire(fritz);
+        knowledge.newStatelessSession().insertAndFire(fritz);
 
         // Fritz should have been identified as a green frog
         System.out.println("Is Fritz a frog?\t" + fritz.isFrog);
         System.out.println("Is Fritz green? \t" + fritz.green);
 
-        session.close();
         service.shutdown();
     }
 
-
-    @SuppressWarnings({"unused", "WeakerAccess"})
     public static class Subject {
         public boolean croaks;
         public boolean eatsFlies;
