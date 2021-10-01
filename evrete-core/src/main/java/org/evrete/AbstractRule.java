@@ -57,6 +57,11 @@ public abstract class AbstractRule implements Rule {
     }
 
     @Override
+    public Consumer<RhsContext> getRhs() {
+        return rhs;
+    }
+
+    @Override
     public Collection<String> getPropertyNames() {
         return properties.keySet();
     }

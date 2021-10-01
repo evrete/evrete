@@ -1,5 +1,6 @@
 package org.evrete.dsl;
 
+import org.evrete.api.ActivationManager;
 import org.evrete.api.RuleSession;
 import org.evrete.api.RuntimeRule;
 import org.evrete.util.AbstractSessionWrapper;
@@ -29,7 +30,6 @@ abstract class AbstractDSLSession<S extends RuleSession<S>> extends AbstractSess
             }
         }
 
-        listeners.fire(Phase.CREATE, this);
 
         delegate.addEventListener(evt -> {
             switch (evt) {
@@ -42,6 +42,12 @@ abstract class AbstractDSLSession<S extends RuleSession<S>> extends AbstractSess
                 default:
             }
         });
+
+        if (classInstance instanceof ActivationManager) {
+            setActivationManager((ActivationManager) classInstance);
+        }
+
+        listeners.fire(Phase.CREATE, this);
 
     }
 

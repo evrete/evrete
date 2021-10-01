@@ -5,7 +5,7 @@ import org.evrete.api.*;
 
 import java.util.HashMap;
 
-class WhoIsFritzAdvanced {
+public class WhoIsFritzAdvanced {
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service.newKnowledge();
@@ -57,15 +57,15 @@ class WhoIsFritzAdvanced {
 
         @Override
         public TypeField getField(String name) {
-            TypeField found = super.getField(name);
-            if (found == null) {
+            TypeField field = super.getField(name);
+            if (field == null) {
                 // Declaring a new field on the fly
-                found = declareBooleanField(
+                field = declareBooleanField(
                         name,
                         obj -> Boolean.TRUE.equals(obj.get(name))
                 );
             }
-            return found;
+            return field;
         }
     }
 }

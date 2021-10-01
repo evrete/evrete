@@ -3,7 +3,7 @@ package org.evrete.examples.run;
 import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 
-class WhoIsFritzInline {
+public class WhoIsFritzInline {
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service

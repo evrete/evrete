@@ -8,6 +8,8 @@ public interface Rule extends FluentEnvironment<Rule>, Named, FluentImports<Rule
 
     void setRhs(Consumer<RhsContext> rhs);
 
+    Consumer<RhsContext> getRhs();
+
     int getSalience();
 
     void setSalience(int value);

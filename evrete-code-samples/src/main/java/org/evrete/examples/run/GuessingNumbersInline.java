@@ -43,7 +43,8 @@ public class GuessingNumbersInline {
 
             session.insert(p1, p2);
             session.fire();
-            // And nothing happens because there are no rules matching Player instances only.
+            // And nothing happens because there are no rules matching
+            // Player instances only.
 
             // To kickstart the session we need an initial Guess
             Guess initialGuess = new Guess(p1);
@@ -51,7 +52,10 @@ public class GuessingNumbersInline {
             session.fire();
 
             // Printing the winner
-            session.forEachFact(Player.class, o -> System.out.println("\nThe winner is " + o));
+            session.forEachFact(
+                    Player.class,
+                    o -> System.out.println("\nThe winner is " + o)
+            );
         }
         service.shutdown();
     }
