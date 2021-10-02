@@ -4,7 +4,6 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
 import org.evrete.api.Type;
-import org.evrete.api.TypeField;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -33,14 +32,14 @@ public class XMLFacts {
                 .getOrDeclare(CUSTOMER_TYPE_NAME, Document.class);
 
         // Declaring the "active" field
-        TypeField activeField = customerType
+        customerType
                 .declareBooleanField(
                         "active",
                         doc -> Boolean.parseBoolean(doc.getDocumentElement().getAttribute("active"))
                 );
 
         // Declaring the "name" field
-        TypeField nameField = customerType
+        customerType
                 .declareField(
                         "name",
                         String.class,
