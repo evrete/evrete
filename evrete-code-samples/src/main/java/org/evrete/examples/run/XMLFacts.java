@@ -10,7 +10,6 @@ import org.w3c.dom.Element;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -24,10 +23,11 @@ public class XMLFacts {
     private static final TransformerFactory TRANSFORMER_FACTORY = TransformerFactory.newInstance();
     private static final String CUSTOMER_TYPE_NAME = "Customer XML Type";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service.newKnowledge();
 
+        // Declaring a new type associated with XML documents
         Type<Document> customerType = knowledge
                 .getTypeResolver()
                 .getOrDeclare(CUSTOMER_TYPE_NAME, Document.class);
@@ -47,6 +47,7 @@ public class XMLFacts {
                         doc -> doc.getDocumentElement().getAttribute("name")
                 );
 
+        // Creating knowledge and session
         StatefulSession session = knowledge
                 .newRule("Process active XML Customers")
                 .forEach("$c", CUSTOMER_TYPE_NAME)
@@ -65,24 +66,22 @@ public class XMLFacts {
         Document customer1 = newCustomer("ABC Ltd", true);
         Document customer2 = newCustomer("XYZ Ltd", false);
 
+        // Explicit type declaration during inserts
         session.insert(CUSTOMER_TYPE_NAME, customer1);
         session.insert(CUSTOMER_TYPE_NAME, customer2);
 
         session.fire();
+        // Only one XML document will pass the 'active == true' filter
     }
 
-    private static Document newCustomer(String name, boolean active) {
-        try {
-            DocumentBuilder builder = BUILDER_FACTORY.newDocumentBuilder();
-            Document doc = builder.newDocument();
-            Element root = doc.createElement("customer");
-            root.setAttribute("name", name);
-            root.setAttribute("active", String.valueOf(active));
-            doc.appendChild(root);
-            return doc;
-        } catch (ParserConfigurationException e) {
-            throw new IllegalStateException(e);
-        }
+    private static Document newCustomer(String name, boolean active) throws Exception {
+        DocumentBuilder builder = BUILDER_FACTORY.newDocumentBuilder();
+        Document doc = builder.newDocument();
+        Element root = doc.createElement("customer");
+        root.setAttribute("name", name);
+        root.setAttribute("active", String.valueOf(active));
+        doc.appendChild(root);
+        return doc;
     }
 
     private static String asString(Document doc) {
