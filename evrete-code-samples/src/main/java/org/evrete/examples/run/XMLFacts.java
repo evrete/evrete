@@ -54,11 +54,9 @@ public class XMLFacts {
                 .where("$c.active == true")
                 .execute(ctx -> {
                     Document customer = ctx.get("$c");
-                    boolean activeValue = activeField.readValue(customer);
-                    String nameValue = nameField.readValue(customer);
                     System.out.printf(
-                            "An active customer processed:%n\tname='%s', %n\tactive='%s', %n\tsource='%s'\n",
-                            nameValue, activeValue, asString(customer)
+                            "An active customer processed:%n\tsource='%s'\n",
+                            asString(customer)
                     );
                 })
                 .newStatefulSession();
