@@ -2,7 +2,7 @@ package org.evrete.examples.run;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
-import org.evrete.api.StatefulSession;
+import org.evrete.api.StatelessSession;
 import org.evrete.api.Type;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -29,7 +29,7 @@ public class XMLFacts {
         // Declaring a new type associated with XML documents
         Type<Document> customerType = knowledge
                 .getTypeResolver()
-                .getOrDeclare(CUSTOMER_TYPE_NAME, Document.class);
+                .declare(CUSTOMER_TYPE_NAME, Document.class);
 
         // Declaring the "active" field
         customerType
@@ -47,7 +47,7 @@ public class XMLFacts {
                 );
 
         // Creating knowledge and session
-        StatefulSession session = knowledge
+        StatelessSession session = knowledge
                 .newRule("Process active XML Customers")
                 .forEach("$c", CUSTOMER_TYPE_NAME)
                 .where("$c.active == true")
@@ -58,7 +58,7 @@ public class XMLFacts {
                             asString(customer)
                     );
                 })
-                .newStatefulSession();
+                .newStatelessSession();
 
         Document customer1 = newCustomer("ABC Ltd", true);
         Document customer2 = newCustomer("XYZ Ltd", false);
