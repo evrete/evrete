@@ -24,7 +24,7 @@ class TypeDeclarationExample {
                         }
                 );
 
-        // New field in a rule
+        // New 'factorial' field in a rule
         StatelessSession session = knowledge
                 .newRule()
                 .forEach(
