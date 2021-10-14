@@ -36,7 +36,12 @@ class TypeDeclarationExample {
                     Integer i2 = ctx.get("$i2");
                     long factorial1 = factorialField.readValue(i1);
                     long factorial2 = factorialField.readValue(i2);
-                    System.out.printf("i1: %d (%d)\t\ti2: %d (%d)%n", i1, factorial1, i2, factorial2);
+                    System.out.printf("i1: %d (%d)\t\ti2: %d (%d)%n",
+                            i1,
+                            factorial1,
+                            i2,
+                            factorial2
+                    );
                 })
                 .newStatelessSession();
 
