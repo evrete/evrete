@@ -5,7 +5,7 @@ import org.evrete.api.Knowledge;
 import org.evrete.api.StatelessSession;
 import org.evrete.api.TypeField;
 
-class TypeDeclarationExample {
+class TypeDeclarationInline {
 
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
