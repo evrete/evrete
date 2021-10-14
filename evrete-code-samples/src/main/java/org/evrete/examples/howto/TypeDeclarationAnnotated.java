@@ -1,22 +1,19 @@
 package org.evrete.examples.howto;
 
 import org.evrete.KnowledgeService;
-import org.evrete.api.Knowledge;
 import org.evrete.api.StatelessSession;
 import org.evrete.dsl.annotation.*;
 
-import java.io.IOException;
-
 class TypeDeclarationAnnotated {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         KnowledgeService service = new KnowledgeService();
-        Knowledge knowledge = service.newKnowledge(
-                "JAVA-CLASS",
-                FactorialRuleset.class
-        );
-
-        StatelessSession session = knowledge.newStatelessSession();
+        StatelessSession session = service
+                .newKnowledge(
+                        "JAVA-CLASS",
+                        FactorialRuleset.class
+                )
+                .newStatelessSession();
         // Testing the rule
         session.insertAndFire(4, 5, 6);
         service.shutdown();
@@ -24,6 +21,7 @@ class TypeDeclarationAnnotated {
 
     @RuleSet
     public static class FactorialRuleset {
+
         @Rule
         @Where("$i1.factorial > $i2.factorial")
         public void rule1(@Fact("$i1") Integer $i1, @Fact("$i2") Integer $i2) {
