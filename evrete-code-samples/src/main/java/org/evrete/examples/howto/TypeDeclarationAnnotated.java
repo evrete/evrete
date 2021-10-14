@@ -25,13 +25,13 @@ class TypeDeclarationAnnotated {
 
         @Rule
         @Where("$i1.factorial > $i2.factorial")
-        public void rule1(@Fact("$i1") Integer $i1, @Fact("$i2") Integer $i2) {
-            long factorial1 = factorial($i1);
-            long factorial2 = factorial($i2);
+        public void rule1(@Fact("$i1") Integer i1, @Fact("$i2") Integer i2) {
+            long factorial1 = factorial(i1);
+            long factorial2 = factorial(i2);
             System.out.printf("i1: %d (%d)\t\ti2: %d (%d)%n",
-                $i1,
+                i1,
                 factorial1,
-                $i2,
+                i2,
                 factorial2
             );
         }
