@@ -14,6 +14,7 @@ class TypeDeclarationAnnotated {
                 FactorialRuleset.class
             )
             .newStatelessSession();
+
         // Testing the rule
         session.insertAndFire(4, 5, 6);
         service.shutdown();
