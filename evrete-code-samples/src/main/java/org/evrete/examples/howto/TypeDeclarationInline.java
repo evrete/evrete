@@ -5,7 +5,7 @@ import org.evrete.api.Knowledge;
 import org.evrete.api.StatelessSession;
 import org.evrete.api.TypeField;
 
-class TypeDeclarationInline {
+public class TypeDeclarationInline {
 
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
@@ -13,9 +13,9 @@ class TypeDeclarationInline {
 
         // Field declaration
         TypeField factorialField = knowledge
-            .getTypeResolver()
-            .getOrDeclare(Integer.class)
-            .declareLongField(
+                .getTypeResolver()
+                .getOrDeclare(Integer.class)
+                .declareLongField(
                 "factorial",
                 i -> {
                     long f = 1L;

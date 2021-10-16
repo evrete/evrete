@@ -4,16 +4,16 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.StatelessSession;
 import org.evrete.dsl.annotation.*;
 
-class TypeDeclarationAnnotated {
+public class TypeDeclarationAnnotated {
 
     public static void main(String[] args) throws Exception {
         KnowledgeService service = new KnowledgeService();
         StatelessSession session = service
-            .newKnowledge(
-                "JAVA-CLASS",
-                FactorialRuleset.class
-            )
-            .newStatelessSession();
+                .newKnowledge(
+                        "JAVA-CLASS",
+                        FactorialRuleset.class
+                )
+                .newStatelessSession();
 
         // Testing the rule
         session.insertAndFire(4, 5, 6);

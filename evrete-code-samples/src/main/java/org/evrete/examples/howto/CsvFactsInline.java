@@ -6,7 +6,7 @@ import org.evrete.api.StatelessSession;
 import org.evrete.api.Type;
 import org.evrete.api.TypeResolver;
 
-class CsvFactsInline {
+public class CsvFactsInline {
     private static final String TYPE_PERSON = "Hello Person!";
     private static final String TYPE_LOCATION = "Hello Location!";
 
@@ -27,7 +27,7 @@ class CsvFactsInline {
         lt.declareField("street", String.class, s -> s.split(",")[0]);
         lt.declareIntField("zip", s -> Integer.parseInt(s.split(",")[1]));
 
-        // New 'factorial' field in a rule
+        // Build knowledge & session
         StatelessSession session = knowledge
                 .newRule()
                 .forEach(
