@@ -7,8 +7,8 @@ import org.evrete.api.Type;
 import org.evrete.api.TypeResolver;
 
 public class CsvFactsInline {
-    private static final String TYPE_PERSON = "Hello Person!";
-    private static final String TYPE_LOCATION = "Hello Location!";
+    private static final String TYPE_PERSON = "Person Type";
+    private static final String TYPE_LOCATION = "Location Type";
 
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
