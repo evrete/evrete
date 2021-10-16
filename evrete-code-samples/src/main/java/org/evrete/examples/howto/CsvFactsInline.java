@@ -24,7 +24,7 @@ public class CsvFactsInline {
 
         // Location type & fields
         Type<String> lt = resolver.declare(TYPE_LOCATION, String.class);
-        lt.declareField("street", String.class, s -> s.split(",")[0]);
+        lt.declareField("address", String.class, s -> s.split(",")[0]);
         lt.declareIntField("zip", s -> Integer.parseInt(s.split(",")[1]));
 
         // Build knowledge & session
@@ -33,7 +33,7 @@ public class CsvFactsInline {
                 .forEach(
                         "$p", TYPE_PERSON,
                         "$l", TYPE_LOCATION)
-                .where("$p.location.equals($l.street)")
+                .where("$p.location.equals($l.address)")
                 .where("$p.age > 18")
                 .execute(ctx -> {
                     String person = ctx.get("$p");

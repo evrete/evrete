@@ -42,7 +42,7 @@ public class CsvFactsAnnotated {
         @Rule
         @Where(methods = {
                 @MethodPredicate(method = "test1", args = {"$p.age"}),
-                @MethodPredicate(method = "test2", args = {"$p.location", "$l.street"})
+                @MethodPredicate(method = "test2", args = {"$p.location", "$l.address"})
         })
         public void rule1(@Fact(value = "$p", type = TYPE_PERSON) String p, @Fact(value = "$l", type = TYPE_LOCATION) String l) {
             System.out.println("Match: <" + p + "> at <" + l + ">");
@@ -58,7 +58,7 @@ public class CsvFactsAnnotated {
             return s.split(",")[2];
         }
 
-        @FieldDeclaration(type = TYPE_LOCATION, name = "street")
+        @FieldDeclaration(type = TYPE_LOCATION, name = "address")
         public String field3(String s) {
             return s.split(",")[0];
         }
