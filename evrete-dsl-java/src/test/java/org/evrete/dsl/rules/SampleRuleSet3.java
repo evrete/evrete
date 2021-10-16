@@ -11,7 +11,7 @@ public class SampleRuleSet3 extends SuperRuleSet3 {
     @SuppressWarnings({"unused"})
     @Rule("Delete non-prime integers")
     @Where(
-            asMethods = {@MethodPredicate(method = "test", descriptor = {"$i1", "$i2", "$i3"})}
+            methods = {@MethodPredicate(method = "test", args = {"$i1", "$i2", "$i3"})}
     )
     public void rule(RhsContext ctx, @Fact("$i1") int $i1, @Fact("$i2") int i2, @Fact("$i3") int $i3) {
         ctx.delete($i3);

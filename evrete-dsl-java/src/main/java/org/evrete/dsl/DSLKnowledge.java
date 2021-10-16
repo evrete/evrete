@@ -45,7 +45,12 @@ class DSLKnowledge extends KnowledgeWrapper {
             // Creating facts
             LhsBuilder<Knowledge> lhs = builder.getLhs();
             for (RuleMethod.FactDeclaration p : rm.factDeclarations) {
-                lhs.addFactDeclaration(p.name, Utils.box(p.type));
+                Class<?> cl = Utils.box(p.javaType);
+                if (p.namedType == null) {
+                    lhs.addFactDeclaration(p.name, cl);
+                } else {
+                    lhs.addFactDeclaration(p.name, p.namedType);
+                }
             }
 
             // Adding literal conditions
@@ -54,7 +59,10 @@ class DSLKnowledge extends KnowledgeWrapper {
             List<PredicateMethod> predicateMethods = new LinkedList<>();
             for (MethodPredicate mp : rm.methodPredicates) {
                 String methodName = mp.method();
-                final FieldReference[] descriptor = getExpressionResolver().resolve(lhs, mp.descriptor());
+
+                @SuppressWarnings("deprecation")
+                String[] args = mp.args().length == 0 ? mp.descriptor() : mp.args();
+                final FieldReference[] descriptor = getExpressionResolver().resolve(lhs, args);
                 Class<?>[] signature = Utils.asMethodSignature(descriptor);
                 MethodType methodType = MethodType.methodType(boolean.class, signature);
                 ClassMethod mv = ClassMethod.lookup(meta.lookup, methodName, methodType);

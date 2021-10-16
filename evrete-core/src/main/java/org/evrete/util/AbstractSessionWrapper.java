@@ -17,8 +17,8 @@ public abstract class AbstractSessionWrapper<S extends RuleSession<S>> extends R
     }
 
     @Override
-    public FactHandle insert(String type, Object fact) {
-        return delegate.insert(type, fact);
+    public FactHandle insertAs(String type, Object fact) {
+        return delegate.insertAs(type, fact);
     }
 
     @Override

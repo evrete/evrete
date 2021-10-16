@@ -5,9 +5,9 @@ import org.evrete.api.RhsContext;
 import org.evrete.dsl.Phase;
 import org.evrete.dsl.annotation.*;
 
-public class DeclarationRuleSet3 {
+public class DeclarationRuleSet5 {
 
-    @FieldDeclaration(name = "intField")
+    @FieldDeclaration(name = "intField", type = "Hello world type")
     public static int intValue(String fact) {
         return Integer.parseInt(fact);
     }
@@ -22,7 +22,7 @@ public class DeclarationRuleSet3 {
 
     @Rule("Delete non-prime integers")
     @Where(methods = {@MethodPredicate(method = "test", args = {"$i1.intField", "$i2.intField", "$i3.intField"})})
-    public void rule(RhsContext ctx, @Fact("$i1") String $i1, @Fact("$i2") String i2, @Fact("$i3") String $i3) {
+    public void rule(RhsContext ctx, @Fact(value = "$i1", type = "Hello world type") String $i1, @Fact(value = "$i2", type = "Hello world type") String i2, @Fact(value = "$i3", type = "Hello world type") String $i3) {
         ctx.delete($i3);
     }
 }

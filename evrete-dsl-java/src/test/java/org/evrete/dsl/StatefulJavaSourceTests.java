@@ -122,6 +122,25 @@ class StatefulJavaSourceTests extends CommonTestMethods {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    void primeStaticMethod_1(ActivationMode mode) {
+        Knowledge knowledge = applyToRuntimeAsFile(service, service.newTypeResolver(), AbstractDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/PrimeNumbers2.java"));
+        StatefulSession session = session(knowledge, mode);
+
+        assert session.getRules().size() == 1;
+        for (int i = 2; i < 100; i++) {
+            session.insert(i);
+        }
+        session.fire();
+
+        NextIntSupplier primeCounter = new NextIntSupplier();
+        session.forEachFact((h, o) -> primeCounter.next());
+
+        assert primeCounter.get() == 25;
+
+    }
+
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
     void primeNonStaticMethodNonStaticCondition(ActivationMode mode) {
         Knowledge knowledge = applyToRuntimeAsFile(service, AbstractDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/PrimeNumbers3.java"));
         StatefulSession session = session(knowledge, mode);

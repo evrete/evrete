@@ -19,6 +19,10 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
         super(service);
     }
 
+    public KnowledgeRuntime(KnowledgeService service, TypeResolver typeResolver) {
+        super(service, typeResolver);
+    }
+
     @Override
     public void onNewActiveField(ActiveField newField) {
         // Do nothing

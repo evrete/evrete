@@ -1,6 +1,5 @@
 package org.evrete.dsl;
 
-import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.spi.DSLKnowledgeProvider;
 import org.evrete.dsl.annotation.FieldDeclaration;
@@ -9,7 +8,6 @@ import org.evrete.dsl.annotation.Rule;
 
 import java.io.*;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.nio.charset.Charset;
 
 import static org.evrete.dsl.Utils.LOGGER;
@@ -32,14 +30,14 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider {
         for (Method m : javaClass.getMethods()) {
             Rule ruleAnnotation = m.getAnnotation(Rule.class);
             PhaseListener listenerAnnotation = m.getAnnotation(PhaseListener.class);
-            FieldDeclaration fieldAnnotation = m.getAnnotation(FieldDeclaration.class);
+            FieldDeclaration fieldDeclaration = m.getAnnotation(FieldDeclaration.class);
 
             if (ruleAnnotation != null) {
                 meta.addRuleMethod(m);
             } else if (listenerAnnotation != null) {
                 meta.addListener(m);
-            } else if (fieldAnnotation != null) {
-                meta.addFieldDeclaration(m);
+            } else if (fieldDeclaration != null) {
+                meta.addFieldDeclaration(m, fieldDeclaration.type());
             }
         }
 
@@ -84,20 +82,5 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider {
         }
         bos.close();
         return bos.toByteArray();
-    }
-
-    @Override
-    public final Knowledge create(KnowledgeService service, URL... resources) throws IOException {
-        if (resources == null || resources.length == 0) throw new IOException("Empty resources");
-        InputStream[] streams = new InputStream[resources.length];
-        for (int i = 0; i < resources.length; i++) {
-            streams[i] = resources[i].openStream();
-        }
-        Knowledge knowledge = create(service, streams);
-
-        for (InputStream stream : streams) {
-            stream.close();
-        }
-        return knowledge;
     }
 }

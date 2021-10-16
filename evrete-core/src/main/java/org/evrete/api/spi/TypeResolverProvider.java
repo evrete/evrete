@@ -6,6 +6,9 @@ import org.evrete.api.TypeResolver;
 
 public interface TypeResolverProvider extends OrderedServiceProvider {
 
-    TypeResolver instance(RuntimeContext<?> requester);
+    default TypeResolver instance(RuntimeContext<?> requester) {
+        return instance(requester.getClassLoader());
+    }
 
+    TypeResolver instance(ClassLoader classLoader);
 }

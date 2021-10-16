@@ -16,7 +16,7 @@ public class RuleSet2 {
     }
 
     @Rule
-    @Where(asMethods = {@MethodPredicate(method = "test", descriptor = {"$i1.value", "$i2", "$i3.value"})})
+    @Where(methods = {@MethodPredicate(method = "test", args = {"$i1.value", "$i2", "$i3.value"})})
     public void deleteNonPrime(@Fact("$i1") IntValue i1, @Fact("$i2") IntValue i2, @Fact("$i3") IntValue i3, RhsContext ctx) {
         ctx.deleteFact("$i3");
     }

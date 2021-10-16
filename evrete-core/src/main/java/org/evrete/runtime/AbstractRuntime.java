@@ -24,7 +24,11 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     private final Configuration configuration;
 
     AbstractRuntime(KnowledgeService service) {
-        super(service);
+        this(service, service.newTypeResolver());
+    }
+
+    AbstractRuntime(KnowledgeService service, TypeResolver typeResolver) {
+        super(service, typeResolver);
         this.configuration = service.getConfiguration().copyOf();
         this.service = service;
         this.activationManagerFactory = DefaultActivationManager.class;

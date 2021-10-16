@@ -32,11 +32,27 @@ class StatefulJavaJarTests extends CommonTestMethods {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void test(ActivationMode mode) {
-        service
-                .getConfiguration()
-                .setProperty(DSLJarProvider.CLASSES_PROPERTY, "pkg1.evrete.tests.rule.RuleSet1");
-        Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar1/jar1-tests.jar"));
+    void test1(ActivationMode mode) {
+        Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar2/jar2-tests.jar"));
+        StatefulSession session = session(knowledge, mode);
+        assert session.getRules().size() == 2;
+        for (int i = 2; i < 100; i++) {
+            session.insert(i);
+        }
+        session.fire();
+
+        NextIntSupplier primeCounter = new NextIntSupplier();
+        session.forEachFact((h, o) -> primeCounter.next());
+
+        assert primeCounter.get() == 25;
+
+    }
+
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void test2(ActivationMode mode) {
+
+        Knowledge knowledge = applyToRuntimeAsURLs(service, service.newTypeResolver(), AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar2/jar2-tests.jar"));
         StatefulSession session = session(knowledge, mode);
         assert session.getRules().size() == 2;
         for (int i = 2; i < 100; i++) {
@@ -61,10 +77,7 @@ class StatefulJavaJarTests extends CommonTestMethods {
             return;
         }
 
-        service
-                .getConfiguration()
-                .setProperty(DSLJarProvider.CLASSES_PROPERTY, "pkg2.evrete.tests.rule.RuleSet1");
-        Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar2/jar2-tests.jar"));
+        Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar-records1/jar-records1-tests.jar"));
         StatefulSession session = session(knowledge, mode);
         assert session.getRules().size() == 2;
         for (int i = 2; i < 100; i++) {

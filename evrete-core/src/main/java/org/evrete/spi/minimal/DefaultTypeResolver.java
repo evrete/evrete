@@ -1,6 +1,5 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.RuntimeContext;
 import org.evrete.api.Type;
 import org.evrete.api.TypeResolver;
 import org.evrete.api.TypeWrapper;
@@ -9,9 +8,8 @@ import org.evrete.collections.ArrayOf;
 import java.util.*;
 import java.util.logging.Logger;
 
-class TypeResolverImpl implements TypeResolver {
-    private static final Logger LOGGER = Logger.getLogger(TypeResolverImpl.class.getName());
-    private static final List<Class<?>> EMPTY_CLASS_LIST = new ArrayList<>();
+class DefaultTypeResolver implements TypeResolver {
+    private static final Logger LOGGER = Logger.getLogger(DefaultTypeResolver.class.getName());
     private final Map<String, Type<?>> typeDeclarationMap = new HashMap<>();
     private final Map<Integer, Type<?>> typesById = new HashMap<>();
     private final Map<String, ArrayOf<Type<?>>> typesByJavaType = new HashMap<>();
@@ -20,11 +18,11 @@ class TypeResolverImpl implements TypeResolver {
     private final ClassLoader classLoader;
     private int fieldSetsCounter = 0;
 
-    TypeResolverImpl(RuntimeContext<?> requester) {
-        this.classLoader = requester.getClassLoader();
+    DefaultTypeResolver(ClassLoader classLoader) {
+        this.classLoader = classLoader;
     }
 
-    private TypeResolverImpl(TypeResolverImpl other) {
+    private DefaultTypeResolver(DefaultTypeResolver other) {
         this.classLoader = other.classLoader;
         this.fieldSetsCounter = other.fieldSetsCounter;
         for (Map.Entry<String, Type<?>> entry : other.typeDeclarationMap.entrySet()) {
@@ -43,21 +41,6 @@ class TypeResolverImpl implements TypeResolver {
         for (Map.Entry<String, ArrayOf<Type<?>>> entry : other.typesByJavaType.entrySet()) {
             this.typesByJavaType.put(entry.getKey(), new ArrayOf<>(entry.getValue()));
         }
-    }
-
-    //TODO scan interfaces as well
-    private static List<Class<?>> superClasses(Class<?> subject) {
-        if (subject.isArray() || subject.isPrimitive() || subject.equals(Object.class)) return EMPTY_CLASS_LIST;
-
-        List<Class<?>> l = new ArrayList<>();
-
-        Class<?> current = subject.getSuperclass();
-        while (!current.equals(Object.class)) {
-            l.add(current);
-            current = current.getSuperclass();
-        }
-
-        return l;
     }
 
     @Override
@@ -187,21 +170,18 @@ class TypeResolverImpl implements TypeResolver {
     }
 
     private Type<?> findInSuperClasses(Class<?> type) {
-        List<Type<?>> matching = new LinkedList<>();
-        List<Class<?>> superClasses = superClasses(type);
-        for (Class<?> sup : superClasses) {
-            String supName = sup.getName();
-            ArrayOf<Type<?>> match = typesByJavaType.get(supName);
-            if (match != null && match.data.length == 1) {
-                matching.add(match.data[0]);
+        List<Type<?>> matched = new ArrayList<>(typeDeclarationMap.size());
+        for (Type<?> t : typeDeclarationMap.values()) {
+            if (t.getJavaType().isAssignableFrom(type)) {
+                matched.add(t);
             }
         }
 
-        switch (matching.size()) {
+        switch (matched.size()) {
             case 0:
                 return null;
             case 1:
-                return matching.iterator().next();
+                return matched.iterator().next();
             default:
                 LOGGER.warning("Unable to resolve type '" + type + "' due to ambiguity.");
                 return null;
@@ -234,14 +214,16 @@ class TypeResolverImpl implements TypeResolver {
                         typeInheritanceCache.put(name, cacheEntry);
                     }
                 }
+            } else {
+                System.out.println("Cached!!");
             }
             return (TypeImpl<T>) cacheEntry.type;
         }
     }
 
     @Override
-    public TypeResolverImpl copyOf() {
-        return new TypeResolverImpl(this);
+    public DefaultTypeResolver copyOf() {
+        return new DefaultTypeResolver(this);
     }
 
     private static class TypeCacheEntry {

@@ -26,7 +26,7 @@ class RulesetMeta {
         ruleMethods.add(new RuleMethod(lookup, m));
     }
 
-    void addFieldDeclaration(Method method) {
-        fieldDeclarations.addFieldDeclaration(new FieldDeclarationMethod<>(lookup, method));
+    void addFieldDeclaration(Method method, String type) {
+        fieldDeclarations.addFieldDeclaration(new FieldDeclarationMethod<>(lookup, method, type));
     }
 }

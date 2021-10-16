@@ -8,11 +8,10 @@ public interface Knowledge extends RuntimeContext<Knowledge>, RuleSet<RuleDescri
     Collection<RuleSession<?>> getSessions();
 
     /**
-     * <p>Deprecated since 2.0.5, use {@link #newStatefulSession()} instead.</p>
-     *
      * @return new stateful session
+     * @deprecated Deprecated since 2.0.5, use {@link #newStatefulSession()} instead.
      */
-    @Deprecated()
+    @Deprecated
     default StatefulSession createSession() {
         return newStatefulSession();
     }

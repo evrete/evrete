@@ -10,7 +10,7 @@ public class PrimeNumbers4 {
 
     @Rule("Delete non-prime integers")
     @Where(
-            asMethods = {@MethodPredicate(method = "test", descriptor = {"$i1.intValue", "$i2.intValue", "$i3.intValue"})}
+            methods = {@MethodPredicate(method = "test", args = {"$i1.intValue", "$i2.intValue", "$i3.intValue"})}
             )
     public void rule(RhsContext ctx, int $i1, @Fact("$i2") int i2, int $i3) {
         ctx.delete($i3);

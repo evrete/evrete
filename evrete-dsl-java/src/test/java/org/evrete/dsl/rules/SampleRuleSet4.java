@@ -25,7 +25,7 @@ public class SampleRuleSet4 {
     }
 
     @Rule
-    @Where(asMethods = {@MethodPredicate(method = "testLong", descriptor = {"$l"})})
+    @Where(methods = {@MethodPredicate(method = "testLong", args = {"$l"})})
     public void ruleLong(@Fact("$l") Long $l) {
         System.setProperty(PROP, "true");
     }

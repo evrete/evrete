@@ -24,4 +24,5 @@ import java.lang.annotation.Target;
 public @interface FieldDeclaration {
     String name() default "";
 
+    String type() default "";
 }

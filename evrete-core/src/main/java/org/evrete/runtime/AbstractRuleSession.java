@@ -317,10 +317,11 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
 
     @SuppressWarnings("unused")
     @Override
-    public final FactHandle insert(String type, Object fact) {
+    public final FactHandle insertAs(String type, Object fact) {
         _assertActive();
         return insert(getTypeResolver().getType(type), fact);
     }
+
 
     @SuppressWarnings("unchecked")
     <T> T getFactInner(FactHandle handle) {

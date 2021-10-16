@@ -4,16 +4,15 @@ import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.RuleScope;
+import org.evrete.api.TypeResolver;
+import org.evrete.dsl.annotation.RuleSet;
 import org.evrete.util.compiler.BytesClassLoader;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.ProtectionDomain;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
@@ -34,18 +33,31 @@ public class DSLJarProvider extends AbstractDSLProvider {
         ClassLoader ctxClassLoader = knowledge.getClassLoader();
         ProtectionDomain domain = knowledge.getService().getSecurity().getProtectionDomain(RuleScope.BOTH);
         BytesClassLoader classLoader = new BytesClassLoader(ctxClassLoader, domain);
-        fillClassLoader(classLoader, streams);
-
+        List<Class<?>> ruleSets = fillClassLoader(classLoader, streams);
         Knowledge current = knowledge;
-        for (String ruleClass : ruleClasses) {
-            try {
-                Class<?> cl = classLoader.loadClass(ruleClass);
-                current = processRuleSet(current, cl);
-            } catch (ClassNotFoundException e) {
-                // No such rule class
-                LOGGER.warning("Ruleset class '" + ruleClass + "' not found");
+        if (ruleClasses.isEmpty()) {
+            // Implicit declaration via @RuleSet
+            if (ruleSets.isEmpty()) {
+                LOGGER.warning("Classes annotated with @" + RuleSet.class.getSimpleName() + " not found");
+                return knowledge;
+            } else {
+                for (Class<?> cl : ruleSets) {
+                    current = processRuleSet(current, cl);
+                }
+            }
+        } else {
+            // Classes specified explicitly
+            for (String ruleClass : ruleClasses) {
+                try {
+                    Class<?> cl = classLoader.loadClass(ruleClass);
+                    current = processRuleSet(current, cl);
+                } catch (ClassNotFoundException e) {
+                    // No such rule class
+                    LOGGER.warning("Ruleset class '" + ruleClass + "' not found");
+                }
             }
         }
+
         return current;
     }
 
@@ -63,19 +75,24 @@ public class DSLJarProvider extends AbstractDSLProvider {
         return ruleClasses;
     }
 
-    private static void fillClassLoader(BytesClassLoader classLoader, InputStream... resources) throws IOException {
+    private static List<Class<?>> fillClassLoader(BytesClassLoader classLoader, InputStream... resources) throws IOException {
         JarInputStream[] streams = new JarInputStream[resources.length];
         for (int i = 0; i < resources.length; i++) {
             streams[i] = new JarInputStream(resources[i]);
         }
+
+        List<Class<?>> ruleSets = new LinkedList<>();
+
         for (JarInputStream resource : streams) {
             try (JarInputStream is = resource) {
-                applyJar(classLoader, is);
+                List<Class<?>> jarRuleSets = applyJar(classLoader, is);
+                ruleSets.addAll(jarRuleSets);
             }
         }
+        return ruleSets;
     }
 
-    private static void applyJar(BytesClassLoader secureClassLoader, JarInputStream is) throws IOException {
+    private static List<Class<?>> applyJar(BytesClassLoader secureClassLoader, JarInputStream is) throws IOException {
         JarEntry entry;
         byte[] buffer = new byte[1024];
         Map<String, byte[]> resources = new HashMap<>();
@@ -97,36 +114,40 @@ public class DSLJarProvider extends AbstractDSLProvider {
         }
 
         // Building classes and resources
+        List<Class<?>> rulesets = new LinkedList<>();
         for (Map.Entry<String, byte[]> e : classes.entrySet()) {
             String className = e.getKey();
             byte[] bytes = e.getValue();
-
+            Class<?> clazz;
             try {
-                secureClassLoader.loadClass(className);
+                clazz = secureClassLoader.loadClass(className);
             } catch (ClassNotFoundException cnf) {
                 // Class not found, building new one
-                Class<?> clazz = secureClassLoader.buildClass(bytes);
+                clazz = secureClassLoader.buildClass(bytes);
                 if (!clazz.getName().equals(className)) {
                     throw new IllegalStateException();
                 }
             }
+
+            if (clazz.getAnnotation(RuleSet.class) != null) {
+                rulesets.add(clazz);
+            }
+
         }
 
         for (Map.Entry<String, byte[]> e : resources.entrySet()) {
             secureClassLoader.addResource(e.getKey(), e.getValue());
         }
+
+        return rulesets;
     }
 
     @Override
-    public Knowledge create(KnowledgeService service, InputStream... streams) throws IOException {
+    public Knowledge create(KnowledgeService service, TypeResolver typeResolver, InputStream... streams) throws IOException {
         if (streams == null || streams.length == 0) throw new IOException("Empty streams");
         Set<String> ruleClasses = ruleClasses(service.getConfiguration());
-        if (ruleClasses.isEmpty()) {
-            LOGGER.warning("No ruleset classes were specified in the '" + CLASSES_PROPERTY + "', resources skipped.");
-        }
-        Knowledge knowledge = service.newKnowledge();
+        Knowledge knowledge = service.newKnowledge(typeResolver);
         return apply(knowledge, ruleClasses, streams);
-
     }
 
     private static void validateClassName(String className) {

@@ -1,10 +1,7 @@
 package org.evrete.dsl;
 
 import org.evrete.KnowledgeService;
-import org.evrete.api.ActivationMode;
-import org.evrete.api.Knowledge;
-import org.evrete.api.RuntimeRule;
-import org.evrete.api.StatefulSession;
+import org.evrete.api.*;
 import org.evrete.dsl.rules.*;
 import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
@@ -35,6 +32,26 @@ class StatefulJavaClassTests extends CommonTestMethods {
     @EnumSource(ActivationMode.class)
     void primeTest1(ActivationMode mode) {
         Knowledge knowledge = applyToRuntimeAsStream(service, SampleRuleSet1.class);
+        StatefulSession session = session(knowledge, mode);
+
+        assert session.getRules().size() == 1;
+        for (int i = 2; i < 100; i++) {
+            session.insert(i);
+        }
+        session.fire();
+
+        NextIntSupplier primeCounter = new NextIntSupplier();
+        session.forEachFact((h, o) -> primeCounter.next());
+
+        assert primeCounter.get() == 25;
+
+    }
+
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void primeTest1_1(ActivationMode mode) {
+        TypeResolver typeResolver = service.newTypeResolver();
+        Knowledge knowledge = applyToRuntimeAsStream(service, typeResolver, SampleRuleSet1.class);
         StatefulSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;

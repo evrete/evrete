@@ -3,6 +3,7 @@ package org.evrete.dsl;
 import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.RuleScope;
+import org.evrete.api.TypeResolver;
 import org.evrete.util.compiler.BytesClassLoader;
 import org.evrete.util.compiler.CompilationException;
 import org.evrete.util.compiler.SourceCompiler;
@@ -44,10 +45,10 @@ public class DSLSourceProvider extends AbstractDSLProvider {
     }
 
     @Override
-    public Knowledge create(KnowledgeService service, InputStream... streams) throws IOException {
+    public Knowledge create(KnowledgeService service, TypeResolver typeResolver, InputStream... streams) throws IOException {
         if (streams == null || streams.length == 0) throw new IOException("Empty resources");
         String charSet = service.getConfiguration().getProperty(CHARSET_PROPERTY, CHARSET_DEFAULT);
-        Knowledge knowledge = service.newKnowledge();
+        Knowledge knowledge = service.newKnowledge(typeResolver);
         return build(knowledge, toSourceString(Charset.forName(charSet), streams));
     }
 

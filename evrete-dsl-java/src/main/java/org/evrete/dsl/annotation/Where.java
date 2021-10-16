@@ -20,10 +20,16 @@ public @interface Where {
     String[] value() default {};
 
     /**
+     * @deprecated in favor of {@link #methods()}
+     */
+    @Deprecated
+    MethodPredicate[] asMethods() default {};
+
+    /**
      * @return array of MethodPredicate conditions
      * @see MethodPredicate
      */
-    MethodPredicate[] asMethods() default {};
+    MethodPredicate[] methods() default {};
 
 
 }

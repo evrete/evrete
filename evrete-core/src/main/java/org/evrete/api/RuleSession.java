@@ -36,7 +36,7 @@ public interface RuleSession<S extends RuleSession<S>> extends RuntimeContext<S>
 
 
     /**
-     * Method renamed, use the {@link #setExecutionPredicate(BooleanSupplier)} instead.
+     * @deprecated in favor of {@link #setExecutionPredicate(BooleanSupplier)}
      */
     @Deprecated
     default S setFireCriteria(BooleanSupplier criteria) {
@@ -61,6 +61,18 @@ public interface RuleSession<S extends RuleSession<S>> extends RuntimeContext<S>
 
 
     /**
+     * @param type type name
+     * @param fact fact to insert
+     * @return fact handle assigned to the fact
+     * @throws NullPointerException if argument is null
+     * @see #insertAs(String, Object)
+     */
+    // TODO deprecate in future releases
+    default FactHandle insert(String type, Object fact) {
+        return insertAs(type, fact);
+    }
+
+    /**
      * <p>
      * Inserts a fact and explicitly specifies its {@link Type} name.
      * </p>
@@ -70,7 +82,7 @@ public interface RuleSession<S extends RuleSession<S>> extends RuntimeContext<S>
      * @return fact handle assigned to the fact
      * @throws NullPointerException if argument is null
      */
-    FactHandle insert(String type, Object fact);
+    FactHandle insertAs(String type, Object fact);
 
     /**
      * <p>
@@ -79,13 +91,46 @@ public interface RuleSession<S extends RuleSession<S>> extends RuntimeContext<S>
      *
      * @param type    type name
      * @param objects objects to insert
-     * @see #insert(String, Object)
+     * @see #insertAs(String, Object)
+     */
+    // TODO deprecate in future releases
+    default S insert(String type, Collection<?> objects) {
+        return insertAs(type, objects);
+    }
+
+    /**
+     * <p>
+     * Inserts a collection of facts, marking them as being of a specific type.
+     * </p>
+     *
+     * @param type    type name
+     * @param objects objects to insert
+     * @see #insertAs(String, Object)
      */
     @SuppressWarnings("unchecked")
-    default S insert(String type, Collection<?> objects) {
+    default S insertAs(String type, Collection<?> objects) {
         if (objects != null) {
             for (Object o : objects) {
-                insert(type, o);
+                insertAs(type, o);
+            }
+        }
+        return (S) this;
+    }
+
+    /**
+     * <p>
+     * Inserts a collection of facts, marking them as being of a specific type.
+     * </p>
+     *
+     * @param type    type name
+     * @param objects objects to insert
+     * @see #insertAs(String, Object)
+     */
+    @SuppressWarnings("unchecked")
+    default S insertAs(String type, Object... objects) {
+        if (objects != null) {
+            for (Object o : objects) {
+                insertAs(type, o);
             }
         }
         return (S) this;

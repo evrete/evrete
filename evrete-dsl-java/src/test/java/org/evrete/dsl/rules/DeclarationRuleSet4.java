@@ -20,9 +20,9 @@ public class DeclarationRuleSet4 {
 
     @Rule("Delete non-prime integers")
     @Where(
-            asMethods = @MethodPredicate(
+            methods = @MethodPredicate(
                     method = "test",
-                    descriptor = {"$i1.intValue", "$i2.intValue", "$i3.intValue"}
+                    args = {"$i1.intValue", "$i2.intValue", "$i3.intValue"}
             )
     )
     public void rule(RhsContext ctx, @Fact("$i1") String $i1, @Fact("$i2") String i2, @Fact("$i3") String $i3) {

@@ -32,7 +32,7 @@ class StatelessJavaJarTests extends CommonTestMethods {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void test(ActivationMode mode) {
+    void test1(ActivationMode mode) {
         service
                 .getConfiguration()
                 .setProperty(DSLJarProvider.CLASSES_PROPERTY, "pkg1.evrete.tests.rule.RuleSet1");
@@ -50,10 +50,27 @@ class StatelessJavaJarTests extends CommonTestMethods {
 
     }
 
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void test2(ActivationMode mode) {
+        Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar1/jar1-tests.jar"));
+        StatelessSession session = session(knowledge, mode);
+        assert session.getRules().size() == 2;
+        for (int i = 2; i < 100; i++) {
+            session.insert(i);
+        }
+
+        NextIntSupplier primeCounter = new NextIntSupplier();
+        session.fire((o) -> primeCounter.next());
+
+        assert primeCounter.get() == 25;
+
+    }
+
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void testWithRecords(ActivationMode mode) {
+    void testWithRecords1(ActivationMode mode) {
         int version = TestUtils.getJavaVersion();
         if (version < 16) {
             System.out.println("Skipping test of Java Records for JVM version " + version);
@@ -63,7 +80,30 @@ class StatelessJavaJarTests extends CommonTestMethods {
         service
                 .getConfiguration()
                 .setProperty(DSLJarProvider.CLASSES_PROPERTY, "pkg2.evrete.tests.rule.RuleSet1");
-        Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar2/jar2-tests.jar"));
+        Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar-records1/jar-records1-tests.jar"));
+        StatelessSession session = session(knowledge, mode);
+        assert session.getRules().size() == 2;
+        for (int i = 2; i < 100; i++) {
+            session.insert(i);
+        }
+
+        NextIntSupplier primeCounter = new NextIntSupplier();
+        session.fire((o) -> primeCounter.next());
+
+        assert primeCounter.get() == 25;
+
+    }
+
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void testWithRecords2(ActivationMode mode) {
+        int version = TestUtils.getJavaVersion();
+        if (version < 16) {
+            System.out.println("Skipping test of Java Records for JVM version " + version);
+            return;
+        }
+
+        Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar-records1/jar-records1-tests.jar"));
         StatelessSession session = session(knowledge, mode);
         assert session.getRules().size() == 2;
         for (int i = 2; i < 100; i++) {

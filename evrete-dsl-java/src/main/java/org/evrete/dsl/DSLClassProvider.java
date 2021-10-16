@@ -3,6 +3,7 @@ package org.evrete.dsl;
 import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.RuleScope;
+import org.evrete.api.TypeResolver;
 import org.evrete.util.compiler.BytesClassLoader;
 
 import java.io.IOException;
@@ -27,15 +28,16 @@ public class DSLClassProvider extends AbstractDSLProvider {
         return PROVIDER_JAVA_C;
     }
 
+
     @Override
-    public Knowledge create(KnowledgeService service, InputStream... streams) throws IOException {
+    public Knowledge create(KnowledgeService service, TypeResolver typeResolver, InputStream... streams) throws IOException {
         if (streams == null || streams.length == 0) throw new IOException("Empty sources");
         byte[][] bytes = new byte[streams.length][];
         for (int i = 0; i < streams.length; i++) {
             bytes[i] = toByteArray(streams[i]);
         }
 
-        Knowledge delegate = service.newKnowledge();
+        Knowledge delegate = service.newKnowledge(typeResolver);
         return apply(delegate, bytes);
     }
 }

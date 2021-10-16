@@ -40,6 +40,15 @@ public final class Utils {
         }
     }
 
+    static String factType(Parameter parameter) {
+        Fact fact = parameter.getAnnotation(Fact.class);
+        if (fact == null || fact.type().isEmpty()) {
+            return null;
+        } else {
+            return fact.type();
+        }
+    }
+
     static Class<?>[] asMethodSignature(FieldReference[] references) {
         Class<?>[] signature = new Class<?>[references.length];
         for (int i = 0; i < references.length; i++) {

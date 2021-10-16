@@ -4,10 +4,8 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.ActivationMode;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
-import org.evrete.dsl.rules.DeclarationRuleSet1;
-import org.evrete.dsl.rules.DeclarationRuleSet2;
-import org.evrete.dsl.rules.DeclarationRuleSet3;
-import org.evrete.dsl.rules.DeclarationRuleSet4;
+import org.evrete.api.TypeResolver;
+import org.evrete.dsl.rules.*;
 import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -133,4 +131,29 @@ class FieldDeclarationsTests extends CommonTestMethods {
             }
         }
     }
+
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void test5(ActivationMode mode) {
+        TypeResolver typeResolver = service.newTypeResolver();
+        String type = "Hello world type";
+        typeResolver.declare(type, String.class);
+
+        Knowledge knowledge = applyToRuntimeAsStream(service, typeResolver, DeclarationRuleSet5.class);
+        StatefulSession session = session(knowledge, mode);
+        session.set("random-offset", 0);
+
+        for (int i = 2; i < 100; i++) {
+            session.insertAs(type, String.valueOf(i));
+        }
+
+        session.fire();
+
+        NextIntSupplier primeCounter = new NextIntSupplier();
+        session.forEachFact((h, o) -> primeCounter.next());
+
+        assert primeCounter.get() == 25 : "Actual: " + primeCounter.get();
+
+    }
+
 }

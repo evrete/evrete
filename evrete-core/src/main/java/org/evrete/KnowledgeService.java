@@ -1,9 +1,6 @@
 package org.evrete;
 
-import org.evrete.api.Knowledge;
-import org.evrete.api.OrderedServiceProvider;
-import org.evrete.api.StatefulSession;
-import org.evrete.api.StatelessSession;
+import org.evrete.api.*;
 import org.evrete.api.spi.*;
 import org.evrete.runtime.KnowledgeRuntime;
 import org.evrete.runtime.async.ForkJoinExecutor;
@@ -88,6 +85,22 @@ public class KnowledgeService {
         return new KnowledgeRuntime(this);
     }
 
+    private static URL[] toUrls(Class<?>... resources) throws IOException {
+        if (resources == null || resources.length == 0) throw new IOException("Empty resources");
+        URL[] urls = new URL[resources.length];
+        for (int i = 0; i < resources.length; i++) {
+            urls[i] = classToURL(resources[i]);
+        }
+        return urls;
+    }
+
+    /**
+     * @return an empty {@link Knowledge} instance
+     */
+    public Knowledge newKnowledge(TypeResolver typeResolver) {
+        return new KnowledgeRuntime(this, typeResolver);
+    }
+
     private static DSLKnowledgeProvider getDslProvider(String dsl) {
         Objects.requireNonNull(dsl);
         ServiceLoader<DSLKnowledgeProvider> loader = ServiceLoader.load(DSLKnowledgeProvider.class);
@@ -118,7 +131,13 @@ public class KnowledgeService {
         return cl.getClassLoader().getResource(resource);
     }
 
+    public TypeResolver newTypeResolver() {
+        return typeResolverProvider.instance(this.classLoader);
+    }
+
     /**
+     * @param dsl       DSL name
+     * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      */
     public Knowledge newKnowledge(String dsl, URL... resources) throws IOException {
@@ -126,6 +145,18 @@ public class KnowledgeService {
     }
 
     /**
+     * @param dsl          DSL name
+     * @param typeResolver TypeResolver to use
+     * @param resources    DSL resources
+     * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     */
+    public Knowledge newKnowledge(String dsl, TypeResolver typeResolver, URL... resources) throws IOException {
+        return getDslProvider(dsl).create(this, typeResolver, resources);
+    }
+
+    /**
+     * @param dsl       DSL name
+     * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      */
     public Knowledge newKnowledge(String dsl, Reader... resources) throws IOException {
@@ -133,20 +164,61 @@ public class KnowledgeService {
     }
 
     /**
+     * @param dsl          DSL name
+     * @param typeResolver TypeResolver to use
+     * @param resources    DSL resources
+     * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     */
+    public Knowledge newKnowledge(String dsl, TypeResolver typeResolver, Reader... resources) throws IOException {
+        return getDslProvider(dsl).create(this, typeResolver, resources);
+    }
+
+    /**
+     * @param dsl       DSL name
+     * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      */
     public Knowledge newKnowledge(String dsl, InputStream... resources) throws IOException {
         return getDslProvider(dsl).create(this, resources);
     }
 
-    public Knowledge newKnowledge(String dsl, Class<?>... resources) throws IOException {
-        if (resources == null || resources.length == 0) throw new IOException("Empty resources");
-        URL[] urls = new URL[resources.length];
-        for (int i = 0; i < resources.length; i++) {
-            urls[i] = classToURL(resources[i]);
-        }
-        return getDslProvider(dsl).create(this, urls);
+    /**
+     * @param dsl          DSL name
+     * @param typeResolver TypeResolver to use
+     * @param resources    DSL resources
+     * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     */
+    public Knowledge newKnowledge(String dsl, TypeResolver typeResolver, InputStream... resources) throws IOException {
+        return getDslProvider(dsl).create(this, typeResolver, resources);
     }
+
+    /**
+     * <p>
+     * This is a convenience method. The implementation gets URLs of each class and calls {@link #newKnowledge(String, URL...)}
+     * </p>
+     *
+     * @param dsl       DSL name
+     * @param resources DSL resources
+     * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     */
+    public Knowledge newKnowledge(String dsl, Class<?>... resources) throws IOException {
+        return getDslProvider(dsl).create(this, toUrls(resources));
+    }
+
+    /**
+     * <p>
+     * This is a convenience method. The implementation gets URLs of each class and calls {@link #newKnowledge(String, TypeResolver, URL...)}
+     * </p>
+     *
+     * @param dsl          DSL name
+     * @param typeResolver TypeResolver to use
+     * @param resources    DSL resources
+     * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     */
+    public Knowledge newKnowledge(String dsl, TypeResolver typeResolver, Class<?>... resources) throws IOException {
+        return getDslProvider(dsl).create(this, typeResolver, toUrls(resources));
+    }
+
 
     public void shutdown() {
         this.executor.shutdown();
@@ -172,6 +244,7 @@ public class KnowledgeService {
         return literalRhsProvider;
     }
 
+    @SuppressWarnings("unused")
     public TypeResolverProvider getTypeResolverProvider() {
         return typeResolverProvider;
     }
@@ -191,6 +264,7 @@ public class KnowledgeService {
      * </p>
      *
      * @return an empty {@link StatefulSession}
+     * @deprecated
      */
     @SuppressWarnings("WeakerAccess")
     @Deprecated

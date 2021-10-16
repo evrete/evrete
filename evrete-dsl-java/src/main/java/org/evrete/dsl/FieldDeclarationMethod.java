@@ -12,9 +12,10 @@ class FieldDeclarationMethod<T, V> extends ClassMethod implements SessionCloneab
     final Class<T> factType;
     final String fieldName;
     private final Class<V> fieldType;
+    private final String typeName;
 
     @SuppressWarnings("unchecked")
-    FieldDeclarationMethod(MethodHandles.Lookup lookup, Method method) {
+    FieldDeclarationMethod(MethodHandles.Lookup lookup, Method method, String typeName) {
         super(lookup, method);
         FieldDeclaration ann = Objects.requireNonNull(method.getAnnotation(FieldDeclaration.class));
         String declaredName = ann.name().trim();
@@ -35,6 +36,7 @@ class FieldDeclarationMethod<T, V> extends ClassMethod implements SessionCloneab
         }
 
         this.factType = (Class<T>) parameters[0].getType();
+        this.typeName = typeName == null || typeName.isEmpty() ? this.factType.getName() : typeName;
     }
 
     private FieldDeclarationMethod(FieldDeclarationMethod<T, V> method, Object instance) {
@@ -42,6 +44,7 @@ class FieldDeclarationMethod<T, V> extends ClassMethod implements SessionCloneab
         this.fieldType = method.fieldType;
         this.factType = method.factType;
         this.fieldName = method.fieldName;
+        this.typeName = method.typeName;
     }
 
     @Override
@@ -50,14 +53,12 @@ class FieldDeclarationMethod<T, V> extends ClassMethod implements SessionCloneab
     }
 
     void applyNormal(TypeResolver resolver) {
-        resolver.getOrDeclare(factType).declareField(fieldName, fieldType, asFunction());
+        resolver.getOrDeclare(typeName, factType).declareField(fieldName, fieldType, asFunction());
     }
 
     void applyInitial(TypeResolver resolver) {
-        resolver.getOrDeclare(factType).declareField(fieldName, fieldType, t -> {
+        resolver.getOrDeclare(typeName, factType).declareField(fieldName, fieldType, t -> {
             throw new IllegalStateException();
         });
     }
-
-
 }

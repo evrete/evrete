@@ -29,7 +29,11 @@ class RuleMethod extends ClassMethod implements SessionCloneable<RuleMethod>, Co
             this.methodPredicates = new MethodPredicate[0];
         } else {
             this.stringPredicates = predicates.value();
-            this.methodPredicates = predicates.asMethods();
+            //noinspection deprecation
+            this.methodPredicates = predicates.methods().length == 0 ?
+                    predicates.asMethods()
+                    :
+                    predicates.methods();
         }
 
         int ctxIndex = Integer.MIN_VALUE;
@@ -55,7 +59,6 @@ class RuleMethod extends ClassMethod implements SessionCloneable<RuleMethod>, Co
         this.factDeclarations = rhsParameterList.toArray(FactDeclaration.EMPTY);
         this.contextParamId = ctxIndex;
     }
-
 
     private RuleMethod(RuleMethod other, Object instance) {
         super(other, instance);
@@ -95,12 +98,14 @@ class RuleMethod extends ClassMethod implements SessionCloneable<RuleMethod>, Co
         static final FactDeclaration[] EMPTY = new FactDeclaration[0];
         final int position;
         final String name;
-        final Class<?> type;
+        final Class<?> javaType;
+        final String namedType;
 
         FactDeclaration(Parameter parameter, int position) {
             this.name = Utils.factName(parameter);
             this.position = position;
-            this.type = parameter.getType();
+            this.javaType = parameter.getType();
+            this.namedType = Utils.factType(parameter);
         }
     }
 }
