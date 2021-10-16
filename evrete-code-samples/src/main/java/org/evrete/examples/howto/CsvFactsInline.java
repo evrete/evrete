@@ -31,8 +31,8 @@ public class CsvFactsInline {
         StatelessSession session = knowledge
                 .newRule()
                 .forEach(
-                        "$p", TYPE_PERSON,
-                        "$l", TYPE_LOCATION)
+                "$p", TYPE_PERSON,
+                "$l", TYPE_LOCATION)
                 .where("$p.location.equals($l.address)")
                 .where("$p.age > 18")
                 .execute(ctx -> {
