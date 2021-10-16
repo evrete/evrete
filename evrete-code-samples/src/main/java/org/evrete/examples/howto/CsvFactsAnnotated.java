@@ -2,7 +2,6 @@ package org.evrete.examples.howto;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.StatelessSession;
-import org.evrete.api.TypeResolver;
 import org.evrete.dsl.annotation.*;
 
 public class CsvFactsAnnotated {
@@ -12,14 +11,9 @@ public class CsvFactsAnnotated {
     public static void main(String[] args) throws Exception {
         KnowledgeService service = new KnowledgeService();
 
-        // Type declarations
-        TypeResolver resolver = service.newTypeResolver();
-        resolver.declare(TYPE_PERSON, String.class);
-        resolver.declare(TYPE_LOCATION, String.class);
-
         // Build knowledge & session
         StatelessSession session = service
-                .newKnowledge("JAVA-CLASS", resolver, CvsTypesRuleset.class)
+                .newKnowledge("JAVA-CLASS", CvsTypesRuleset.class)
                 .newStatelessSession();
 
         // Mike is 16 y.o., located at '5246 Elm Street'
