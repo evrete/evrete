@@ -1,7 +1,6 @@
 package org.evrete.examples.howto;
 
 import org.evrete.KnowledgeService;
-import org.evrete.api.Knowledge;
 import org.evrete.api.StatelessSession;
 import org.evrete.api.TypeResolver;
 import org.evrete.dsl.annotation.*;
@@ -14,17 +13,15 @@ class CsvFactsAnnotated {
 
     public static void main(String[] args) throws IOException {
         KnowledgeService service = new KnowledgeService();
-        Knowledge knowledge = service.newKnowledge();
 
         // Type declarations
-        TypeResolver typeResolver = service.newTypeResolver();
-        typeResolver.declare(TYPE_PERSON, String.class);
-        typeResolver.declare(TYPE_LOCATION, String.class);
+        TypeResolver resolver = service.newTypeResolver();
+        resolver.declare(TYPE_PERSON, String.class);
+        resolver.declare(TYPE_LOCATION, String.class);
 
-
-        // New 'factorial' field in a rule
+        // Build knowledge & session
         StatelessSession session = service
-                .newKnowledge("JAVA-CLASS", typeResolver, StringsRuleset.class)
+                .newKnowledge("JAVA-CLASS", resolver, StringsRuleset.class)
                 .newStatelessSession();
 
         // Mike is 16 y.o., located at '5246 Elm Street'
@@ -40,18 +37,17 @@ class CsvFactsAnnotated {
         session.insertAs(TYPE_LOCATION, loc1, loc2);
         session.fire();
 
-
         service.shutdown();
     }
 
     public static class StringsRuleset {
         @Rule
         @Where(methods = {
-                @MethodPredicate(method = "ageTest", args = {"$p.age"}),
-                @MethodPredicate(method = "locationMatch", args = {"$p.location", "$l.street"})
+                @MethodPredicate(method = "test1", args = {"$p.age"}),
+                @MethodPredicate(method = "test2", args = {"$p.location", "$l.street"})
         })
-        public void rule1(@Fact(value = "$p", type = TYPE_PERSON) String person, @Fact(value = "$l", type = TYPE_LOCATION) String location) {
-            System.out.println("Match: <" + person + "> at <" + location + ">");
+        public void rule1(@Fact(value = "$p", type = TYPE_PERSON) String p, @Fact(value = "$l", type = TYPE_LOCATION) String l) {
+            System.out.println("Match: <" + p + "> at <" + l + ">");
         }
 
         @FieldDeclaration(type = TYPE_PERSON, name = "age")
@@ -74,13 +70,12 @@ class CsvFactsAnnotated {
             return Integer.parseInt(s.split(",")[1]);
         }
 
-        public boolean ageTest(int age) {
+        public boolean test1(int age) {
             return age > 18;
         }
 
-        public boolean locationMatch(String s1, String s2) {
+        public boolean test2(String s1, String s2) {
             return s1.equals(s2);
         }
-
     }
 }

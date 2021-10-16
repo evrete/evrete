@@ -14,31 +14,30 @@ class CsvFactsInline {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service.newKnowledge();
 
-        // Type declarations
-        TypeResolver typeResolver = knowledge.getTypeResolver();
-        Type<String> personType = typeResolver.declare(TYPE_PERSON, String.class);
-        Type<String> locationType = typeResolver.declare(TYPE_LOCATION, String.class);
+        TypeResolver resolver = knowledge.getTypeResolver();
 
-        // Person fields
-        personType.declareField("name", String.class, s -> s.split(",")[0]);
-        personType.declareIntField("age", s -> Integer.parseInt(s.split(",")[1]));
-        personType.declareField("location", String.class, s -> s.split(",")[2]);
+        // Person type & fields
+        Type<String> pt = resolver.declare(TYPE_PERSON, String.class);
+        pt.declareField("name", String.class, s -> s.split(",")[0]);
+        pt.declareIntField("age", s -> Integer.parseInt(s.split(",")[1]));
+        pt.declareField("location", String.class, s -> s.split(",")[2]);
 
-        // Location fields
-        locationType.declareField("street", String.class, s -> s.split(",")[0]);
-        locationType.declareIntField("zip", s -> Integer.parseInt(s.split(",")[1]));
+        // Location type & fields
+        Type<String> lt = resolver.declare(TYPE_LOCATION, String.class);
+        lt.declareField("street", String.class, s -> s.split(",")[0]);
+        lt.declareIntField("zip", s -> Integer.parseInt(s.split(",")[1]));
 
         // New 'factorial' field in a rule
         StatelessSession session = knowledge
                 .newRule()
                 .forEach(
-                        "$person", TYPE_PERSON,
-                        "$location", TYPE_LOCATION)
-                .where("$person.location.equals($location.street)")
-                .where("$person.age > 18")
+                        "$p", TYPE_PERSON,
+                        "$l", TYPE_LOCATION)
+                .where("$p.location.equals($l.street)")
+                .where("$p.age > 18")
                 .execute(ctx -> {
-                    String person = ctx.get("$person");
-                    String location = ctx.get("$location");
+                    String person = ctx.get("$p");
+                    String location = ctx.get("$l");
                     System.out.println("Match: <" + person + "> at <" + location + ">");
                 })
                 .newStatelessSession();
