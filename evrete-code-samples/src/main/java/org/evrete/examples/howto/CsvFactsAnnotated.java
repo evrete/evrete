@@ -5,13 +5,11 @@ import org.evrete.api.StatelessSession;
 import org.evrete.api.TypeResolver;
 import org.evrete.dsl.annotation.*;
 
-import java.io.IOException;
-
 public class CsvFactsAnnotated {
-    private static final String TYPE_PERSON = "Hello Person!";
-    private static final String TYPE_LOCATION = "Hello Location!";
+    private static final String TYPE_PERSON = "Person Type";
+    private static final String TYPE_LOCATION = "Location Type";
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         KnowledgeService service = new KnowledgeService();
 
         // Type declarations
@@ -51,22 +49,22 @@ public class CsvFactsAnnotated {
         }
 
         @FieldDeclaration(type = TYPE_PERSON, name = "age")
-        public int method1(String s) {
+        public int field1(String s) {
             return Integer.parseInt(s.split(",")[1]);
         }
 
         @FieldDeclaration(type = TYPE_PERSON, name = "location")
-        public String method2(String s) {
+        public String field2(String s) {
             return s.split(",")[2];
         }
 
         @FieldDeclaration(type = TYPE_LOCATION, name = "street")
-        public String method3(String s) {
+        public String field3(String s) {
             return s.split(",")[0];
         }
 
         @FieldDeclaration(type = TYPE_LOCATION, name = "zip")
-        public int method4(String s) {
+        public int field4(String s) {
             return Integer.parseInt(s.split(",")[1]);
         }
 
