@@ -19,7 +19,7 @@ public class CsvFactsAnnotated {
 
         // Build knowledge & session
         StatelessSession session = service
-                .newKnowledge("JAVA-CLASS", resolver, StringsRuleset.class)
+                .newKnowledge("JAVA-CLASS", resolver, CvsTypesRuleset.class)
                 .newStatelessSession();
 
         // Mike is 16 y.o., located at '5246 Elm Street'
@@ -38,7 +38,7 @@ public class CsvFactsAnnotated {
         service.shutdown();
     }
 
-    public static class StringsRuleset {
+    public static class CvsTypesRuleset {
         @Rule
         @Where(methods = {
             @MethodPredicate(method = "test1", args = {"$p.age"}),
