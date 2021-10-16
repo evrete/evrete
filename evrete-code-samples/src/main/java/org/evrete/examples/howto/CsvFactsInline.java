@@ -6,7 +6,7 @@ import org.evrete.api.StatelessSession;
 import org.evrete.api.Type;
 import org.evrete.api.TypeResolver;
 
-class MultiTypeStringInline {
+class CsvFactsInline {
     private static final String TYPE_PERSON = "Hello Person!";
     private static final String TYPE_LOCATION = "Hello Location!";
 

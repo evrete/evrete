@@ -63,8 +63,7 @@ public class XMLType {
         Document customer1 = newCustomer("ABC Ltd", true);
         Document customer2 = newCustomer("XYZ Ltd", false);
 
-        session.insert(CUSTOMER_TYPE_NAME, customer1);
-        session.insert(CUSTOMER_TYPE_NAME, customer2);
+        session.insertAs(CUSTOMER_TYPE_NAME, customer1, customer2);
 
         System.out.println("Firing rules...");
         session.fire();

@@ -8,7 +8,7 @@ import org.evrete.dsl.annotation.*;
 
 import java.io.IOException;
 
-class MultiTypeStringAnnotated {
+class CsvFactsAnnotated {
     private static final String TYPE_PERSON = "Hello Person!";
     private static final String TYPE_LOCATION = "Hello Location!";
 

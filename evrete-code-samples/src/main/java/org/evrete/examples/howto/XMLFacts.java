@@ -1,4 +1,4 @@
-package org.evrete.examples.run;
+package org.evrete.examples.howto;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
@@ -17,7 +17,6 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.StringWriter;
 
-//TODO delete this file (there's a copy in ../howto)
 public class XMLFacts {
     private static final DocumentBuilderFactory BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
     private static final TransformerFactory TRANSFORMER_FACTORY = TransformerFactory.newInstance();
