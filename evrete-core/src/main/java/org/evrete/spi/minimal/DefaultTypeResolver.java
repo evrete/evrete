@@ -214,8 +214,6 @@ class DefaultTypeResolver implements TypeResolver {
                         typeInheritanceCache.put(name, cacheEntry);
                     }
                 }
-            } else {
-                System.out.println("Cached!!");
             }
             return (TypeImpl<T>) cacheEntry.type;
         }
