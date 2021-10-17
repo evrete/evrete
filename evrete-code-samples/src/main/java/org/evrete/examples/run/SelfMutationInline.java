@@ -15,8 +15,7 @@ public class SelfMutationInline {
             .newRule("Root rule")
             .forEach(
             "$s", StatefulSession.class,
-            "$e", String.class
-            )
+            "$e", String.class)
             .execute(ctx -> {
                 StatefulSession sess = ctx.get("$s");
                 String event = ctx.get("$e");
