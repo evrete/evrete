@@ -20,7 +20,7 @@ public class SelfMutationInline {
             .execute(ctx -> {
                 StatefulSession sess = ctx.get("$s");
                 String event = ctx.get("$e");
-                // Appending new rule with the event's name
+                // Appending a new rule named after the event's value
                 sess
                     .newRule(event)
                     .forEach("$i", Integer.class)
