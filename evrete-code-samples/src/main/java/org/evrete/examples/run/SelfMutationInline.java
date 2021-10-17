@@ -1,8 +1,10 @@
 package org.evrete.examples.run;
 
 import org.evrete.KnowledgeService;
-import org.evrete.api.Rule;
+import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
+
+import java.util.List;
 
 import static java.lang.System.out;
 
@@ -26,9 +28,9 @@ public class SelfMutationInline {
                     .forEach("$i", Integer.class)
                     .where("$i % 2 == 0")
                     .execute(c -> {
-                        out.println(event + ":\t" + c.get("$i"));
+                        out.printf("%s:\t%s%n", event ,c.get("$i"));
                     });
-                out.println("New rule created: '" + event + "'");
+                out.printf("New rule created: '%s'%n", event);
             })
             .newStatefulSession();
 
@@ -44,8 +46,9 @@ public class SelfMutationInline {
         session.insertAndFire(1, 2, 3, 4, 5, 6);
         // 6. Listing session's rules
         out.println("\nSession's rules:");
-        for (Rule r : session.getRules()) {
-            out.println(r.getName());
+        List<RuntimeRule> rules = session.getRules();
+        for(int i = 0; i < rules.size(); i++) {
+            out.printf("%d\t'%s'%n", i + 1, rules.get(i).getName());
         }
 
         service.shutdown();
