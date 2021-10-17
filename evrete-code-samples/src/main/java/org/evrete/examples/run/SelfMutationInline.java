@@ -25,7 +25,7 @@ public class SelfMutationInline {
                     .newRule(event)
                     .forEach("$i", Integer.class)
                     .where("$i % 2 == 0")
-                    .execute(c -> out.printf("%s:\t%s%n", event ,c.get("$i")));
+                    .execute(c -> out.printf("%s:\t%s%n", event, c.get("$i")));
                 out.printf("New rule created: '%s'%n", event);
             })
             .newStatefulSession();
@@ -41,12 +41,13 @@ public class SelfMutationInline {
         // 5. And another test
         session.insertAndFire(1, 2, 3, 4, 5, 6);
         // 6. Listing session's rules
-        out.printf("%nSession's rules:%n");
+        out.printf("%nSession rules:%n");
         List<RuntimeRule> rules = session.getRules();
         for(int i = 0; i < rules.size(); i++) {
             out.printf("%d\t'%s'%n", i + 1, rules.get(i).getName());
         }
 
+        session.close();
         service.shutdown();
     }
 }

@@ -26,12 +26,13 @@ public class SelfMutationAnnotated {
         // 5. And another test
         session.insertAndFire(1, 2, 3, 4, 5, 6);
         // 6. Listing session's rules
-        out.printf("%nSession's rules:%n");
+        out.printf("%nSession rules:%n");
         List<RuntimeRule> rules = session.getRules();
         for(int i = 0; i < rules.size(); i++) {
             out.printf("%d\t'%s'%n", i + 1, rules.get(i).getName());
         }
 
+        session.close();
         service.shutdown();
     }
 
