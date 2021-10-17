@@ -40,4 +40,5 @@ public interface RuleSet<R extends Rule> {
         return getRule(named.getName());
     }
 
+    FieldReference[] resolveFieldReferences(String[] args, NamedType.Resolver typeMapper);
 }

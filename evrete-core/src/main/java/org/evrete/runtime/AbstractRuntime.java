@@ -200,6 +200,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         return getExpressionResolver().resolve(arg, typeMapper);
     }
 
+    @Override
     public FieldReference[] resolveFieldReferences(String[] arg, NamedType.Resolver typeMapper) {
         _assertActive();
         FieldReference[] refs = new FieldReference[arg.length];

@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 
 public abstract class AbstractRule implements Rule {
     private static final Logger LOGGER = Logger.getLogger(AbstractRule.class.getName());
-    private final String name;
+    private String name;
     private final Consumer<RhsContext> nullRhs;
     private final Imports imports;
     private final Map<String, Object> properties;
@@ -43,6 +43,11 @@ public abstract class AbstractRule implements Rule {
 
     protected void appendImports(Imports parent) {
         imports.append(parent);
+    }
+
+    @Override
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override

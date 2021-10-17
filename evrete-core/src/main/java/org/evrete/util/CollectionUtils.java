@@ -11,6 +11,10 @@ public final class CollectionUtils {
         return (T[]) Array.newInstance(type, size);
     }
 
+    public static <T> T[] copyOf(T[] arr) {
+        return Arrays.copyOf(arr, arr.length);
+    }
+
     public static <E> List<List<E>> permutation(List<E> l) {
         ArrayList<E> original = new ArrayList<>(l); // ArrayList supports remove
         if (original.size() == 0) {

@@ -77,13 +77,24 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         return evaluators.save(evaluator, complexity);
     }
 
-    EvaluatorWrapper getEvaluatorWrapper(EvaluatorHandle handle) {
-        return evaluators.get(handle);
+    EvaluatorWrapper getEvaluatorWrapper(EvaluatorHandle handle, boolean returnNull) {
+        return evaluators.get(handle, returnNull);
+    }
+
+    @Override
+    public Evaluator getEvaluator(EvaluatorHandle handle) {
+        EvaluatorWrapper wrapper = getEvaluatorWrapper(handle, true);
+        return wrapper == null ? null : wrapper.getDelegate();
     }
 
     @Override
     public void replaceEvaluator(EvaluatorHandle handle, Evaluator newEvaluator) {
         evaluators.replace(handle, newEvaluator);
+    }
+
+    @Override
+    public void replaceEvaluator(EvaluatorHandle handle, final ValuesPredicate predicate) {
+        evaluators.replace(handle, predicate);
     }
 
     @Override

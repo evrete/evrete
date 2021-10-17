@@ -97,6 +97,16 @@ public class RuntimeContextWrapper<C extends RuntimeContext<C>> implements Runti
     }
 
     @Override
+    public Evaluator getEvaluator(EvaluatorHandle handle) {
+        return delegate.getEvaluator(handle);
+    }
+
+    @Override
+    public void replaceEvaluator(EvaluatorHandle handle, ValuesPredicate predicate) {
+        delegate.replaceEvaluator(handle, predicate);
+    }
+
+    @Override
     public ExpressionResolver getExpressionResolver() {
         return delegate.getExpressionResolver();
     }
@@ -140,4 +150,5 @@ public class RuntimeContextWrapper<C extends RuntimeContext<C>> implements Runti
     public Configuration getConfiguration() {
         return delegate.getConfiguration();
     }
+
 }

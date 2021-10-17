@@ -15,4 +15,6 @@ public interface Rule extends FluentEnvironment<Rule>, Named, FluentImports<Rule
     void setSalience(int value);
 
     void chainRhs(Consumer<RhsContext> consumer);
+
+    void setName(String newName);
 }

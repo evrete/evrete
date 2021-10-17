@@ -41,4 +41,10 @@ public abstract class KnowledgeWrapper extends RuntimeContextWrapper<Knowledge> 
     public RuleDescriptor getRule(String name) {
         return delegate.getRule(name);
     }
+
+    @Override
+    public FieldReference[] resolveFieldReferences(String[] args, NamedType.Resolver typeMapper) {
+        return delegate.resolveFieldReferences(args, typeMapper);
+    }
+
 }

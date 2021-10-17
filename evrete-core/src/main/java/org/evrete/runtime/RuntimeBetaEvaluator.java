@@ -11,7 +11,7 @@ class RuntimeBetaEvaluator {
         EvaluatorHandle[] handles = evaluator.constituents();
         this.constituents = new EvaluatorWrapper[handles.length];
         for (int i = 0; i < handles.length; i++) {
-            this.constituents[i] = ctx.getEvaluatorWrapper(handles[i]);
+            this.constituents[i] = ctx.getEvaluatorWrapper(handles[i], false);
         }
     }
 

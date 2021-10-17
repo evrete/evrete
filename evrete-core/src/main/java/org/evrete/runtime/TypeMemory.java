@@ -169,7 +169,7 @@ public final class TypeMemory extends TypeMemoryBase {
         private final IntToValue func;
 
         AlphaPredicate(AlphaEvaluator alphaEvaluator, Evaluators evaluators, Object[] values) {
-            this.delegate = evaluators.get(alphaEvaluator.getDelegate());
+            this.delegate = evaluators.get(alphaEvaluator.getDelegate(), false);
             ActiveField[] activeDescriptor = alphaEvaluator.getDescriptor();
             this.index = alphaEvaluator.getIndex();
 

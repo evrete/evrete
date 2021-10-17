@@ -45,4 +45,7 @@ public interface Evaluator extends ValuesPredicate {
         return array;
     }
 
+    default boolean sameDescriptor(Evaluator other) {
+        return FieldReference.sameAs(descriptor(), other.descriptor());
+    }
 }

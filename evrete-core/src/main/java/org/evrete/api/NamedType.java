@@ -25,6 +25,10 @@ public interface NamedType {
      */
     String getName();
 
+    default boolean sameAs(NamedType other) {
+        return getName().equals(other.getName()) && getType().getName().equals(other.getType().getName());
+    }
+
     interface Resolver {
         NamedType resolve(String var);
     }

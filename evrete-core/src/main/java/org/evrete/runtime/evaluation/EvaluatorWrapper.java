@@ -18,6 +18,7 @@ public class EvaluatorWrapper implements Evaluator, Copyable<EvaluatorWrapper> {
                 return b;
             }
         };
+
     private ValuesPredicate active;
     private IntToValue stateValues;
 
@@ -49,7 +50,6 @@ public class EvaluatorWrapper implements Evaluator, Copyable<EvaluatorWrapper> {
     }
 
     public void update(Collection<EvaluationListener> listeners) {
-
         this.listeners = listeners;
         updateActiveEvaluator();
     }

@@ -1,10 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.Configuration;
-import org.evrete.api.FactHandle;
-import org.evrete.api.FactStorage;
-import org.evrete.api.KeyedFactStorage;
-import org.evrete.api.Type;
+import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.MemoryAddress;
 
@@ -36,6 +33,11 @@ public class TypeMemoryBase extends MemoryComponent implements Iterable<KeyMemor
 
     FactRecord getStoredRecord(FactHandle handle) {
         return factStorage.getFact(handle);
+    }
+
+    public boolean factExists(FactHandleVersioned handle) {
+        FactRecord fact = factStorage.getFact(handle.getHandle());
+        return fact != null && fact.getVersion() == handle.getVersion();
     }
 
     public FactStorage<FactRecord> getFactStorage() {

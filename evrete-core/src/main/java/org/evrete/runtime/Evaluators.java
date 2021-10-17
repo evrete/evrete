@@ -2,6 +2,7 @@ package org.evrete.runtime;
 
 import org.evrete.api.*;
 import org.evrete.runtime.evaluation.EvaluatorWrapper;
+import org.evrete.util.CollectionUtils;
 
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -49,24 +50,53 @@ public class Evaluators implements Copyable<Evaluators>, EvaluationListeners {
     }
 
     public int compare(EvaluatorHandle h1, EvaluatorHandle h2) {
-        EvaluatorWrapper w1 = get(h1);
-        EvaluatorWrapper w2 = get(h2);
+        EvaluatorWrapper w1 = get(h1, false);
+        EvaluatorWrapper w2 = get(h2, false);
         return w1.compare(w2);
     }
 
     void replace(EvaluatorHandle handle, Evaluator evaluator) {
-        EvaluatorWrapper wrapper = conditions.get((EvaluatorHandleImpl) handle);
-        if (wrapper == null) {
+        EvaluatorWrapper existing = conditions.get((EvaluatorHandleImpl) handle);
+        if (existing == null) {
             throw new IllegalArgumentException("Unknown evaluator handle");
         } else {
-            wrapper.setDelegate(evaluator);
+            if(existing.sameDescriptor(evaluator)) {
+                existing.setDelegate(evaluator);
+            } else {
+                throw new IllegalArgumentException("Mismatched descriptors");
+            }
         }
     }
 
-    public EvaluatorWrapper get(EvaluatorHandle handle) {
+    void replace(EvaluatorHandle handle, ValuesPredicate predicate) {
+        EvaluatorWrapper existing = conditions.get((EvaluatorHandleImpl) handle);
+        if (existing == null) {
+            throw new IllegalArgumentException("Unknown evaluator handle");
+        } else {
+            final FieldReference[] newDescriptor = CollectionUtils.copyOf(existing.descriptor());
+            Evaluator newEvaluator = new Evaluator() {
+                @Override
+                public FieldReference[] descriptor() {
+                    return newDescriptor;
+                }
+
+                @Override
+                public boolean test(IntToValue t) {
+                    return predicate.test(t);
+                }
+            };
+            existing.setDelegate(newEvaluator);
+        }
+    }
+
+    public EvaluatorWrapper get(EvaluatorHandle handle, boolean returnNull) {
         EvaluatorWrapper w = conditions.get((EvaluatorHandleImpl) Objects.requireNonNull(handle));
         if (w == null) {
-            throw new IllegalArgumentException("Unknown evaluator " + handle);
+            if(returnNull) {
+                return null;
+            } else {
+                throw new IllegalArgumentException("Unknown evaluator " + handle);
+            }
         } else {
             return w;
         }

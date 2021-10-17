@@ -13,7 +13,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class DefaultExpressionResolver implements ExpressionResolver {
-    //TODO !!! document
     private static final String BASE_CLASS_PROPERTY = "evrete.impl.condition-base-class";
 
     private static final Pattern REFERENCE_PATTERN = Pattern.compile("\\$[a-zA-Z0-9]+(\\.[_a-zA-Z][_a-zA-Z0-9]*)*");

@@ -1,8 +1,6 @@
 package org.evrete.runtime.async;
 
 import org.evrete.api.FactHandleVersioned;
-import org.evrete.api.FactStorage;
-import org.evrete.runtime.FactRecord;
 import org.evrete.runtime.KeyMemoryBucket;
 import org.evrete.runtime.SessionMemory;
 import org.evrete.runtime.TypeMemory;
@@ -20,13 +18,7 @@ public class MemoryPurgeTask extends Completer {
 
     public MemoryPurgeTask(SessionMemory memory, Mask<MemoryAddress> factPurgeMask) {
         for (TypeMemory tm : memory) {
-            FactStorage<FactRecord> factStorage = tm.getFactStorage();
-            // TODO Predicate could be an instance variable of the TypeMemory class (or a method reference)
-            Predicate<FactHandleVersioned> predicate = handle -> {
-                FactRecord fact = factStorage.getFact(handle.getHandle());
-                return fact == null || fact.getVersion() != handle.getVersion();
-            };
-
+            Predicate<FactHandleVersioned> predicate = handle -> !tm.factExists(handle);
             for (KeyMemoryBucket bucket : tm) {
                 if (factPurgeMask.get(bucket.address)) {
                     this.subtasks.add(new TypeMemoryTask(this, bucket, predicate));

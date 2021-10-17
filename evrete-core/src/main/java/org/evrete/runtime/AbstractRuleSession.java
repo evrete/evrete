@@ -219,12 +219,6 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         this.fireCriteria = fireCriteria;
     }
 
-    //TODO move to the usage method
-    private S applyActivationManager1(ActivationManager activationManager) {
-        this.activationManager = activationManager;
-        return thisInstance();
-    }
-
     private void reSortRules() {
         ruleStorage.sort(getRuleComparator());
     }

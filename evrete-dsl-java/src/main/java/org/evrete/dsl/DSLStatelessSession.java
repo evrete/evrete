@@ -43,6 +43,4 @@ class DSLStatelessSession extends AbstractDSLSession<StatelessSession> implement
     public <T> void fire(Class<T> type, Consumer<T> consumer) {
         delegate.fire(type, consumer);
     }
-
-
 }
