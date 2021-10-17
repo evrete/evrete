@@ -13,8 +13,6 @@ public class SelfMutationAnnotated {
 
     public static void main(String[] args) throws Exception {
         KnowledgeService service = new KnowledgeService();
-
-        // Build knowledge & session
         StatefulSession session = service
                 .newKnowledge("JAVA-CLASS", MutatingRuleset.class)
                 .newStatefulSession();
@@ -43,12 +41,17 @@ public class SelfMutationAnnotated {
 
         @Rule("Root rule")
         public void rule(StatefulSession sess, String event) {
+            // Appending a new rule named after the event's value
             sess
                 .newRule(event)
                 .forEach("$i", Integer.class)
                 .where("$i % 2 == 0")
-                .execute(c -> out.printf("%s:\t%s%n", event ,c.get("$i")));
+                .execute(c -> evenNumbersAction(event, c.get("$i")));
             out.printf("New rule created: '%s'%n", event);
+        }
+
+        void evenNumbersAction(String rule, int i) {
+            out.printf("%s:\t%s%n", rule, i);
         }
     }
 }
