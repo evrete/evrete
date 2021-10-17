@@ -4,9 +4,7 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
 import org.evrete.dsl.annotation.Rule;
-
 import java.util.List;
-
 import static java.lang.System.out;
 
 public class SelfMutationAnnotated {
