@@ -40,7 +40,7 @@ public class SelfMutationAnnotated {
 
         @Rule("Root rule")
         public void rule(StatefulSession sess, String event) {
-            // Appending a new rule named after the event's value
+            // Appending a new rule
             sess
                 .newRule(event)
                 .forEach("$i", Integer.class)
