@@ -3,34 +3,21 @@ package org.evrete.examples.run;
 import org.evrete.KnowledgeService;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
+import org.evrete.dsl.annotation.Rule;
 
 import java.util.List;
 
 import static java.lang.System.out;
 
-public class SelfMutationInline {
+public class SelfMutationAnnotated {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         KnowledgeService service = new KnowledgeService();
+
+        // Build knowledge & session
         StatefulSession session = service
-            .newKnowledge()
-            .newRule("Root rule")
-            .forEach(
-                "$s", StatefulSession.class,
-                "$e", String.class
-            )
-            .execute(ctx -> {
-                StatefulSession sess = ctx.get("$s");
-                String event = ctx.get("$e");
-                // Appending a new rule named after the event's value
-                sess
-                    .newRule(event)
-                    .forEach("$i", Integer.class)
-                    .where("$i % 2 == 0")
-                    .execute(c -> out.printf("%s:\t%s%n", event ,c.get("$i")));
-                out.printf("New rule created: '%s'%n", event);
-            })
-            .newStatefulSession();
+                .newKnowledge("JAVA-CLASS", MutatingRuleset.class)
+                .newStatefulSession();
 
         // 1. Inserting session into self
         session.insertAndFire(session);
@@ -50,5 +37,18 @@ public class SelfMutationInline {
         }
 
         service.shutdown();
+    }
+
+    public static class MutatingRuleset {
+
+        @Rule("Root rule")
+        public void rule(StatefulSession sess, String event) {
+            sess
+                .newRule(event)
+                .forEach("$i", Integer.class)
+                .where("$i % 2 == 0")
+                .execute(c -> out.printf("%s:\t%s%n", event ,c.get("$i")));
+            out.printf("New rule created: '%s'%n", event);
+        }
     }
 }
