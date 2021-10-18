@@ -49,5 +49,4 @@ public class ChangingConditions {
 
         service.shutdown();
     }
-
 }
