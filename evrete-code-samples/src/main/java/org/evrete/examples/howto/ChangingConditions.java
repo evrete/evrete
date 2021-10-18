@@ -23,13 +23,13 @@ public class ChangingConditions {
         try (StatefulSession s = knowledge.newStatefulSession()) {
             RuntimeRule rule = s.getRule("Even numbers");
             // 2. Initial test
-            out.println("2. Testing the rule as-is:");
+            out.println("\n2. Testing the rule as-is:");
             s.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
 
             // 3. Building a new expression and replacing the old one
             Evaluator newCondition = rule.buildExpression("$i % 2 == 1");
             s.replaceEvaluator(handle, newCondition);
-            out.println("3. Testing new condition:");
+            out.println("\n3. Testing new condition:");
             s.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
 
             // 4. Yet another condition, as a Predicate this time
@@ -37,13 +37,13 @@ public class ChangingConditions {
                 int $i = t.get(0);
                 return $i % 3 == 0;
             });
-            out.println("4. Testing another condition:");
+            out.println("\n4. Testing another condition:");
             s.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
         }
 
         try (StatefulSession s = knowledge.newStatefulSession()) {
             // 5. New session shouldn't be affected by the changes
-            out.println("5. Testing a new session:");
+            out.println("\n5. Testing a new session:");
             s.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
         }
 
