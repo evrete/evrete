@@ -10,7 +10,7 @@ public interface RuntimeRule extends Rule {
 
     /**
      * <p>
-     *     Compiles a string expression and returns it as a {@link Evaluator}.
+     *     Compiles a string expression and returns it as an {@link Evaluator} instance.
      * </p>
      * @param expression expression to compile
      * @return evaluator instance
