@@ -15,8 +15,8 @@ import java.util.logging.Logger;
 
 public final class TypeMemory extends TypeMemoryBase {
     private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
-    private Cache cache;
     private final MemoryActionBuffer buffer;
+    private Cache cache;
 
     TypeMemory(SessionMemory sessionMemory, int type) {
         super(sessionMemory, type);

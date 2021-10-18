@@ -8,16 +8,16 @@ import java.util.HashSet;
 public class EvaluatorWrapper implements Evaluator, Copyable<EvaluatorWrapper> {
     private Evaluator delegate;
     private Collection<EvaluationListener> listeners = new HashSet<>();
-        private final ValuesPredicate verbose = new ValuesPredicate() {
-            @Override
-            public boolean test(IntToValue intToValue) {
-                boolean b = delegate.test(intToValue);
-                for (EvaluationListener listener : listeners) {
-                    listener.fire(delegate, intToValue, b);
-                }
-                return b;
+    private final ValuesPredicate verbose = new ValuesPredicate() {
+        @Override
+        public boolean test(IntToValue intToValue) {
+            boolean b = delegate.test(intToValue);
+            for (EvaluationListener listener : listeners) {
+                listener.fire(delegate, intToValue, b);
             }
-        };
+            return b;
+        }
+    };
 
     private ValuesPredicate active;
     private IntToValue stateValues;
@@ -33,6 +33,15 @@ public class EvaluatorWrapper implements Evaluator, Copyable<EvaluatorWrapper> {
         this.listeners.addAll(other.listeners);
         this.stateValues = null;
         updateActiveEvaluator();
+    }
+
+    private static Evaluator unwrap(Evaluator e) {
+        if (e instanceof EvaluatorWrapper) {
+            EvaluatorWrapper wrapper = (EvaluatorWrapper) e;
+            return unwrap(wrapper.delegate);
+        } else {
+            return e;
+        }
     }
 
     @Override
@@ -56,15 +65,6 @@ public class EvaluatorWrapper implements Evaluator, Copyable<EvaluatorWrapper> {
 
     public Evaluator getDelegate() {
         return delegate;
-    }
-
-    private static Evaluator unwrap(Evaluator e) {
-        if (e instanceof EvaluatorWrapper) {
-            EvaluatorWrapper wrapper = (EvaluatorWrapper) e;
-            return unwrap(wrapper.delegate);
-        } else {
-            return e;
-        }
     }
 
     public final void setDelegate(Evaluator delegate) {

@@ -63,13 +63,13 @@ abstract class AbstractKeyedFactStorage<T extends AbstractFactsMap<?>> implement
         return maps[mode.ordinal()];
     }
 
-    static class KeyState {
-        int hash;
-        IntToValueHandle values;
-    }
-
     @Override
     public String toString() {
         return Arrays.toString(maps);
+    }
+
+    static class KeyState {
+        int hash;
+        IntToValueHandle values;
     }
 }

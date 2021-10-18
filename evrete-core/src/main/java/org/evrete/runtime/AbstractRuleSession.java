@@ -16,16 +16,15 @@ import java.util.stream.Collector;
 
 public abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRuntime<RuntimeRule, S> implements RuleSession<S> {
     private static final Logger LOGGER = Logger.getLogger(AbstractRuleSession.class.getName());
-    private final RuntimeRules ruleStorage;
     final SessionMemory memory;
     final DeltaMemoryManager deltaMemoryManager;
+    private final RuntimeRules ruleStorage;
     private final KnowledgeRuntime knowledge;
     private final boolean warnUnknownTypes;
+    private final List<SessionLifecycleListener> lifecycleListeners = new ArrayList<>();
     private boolean active = true;
     private ActivationManager activationManager;
     private BooleanSupplier fireCriteria = () -> true;
-
-    private final List<SessionLifecycleListener> lifecycleListeners = new ArrayList<>();
 
 
     AbstractRuleSession(KnowledgeRuntime knowledge) {

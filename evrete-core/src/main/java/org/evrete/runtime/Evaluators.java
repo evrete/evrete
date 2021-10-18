@@ -60,7 +60,7 @@ public class Evaluators implements Copyable<Evaluators>, EvaluationListeners {
         if (existing == null) {
             throw new IllegalArgumentException("Unknown evaluator handle");
         } else {
-            if(existing.sameDescriptor(evaluator)) {
+            if (existing.sameDescriptor(evaluator)) {
                 existing.setDelegate(evaluator);
             } else {
                 throw new IllegalArgumentException("Mismatched descriptors");
@@ -92,7 +92,7 @@ public class Evaluators implements Copyable<Evaluators>, EvaluationListeners {
     public EvaluatorWrapper get(EvaluatorHandle handle, boolean returnNull) {
         EvaluatorWrapper w = conditions.get((EvaluatorHandleImpl) Objects.requireNonNull(handle));
         if (w == null) {
-            if(returnNull) {
+            if (returnNull) {
                 return null;
             } else {
                 throw new IllegalArgumentException("Unknown evaluator " + handle);

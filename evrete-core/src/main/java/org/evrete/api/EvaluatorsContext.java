@@ -11,12 +11,13 @@ public interface EvaluatorsContext {
 
     /**
      * <p>
-     *     Registers new condition evaluator and returns its handle. If an existing {@link Evaluator}
-     *     matches the argument ({@link Evaluator#compare(Evaluator)} returns {@link Evaluator#RELATION_EQUALS}),
-     *     the existing evaluator handle will be returned instead and no changes will be made in the
-     *     context.
+     * Registers new condition evaluator and returns its handle. If an existing {@link Evaluator}
+     * matches the argument ({@link Evaluator#compare(Evaluator)} returns {@link Evaluator#RELATION_EQUALS}),
+     * the existing evaluator handle will be returned instead and no changes will be made in the
+     * context.
      * </p>
-     * @param evaluator condition to add
+     *
+     * @param evaluator  condition to add
      * @param complexity condition's relative complexity
      * @return new {@link EvaluatorHandle} or the one of an existing condition.
      */
@@ -24,18 +25,18 @@ public interface EvaluatorsContext {
 
     /**
      * <p>
-     *     Returns evaluator by its handle.
+     * Returns evaluator by its handle.
      * </p>
+     *
      * @param handle evaluator handle
      * @return existing condition evaluator or null if such condition does not exist
      */
     Evaluator getEvaluator(EvaluatorHandle handle);
 
     /**
-     *
      * @param evaluator condition to add
-     * @see #addEvaluator(Evaluator, double)
      * @return new {@link EvaluatorHandle} or the one of an existing condition.
+     * @see #addEvaluator(Evaluator, double)
      */
     default EvaluatorHandle addEvaluator(Evaluator evaluator) {
         return addEvaluator(evaluator, EvaluatorHandle.DEFAULT_COMPLEXITY);
@@ -43,22 +44,24 @@ public interface EvaluatorsContext {
 
     /**
      * <p>
-     *     Replaces existing condition with a new one. New condition must have
-     *     the same {@link Evaluator#descriptor()}, otherwise {@link IllegalArgumentException}
-     *     will be thrown.
+     * Replaces existing condition with a new one. New condition must have
+     * the same {@link Evaluator#descriptor()}, otherwise {@link IllegalArgumentException}
+     * will be thrown.
      * </p>
-     * @param handle handle of an existing condition
-     * @throws IllegalArgumentException if no condition can be found by the given handle or
-     * if the existing condition's descriptor does not match the new one.
+     *
+     * @param handle       handle of an existing condition
      * @param newEvaluator new condition
+     * @throws IllegalArgumentException if no condition can be found by the given handle or
+     *                                  if the existing condition's descriptor does not match the new one.
      */
     void replaceEvaluator(EvaluatorHandle handle, Evaluator newEvaluator);
 
     /**
      * <p>
-     *     Replaces existing condition with a new one.
+     * Replaces existing condition with a new one.
      * </p>
-     * @param handle handle of an existing condition
+     *
+     * @param handle    handle of an existing condition
      * @param predicate new condition in a form if {@link ValuesPredicate}
      */
     void replaceEvaluator(EvaluatorHandle handle, ValuesPredicate predicate);

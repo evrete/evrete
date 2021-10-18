@@ -25,6 +25,17 @@ class DefaultExpressionResolver implements ExpressionResolver {
         this.conditionBaseClassName = requester.getConfiguration().getProperty(BASE_CLASS_PROPERTY, BaseConditionClass.class.getName());
     }
 
+    private static ConditionStringTerm resolveTerm(int start, int actualEnd, FieldReference ref, NextIntSupplier fieldCounter, List<ConditionStringTerm> terms) {
+        // Scanning existing terms
+        for (ConditionStringTerm t : terms) {
+            if (t.type().equals(ref.type()) && t.field().equals(ref.field())) {
+                // Found the same reference
+                return new ConditionStringTerm(start, actualEnd, t);
+            }
+        }
+        return new ConditionStringTerm(start, actualEnd, ref, fieldCounter);
+    }
+
     @Override
     public FieldReference resolve(String arg, NamedType.Resolver resolver) {
         Type<?> type;
@@ -75,17 +86,6 @@ class DefaultExpressionResolver implements ExpressionResolver {
             // which requires whitespaces to be preserved.
             return buildExpression(rawExpression, resolver, imports, false);
         }
-    }
-
-    private static ConditionStringTerm resolveTerm(int start, int actualEnd, FieldReference ref, NextIntSupplier fieldCounter, List<ConditionStringTerm> terms) {
-        // Scanning existing terms
-        for (ConditionStringTerm t : terms) {
-            if (t.type().equals(ref.type()) && t.field().equals(ref.field())) {
-                // Found the same reference
-                return new ConditionStringTerm(start, actualEnd, t);
-            }
-        }
-        return new ConditionStringTerm(start, actualEnd, ref, fieldCounter);
     }
 
     private Evaluator buildExpression(String rawExpression, NamedType.Resolver resolver, Set<String> imports, boolean stripWhiteSpaces) throws CompilationException {

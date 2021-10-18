@@ -17,11 +17,11 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     private final List<RuleBuilder<C>> ruleBuilders = new ArrayList<>();
 
     private final KnowledgeService service;
+    private final Configuration configuration;
     private ExpressionResolver expressionResolver;
     private Comparator<Rule> ruleComparator = SALIENCE_COMPARATOR;
     private Class<? extends ActivationManager> activationManagerFactory;
     private ActivationMode agendaMode;
-    private final Configuration configuration;
 
     AbstractRuntime(KnowledgeService service) {
         this(service, service.newTypeResolver());

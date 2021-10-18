@@ -5,8 +5,8 @@ import org.evrete.util.Mask;
 
 public class FactRecord {
     final Object instance;
-    private int version = 0;
     private final Mask<MemoryAddress> bucketsMask;
+    private int version = 0;
 
     FactRecord(Object instance) {
         this.instance = instance;

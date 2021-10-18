@@ -9,8 +9,8 @@ abstract class MemoryComponent {
     final MemoryFactory memoryFactory;
     final Configuration configuration;
     final ValueResolver valueResolver;
-    private final ArrayOf<MemoryComponent> childComponents = new ArrayOf<>(MemoryComponent.class);
     final AbstractRuleSession<?> runtime;
+    private final ArrayOf<MemoryComponent> childComponents = new ArrayOf<>(MemoryComponent.class);
 
     MemoryComponent(AbstractRuleSession<?> runtime, MemoryFactory memoryFactory) {
         this.memoryFactory = memoryFactory;

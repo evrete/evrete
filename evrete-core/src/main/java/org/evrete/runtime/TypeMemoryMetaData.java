@@ -13,10 +13,10 @@ class TypeMemoryMetaData {
     private final Evaluators evaluators;
     private final MetaChangeListener listener;
     private final ArrayOf<FieldKeyMeta> keyMetas;
-    ActiveField[] activeFields;
-    AlphaEvaluator[] alphaEvaluators;
     private final AtomicInteger bucketCounter;
     private final AtomicInteger bucketIds;
+    ActiveField[] activeFields;
+    AlphaEvaluator[] alphaEvaluators;
 
     TypeMemoryMetaData(int type, Evaluators evaluators, AtomicInteger bucketIds, MetaChangeListener listener) {
         this.type = type;

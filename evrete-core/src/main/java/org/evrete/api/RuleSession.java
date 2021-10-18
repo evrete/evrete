@@ -61,12 +61,12 @@ public interface RuleSession<S extends RuleSession<S>> extends RuntimeContext<S>
 
 
     /**
-     * @deprecated
      * @param type type name
      * @param fact fact to insert
      * @return fact handle assigned to the fact
      * @throws NullPointerException if argument is null
      * @see #insertAs(String, Object)
+     * @deprecated
      */
     @Deprecated
     default FactHandle insert(String type, Object fact) {
@@ -90,10 +90,10 @@ public interface RuleSession<S extends RuleSession<S>> extends RuntimeContext<S>
      * Inserts a collection of facts, marking them as being of a specific type.
      * </p>
      *
-     * @deprecated
      * @param type    type name
      * @param objects objects to insert
      * @see #insertAs(String, Object)
+     * @deprecated
      */
     @Deprecated
     default S insert(String type, Collection<?> objects) {

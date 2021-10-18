@@ -44,16 +44,6 @@ class TypeImpl<T> implements Type<T> {
         }
     }
 
-    private void save(TypeFieldImpl f) {
-        this.fieldMap.put(f.getName(), f);
-        this.fieldsArray.set(f.getId(), f);
-    }
-
-    @Override
-    public TypeField getField(int id) {
-        return this.fieldsArray.get(id);
-    }
-
     private static ValueReader resolve(MethodHandles.Lookup lookup, Class<?> clazz, String prop) {
         MethodHandle handle = null;
 
@@ -101,6 +91,16 @@ class TypeImpl<T> implements Type<T> {
 
     private static String capitalizeFirst(String str) {
         return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+
+    private void save(TypeFieldImpl f) {
+        this.fieldMap.put(f.getName(), f);
+        this.fieldsArray.set(f.getId(), f);
+    }
+
+    @Override
+    public TypeField getField(int id) {
+        return this.fieldsArray.get(id);
     }
 
     @Override

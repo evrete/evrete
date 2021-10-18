@@ -12,11 +12,11 @@ import static org.evrete.runtime.RuntimeFact.DUMMY_FACT;
 import static org.evrete.util.Constants.DELETED_MEMORY_KEY_FLAG;
 
 public abstract class KeyMemoryBucket extends MemoryComponent {
+    public final MemoryAddress address;
     final KeyedFactStorage fieldData;
     final ActiveField[] activeFields;
     final Collection<FactHandleVersioned> buffer = new LinkedList<>();
     RuntimeFact current = null;
-    public final MemoryAddress address;
 
     KeyMemoryBucket(MemoryComponent runtime, MemoryAddress address) {
         super(runtime);
@@ -24,28 +24,6 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
         this.fieldData = memoryFactory.newBetaStorage(fields.getFields().length);
         this.activeFields = fields.getFields();
         this.address = address;
-    }
-
-    public void purgeDeleted(Predicate<FactHandleVersioned> predicate, Consumer<MemoryKey> emptyKeysConsumer) {
-        ReIterator<MemoryKey> keys = fieldData.keys(KeyMode.OLD_OLD);
-        long remaining;
-        while (keys.hasNext()) {
-            MemoryKey key = keys.next();
-            ReIterator<FactHandleVersioned> handles = fieldData.values(KeyMode.OLD_OLD, key);
-            while (handles.hasNext()) {
-                FactHandleVersioned handle = handles.next();
-                if (predicate.test(handle)) {
-                    handles.remove();
-                }
-            }
-            remaining = handles.reset();
-            if (remaining == 0) {
-                // Deleting key as well
-                key.setMetaValue(DELETED_MEMORY_KEY_FLAG);
-                emptyKeysConsumer.accept(key);
-                keys.remove();
-            }
-        }
     }
 
     static KeyMemoryBucket factory(MemoryComponent runtime, MemoryAddress address) {
@@ -67,6 +45,28 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
                     return new KeyMemoryBucketAlpha.KeyMemoryBucketAlpha1(runtime, address);
                 default:
                     return new KeyMemoryBucketAlpha.KeyMemoryBucketAlphaN(runtime, address);
+            }
+        }
+    }
+
+    public void purgeDeleted(Predicate<FactHandleVersioned> predicate, Consumer<MemoryKey> emptyKeysConsumer) {
+        ReIterator<MemoryKey> keys = fieldData.keys(KeyMode.OLD_OLD);
+        long remaining;
+        while (keys.hasNext()) {
+            MemoryKey key = keys.next();
+            ReIterator<FactHandleVersioned> handles = fieldData.values(KeyMode.OLD_OLD, key);
+            while (handles.hasNext()) {
+                FactHandleVersioned handle = handles.next();
+                if (predicate.test(handle)) {
+                    handles.remove();
+                }
+            }
+            remaining = handles.reset();
+            if (remaining == 0) {
+                // Deleting key as well
+                key.setMetaValue(DELETED_MEMORY_KEY_FLAG);
+                emptyKeysConsumer.accept(key);
+                keys.remove();
             }
         }
     }

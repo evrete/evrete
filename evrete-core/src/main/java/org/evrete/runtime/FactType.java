@@ -31,16 +31,15 @@ public class FactType {
         this.memoryMask = other.memoryMask;
     }
 
-    public Mask<MemoryAddress> getMemoryMask() {
-        return memoryMask;
-    }
-
     public static FactType[] toArray(Collection<FactType> set) {
         FactType[] arr = set.toArray(FactType.ZERO_ARRAY);
         Arrays.sort(arr, COMPARATOR);
         return arr;
     }
 
+    public Mask<MemoryAddress> getMemoryMask() {
+        return memoryMask;
+    }
 
     int findFieldPosition(TypeField field) {
         ActiveField[] arr = memoryAddress.fields().getFields();

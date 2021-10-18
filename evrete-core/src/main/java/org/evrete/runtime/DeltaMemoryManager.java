@@ -8,9 +8,9 @@ import java.util.Arrays;
 
 public class DeltaMemoryManager implements MemoryActionListener {
     private final int[] actionCounts = new int[Action.values().length];
-    private int totalActions = 0;
     private final Mask<MemoryAddress> insertDeltaMask = Mask.addressMask();
     private final Mask<MemoryAddress> deleteBufferMask = Mask.addressMask();
+    private int totalActions = 0;
 
     boolean hasMemoryChanges() {
         return totalActions > 0;

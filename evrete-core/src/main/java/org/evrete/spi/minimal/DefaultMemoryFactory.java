@@ -7,12 +7,11 @@ import org.evrete.runtime.FactType;
 import java.util.function.BiPredicate;
 
 class DefaultMemoryFactory implements MemoryFactory {
-    private final DefaultValueResolver valueResolver = new DefaultValueResolver();
     private static final String CONFIG_BETA_INITIAL_SIZE = "evrete.impl.beta-memory-initial-size";
     private static final String CONFIG_FACT_STORAGE_CAPACITY = "evrete.impl.fact-storage-initial-size";
     private static final int FACT_STORAGE_CAPACITY_DEFAULT = 8192;
     private static final int BETA_INITIAL_SIZE_DEFAULT = 4096;
-
+    private final DefaultValueResolver valueResolver = new DefaultValueResolver();
     private final Configuration configuration;
 
     DefaultMemoryFactory(RuntimeContext<?> context) {

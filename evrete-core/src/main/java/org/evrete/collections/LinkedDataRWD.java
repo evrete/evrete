@@ -118,9 +118,9 @@ public class LinkedDataRWD<T> implements ReIterable<T> {
     }
 
     static class Node<Z> {
+        final Z data;
         Node<Z> prev;
         Node<Z> next;
-        final Z data;
 
         Node(Z data, Node<Z> prev) {
             this.data = data;

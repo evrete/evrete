@@ -3,14 +3,6 @@ package org.evrete.api;
 public interface FieldReference {
     FieldReference[] ZERO_ARRAY = new FieldReference[0];
 
-    TypeField field();
-
-    NamedType type();
-
-    default boolean sameAs(FieldReference other) {
-        return other.field().getName().equals(field().getName()) && other.type().sameAs(type());
-    }
-
     static boolean sameAs(FieldReference[] refs1, FieldReference[] refs2) {
         if (refs1.length != refs2.length) return false;
 
@@ -20,5 +12,13 @@ public interface FieldReference {
             }
         }
         return true;
+    }
+
+    TypeField field();
+
+    NamedType type();
+
+    default boolean sameAs(FieldReference other) {
+        return other.field().getName().equals(field().getName()) && other.type().sameAs(type());
     }
 }

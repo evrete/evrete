@@ -137,10 +137,6 @@ class StatefulBaseTests {
 
     }
 
-    private StatefulSession newSession() {
-        return knowledge.newStatefulSession();
-    }
-
     private static String randomCondition(FieldReference[][] references) {
         Random random = new Random(System.nanoTime());
 
@@ -178,6 +174,10 @@ class StatefulBaseTests {
         }
         return joiner.toString();
 
+    }
+
+    private StatefulSession newSession() {
+        return knowledge.newStatefulSession();
     }
 
     private StatefulSession newSession(ActivationMode mode) {
@@ -470,9 +470,9 @@ class StatefulBaseTests {
                         fact("$b", TypeB.class),
                         fact("$c", TypeC.class)
                 ).where(
-                "$a.i == $b.i",
-                "$c.l == $b.l",
-                "$c.i == $a.l")
+                        "$a.i == $b.i",
+                        "$c.l == $b.l",
+                        "$c.i == $a.l")
                 .execute();
 
         StatefulSession s = newSession(mode);

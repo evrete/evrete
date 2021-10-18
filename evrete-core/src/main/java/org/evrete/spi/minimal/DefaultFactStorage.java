@@ -63,8 +63,6 @@ class DefaultFactStorage<T> implements FactStorage<T> {
     static class TupleCollection<T> extends AbstractLinearHash<DefaultFactStorage.Tuple<T>> {
         private static final ToIntFunction<Object> HASH_FUNCTION = Object::hashCode;
         private final BiPredicate<T, T> identityFunction;
-        private long handleId = 0L;
-
         private final BiPredicate<Object, Object> EQ_PREDICATE = new BiPredicate<Object, Object>() {
             @Override
             @SuppressWarnings("unchecked")
@@ -74,7 +72,6 @@ class DefaultFactStorage<T> implements FactStorage<T> {
                 return identityFunction.test(t1.object, t2.object);
             }
         };
-
         private final BiPredicate<Tuple<T>, FactHandleImpl> searchByHandle = (tuple, o) -> tuple.handle.id == o.id;
         private final BiPredicate<Tuple<T>, T> searchByFact = new BiPredicate<Tuple<T>, T>() {
             @Override
@@ -82,8 +79,8 @@ class DefaultFactStorage<T> implements FactStorage<T> {
                 return identityFunction.test(tuple.object, o);
             }
         };
-
         private final Type<?> type;
+        private long handleId = 0L;
 
         TupleCollection(int minCapacity, Type<?> type, BiPredicate<T, T> identityFunction) {
             super(minCapacity);

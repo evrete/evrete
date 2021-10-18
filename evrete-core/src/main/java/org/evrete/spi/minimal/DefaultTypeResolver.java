@@ -43,6 +43,31 @@ class DefaultTypeResolver implements TypeResolver {
         }
     }
 
+    private static Class<?> primitiveClassForName(String className) {
+        switch (className) {
+            case "boolean":
+                return boolean.class;
+            case "byte":
+                return byte.class;
+            case "short":
+                return short.class;
+            case "int":
+                return int.class;
+            case "long":
+                return long.class;
+            case "float":
+                return float.class;
+            case "double":
+                return double.class;
+            case "char":
+                return char.class;
+            case "void":
+                return void.class;
+            default:
+                return null;
+        }
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public <T> Type<T> getType(int typeId) {
@@ -81,31 +106,6 @@ class DefaultTypeResolver implements TypeResolver {
 
         if (!changed) {
             throw new IllegalStateException();
-        }
-    }
-
-    private static Class<?> primitiveClassForName(String className) {
-        switch (className) {
-            case "boolean":
-                return boolean.class;
-            case "byte":
-                return byte.class;
-            case "short":
-                return short.class;
-            case "int":
-                return int.class;
-            case "long":
-                return long.class;
-            case "float":
-                return float.class;
-            case "double":
-                return double.class;
-            case "char":
-                return char.class;
-            case "void":
-                return void.class;
-            default:
-                return null;
         }
     }
 
@@ -151,8 +151,8 @@ class DefaultTypeResolver implements TypeResolver {
         typeDeclarationMap.put(typeName, type);
         typesById.put(type.getId(), type);
         typesByJavaType.computeIfAbsent(
-                type.getJavaType().getName(),
-                k -> new ArrayOf<Type<?>>(new Type[]{}))
+                        type.getJavaType().getName(),
+                        k -> new ArrayOf<Type<?>>(new Type[]{}))
                 .append(type);
         typeInheritanceCache.clear();
         return type;

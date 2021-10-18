@@ -8,8 +8,8 @@ import java.util.Collection;
 import java.util.function.Consumer;
 
 public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule implements RuleBuilder<C> {
-    private final AbstractRuntime<?, C> runtime;
     public static final int NULL_SALIENCE = Integer.MIN_VALUE;
+    private final AbstractRuntime<?, C> runtime;
     private final LhsBuilderImpl<C> lhsBuilder;
 
     public RuleBuilderImpl(AbstractRuntime<?, C> ctx, String name) {

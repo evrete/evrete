@@ -19,10 +19,10 @@ public class RuntimeFact {
         }
     };
     private static final BitSet EMPTY = new BitSet();
-    private final ValueHandle[] valueHandles;
     public final FactHandleVersioned factHandle;
-    final BitSet alphaTests;
     public final FactRecord factRecord;
+    final BitSet alphaTests;
+    private final ValueHandle[] valueHandles;
 
     private RuntimeFact() {
         this.factHandle = null;

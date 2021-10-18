@@ -11,20 +11,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 final class JavaSource extends SimpleJavaFileObject {
-    private final String code;
     private final static String KEYWORD_CLASS = "class";
     private final static String KEYWORD_INTERFACE = "interface";
     private final static String KEYWORD_RECORD = "record";
     private final static String KEYWORD_ANNOTATION = "@interface";
-
     private static final String[] JAVA_TYPES = {
             KEYWORD_CLASS,
             KEYWORD_INTERFACE,
             KEYWORD_RECORD,
             KEYWORD_ANNOTATION
     };
-
     private static final AtomicInteger folderId = new AtomicInteger();
+    private final String code;
 
     private JavaSource(URI uri, String code) {
         super(uri, Kind.SOURCE);
@@ -37,12 +35,6 @@ final class JavaSource extends SimpleJavaFileObject {
         URI uri = URI.create("string:///" + virtualFolder + "/" + derivedClassName + Kind.SOURCE.extension);
         return Collections.singletonList(new JavaSource(uri, sourceCode));
     }
-
-    @Override
-    public CharSequence getCharContent(boolean ignoreEncodingErrors) {
-        return code;
-    }
-
 
     /**
      * <p>
@@ -159,5 +151,10 @@ final class JavaSource extends SimpleJavaFileObject {
             }
         }
         return -1;
+    }
+
+    @Override
+    public CharSequence getCharContent(boolean ignoreEncodingErrors) {
+        return code;
     }
 }

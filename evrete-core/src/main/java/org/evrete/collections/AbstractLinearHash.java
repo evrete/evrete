@@ -18,17 +18,17 @@ import java.util.stream.Stream;
  * @param <E> Entry type
  */
 public abstract class AbstractLinearHash<E> implements ReIterable<E> {
-    private static final float loadFactor = 0.75f;
     static final ToIntFunction<Object> DEFAULT_HASH = Object::hashCode;
     static final BiPredicate<Object, Object> DEFAULT_EQUALS = Object::equals;
+    private static final float loadFactor = 0.75f;
     private static final int MAXIMUM_CAPACITY = 1 << 30;
     private static final int MINIMUM_CAPACITY = 1 << 1;
+    private static final int NULL_VALUE = -1;
+    private final int minDataSize;
     int size = 0;
     private Object[] data;
     private boolean[] deletedIndices;
     private int deletes = 0;
-    private static final int NULL_VALUE = -1;
-    private final int minDataSize;
     private int currentInsertIndex;
     private int[] unsignedIndices;
 

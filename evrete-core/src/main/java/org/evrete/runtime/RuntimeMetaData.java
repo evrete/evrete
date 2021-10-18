@@ -17,9 +17,9 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     private final ArrayOf<TypeMemoryMetaData> typeMetas;
     private final ArrayOf<FieldsKey> memoryKeys;
     private final Evaluators evaluators;
+    private final AtomicInteger bucketIds;
     private TypeResolver typeResolver;
     private ClassLoader classLoader;
-    private final AtomicInteger bucketIds;
 
     RuntimeMetaData(KnowledgeService service, TypeResolver typeResolver) {
         this.classLoader = service.getClassLoader();

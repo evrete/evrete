@@ -7,19 +7,19 @@ public enum KeyMode {
     OLD_NEW(true) // Known key, new facts
     ;
 
-    private final boolean delta;
-
     static {
         if (OLD_OLD.ordinal() != 0) {
             throw new IllegalStateException("There is contract that the " + OLD_OLD + " key storage always comes first");
         }
     }
 
-    public boolean isDelta() {
-        return delta;
-    }
+    private final boolean delta;
 
     KeyMode(boolean delta) {
         this.delta = delta;
+    }
+
+    public boolean isDelta() {
+        return delta;
     }
 }

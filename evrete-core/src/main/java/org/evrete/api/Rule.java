@@ -4,11 +4,11 @@ import java.util.function.Consumer;
 
 public interface Rule extends FluentEnvironment<Rule>, Named, FluentImports<Rule>, NamedType.Resolver {
 
+    Consumer<RhsContext> getRhs();
+
     void setRhs(String literalRhs);
 
     void setRhs(Consumer<RhsContext> rhs);
-
-    Consumer<RhsContext> getRhs();
 
     int getSalience();
 

@@ -13,11 +13,11 @@ import java.util.logging.Logger;
 
 public abstract class AbstractRule implements Rule {
     private static final Logger LOGGER = Logger.getLogger(AbstractRule.class.getName());
-    private String name;
     private final Consumer<RhsContext> nullRhs;
     private final Imports imports;
     private final Map<String, Object> properties;
     protected Consumer<RhsContext> rhs;
+    private String name;
     private int salience;
     private String literalRhs;
 
@@ -46,11 +46,6 @@ public abstract class AbstractRule implements Rule {
     }
 
     @Override
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
     public Imports getImports() {
         return imports;
     }
@@ -64,6 +59,16 @@ public abstract class AbstractRule implements Rule {
     @Override
     public Consumer<RhsContext> getRhs() {
         return rhs;
+    }
+
+    @Override
+    public void setRhs(Consumer<RhsContext> rhs) {
+        this.rhs = rhs == null ? nullRhs : rhs;
+        this.literalRhs = null;
+    }
+
+    public void setRhs(String literalRhs) {
+        this.literalRhs = literalRhs;
     }
 
     @Override
@@ -98,18 +103,13 @@ public abstract class AbstractRule implements Rule {
     }
 
     @Override
-    public void setRhs(Consumer<RhsContext> rhs) {
-        this.rhs = rhs == null ? nullRhs : rhs;
-        this.literalRhs = null;
-    }
-
-    public void setRhs(String literalRhs) {
-        this.literalRhs = literalRhs;
+    public final String getName() {
+        return name;
     }
 
     @Override
-    public final String getName() {
-        return name;
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override

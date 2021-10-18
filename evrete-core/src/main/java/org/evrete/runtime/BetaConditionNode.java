@@ -64,11 +64,6 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
 
     }
 
-    @Override
-    public void commitDelta() {
-        throw new UnsupportedOperationException();
-    }
-
     public static void forEachConditionNode(BetaConditionNode node, Consumer<BetaConditionNode> consumer) {
         consumer.accept(node);
         for (BetaMemoryNode parent : node.getSources()) {
@@ -76,6 +71,11 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
                 forEachConditionNode((BetaConditionNode) parent, consumer);
             }
         }
+    }
+
+    @Override
+    public void commitDelta() {
+        throw new UnsupportedOperationException();
     }
 
     public void computeDelta(boolean deltaOnly) {

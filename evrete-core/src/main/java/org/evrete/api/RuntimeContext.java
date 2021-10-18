@@ -27,9 +27,9 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
 
     ClassLoader getClassLoader();
 
-    KnowledgeService getService();
-
     void setClassLoader(ClassLoader classLoader);
+
+    KnowledgeService getService();
 
     Class<? extends ActivationManager> getActivationManagerFactory();
 

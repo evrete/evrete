@@ -16,7 +16,7 @@ import static org.evrete.api.FactBuilder.fact;
 public interface LhsFactSelector<T> {
     /**
      * <p>
-     *      The main method that declares LHS types.
+     * The main method that declares LHS types.
      * </p>
      *
      * @param facts a collection of facts to declare

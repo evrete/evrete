@@ -26,8 +26,8 @@ public class KnowledgeService {
     private final ExpressionResolverProvider expressionResolverProvider;
     private final TypeResolverProvider typeResolverProvider;
     private final LiteralRhsCompiler literalRhsProvider;
-    private ClassLoader classLoader;
     private final SourceSecurity security = new SourceSecurity();
+    private ClassLoader classLoader;
 
     public KnowledgeService(Configuration conf) {
         this.configuration = conf;
@@ -65,26 +65,6 @@ public class KnowledgeService {
         }
     }
 
-    public SourceSecurity getSecurity() {
-        return security;
-    }
-
-    public ClassLoader getClassLoader() {
-        return classLoader;
-    }
-
-    @SuppressWarnings("unused")
-    public void setClassLoader(ClassLoader classLoader) {
-        this.classLoader = classLoader;
-    }
-
-    /**
-     * @return an empty {@link Knowledge} instance
-     */
-    public Knowledge newKnowledge() {
-        return new KnowledgeRuntime(this);
-    }
-
     private static URL[] toUrls(Class<?>... resources) throws IOException {
         if (resources == null || resources.length == 0) throw new IOException("Empty resources");
         URL[] urls = new URL[resources.length];
@@ -92,13 +72,6 @@ public class KnowledgeService {
             urls[i] = classToURL(resources[i]);
         }
         return urls;
-    }
-
-    /**
-     * @return an empty {@link Knowledge} instance
-     */
-    public Knowledge newKnowledge(TypeResolver typeResolver) {
-        return new KnowledgeRuntime(this, typeResolver);
     }
 
     private static DSLKnowledgeProvider getDslProvider(String dsl) {
@@ -129,6 +102,33 @@ public class KnowledgeService {
     private static URL classToURL(Class<?> cl) {
         String resource = cl.getName().replaceAll("\\.", "/") + ".class";
         return cl.getClassLoader().getResource(resource);
+    }
+
+    public SourceSecurity getSecurity() {
+        return security;
+    }
+
+    public ClassLoader getClassLoader() {
+        return classLoader;
+    }
+
+    @SuppressWarnings("unused")
+    public void setClassLoader(ClassLoader classLoader) {
+        this.classLoader = classLoader;
+    }
+
+    /**
+     * @return an empty {@link Knowledge} instance
+     */
+    public Knowledge newKnowledge() {
+        return new KnowledgeRuntime(this);
+    }
+
+    /**
+     * @return an empty {@link Knowledge} instance
+     */
+    public Knowledge newKnowledge(TypeResolver typeResolver) {
+        return new KnowledgeRuntime(this, typeResolver);
     }
 
     public TypeResolver newTypeResolver() {

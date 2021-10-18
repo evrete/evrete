@@ -12,15 +12,15 @@ public class Configuration extends Properties implements Copyable<Configuration>
     public static final String OBJECT_COMPARE_METHOD = "evrete.core.fact-identity-strategy";
     public static final String INSERT_BUFFER_SIZE = "evrete.core.insert-buffer-size";
     public static final String WARN_UNKNOWN_TYPES = "evrete.core.warn-unknown-types";
+    public static final int INSERT_BUFFER_SIZE_DEFAULT = 4096;
+    public static final String IDENTITY_METHOD_EQUALS = "equals";
+    public static final String IDENTITY_METHOD_IDENTITY = "identity";
     static final String SPI_MEMORY_FACTORY = "evrete.spi.memory-factory";
     static final String SPI_EXPRESSION_RESOLVER = "evrete.spi.expression-resolver";
     static final String SPI_TYPE_RESOLVER = "evrete.spi.type-resolver";
     static final String SPI_RHS_COMPILER = "evrete.spi.rhs-compiler";
-    public static final int INSERT_BUFFER_SIZE_DEFAULT = 4096;
     static final String PARALLELISM = "evrete.core.parallelism";
     private static final Logger LOGGER = Logger.getLogger(Configuration.class.getName());
-    public static final String IDENTITY_METHOD_EQUALS = "equals";
-    public static final String IDENTITY_METHOD_IDENTITY = "identity";
     private static final long serialVersionUID = -9015471049604658637L;
     private final Imports imports;
 
