@@ -28,7 +28,7 @@ public class ChangingRhs {
             session.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
 
             // 2. Replacing the RHS
-            out.println("2. Replacing the action:");
+            out.println("2. Replaced action test:");
             rule.setRhs(ctx -> {
                 int $i = ctx.get("$i");
                 out.printf("\t'%d'%n", $i);
@@ -36,10 +36,10 @@ public class ChangingRhs {
             session.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
 
             // 3. Chaining actions
-            out.println("3. Chaining the rule's action:");
+            out.println("3. Chained action test:");
             rule.chainRhs(ctx -> {
                 int $i = ctx.get("$i");
-                out.printf("\tChained action on [%d]%n", $i);
+                out.printf("\tchained action on [%d]%n", $i);
             });
             session.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
         }
