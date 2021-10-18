@@ -36,7 +36,7 @@ public class ChangingRhs {
             session.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
 
             // 3. Chaining actions
-            System.out.println("3. Chaining the rule's action:");
+            out.println("3. Chaining the rule's action:");
             rule.chainRhs(ctx -> {
                 int $i = ctx.get("$i");
                 out.printf("\tChained action on [%d]%n", $i);
