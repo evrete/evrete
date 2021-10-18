@@ -5,6 +5,7 @@ import org.evrete.api.Knowledge;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
 import static java.lang.System.out;
+
 public class ChangingRhs {
 
     public static void main(String[] args) throws Exception {
@@ -15,8 +16,8 @@ public class ChangingRhs {
                 .forEach("$i", Integer.class)
                 .where("$i % 2 == 0")
                 .execute(ctx -> {
-                    int evenNumber = ctx.get("$i");
-                    out.printf("\t%d%n", evenNumber);
+                    int $i = ctx.get("$i");
+                    out.printf("\t%d%n", $i);
                 });
 
         try(StatefulSession session = knowledge.newStatefulSession()) {
@@ -30,7 +31,7 @@ public class ChangingRhs {
             out.println("2. Replacing the action:");
             rule.setRhs(ctx -> {
                 int $i = ctx.get("$i");
-                System.out.println("\t'" + $i + "'");
+                out.printf("\t'%d'%n", $i);
             });
             session.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
 
@@ -38,7 +39,7 @@ public class ChangingRhs {
             System.out.println("3. Chaining the rule's action:");
             rule.chainRhs(ctx -> {
                 int $i = ctx.get("$i");
-                out.println("\tChained action on '" + $i + "'");
+                out.printf("\tChained action on [%d]%n", $i);
             });
             session.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
         }
@@ -46,5 +47,4 @@ public class ChangingRhs {
         // Closing resources
         service.shutdown();
     }
-
 }
