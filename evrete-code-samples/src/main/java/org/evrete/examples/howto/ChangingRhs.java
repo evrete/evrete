@@ -1,14 +1,15 @@
 package org.evrete.examples.howto;
 
 import org.evrete.KnowledgeService;
+import org.evrete.api.Knowledge;
+import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
 import static java.lang.System.out;
 public class ChangingRhs {
 
     public static void main(String[] args) throws Exception {
         KnowledgeService service = new KnowledgeService();
-
-        StatefulSession session = service
+        Knowledge knowledge = service
                 .newKnowledge()
                 .newRule("Even numbers")
                 .forEach("$i", Integer.class)
@@ -16,31 +17,33 @@ public class ChangingRhs {
                 .execute(ctx -> {
                     int evenNumber = ctx.get("$i");
                     out.printf("\t%d%n", evenNumber);
-                })
-                .newStatefulSession();
+                });
 
-        // 1. Initial test
-        out.println("1. Testing the rule as-is:");
-        session.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
+        try(StatefulSession session = knowledge.newStatefulSession()) {
+            RuntimeRule rule = session.getRule("Even numbers");
 
-        // 2. Replacing the RHS
-        out.println("2. Replacing the action:");
-        session.getRule("Even numbers").setRhs(ctx -> {
-            int $i = ctx.get("$i");
-            System.out.println("\t'" + $i + "'");
-        });
-        session.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
+            // 1. Initial test
+            out.println("1. Testing the rule as-is:");
+            session.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
 
-        // 3. Chaining actions
-        System.out.println("3. Chaining the rule's action:");
-        session.getRule("Even numbers").chainRhs(ctx -> {
-            int $i = ctx.get("$i");
-            out.println("\tChained action on '" + $i + "'");
-        });
-        session.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
+            // 2. Replacing the RHS
+            out.println("2. Replacing the action:");
+            rule.setRhs(ctx -> {
+                int $i = ctx.get("$i");
+                System.out.println("\t'" + $i + "'");
+            });
+            session.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
+
+            // 3. Chaining actions
+            System.out.println("3. Chaining the rule's action:");
+            rule.chainRhs(ctx -> {
+                int $i = ctx.get("$i");
+                out.println("\tChained action on '" + $i + "'");
+            });
+            session.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
+        }
 
         // Closing resources
-        session.close();
         service.shutdown();
     }
 
