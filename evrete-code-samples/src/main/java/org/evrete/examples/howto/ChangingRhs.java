@@ -32,7 +32,7 @@ public class ChangingRhs {
         session.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
 
         // 3. Chaining actions
-        System.out.println("3. Chaining rule's actions:");
+        System.out.println("3. Chaining the rule's action:");
         session.getRule("Even numbers").chainRhs(ctx -> {
             int $i = ctx.get("$i");
             out.println("\tChained action on '" + $i + "'");
