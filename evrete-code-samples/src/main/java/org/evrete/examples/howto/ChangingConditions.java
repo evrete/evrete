@@ -27,8 +27,8 @@ public class ChangingConditions {
             s.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
 
             // 3. Building a new expression and replacing the old one
-            Evaluator newCondition1 = rule.buildExpression("$i % 2 == 1");
-            s.replaceEvaluator(handle, newCondition1);
+            Evaluator newCondition = rule.buildExpression("$i % 2 == 1");
+            s.replaceEvaluator(handle, newCondition);
             out.println("3. Testing new condition:");
             s.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
 
