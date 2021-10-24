@@ -12,12 +12,12 @@ import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Set;
 
-class ListenerMethod extends ClassMethod implements SessionCloneable<ListenerMethod> {
+class PhaseListenerMethod extends ClassMethod implements SessionCloneable<PhaseListenerMethod> {
     final Set<Phase> phases = EnumSet.noneOf(Phase.class);
     private int configIndex;
     private int environmentIndex;
 
-    ListenerMethod(MethodHandles.Lookup lookup, Method method) {
+    PhaseListenerMethod(MethodHandles.Lookup lookup, Method method) {
         super(lookup, method);
         PhaseListener listener = Objects.requireNonNull(method.getAnnotation(PhaseListener.class));
         Collections.addAll(phases, listener.value());
@@ -53,7 +53,7 @@ class ListenerMethod extends ClassMethod implements SessionCloneable<ListenerMet
         }
     }
 
-    private ListenerMethod(ListenerMethod method, Object instance) {
+    private PhaseListenerMethod(PhaseListenerMethod method, Object instance) {
         super(method, instance);
         this.configIndex = method.configIndex;
         this.environmentIndex = method.environmentIndex;
@@ -70,7 +70,7 @@ class ListenerMethod extends ClassMethod implements SessionCloneable<ListenerMet
     }
 
     @Override
-    public ListenerMethod copy(Object sessionInstance) {
-        return new ListenerMethod(this, sessionInstance);
+    public PhaseListenerMethod copy(Object sessionInstance) {
+        return new PhaseListenerMethod(this, sessionInstance);
     }
 }

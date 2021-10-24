@@ -9,31 +9,31 @@ import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
 
-class Listeners implements SessionCloneable<Listeners> {
-    private final EnumMap<Phase, List<ListenerMethod>> listeners = new EnumMap<>(Phase.class);
+class PhaseListeners implements SessionCloneable<PhaseListeners> {
+    private final EnumMap<Phase, List<PhaseListenerMethod>> listeners = new EnumMap<>(Phase.class);
 
-    Listeners() {
+    PhaseListeners() {
         for (Phase phase : Phase.values()) {
             listeners.put(phase, new LinkedList<>());
         }
     }
 
     @Override
-    public Listeners copy(Object sessionInstance) {
-        Listeners newInstance = new Listeners();
+    public PhaseListeners copy(Object sessionInstance) {
+        PhaseListeners newInstance = new PhaseListeners();
         for (Phase phase : Phase.values()) {
-            for (ListenerMethod lm : listeners.get(phase)) {
+            for (PhaseListenerMethod lm : listeners.get(phase)) {
                 newInstance.add(phase, lm.copy(sessionInstance));
             }
         }
         return newInstance;
     }
 
-    private void add(Phase phase, ListenerMethod m) {
+    private void add(Phase phase, PhaseListenerMethod m) {
         this.listeners.get(phase).add(m);
     }
 
-    void add(ListenerMethod m) {
+    void add(PhaseListenerMethod m) {
         for (Phase phase : m.phases) {
             add(phase, m);
         }
@@ -41,11 +41,11 @@ class Listeners implements SessionCloneable<Listeners> {
 
 
     void fire(Phase phase, RuntimeContext<?> ctx) {
-        Collection<ListenerMethod> c = this.listeners.get(phase);
+        Collection<PhaseListenerMethod> c = this.listeners.get(phase);
         if (!c.isEmpty()) {
             Configuration configuration = ctx.getConfiguration();
             Environment environment = new MaskedEnvironment(ctx);
-            for (ListenerMethod m : c) {
+            for (PhaseListenerMethod m : c) {
                 m.call(configuration, environment);
             }
         }

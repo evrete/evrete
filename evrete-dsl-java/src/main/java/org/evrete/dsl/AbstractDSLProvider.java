@@ -2,6 +2,7 @@ package org.evrete.dsl;
 
 import org.evrete.api.Knowledge;
 import org.evrete.api.spi.DSLKnowledgeProvider;
+import org.evrete.dsl.annotation.EnvironmentListener;
 import org.evrete.dsl.annotation.FieldDeclaration;
 import org.evrete.dsl.annotation.PhaseListener;
 import org.evrete.dsl.annotation.Rule;
@@ -29,15 +30,29 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider {
         RulesetMeta meta = new RulesetMeta(javaClass);
         for (Method m : javaClass.getMethods()) {
             Rule ruleAnnotation = m.getAnnotation(Rule.class);
-            PhaseListener listenerAnnotation = m.getAnnotation(PhaseListener.class);
+            PhaseListener phaseListener = m.getAnnotation(PhaseListener.class);
             FieldDeclaration fieldDeclaration = m.getAnnotation(FieldDeclaration.class);
+            EnvironmentListener envListener = m.getAnnotation(EnvironmentListener.class);
 
             if (ruleAnnotation != null) {
                 meta.addRuleMethod(m);
-            } else if (listenerAnnotation != null) {
-                meta.addListener(m);
-            } else if (fieldDeclaration != null) {
+            }
+
+            if (phaseListener != null) {
+                meta.addPhaseListener(m);
+            }
+
+            if (fieldDeclaration != null) {
                 meta.addFieldDeclaration(m, fieldDeclaration.type());
+            }
+
+            if (envListener != null) {
+                String property = envListener.value();
+                if(property.isEmpty()) {
+                    LOGGER.warning("The @" + EnvironmentListener.class.getSimpleName() + " annotation on " + m + " has no property value and will be ignored");
+                } else {
+                    meta.addEnvListener(m, property);
+                }
             }
         }
 

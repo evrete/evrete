@@ -8,7 +8,6 @@ import java.util.Collection;
  * working memory methods.
  * </p>
  */
-@SuppressWarnings("UnusedReturnValue")
 public interface RhsContext {
     /**
      * <p>
@@ -76,7 +75,7 @@ public interface RhsContext {
      *
      * @return runtime context (session)
      */
-    default RuntimeContext<?> getRuntime() {
+    default RuleSession<?> getRuntime() {
         return getRule().getRuntime();
     }
 

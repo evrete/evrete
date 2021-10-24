@@ -1,30 +1,29 @@
 package org.evrete.util.compiler;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import javax.tools.JavaFileObject;
+import java.io.*;
 import java.net.URL;
 import java.security.ProtectionDomain;
 import java.security.SecureClassLoader;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Logger;
 
-public class BytesClassLoader extends SecureClassLoader {
-    private static final Logger LOGGER = Logger.getLogger(BytesClassLoader.class.getName());
+public class ServiceClassLoader extends SecureClassLoader {
+    private static final Logger LOGGER = Logger.getLogger(ServiceClassLoader.class.getName());
     private final Map<String, byte[]> resources = new HashMap<>();
     private final ProtectionDomain protectionDomain;
+    private final List<CompiledClass> localCompiledClasses = new ArrayList<>();
 
-    public BytesClassLoader(ClassLoader parent, ProtectionDomain protectionDomain) {
+    public ServiceClassLoader(ClassLoader parent, ProtectionDomain protectionDomain) {
         super(parent);
         Objects.requireNonNull(protectionDomain);
         this.protectionDomain = protectionDomain;
     }
 
     public Class<?> buildClass(byte[] bytes) {
-        return defineClass(null, bytes, 0, bytes.length, protectionDomain);
+        Class<?> cl = defineClass(null, bytes, 0, bytes.length, protectionDomain);
+        this.localCompiledClasses.add(new CompiledClass(cl, bytes));
+        return cl;
     }
 
     public void addResource(String name, byte[] bytes) {
@@ -38,6 +37,23 @@ public class BytesClassLoader extends SecureClassLoader {
             LOGGER.warning("Redirecting the findResource(String name) call to parent classloader. To access this classloader's resources, please use the getResourceAsStream() method instead");
         }
         return super.findResource(name);
+    }
+
+    Collection<JavaFileObject> getCompiledClasses(String packageName) {
+        ClassLoader current = this;
+        Collection<JavaFileObject> col = new ArrayList<>();
+        while (current !=  null) {
+            if(current instanceof  ServiceClassLoader) {
+                ServiceClassLoader scl = (ServiceClassLoader) current;
+                for(CompiledClass cc : scl.localCompiledClasses) {
+                    if(cc.getPackageName().equals(packageName)) {
+                        col.add(cc);
+                    }
+                }
+            }
+            current = current.getParent();
+        }
+        return col;
     }
 
     @Override

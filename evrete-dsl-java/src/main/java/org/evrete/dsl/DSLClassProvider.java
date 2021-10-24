@@ -4,7 +4,7 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.RuleScope;
 import org.evrete.api.TypeResolver;
-import org.evrete.util.compiler.BytesClassLoader;
+import org.evrete.util.compiler.ServiceClassLoader;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,7 +15,7 @@ public class DSLClassProvider extends AbstractDSLProvider {
     private static Knowledge apply(Knowledge knowledge, byte[][] bytes) {
         ClassLoader ctxClassLoader = knowledge.getClassLoader();
         ProtectionDomain domain = knowledge.getService().getSecurity().getProtectionDomain(RuleScope.BOTH);
-        BytesClassLoader loader = new BytesClassLoader(ctxClassLoader, domain);
+        ServiceClassLoader loader = new ServiceClassLoader(ctxClassLoader, domain);
         Knowledge current = knowledge;
         for (byte[] arr : bytes) {
             current = processRuleSet(current, loader.buildClass(arr));

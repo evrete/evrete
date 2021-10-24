@@ -146,8 +146,8 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
     }
 
     @Override
-    public EvaluatorHandle addWhere(String expression, double complexity) {
-        Evaluator evaluator = runtime.compile(expression, this, ruleBuilder.getImports());
+    public EvaluatorHandle addWhere(String expression, double complexity, ClassLoader classLoader, Properties properties) {
+        Evaluator evaluator = runtime.compile(expression, this, ruleBuilder.getImports(), classLoader, properties);
         return add(runtime.addEvaluator(evaluator));
     }
 

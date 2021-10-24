@@ -10,6 +10,7 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 
 class DSLKnowledge extends KnowledgeWrapper {
     private final Constructor<?> constructor;
@@ -54,7 +55,12 @@ class DSLKnowledge extends KnowledgeWrapper {
             }
 
             // Adding literal conditions
-            lhs = lhs.where(rm.stringPredicates);
+            Properties copy = delegate.getConfiguration().copyOf();
+            copy.setProperty("evrete.impl.condition-base-class", meta.javaClass.getName());
+            for(String predicate : rm.stringPredicates) {
+                lhs.addWhere(predicate, meta.javaClass.getClassLoader(), copy);
+            }
+
             // Adding method predicates
             List<PredicateMethod> predicateMethods = new LinkedList<>();
             for (MethodPredicate mp : rm.methodPredicates) {
@@ -82,7 +88,7 @@ class DSLKnowledge extends KnowledgeWrapper {
         }
 
         // There is one listener that should be called right now
-        meta.listeners.fire(Phase.BUILD, this);
+        meta.phaseListeners.fire(Phase.BUILD, this);
     }
 
     @Override
@@ -93,6 +99,13 @@ class DSLKnowledge extends KnowledgeWrapper {
     @Override
     public StatelessSession newStatelessSession() {
         return new DSLStatelessSession(super.newStatelessSession(), meta, meta.fieldDeclarations, rules, classInstance());
+    }
+
+    @Override
+    public Knowledge set(String property, Object value) {
+        super.set(property, value);
+        meta.envListeners.fire(property, value, true);
+        return this;
     }
 
     private Object classInstance() {

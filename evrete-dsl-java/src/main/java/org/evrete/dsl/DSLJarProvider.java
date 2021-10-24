@@ -6,7 +6,7 @@ import org.evrete.api.Knowledge;
 import org.evrete.api.RuleScope;
 import org.evrete.api.TypeResolver;
 import org.evrete.dsl.annotation.RuleSet;
-import org.evrete.util.compiler.BytesClassLoader;
+import org.evrete.util.compiler.ServiceClassLoader;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -32,7 +32,7 @@ public class DSLJarProvider extends AbstractDSLProvider {
     private static Knowledge apply(Knowledge knowledge, Set<String> ruleClasses, InputStream... streams) throws IOException {
         ClassLoader ctxClassLoader = knowledge.getClassLoader();
         ProtectionDomain domain = knowledge.getService().getSecurity().getProtectionDomain(RuleScope.BOTH);
-        BytesClassLoader classLoader = new BytesClassLoader(ctxClassLoader, domain);
+        ServiceClassLoader classLoader = new ServiceClassLoader(ctxClassLoader, domain);
         List<Class<?>> ruleSets = fillClassLoader(classLoader, streams);
         Knowledge current = knowledge;
         if (ruleClasses.isEmpty()) {
@@ -75,7 +75,7 @@ public class DSLJarProvider extends AbstractDSLProvider {
         return ruleClasses;
     }
 
-    private static List<Class<?>> fillClassLoader(BytesClassLoader classLoader, InputStream... resources) throws IOException {
+    private static List<Class<?>> fillClassLoader(ServiceClassLoader classLoader, InputStream... resources) throws IOException {
         JarInputStream[] streams = new JarInputStream[resources.length];
         for (int i = 0; i < resources.length; i++) {
             streams[i] = new JarInputStream(resources[i]);
@@ -92,7 +92,7 @@ public class DSLJarProvider extends AbstractDSLProvider {
         return ruleSets;
     }
 
-    private static List<Class<?>> applyJar(BytesClassLoader secureClassLoader, JarInputStream is) throws IOException {
+    private static List<Class<?>> applyJar(ServiceClassLoader secureClassLoader, JarInputStream is) throws IOException {
         JarEntry entry;
         byte[] buffer = new byte[1024];
         Map<String, byte[]> resources = new HashMap<>();

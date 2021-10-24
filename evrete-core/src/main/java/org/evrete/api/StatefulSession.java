@@ -108,9 +108,7 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
     }
 
     default StatefulSession forEachFact(Consumer<Object> consumer) {
-        return forEachFact((factHandle, o) -> {
-            consumer.accept(o);
-        });
+        return forEachFact((factHandle, o) -> consumer.accept(o));
     }
 
     /**

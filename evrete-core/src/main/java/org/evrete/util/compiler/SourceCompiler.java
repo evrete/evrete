@@ -12,7 +12,7 @@ public class SourceCompiler {
         this.compiler = ToolProvider.getSystemJavaCompiler();
     }
 
-    public final Class<?> compile(String source, BytesClassLoader classLoader) throws CompilationException {
+    public final Class<?> compile(String source, ServiceClassLoader classLoader) throws CompilationException {
         synchronized (compiler) {
             FileManager<?> fileManager = FileManager.instance(compiler, classLoader);
             byte[] classBytes;
@@ -46,7 +46,7 @@ public class SourceCompiler {
                     errors.add(diagnostic.toString());
                 }
             }
-            throw new CompilationException("Unknown compilation error: " + errors + ". Check with error logs for the source code in question.", source);
+            throw new CompilationException("Compilation error(s): " + errors, source);
         }
         return fileManager.getBytes();
     }

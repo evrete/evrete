@@ -4,7 +4,7 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.RuleScope;
 import org.evrete.api.TypeResolver;
-import org.evrete.util.compiler.BytesClassLoader;
+import org.evrete.util.compiler.ServiceClassLoader;
 import org.evrete.util.compiler.CompilationException;
 import org.evrete.util.compiler.SourceCompiler;
 
@@ -24,7 +24,7 @@ public class DSLSourceProvider extends AbstractDSLProvider {
     private static Knowledge build(Knowledge knowledge, String[] sources) {
         ClassLoader ctxClassLoader = knowledge.getClassLoader();
         ProtectionDomain domain = knowledge.getService().getSecurity().getProtectionDomain(RuleScope.BOTH);
-        BytesClassLoader loader = new BytesClassLoader(ctxClassLoader, domain);
+        ServiceClassLoader loader = new ServiceClassLoader(ctxClassLoader, domain);
         SourceCompiler compiler = new SourceCompiler();
         Knowledge current = knowledge;
         for (String source : sources) {

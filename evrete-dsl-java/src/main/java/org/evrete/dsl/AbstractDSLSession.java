@@ -8,13 +8,14 @@ import org.evrete.util.AbstractSessionWrapper;
 import java.util.List;
 
 abstract class AbstractDSLSession<S extends RuleSession<S>> extends AbstractSessionWrapper<S> {
-    private final Listeners listeners;
+    private final PhaseListeners phaseListeners;
+    private final EnvListeners envListeners;
 
 
     AbstractDSLSession(S delegate, RulesetMeta meta, FieldDeclarations fieldDeclarations, List<DSLRule> rules, Object classInstance) {
         super(delegate);
-        this.listeners = meta.listeners.copy(classInstance);
-
+        this.phaseListeners = meta.phaseListeners.copy(classInstance);
+        this.envListeners = meta.envListeners.copy(classInstance);
 
         fieldDeclarations.applyNormal(getTypeResolver(), classInstance);
         // Adjusting rules for class instance
@@ -34,10 +35,10 @@ abstract class AbstractDSLSession<S extends RuleSession<S>> extends AbstractSess
         delegate.addEventListener(evt -> {
             switch (evt) {
                 case PRE_FIRE:
-                    listeners.fire(Phase.FIRE, AbstractDSLSession.this);
+                    phaseListeners.fire(Phase.FIRE, AbstractDSLSession.this);
                     break;
                 case PRE_CLOSE:
-                    listeners.fire(Phase.CLOSE, AbstractDSLSession.this);
+                    phaseListeners.fire(Phase.CLOSE, AbstractDSLSession.this);
                     break;
                 default:
             }
@@ -47,8 +48,16 @@ abstract class AbstractDSLSession<S extends RuleSession<S>> extends AbstractSess
             setActivationManager((ActivationManager) classInstance);
         }
 
-        listeners.fire(Phase.CREATE, this);
+        phaseListeners.fire(Phase.CREATE, this);
 
     }
 
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public S set(String property, Object value) {
+        super.set(property, value);
+        envListeners.fire(property, value, false);
+        return (S) this;
+    }
 }

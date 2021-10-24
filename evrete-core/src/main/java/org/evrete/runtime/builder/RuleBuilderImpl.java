@@ -59,12 +59,16 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
         return lhsBuilder;
     }
 
-    @SuppressWarnings("unchecked")
     C build() {
         runtime.compileRule(this);
-        return (C) runtime;
+        return getRuntime();
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public C getRuntime() {
+        return (C) runtime;
+    }
 
     C build(Consumer<RhsContext> rhs) {
         setRhs(rhs);

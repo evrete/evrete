@@ -11,9 +11,11 @@ import org.evrete.util.compiler.CompilationException;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C>> extends RuntimeMetaData<C> implements RuleSet<R> {
+    private static final Logger LOGGER = Logger.getLogger(AbstractRuntime.class.getName());
     private final List<RuleBuilder<C>> ruleBuilders = new ArrayList<>();
 
     private final KnowledgeService service;
@@ -117,21 +119,28 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     }
 
     public Evaluator compile(String expression, NamedType.Resolver resolver) {
-        _assertActive();
-        try {
-            return getExpressionResolver().buildExpression(expression, resolver, getJavaImports(RuleScope.LHS, RuleScope.BOTH));
-        } catch (CompilationException e) {
-            Logger.getAnonymousLogger().warning("Failed code:\n" + e.getSource());
-            throw new RuntimeException(e);
-        }
+        return compile(expression, resolver, getClassLoader(), configuration);
+    }
+
+    public Evaluator compile(String expression, NamedType.Resolver resolver, ClassLoader classLoader, Properties properties) {
+        return compile(expression, resolver, getJavaImports(RuleScope.LHS, RuleScope.BOTH), classLoader, properties);
     }
 
     public Evaluator compile(String expression, NamedType.Resolver resolver, Imports imports) {
+        return compile(expression, resolver, imports, getClassLoader(), configuration);
+    }
+
+    public Evaluator compile(String expression, NamedType.Resolver resolver, Imports imports, ClassLoader classLoader, Properties properties) {
+        return compile(expression, resolver, imports.get(RuleScope.LHS, RuleScope.BOTH), classLoader,  properties);
+    }
+
+    private Evaluator compile(String expression, NamedType.Resolver resolver, Set<String> imports, ClassLoader classLoader, Properties properties) {
         _assertActive();
         try {
-            return getExpressionResolver().buildExpression(expression, resolver, imports.get(RuleScope.LHS, RuleScope.BOTH));
+            return getExpressionResolver().buildExpression(expression, resolver, imports, classLoader, properties);
         } catch (CompilationException e) {
-            Logger.getAnonymousLogger().warning("Failed code:\n" + e.getSource());
+            LOGGER.warning("Failed source code:\n" + e.getSource());
+            LOGGER.log(Level.SEVERE, "Compilation error", e);
             throw new RuntimeException(e);
         }
     }

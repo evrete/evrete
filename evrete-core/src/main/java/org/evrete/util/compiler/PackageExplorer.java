@@ -14,9 +14,9 @@ import java.util.jar.JarEntry;
 
 class PackageExplorer {
     private static final String CLASS_FILE_EXTENSION = ".class";
-    private final ClassLoader classLoader;
+    private final ServiceClassLoader classLoader;
 
-    PackageExplorer(ClassLoader classLoader) {
+    PackageExplorer(ServiceClassLoader classLoader) {
         this.classLoader = classLoader;
     }
 
@@ -47,7 +47,7 @@ class PackageExplorer {
                     String binaryName = name.replaceAll("/", ".");
                     binaryName = binaryName.replaceAll(CLASS_FILE_EXTENSION + '$', "");
 
-                    result.add(new JavaFileObjectImpl(binaryName, uri));
+                    result.add(new ClassPathClass(binaryName, uri));
                 }
             }
         } catch (Exception e) {
@@ -68,7 +68,7 @@ class PackageExplorer {
                     String binaryName = packageName + '.' + childFile.getName();
                     binaryName = binaryName.replaceAll(CLASS_FILE_EXTENSION + '$', "");
 
-                    result.add(new JavaFileObjectImpl(binaryName, childFile.toURI()));
+                    result.add(new ClassPathClass(binaryName, childFile.toURI()));
                 }
             }
         }
@@ -76,7 +76,7 @@ class PackageExplorer {
         return result;
     }
 
-    public List<JavaFileObject> find(String packageName) throws IOException {
+    List<JavaFileObject> find(String packageName) throws IOException {
         String javaPackageName = packageName.replaceAll("\\.", "/");
 
         List<JavaFileObject> result = new ArrayList<>();
@@ -87,6 +87,7 @@ class PackageExplorer {
             URL packageFolderURL = urlEnumeration.nextElement();
             result.addAll(listUnder(packageName, packageFolderURL));
         }
+
         return result;
     }
 }

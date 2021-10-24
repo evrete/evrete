@@ -8,6 +8,7 @@ import org.evrete.api.StatefulSession;
 import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
@@ -98,7 +99,6 @@ class StatefulJavaSourceTests extends CommonTestMethods {
         session.forEachFact((h, o) -> primeCounter.next());
 
         assert primeCounter.get() == 25;
-
     }
 
     @ParameterizedTest

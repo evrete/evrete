@@ -1,4 +1,4 @@
-package org.evrete.util;
+package org.evrete.spi.minimal;
 
 import java.util.Objects;
 

@@ -13,7 +13,6 @@ import java.util.stream.IntStream;
 
 class SessionCollectorTest {
     private static KnowledgeService service;
-    private Knowledge knowledge;
 
     @BeforeAll
     static void setUpClass() {
@@ -41,7 +40,6 @@ class SessionCollectorTest {
         StatefulSession sess1 = knowledge.newStatefulSession();
         Set<Object> set1 = new HashSet<>();
         IntStream.range(2, 101).boxed().collect(sess1.asCollector()).fire().forEachFact((factHandle, o) -> set1.add(o));
-
 
         Set<Object> set2 = new HashSet<>();
         StatefulSession sess2 = knowledge.newStatefulSession();

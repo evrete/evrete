@@ -82,10 +82,8 @@ class TypeResolverTest {
                             .execute(context -> {
                                 Integer i = context.get("$i");
                                 assertSet.add(i);
-                                //System.out.println(i);
                             });
                     ctx.update(session);
-                    //System.out.println("New rule created");
                 });
 
         StatefulSession session = knowledge.newStatefulSession();

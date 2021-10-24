@@ -18,10 +18,10 @@ public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider imp
     private static final String classPackage = DefaultLiteralRhsCompiler.class.getPackage().getName() + ".rhs";
 
     @SuppressWarnings("unchecked")
-    private static Class<? extends AbstractLiteralRhs> buildClass(JcCompiler compiler, NamedType[] types, String literalRhs, Collection<String> imports) throws CompilationException {
+    private static Class<? extends AbstractLiteralRhs> buildClass(ClassLoader classLoader, JcCompiler compiler, NamedType[] types, String literalRhs, Collection<String> imports) throws CompilationException {
         String simpleName = "Rhs" + classCounter.getAndIncrement();
         String source = buildSource(simpleName, types, literalRhs, imports);
-        return (Class<? extends AbstractLiteralRhs>) compiler.compile(source);
+        return (Class<? extends AbstractLiteralRhs>) compiler.compile(classLoader, source);
     }
 
     private static String buildSource(String className, NamedType[] types, String literalRhs, Collection<String> imports) {
@@ -75,7 +75,7 @@ public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider imp
         NamedType[] types = factTypes.toArray(new NamedType[0]);
 
         ProtectionDomain domain = requester.getService().getSecurity().getProtectionDomain(RuleScope.RHS);
-        Class<? extends AbstractLiteralRhs> clazz = buildClass(getCreateJavaCompiler(requester, domain), types, literalRhs, imports);
+        Class<? extends AbstractLiteralRhs> clazz = buildClass(requester.getClassLoader(), getCreateJavaCompiler(requester, domain), types, literalRhs, imports);
         try {
             return clazz.getDeclaredConstructor().newInstance();
         } catch (Exception e) {

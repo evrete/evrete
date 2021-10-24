@@ -9,9 +9,9 @@ import org.evrete.dsl.annotation.PhaseListener;
 import org.evrete.dsl.annotation.Rule;
 import org.evrete.dsl.annotation.Where;
 
-import static org.evrete.dsl.ListenerInvocationData.event;
+import static org.evrete.dsl.TestUtils.PhaseHelperData.event;
 
-public class ListenerRuleSet1 {
+public class PhaseListenerRuleSet1 {
 
     @PhaseListener(Phase.BUILD)
     public static void onBuild() {

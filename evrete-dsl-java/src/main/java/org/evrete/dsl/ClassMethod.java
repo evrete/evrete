@@ -70,7 +70,6 @@ class ClassMethod {
     }
 
     final <V, R> Function<V, R> asFunction() {
-        assert args.length == 1;
         return new Function<V, R>() {
             @Override
             public R apply(V v) {

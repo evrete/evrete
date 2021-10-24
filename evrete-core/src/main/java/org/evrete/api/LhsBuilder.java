@@ -1,5 +1,6 @@
 package org.evrete.api;
 
+import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -16,7 +17,12 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
 
     RuleBuilder<C> getRuleBuilder();
 
-    EvaluatorHandle addWhere(String expression, double complexity);
+    default EvaluatorHandle addWhere(String expression, double complexity) {
+        RuntimeContext<?> ctx = getRuleBuilder().getRuntime();
+        return addWhere(expression, complexity, ctx.getClassLoader(), ctx.getConfiguration());
+    }
+
+    EvaluatorHandle addWhere(String expression, double complexity, ClassLoader classLoader, Properties properties);
 
     EvaluatorHandle addWhere(ValuesPredicate predicate, double complexity, String... references);
 
@@ -27,7 +33,12 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
     EvaluatorHandle addWhere(Predicate<Object[]> predicate, double complexity, FieldReference... references);
 
     default EvaluatorHandle addWhere(String expression) {
-        return addWhere(expression, EvaluatorHandle.DEFAULT_COMPLEXITY);
+        RuntimeContext<?> ctx = getRuleBuilder().getRuntime();
+        return addWhere(expression, ctx.getClassLoader(), ctx.getConfiguration());
+    }
+
+    default EvaluatorHandle addWhere(String expression, ClassLoader classLoader, Properties properties) {
+        return addWhere(expression, EvaluatorHandle.DEFAULT_COMPLEXITY,  classLoader, properties);
     }
 
     default EvaluatorHandle addWhere(ValuesPredicate predicate, String... references) {

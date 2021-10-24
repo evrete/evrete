@@ -14,8 +14,8 @@
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <junit.version>5.7.0</junit.version>
-        <jmh.version>1.27</jmh.version>
+        <junit.version>5.8.1</junit.version>
+        <jmh.version>1.32</jmh.version>
     </properties>
 
     <scm>

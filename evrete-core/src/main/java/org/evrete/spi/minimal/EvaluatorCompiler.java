@@ -19,17 +19,17 @@ class EvaluatorCompiler {
             "\n" +
             "    static {\n" +
             "        try {\n" +
-            "            HANDLE = java.lang.invoke.MethodHandles.lookup().findStatic(%s.class, \"test\", java.lang.invoke.MethodType.methodType(boolean.class, %s));\n" +
+            "            HANDLE = java.lang.invoke.MethodHandles.lookup().findStatic(%s.class, \"__$test\", java.lang.invoke.MethodType.methodType(boolean.class, %s));\n" +
             "        } catch (Exception e) {\n" +
             "            throw new IllegalStateException(e);\n" +
             "        }\n" +
             "    }\n" +
             "\n" +
-            "    private static boolean testInner(%s) {\n" +
+            "    private static boolean __$testInner(%s) {\n" +
             "        return %s;\n" +
             "    }\n" +
             "\n" +
-            "    public static boolean test(%s) {\n" +
+            "    public static boolean __$test(%s) {\n" +
             "        return %s\n" +
             "    }\n\n" +
             "    //IMPORTANT LINE BELOW, IT IS USED IN SOURCE/SIGNATURE COMPARISON\n" +
@@ -45,21 +45,16 @@ class EvaluatorCompiler {
         this.compiler = compiler;
     }
 
-    ClassLoader getClassLoader() {
-        return compiler.getClassLoader();
-    }
-
-    private MethodHandle compileExpression(String classJavaSource) throws CompilationException {
+    private MethodHandle compileExpression(ClassLoader classLoader, String classJavaSource) throws CompilationException {
         try {
-            Class<?> compiledClass = compiler.compile(classJavaSource);
+            Class<?> compiledClass = compiler.compile(classLoader, classJavaSource);
             return (MethodHandle) compiledClass.getDeclaredField("HANDLE").get(null);
         } catch (IllegalAccessException | NoSuchFieldException e) {
             throw new CompilationException(e, classJavaSource);
         }
     }
 
-    Evaluator buildExpression(Class<?> baseClass, StringLiteralRemover remover, String strippedExpression, List<ConditionStringTerm> terms, Set<String> imports) throws CompilationException {
-
+    Evaluator buildExpression(ClassLoader classLoader, String baseClassName, StringLiteralRemover remover, String strippedExpression, List<ConditionStringTerm> terms, Set<String> imports) throws CompilationException {
         int accumulatedShift = 0;
         StringJoiner argClasses = new StringJoiner(", ");
         StringJoiner argTypes = new StringJoiner(", ");
@@ -70,7 +65,6 @@ class EvaluatorCompiler {
         List<FieldReference> descriptorBuilder = new ArrayList<>();
 
         for (ConditionStringTerm term : terms) {
-            //JavaSourceFieldReference replacement = term.decoded;//resolvedExpressions.get(term);
             String original = strippedExpression.substring(term.start + accumulatedShift, term.end + accumulatedShift);
             String javaArgVar = term.varName;
             String before = strippedExpression.substring(0, term.start + accumulatedShift);
@@ -81,7 +75,6 @@ class EvaluatorCompiler {
 
             if (!uniqueReferences.contains(term)) {
                 //Build the reference
-                //FieldReferenceI ref = replacement;
                 descriptorBuilder.add(term);
                 //Prepare the corresponding source code vars
                 Class<?> fieldType = term.field().getValueType();
@@ -116,13 +109,13 @@ class EvaluatorCompiler {
                 pkg,
                 importsBuilder,
                 clazz,
-                baseClass.getName(),
+                baseClassName,
                 clazz,
                 IntToValue.class.getName() + ".class",
                 methodArgs,
                 replaced,
                 IntToValue.class.getName() + " values",
-                "testInner(" + argCasts + ");",
+                "__$testInner(" + argCasts + ");",
                 "fields in use: " + argTypes
         );
 
@@ -131,7 +124,7 @@ class EvaluatorCompiler {
         FieldReference[] descriptor = descriptorBuilder.toArray(FieldReference.ZERO_ARRAY);
         if (descriptor.length == 0)
             throw new IllegalArgumentException("No field references were resolved in the '" + strippedExpression + "'");
-        MethodHandle methodHandle = compileExpression(classJavaSource);
+        MethodHandle methodHandle = compileExpression(classLoader, classJavaSource);
         return new CompiledEvaluator(methodHandle, remover.getOriginal(), comparableClassSource, descriptor);
 
     }

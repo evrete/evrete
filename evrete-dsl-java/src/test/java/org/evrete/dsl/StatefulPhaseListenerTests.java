@@ -4,13 +4,13 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.ActivationMode;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
-import org.evrete.dsl.rules.ListenerRuleSet1;
+import org.evrete.dsl.rules.PhaseListenerRuleSet1;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-class StatefulListenerTests extends CommonTestMethods {
+class StatefulPhaseListenerTests extends CommonTestMethods {
     private static KnowledgeService service;
 
     @BeforeAll
@@ -30,24 +30,24 @@ class StatefulListenerTests extends CommonTestMethods {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void test1(ActivationMode mode) {
-        ListenerInvocationData.reset();
-        Knowledge knowledge = applyToRuntimeAsStream(service, ListenerRuleSet1.class);
-        assert ListenerInvocationData.total() == 1 && ListenerInvocationData.count(Phase.BUILD) == 1;
+        TestUtils.PhaseHelperData.reset();
+        Knowledge knowledge = applyToRuntimeAsStream(service, PhaseListenerRuleSet1.class);
+        assert TestUtils.PhaseHelperData.total() == 1 && TestUtils.PhaseHelperData.count(Phase.BUILD) == 1;
 
         StatefulSession session = session(knowledge, mode);
-        assert ListenerInvocationData.count(Phase.CREATE) == 3 : "Actual: " + ListenerInvocationData.EVENTS;
-        assert ListenerInvocationData.total() == 6; // 4 + additional two coming from the multiple() method
-        ListenerInvocationData.reset();
+        assert TestUtils.PhaseHelperData.count(Phase.CREATE) == 3 : "Actual: " + TestUtils.PhaseHelperData.EVENTS;
+        assert TestUtils.PhaseHelperData.total() == 6; // 4 + additional two coming from the multiple() method
+        TestUtils.PhaseHelperData.reset();
         session.insert(1);
         session.fire();
-        assert ListenerInvocationData.total() == 4 : " " + ListenerInvocationData.EVENTS;
+        assert TestUtils.PhaseHelperData.total() == 4 : " " + TestUtils.PhaseHelperData.EVENTS;
         session.fire();
-        assert ListenerInvocationData.total() == 8 : " " + ListenerInvocationData.EVENTS;
+        assert TestUtils.PhaseHelperData.total() == 8 : " " + TestUtils.PhaseHelperData.EVENTS;
 
 
-        ListenerInvocationData.reset();
+        TestUtils.PhaseHelperData.reset();
         session.close();
-        assert ListenerInvocationData.total() == 4 : " " + ListenerInvocationData.EVENTS;
+        assert TestUtils.PhaseHelperData.total() == 4 : " " + TestUtils.PhaseHelperData.EVENTS;
 
 
     }

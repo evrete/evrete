@@ -2,6 +2,7 @@ package org.evrete.api;
 
 import org.evrete.util.compiler.CompilationException;
 
+import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -56,4 +57,27 @@ public interface ExpressionResolver {
      * @see #resolve(String, NamedType.Resolver)
      */
     Evaluator buildExpression(String stringExpression, NamedType.Resolver resolver, Set<String> imports) throws CompilationException;
+
+    /**
+     * <p>
+     * This method parses a string argument and returns an {@link Evaluator} if possible.
+     * </p>
+     * <p>
+     * Introduced in 2.1.06, this method will replace the {@link #buildExpression(String, NamedType.Resolver, Set)} method
+     * which will be deprecated in future releases.
+     * </p>
+     *
+     * @param stringExpression - a String condition expression to parse
+     * @param resolver         a mapping function between fact name and {@link NamedType}
+     * @param imports          a collection of class imports
+     * @param properties       optional properties for the parser/compiler
+     * @return returns an {@link Evaluator} instance or throws an exception
+     * @throws CompilationException     if the argument can not be compiled
+     * @throws IllegalArgumentException if the any parts of the argument can not be resolved
+     * @see #resolve(String, NamedType.Resolver)
+     * @since 2.1.06
+     */
+    default Evaluator buildExpression(String stringExpression, NamedType.Resolver resolver, Set<String> imports, ClassLoader classLoader, Properties properties) throws CompilationException {
+        return buildExpression(stringExpression, resolver, imports);
+    }
 }

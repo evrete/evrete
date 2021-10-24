@@ -1,25 +1,27 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.RuntimeContext;
-import org.evrete.util.compiler.BytesClassLoader;
 import org.evrete.util.compiler.CompilationException;
+import org.evrete.util.compiler.ServiceClassLoader;
 import org.evrete.util.compiler.SourceCompiler;
 
 import java.security.ProtectionDomain;
 
 class JcCompiler extends SourceCompiler {
-    private final BytesClassLoader classLoader;
+    private final ProtectionDomain protectionDomain;
 
     JcCompiler(RuntimeContext<?> ctx, ProtectionDomain protectionDomain) {
-        this.classLoader = new BytesClassLoader(ctx.getClassLoader(), protectionDomain);
+        this.protectionDomain = protectionDomain;
     }
 
-    BytesClassLoader getClassLoader() {
-        return classLoader;
-    }
-
-    Class<?> compile(String source) throws CompilationException {
-        return compile(source, classLoader);
+    Class<?> compile(ClassLoader classLoader, String source) throws CompilationException {
+        ServiceClassLoader cl;
+        if(classLoader instanceof ServiceClassLoader) {
+            cl = (ServiceClassLoader) classLoader;
+        } else {
+            cl = new ServiceClassLoader(classLoader, protectionDomain);
+        }
+        return compile(source, cl);
     }
 
 }
