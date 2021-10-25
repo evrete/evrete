@@ -121,7 +121,12 @@ public interface StatelessSession extends RuleSession<StatelessSession> {
     }
 
     default void insertAndFire(Object... objects) {
-        insert(objects);
+        insert0(objects, true);
+        fire();
+    }
+
+    default void insertAndFire(Iterable<Object> objects) {
+        insert0(objects, true);
         fire();
     }
 }

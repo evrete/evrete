@@ -1,6 +1,5 @@
 package org.evrete.api;
 
-import java.util.Collection;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.function.BiConsumer;
@@ -183,13 +182,13 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
         });
     }
 
-    default StatefulSession insertAndFire(Collection<?> objects) {
-        insert(objects);
+    default StatefulSession insertAndFire(Iterable<?> objects) {
+        insert0(objects, true);
         return fire();
     }
 
     default StatefulSession insertAndFire(Object... objects) {
-        insert(objects);
+        insert0(objects, true);
         return fire();
     }
 

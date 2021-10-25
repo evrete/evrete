@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collector;
 
+//TODO fix hte "overly complex class warning"
 public abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRuntime<RuntimeRule, S> implements RuleSession<S> {
     private static final Logger LOGGER = Logger.getLogger(AbstractRuleSession.class.getName());
     final SessionMemory memory;
@@ -25,7 +26,6 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
     private boolean active = true;
     private ActivationManager activationManager;
     private BooleanSupplier fireCriteria = () -> true;
-
 
     AbstractRuleSession(KnowledgeRuntime knowledge) {
         super(knowledge);
@@ -124,7 +124,6 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
             commitBuffer();
         }
     }
-
 
     private void processBuffer() {
         MemoryDeltaTask deltaTask = new MemoryDeltaTask(memory.iterator());
@@ -302,17 +301,60 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         return memory;
     }
 
-    @Override
-    public final FactHandle insert(Object fact) {
-        _assertActive();
-        return insert(getTypeResolver().resolve(fact), fact);
+    private FactHandle insertSingle(TypeResolver resolver, Object fact) {
+        return actualInsert(resolver.resolve(fact), fact);
     }
 
-    @SuppressWarnings("unused")
     @Override
-    public final FactHandle insertAs(String type, Object fact) {
+    public final FactHandle insert0(Object fact, boolean resolveCollections) {
         _assertActive();
-        return insert(getTypeResolver().getType(type), fact);
+        Object arg = Objects.requireNonNull(fact, "Null facts are not supported");
+        final TypeResolver resolver = getTypeResolver();
+        if (resolveCollections) {
+            if (arg.getClass().isArray()) {
+                Object[] arr = (Object[]) arg;
+                for (Object o : arr) {
+                    insertSingle(resolver, o);
+                }
+                return null;
+            } else if (arg instanceof Iterable) {
+                Iterable<?> it = (Iterable<?>) arg;
+                for (Object o : it) {
+                    insertSingle(resolver, o);
+                }
+                return null;
+            } else {
+                return insertSingle(resolver, arg);
+            }
+        } else {
+            return insertSingle(resolver, arg);
+        }
+    }
+
+    @Override
+    public final FactHandle insert0(String type, Object fact, boolean resolveCollections) {
+        _assertActive();
+        Object arg = Objects.requireNonNull(fact, "Null facts are not supported");
+        final Type<?> t = getTypeResolver().getType(type);
+        if (resolveCollections) {
+            if (arg.getClass().isArray()) {
+                Object[] arr = (Object[]) arg;
+                for (Object o : arr) {
+                    actualInsert(t, o);
+                }
+                return null;
+            } else if (arg instanceof Iterable) {
+                Iterable<?> it = (Iterable<?>) arg;
+                for (Object o : it) {
+                    actualInsert(t, o);
+                }
+                return null;
+            } else {
+                return actualInsert(t, arg);
+            }
+        } else {
+            return actualInsert(t, arg);
+        }
     }
 
 
@@ -321,11 +363,11 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         return (T) memory.get(handle.getTypeId()).getFact(handle);
     }
 
-    private FactHandle insert(Type<?> type, Object fact) {
+    private FactHandle actualInsert(Type<?> type, Object fact) {
         if (fact == null) throw new NullPointerException("Null facts are not supported");
         if (type == null) {
             if (warnUnknownTypes) {
-                LOGGER.warning("Can not resolve type for " + fact + ", insert operation skipped.");
+                LOGGER.warning("Can not map type for '" + fact.getClass().getName() + "', insert operation skipped.");
             }
             return null;
         } else {

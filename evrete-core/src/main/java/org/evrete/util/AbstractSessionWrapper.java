@@ -12,16 +12,6 @@ public abstract class AbstractSessionWrapper<S extends RuleSession<S>> extends R
     }
 
     @Override
-    public FactHandle insert(Object fact) {
-        return delegate.insert(fact);
-    }
-
-    @Override
-    public FactHandle insertAs(String type, Object fact) {
-        return delegate.insertAs(type, fact);
-    }
-
-    @Override
     public ActivationManager getActivationManager() {
         return delegate.getActivationManager();
     }
@@ -82,4 +72,13 @@ public abstract class AbstractSessionWrapper<S extends RuleSession<S>> extends R
         return delegate.resolveFieldReferences(args, typeMapper);
     }
 
+    @Override
+    public FactHandle insert0(Object fact, boolean resolveCollections) {
+        return delegate.insert0(fact, resolveCollections);
+    }
+
+    @Override
+    public FactHandle insert0(String type, Object fact, boolean resolveCollections) {
+        return delegate.insert0(type, fact, resolveCollections);
+    }
 }
