@@ -43,6 +43,27 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         this.deletedIndices = new boolean[capacity];
     }
 
+    private static int findBinIndex1(int hash, Object[] scope, EntryPredicate predicate) {
+        int mask = scope.length - 1, counter = 0, addr = hash & mask;
+        while (!predicate.test(addr, scope[addr])) {
+            if (counter++ == scope.length) {
+                throw new IllegalStateException("Low-level implementation error, please submit a bug.");
+            } else {
+                addr = (addr + 1) & mask;
+            }
+        }
+        return addr;
+    }
+
+    private static int findBinIndex2(Object key, int hash, Object[] scope, boolean[] deletedIndices, BiPredicate<Object, Object> eqTest) {
+        return findBinIndex1(hash, scope, new EntryPredicate() {
+            @Override
+            public boolean test(int addr, Object found) {
+                return found == null || deletedIndices[addr] || eqTest.test(key, found);
+            }
+        });
+    }
+
     private static int findBinIndexFor(Object key, int hash, Object[] destination, BiPredicate<Object, Object> eqTest) {
         int mask = destination.length - 1;
         int addr = hash & mask;
@@ -58,12 +79,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     }
 
     private static int findEmptyBinIndex(int hash, Object[] destination) {
-        int mask = destination.length - 1;
-        int addr = hash & mask;
-        while (destination[addr] != null) {
-            addr = (addr + 1) & mask;
-        }
-        return addr;
+        return findBinIndex1(hash, destination, (addr, o) -> o == null);
     }
 
     @SuppressWarnings("unchecked")
@@ -306,6 +322,11 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         int deletes = this.deletes;
         assert indices == size + deletes : "indices: " + indices + " size: " + size + ", deletes: " + deletes;
         assert this.data.length >= minDataSize;
+    }
+
+    @FunctionalInterface
+    private interface EntryPredicate {
+        boolean test(int addr, Object o);
     }
 
     private final class It implements ReIterator<E> {
