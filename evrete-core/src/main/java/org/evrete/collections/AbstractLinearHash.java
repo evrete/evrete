@@ -1,5 +1,6 @@
 package org.evrete.collections;
 
+import org.evrete.api.IntObjectPredicate;
 import org.evrete.api.ReIterable;
 import org.evrete.api.ReIterator;
 import org.evrete.util.CollectionUtils;
@@ -20,6 +21,8 @@ import java.util.stream.Stream;
 public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     static final ToIntFunction<Object> DEFAULT_HASH = Object::hashCode;
     static final BiPredicate<Object, Object> DEFAULT_EQUALS = Object::equals;
+    static final IntObjectPredicate<Object> NULL_BIN_PREDICATE = (i, o) -> o == null;
+
     private static final float loadFactor = 0.75f;
     private static final int MAXIMUM_CAPACITY = 1 << 30;
     private static final int MINIMUM_CAPACITY = 1 << 1;
@@ -43,9 +46,10 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         this.deletedIndices = new boolean[capacity];
     }
 
-    private static int findBinIndex1(int hash, Object[] scope, EntryPredicate predicate) {
+    @SuppressWarnings("unchecked")
+    private static <Z> int findBinIndex1(int hash, Object[] scope, IntObjectPredicate<Z> predicate) {
         int mask = scope.length - 1, counter = 0, addr = hash & mask;
-        while (!predicate.test(addr, scope[addr])) {
+        while (!predicate.test(addr, (Z) scope[addr])) {
             if (counter++ == scope.length) {
                 throw new IllegalStateException("Low-level implementation error, please submit a bug.");
             } else {
@@ -53,15 +57,6 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
             }
         }
         return addr;
-    }
-
-    private static int findBinIndex2(Object key, int hash, Object[] scope, boolean[] deletedIndices, BiPredicate<Object, Object> eqTest) {
-        return findBinIndex1(hash, scope, new EntryPredicate() {
-            @Override
-            public boolean test(int addr, Object found) {
-                return found == null || deletedIndices[addr] || eqTest.test(key, found);
-            }
-        });
     }
 
     private static int findBinIndexFor(Object key, int hash, Object[] destination, BiPredicate<Object, Object> eqTest) {
@@ -78,10 +73,6 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         return addr;
     }
 
-    private static int findEmptyBinIndex(int hash, Object[] destination) {
-        return findBinIndex1(hash, destination, (addr, o) -> o == null);
-    }
-
     @SuppressWarnings("unchecked")
     private static <K, E> int findBinIndex(K key, int hash, Object[] destination, BiPredicate<E, K> eqTest) {
         int mask = destination.length - 1;
@@ -95,6 +86,19 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
             }
         }
         return addr;
+    }
+
+    public void apply(int hash, Predicate<E> predicate, ObjIntConsumer<E> consumer) {
+        apply(hash, binPredicate(predicate), consumer);
+    }
+
+    public void apply(int hash, IntObjectPredicate<E> predicate, ObjIntConsumer<E> consumer) {
+        int addr = findBinIndex1(hash, this.data, predicate);
+        consumer.accept(get(addr), addr);
+    }
+
+    public IntObjectPredicate<E> binPredicate(Predicate<E> predicate) {
+        return (i, o) -> o == null || deletedIndices[i] || predicate.test(o);
     }
 
     /**
@@ -305,7 +309,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         E obj;
         for (int i = 0; i < currentInsertIndex; i++) {
             if ((obj = get(unsignedIndices[i])) != null) {
-                int addr = findEmptyBinIndex(hashFunction.applyAsInt(obj), newData);
+                int addr = findBinIndex1(hashFunction.applyAsInt(obj), newData, NULL_BIN_PREDICATE);
                 newData[addr] = obj;
                 newUnsignedIndices[newCurrentInsertIndex++] = addr;
             }
@@ -322,11 +326,6 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         int deletes = this.deletes;
         assert indices == size + deletes : "indices: " + indices + " size: " + size + ", deletes: " + deletes;
         assert this.data.length >= minDataSize;
-    }
-
-    @FunctionalInterface
-    private interface EntryPredicate {
-        boolean test(int addr, Object o);
     }
 
     private final class It implements ReIterator<E> {

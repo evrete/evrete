@@ -5,10 +5,13 @@ import org.evrete.api.IntToValueHandle;
 import org.evrete.api.MemoryKey;
 import org.evrete.api.ReIterator;
 import org.evrete.collections.LinearHashSet;
+import org.evrete.util.Constants;
 
 import java.util.Collection;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
+import java.util.function.ObjIntConsumer;
+import java.util.function.Predicate;
 
 abstract class AbstractFactsMap<K extends MemoryKey> {
     private static final ReIterator<FactHandleVersioned> EMPTY = ReIterator.emptyIterator();
@@ -28,6 +31,10 @@ abstract class AbstractFactsMap<K extends MemoryKey> {
 
     final ReIterator<MemoryKey> keys() {
         return data.iterator(ENTRY_MAPPER);
+    }
+
+    int size() {
+        return data.size();
     }
 
     public final void add(IntToValueHandle key, int keyHash, Collection<FactHandleVersioned> factHandles) {
@@ -62,6 +69,7 @@ abstract class AbstractFactsMap<K extends MemoryKey> {
         return entry == null ? EMPTY : entry.facts.iterator();
     }
 
+    // TODO implement merge
     final void merge(AbstractFactsMap<K> other) {
         other.data.forEachDataEntry(this::merge);
         other.data.clear();
@@ -69,13 +77,35 @@ abstract class AbstractFactsMap<K extends MemoryKey> {
 
     private void merge(MapKey<K> otherEntry) {
         //otherEntry.key.setMetaValue(myModeOrdinal);
+        this.data.resize();
+
+        int hash = otherEntry.hashCode();
+        this.data.apply(hash, new Predicate<MapKey<K>>() {
+            @Override
+            public boolean test(MapKey<K> dataKey) {
+                return dataKey.isDeleted() || dataKey.key.equals(otherEntry.key);
+            }
+        }, new ObjIntConsumer<MapKey<K>>() {
+            @Override
+            public void accept(MapKey<K> found, int addr) {
+                if (found == null || found.isDeleted()) {
+                    data.saveDirect(otherEntry, addr);
+                } else {
+                    found.facts.consume(otherEntry.facts);
+                }
+            }
+        });
+
+
+/*
         int addr = addr(otherEntry.key);
         MapKey<K> found = data.get(addr);
         if (found == null) {
-            this.data.add(otherEntry);
+            this.data.saveDirect(otherEntry, addr);
         } else {
             found.facts.consume(otherEntry.facts);
         }
+*/
     }
 
 
@@ -88,7 +118,7 @@ abstract class AbstractFactsMap<K extends MemoryKey> {
         return data.toString();
     }
 
-    static class MapKey<K> {
+    static class MapKey<K extends MemoryKey> {
         final LinkedFactHandles facts = new LinkedFactHandles();
         final K key;
 
@@ -102,6 +132,10 @@ abstract class AbstractFactsMap<K extends MemoryKey> {
             if (o == null || getClass() != o.getClass()) return false;
             MapKey<?> mapKey = (MapKey<?>) o;
             return this.key.equals(mapKey.key);
+        }
+
+        boolean isDeleted() {
+            return key.getMetaValue() == Constants.DELETED_MEMORY_KEY_FLAG;
         }
 
         @Override
