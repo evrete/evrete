@@ -83,6 +83,7 @@ abstract class AbstractFactsMap<K extends MemoryKey> {
         this.data.apply(hash, new Predicate<MapKey<K>>() {
             @Override
             public boolean test(MapKey<K> dataKey) {
+                //return dataKey.key.equals(otherEntry.key);
                 return dataKey.isDeleted() || dataKey.key.equals(otherEntry.key);
             }
         }, new ObjIntConsumer<MapKey<K>>() {
