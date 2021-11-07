@@ -1,4 +1,4 @@
-package org.evrete.samples;
+package org.evrete.examples.misc;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.StatefulSession;
@@ -6,7 +6,7 @@ import org.evrete.api.StatefulSession;
 import java.io.IOException;
 
 @SuppressWarnings({"unused", "UseOfSystemOutOrSystemErr"})
-public class PrimeNumbersDSLSource {
+public class PrimeNumbersLiteralSource {
     public static void main(String[] args) throws IOException {
         KnowledgeService service = new KnowledgeService();
         String source = "" +

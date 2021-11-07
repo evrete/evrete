@@ -1,4 +1,4 @@
-package org.evrete.samples;
+package org.evrete.examples.misc;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
@@ -6,7 +6,7 @@ import org.evrete.api.RhsContext;
 import org.evrete.api.StatefulSession;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
-public class PrimeNumbersJava8 {
+public class PrimeNumbersPredicates {
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
@@ -18,13 +18,13 @@ public class PrimeNumbersJava8 {
                         "$i3", Integer.class
                 )
                 .where(
-                        PrimeNumbersJava8::test,
+                        PrimeNumbersPredicates::test,
                         "$i1", "$i2", "$i3")
                 .execute(); // No RHS
 
         try (StatefulSession session = knowledge.newStatefulSession()) {
             // Change RHS on an active session
-            session.getRule("prime numbers").setRhs(PrimeNumbersJava8::rhsMethod);
+            session.getRule("prime numbers").setRhs(PrimeNumbersPredicates::rhsMethod);
 
             // Inject candidates
             for (int i = 2; i <= 100; i++) {
