@@ -1,0 +1,35 @@
+import org.evrete.benchmarks.models.misc.TypeA;
+import org.evrete.benchmarks.models.misc.TypeB;
+import org.evrete.benchmarks.models.misc.TypeC;
+import org.evrete.benchmarks.models.misc.TypeD;
+import org.evrete.benchmarks.Drools4Rhs
+
+rule "Rule 3" salience 10
+  when
+      $a : TypeA()
+  then
+      Drools4Rhs.out("Rule 3");
+end
+
+rule "Rule 4" salience 1000
+  when
+      $a : TypeA()
+  then
+      Drools4Rhs.out("Rule 4");
+end
+
+rule "Rule 1" salience 20
+  when
+      $a : TypeA($a.l < 5)
+  then
+      Drools4Rhs.out("Rule 1");
+end
+
+rule "Rule 2" salience 100
+  when
+      $a : TypeA($a.i > 5)
+  then
+      delete($a);
+      Drools4Rhs.out("Rule 2");
+end
+

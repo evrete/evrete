@@ -66,29 +66,4 @@ class StatefulJavaJarTests extends CommonTestMethods {
         assert primeCounter.get() == 25;
 
     }
-
-
-    @ParameterizedTest
-    @EnumSource(ActivationMode.class)
-    void testWithRecords(ActivationMode mode) {
-        int version = TestUtils.getJavaVersion();
-        if (version < 16) {
-            System.out.println("Skipping test of Java Records for JVM version " + version);
-            return;
-        }
-
-        Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar-records1/jar-records1-tests.jar"));
-        StatefulSession session = session(knowledge, mode);
-        assert session.getRules().size() == 2;
-        for (int i = 2; i < 100; i++) {
-            session.insert(i);
-        }
-        session.fire();
-
-        NextIntSupplier primeCounter = new NextIntSupplier();
-        session.forEachFact((h, o) -> primeCounter.next());
-
-        assert primeCounter.get() == 25;
-
-    }
 }

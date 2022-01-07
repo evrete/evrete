@@ -1,0 +1,18 @@
+import org.evrete.benchmarks.models.misc.TypeA;
+import org.evrete.benchmarks.models.misc.TypeB;
+import org.evrete.benchmarks.models.misc.TypeC;
+import org.evrete.benchmarks.models.misc.TypeD;
+import org.evrete.benchmarks.Drools1Rhs
+
+rule "sample01"
+  when
+      $a1 : TypeA()
+      $b1 : TypeB($a1.i != $b1.i)
+      $a2 : TypeA()
+      $b2 : TypeB($a2.i != $b2.i)
+      $c  : TypeC($c.i >= 0)
+      $d  : TypeD()
+  then
+      Drools1Rhs.out($a1, $b1, $a2, $b2, $c, $d);
+end
+

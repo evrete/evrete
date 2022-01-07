@@ -60,38 +60,6 @@
                             </outputDirectory>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>jar-records-1-compile</id>
-                        <phase>generate-test-sources</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <configuration>
-                            <failOnError>false</failOnError>
-                            <compileSourceRoots>
-                                ${project.basedir}/src/test/resources/jars/jar-records1
-                            </compileSourceRoots>
-                            <outputDirectory>
-                                ${project.build.testOutputDirectory}/jar-records1
-                            </outputDirectory>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>jar-records-2-compile</id>
-                        <phase>generate-test-sources</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <configuration>
-                            <failOnError>false</failOnError>
-                            <compileSourceRoots>
-                                ${project.basedir}/src/test/resources/jars/jar-records2
-                            </compileSourceRoots>
-                            <outputDirectory>
-                                ${project.build.testOutputDirectory}/jar-records2
-                            </outputDirectory>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
 
@@ -169,46 +137,6 @@
                                 ${project.build.testOutputDirectory}/jar2
                             </testClassesDirectory>
                             <outputDirectory>${project.basedir}/src/test/resources/jars/jar2</outputDirectory>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>jar-records1-package</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>test-jar</goal>
-                        </goals>
-                        <configuration>
-                            <archive>
-                                <manifestEntries />
-                                <addMavenDescriptor>false</addMavenDescriptor>
-                            </archive>
-
-                            <finalName>jar-records1</finalName>
-                            <forceCreation>true</forceCreation>
-                            <testClassesDirectory>
-                                ${project.build.testOutputDirectory}/jar-records1
-                            </testClassesDirectory>
-                            <outputDirectory>${project.basedir}/src/test/resources/jars/jar-records1</outputDirectory>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>jar-records2-package</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>test-jar</goal>
-                        </goals>
-                        <configuration>
-                            <archive>
-                                <manifestEntries />
-                                <addMavenDescriptor>false</addMavenDescriptor>
-                            </archive>
-
-                            <finalName>jar-records2</finalName>
-                            <forceCreation>true</forceCreation>
-                            <testClassesDirectory>
-                                ${project.build.testOutputDirectory}/jar-records2
-                            </testClassesDirectory>
-                            <outputDirectory>${project.basedir}/src/test/resources/jars/jar-records2</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
