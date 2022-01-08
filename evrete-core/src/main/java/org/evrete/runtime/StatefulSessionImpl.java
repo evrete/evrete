@@ -7,7 +7,7 @@ import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> implements StatefulSession {
+public class StatefulSessionImpl extends AbstractRuleSessionIO<StatefulSession> implements StatefulSession {
 
     StatefulSessionImpl(KnowledgeRuntime knowledge) {
         super(knowledge);

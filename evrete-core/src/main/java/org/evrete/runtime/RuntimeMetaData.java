@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeContext<C>, MetaChangeListener {
+abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeContext<C>, MetaChangeListener, TypeResolver {
     private static final Comparator<ActiveField> DEFAULT_FIELD_COMPARATOR = Comparator.comparing(ActiveField::getValueIndex);
     private final Imports imports;
     private final Map<String, Object> properties;
@@ -185,4 +185,44 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
 
     public abstract ExpressionResolver getExpressionResolver();
 
+
+    @Override
+    public TypeResolver copyOf() {
+        return typeResolver.copyOf();
+    }
+
+    @Override
+    public <T> Type<T> getType(String name) {
+        return typeResolver.getType(name);
+    }
+
+    @Override
+    public <T> Type<T> getType(int typeId) {
+        return typeResolver.getType(typeId);
+    }
+
+    @Override
+    public Collection<Type<?>> getKnownTypes() {
+        return typeResolver.getKnownTypes();
+    }
+
+    @Override
+    public void wrapType(TypeWrapper<?> typeWrapper) {
+        typeResolver.wrapType(typeWrapper);
+    }
+
+    @Override
+    public <T> Type<T> declare(String typeName, Class<T> javaType) {
+        return typeResolver.declare(typeName, javaType);
+    }
+
+    @Override
+    public <T> Type<T> declare(String typeName, String javaType) {
+        return typeResolver.declare(typeName, javaType);
+    }
+
+    @Override
+    public <T> Type<T> resolve(Object o) {
+        return typeResolver.resolve(o);
+    }
 }

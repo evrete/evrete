@@ -72,7 +72,7 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode {
         return tempCollection;
     }
 
-    AbstractRuleSession<?> getRuntime() {
+    AbstractRuleSessionIO<?> getRuntime() {
         return rule.getRuntime();
     }
 

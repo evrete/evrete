@@ -16,7 +16,7 @@ public class TypeMemoryBase extends MemoryComponent implements Iterable<KeyMemor
     TypeMemoryBase(SessionMemory sessionMemory, int type) {
         super(sessionMemory);
         this.memoryBuckets = new ArrayOf<>(KeyMemoryBucket.class);
-        Type<?> t = runtime.getTypeResolver().getType(type);
+        Type<?> t = getType(type);
         this.type = t;
         String identityMethod = configuration.getProperty(Configuration.OBJECT_COMPARE_METHOD);
         switch (identityMethod) {

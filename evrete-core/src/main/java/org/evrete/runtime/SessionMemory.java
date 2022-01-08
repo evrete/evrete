@@ -10,7 +10,7 @@ import org.evrete.runtime.evaluation.MemoryAddress;
 public class SessionMemory extends MemoryComponent implements Iterable<TypeMemory> {
     private final ArrayOf<TypeMemory> typedMemories;
 
-    SessionMemory(AbstractRuleSession<?> runtime, MemoryFactory memoryFactory) {
+    SessionMemory(AbstractRuleSessionIO<?> runtime, MemoryFactory memoryFactory) {
         super(runtime, memoryFactory);
         this.typedMemories = new ArrayOf<>(new TypeMemory[]{});
     }
@@ -67,8 +67,7 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
     public TypeMemory get(int typeId) {
         TypeMemory m = typedMemories.get(typeId);
         if (m == null) {
-            Type<?> t = runtime.getTypeResolver().getType(typeId);
-            throw new IllegalStateException("No memory allocated for type: " + typeId + " (" + t + "). Probable cause: the type has never been mentioned in any LHS.");
+            throw new IllegalStateException("No memory allocated for type id: " + typeId + ". Probable cause: the type has never been mentioned in any LHS.");
         }
         return m;
     }

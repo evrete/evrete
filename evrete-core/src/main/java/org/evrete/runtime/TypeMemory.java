@@ -21,15 +21,12 @@ public final class TypeMemory extends TypeMemoryBase {
     TypeMemory(SessionMemory sessionMemory, int type) {
         super(sessionMemory, type);
         int bufferSize = configuration.getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT);
-        this.buffer = new MemoryActionBuffer(type, bufferSize, sessionMemory.runtime.deltaMemoryManager);
+        this.buffer = new MemoryActionBuffer(type, bufferSize, getRuntime().deltaMemoryManager);
         updateCachedData();
     }
 
     void updateCachedData() {
-        TypeResolver resolver = runtime.getTypeResolver();
-        Type<?> t = resolver.getType(this.type.getId());
-        TypeMemoryMetaData meta = runtime.getTypeMeta(t.getId());
-        this.cache = new Cache(t, meta.activeFields, runtime.getEvaluators(), meta.alphaEvaluators);
+        this.cache = new Cache(this.type, getRuntime());
     }
 
     private FactRecord getFactRecord(FactHandle handle) {
@@ -115,17 +112,20 @@ public final class TypeMemory extends TypeMemoryBase {
         final Object[] currentValues;
         final boolean hasAlphaConditions;
 
-        Cache(Type<?> type, ActiveField[] activeFields, Evaluators evaluators, AlphaEvaluator[] alphaEvaluators) {
-            this.fields = new TypeField[activeFields.length];
-            for (int i = 0; i < activeFields.length; i++) {
-                this.fields[i] = type.getField(activeFields[i].field());
+        Cache(Type<?> type, AbstractRuleSessionIO<?> runtime) {
+            Type<?> t = runtime.getType(type.getId());
+            TypeMemoryMetaData meta = runtime.getTypeMeta(t.getId());
+
+            this.fields = new TypeField[meta.activeFields.length];
+            for (int i = 0; i < meta.activeFields.length; i++) {
+                this.fields[i] = type.getField(meta.activeFields[i].field());
             }
             this.currentValues = new Object[this.fields.length];
-            this.hasAlphaConditions = alphaEvaluators.length > 0;
-            this.alphaEvaluators = new AlphaPredicate[alphaEvaluators.length];
+            this.hasAlphaConditions = meta.alphaEvaluators.length > 0;
+            this.alphaEvaluators = new AlphaPredicate[meta.alphaEvaluators.length];
             if (hasAlphaConditions) {
                 for (int i = 0; i < alphaEvaluators.length; i++) {
-                    this.alphaEvaluators[i] = new AlphaPredicate(alphaEvaluators[i], evaluators, currentValues);
+                    this.alphaEvaluators[i] = new AlphaPredicate(meta.alphaEvaluators[i], runtime.getEvaluators(), currentValues);
                 }
             }
         }

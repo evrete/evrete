@@ -10,7 +10,7 @@ public class BetaEntryNode implements BetaMemoryNode {
     private final EntryNodeDescriptor descriptor;
     private final EnumMap<KeyMode, ReIterator<MemoryKey>> stores = new EnumMap<>(KeyMode.class);
 
-    BetaEntryNode(AbstractRuleSession<?> runtime, EntryNodeDescriptor node) {
+    BetaEntryNode(AbstractRuleSessionIO<?> runtime, EntryNodeDescriptor node) {
         this.descriptor = node;
         KeyMemoryBucket bucket = runtime.getMemory().getMemoryBucket(node.getFactType().getMemoryAddress());
         for (KeyMode mode : KeyMode.values()) {

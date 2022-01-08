@@ -7,7 +7,7 @@ import org.evrete.api.Type;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-class StatelessSessionImpl extends AbstractRuleSession<StatelessSession> implements StatelessSession {
+class StatelessSessionImpl extends AbstractRuleSessionIO<StatelessSession> implements StatelessSession {
 
     StatelessSessionImpl(KnowledgeRuntime knowledge) {
         super(knowledge);

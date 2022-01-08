@@ -11,7 +11,7 @@ import static org.evrete.util.Constants.DELETED_MEMORY_KEY_FLAG;
 
 
 public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implements RuntimeRule {
-    private final AbstractRuleSession<?> runtime;
+    private final AbstractRuleSessionIO<?> runtime;
     private final RuleDescriptor descriptor;
     private final RuntimeLhs lhs;
     private final RhsGroupNode[] rhsGroupNodes;
@@ -21,7 +21,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
     private final BetaEndNode[] endNodes;
     private long rhsCallCounter = 0;
 
-    public RuntimeRuleImpl(RuleDescriptor rd, AbstractRuleSession<?> runtime) {
+    public RuntimeRuleImpl(RuleDescriptor rd, AbstractRuleSessionIO<?> runtime) {
         super(runtime, rd, build(runtime, rd.getLhs().getFactTypes()));
         this.descriptor = rd;
         this.runtime = runtime;
@@ -58,7 +58,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
 
     }
 
-    private static RuntimeFactType[] build(AbstractRuleSession<?> runtime, FactType[] types) {
+    private static RuntimeFactType[] build(AbstractRuleSessionIO<?> runtime, FactType[] types) {
         SessionMemory memory = runtime.getMemory();
         RuntimeFactType[] arr = new RuntimeFactType[types.length];
         for (int i = 0; i < types.length; i++) {
@@ -181,7 +181,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
     }
 
     @Override
-    public AbstractRuleSession<?> getRuntime() {
+    public AbstractRuleSessionIO<?> getRuntime() {
         return runtime;
     }
 
