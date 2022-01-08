@@ -260,20 +260,6 @@ public class KnowledgeService {
 
     /**
      * <p>
-     * Deprecated method, use {@link #newStatefulSession()} instead.
-     * </p>
-     *
-     * @return an empty {@link StatefulSession}
-     * @deprecated
-     */
-    @SuppressWarnings("WeakerAccess")
-    @Deprecated
-    public StatefulSession newSession() {
-        return newStatefulSession();
-    }
-
-    /**
-     * <p>
      * This method is a shorthand for {@code newKnowledge().newStatefulSession()} which
      * returns an empty session instance.
      * </p>

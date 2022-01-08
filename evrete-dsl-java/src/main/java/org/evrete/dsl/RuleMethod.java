@@ -29,11 +29,7 @@ class RuleMethod extends ClassMethod implements SessionCloneable<RuleMethod>, Co
             this.methodPredicates = new MethodPredicate[0];
         } else {
             this.stringPredicates = predicates.value();
-            //noinspection deprecation
-            this.methodPredicates = predicates.methods().length == 0 ?
-                    predicates.asMethods()
-                    :
-                    predicates.methods();
+            this.methodPredicates = predicates.methods();
         }
 
         int ctxIndex = Integer.MIN_VALUE;

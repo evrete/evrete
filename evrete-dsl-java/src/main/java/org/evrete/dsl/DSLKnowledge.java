@@ -66,8 +66,7 @@ class DSLKnowledge extends KnowledgeWrapper {
             for (MethodPredicate mp : rm.methodPredicates) {
                 String methodName = mp.method();
 
-                @SuppressWarnings("deprecation")
-                String[] args = mp.args().length == 0 ? mp.descriptor() : mp.args();
+                String[] args = mp.args();
                 final FieldReference[] descriptor = getExpressionResolver().resolve(lhs, args);
                 Class<?>[] signature = Utils.asMethodSignature(descriptor);
                 MethodType methodType = MethodType.methodType(boolean.class, signature);

@@ -37,14 +37,6 @@ public interface RuleSession<S extends RuleSession<S>> extends RuntimeContext<S>
 
 
     /**
-     * @deprecated in favor of {@link #setExecutionPredicate(BooleanSupplier)}
-     */
-    @Deprecated
-    default S setFireCriteria(BooleanSupplier criteria) {
-        return setExecutionPredicate(criteria);
-    }
-
-    /**
      * <p>
      * Session call's the supplier's {@link BooleanSupplier#getAsBoolean()} method prior to each
      * activation cycle. If the provided value is {@code false} then the cycle gets interrupted
@@ -60,19 +52,6 @@ public interface RuleSession<S extends RuleSession<S>> extends RuntimeContext<S>
      */
     S setExecutionPredicate(BooleanSupplier criteria);
 
-
-    /**
-     * @param type type name
-     * @param fact fact to insert
-     * @return fact handle assigned to the fact
-     * @throws NullPointerException if argument is null
-     * @see #insertAs(String, Object)
-     * @deprecated
-     */
-    @Deprecated
-    default FactHandle insert(String type, Object fact) {
-        return insertAs(type, fact);
-    }
 
     /**
      * <p>
@@ -127,21 +106,6 @@ public interface RuleSession<S extends RuleSession<S>> extends RuntimeContext<S>
      */
     default FactHandle insertAs(String type, Object fact) {
         return insert0(type, fact, false);
-    }
-
-    /**
-     * <p>
-     * Inserts a collection of facts, marking them as being of a specific type.
-     * </p>
-     *
-     * @param type    type name
-     * @param objects objects to insert
-     * @see #insertAs(String, Object)
-     * @deprecated
-     */
-    @Deprecated
-    default S insert(String type, Collection<?> objects) {
-        return insertAs(type, objects);
     }
 
     /**

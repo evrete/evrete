@@ -21,6 +21,12 @@ public class MemoryActionBuffer {
         this.listener = listener;
     }
 
+    MemoryActionBuffer(int minCapacity) {
+        this(-1, minCapacity, (t, action, delta) -> {
+
+        });
+    }
+
     AtomicMemoryAction get(FactHandle factHandle) {
         int hash = factHandle.hashCode();
         int binIndex = queue.findBinIndex(factHandle, hash, SEARCH_FUNCTION);

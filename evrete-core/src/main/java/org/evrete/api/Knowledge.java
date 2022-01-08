@@ -9,15 +9,6 @@ public interface Knowledge extends RuntimeContext<Knowledge>, RuleSet<RuleDescri
 
     /**
      * @return new stateful session
-     * @deprecated Deprecated since 2.0.5, use {@link #newStatefulSession()} instead.
-     */
-    @Deprecated
-    default StatefulSession createSession() {
-        return newStatefulSession();
-    }
-
-    /**
-     * @return new stateful session
      */
     StatefulSession newStatefulSession();
 

@@ -18,13 +18,6 @@ public @interface MethodPredicate {
     String method();
 
     /**
-     * @see #args()
-     * @deprecated deprecated in favor of {@link #args()}
-     */
-    @Deprecated
-    String[] descriptor() default {};
-
-    /**
      * @return array of field references which will be method arguments.
      */
     String[] args() default {};
