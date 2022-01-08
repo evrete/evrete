@@ -23,17 +23,17 @@ public class MemoryActionBuffer {
 
     AtomicMemoryAction get(FactHandle factHandle) {
         int hash = factHandle.hashCode();
-        int addr = queue.findBinIndex(factHandle, hash, SEARCH_FUNCTION);
-        return queue.get(addr);
+        int binIndex = queue.findBinIndex(factHandle, hash, SEARCH_FUNCTION);
+        return queue.get(binIndex);
     }
 
     void add(Action action, FactHandle factHandle, FactRecord factRecord) {
         queue.resize();
         int hash = factHandle.hashCode();
-        int addr = queue.findBinIndex(factHandle, hash, SEARCH_FUNCTION);
-        AtomicMemoryAction existingAction = queue.get(addr);
+        int binIndex = queue.findBinIndex(factHandle, hash, SEARCH_FUNCTION);
+        AtomicMemoryAction existingAction = queue.get(binIndex);
         if (existingAction == null) {
-            queue.saveDirect(new AtomicMemoryAction(action, factHandle, factRecord), addr);
+            queue.saveDirect(new AtomicMemoryAction(action, factHandle, factRecord), binIndex);
             reportAction(action, true);
         } else {
             switch (action) {
@@ -43,7 +43,7 @@ public class MemoryActionBuffer {
                 case UPDATE:
                     switch (existingAction.action) {
                         case RETRACT:
-                            // Fact handle has been already deleted, we can't update deleted entry
+                            // Fact handle has been already deleted, we can't update a deleted entry
                             LOGGER.warning("An attempt was made to update a fact that has been just deleted, update operation skipped");
                             break;
                         case INSERT:
