@@ -11,9 +11,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class StatelessSessionImpl extends AbstractRuleSession implements StatelessRuleSession {
+public class StatelessRuleSessionImpl extends AbstractRuleSessionBase implements StatelessRuleSession {
 
-    StatelessSessionImpl(StatefulSession delegate, RuleExecutionSetMetadataImpl metadata) {
+    StatelessRuleSessionImpl(StatefulSession delegate, RuleExecutionSetMetadataImpl metadata) {
         super(delegate, RuleRuntime.STATELESS_SESSION_TYPE, metadata);
     }
 

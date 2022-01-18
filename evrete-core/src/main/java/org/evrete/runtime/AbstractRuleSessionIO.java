@@ -4,38 +4,14 @@ import org.evrete.api.*;
 import org.evrete.runtime.async.*;
 import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.Mask;
-import org.evrete.util.SessionCollector;
 
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.logging.Logger;
-import java.util.stream.Collector;
 
 abstract class AbstractRuleSessionIO<S extends RuleSession<S>> extends AbstractRuleSession<S> {
-    private static final Logger LOGGER = Logger.getLogger(AbstractRuleSessionIO.class.getName());
-    final SessionMemory memory;
-    final DeltaMemoryManager deltaMemoryManager;
-    private final RuntimeRules ruleStorage;
 
     AbstractRuleSessionIO(KnowledgeRuntime knowledge) {
         super(knowledge);
-        this.deltaMemoryManager = new DeltaMemoryManager();
-        this.ruleStorage = new RuntimeRules();
-        MemoryFactory memoryFactory = getService().getMemoryFactoryProvider().instance(this);
-        this.memory = new SessionMemory(this, memoryFactory);
-        // Deploy existing rules
-        for (RuleDescriptor descriptor : knowledge.getRules()) {
-            deployRule(descriptor, false);
-        }
     }
-
-
-    @Override
-    public <T> Collector<T, ?, S> asCollector() {
-        return new SessionCollector<>(thisInstance());
-    }
-
 
     void fireInner() {
         for (SessionLifecycleListener e : lifecycleListeners) {
@@ -51,74 +27,76 @@ abstract class AbstractRuleSessionIO<S extends RuleSession<S>> extends AbstractR
             default:
                 throw new IllegalStateException("Unknown mode " + getAgendaMode());
         }
-        purge();
     }
 
-    private void fireContinuous(ActivationContext ctx) {
-
-        List<RuntimeRule> agenda;
-        while (fireCriteriaMet() && deltaMemoryManager.hasMemoryChanges()) {
-            processBuffer();
-            if (!(agenda = buildMemoryDeltas()).isEmpty()) {
-                activationManager.onAgenda(ctx.incrementFireCount(), agenda);
-                for (RuntimeRule candidate : agenda) {
-                    RuntimeRuleImpl rule = (RuntimeRuleImpl) candidate;
-                    if (activationManager.test(candidate)) {
-                        activationManager.onActivation(rule, rule.executeRhs());
-                    }
-                }
-            }
-            commitRuleDeltas();
-            commitBuffer();
-        }
-    }
-
-    //TODO !!! fix this mess with the buffer and its status, it can be simplified
     private void fireDefault(ActivationContext ctx) {
-        List<RuntimeRule> agenda;
-        boolean bufferProcessed = false;
-        while (fireCriteriaMet() && deltaMemoryManager.hasMemoryChanges()) {
-            if (!bufferProcessed) {
-                processBuffer();
-                bufferProcessed = true;
-            }
-            agenda = buildMemoryDeltas();
+        List<RuntimeRuleImpl> agenda;
+        Mask<MemoryAddress> deleteMask = Mask.addressMask();
+        while (fireCriteriaMet() && actionBuffer.hasData()) {
+            DeltaMemoryStatus deltaStatus = buildDeltaMemory(actionBuffer);
+            agenda = deltaStatus.getAgenda();
             if (!agenda.isEmpty()) {
-                activationManager.onAgenda(ctx.incrementFireCount(), agenda);
-                for (RuntimeRule candidate : agenda) {
-                    RuntimeRuleImpl rule = (RuntimeRuleImpl) candidate;
-                    if (activationManager.test(candidate)) {
-                        activationManager.onActivation(rule, rule.executeRhs());
-                        // Analyzing buffer
-                        int deltaOperations = deltaMemoryManager.deltaOperations();
-                        if (deltaOperations > 0) {
+                activationManager.onAgenda(ctx.incrementFireCount(), Collections.unmodifiableList(agenda));
+                for (RuntimeRuleImpl rule : agenda) {
+                    if (activationManager.test(rule)) {
+                        RuleActivationResult result = rule.executeRhsAndCommitDelta();
+                        activationManager.onActivation(rule, result.executions);
+                        FactActionBuffer buffer = result.actionBuffer;
+                        int ops = buffer.deltaOperations();
+                        buffer.copyToAndClear(actionBuffer);
+                        if(ops > 0) {
                             // Breaking the agenda
-                            bufferProcessed = false;
                             break;
-                        } else {
-                            // Processing deletes if any
-                            processBuffer();
                         }
                     }
                 }
-                commitRuleDeltas();
             }
-            commitBuffer();
+            deltaStatus.commitDeltas();
+            deleteMask.or(deltaStatus.getDeleteMask());
         }
+        purge(deleteMask);
     }
 
-    private void processBuffer() {
-        MemoryDeltaTask deltaTask = new MemoryDeltaTask(memory.iterator());
+    private void fireContinuous(ActivationContext ctx) {
+        List<RuntimeRuleImpl> agenda;
+        Mask<MemoryAddress> deleteMask = Mask.addressMask();
+        while (fireCriteriaMet() && actionBuffer.hasData()) {
+            DeltaMemoryStatus deltaStatus = buildDeltaMemory(actionBuffer);
+            agenda = deltaStatus.getAgenda();
+            if (!agenda.isEmpty()) {
+                activationManager.onAgenda(ctx.incrementFireCount(), Collections.unmodifiableList(agenda));
+                for (RuntimeRuleImpl rule : agenda) {
+                    if (activationManager.test(rule)) {
+                        RuleActivationResult result = rule.executeRhsAndCommitDelta();
+                        FactActionBuffer buffer = result.actionBuffer;
+                        activationManager.onActivation(rule, result.executions);
+                        buffer.copyToAndClear(actionBuffer);
+                    }
+                }
+            }
+            deltaStatus.commitDeltas();
+            deleteMask.or(deltaStatus.getDeleteMask());
+        }
+        purge(deleteMask);
+    }
+
+
+    private DeltaMemoryStatus buildDeltaMemory(FactActionBuffer buffer) {
+        // Compute entry done deltas
+        ComputeDeltaMemoryTask deltaTask = new ComputeDeltaMemoryTask(buffer, memory);
         getExecutor().invoke(deltaTask);
-        deltaMemoryManager.onDelete(deltaTask.getDeleteMask());
-        deltaMemoryManager.onInsert(deltaTask.getInsertMask());
-        deltaMemoryManager.clearBufferData();
+        DeltaMemoryStatus status = deltaTask.getDeltaMemoryStatus();
+        // Compute beta-nodes' deltas
+        List<RuntimeRuleImpl> agenda = buildMemoryDeltas(status.getInsertMask());
+        status.setAgenda(agenda);
+
+        buffer.clear();
+        return status;
     }
 
-    private List<RuntimeRule> buildMemoryDeltas() {
-        List<RuntimeRule> affectedRules = new LinkedList<>();
+    private List<RuntimeRuleImpl> buildMemoryDeltas(Mask<MemoryAddress> matchMask) {
+        List<RuntimeRuleImpl> affectedRules = new LinkedList<>();
         Set<BetaEndNode> affectedEndNodes = new HashSet<>();
-        Mask<MemoryAddress> matchMask = deltaMemoryManager.getInsertDeltaMask();
 
         for (RuntimeRuleImpl rule : ruleStorage) {
             boolean ruleAdded = false;
@@ -138,7 +116,6 @@ abstract class AbstractRuleSessionIO<S extends RuleSession<S>> extends AbstractR
             }
         }
 
-        // Ordered task 1 - process beta nodes, i.e. evaluate conditions
         List<Completer> tasks = new LinkedList<>();
         if (!affectedEndNodes.isEmpty()) {
             tasks.add(new RuleMemoryInsertTask(affectedEndNodes, matchMask, true));
@@ -150,13 +127,10 @@ abstract class AbstractRuleSessionIO<S extends RuleSession<S>> extends AbstractR
                 executor.invoke(task);
             }
         }
-
-        deltaMemoryManager.clearDeltaData();
         return affectedRules;
     }
 
-    private void purge() {
-        Mask<MemoryAddress> factPurgeMask = deltaMemoryManager.getDeleteDeltaMask();
+    private void purge(Mask<MemoryAddress> factPurgeMask) {
         if (factPurgeMask.cardinality() > 0) {
             ForkJoinExecutor executor = getExecutor();
             MemoryPurgeTask purgeTask = new MemoryPurgeTask(memory, factPurgeMask);
@@ -166,201 +140,38 @@ abstract class AbstractRuleSessionIO<S extends RuleSession<S>> extends AbstractR
                 // Purging rule beta-memories
                 executor.invoke(new ConditionMemoryPurgeTask(ruleStorage, emptyKeysMask));
             }
-            deltaMemoryManager.clearDeleteData();
         }
     }
-
-    private void commitBuffer() {
-        memory.commitBuffer();
-    }
-
-    private void commitRuleDeltas() {
-        for (RuntimeRuleImpl rule : ruleStorage) {
-            rule.commitDeltas();
-        }
-    }
-
-
-
-    private void reSortRules() {
-        ruleStorage.sort(getRuleComparator());
-    }
-
-    @Override
-    public RuntimeRule compileRule(RuleBuilder<?> builder) {
-        RuleDescriptor rd = compileRuleBuilder(builder);
-        return deployRule(rd, true);
-    }
-
-    @Override
-    public final RuntimeRule getRule(String name) {
-        return ruleStorage.get(name);
-    }
-
-    @Override
-    public List<RuntimeRule> getRules() {
-        return Collections.unmodifiableList(ruleStorage.getList());
-    }
-
-    @Override
-    public void setRuleComparator(Comparator<Rule> ruleComparator) {
-        super.setRuleComparator(ruleComparator);
-        reSortRules();
-    }
-
-    private synchronized RuntimeRule deployRule(RuleDescriptor descriptor, boolean hotDeployment) {
-        for (FactType factType : descriptor.getLhs().getFactTypes()) {
-            TypeMemory tm = memory.getCreateUpdate(factType.type());
-            tm.touchMemory(factType.getMemoryAddress());
-        }
-        RuntimeRuleImpl rule = ruleStorage.addRule(descriptor, this);
-        if (hotDeployment) {
-            getExecutor().invoke(new RuleHotDeploymentTask(rule));
-        }
-        reSortRules();
-        return rule;
-    }
-
-
-    void closeInner() {
-        synchronized (this) {
-            for (SessionLifecycleListener e : lifecycleListeners) {
-                e.onEvent(SessionLifecycleListener.Event.PRE_CLOSE);
-            }
-            invalidateSession();
-            getParentContext().close(this);
-        }
-    }
-
-    private void invalidateSession() {
-        this.active = false;
-        this.memory.destroy();
-    }
-
-    public final SessionMemory getMemory() {
-        return memory;
-    }
-
-    private FactHandle insertSingle(TypeResolver resolver, Object fact) {
-        return actualInsert(resolver.resolve(fact), fact);
-    }
-
-    @Override
-    public final FactHandle insert0(Object fact, boolean resolveCollections) {
-        _assertActive();
-        Object arg = Objects.requireNonNull(fact, "Null facts are not supported");
-        final TypeResolver resolver = getTypeResolver();
-        if (resolveCollections) {
-            if (arg.getClass().isArray()) {
-                Object[] arr = (Object[]) arg;
-                for (Object o : arr) {
-                    insertSingle(resolver, o);
-                }
-                return null;
-            } else if (arg instanceof Iterable) {
-                Iterable<?> it = (Iterable<?>) arg;
-                for (Object o : it) {
-                    insertSingle(resolver, o);
-                }
-                return null;
-            } else {
-                return insertSingle(resolver, arg);
-            }
-        } else {
-            return insertSingle(resolver, arg);
-        }
-    }
-
-    @Override
-    public final FactHandle insert0(String type, Object fact, boolean resolveCollections) {
-        _assertActive();
-        Object arg = Objects.requireNonNull(fact, "Null facts are not supported");
-        final Type<?> t = getTypeResolver().getType(type);
-        if (resolveCollections) {
-            if (arg.getClass().isArray()) {
-                Object[] arr = (Object[]) arg;
-                for (Object o : arr) {
-                    actualInsert(t, o);
-                }
-                return null;
-            } else if (arg instanceof Iterable) {
-                Iterable<?> it = (Iterable<?>) arg;
-                for (Object o : it) {
-                    actualInsert(t, o);
-                }
-                return null;
-            } else {
-                return actualInsert(t, arg);
-            }
-        } else {
-            return actualInsert(t, arg);
-        }
-    }
-
 
     @SuppressWarnings("unchecked")
     <T> T getFactInner(FactHandle handle) {
-        return (T) memory.get(handle.getTypeId()).getFact(handle);
-    }
-
-    private FactHandle actualInsert(Type<?> type, Object fact) {
-        if (fact == null) throw new NullPointerException("Null facts are not supported");
-        if (type == null) {
-            if (warnUnknownTypes) {
-                LOGGER.warning("Can not map type for '" + fact.getClass().getName() + "', insert operation skipped.");
-            }
-            return null;
+        AtomicMemoryAction bufferedAction = actionBuffer.find(handle);
+        Object found;
+        if(bufferedAction == null) {
+            found = memory.get(handle.getTypeId()).getFact(handle);
         } else {
-            return memory.get(type).externalInsert(fact);
+            found = bufferedAction.action == Action.RETRACT ? null : bufferedAction.factRecord.instance;
         }
-    }
-
-    final void updateInner(FactHandle handle, Object newValue) {
-        _assertActive();
-        if (handle == null) {
-            throw new NullPointerException("Null handle provided during update");
-        }
-        memory.get(handle.getTypeId()).add(Action.UPDATE, handle, new FactRecord(newValue));
-    }
-
-    final void deleteInner(FactHandle handle) {
-        _assertActive();
-        memory.get(handle.getTypeId()).add(Action.RETRACT, handle, null);
-    }
-
-    final void forEachFactInner(BiConsumer<FactHandle, Object> consumer) {
-        // Scanning main memory and making sure fact handles are not deleted
-        for (TypeMemory tm : memory) {
-            tm.forEachFact(consumer);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    <T> void forEachFactInner(String type, Consumer<T> consumer) {
-        Type<?> t = getTypeResolver().getType(type);
-        if (t == null) {
-            throw new IllegalArgumentException("Type not found: '" + type + "'");
-        } else {
-            memory
-                    .getCreateUpdate(t.getId())
-                    .forEachFact((handle, o) -> consumer.accept((T) o));
-        }
+        return (T) found;
     }
 
     @Override
-    public void onNewActiveField(ActiveField newField) {
-        memory.onNewActiveField(newField);
+    void bufferUpdate(FactHandle handle, Object fact) {
+        bufferUpdate(handle, fact, this.actionBuffer);
     }
 
     @Override
-    public final void onNewAlphaBucket(MemoryAddress address) {
-        memory.onNewAlphaBucket(address);
+    void bufferDelete(FactHandle handle) {
+        bufferDelete(handle, this.actionBuffer);
     }
 
-    void clearInner() {
-        for (RuntimeRuleImpl rule : ruleStorage) {
-            rule.clear();
-        }
-        memory.clear();
+    @Override
+    public FactHandle insert0(Object fact, boolean resolveCollections) {
+        return bufferInsert(fact, resolveCollections, this.actionBuffer);
+    }
+
+    @Override
+    public FactHandle insert0(String type, Object fact, boolean resolveCollections) {
+        return bufferInsert(fact, type, resolveCollections, this.actionBuffer);
     }
 }

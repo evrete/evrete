@@ -46,7 +46,7 @@ class StatelessJavaJarTests extends CommonTestMethods {
         NextIntSupplier primeCounter = new NextIntSupplier();
         session.fire((o) -> primeCounter.next());
 
-        assert primeCounter.get() == 25;
+        assert primeCounter.get() == 25 : "Actual: " + primeCounter.get();
 
     }
 

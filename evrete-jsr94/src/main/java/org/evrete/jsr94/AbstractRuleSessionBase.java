@@ -5,12 +5,12 @@ import org.evrete.api.StatefulSession;
 import javax.rules.RuleExecutionSetMetadata;
 import javax.rules.RuleSession;
 
-public abstract class AbstractRuleSession implements RuleSession {
+public abstract class AbstractRuleSessionBase implements RuleSession {
     final StatefulSession delegate;
     private final int type;
     private final RuleExecutionSetMetadataImpl metadata;
 
-    AbstractRuleSession(StatefulSession delegate, int type, RuleExecutionSetMetadataImpl metadata) {
+    AbstractRuleSessionBase(StatefulSession delegate, int type, RuleExecutionSetMetadataImpl metadata) {
         this.type = type;
         this.delegate = delegate;
         this.metadata = metadata;

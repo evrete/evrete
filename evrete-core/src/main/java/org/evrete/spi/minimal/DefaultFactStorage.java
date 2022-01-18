@@ -101,13 +101,13 @@ class DefaultFactStorage<T> implements FactStorage<T> {
         FactHandleImpl insert(T fact) {
             resize();
             int hash = HASH_FUNCTION.applyAsInt(fact);
-            int addr = findBinIndex(fact, hash, searchByFact);
-            Tuple<T> tuple = get(addr);
+            int pos = findBinIndex(fact, hash, searchByFact);
+            Tuple<T> tuple = get(pos);
             if (tuple == null) {
                 // Object id unknown, creating new handle...
                 FactHandleImpl handle = new FactHandleImpl(handleId++, hash, this.type.getId());
                 tuple = new Tuple<>(handle, fact);
-                saveDirect(tuple, addr);
+                saveDirect(tuple, pos);
                 return handle;
             } else {
                 return null;
@@ -116,9 +116,9 @@ class DefaultFactStorage<T> implements FactStorage<T> {
 
         void delete(FactHandle handle) {
             FactHandleImpl impl = (FactHandleImpl) handle;
-            int addr = findBinIndex(impl, impl.hash, searchByHandle);
-            if (get(addr) != null) {
-                markDeleted(addr);
+            int pos = findBinIndex(impl, impl.hash, searchByHandle);
+            if (get(pos) != null) {
+                markDeleted(pos);
             }
         }
 

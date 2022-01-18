@@ -1,9 +1,6 @@
 package org.evrete;
 
-import org.evrete.api.Copyable;
-import org.evrete.api.FluentImports;
-import org.evrete.api.Imports;
-import org.evrete.api.RuleScope;
+import org.evrete.api.*;
 
 import java.util.Properties;
 import java.util.logging.Logger;

@@ -8,6 +8,7 @@ public enum KeyMode {
     ;
 
     static {
+        //noinspection ConstantConditions
         if (OLD_OLD.ordinal() != 0) {
             throw new IllegalStateException("There is contract that the " + OLD_OLD + " key storage always comes first");
         }

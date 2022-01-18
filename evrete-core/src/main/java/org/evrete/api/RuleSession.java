@@ -1,6 +1,5 @@
 package org.evrete.api;
 
-import java.util.Collection;
 import java.util.function.BooleanSupplier;
 import java.util.stream.Collector;
 

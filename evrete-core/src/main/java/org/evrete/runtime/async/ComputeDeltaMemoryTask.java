@@ -3,6 +3,7 @@ package org.evrete.runtime.async;
 import org.evrete.api.FactHandle;
 import org.evrete.api.FactHandleVersioned;
 import org.evrete.api.FactStorage;
+import org.evrete.api.ReIterator;
 import org.evrete.runtime.*;
 import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.Mask;
@@ -12,15 +13,17 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.logging.Logger;
 
-public class MemoryDeltaTask extends Completer {
-    private static final long serialVersionUID = 7911593735990639599L;
+public class ComputeDeltaMemoryTask extends Completer {
+    private static final long serialVersionUID = 7921593735990639599L;
     private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
     private final Collection<TypeMemoryDeltaTask> subtasks = new LinkedList<>();
     private final transient Mask<MemoryAddress> deleteMask = Mask.addressMask();
-    private final transient Mask<MemoryAddress> insertMask = Mask.addressMask();
+    private final Collection<KeyMemoryBucket> bucketsToCommit = new LinkedList<>();
 
-    public MemoryDeltaTask(Iterator<TypeMemory> typeMemories) {
-        typeMemories.forEachRemaining(t -> subtasks.add(new TypeMemoryDeltaTask(MemoryDeltaTask.this, t)));
+    public ComputeDeltaMemoryTask(FactActionBuffer buffer, SessionMemory memory) {
+        for(TypeMemory tm : memory) {
+            this.subtasks.add(new TypeMemoryDeltaTask(this, tm, buffer));
+        }
     }
 
     @Override
@@ -28,12 +31,8 @@ public class MemoryDeltaTask extends Completer {
         tailCall(subtasks, o -> o);
     }
 
-    public Mask<MemoryAddress> getDeleteMask() {
-        return deleteMask;
-    }
-
-    public Mask<MemoryAddress> getInsertMask() {
-        return insertMask;
+    public DeltaMemoryStatus getDeltaMemoryStatus() {
+        return new DeltaMemoryStatus(deleteMask, bucketsToCommit);
     }
 
     @Override
@@ -42,34 +41,34 @@ public class MemoryDeltaTask extends Completer {
         while (it.hasNext()) {
             TypeMemoryDeltaTask sub = it.next();
             this.deleteMask.or(sub.deleteMask);
-            this.insertMask.or(sub.insertMask);
+            this.bucketsToCommit.addAll(sub.bucketsToCommit);
             it.remove();
         }
     }
 
-    static class TypeMemoryDeltaTask extends Completer {
-        private static final long serialVersionUID = 7844452444442224060L;
+    private static class TypeMemoryDeltaTask extends Completer {
+        private static final long serialVersionUID = 7844452448442224060L;
         private final transient TypeMemory tm;
-        private final transient MemoryActionBuffer buffer;
+        private final transient FactActionBuffer buffer;
         private final transient FactStorage<FactRecord> factStorage;
         private final transient Mask<MemoryAddress> deleteMask = Mask.addressMask();
-        private final transient Mask<MemoryAddress> insertMask = Mask.addressMask();
         private final Collection<RuntimeFact> inserts = new LinkedList<>();
         private final Collection<BucketInsertTask> bucketInsertTasks = new LinkedList<>();
+        private final Collection<KeyMemoryBucket> bucketsToCommit = new LinkedList<>();
 
-        TypeMemoryDeltaTask(Completer completer, TypeMemory tm) {
+        TypeMemoryDeltaTask(Completer completer, TypeMemory tm, FactActionBuffer buffer) {
             super(completer);
             this.tm = tm;
-            this.buffer = tm.getBuffer();
+            this.buffer = buffer;
             this.factStorage = tm.getFactStorage();
         }
 
         @Override
         protected void onCompletion() {
-            this.buffer.clear();
             for (BucketInsertTask task : bucketInsertTasks) {
                 if (task.atLeastOneInserted) {
-                    this.insertMask.set(task.bucket.address);
+                    KeyMemoryBucket bucket = task.bucket;
+                    this.bucketsToCommit.add(bucket);
                 }
             }
 
@@ -80,7 +79,7 @@ public class MemoryDeltaTask extends Completer {
 
         @Override
         protected void execute() {
-            Iterator<AtomicMemoryAction> it = buffer.actions();
+            ReIterator<AtomicMemoryAction> it = buffer.actions(this.tm.getType());
 
             while (it.hasNext()) {
                 AtomicMemoryAction a = it.next();
@@ -88,7 +87,6 @@ public class MemoryDeltaTask extends Completer {
                     case RETRACT:
                         FactRecord record = factStorage.getFact(a.handle);
                         if (record != null) {
-                            //runtime.deltaMemoryManager.onDelete(record.getBucketsMask());
                             deleteMask.or(record.getBucketsMask());
                         }
                         factStorage.delete(a.handle);
@@ -102,7 +100,6 @@ public class MemoryDeltaTask extends Completer {
                             LOGGER.warning("Unknown fact handle " + a.handle + ". Update operation skipped.");
                         } else {
                             FactRecord factRecord = a.factRecord;
-                            //runtime.deltaMemoryManager.onDelete(previous.getBucketsMask());
                             deleteMask.or(previous.getBucketsMask());
 
                             //TODO !!! fix this versioning mess

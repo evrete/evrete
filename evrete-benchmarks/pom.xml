@@ -12,7 +12,7 @@
     <version>2.1.07-SNAPSHOT</version>
 
     <properties>
-        <drools.version>7.59.0.Final</drools.version>
+        <drools.version>7.63.0.t20211129</drools.version>
         <slf4j.version>1.7.32</slf4j.version>
     </properties>
 
@@ -21,6 +21,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- IMPORTANT -->
+                    <forkCount>1</forkCount>
+                    <reuseForks>false</reuseForks>
+                </configuration>
             </plugin>
 
             <plugin>

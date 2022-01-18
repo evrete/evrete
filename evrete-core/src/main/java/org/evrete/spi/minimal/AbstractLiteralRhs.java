@@ -38,9 +38,7 @@ public abstract class AbstractLiteralRhs implements Consumer<RhsContext>, RhsCon
     }
 
     @Override
-    public RhsContext insert(Object obj) {
-        return ctx.insert(obj);
+    public RhsContext insert(Object fact, boolean resolveCollections) {
+        return ctx.insert(fact, resolveCollections);
     }
-
-
 }

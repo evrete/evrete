@@ -55,7 +55,7 @@ class SessionUpdateDeleteTests {
                     ctx.update($a);
                     counter.next();
                 });
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
+        StatefulSession s = knowledge.newStatefulSession(mode);
 
         s.insertAndFire(a);
         assert counter.get() == 10 : "Actual: " + counter.get();

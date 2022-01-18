@@ -49,7 +49,7 @@ public class TypeMemoryBase extends MemoryComponent implements Iterable<KeyMemor
         return memoryBuckets.iterator();
     }
 
-    public Type<?> getType() {
+    public final Type<?> getType() {
         return type;
     }
 
@@ -102,4 +102,9 @@ public class TypeMemoryBase extends MemoryComponent implements Iterable<KeyMemor
         }
     }
 
+    @Override
+    public String toString() {
+        return "TypeMemory{" +type.getName() +
+                '}';
+    }
 }

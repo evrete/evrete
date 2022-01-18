@@ -10,10 +10,10 @@ abstract class MemoryComponent implements TypeResolver {
     final MemoryFactory memoryFactory;
     final Configuration configuration;
     final ValueResolver valueResolver;
-    private final AbstractRuleSessionIO<?> runtime;
+    private final AbstractRuleSession<?> runtime;
     private final ArrayOf<MemoryComponent> childComponents = new ArrayOf<>(MemoryComponent.class);
 
-    MemoryComponent(AbstractRuleSessionIO<?> runtime, MemoryFactory memoryFactory) {
+    MemoryComponent(AbstractRuleSession<?> runtime, MemoryFactory memoryFactory) {
         this.memoryFactory = memoryFactory;
         this.configuration = runtime.getConfiguration();
         this.valueResolver = memoryFactory.getValueResolver();
@@ -28,7 +28,7 @@ abstract class MemoryComponent implements TypeResolver {
         parent.addChild(this);
     }
 
-    public AbstractRuleSessionIO<?> getRuntime() {
+    public AbstractRuleSession<?> getRuntime() {
         return runtime;
     }
 

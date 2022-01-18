@@ -29,9 +29,9 @@ class RuleRuntimeImpl implements RuleRuntime {
         }
         switch (i) {
             case STATEFUL_SESSION_TYPE:
-                return new StatefulSessionImpl(delegate, metadata);
+                return new StatefulRuleSessionImpl(delegate, metadata);
             case STATELESS_SESSION_TYPE:
-                return new StatelessSessionImpl(delegate, metadata);
+                return new StatelessRuleSessionImpl(delegate, metadata);
             default:
                 throw new RuleSessionTypeUnsupportedException("Session type " + i + " is not supported. Supported values are [" + STATEFUL_SESSION_TYPE + "] (stateful session) and [" + STATELESS_SESSION_TYPE + "] (stateless session)");
         }

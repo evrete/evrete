@@ -10,28 +10,33 @@ import java.util.Collection;
  */
 public interface RhsContext {
     /**
-     * <p>
-     * Inserts a new object into the working memory.
-     * </p>
      *
-     * @param obj the object
-     * @return the context itself so the methods could be chained
+     * @param obj fact to insert
+     * @return RHS context
+     * @see #insert(Object, boolean)
      */
-    RhsContext insert(Object obj);
+    default RhsContext insert(Object obj) {
+        return insert(obj, true);
+    }
+
+    /**
+     * <p>
+     *     Buffers a new insert operation in rule's memory
+     * </p>
+     * @param fact               object to insert
+     * @param resolveCollections collection/array inspection flag
+     * @return RHS context
+     * @throws NullPointerException if argument is null
+     */
+    RhsContext insert(Object fact, boolean resolveCollections);
 
 
     default RhsContext insert(Collection<?> objects) {
-        for (Object o : objects) {
-            insert(o);
-        }
-        return this;
+        return insert(objects, true);
     }
 
     default RhsContext insert(Object[] objects) {
-        for (Object o : objects) {
-            insert(o);
-        }
-        return this;
+        return insert(objects, true);
     }
 
     /**

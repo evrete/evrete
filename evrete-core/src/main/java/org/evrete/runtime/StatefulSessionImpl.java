@@ -19,13 +19,13 @@ public class StatefulSessionImpl extends AbstractRuleSessionIO<StatefulSession> 
     }
 
     public <T> StatefulSession forEachFact(String type, Consumer<T> consumer) {
-        forEachFactInner(type, consumer);
+        forEachFactFull(type, consumer);
         return this;
     }
 
     @Override
     public StatefulSession forEachFact(BiConsumer<FactHandle, Object> consumer) {
-        forEachFactInner(consumer);
+        forEachFactFull(consumer);
         return this;
     }
 
@@ -52,13 +52,13 @@ public class StatefulSessionImpl extends AbstractRuleSessionIO<StatefulSession> 
 
     @Override
     public final StatefulSession update(FactHandle handle, Object newValue) {
-        updateInner(handle, newValue);
+        bufferUpdate(handle, newValue);
         return this;
     }
 
     @Override
     public final StatefulSession delete(FactHandle handle) {
-        deleteInner(handle);
+        bufferDelete(handle);
         return this;
     }
 

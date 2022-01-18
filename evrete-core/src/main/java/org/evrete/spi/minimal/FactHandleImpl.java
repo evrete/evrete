@@ -36,7 +36,6 @@ class FactHandleImpl implements FactHandle {
     public String toString() {
         return "{" +
                 "type=" + type +
-                //", hash=" + hash +
                 ", id=" + id +
                 '}';
     }

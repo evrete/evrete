@@ -2,33 +2,55 @@ package org.evrete.runtime;
 
 import org.evrete.Configuration;
 import org.evrete.api.*;
+import org.evrete.runtime.async.RuleHotDeploymentTask;
+import org.evrete.runtime.evaluation.MemoryAddress;
+import org.evrete.util.SessionCollector;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+import java.util.logging.Logger;
+import java.util.stream.Collector;
 
 /**
  * <p>
- *     Base session class with common methods
+ * Base session class with common methods
  * </p>
+ *
  * @param <S> session type parameter
  */
 abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRuntime<RuntimeRule, S> implements RuleSession<S> {
-    private BooleanSupplier fireCriteria = () -> true;
-    final boolean warnUnknownTypes;
-    ActivationManager activationManager;
+    private static final Logger LOGGER = Logger.getLogger(AbstractRuleSession.class.getName());
+    private final boolean warnUnknownTypes;
     final List<SessionLifecycleListener> lifecycleListeners = new ArrayList<>();
-    boolean active = true;
+    final SessionMemory memory;
+    final RuntimeRules ruleStorage;
     private final KnowledgeRuntime knowledge;
+    ActivationManager activationManager;
+    private BooleanSupplier fireCriteria = () -> true;
+    private volatile boolean active = true;
+    final FactActionBuffer actionBuffer;
+
+    protected abstract S thisInstance();
 
     AbstractRuleSession(KnowledgeRuntime knowledge) {
         super(knowledge);
         this.knowledge = knowledge;
         this.warnUnknownTypes = knowledge.getConfiguration().getAsBoolean(Configuration.WARN_UNKNOWN_TYPES);
         this.activationManager = newActivationManager();
+        int bufferSize = getConfiguration().getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT);
+        this.actionBuffer = new FactActionBuffer(bufferSize);
+
+        this.ruleStorage = new RuntimeRules();
+        MemoryFactory memoryFactory = getService().getMemoryFactoryProvider().instance(this);
+        this.memory = new SessionMemory(this, memoryFactory);
+        // Deploy existing rules
+        for (RuleDescriptor descriptor : knowledge.getRules()) {
+            deployRule(descriptor, false);
+        }
     }
 
-    protected abstract S thisInstance();
 
     boolean fireCriteriaMet() {
         return this.fireCriteria.getAsBoolean();
@@ -79,4 +101,240 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
         return knowledge;
     }
 
+    private synchronized RuntimeRule deployRule(RuleDescriptor descriptor, boolean hotDeployment) {
+        for (FactType factType : descriptor.getLhs().getFactTypes()) {
+            TypeMemory tm = memory.getCreateUpdate(factType.type());
+            tm.touchMemory(factType.getMemoryAddress());
+        }
+        RuntimeRuleImpl rule = ruleStorage.addRule(descriptor, this);
+        if (hotDeployment) {
+            getExecutor().invoke(new RuleHotDeploymentTask(rule));
+        }
+        reSortRules();
+        return rule;
+    }
+
+    private void reSortRules() {
+        ruleStorage.sort(getRuleComparator());
+    }
+
+    @Override
+    public RuntimeRule compileRule(RuleBuilder<?> builder) {
+        RuleDescriptor rd = compileRuleBuilder(builder);
+        return deployRule(rd, true);
+    }
+
+    @Override
+    public void setRuleComparator(Comparator<Rule> ruleComparator) {
+        super.setRuleComparator(ruleComparator);
+        reSortRules();
+    }
+
+    public final SessionMemory getMemory() {
+        return memory;
+    }
+
+    final void forEachFactFull(BiConsumer<FactHandle, Object> consumer) {
+        Set<FactHandle> buffered = new HashSet<>();
+        this.actionBuffer.forEach(a -> {
+            FactHandle handle = a.handle;
+            buffered.add(handle);
+            if (a.action != Action.RETRACT) {
+                consumer.accept(handle, a.factRecord.instance);
+            }
+        });
+
+        this.forEachFactCommitted((handle, o) -> {
+            // Skip already served facts
+            if (!buffered.contains(handle)) {
+                consumer.accept(handle, o);
+            }
+        });
+    }
+
+    /**
+     * <p>
+     * Scans committed working memory only, no buffered actions get scanned
+     * </p>
+     *
+     * @param consumer consumer
+     */
+    private void forEachFactCommitted(BiConsumer<FactHandle, Object> consumer) {
+        // Scanning main memory and making sure fact handles are not deleted
+        for (TypeMemory tm : memory) {
+            tm.forEachFact(consumer);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    <T> void forEachFactFull(String type, Consumer<T> consumer) {
+        Type<?> t = getTypeResolver().getType(type);
+        if (t == null) {
+            LOGGER.warning("Type not found: '" + type + "'");
+            return;
+        }
+
+        Set<FactHandle> buffered = new HashSet<>();
+        this.actionBuffer.forEach(t, a -> {
+            FactHandle handle = a.handle;
+            buffered.add(handle);
+            if (a.action != Action.RETRACT) {
+                consumer.accept((T) a.factRecord.instance);
+            }
+        });
+
+        forEachFactCommitted(t.getId(), (BiConsumer<FactHandle, T>) (handle, o) -> {
+            if (!buffered.contains(handle)) {
+                consumer.accept(o);
+            }
+        });
+
+
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> void forEachFactCommitted(int t, BiConsumer<FactHandle, T> consumer) {
+        memory
+                .getCreateUpdate(t)
+                .forEachFact((handle, o) -> consumer.accept(handle, (T) o));
+    }
+
+    @Override
+    public <T> Collector<T, ?, S> asCollector() {
+        return new SessionCollector<>(thisInstance());
+    }
+
+    @Override
+    public final RuntimeRule getRule(String name) {
+        return ruleStorage.get(name);
+    }
+
+    @Override
+    public List<RuntimeRule> getRules() {
+        return Collections.unmodifiableList(ruleStorage.getList());
+    }
+
+    void closeInner() {
+        synchronized (this) {
+            for (SessionLifecycleListener e : lifecycleListeners) {
+                e.onEvent(SessionLifecycleListener.Event.PRE_CLOSE);
+            }
+            invalidateSession();
+            knowledge.close(this);
+        }
+    }
+
+    private void invalidateSession() {
+        this.active = false;
+        this.memory.destroy();
+    }
+
+    @Override
+    public void onNewActiveField(ActiveField newField) {
+        memory.onNewActiveField(newField);
+    }
+
+    @Override
+    public final void onNewAlphaBucket(MemoryAddress address) {
+        memory.onNewAlphaBucket(address);
+    }
+
+    void clearInner() {
+        for (RuntimeRuleImpl rule : ruleStorage) {
+            rule.clear();
+        }
+        memory.clear();
+        this.actionBuffer.clear();
+    }
+
+    abstract void bufferUpdate(FactHandle handle, Object fact);
+
+    abstract void bufferDelete(FactHandle handle);
+
+    static void bufferUpdate(FactHandle handle, Object fact, FactActionBuffer buffer) {
+        buffer.newUpdate(handle, fact);
+    }
+
+    static void bufferDelete(FactHandle handle, FactActionBuffer buffer) {
+        buffer.newDelete(handle);
+    }
+
+    final FactHandle bufferInsert(Object fact, boolean resolveCollections, FactActionBuffer buffer) {
+        _assertActive();
+        Object arg = Objects.requireNonNull(fact, "Null facts are not supported");
+
+        Optional<Collection<?>> collection = resolveCollection(arg, resolveCollections);
+        if (collection.isPresent()) {
+            // Treat the argument as a collection
+            for (Object o : collection.get()) {
+                Optional<FactTuple> insertResult = insertAtomic(o);
+                insertResult.ifPresent(t -> buffer.newInsert(t.handle, t.record));
+            }
+            return null;
+        } else {
+            // Treat the argument as a single fact
+            Optional<FactTuple> insertResult = insertAtomic(arg);
+            insertResult.ifPresent(t -> buffer.newInsert(t.handle, t.record));
+            return insertResult.map(t -> t.handle).orElse(null);
+        }
+    }
+
+    final FactHandle bufferInsert(Object fact, String namedType, boolean resolveCollections, FactActionBuffer buffer) {
+        _assertActive();
+        Object arg = Objects.requireNonNull(fact, "Null facts are not supported");
+        final Type<?> type = getType(namedType);
+        if (type == null) {
+            if (warnUnknownTypes) {
+                LOGGER.warning("Can not map type for '" + fact.getClass().getName() + "', insert operation skipped.");
+            }
+            return null;
+        }
+        Optional<Collection<?>> collection = resolveCollection(arg, resolveCollections);
+        if (collection.isPresent()) {
+            // Treat the argument as a collection
+            for (Object o : collection.get()) {
+                Optional<FactTuple> insertResult = insertAtomic(type, o);
+                insertResult.ifPresent(t -> buffer.newInsert(t.handle, t.record));
+            }
+            return null;
+        } else {
+            // Treat the argument as a single fact
+            Optional<FactTuple> insertResult = insertAtomic(type, arg);
+            insertResult.ifPresent(t -> buffer.newInsert(t.handle, t.record));
+            return insertResult.map(t -> t.handle).orElse(null);
+        }
+    }
+
+    private static Optional<Collection<?>> resolveCollection(Object o, boolean resolveCollection) {
+        if (!resolveCollection) {
+            return Optional.empty();
+        }
+
+        if (o.getClass().isArray()) {
+            return Optional.of(Arrays.asList((Object[]) o));
+        } else if (o instanceof Iterable) {
+            Collection<Object> ret = new LinkedList<>();
+            ((Iterable<?>) o).forEach((Consumer<Object>) ret::add);
+            return Optional.of(ret);
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    private Optional<FactTuple> insertAtomic(Object o) {
+        Type<?> type = resolve(o);
+        if (type == null) {
+            if (warnUnknownTypes) {
+                LOGGER.warning("Can not map type for '" + o.getClass().getName() + "', insert operation skipped.");
+            }
+            return Optional.empty();
+        } else {
+            return insertAtomic(type, o);
+        }
+    }
+
+
+    private Optional<FactTuple> insertAtomic(Type<?> type, Object o) {
+        return memory.get(type).register(o);
+    }
 }

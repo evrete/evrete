@@ -1,6 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 import org.evrete.runtime.evaluation.EvaluatorWrapper;
@@ -10,18 +9,16 @@ import org.evrete.util.Mask;
 import java.util.BitSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
 public final class TypeMemory extends TypeMemoryBase {
     private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
-    private final MemoryActionBuffer buffer;
     private Cache cache;
 
     TypeMemory(SessionMemory sessionMemory, int type) {
         super(sessionMemory, type);
-        int bufferSize = configuration.getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT);
-        this.buffer = new MemoryActionBuffer(type, bufferSize, getRuntime().deltaMemoryManager);
         updateCachedData();
     }
 
@@ -30,17 +27,7 @@ public final class TypeMemory extends TypeMemoryBase {
     }
 
     private FactRecord getFactRecord(FactHandle handle) {
-        FactRecord record = null;
-        // Object may be in uncommitted state (updated), so we need check the action buffer first
-        AtomicMemoryAction bufferedAction = buffer.get(handle);
-        if (bufferedAction != null) {
-            if (bufferedAction.action != Action.RETRACT) {
-                record = bufferedAction.factRecord;
-            }
-        } else {
-            record = getStoredRecord(handle);
-        }
-        return record;
+        return getStoredRecord(handle);
     }
 
     public Object getFact(FactHandle handle) {
@@ -48,42 +35,26 @@ public final class TypeMemory extends TypeMemoryBase {
         return record == null ? null : record.instance;
     }
 
-    public MemoryActionBuffer getBuffer() {
-        return buffer;
-    }
 
     void forEachFact(BiConsumer<FactHandle, Object> consumer) {
         factStorage.iterator().forEachRemaining(record -> {
             FactHandle handle = record.getHandle();
             Object fact = record.getInstance().instance;
-            AtomicMemoryAction bufferedAction = buffer.get(handle);
-            if (bufferedAction == null) {
-                // No changes to this fact
-                consumer.accept(handle, fact);
-            } else {
-                if (bufferedAction.action != Action.RETRACT) {
-                    // Reporting changed data
-                    consumer.accept(bufferedAction.handle, bufferedAction.factRecord.instance);
-                }
-            }
+            consumer.accept(handle, fact);
         });
     }
 
-    FactHandle externalInsert(Object fact) {
+    Optional<FactTuple> register(Object fact) {
         FactRecord record = new FactRecord(fact);
         FactHandle handle = factStorage.insert(record);
         if (handle == null) {
             LOGGER.warning("Fact " + fact + " has been already inserted");
-            return null;
+            return Optional.empty();
         } else {
-            return add(Action.INSERT, handle, record);
+            return Optional.of(new FactTuple(handle, record));
         }
     }
 
-    public FactHandle add(Action action, FactHandle factHandle, FactRecord factRecord) {
-        buffer.add(action, factHandle, factRecord);
-        return factHandle;
-    }
 
     public RuntimeFact createFactRuntime(FactHandleVersioned factHandle, FactRecord factRecord) {
         return cache.createFactRuntime(factHandle, factRecord, valueResolver);
@@ -112,7 +83,7 @@ public final class TypeMemory extends TypeMemoryBase {
         final Object[] currentValues;
         final boolean hasAlphaConditions;
 
-        Cache(Type<?> type, AbstractRuleSessionIO<?> runtime) {
+        Cache(Type<?> type, AbstractRuleSession<?> runtime) {
             Type<?> t = runtime.getType(type.getId());
             TypeMemoryMetaData meta = runtime.getTypeMeta(t.getId());
 

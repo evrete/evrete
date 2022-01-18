@@ -12,4 +12,11 @@ public class IntValue {
     public boolean testFile(Object f) {
         return new File(f.toString()).exists();
     }
+
+    @Override
+    public String toString() {
+        return "IntValue{" +
+                "value=" + value +
+                '}';
+    }
 }

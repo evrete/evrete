@@ -5,7 +5,6 @@ import org.evrete.api.StatefulSession;
 
 import javax.rules.*;
 import java.io.IOException;
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,10 +13,10 @@ import java.util.stream.Collectors;
 
 import static javax.rules.RuleRuntime.STATEFUL_SESSION_TYPE;
 
-public class StatefulSessionImpl extends AbstractRuleSession implements StatefulRuleSession {
+public class StatefulRuleSessionImpl extends AbstractRuleSessionBase implements StatefulRuleSession {
     private static final long serialVersionUID = 1640888587580047958L;
 
-    StatefulSessionImpl(StatefulSession delegate, RuleExecutionSetMetadataImpl metadata) {
+    StatefulRuleSessionImpl(StatefulSession delegate, RuleExecutionSetMetadataImpl metadata) {
         super(delegate, STATEFUL_SESSION_TYPE, metadata);
     }
 
@@ -28,7 +27,7 @@ public class StatefulSessionImpl extends AbstractRuleSession implements Stateful
     }
 
     @Override
-    public Handle addObject(Object o) throws RemoteException, InvalidRuleSessionException {
+    public Handle addObject(Object o) throws InvalidRuleSessionException {
         FactHandle h = delegate.insert(o);
         if (h == null) {
             throw new InvalidRuleSessionException("Handle not created, inserted object is of unknown type.");

@@ -11,7 +11,9 @@ import org.kie.api.builder.KieBuilder;
 import org.kie.api.builder.KieFileSystem;
 import org.kie.api.builder.KieRepository;
 import org.kie.api.builder.Message;
+import org.kie.api.event.rule.*;
 import org.kie.api.runtime.KieContainer;
+import org.kie.api.runtime.KieSession;
 import org.kie.internal.io.ResourceFactory;
 
 import java.io.File;
@@ -289,5 +291,59 @@ public final class TestUtils {
                 return set.toString();
             }
         };
+    }
+
+    public static void logAgenda(KieSession dSession) {
+        dSession.addEventListener(new AgendaEventListener() {
+            @Override
+            public void matchCreated(MatchCreatedEvent event) {
+                System.out.println("Created: " + event);
+            }
+
+            @Override
+            public void matchCancelled(MatchCancelledEvent event) {
+                System.out.println("Cancelled: " + event);
+            }
+
+            @Override
+            public void beforeMatchFired(BeforeMatchFiredEvent event) {
+                System.out.println("Before fire: " + event);
+            }
+
+            @Override
+            public void afterMatchFired(AfterMatchFiredEvent event) {
+                System.out.println("After fire: " + event);
+            }
+
+            @Override
+            public void agendaGroupPopped(AgendaGroupPoppedEvent agendaGroupPoppedEvent) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void agendaGroupPushed(AgendaGroupPushedEvent agendaGroupPushedEvent) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void beforeRuleFlowGroupActivated(RuleFlowGroupActivatedEvent ruleFlowGroupActivatedEvent) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void afterRuleFlowGroupActivated(RuleFlowGroupActivatedEvent ruleFlowGroupActivatedEvent) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void beforeRuleFlowGroupDeactivated(RuleFlowGroupDeactivatedEvent ruleFlowGroupDeactivatedEvent) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void afterRuleFlowGroupDeactivated(RuleFlowGroupDeactivatedEvent ruleFlowGroupDeactivatedEvent) {
+                throw new UnsupportedOperationException();
+            }
+        });
     }
 }

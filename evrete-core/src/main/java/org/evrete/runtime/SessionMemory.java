@@ -10,7 +10,7 @@ import org.evrete.runtime.evaluation.MemoryAddress;
 public class SessionMemory extends MemoryComponent implements Iterable<TypeMemory> {
     private final ArrayOf<TypeMemory> typedMemories;
 
-    SessionMemory(AbstractRuleSessionIO<?> runtime, MemoryFactory memoryFactory) {
+    SessionMemory(AbstractRuleSession<?> runtime, MemoryFactory memoryFactory) {
         super(runtime, memoryFactory);
         this.typedMemories = new ArrayOf<>(new TypeMemory[]{});
     }

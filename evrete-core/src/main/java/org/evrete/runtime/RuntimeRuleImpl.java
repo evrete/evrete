@@ -2,16 +2,14 @@ package org.evrete.runtime;
 
 import org.evrete.api.*;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
 
 import static org.evrete.util.Constants.DELETED_MEMORY_KEY_FLAG;
 
 
 public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implements RuntimeRule {
-    private final AbstractRuleSessionIO<?> runtime;
+    private final AbstractRuleSession<?> runtime;
     private final RuleDescriptor descriptor;
     private final RuntimeLhs lhs;
     private final RhsGroupNode[] rhsGroupNodes;
@@ -20,8 +18,10 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
     private final RhsContext rhsContext;
     private final BetaEndNode[] endNodes;
     private long rhsCallCounter = 0;
+    // TODO !!!! configure rule's action buffer size in the configuration
+    private final FactActionBuffer actionBuffer = new FactActionBuffer(1024);
 
-    public RuntimeRuleImpl(RuleDescriptor rd, AbstractRuleSessionIO<?> runtime) {
+    public RuntimeRuleImpl(RuleDescriptor rd, AbstractRuleSession<?> runtime) {
         super(runtime, rd, build(runtime, rd.getLhs().getFactTypes()));
         this.descriptor = rd;
         this.runtime = runtime;
@@ -58,7 +58,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
 
     }
 
-    private static RuntimeFactType[] build(AbstractRuleSessionIO<?> runtime, FactType[] types) {
+    private static RuntimeFactType[] build(AbstractRuleSession<?> runtime, FactType[] types) {
         SessionMemory memory = runtime.getMemory();
         RuntimeFactType[] arr = new RuntimeFactType[types.length];
         for (int i = 0; i < types.length; i++) {
@@ -81,14 +81,28 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
         return arr;
     }
 
-    final long executeRhs() {
+    final RuleActivationResult executeRhs() {
         this.rhsCallCounter = 0;
         // Reset state if any
         for (RhsFactType type : this.factTypeNodes) {
             type.resetState();
         }
         this.forEachFactGroup(0, false, rhs.andThen(ctx -> increaseCallCount()));
-        return this.rhsCallCounter;
+
+        return new RuleActivationResult(this.rhsCallCounter, this.actionBuffer);
+    }
+
+    final RuleActivationResult executeRhsAndCommitDelta() {
+        this.rhsCallCounter = 0;
+        // Reset state if any
+        for (RhsFactType type : this.factTypeNodes) {
+            type.resetState();
+        }
+        this.forEachFactGroup(0, false, rhs.andThen(ctx -> increaseCallCount()));
+
+        this.commitDeltas();
+
+        return new RuleActivationResult(this.rhsCallCounter, this.actionBuffer);
     }
 
     public BetaEndNode[] getEndNodes() {
@@ -165,6 +179,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
     }
 
     public void clear() {
+        this.actionBuffer.clear();
         for (BetaEndNode endNode : lhs.getEndNodes()) {
             endNode.clear();
         }
@@ -181,7 +196,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
     }
 
     @Override
-    public AbstractRuleSessionIO<?> getRuntime() {
+    public AbstractRuleSession<?> getRuntime() {
         return runtime;
     }
 
@@ -264,8 +279,8 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
     private class RhsContextImpl implements RhsContext {
 
         @Override
-        public RhsContext insert(Object obj) {
-            runtime.insert(obj);
+        public RhsContext insert(Object fact, boolean resolveCollections) {
+            runtime.bufferInsert(fact, resolveCollections, actionBuffer);
             return this;
         }
 
@@ -275,7 +290,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
             Objects.requireNonNull(obj);
             for (RhsFactType state : factTypeNodes) {
                 if (state.value == obj) {
-                    runtime.updateInner(state.handle, state.value);
+                    AbstractRuleSession.bufferUpdate(state.handle, state.value, actionBuffer);
                     return this;
                 }
             }
@@ -287,7 +302,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
             Objects.requireNonNull(obj);
             for (RhsFactType state : factTypeNodes) {
                 if (state.value == obj) {
-                    runtime.deleteInner(state.handle);
+                    AbstractRuleSession.bufferDelete(state.handle, actionBuffer);
                     return this;
                 }
             }
@@ -306,4 +321,5 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
             return factTypeNodes[idx].value;
         }
     }
+
 }
