@@ -1,9 +1,9 @@
 package org.evrete.runtime.async;
 
 import org.evrete.api.FactHandle;
-import org.evrete.api.FactHandleVersioned;
 import org.evrete.api.FactStorage;
 import org.evrete.api.ReIterator;
+import org.evrete.collections.LinkedDataRWD;
 import org.evrete.runtime.*;
 import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.Mask;
@@ -11,17 +11,15 @@ import org.evrete.util.Mask;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.logging.Logger;
 
 public class ComputeDeltaMemoryTask extends Completer {
     private static final long serialVersionUID = 7921593735990639599L;
-    private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
     private final Collection<TypeMemoryDeltaTask> subtasks = new LinkedList<>();
     private final transient Mask<MemoryAddress> deleteMask = Mask.addressMask();
     private final Collection<KeyMemoryBucket> bucketsToCommit = new LinkedList<>();
 
     public ComputeDeltaMemoryTask(FactActionBuffer buffer, SessionMemory memory) {
-        for(TypeMemory tm : memory) {
+        for (TypeMemory tm : memory) {
             this.subtasks.add(new TypeMemoryDeltaTask(this, tm, buffer));
         }
     }
@@ -31,8 +29,12 @@ public class ComputeDeltaMemoryTask extends Completer {
         tailCall(subtasks, o -> o);
     }
 
-    public DeltaMemoryStatus getDeltaMemoryStatus() {
-        return new DeltaMemoryStatus(deleteMask, bucketsToCommit);
+    public Mask<MemoryAddress> getDeleteMask() {
+        return deleteMask;
+    }
+
+    public Collection<KeyMemoryBucket> getBucketsToCommit() {
+        return bucketsToCommit;
     }
 
     @Override
@@ -52,7 +54,8 @@ public class ComputeDeltaMemoryTask extends Completer {
         private final transient FactActionBuffer buffer;
         private final transient FactStorage<FactRecord> factStorage;
         private final transient Mask<MemoryAddress> deleteMask = Mask.addressMask();
-        private final Collection<RuntimeFact> inserts = new LinkedList<>();
+        // Using a simplified LinkedList for faster GC
+        private final transient LinkedDataRWD<RuntimeFact> inserts = new LinkedDataRWD<>();
         private final Collection<BucketInsertTask> bucketInsertTasks = new LinkedList<>();
         private final Collection<KeyMemoryBucket> bucketsToCommit = new LinkedList<>();
 
@@ -65,16 +68,19 @@ public class ComputeDeltaMemoryTask extends Completer {
 
         @Override
         protected void onCompletion() {
-            for (BucketInsertTask task : bucketInsertTasks) {
+
+            // Using iterators because LinkedLists are slow to GC
+            Iterator<BucketInsertTask> bi = bucketInsertTasks.iterator();
+            while (bi.hasNext()) {
+                BucketInsertTask task = bi.next();
                 if (task.atLeastOneInserted) {
                     KeyMemoryBucket bucket = task.bucket;
                     this.bucketsToCommit.add(bucket);
                 }
+                bi.remove();
             }
 
-            // TODO !!!! performance: clearing may affect performance and might be not necessary
             this.inserts.clear();
-            this.bucketInsertTasks.clear();
         }
 
         @Override
@@ -83,40 +89,34 @@ public class ComputeDeltaMemoryTask extends Completer {
 
             while (it.hasNext()) {
                 AtomicMemoryAction a = it.next();
+                FactHandle handle = a.handle;
                 switch (a.action) {
                     case RETRACT:
-                        FactRecord record = factStorage.getFact(a.handle);
+                        FactRecord record = factStorage.getFact(handle);
                         if (record != null) {
                             deleteMask.or(record.getBucketsMask());
                         }
-                        factStorage.delete(a.handle);
+                        factStorage.delete(handle);
                         break;
                     case INSERT:
-                        inserts.add(tm.createFactRuntime(new FactHandleVersioned(a.handle), a.factRecord));
+                        inserts.add(tm.createFactRuntime(handle, a.getDelta().getLatest()));
                         break;
                     case UPDATE:
-                        FactRecord previous = factStorage.getFact(a.handle);
-                        if (previous == null) {
-                            LOGGER.warning("Unknown fact handle " + a.handle + ". Update operation skipped.");
-                        } else {
-                            FactRecord factRecord = a.factRecord;
-                            deleteMask.or(previous.getBucketsMask());
+                        FactRecordDelta delta = a.getDelta();
 
-                            //TODO !!! fix this versioning mess
-                            FactHandle handle = a.handle;
-                            int newVersion = previous.getVersion() + 1;
-                            factRecord.updateVersion(newVersion);
-                            factStorage.update(handle, factRecord);
-                            FactHandleVersioned versioned = new FactHandleVersioned(handle, newVersion);
-                            inserts.add(tm.createFactRuntime(versioned, factRecord));
-                        }
+                        FactRecord previous = delta.getPrevious();
+                        deleteMask.or(previous.getBucketsMask());
+
+                        FactRecord latest = a.getDelta().getLatest();
+                        factStorage.update(handle, latest);
+                        inserts.add(tm.createFactRuntime(handle, latest));
                         break;
                     default:
                         throw new IllegalStateException();
                 }
             }
 
-            if (!inserts.isEmpty()) {
+            if (inserts.size() > 0) {
                 // Performing insert
                 for (KeyMemoryBucket bucket : tm) {
                     addToPendingCount(1);

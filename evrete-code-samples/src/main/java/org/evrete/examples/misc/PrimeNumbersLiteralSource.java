@@ -10,6 +10,7 @@ public class PrimeNumbersLiteralSource {
     public static void main(String[] args) throws IOException {
         KnowledgeService service = new KnowledgeService();
         String source = "" +
+                "package com.test;\n" +
                 "import org.evrete.dsl.annotation.*;\n" +
                 "import org.evrete.api.RhsContext;\n" +
                 "\n" +

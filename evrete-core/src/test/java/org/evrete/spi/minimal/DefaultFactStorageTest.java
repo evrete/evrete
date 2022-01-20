@@ -2,6 +2,7 @@ package org.evrete.spi.minimal;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.FactHandle;
+import org.evrete.api.FactStorage;
 import org.evrete.api.KeyMode;
 import org.evrete.classes.TypeA;
 import org.evrete.runtime.KnowledgeRuntime;
@@ -56,8 +57,8 @@ class DefaultFactStorageTest {
         TypeMemory tm = session.getMemory().get(0);
 
         // Checking fact storage
-        DefaultFactStorage<?> factStorage = (DefaultFactStorage<?>) tm.getFactStorage();
-        assert factStorage.size() == 1; // only initial instance should be in the storage
+        FactStorage<?> factStorage = tm.getFactStorage();
+        assert factStorage.iterator().reset() == 1; // only initial instance should be in the storage
         assert counter.get() == updates + 1;
 
         // Memory key storage

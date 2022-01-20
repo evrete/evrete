@@ -2,11 +2,12 @@ package org.evrete.runtime;
 
 import org.evrete.api.*;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import static org.evrete.util.Constants.DELETED_MEMORY_KEY_FLAG;
-
 
 public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implements RuntimeRule {
     private final AbstractRuleSession<?> runtime;
@@ -15,11 +16,9 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
     private final RhsGroupNode[] rhsGroupNodes;
     final private RhsFactType[] factTypeNodes;
     private final Map<String, Integer> nameMapping = new HashMap<>();
-    private final RhsContext rhsContext;
+    private final RhsContextImpl rhsContext;
     private final BetaEndNode[] endNodes;
     private long rhsCallCounter = 0;
-    // TODO !!!! configure rule's action buffer size in the configuration
-    private final FactActionBuffer actionBuffer = new FactActionBuffer(1024);
 
     public RuntimeRuleImpl(RuleDescriptor rd, AbstractRuleSession<?> runtime) {
         super(runtime, rd, build(runtime, rd.getLhs().getFactTypes()));
@@ -67,7 +66,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
         return arr;
     }
 
-    void commitDeltas() {
+    private void commitDeltas() {
         for (BetaEndNode endNode : lhs.getEndNodes()) {
             endNode.commitDelta();
         }
@@ -81,28 +80,17 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
         return arr;
     }
 
-    final RuleActivationResult executeRhs() {
+
+    final long callRhs(FactActionBuffer destination) {
+        this.rhsContext.setBuffer(destination);
         this.rhsCallCounter = 0;
         // Reset state if any
         for (RhsFactType type : this.factTypeNodes) {
             type.resetState();
         }
         this.forEachFactGroup(0, false, rhs.andThen(ctx -> increaseCallCount()));
-
-        return new RuleActivationResult(this.rhsCallCounter, this.actionBuffer);
-    }
-
-    final RuleActivationResult executeRhsAndCommitDelta() {
-        this.rhsCallCounter = 0;
-        // Reset state if any
-        for (RhsFactType type : this.factTypeNodes) {
-            type.resetState();
-        }
-        this.forEachFactGroup(0, false, rhs.andThen(ctx -> increaseCallCount()));
-
         this.commitDeltas();
-
-        return new RuleActivationResult(this.rhsCallCounter, this.actionBuffer);
+        return this.rhsCallCounter;
     }
 
     public BetaEndNode[] getEndNodes() {
@@ -179,7 +167,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
     }
 
     public void clear() {
-        this.actionBuffer.clear();
         for (BetaEndNode endNode : lhs.getEndNodes()) {
             endNode.clear();
         }
@@ -277,20 +264,24 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
     }
 
     private class RhsContextImpl implements RhsContext {
+        private FactActionBuffer buffer;
+
+        void setBuffer(FactActionBuffer buffer) {
+            this.buffer = buffer;
+        }
 
         @Override
         public RhsContext insert(Object fact, boolean resolveCollections) {
-            runtime.bufferInsert(fact, resolveCollections, actionBuffer);
+            runtime.bufferInsert(fact, resolveCollections, buffer);
             return this;
         }
 
         @Override
-        //TODO check if field values have _really_ changed
         public final RhsContext update(Object obj) {
             Objects.requireNonNull(obj);
             for (RhsFactType state : factTypeNodes) {
-                if (state.value == obj) {
-                    AbstractRuleSession.bufferUpdate(state.handle, state.value, actionBuffer);
+                if (state.record.instance == obj) {
+                    AbstractRuleSession.bufferUpdate(state.handle, state.record, obj, buffer);
                     return this;
                 }
             }
@@ -301,8 +292,8 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
         public final RhsContext delete(Object obj) {
             Objects.requireNonNull(obj);
             for (RhsFactType state : factTypeNodes) {
-                if (state.value == obj) {
-                    AbstractRuleSession.bufferDelete(state.handle, actionBuffer);
+                if (state.record.instance == obj) {
+                    AbstractRuleSession.bufferDelete(state.handle, state.record, buffer);
                     return this;
                 }
             }
@@ -318,7 +309,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
         public Object getObject(String name) {
             Integer idx = nameMapping.get(name);
             if (idx == null) throw new IllegalArgumentException("Unknown type reference: " + name);
-            return factTypeNodes[idx].value;
+            return factTypeNodes[idx].record.instance;
         }
     }
 

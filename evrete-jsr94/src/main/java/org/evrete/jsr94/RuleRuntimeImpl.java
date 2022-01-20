@@ -1,5 +1,6 @@
 package org.evrete.jsr94;
 
+import org.evrete.api.ActivationMode;
 import org.evrete.api.StatefulSession;
 
 import javax.rules.*;
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 class RuleRuntimeImpl implements RuleRuntime {
+    private static final ActivationMode DEFAULT_MODE = ActivationMode.DEFAULT;
     private static final long serialVersionUID = -1999541474405198310L;
     private final RuleSetRegistrations registrations;
 
@@ -21,7 +23,7 @@ class RuleRuntimeImpl implements RuleRuntime {
         StatefulSession delegate;
         RuleExecutionSetMetadataImpl metadata;
         try {
-            delegate = set.getKnowledge().newStatefulSession();
+            delegate = set.getKnowledge().newStatefulSession(DEFAULT_MODE);
             Utils.copyConfiguration(delegate, map);
             metadata = new RuleExecutionSetMetadataImpl(s, delegate);
         } catch (Exception e) {

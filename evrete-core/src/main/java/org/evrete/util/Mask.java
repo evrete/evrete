@@ -27,10 +27,6 @@ public final class Mask<T> {
         delegate.or(other.delegate);
     }
 
-    public void clear() {
-        delegate.clear();
-    }
-
     public void set(T obj) {
         delegate.set(intMapper.applyAsInt(obj));
     }

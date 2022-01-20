@@ -8,7 +8,7 @@ import org.evrete.runtime.evaluation.MemoryAddress;
 import java.util.Iterator;
 import java.util.Objects;
 
-public class TypeMemoryBase extends MemoryComponent implements Iterable<KeyMemoryBucket> {
+class TypeMemoryBase extends MemoryComponent implements Iterable<KeyMemoryBucket> {
     final FactStorage<FactRecord> factStorage;
     final Type<?> type;
     private final ArrayOf<KeyMemoryBucket> memoryBuckets;

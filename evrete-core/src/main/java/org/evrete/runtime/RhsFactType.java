@@ -10,7 +10,7 @@ import java.util.Objects;
 class RhsFactType {
     private final RuntimeFactType type;
     FactHandle handle;
-    Object value;
+    FactRecord record;
     ReIterator<FactHandleVersioned> factIterator;
     private MemoryKey currentKey;
     private FactHandleVersioned currentFactHandle;
@@ -49,13 +49,13 @@ class RhsFactType {
             return true;
         } else {
             FactHandle handle = v.getHandle();
-            FactRecord fact = type.get(handle);
-            if (fact == null || fact.getVersion() != v.getVersion()) {
+            FactRecord rec = type.get(handle);
+            if (rec == null || rec.getVersion() != v.getVersion()) {
                 return false;
             } else {
                 this.currentFactHandle = v;
                 this.handle = handle;
-                this.value = fact.instance;
+                this.record = rec;
                 return true;
             }
         }

@@ -6,14 +6,16 @@ import org.evrete.util.Mask;
 import java.util.Collection;
 import java.util.List;
 
-public class DeltaMemoryStatus {
+class DeltaMemoryStatus {
     private final Mask<MemoryAddress> deleteMask;
     private final Collection<KeyMemoryBucket> bucketsToCommit;
-    private List<RuntimeRuleImpl> agenda;
+    private final List<RuntimeRuleImpl> agenda;
 
-    public DeltaMemoryStatus(Mask<MemoryAddress> deleteMask, Collection<KeyMemoryBucket> bucketsToCommit) {
+
+    DeltaMemoryStatus(Mask<MemoryAddress> deleteMask, Collection<KeyMemoryBucket> bucketsToCommit, List<RuntimeRuleImpl> agenda) {
         this.deleteMask = deleteMask;
         this.bucketsToCommit = bucketsToCommit;
+        this.agenda = agenda;
     }
 
     Mask<MemoryAddress> getDeleteMask() {
@@ -22,18 +24,6 @@ public class DeltaMemoryStatus {
 
     List<RuntimeRuleImpl> getAgenda() {
         return agenda;
-    }
-
-    void setAgenda(List<RuntimeRuleImpl> agenda) {
-        this.agenda = agenda;
-    }
-
-    Mask<MemoryAddress> getInsertMask() {
-        Mask<MemoryAddress> mask = Mask.addressMask();
-        for(KeyMemoryBucket v : bucketsToCommit) {
-            mask.set(v.address);
-        }
-        return mask;
     }
 
     void commitDeltas() {

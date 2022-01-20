@@ -39,8 +39,8 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
         this.knowledge = knowledge;
         this.warnUnknownTypes = knowledge.getConfiguration().getAsBoolean(Configuration.WARN_UNKNOWN_TYPES);
         this.activationManager = newActivationManager();
-        int bufferSize = getConfiguration().getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT);
-        this.actionBuffer = new FactActionBuffer(bufferSize);
+        //int bufferSize = getConfiguration().getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT);
+        this.actionBuffer = newActionBuffer();
 
         this.ruleStorage = new RuntimeRules();
         MemoryFactory memoryFactory = getService().getMemoryFactoryProvider().instance(this);
@@ -51,6 +51,9 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
         }
     }
 
+    FactActionBuffer newActionBuffer() {
+        return new FactActionBuffer(getConfiguration().getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT));
+    }
 
     boolean fireCriteriaMet() {
         return this.fireCriteria.getAsBoolean();
@@ -87,6 +90,23 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
     public final S removeEventListener(SessionLifecycleListener listener) {
         this.lifecycleListeners.remove(listener);
         return thisInstance();
+    }
+
+    @SuppressWarnings("unchecked")
+    public final <T> T getFact(FactHandle handle) {
+        FactRecord rec = getFactRecord(handle);
+        return rec == null ? null : (T) rec.instance;
+    }
+
+    final FactRecord getFactRecord(FactHandle handle) {
+        AtomicMemoryAction bufferedAction = actionBuffer.find(handle);
+        FactRecord found;
+        if(bufferedAction == null) {
+            found = memory.get(handle.getTypeId()).getFactRecord(handle);
+        } else {
+            found = bufferedAction.action == Action.RETRACT ? null : bufferedAction.getDelta().getLatest();
+        }
+        return found;
     }
 
     @Override
@@ -140,7 +160,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
             FactHandle handle = a.handle;
             buffered.add(handle);
             if (a.action != Action.RETRACT) {
-                consumer.accept(handle, a.factRecord.instance);
+                consumer.accept(handle, a.getDelta().getLatest().instance);
             }
         });
 
@@ -179,7 +199,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
             FactHandle handle = a.handle;
             buffered.add(handle);
             if (a.action != Action.RETRACT) {
-                consumer.accept((T) a.factRecord.instance);
+                consumer.accept((T) a.getDelta().getLatest().instance);
             }
         });
 
@@ -247,16 +267,16 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
         this.actionBuffer.clear();
     }
 
-    abstract void bufferUpdate(FactHandle handle, Object fact);
+    abstract void bufferUpdate(FactHandle handle, FactRecord previous, Object fact);
 
     abstract void bufferDelete(FactHandle handle);
 
-    static void bufferUpdate(FactHandle handle, Object fact, FactActionBuffer buffer) {
-        buffer.newUpdate(handle, fact);
+    static void bufferUpdate(FactHandle handle, FactRecord previous, Object updatedFact, FactActionBuffer buffer) {
+        buffer.newUpdate(handle, previous, updatedFact);
     }
 
-    static void bufferDelete(FactHandle handle, FactActionBuffer buffer) {
-        buffer.newDelete(handle);
+    static void bufferDelete(FactHandle handle, FactRecord previous, FactActionBuffer buffer) {
+        buffer.newDelete(handle, previous);
     }
 
     final FactHandle bufferInsert(Object fact, boolean resolveCollections, FactActionBuffer buffer) {

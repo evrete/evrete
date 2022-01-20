@@ -56,7 +56,8 @@ class DSLKnowledge extends KnowledgeWrapper {
 
             // Adding literal conditions
             Properties copy = delegate.getConfiguration().copyOf();
-            copy.setProperty("evrete.impl.condition-base-class", meta.javaClass.getName());
+            // TODO !! make it optional/configurable
+            copy.setProperty("evrete.impl.condition-base-class", canonicalName(meta.javaClass));
             for(String predicate : rm.stringPredicates) {
                 lhs.addWhere(predicate, meta.javaClass.getClassLoader(), copy);
             }
@@ -88,6 +89,15 @@ class DSLKnowledge extends KnowledgeWrapper {
 
         // There is one listener that should be called right now
         meta.phaseListeners.fire(Phase.BUILD, this);
+    }
+
+
+    private static String canonicalName(Class<?> cl) {
+        try {
+            return cl.getCanonicalName();
+        } catch (Throwable t) {
+            return cl.getName().replaceAll("\\$", ".");
+        }
     }
 
     @Override

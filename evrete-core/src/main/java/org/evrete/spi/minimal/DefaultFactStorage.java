@@ -51,10 +51,6 @@ class DefaultFactStorage<T> implements FactStorage<T> {
         return sj.toString();
     }
 
-    int size() {
-        return collection.size();
-    }
-
     @Override
     public ReIterator<Entry<T>> iterator() {
         return collection.iterator(ITERATOR_MAPPER);

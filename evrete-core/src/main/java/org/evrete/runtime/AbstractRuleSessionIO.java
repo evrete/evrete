@@ -1,6 +1,8 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
+import org.evrete.api.FactHandle;
+import org.evrete.api.RuleSession;
+import org.evrete.api.SessionLifecycleListener;
 import org.evrete.runtime.async.*;
 import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.Mask;
@@ -18,6 +20,9 @@ abstract class AbstractRuleSessionIO<S extends RuleSession<S>> extends AbstractR
             e.onEvent(SessionLifecycleListener.Event.PRE_FIRE);
         }
         switch (getAgendaMode()) {
+            case DEFAULT_OLD:
+                fireDefaultOld(new ActivationContext());
+                break;
             case DEFAULT:
                 fireDefault(new ActivationContext());
                 break;
@@ -29,22 +34,23 @@ abstract class AbstractRuleSessionIO<S extends RuleSession<S>> extends AbstractR
         }
     }
 
-    private void fireDefault(ActivationContext ctx) {
+    @Deprecated
+    private void fireDefaultOld(ActivationContext ctx) {
         List<RuntimeRuleImpl> agenda;
         Mask<MemoryAddress> deleteMask = Mask.addressMask();
+
+        FactActionBuffer buff = newActionBuffer();
         while (fireCriteriaMet() && actionBuffer.hasData()) {
-            DeltaMemoryStatus deltaStatus = buildDeltaMemory(actionBuffer);
+            DeltaMemoryStatus deltaStatus = buildDeltaMemory();
             agenda = deltaStatus.getAgenda();
             if (!agenda.isEmpty()) {
                 activationManager.onAgenda(ctx.incrementFireCount(), Collections.unmodifiableList(agenda));
                 for (RuntimeRuleImpl rule : agenda) {
                     if (activationManager.test(rule)) {
-                        RuleActivationResult result = rule.executeRhsAndCommitDelta();
-                        activationManager.onActivation(rule, result.executions);
-                        FactActionBuffer buffer = result.actionBuffer;
-                        int ops = buffer.deltaOperations();
-                        buffer.copyToAndClear(actionBuffer);
-                        if(ops > 0) {
+                        activationManager.onActivation(rule, rule.callRhs(buff));
+                        int ops = buff.deltaOperations();
+                        buff.copyToAndClear(actionBuffer);
+                        if (ops > 0) {
                             // Breaking the agenda
                             break;
                         }
@@ -57,20 +63,19 @@ abstract class AbstractRuleSessionIO<S extends RuleSession<S>> extends AbstractR
         purge(deleteMask);
     }
 
-    private void fireContinuous(ActivationContext ctx) {
+    private void fireDefault(ActivationContext ctx) {
         List<RuntimeRuleImpl> agenda;
         Mask<MemoryAddress> deleteMask = Mask.addressMask();
+        FactActionBuffer buff = newActionBuffer();
         while (fireCriteriaMet() && actionBuffer.hasData()) {
-            DeltaMemoryStatus deltaStatus = buildDeltaMemory(actionBuffer);
+            DeltaMemoryStatus deltaStatus = buildDeltaMemory();
             agenda = deltaStatus.getAgenda();
             if (!agenda.isEmpty()) {
                 activationManager.onAgenda(ctx.incrementFireCount(), Collections.unmodifiableList(agenda));
                 for (RuntimeRuleImpl rule : agenda) {
                     if (activationManager.test(rule)) {
-                        RuleActivationResult result = rule.executeRhsAndCommitDelta();
-                        FactActionBuffer buffer = result.actionBuffer;
-                        activationManager.onActivation(rule, result.executions);
-                        buffer.copyToAndClear(actionBuffer);
+                        activationManager.onActivation(rule, rule.callRhs(buff));
+                        buff.copyToAndClear(actionBuffer);
                     }
                 }
             }
@@ -81,16 +86,51 @@ abstract class AbstractRuleSessionIO<S extends RuleSession<S>> extends AbstractR
     }
 
 
-    private DeltaMemoryStatus buildDeltaMemory(FactActionBuffer buffer) {
-        // Compute entry done deltas
-        ComputeDeltaMemoryTask deltaTask = new ComputeDeltaMemoryTask(buffer, memory);
-        getExecutor().invoke(deltaTask);
-        DeltaMemoryStatus status = deltaTask.getDeltaMemoryStatus();
-        // Compute beta-nodes' deltas
-        List<RuntimeRuleImpl> agenda = buildMemoryDeltas(status.getInsertMask());
-        status.setAgenda(agenda);
+    private void fireContinuous(ActivationContext ctx) {
+        List<RuntimeRuleImpl> agenda;
+        Mask<MemoryAddress> deleteMask = Mask.addressMask();
+        FactActionBuffer buff = newActionBuffer();
+        while (fireCriteriaMet() && actionBuffer.hasData()) {
+            DeltaMemoryStatus deltaStatus = buildDeltaMemory();
+            agenda = deltaStatus.getAgenda();
+            if (!agenda.isEmpty()) {
+                activationManager.onAgenda(ctx.incrementFireCount(), Collections.unmodifiableList(agenda));
+                for (RuntimeRuleImpl rule : agenda) {
+                    if (activationManager.test(rule)) {
+                        activationManager.onActivation(rule, rule.callRhs(buff));
+                    }
+                }
+                buff.copyToAndClear(actionBuffer);
+            }
+            deltaStatus.commitDeltas();
+            deleteMask.or(deltaStatus.getDeleteMask());
+        }
+        purge(deleteMask);
+    }
 
-        buffer.clear();
+    private DeltaMemoryStatus buildDeltaMemory() {
+        // Compute entry done deltas
+        ComputeDeltaMemoryTask deltaTask = new ComputeDeltaMemoryTask(actionBuffer, memory);
+
+
+        getExecutor().invoke(deltaTask);
+        Mask<MemoryAddress> deleteMask = deltaTask.getDeleteMask();
+        Collection<KeyMemoryBucket> bucketsToCommit = deltaTask.getBucketsToCommit();
+
+        Mask<MemoryAddress> insertMask = Mask.addressMask();
+        for (KeyMemoryBucket v : bucketsToCommit) {
+            insertMask.set(v.address);
+        }
+
+        // Compute beta-nodes' deltas
+        List<RuntimeRuleImpl> agenda = buildMemoryDeltas(insertMask);
+
+        //DeltaMemoryStatus status = deltaTask.getDeltaMemoryStatus();
+
+        DeltaMemoryStatus status = new DeltaMemoryStatus(deleteMask, bucketsToCommit, agenda);
+        //status.setAgenda(agenda);
+
+        actionBuffer.clear();
         return status;
     }
 
@@ -143,26 +183,17 @@ abstract class AbstractRuleSessionIO<S extends RuleSession<S>> extends AbstractR
         }
     }
 
-    @SuppressWarnings("unchecked")
-    <T> T getFactInner(FactHandle handle) {
-        AtomicMemoryAction bufferedAction = actionBuffer.find(handle);
-        Object found;
-        if(bufferedAction == null) {
-            found = memory.get(handle.getTypeId()).getFact(handle);
-        } else {
-            found = bufferedAction.action == Action.RETRACT ? null : bufferedAction.factRecord.instance;
-        }
-        return (T) found;
-    }
-
     @Override
-    void bufferUpdate(FactHandle handle, Object fact) {
-        bufferUpdate(handle, fact, this.actionBuffer);
+    void bufferUpdate(FactHandle handle, FactRecord previous, Object updatedFact) {
+        bufferUpdate(handle, previous, updatedFact, this.actionBuffer);
     }
 
     @Override
     void bufferDelete(FactHandle handle) {
-        bufferDelete(handle, this.actionBuffer);
+        FactRecord existing = getFactRecord(handle);
+        if (existing != null) {
+            bufferDelete(handle, existing, this.actionBuffer);
+        }
     }
 
     @Override

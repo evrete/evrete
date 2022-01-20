@@ -14,7 +14,7 @@ abstract class LeastImportantServiceProvider implements OrderedServiceProvider {
 
     final JcCompiler getCreateJavaCompiler(RuntimeContext<?> ctx, ProtectionDomain protectionDomain) {
         return javaCompilers.computeIfAbsent(ctx, k -> new HashMap<>())
-                .computeIfAbsent(protectionDomain, k -> new JcCompiler(ctx, k));
+                .computeIfAbsent(protectionDomain, JcCompiler::new);
     }
 
     @Override

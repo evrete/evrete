@@ -12,10 +12,6 @@ public final class FactHandleVersioned implements Serializable {
         this.version = version;
     }
 
-    public FactHandleVersioned(FactHandle handle) {
-        this(handle, 0);
-    }
-
     public int getVersion() {
         return version;
     }

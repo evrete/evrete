@@ -6,17 +6,15 @@ import org.evrete.api.ReIterator;
 import org.evrete.api.Type;
 import org.evrete.collections.LinearHashSet;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
-import java.util.logging.Logger;
 
 public class FactActionBuffer {
-    private static final Logger LOGGER = Logger.getLogger(FactActionBuffer.class.getName());
-
     private final Map<Integer, ActionQueue> typedQueues = new ConcurrentHashMap<>();
-
     private final int[] actionCounts = new int[Action.values().length];
     private long totalActions = 0L;
     private final int capacity;
@@ -29,8 +27,8 @@ public class FactActionBuffer {
         return totalActions > 0;
     }
 
-    private void add(Action action, FactHandle factHandle, FactRecord factRecord) {
-        if(get(factHandle).add(action, factHandle, factRecord)) {
+    private void add(Action action, FactHandle factHandle, FactRecordDelta delta) {
+        if(get(factHandle).add(action, factHandle, Objects.requireNonNull(delta))) {
             this.actionCounts[action.ordinal()] ++;
             this.totalActions++;
         }
@@ -62,8 +60,7 @@ public class FactActionBuffer {
     }
 
     void copyToAndClear(FactActionBuffer other) {
-
-        this.typedQueues.values().forEach(queue -> queue.queue.forEachDataEntry(a -> other.add(a.action, a.handle, a.factRecord)));
+        this.typedQueues.values().forEach(queue -> queue.queue.forEachDataEntry(a -> other.add(a.action, a.handle, a.getDelta())));
         this.clear();
     }
 
@@ -75,12 +72,12 @@ public class FactActionBuffer {
         return ret;
     }
 
-    void newUpdate(FactHandle handle, Object object) {
-        this.add(Action.UPDATE, handle, new FactRecord(object));
+    void newUpdate(FactHandle handle, FactRecord previous, Object updatedFact) {
+        this.add(Action.UPDATE, handle, FactRecordDelta.updateDelta(previous, updatedFact));
     }
 
     void newInsert(FactHandle handle, FactRecord record) {
-        this.add(Action.INSERT, handle, record);
+        this.add(Action.INSERT, handle, FactRecordDelta.insertDelta(record));
     }
 
     public void forEach(Consumer<AtomicMemoryAction> consumer) {
@@ -95,8 +92,8 @@ public class FactActionBuffer {
         get(t).forEachDataEntry(consumer);
     }
 
-    void newDelete(FactHandle handle) {
-        this.add(Action.RETRACT, handle, null);
+    void newDelete(FactHandle handle, FactRecord record) {
+        this.add(Action.RETRACT, handle, FactRecordDelta.deleteDelta(record));
     }
 
 
@@ -118,51 +115,21 @@ public class FactActionBuffer {
             queue.forEachDataEntry(consumer);
         }
 
-        boolean add(Action action, FactHandle factHandle, FactRecord factRecord) {
+        boolean add(Action action, FactHandle factHandle, FactRecordDelta delta) {
             queue.resize();
             int hash = factHandle.hashCode();
             int binIndex = queue.findBinIndex(factHandle, hash, SEARCH_FUNCTION);
             AtomicMemoryAction existingAction = queue.get(binIndex);
             if (existingAction == null) {
-                queue.saveDirect(new AtomicMemoryAction(action, factHandle, factRecord), binIndex);
+                queue.saveDirect(new AtomicMemoryAction(action, factHandle, delta), binIndex);
                 return true;
             } else {
-                switch (action) {
-                    case INSERT:
-                        LOGGER.warning("Fact has been already inserted, operation skipped.");
-                        break;
-                    case UPDATE:
-                        switch (existingAction.action) {
-                            case RETRACT:
-                                // Fact handle has been already deleted, we can't update a deleted entry
-                                LOGGER.warning("An attempt was made to update a fact that has been just deleted, update operation skipped");
-                                break;
-                            case INSERT:
-                            case UPDATE:
-                                existingAction.factRecord = factRecord;
-                                break;
-                        }
-                        break;
-                    case RETRACT:
-                        switch (existingAction.action) {
-                            case RETRACT:
-                                // Duplicate delete operation, skipping silently
-                                break;
-                            case INSERT:
-                            case UPDATE:
-                                // Deleting a fact that has been just inserted or updated
-                                existingAction.action = Action.RETRACT;
-                                break;
-                        }
-                        break;
-                    default:
-                        throw new IllegalStateException();
-                }
+                existingAction.rebuild(action, delta);
                 return false;
             }
         }
 
-        public void clear() {
+        void clear() {
             this.queue.clear();
         }
 

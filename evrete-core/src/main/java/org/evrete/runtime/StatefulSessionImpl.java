@@ -30,11 +30,6 @@ public class StatefulSessionImpl extends AbstractRuleSessionIO<StatefulSession> 
     }
 
     @Override
-    public <T> T getFact(FactHandle handle) {
-        return getFactInner(handle);
-    }
-
-    @Override
     public void close() {
         closeInner();
     }
@@ -52,8 +47,13 @@ public class StatefulSessionImpl extends AbstractRuleSessionIO<StatefulSession> 
 
     @Override
     public final StatefulSession update(FactHandle handle, Object newValue) {
-        bufferUpdate(handle, newValue);
-        return this;
+        FactRecord record = getFactRecord(handle);
+        if(record == null) {
+            throw new IllegalArgumentException("Fact not found, handle: " + handle);
+        } else {
+            bufferUpdate(handle, record, newValue);
+            return this;
+        }
     }
 
     @Override

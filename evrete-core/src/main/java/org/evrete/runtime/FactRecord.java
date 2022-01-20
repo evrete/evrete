@@ -13,6 +13,17 @@ public class FactRecord {
         this.bucketsMask = Mask.addressMask();
     }
 
+    private FactRecord(FactRecord prev, Object updatedFact) {
+        this.instance = updatedFact;
+        this.bucketsMask = Mask.addressMask();
+        this.bucketsMask.or(prev.bucketsMask);
+        this.version = prev.version + 1;
+    }
+
+    static FactRecord updated(FactRecord previous, Object updated) {
+        return new FactRecord(previous, updated);
+    }
+
     void markLocation(MemoryAddress address) {
         this.bucketsMask.set(address);
     }
@@ -23,10 +34,6 @@ public class FactRecord {
 
     public int getVersion() {
         return version;
-    }
-
-    public void updateVersion(int newVersion) {
-        this.version = newVersion;
     }
 
     @Override

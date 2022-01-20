@@ -26,7 +26,7 @@ public final class TypeMemory extends TypeMemoryBase {
         this.cache = new Cache(this.type, getRuntime());
     }
 
-    private FactRecord getFactRecord(FactHandle handle) {
+    FactRecord getFactRecord(FactHandle handle) {
         return getStoredRecord(handle);
     }
 
@@ -56,7 +56,8 @@ public final class TypeMemory extends TypeMemoryBase {
     }
 
 
-    public RuntimeFact createFactRuntime(FactHandleVersioned factHandle, FactRecord factRecord) {
+    public RuntimeFact createFactRuntime(FactHandle handle, FactRecord factRecord) {
+        FactHandleVersioned factHandle = new FactHandleVersioned(handle, factRecord.getVersion());
         return cache.createFactRuntime(factHandle, factRecord, valueResolver);
     }
 
@@ -66,8 +67,7 @@ public final class TypeMemory extends TypeMemoryBase {
         List<RuntimeFact> runtimeFacts = new LinkedList<>();
         while (allFacts.hasNext()) {
             FactStorage.Entry<FactRecord> rec = allFacts.next();
-            FactHandleVersioned fhv = new FactHandleVersioned(rec.getHandle(), rec.getInstance().getVersion());
-            runtimeFacts.add(createFactRuntime(fhv, rec.getInstance()));
+            runtimeFacts.add(createFactRuntime(rec.getHandle(), rec.getInstance()));
         }
 
         bucket.insert(runtimeFacts);

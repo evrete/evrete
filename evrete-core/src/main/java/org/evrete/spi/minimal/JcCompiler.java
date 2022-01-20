@@ -1,6 +1,5 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.RuntimeContext;
 import org.evrete.util.compiler.CompilationException;
 import org.evrete.util.compiler.ServiceClassLoader;
 import org.evrete.util.compiler.SourceCompiler;
@@ -10,7 +9,7 @@ import java.security.ProtectionDomain;
 class JcCompiler extends SourceCompiler {
     private final ProtectionDomain protectionDomain;
 
-    JcCompiler(RuntimeContext<?> ctx, ProtectionDomain protectionDomain) {
+    JcCompiler(ProtectionDomain protectionDomain) {
         this.protectionDomain = protectionDomain;
     }
 

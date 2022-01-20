@@ -5,8 +5,8 @@ import org.evrete.api.NamedType;
 import org.evrete.api.TypeField;
 
 class FieldReferenceImpl implements FieldReference {
-    final NamedType type;
-    final TypeField field;
+    private final NamedType type;
+    private final TypeField field;
 
     FieldReferenceImpl(NamedType type, TypeField field) {
         this.type = type;
