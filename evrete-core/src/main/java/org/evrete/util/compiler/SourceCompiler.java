@@ -3,13 +3,14 @@ package org.evrete.util.compiler;
 
 import javax.tools.*;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.StringJoiner;
 
 public class SourceCompiler {
     private final JavaCompiler compiler;
 
     public SourceCompiler() {
-        this.compiler = ToolProvider.getSystemJavaCompiler();
+        this.compiler = Objects.requireNonNull(ToolProvider.getSystemJavaCompiler(), "No Java compiler provided by this platform") ;
     }
 
     public final Class<?> compile(String source, ServiceClassLoader classLoader) throws CompilationException {

@@ -67,38 +67,39 @@ class EvaluationContextTests {
 
         lhsBuilder.execute(rhsAssert);
 
-        StatefulSession session1 = knowledge.newStatefulSession().setActivationMode(mode);
-        session1.insertAndFire(facts);
-        rhsAssert.assertCount(count - 2).reset(); // With zero 'i' values excluded
-        rhsAssert.reset();
+        try(StatefulSession session1 = knowledge.newStatefulSession().setActivationMode(mode); StatefulSession session2 = knowledge.newStatefulSession().setActivationMode(mode)) {
+            session1.insertAndFire(facts);
+            rhsAssert.assertCount(count - 2).reset(); // With zero 'i' values excluded
+            rhsAssert.reset();
 
-        // Updating conditions for a new session
-        StatefulSession session2 = knowledge.newStatefulSession().setActivationMode(mode);
+            // Updating conditions for a new session
 
-        FieldReference[] fieldReferences = knowledge.getExpressionResolver().resolve(lhsBuilder, "$a.i", "$b.i");
+            FieldReference[] fieldReferences = knowledge.getExpressionResolver().resolve(lhsBuilder, "$a.i", "$b.i");
 
 
-        ValuesPredicate betaPredicate = t -> {
-            int ai = t.get(0);
-            int bi = t.get(1);
-            return ai != bi; // Inverse condition
-        };
+            ValuesPredicate betaPredicate = t -> {
+                int ai = t.get(0);
+                int bi = t.get(1);
+                return ai != bi; // Inverse condition
+            };
 
-        ValuesPredicate alphaPredicate = t -> {
-            int i = t.get(0);
-            return i >= 0;
-        };
+            ValuesPredicate alphaPredicate = t -> {
+                int i = t.get(0);
+                return i >= 0;
+            };
 
-        Evaluator betaNew = new EvaluatorOfPredicate(betaPredicate, fieldReferences); // Becomes "$a.i != $b.i"
-        Evaluator alpha1New = new EvaluatorOfPredicate(alphaPredicate, fieldReferences[0]); // Becomes $a.i =>=0
-        Evaluator alpha2New = new EvaluatorOfPredicate(alphaPredicate, fieldReferences[1]); // Becomes $b.i =>=0
+            Evaluator betaNew = new EvaluatorOfPredicate(betaPredicate, fieldReferences); // Becomes "$a.i != $b.i"
+            Evaluator alpha1New = new EvaluatorOfPredicate(alphaPredicate, fieldReferences[0]); // Becomes $a.i =>=0
+            Evaluator alpha2New = new EvaluatorOfPredicate(alphaPredicate, fieldReferences[1]); // Becomes $b.i =>=0
 
-        session2.replaceEvaluator(betaHandle, betaNew);
-        session2.replaceEvaluator(alphaHandle1, alpha1New);
-        session2.replaceEvaluator(alphaHandle2, alpha2New);
+            session2.replaceEvaluator(betaHandle, betaNew);
+            session2.replaceEvaluator(alphaHandle1, alpha1New);
+            session2.replaceEvaluator(alphaHandle2, alpha2New);
 
-        session2.insertAndFire(facts);
-        rhsAssert.assertCount(count * (count - 1)).reset(); // n * (n - 1)
+            session2.insertAndFire(facts);
+            rhsAssert.assertCount(count * (count - 1)).reset(); // n * (n - 1)
+        }
+
 
 
     }

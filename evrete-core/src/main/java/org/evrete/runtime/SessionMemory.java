@@ -67,7 +67,7 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
     public TypeMemory get(int typeId) {
         TypeMemory m = typedMemories.get(typeId);
         if (m == null) {
-            throw new IllegalStateException("No memory allocated for type id: " + typeId + ". Probable cause: the type has never been mentioned in any LHS.");
+            throw new IllegalStateException("No memory has been allocated for type id: " + typeId + ". Probable cause: the type has never been mentioned in any LHS.");
         }
         return m;
     }
