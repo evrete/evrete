@@ -35,10 +35,11 @@ class SourceSecurityTests {
                             .where("new File($a.id).exists()")
                             .execute();
 
-                    StatefulSession session = knowledge.newStatefulSession();
-                    TypeA a = new TypeA("id");
-                    session.insert(a);
-                    session.fire();
+                    try(StatefulSession session = knowledge.newStatefulSession()){
+                        TypeA a = new TypeA("id");
+                        session.insert(a);
+                        session.fire();
+                    }
                 }
         );
     }
@@ -54,10 +55,11 @@ class SourceSecurityTests {
                 .where("new File($a.id).exists()")
                 .execute();
 
-        StatefulSession session = knowledge.newStatefulSession();
-        TypeA a = new TypeA("id");
-        session.insert(a);
-        session.fire();
+        try(StatefulSession session = knowledge.newStatefulSession()){
+            TypeA a = new TypeA("id");
+            session.insert(a);
+            session.fire();
+        }
     }
 
     @Test
@@ -74,11 +76,12 @@ class SourceSecurityTests {
                             .where("new File($a.id).exists() && new File($b.id).exists()")
                             .execute();
 
-                    StatefulSession session = knowledge.newStatefulSession();
-                    TypeA a = new TypeA("id");
-                    TypeB b = new TypeB("id");
-                    session.insert(a, b);
-                    session.fire();
+                    try(StatefulSession session = knowledge.newStatefulSession()){
+                        TypeA a = new TypeA("id");
+                        TypeB b = new TypeB("id");
+                        session.insert(a, b);
+                        session.fire();
+                    }
                 }
         );
     }
@@ -98,11 +101,12 @@ class SourceSecurityTests {
                             .where("new File($a.id).exists() && new File($b.id).exists()")
                             .execute();
 
-                    StatefulSession session = knowledge.newStatefulSession();
-                    TypeA a = new TypeA("id");
-                    TypeB b = new TypeB("id");
-                    session.insert(a, b);
-                    session.fire();
+                    try(StatefulSession session = knowledge.newStatefulSession()){
+                        TypeA a = new TypeA("id");
+                        TypeB b = new TypeB("id");
+                        session.insert(a, b);
+                        session.fire();
+                    }
                 }
         );
     }
@@ -119,11 +123,12 @@ class SourceSecurityTests {
                 .where("new File($a.id).exists() && new File($b.id).exists()")
                 .execute();
 
-        StatefulSession session = knowledge.newStatefulSession();
-        TypeA a = new TypeA("id");
-        TypeB b = new TypeB("id");
-        session.insert(a, b);
-        session.fire();
+        try(StatefulSession session = knowledge.newStatefulSession()){
+            TypeA a = new TypeA("id");
+            TypeB b = new TypeB("id");
+            session.insert(a, b);
+            session.fire();
+        }
     }
 
     @Test
@@ -138,11 +143,12 @@ class SourceSecurityTests {
                 .where("new File($a.id).exists() && new File($b.id).exists()")
                 .execute();
 
-        StatefulSession session = knowledge.newStatefulSession();
-        TypeA a = new TypeA("id");
-        TypeB b = new TypeB("id");
-        session.insert(a, b);
-        session.fire();
+        try(StatefulSession session = knowledge.newStatefulSession()){
+            TypeA a = new TypeA("id");
+            TypeB b = new TypeB("id");
+            session.insert(a, b);
+            session.fire();
+        }
     }
 
     @Test
@@ -158,11 +164,12 @@ class SourceSecurityTests {
                 .execute(ctx -> {
                 });
 
-        StatefulSession session = knowledge.newStatefulSession();
-        TypeA a = new TypeA("id");
-        TypeB b = new TypeB("id");
-        session.insert(a, b);
-        session.fire();
+        try(StatefulSession session = knowledge.newStatefulSession()) {
+            TypeA a = new TypeA("id");
+            TypeB b = new TypeB("id");
+            session.insert(a, b);
+            session.fire();
+        }
     }
 
 
@@ -178,11 +185,12 @@ class SourceSecurityTests {
                 .where("$a.id == $b.id")
                 .execute("new File(\"\").exists();");
 
-        StatefulSession session = knowledge.newStatefulSession();
-        TypeA a = new TypeA("id");
-        TypeB b = new TypeB("id");
-        session.insert(a, b);
-        session.fire();
+        try(StatefulSession session = knowledge.newStatefulSession()){
+            TypeA a = new TypeA("id");
+            TypeB b = new TypeB("id");
+            session.insert(a, b);
+            session.fire();
+        }
     }
 
     @Test
@@ -197,11 +205,12 @@ class SourceSecurityTests {
                 .where("$a.id == $b.id")
                 .execute("new File(\"\").exists();");
 
-        StatefulSession session = knowledge.newStatefulSession();
-        TypeA a = new TypeA("id");
-        TypeB b = new TypeB("id");
-        session.insert(a, b);
-        session.fire();
+        try(StatefulSession session = knowledge.newStatefulSession()){
+            TypeA a = new TypeA("id");
+            TypeB b = new TypeB("id");
+            session.insert(a, b);
+            session.fire();
+        }
     }
 
     @Test
@@ -216,11 +225,12 @@ class SourceSecurityTests {
                 .where("$a.id == $b.id")
                 .execute("");
 
-        StatefulSession session = knowledge.newStatefulSession();
-        TypeA a = new TypeA("id");
-        TypeB b = new TypeB("id");
-        session.insert(a, b);
-        session.fire();
+        try(StatefulSession session = knowledge.newStatefulSession()) {
+            TypeA a = new TypeA("id");
+            TypeB b = new TypeB("id");
+            session.insert(a, b);
+            session.fire();
+        }
     }
 
     @Test
@@ -239,11 +249,12 @@ class SourceSecurityTests {
                             .where("$a.id == $b.id")
                             .execute("new File(\"\").exists();");
 
-                    StatefulSession session = knowledge.newStatefulSession();
-                    TypeA a = new TypeA("id");
-                    TypeB b = new TypeB("id");
-                    session.insert(a, b);
-                    session.fire();
+                    try(StatefulSession session = knowledge.newStatefulSession()){
+                        TypeA a = new TypeA("id");
+                        TypeB b = new TypeB("id");
+                        session.insert(a, b);
+                        session.fire();
+                    }
                 }
         );
     }
@@ -263,11 +274,12 @@ class SourceSecurityTests {
                             .where("$a.id == $b.id")
                             .execute("new File(\"\").exists();");
 
-                    StatefulSession session = knowledge.newStatefulSession();
-                    TypeA a = new TypeA("id");
-                    TypeB b = new TypeB("id");
-                    session.insert(a, b);
-                    session.fire();
+                    try(StatefulSession session = knowledge.newStatefulSession()){
+                        TypeA a = new TypeA("id");
+                        TypeB b = new TypeB("id");
+                        session.insert(a, b);
+                        session.fire();
+                    }
                 }
         );
     }

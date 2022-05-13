@@ -64,6 +64,7 @@ public class GuessingNumbersInline {
         return new Random().nextInt(RANGE);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static class Guess {
         public Player author;
         public int number;
@@ -79,6 +80,7 @@ public class GuessingNumbersInline {
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static class Player {
         public int secret;
         public String name;

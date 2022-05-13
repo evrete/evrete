@@ -52,7 +52,7 @@ class StatelessJavaClassTests extends CommonTestMethods {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void primeTest2(ActivationMode mode) {
-        Knowledge knowledge = applyToRuntimeAsURL(service, SampleRuleSet2.class);
+        Knowledge knowledge = applyToRuntimeAsStream(service, SampleRuleSet2.class);
         StatelessSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
@@ -86,7 +86,7 @@ class StatelessJavaClassTests extends CommonTestMethods {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void sortInheritance1(ActivationMode mode) {
-        Knowledge knowledge = applyToRuntimeAsURL(service, SortedRuleSet1.class);
+        Knowledge knowledge = applyToRuntimeAsStream(service, SortedRuleSet1.class);
         StatelessSession session = session(knowledge, mode);
         List<RuntimeRule> rules = session.getRules();
 

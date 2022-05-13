@@ -19,7 +19,6 @@ class JavaSourceSecurityTests extends CommonTestMethods {
         service = new KnowledgeService();
     }
 
-
     @Test
     void rhsTestFail1() {
         assert System.getSecurityManager() != null;
@@ -28,9 +27,10 @@ class JavaSourceSecurityTests extends CommonTestMethods {
                 SecurityException.class,
                 () -> {
                     Knowledge knowledge = applyToRuntimeAsFile(service, AbstractDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/SecurityTest1.java"));
-                    StatefulSession session = knowledge.newStatefulSession();
-                    session.insert(new Object());
-                    session.fire();
+                    try(StatefulSession session = knowledge.newStatefulSession()){
+                        session.insert(new Object());
+                        session.fire();
+                    }
                 }
         );
     }
@@ -47,9 +47,10 @@ class JavaSourceSecurityTests extends CommonTestMethods {
                 SecurityException.class,
                 () -> {
                     Knowledge knowledge = applyToRuntimeAsFile(service, AbstractDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/SecurityTest1.java"));
-                    StatefulSession session = knowledge.newStatefulSession();
-                    session.insert(new Object());
-                    session.fire();
+                    try(StatefulSession session = knowledge.newStatefulSession()){
+                        session.insert(new Object());
+                        session.fire();
+                    }
                 }
         );
     }
@@ -64,9 +65,10 @@ class JavaSourceSecurityTests extends CommonTestMethods {
                 SecurityException.class,
                 () -> {
                     Knowledge knowledge = applyToRuntimeAsFile(service, AbstractDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/SecurityTest1.java"));
-                    StatefulSession session = knowledge.newStatefulSession();
-                    session.insert(new Object());
-                    session.fire();
+                    try(StatefulSession session = knowledge.newStatefulSession()){
+                        session.insert(new Object());
+                        session.fire();
+                    }
                 }
         );
     }
@@ -77,9 +79,10 @@ class JavaSourceSecurityTests extends CommonTestMethods {
 
         service.getSecurity().addPermission(RuleScope.BOTH, new FilePermission(".", "read"));
         Knowledge knowledge = applyToRuntimeAsFile(service, AbstractDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/SecurityTest1.java"));
-        StatefulSession session = knowledge.newStatefulSession();
-        session.insert(new Object());
-        session.fire();
+        try(StatefulSession session = knowledge.newStatefulSession()) {
+            session.insert(new Object());
+            session.fire();
+        }
     }
 
 
@@ -92,9 +95,10 @@ class JavaSourceSecurityTests extends CommonTestMethods {
                 () -> {
                     service.getConfiguration().addImport(RuleScope.LHS, File.class);
                     Knowledge knowledge = applyToRuntimeAsFile(service, AbstractDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/SecurityTest2.java"));
-                    StatefulSession session = knowledge.newStatefulSession();
-                    session.insert(5);
-                    session.fire();
+                    try(StatefulSession session = knowledge.newStatefulSession()){
+                        session.insert(5);
+                        session.fire();
+                    }
                 }
         );
     }
@@ -105,9 +109,10 @@ class JavaSourceSecurityTests extends CommonTestMethods {
         service.getConfiguration().addImport(RuleScope.LHS, File.class);
         service.getSecurity().addPermission(RuleScope.BOTH, new FilePermission("5", "read"));
         Knowledge knowledge = applyToRuntimeAsFile(service, AbstractDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/SecurityTest2.java"));
-        StatefulSession session = knowledge.newStatefulSession();
-        session.insert(5);
-        session.fire();
+        try (StatefulSession session = knowledge.newStatefulSession()) {
+            session.insert(5);
+            session.fire();
+        }
     }
 
 
@@ -119,9 +124,10 @@ class JavaSourceSecurityTests extends CommonTestMethods {
                 SecurityException.class,
                 () -> {
                     Knowledge knowledge = applyToRuntimeAsFile(service, AbstractDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/SecurityTest3.java"));
-                    StatefulSession session = knowledge.newStatefulSession();
-                    session.insert(5);
-                    session.fire();
+                    try(StatefulSession session = knowledge.newStatefulSession()){
+                        session.insert(5);
+                        session.fire();
+                    }
                 }
         );
     }
@@ -131,8 +137,9 @@ class JavaSourceSecurityTests extends CommonTestMethods {
         assert System.getSecurityManager() != null;
         service.getSecurity().addPermission(RuleScope.BOTH, new FilePermission("<<ALL FILES>>", "read"));
         Knowledge knowledge = applyToRuntimeAsFile(service, AbstractDSLProvider.PROVIDER_JAVA_S, new File("src/test/resources/java/SecurityTest3.java"));
-        StatefulSession session = knowledge.newStatefulSession();
-        session.insert(5);
-        session.fire();
+        try(StatefulSession session = knowledge.newStatefulSession()){
+            session.insert(5);
+            session.fire();
+        }
     }
 }

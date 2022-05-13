@@ -14,6 +14,8 @@ import javax.rules.admin.RuleExecutionSetCreateException;
 import javax.rules.admin.RuleExecutionSetRegisterException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.*;
 
 import static org.evrete.jsr94.RuleServiceProviderImpl.RULE_SERVICE_PROVIDER;
@@ -51,7 +53,7 @@ class Jsr94Tests {
 
         // get an input stream to a test XML ruleset
         // This rule execution set is part of the TCK.
-        InputStream inStream = classBytesStream(Example1.class);
+        Reader inStream = new StringReader(Example1.class.getName());
 
         // parse the ruleset from the XML document
         Map<Object, Object> ruleSetConfig = new HashMap<>();

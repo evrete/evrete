@@ -28,12 +28,13 @@ class JavaJarSecurityTests extends CommonTestMethods {
                 SecurityException.class,
                 () -> {
                     Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar2/jar2-tests.jar"));
-                    StatefulSession session = knowledge.newStatefulSession();
-                    assert session.getRules().size() == 2 : "Actual: " + session.getRules().size();
-                    for (int i = 2; i < 100; i++) {
-                        session.insert(i);
+                    try(StatefulSession session = knowledge.newStatefulSession()){
+                        assert session.getRules().size() == 2 : "Actual: " + session.getRules().size();
+                        for (int i = 2; i < 100; i++) {
+                            session.insert(i);
+                        }
+                        session.fire();
                     }
-                    session.fire();
                 }
         );
     }
@@ -48,17 +49,16 @@ class JavaJarSecurityTests extends CommonTestMethods {
 
 
         Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar2/jar2-tests.jar"));
-        StatefulSession session = knowledge.newStatefulSession();
-        assert session.getRules().size() == 2 : "Actual: " + session.getRules().size();
-        for (int i = 2; i < 100; i++) {
-            session.insert(i);
+        try(StatefulSession session = knowledge.newStatefulSession()){
+            assert session.getRules().size() == 2 : "Actual: " + session.getRules().size();
+            for (int i = 2; i < 100; i++) {
+                session.insert(i);
+            }
+            session.fire();
+
+            NextIntSupplier primeCounter = new NextIntSupplier();
+            session.forEachFact((h, o) -> primeCounter.next());
+            assert primeCounter.get() == 25;
         }
-        session.fire();
-
-        NextIntSupplier primeCounter = new NextIntSupplier();
-        session.forEachFact((h, o) -> primeCounter.next());
-
-        assert primeCounter.get() == 25;
-
     }
 }

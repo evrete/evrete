@@ -16,10 +16,10 @@ class ClassMethod {
         this.staticMethod = Modifier.isStatic(method.getModifiers());
         try {
             this.handle = lookup.unreflect(method);
+            this.args = new Object[handle.type().parameterCount()];
         } catch (IllegalAccessException e) {
             throw new MalformedResourceException("Rule method access exception", e);
         }
-        this.args = new Object[handle.type().parameterCount()];
     }
 
     private ClassMethod(boolean staticMethod, MethodHandle handle) {
@@ -82,5 +82,16 @@ class ClassMethod {
                 return handle.toString();
             }
         };
+    }
+
+
+    private static class MethodHandleMeta {
+        private final MethodHandle handle;
+        private final boolean staticMethod;
+
+        MethodHandleMeta(MethodHandle handle, boolean staticMethod) {
+            this.handle = handle;
+            this.staticMethod = staticMethod;
+        }
     }
 }

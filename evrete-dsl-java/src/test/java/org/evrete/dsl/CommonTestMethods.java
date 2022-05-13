@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
 
 class CommonTestMethods {
 
@@ -18,9 +19,7 @@ class CommonTestMethods {
 
     static Knowledge applyToRuntimeAsStream(KnowledgeService service, TypeResolver typeResolver, Class<?> ruleClass) {
         try {
-            String url = ruleClass.getName().replaceAll("\\.", "/") + ".class";
-            InputStream is = ruleClass.getClassLoader().getResourceAsStream(url);
-            return service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, typeResolver, is);
+            return service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, typeResolver, ruleClass);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
@@ -43,7 +42,7 @@ class CommonTestMethods {
             int i = 0;
             for (File f : files) {
                 assert f.exists() : "File " + f.getAbsolutePath() + " does not exist";
-                streams[i++] = new FileInputStream(f);
+                streams[i++] = Files.newInputStream(f.toPath());
             }
             return service.newKnowledge(dsl, streams);
         } catch (IOException e) {

@@ -2,42 +2,71 @@ package org.evrete.dsl;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
-import org.evrete.api.RuleScope;
 import org.evrete.api.TypeResolver;
-import org.evrete.util.compiler.ServiceClassLoader;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.ProtectionDomain;
+import java.io.Reader;
+import java.net.URL;
 
 public class DSLClassProvider extends AbstractDSLProvider {
-
-    private static Knowledge apply(Knowledge knowledge, byte[][] bytes) {
-        ClassLoader ctxClassLoader = knowledge.getClassLoader();
-        ProtectionDomain domain = knowledge.getService().getSecurity().getProtectionDomain(RuleScope.BOTH);
-        ServiceClassLoader loader = new ServiceClassLoader(ctxClassLoader, domain);
-        Knowledge current = knowledge;
-        for (byte[] arr : bytes) {
-            current = processRuleSet(current, loader.buildClass(arr));
-        }
-        return current;
-    }
 
     @Override
     public String getName() {
         return PROVIDER_JAVA_C;
     }
 
-
     @Override
     public Knowledge create(KnowledgeService service, TypeResolver typeResolver, InputStream... streams) throws IOException {
-        if (streams == null || streams.length == 0) throw new IOException("Empty sources");
-        byte[][] bytes = new byte[streams.length][];
-        for (int i = 0; i < streams.length; i++) {
-            bytes[i] = toByteArray(streams[i]);
-        }
+        throw new UnsupportedOperationException();
+    }
 
-        Knowledge delegate = service.newKnowledge(typeResolver);
-        return apply(delegate, bytes);
+    @Override
+    public Knowledge create(KnowledgeService service, URL... resources) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Knowledge create(KnowledgeService service, TypeResolver typeResolver, URL... resources) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Knowledge create(KnowledgeService service, InputStream... streams) throws IOException {
+        return super.create(service, streams);
+    }
+
+    @Override
+    public Knowledge create(KnowledgeService service, Reader... streams) throws IOException {
+        return super.create(service, streams);
+    }
+
+    @Override
+    public Knowledge create(KnowledgeService service, TypeResolver typeResolver, Reader... streams) throws IOException {
+
+        Class<?>[] classes = loadClasses(service, streams);
+
+        Knowledge current = service.newKnowledge(typeResolver);
+        for (Class<?> cl : classes) {
+            current = processRuleSet(current, cl);
+        }
+        return current;
+
+    }
+
+    private static Class<?>[] loadClasses(KnowledgeService service, Reader... streams) throws IOException {
+        Class<?>[] classes = new Class<?>[streams.length];
+        for (int i = 0; i < streams.length; i++) {
+
+            BufferedReader br = new BufferedReader(streams[i]);
+            String className = br.readLine();
+            try {
+                classes[i] = service.getClassLoader().loadClass(className);
+            } catch (ClassNotFoundException e) {
+                throw new IllegalArgumentException("Unable to load class '" + className + "'", e);
+            }
+        }
+        return classes;
     }
 }

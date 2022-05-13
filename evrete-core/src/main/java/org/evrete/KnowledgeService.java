@@ -65,11 +65,11 @@ public class KnowledgeService {
         }
     }
 
-    private static URL[] toUrls(Class<?>... resources) throws IOException {
+    private static Reader[] toReaders(Class<?>... resources) throws IOException {
         if (resources == null || resources.length == 0) throw new IOException("Empty resources");
-        URL[] urls = new URL[resources.length];
+        Reader[] urls = new Reader[resources.length];
         for (int i = 0; i < resources.length; i++) {
-            urls[i] = classToURL(resources[i]);
+            urls[i] = new StringReader(resources[i].getName());
         }
         return urls;
     }
@@ -97,11 +97,6 @@ public class KnowledgeService {
         } else {
             return found.iterator().next();
         }
-    }
-
-    private static URL classToURL(Class<?> cl) {
-        String resource = cl.getName().replaceAll("\\.", "/") + ".class";
-        return cl.getClassLoader().getResource(resource);
     }
 
     public SourceSecurity getSecurity() {
@@ -202,7 +197,7 @@ public class KnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      */
     public Knowledge newKnowledge(String dsl, Class<?>... resources) throws IOException {
-        return getDslProvider(dsl).create(this, toUrls(resources));
+        return getDslProvider(dsl).create(this, toReaders(resources));
     }
 
     /**
@@ -216,7 +211,7 @@ public class KnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      */
     public Knowledge newKnowledge(String dsl, TypeResolver typeResolver, Class<?>... resources) throws IOException {
-        return getDslProvider(dsl).create(this, typeResolver, toUrls(resources));
+        return getDslProvider(dsl).create(this, typeResolver, toReaders(resources));
     }
 
 

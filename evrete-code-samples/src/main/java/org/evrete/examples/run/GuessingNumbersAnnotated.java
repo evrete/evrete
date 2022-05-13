@@ -52,6 +52,7 @@ public class GuessingNumbersAnnotated {
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static class Guess {
         public Player author;
         public int number;
@@ -67,6 +68,7 @@ public class GuessingNumbersAnnotated {
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static class Player {
         public int secret;
         public String name;
