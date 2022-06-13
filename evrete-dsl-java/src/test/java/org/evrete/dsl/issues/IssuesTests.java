@@ -24,6 +24,11 @@ class IssuesTests {
         service.shutdown();
     }
 
+    /**
+     * <p>
+     *    Tests imports of third-party classes (<a href="https://github.com/andbi/evrete/issues/15">Issue 15</a>)
+     * </p>
+     */
     @Test
     void issue15() throws IOException {
         Knowledge knowledge = service.newKnowledge("JAVA-SOURCE", new File("src/test/resources/java/issues/MyRS.java").toURI().toURL());
