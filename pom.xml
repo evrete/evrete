@@ -19,9 +19,9 @@
     </properties>
 
     <scm>
-        <connection>scm:git:https://github.com/andbi/evrete.git</connection>
-        <developerConnection>scm:git:https://github.com/andbi/evrete.git</developerConnection>
-        <url>https://github.com/andbi/evrete</url>
+        <connection>scm:git:https://github.com/evrete/evrete.git</connection>
+        <developerConnection>scm:git:https://github.com/evrete/evrete.git</developerConnection>
+        <url>https://github.com/evrete/evrete</url>
         <tag>HEAD</tag>
     </scm>
 
