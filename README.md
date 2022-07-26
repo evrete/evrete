@@ -1,7 +1,7 @@
 # Evrete
 
-![GitHub repo size](https://img.shields.io/github/repo-size/andbi/evrete)
-![GitHub stars](https://img.shields.io/github/stars/andbi/evrete?style=social)
+![GitHub repo size](https://img.shields.io/github/repo-size/evrete/evrete)
+![GitHub stars](https://img.shields.io/github/stars/evrete/evrete?style=social)
 
 Evrete is a forward-chaining Java rule engine that implements the RETE algorithm and is fully compliant with the Java
 Rule Engine specification (JSR 94).
@@ -99,7 +99,7 @@ public class PrimeNumbersInline {
 As annotated Java source file:
 ```java
 public class PrimeNumbersDSLUrl {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
                 .newKnowledge(
