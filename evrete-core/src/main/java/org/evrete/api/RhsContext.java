@@ -116,4 +116,19 @@ public interface RhsContext {
         return (T) getObject(name);
     }
 
+    /**
+     * <p>
+     * A typed version of the {@code get()} method with explicit generic cast type.
+     * </p>
+     *
+     * @param name fact name
+     * @param type fact type
+     * @param <T>  cast type
+     * @return current instance
+     */
+    @SuppressWarnings("unused")
+    default <T> T get(Class<T> type, String name) {
+        return get(name);
+    }
+
 }
