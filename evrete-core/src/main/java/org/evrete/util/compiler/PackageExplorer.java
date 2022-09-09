@@ -32,12 +32,17 @@ class PackageExplorer {
     private static List<JavaFileObject> processJar(URL packageFolderURL) {
         List<JavaFileObject> result = new ArrayList<>();
         try {
-            String jarUri = packageFolderURL.toExternalForm().split("!")[0];
+            String externalForm = packageFolderURL.toExternalForm();
+
+            int lastExclPos = externalForm.lastIndexOf('!');
+            if(lastExclPos < 0) {
+                throw new Exception(packageFolderURL + " isn't a jar URL");
+            }
+            String jarUri = externalForm.substring(0, lastExclPos);
 
             JarURLConnection jarConn = (JarURLConnection) packageFolderURL.openConnection();
             String rootEntryName = jarConn.getEntryName();
             int rootEnd = rootEntryName.length() + 1;
-
             Enumeration<JarEntry> entryEnum = jarConn.getJarFile().entries();
             while (entryEnum.hasMoreElements()) {
                 JarEntry jarEntry = entryEnum.nextElement();
@@ -51,7 +56,7 @@ class PackageExplorer {
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException("Wasn't able to open " + packageFolderURL + " as a jar file", e);
+            throw new RuntimeException("Unable to open " + packageFolderURL + " as jar file", e);
         }
         return result;
     }
@@ -72,22 +77,18 @@ class PackageExplorer {
                 }
             }
         }
-
         return result;
     }
 
     List<JavaFileObject> find(String packageName) throws IOException {
         String javaPackageName = packageName.replaceAll("\\.", "/");
-
         List<JavaFileObject> result = new ArrayList<>();
-
         Enumeration<URL> urlEnumeration = classLoader.getResources(javaPackageName);
         while (urlEnumeration.hasMoreElements()) {
             // one URL for each jar on the classpath that has the given package
             URL packageFolderURL = urlEnumeration.nextElement();
             result.addAll(listUnder(packageName, packageFolderURL));
         }
-
         return result;
     }
 }
