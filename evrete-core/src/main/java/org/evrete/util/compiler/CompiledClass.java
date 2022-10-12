@@ -14,6 +14,7 @@ class CompiledClass extends AbstractCompiledClass {
         this.bytes = bytes;
     }
 
+
     String getPackageName() {
         return packageName;
     }

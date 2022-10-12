@@ -56,13 +56,17 @@ final class FileManager<M extends JavaFileManager> extends ForwardingJavaFileMan
     @Override
     public Iterable<JavaFileObject> list(Location location, String packageName, Set<JavaFileObject.Kind> kinds, boolean recurse) throws IOException {
         if (location.isOutputLocation()) throw new IllegalStateException();
+        if(recurse) {
+            return super.list(location, packageName, kinds, true);
+        }
+
         boolean searchScope = (location == SOURCE_PATH || location == CLASS_PATH) && !packageName.startsWith("java");
         if (searchScope) {
             List<JavaFileObject> found = finder.find(packageName);
             found.addAll(classLoader.getCompiledClasses(packageName));
             return found;
         } else {
-            return super.list(location, packageName, kinds, recurse);
+            return super.list(location, packageName, kinds, false);
         }
     }
 
@@ -74,5 +78,4 @@ final class FileManager<M extends JavaFileManager> extends ForwardingJavaFileMan
             return super.inferBinaryName(location, file);
         }
     }
-
 }

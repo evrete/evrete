@@ -6,7 +6,6 @@ import javax.rules.InvalidRuleSessionException;
 import javax.rules.ObjectFilter;
 import javax.rules.RuleRuntime;
 import javax.rules.StatelessRuleSession;
-import java.rmi.RemoteException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -31,7 +30,7 @@ public class StatelessRuleSessionImpl extends AbstractRuleSessionBase implements
     }
 
     @Override
-    public List<?> executeRules(List list, ObjectFilter objectFilter) throws InvalidRuleSessionException, RemoteException {
+    public List<?> executeRules(List list, ObjectFilter objectFilter) throws InvalidRuleSessionException {
         return executeRules(list)
                 .stream()
                 .map(objectFilter::filter)

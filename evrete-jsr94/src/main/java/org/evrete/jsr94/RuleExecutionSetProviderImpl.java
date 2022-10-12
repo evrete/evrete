@@ -13,7 +13,6 @@ import java.io.Serializable;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.URL;
-import java.rmi.RemoteException;
 import java.util.Map;
 
 class RuleExecutionSetProviderImpl implements RuleExecutionSetProvider {
@@ -24,12 +23,12 @@ class RuleExecutionSetProviderImpl implements RuleExecutionSetProvider {
     }
 
     @Override
-    public RuleExecutionSet createRuleExecutionSet(Element element, Map map) throws RuleExecutionSetCreateException, RemoteException {
+    public RuleExecutionSet createRuleExecutionSet(Element element, Map map) {
         throw new UnsupportedOperationException("DOM elements are not directly supported, available DSL providers should parse documents as streams or URLs.");
     }
 
     @Override
-    public RuleExecutionSet createRuleExecutionSet(Serializable serializable, Map map) throws RuleExecutionSetCreateException, RemoteException {
+    public RuleExecutionSet createRuleExecutionSet(Serializable serializable, Map map) throws RuleExecutionSetCreateException {
         if (serializable instanceof String) {
             return createRuleExecutionSet(serializable, map);
         }

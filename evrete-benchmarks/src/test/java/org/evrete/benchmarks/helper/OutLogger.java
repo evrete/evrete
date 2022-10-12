@@ -3,7 +3,6 @@ package org.evrete.benchmarks.helper;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.StringJoiner;
-import java.util.function.Supplier;
 
 public class OutLogger {
     private static final ThreadLocal<List<String>> data = ThreadLocal.withInitial(LinkedList::new);

@@ -21,6 +21,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -357,7 +359,7 @@ public abstract class TestCaseUtil {
         try {
             // Is there a system property defined for the location of
             // the configuration file?
-            InputStream inStream = new FileInputStream("src/test/resources/tck.xml");
+            InputStream inStream = Files.newInputStream(Paths.get("src/test/resources/tck.xml"));
             Document configurationDoc;
 
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();

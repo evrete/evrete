@@ -16,8 +16,9 @@ import org.junit.jupiter.api.Test;
 import javax.rules.*;
 import javax.rules.admin.RuleAdministrator;
 import javax.rules.admin.RuleExecutionSet;
-import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -104,7 +105,7 @@ class RuleRuntimeTest {
             // Get an input stream for the stateless test XML rule
             // execution  set.
             // Try to load the files from the "rule-execution-set-location".
-            InputStream inStream = new FileInputStream(statelessUri);
+            InputStream inStream = Files.newInputStream(Paths.get(statelessUri));
 
             // parse the ruleset from source
             Map<String, String> config = new HashMap<>();
@@ -124,7 +125,7 @@ class RuleRuntimeTest {
             // Get an input stream for the stateful test XML rule
             // execution  set.
             // Try to load the files from the "rule-execution-set-location".
-            inStream = new FileInputStream(statefulUri);
+            inStream = Files.newInputStream(Paths.get(statefulUri));
 
             // parse the ruleset from the XML document
             res = ruleAdministrator.getLocalRuleExecutionSetProvider(null).

@@ -5,7 +5,6 @@ import org.evrete.api.Knowledge;
 import org.evrete.api.TypeResolver;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -57,7 +56,7 @@ class CommonTestMethods {
             int i = 0;
             for (File f : files) {
                 assert f.exists() : "File " + f.getAbsolutePath() + " does not exist";
-                streams[i++] = new FileInputStream(f);
+                streams[i++] = Files.newInputStream(f.toPath());
             }
             return service.newKnowledge(dsl, typeResolver, streams);
         } catch (IOException e) {

@@ -3,7 +3,6 @@ package org.evrete.jsr94;
 
 import org.evrete.KnowledgeService;
 
-import javax.rules.ConfigurationException;
 import javax.rules.RuleRuntime;
 import javax.rules.RuleServiceProvider;
 import javax.rules.admin.RuleAdministrator;
@@ -20,7 +19,7 @@ public class RuleServiceProviderImpl extends RuleServiceProvider {
     }
 
     @Override
-    public RuleAdministrator getRuleAdministrator() throws ConfigurationException {
+    public RuleAdministrator getRuleAdministrator() {
         return new RuleAdministratorImpl(service, registrations);
     }
 }

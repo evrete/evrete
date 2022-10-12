@@ -6,7 +6,7 @@ import static java.lang.System.out;
 
 public class ChangingConditions {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service.newKnowledge();
 

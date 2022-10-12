@@ -1,83 +1,197 @@
 package org.evrete.util.compiler;
 
+import org.evrete.util.IOUtils;
+
 import javax.tools.JavaFileObject;
-import java.io.File;
 import java.io.IOException;
-import java.net.JarURLConnection;
-import java.net.URI;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.List;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.net.*;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.spi.FileSystemProvider;
+import java.util.*;
+import java.util.function.Function;
 import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 class PackageExplorer {
     private static final String CLASS_FILE_EXTENSION = ".class";
+    private static final String CLASS_MODULE_INFO = "module-info.class";
     private final ServiceClassLoader classLoader;
+
+    private static final Logger LOGGER = Logger.getLogger(PackageExplorer.class.getName());
+    private final Map<String, Collection<JavaFileObject>> cache = new HashMap<>();
+
 
     PackageExplorer(ServiceClassLoader classLoader) {
         this.classLoader = classLoader;
     }
 
-    private static Collection<JavaFileObject> listUnder(String packageName, URL packageFolderURL) {
-        File directory = new File(packageFolderURL.getFile());
-        if (directory.isDirectory()) {
-            return processDir(packageName, directory);
-        } else {
-            return processJar(packageFolderURL);
+    private Collection<JavaFileObject> listUnder(String packageName, URL packageFolderURL) {
+        String key = packageName + packageFolderURL;
+        Collection<JavaFileObject> cached = cache.get(key);
+        if (cached == null) {
+            cached = listUnderUncached(packageName, packageFolderURL);
+            cache.put(key, cached);
         }
+        return cached;
     }
 
-    private static List<JavaFileObject> processJar(URL packageFolderURL) {
-        List<JavaFileObject> result = new ArrayList<>();
+    private Collection<JavaFileObject> listUnderUncached(String packageName, URL packageFolderURL) {
+        Collection<JavaFileObject> result = null;
+
+
+        URLConnection connection;
         try {
-            String externalForm = packageFolderURL.toExternalForm();
-
-            int lastExclPos = externalForm.lastIndexOf('!');
-            if(lastExclPos < 0) {
-                throw new Exception(packageFolderURL + " isn't a jar URL");
-            }
-            String jarUri = externalForm.substring(0, lastExclPos);
-
-            JarURLConnection jarConn = (JarURLConnection) packageFolderURL.openConnection();
-            String rootEntryName = jarConn.getEntryName();
-            int rootEnd = rootEntryName.length() + 1;
-            Enumeration<JarEntry> entryEnum = jarConn.getJarFile().entries();
-            while (entryEnum.hasMoreElements()) {
-                JarEntry jarEntry = entryEnum.nextElement();
-                String name = jarEntry.getName();
-                if (name.startsWith(rootEntryName) && name.indexOf('/', rootEnd) == -1 && name.endsWith(CLASS_FILE_EXTENSION)) {
-                    URI uri = URI.create(jarUri + "!/" + name);
-                    String binaryName = name.replaceAll("/", ".");
-                    binaryName = binaryName.replaceAll(CLASS_FILE_EXTENSION + '$', "");
-
-                    result.add(new ClassPathClass(binaryName, uri));
-                }
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to open " + packageFolderURL + " as jar file", e);
+            connection = packageFolderURL.openConnection();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        return result;
+
+
+        if (connection instanceof JarURLConnection) {
+            // Read from JarURLConnection
+            result = asUrlConnection((JarURLConnection) connection);
+        }
+
+        if (result == null) {
+            // Try as a filesystem resource
+            result = asFileResource(packageName, packageFolderURL);
+        }
+
+
+        if (result == null) {
+            // Try as zip input stream (suitable for various virtual filesystems like WildFly's VFS)
+            try (InputStream stream = connection.getInputStream()) {
+                if (stream instanceof ZipInputStream) {
+                    ZipInputStream zis = (ZipInputStream) stream;
+                    result = asZipInputStream(packageName, packageFolderURL, zis);
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+
+
+        if (result == null) {
+            throw new IllegalStateException("Unknown resource type: " + packageFolderURL);
+        } else {
+            return result;
+        }
     }
 
-    private static List<JavaFileObject> processDir(String packageName, File directory) {
-        List<JavaFileObject> result = new ArrayList<>();
+    private Collection<JavaFileObject> asFileResource(String packageName, URL packageFolderURL) {
+        try (Stream<Path> stream = Files.walk(uriToPath(packageFolderURL.toURI()), 1)) {
+            return stream
+                    .filter(path -> path.getFileName().toString().endsWith(CLASS_FILE_EXTENSION))
+                    .map((Function<Path, JavaFileObject>) path -> {
+                        String fileName = path
+                                .getFileName()
+                                .toString();
+                        fileName = fileName.substring(0, fileName.length() - CLASS_FILE_EXTENSION.length());
+                        String binaryName = packageName + '.' + fileName;
+                        return new ClassPathClass(binaryName, path.toUri());
+                    })
+                    .collect(Collectors.toList());
+        } catch (FileSystemNotFoundException | URISyntaxException | IOException ignored) {
+            LOGGER.fine("Not a filesystem resource: " + packageFolderURL);
+            // Failed to read classes, probably not a filesystem resources
+            return null;
+        }
+    }
 
-        File[] childFiles = directory.listFiles();
-        if (childFiles == null) return result;
-        for (File childFile : childFiles) {
-            if (childFile.isFile()) {
-                // We only want the .class files.
-                if (childFile.getName().endsWith(CLASS_FILE_EXTENSION)) {
-                    String binaryName = packageName + '.' + childFile.getName();
-                    binaryName = binaryName.replaceAll(CLASS_FILE_EXTENSION + '$', "");
+    private Collection<JavaFileObject> asUrlConnection(JarURLConnection jarConn) {
+        try {
 
-                    result.add(new ClassPathClass(binaryName, childFile.toURI()));
+            String rootEntryName = jarConn.getEntryName();
+            JarFile jarFile = jarConn.getJarFile();
+
+            return jarFile.stream()
+                    .filter(e -> {
+                        String entryName = e.getName();
+                        return
+                                !e.isDirectory()
+                                        && entryName.startsWith(rootEntryName)
+                                        && entryName.endsWith(CLASS_FILE_EXTENSION)
+                                        && !entryName.endsWith(CLASS_MODULE_INFO)
+                                        && entryName.indexOf('/', rootEntryName.length() + 1) == -1
+                                ;
+                    })
+                    .map((Function<JarEntry, JavaFileObject>) entry -> {
+                        String name = entry.getName();
+                        String fileName = name.replaceAll("/", ".");
+                        fileName = fileName.substring(0, fileName.length() - CLASS_FILE_EXTENSION.length());
+
+                        byte[] bytes = IOUtils.bytes(jarFile, entry);
+
+                        try {
+                            return new CompiledClass(Class.forName(fileName, false, classLoader), bytes);
+                        } catch (ClassNotFoundException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }).collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+
+
+    }
+    private Collection<JavaFileObject> asZipInputStream(String packageName, URL packageFolderURL, ZipInputStream zis) {
+        ZipEntry entry;
+
+        System.out.println("P: " + packageName + "\t" + packageFolderURL);
+        Collection<JavaFileObject> result = new LinkedList<>();
+        try {
+            while ((entry = zis.getNextEntry()) != null) {
+                if(!entry.isDirectory()) {
+                    String entryName = entry.getName();
+                    if(entryName.endsWith(CLASS_FILE_EXTENSION) && entryName.indexOf('/') < 0 && !entryName.endsWith(CLASS_MODULE_INFO)) {
+                        String classEntry = entryName.substring(0, entryName.length() - CLASS_FILE_EXTENSION.length());
+                        String className = packageName + "." + classEntry;
+
+
+                        byte[] bytes = IOUtils.toByteArray(zis);
+
+                        CompiledClass compiledClass = new CompiledClass(Class.forName(className, false, classLoader), bytes);
+                        result.add(compiledClass);
+                    }
                 }
             }
+            return result;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException(e);
         }
-        return result;
+
+    }
+
+
+    private static Path uriToPath(URI uri) {
+        String scheme = uri.getScheme();
+        if (scheme == null)
+            throw new IllegalArgumentException("Missing scheme");
+
+        // check for default provider to avoid loading of installed providers
+        if (scheme.equalsIgnoreCase("file"))
+            return FileSystems.getDefault().provider().getPath(uri);
+
+        // try to find provider
+        for (FileSystemProvider provider : FileSystemProvider.installedProviders()) {
+            if (provider.getScheme().equalsIgnoreCase(scheme)) {
+                return provider.getPath(uri);
+            }
+        }
+
+        throw new FileSystemNotFoundException("Provider \"" + scheme + "\" not installed");
     }
 
     List<JavaFileObject> find(String packageName) throws IOException {

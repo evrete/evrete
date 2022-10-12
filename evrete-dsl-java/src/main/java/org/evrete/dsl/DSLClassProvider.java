@@ -18,17 +18,17 @@ public class DSLClassProvider extends AbstractDSLProvider {
     }
 
     @Override
-    public Knowledge create(KnowledgeService service, TypeResolver typeResolver, InputStream... streams) throws IOException {
+    public Knowledge create(KnowledgeService service, TypeResolver typeResolver, InputStream... streams)  {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Knowledge create(KnowledgeService service, URL... resources) throws IOException {
+    public Knowledge create(KnowledgeService service, URL... resources) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Knowledge create(KnowledgeService service, TypeResolver typeResolver, URL... resources) throws IOException {
+    public Knowledge create(KnowledgeService service, TypeResolver typeResolver, URL... resources) {
         throw new UnsupportedOperationException();
     }
 

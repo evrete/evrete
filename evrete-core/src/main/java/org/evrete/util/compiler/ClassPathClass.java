@@ -19,7 +19,7 @@ class ClassPathClass extends AbstractCompiledClass {
 
     @Override
     public InputStream openInputStream() throws IOException {
-        return uri.toURL().openStream(); // easy way to handle any URI!
+        return uri.toURL().openStream();
     }
 
     @Override

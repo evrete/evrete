@@ -9,19 +9,19 @@ Rule Engine specification (JSR 94).
 Historically designed as a fast and lightweight alternative to full-scale rule management systems, the engine also
 brings its own mix of features:
 
-1. Rule authoring
+**Rule authoring**
 
 - Rules can be authored both externally and inline as a plain Java 8 code.
 - The engine allows rules to be authored as **annotated Java** sources, classes, or archives.
 - The library itself is a flexible tool for creating custom domain-specific rule languages (DSL).
 
-2. Intuitive and developer-friendly
+**Intuitive and developer-friendly**
 
 - Library's type system allows it to seamlessly process any kinds of objects, including JSON and XML.
 - Fluent builders, Java functional interfaces, and other best practices keep developers' code concise and clear.
 - Key components are exposed as Service Provider Interfaces and can be customized.
 
-3. Performance and security
+**Performance and security**
 
 - The engine's algorithm and memory are optimized for large-scale and labeled data.
 - Built-in support of Java Security Manager protects against unwanted or potentially malicious code in the rules.
@@ -43,7 +43,7 @@ Maven Central Repository, core module:
 <dependency>
     <groupId>org.evrete</groupId>
     <artifactId>evrete-core</artifactId>
-    <version>2.2.02</version>
+    <version>2.2.03</version>
 </dependency>
 ```
 
@@ -54,7 +54,7 @@ Support for annotated rules (optional):
 <dependency>
     <groupId>org.evrete</groupId>
     <artifactId>evrete-dsl-java</artifactId>
-    <version>2.2.02</version>
+    <version>2.2.03</version>
 </dependency>
 ```
 

@@ -20,9 +20,6 @@ abstract class AbstractRuleSessionIO<S extends RuleSession<S>> extends AbstractR
             e.onEvent(SessionLifecycleListener.Event.PRE_FIRE);
         }
         switch (getAgendaMode()) {
-            case DEFAULT_OLD:
-                fireDefaultOld(new ActivationContext());
-                break;
             case DEFAULT:
                 fireDefault(new ActivationContext());
                 break;
@@ -32,35 +29,6 @@ abstract class AbstractRuleSessionIO<S extends RuleSession<S>> extends AbstractR
             default:
                 throw new IllegalStateException("Unknown mode " + getAgendaMode());
         }
-    }
-
-    @Deprecated
-    private void fireDefaultOld(ActivationContext ctx) {
-        List<RuntimeRuleImpl> agenda;
-        Mask<MemoryAddress> deleteMask = Mask.addressMask();
-
-        FactActionBuffer buff = newActionBuffer();
-        while (fireCriteriaMet() && actionBuffer.hasData()) {
-            DeltaMemoryStatus deltaStatus = buildDeltaMemory();
-            agenda = deltaStatus.getAgenda();
-            if (!agenda.isEmpty()) {
-                activationManager.onAgenda(ctx.incrementFireCount(), Collections.unmodifiableList(agenda));
-                for (RuntimeRuleImpl rule : agenda) {
-                    if (activationManager.test(rule)) {
-                        activationManager.onActivation(rule, rule.callRhs(buff));
-                        int ops = buff.deltaOperations();
-                        buff.copyToAndClear(actionBuffer);
-                        if (ops > 0) {
-                            // Breaking the agenda
-                            break;
-                        }
-                    }
-                }
-            }
-            deltaStatus.commitDeltas();
-            deleteMask.or(deltaStatus.getDeleteMask());
-        }
-        purge(deleteMask);
     }
 
     private void fireDefault(ActivationContext ctx) {

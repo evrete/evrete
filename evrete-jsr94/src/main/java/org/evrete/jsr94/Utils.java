@@ -45,6 +45,7 @@ final class Utils {
     }
 
 
+    @SuppressWarnings("rawtypes")
     static String dslName(Map map) throws RuleExecutionSetCreateException {
         String dsl = Utils.getStringProperty(map, Const.DSL_NAME);
         if (dsl == null) {
