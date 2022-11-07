@@ -11,8 +11,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.io.File;
+import java.io.IOException;
 
-class StatefulJavaJarTests extends CommonTestMethods {
+class StatefulJavaJarTests {
     private static KnowledgeService service;
 
     @BeforeAll
@@ -32,38 +33,39 @@ class StatefulJavaJarTests extends CommonTestMethods {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void test1(ActivationMode mode) {
-        Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar2/jar2-tests.jar"));
-        StatefulSession session = session(knowledge, mode);
-        assert session.getRules().size() == 2;
-        for (int i = 2; i < 100; i++) {
-            session.insert(i);
+    void test1(ActivationMode mode) throws IOException {
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar2/jar2-tests.jar").toURI().toURL());
+        try(StatefulSession session = session(knowledge, mode)) {
+            assert session.getRules().size() == 2;
+            for (int i = 2; i < 100; i++) {
+                session.insert(i);
+            }
+            session.fire();
+
+            NextIntSupplier primeCounter = new NextIntSupplier();
+            session.forEachFact((h, o) -> primeCounter.next());
+
+            assert primeCounter.get() == 25;
         }
-        session.fire();
-
-        NextIntSupplier primeCounter = new NextIntSupplier();
-        session.forEachFact((h, o) -> primeCounter.next());
-
-        assert primeCounter.get() == 25;
-
     }
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void test2(ActivationMode mode) {
+    void test2(ActivationMode mode) throws IOException {
 
-        Knowledge knowledge = applyToRuntimeAsURLs(service, service.newTypeResolver(), AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar2/jar2-tests.jar"));
-        StatefulSession session = session(knowledge, mode);
-        assert session.getRules().size() == 2;
-        for (int i = 2; i < 100; i++) {
-            session.insert(i);
+        Knowledge knowledge = service.newKnowledge(DSLJarProvider.class, new File("src/test/resources/jars/jar2/jar2-tests.jar").toURI().toURL());
+
+        try(StatefulSession session = session(knowledge, mode)) {
+            assert session.getRules().size() == 2;
+            for (int i = 2; i < 100; i++) {
+                session.insert(i);
+            }
+            session.fire();
+
+            NextIntSupplier primeCounter = new NextIntSupplier();
+            session.forEachFact((h, o) -> primeCounter.next());
+
+            assert primeCounter.get() == 25;
         }
-        session.fire();
-
-        NextIntSupplier primeCounter = new NextIntSupplier();
-        session.forEachFact((h, o) -> primeCounter.next());
-
-        assert primeCounter.get() == 25;
-
     }
 }

@@ -9,7 +9,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-class EnvListenerTests extends CommonTestMethods {
+import java.io.IOException;
+
+class EnvListenerTests {
     private static KnowledgeService service;
 
     @BeforeAll
@@ -24,8 +26,8 @@ class EnvListenerTests extends CommonTestMethods {
 
     @ParameterizedTest
     @EnumSource(SessionTypes.class)
-    void test1(SessionTypes t) {
-        Knowledge knowledge = applyToRuntimeAsStream(service, EnvListenerRuleSet1.class);
+    void test1(SessionTypes t) throws IOException {
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C,EnvListenerRuleSet1.class);
         TestUtils.EnvHelperData.reset();
         knowledge.set("property1", "1");
         knowledge.set("property2", 11);

@@ -12,13 +12,14 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Future;
 
-class FieldDeclarationsTests extends CommonTestMethods {
+class FieldDeclarationsTests {
     private static KnowledgeService service;
 
     @BeforeAll
@@ -37,8 +38,26 @@ class FieldDeclarationsTests extends CommonTestMethods {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void test1(ActivationMode mode) {
-        Knowledge knowledge = applyToRuntimeAsStream(service, DeclarationRuleSet1.class);
+    void test1(ActivationMode mode) throws IOException {
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, DeclarationRuleSet1.class);
+        StatefulSession session = session(knowledge, mode);
+
+        for (int i = 2; i < 100; i++) {
+            session.insert(String.valueOf(i));
+        }
+
+        session.fire();
+
+        NextIntSupplier primeCounter = new NextIntSupplier();
+        session.forEachFact((h, o) -> primeCounter.next());
+
+        assert primeCounter.get() == 25;
+    }
+
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void test2(ActivationMode mode) throws IOException {
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, DeclarationRuleSet2.class);
         StatefulSession session = session(knowledge, mode);
 
         for (int i = 2; i < 100; i++) {
@@ -56,27 +75,8 @@ class FieldDeclarationsTests extends CommonTestMethods {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void test2(ActivationMode mode) {
-        Knowledge knowledge = applyToRuntimeAsStream(service, DeclarationRuleSet2.class);
-        StatefulSession session = session(knowledge, mode);
-
-        for (int i = 2; i < 100; i++) {
-            session.insert(String.valueOf(i));
-        }
-
-        session.fire();
-
-        NextIntSupplier primeCounter = new NextIntSupplier();
-        session.forEachFact((h, o) -> primeCounter.next());
-
-        assert primeCounter.get() == 25;
-
-    }
-
-    @ParameterizedTest
-    @EnumSource(ActivationMode.class)
-    void test3(ActivationMode mode) {
-        Knowledge knowledge = applyToRuntimeAsStream(service, DeclarationRuleSet3.class);
+    void test3(ActivationMode mode) throws IOException {
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, DeclarationRuleSet3.class);
         StatefulSession session = session(knowledge, mode);
         session.set("random-offset", 0);
 
@@ -95,8 +95,8 @@ class FieldDeclarationsTests extends CommonTestMethods {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void test4(ActivationMode mode) {
-        Knowledge knowledge = applyToRuntimeAsStream(service, DeclarationRuleSet4.class);
+    void test4(ActivationMode mode) throws IOException {
+        Knowledge knowledge = service.newKnowledge(DSLClassProvider.class, DeclarationRuleSet4.class);
 
         Set<Future<StatefulSession>> futures = new HashSet<>();
 
@@ -122,6 +122,7 @@ class FieldDeclarationsTests extends CommonTestMethods {
                         NextIntSupplier primeCounter = new NextIntSupplier();
                         session.forEachFact((h, o) -> primeCounter.next());
                         assert primeCounter.get() == 25 : "Actual: " + primeCounter.get();
+                        session.close();
                     } catch (Throwable e) {
                         throw new IllegalStateException(e);
                     } finally {
@@ -134,26 +135,26 @@ class FieldDeclarationsTests extends CommonTestMethods {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void test5(ActivationMode mode) {
+    void test5(ActivationMode mode) throws IOException {
         TypeResolver typeResolver = service.newTypeResolver();
         String type = "Hello world type";
         typeResolver.declare(type, String.class);
 
-        Knowledge knowledge = applyToRuntimeAsStream(service, typeResolver, DeclarationRuleSet5.class);
-        StatefulSession session = session(knowledge, mode);
-        session.set("random-offset", 0);
+        Knowledge knowledge = service.newKnowledge(DSLClassProvider.class, typeResolver, DeclarationRuleSet5.class);
+        try (StatefulSession session = session(knowledge, mode)) {
+            session.set("random-offset", 0);
 
-        for (int i = 2; i < 100; i++) {
-            session.insertAs(type, String.valueOf(i));
+            for (int i = 2; i < 100; i++) {
+                session.insertAs(type, String.valueOf(i));
+            }
+
+            session.fire();
+
+            NextIntSupplier primeCounter = new NextIntSupplier();
+            session.forEachFact((h, o) -> primeCounter.next());
+
+            assert primeCounter.get() == 25 : "Actual: " + primeCounter.get();
         }
-
-        session.fire();
-
-        NextIntSupplier primeCounter = new NextIntSupplier();
-        session.forEachFact((h, o) -> primeCounter.next());
-
-        assert primeCounter.get() == 25 : "Actual: " + primeCounter.get();
-
     }
 
 }

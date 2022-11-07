@@ -4,6 +4,10 @@ import org.evrete.api.*;
 import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.runtime.evaluation.EvaluatorOfPredicate;
+import org.evrete.spi.minimal.DefaultExpressionResolverProvider;
+import org.evrete.spi.minimal.DefaultLiteralRhsCompiler;
+import org.evrete.spi.minimal.DefaultMemoryFactoryProvider;
+import org.evrete.spi.minimal.DefaultTypeResolverProvider;
 import org.evrete.util.RhsAssert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -20,7 +24,12 @@ class EvaluationContextTests {
 
     @BeforeAll
     static void setUpClass() {
-        service = new KnowledgeService();
+        service = KnowledgeService.builder()
+                .withExpressionResolverProvider(DefaultExpressionResolverProvider.class)
+                .withMemoryFactoryProvider(DefaultMemoryFactoryProvider.class)
+                .withTypeResolverProvider(DefaultTypeResolverProvider.class)
+                .withLiteralRhsCompiler(DefaultLiteralRhsCompiler.class)
+                .build();
     }
 
     @AfterAll
