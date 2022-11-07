@@ -11,8 +11,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.io.File;
+import java.io.IOException;
 
-class StatelessJavaJarTests extends CommonTestMethods {
+class StatelessJavaJarTests {
     private static KnowledgeService service;
 
     @BeforeAll
@@ -32,11 +33,11 @@ class StatelessJavaJarTests extends CommonTestMethods {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void test1(ActivationMode mode) {
+    void test1(ActivationMode mode) throws IOException {
         service
                 .getConfiguration()
                 .setProperty(DSLJarProvider.CLASSES_PROPERTY, "pkg1.evrete.tests.rule.RuleSet1");
-        Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar1/jar1-tests.jar"));
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar1/jar1-tests.jar"));
         StatelessSession session = session(knowledge, mode);
         assert session.getRules().size() == 2;
         for (int i = 2; i < 100; i++) {
@@ -52,8 +53,8 @@ class StatelessJavaJarTests extends CommonTestMethods {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void test2(ActivationMode mode) {
-        Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar1/jar1-tests.jar"));
+    void test2(ActivationMode mode) throws IOException {
+        Knowledge knowledge = service.newKnowledge(DSLJarProvider.class, new File("src/test/resources/jars/jar1/jar1-tests.jar"));
         StatelessSession session = session(knowledge, mode);
         assert session.getRules().size() == 2;
         for (int i = 2; i < 100; i++) {

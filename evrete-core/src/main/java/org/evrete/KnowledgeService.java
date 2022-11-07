@@ -4,11 +4,12 @@ import org.evrete.api.*;
 import org.evrete.api.spi.*;
 import org.evrete.runtime.KnowledgeRuntime;
 import org.evrete.runtime.async.ForkJoinExecutor;
+import org.evrete.spi.minimal.DefaultExpressionResolverProvider;
+import org.evrete.spi.minimal.DefaultLiteralRhsCompiler;
+import org.evrete.spi.minimal.DefaultMemoryFactoryProvider;
+import org.evrete.spi.minimal.DefaultTypeResolverProvider;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
+import java.io.*;
 import java.net.URL;
 import java.util.*;
 
@@ -30,39 +31,21 @@ public class KnowledgeService {
     private ClassLoader classLoader;
 
     public KnowledgeService(Configuration conf) {
-        this.configuration = conf;
-        this.executor = new ForkJoinExecutor(conf.getAsInteger(Configuration.PARALLELISM, Runtime.getRuntime().availableProcessors()));
-        this.collectionsServiceProvider = loadService(conf, MemoryFactoryProvider.class, Configuration.SPI_MEMORY_FACTORY);
-        this.expressionResolverProvider = loadService(conf, ExpressionResolverProvider.class, Configuration.SPI_EXPRESSION_RESOLVER);
-        this.typeResolverProvider = loadService(conf, TypeResolverProvider.class, Configuration.SPI_TYPE_RESOLVER);
-        this.literalRhsProvider = loadService(conf, LiteralRhsCompiler.class, Configuration.SPI_RHS_COMPILER);
+        this(new Builder(conf));
+    }
+
+    private KnowledgeService(Builder builder) {
+        this.configuration = builder.conf;
+        this.executor = new ForkJoinExecutor(builder.conf.getAsInteger(Configuration.PARALLELISM, Runtime.getRuntime().availableProcessors()));
+        this.collectionsServiceProvider = builder.getMemoryFactoryProvider();
+        this.expressionResolverProvider = builder.getExpressionResolverProvider();
+        this.typeResolverProvider = builder.getTypeResolverProvider();
+        this.literalRhsProvider = builder.getLiteralRhsCompiler();
         this.classLoader = Thread.currentThread().getContextClassLoader();
     }
 
     public KnowledgeService() {
         this(new Configuration());
-    }
-
-    private static <Z extends OrderedServiceProvider> Z loadService(Configuration conf, Class<Z> clazz, String propertyName) {
-        List<Z> providers = new LinkedList<>();
-        Iterator<Z> sl = ServiceLoader.load(clazz).iterator();
-        sl.forEachRemaining(providers::add);
-        Collections.sort(providers);
-        if (providers.isEmpty()) {
-            throw new IllegalStateException("Implementation missing: " + clazz);
-        } else {
-            String className = conf.getProperty(propertyName);
-            if (className == null) {
-                return providers.iterator().next();
-            } else {
-                for (Z provider : providers) {
-                    if (provider.getClass().getName().equals(className)) {
-                        return provider;
-                    }
-                }
-                throw new IllegalArgumentException("No such service implementation found: '" + className + "'");
-            }
-        }
     }
 
     private static Reader[] toReaders(Class<?>... resources) throws IOException {
@@ -74,29 +57,17 @@ public class KnowledgeService {
         return urls;
     }
 
-    private static DSLKnowledgeProvider getDslProvider(String dsl) {
-        Objects.requireNonNull(dsl);
-        ServiceLoader<DSLKnowledgeProvider> loader = ServiceLoader.load(DSLKnowledgeProvider.class);
-
-        List<DSLKnowledgeProvider> found = new LinkedList<>();
-        StringJoiner knownProviders = new StringJoiner(",", "[", "]");
-        for (DSLKnowledgeProvider provider : loader) {
-            String name = provider.getName();
-            if (dsl.equals(name)) {
-                found.add(provider);
-            }
-            knownProviders.add("'" + name + "' = " + provider.getClass());
+    private static Reader[] readers(String... resources) throws IOException {
+        if (resources == null || resources.length == 0) throw new IOException("Empty resources");
+        Reader[] readers = new Reader[resources.length];
+        for (int i = 0; i < resources.length; i++) {
+            readers[i] = new StringReader(resources[i]);
         }
+        return readers;
+    }
 
-        if (found.isEmpty()) {
-            throw new IllegalStateException("DSL provider '" + dsl + "' is not found. Make sure the corresponding implementation is available on the classpath. Available providers: " + knownProviders);
-        }
-
-        if (found.size() > 1) {
-            throw new IllegalStateException("Multiple DSL providers found implementing the '" + dsl + "' language. Known providers: " + knownProviders);
-        } else {
-            return found.iterator().next();
-        }
+    public static Builder builder() {
+        return new Builder(new Configuration());
     }
 
     public SourceSecurity getSecurity() {
@@ -130,13 +101,116 @@ public class KnowledgeService {
         return typeResolverProvider.instance(this.classLoader);
     }
 
+    public static Builder builder(Configuration configuration) {
+        return new Builder(configuration);
+    }
+
+    /**
+     * <p>
+     * A convenience method to load specific DSL implementation;
+     * </p>
+     *
+     * @param dsl DSL name
+     * @return new instance of DSL provider
+     * @throws IllegalStateException if no implementation found by the given name
+     */
+    public DSLKnowledgeProvider getDSL(String dsl) {
+        Objects.requireNonNull(dsl);
+        ServiceLoader<DSLKnowledgeProvider> loader = ServiceLoader.load(DSLKnowledgeProvider.class);
+
+        List<DSLKnowledgeProvider> found = new LinkedList<>();
+        StringJoiner knownProviders = new StringJoiner(",", "[", "]");
+        for (DSLKnowledgeProvider provider : loader) {
+            String name = provider.getName();
+            if (dsl.equals(name)) {
+                found.add(provider);
+            }
+            knownProviders.add("'" + name + "' = " + provider.getClass());
+        }
+
+        if (found.isEmpty()) {
+            throw new IllegalStateException("DSL provider '" + dsl + "' is not found. Make sure the corresponding implementation is available on the classpath. Available providers: " + knownProviders);
+        }
+
+        if (found.size() > 1) {
+            throw new IllegalStateException("Multiple DSL providers found implementing the '" + dsl + "' language. Known providers: " + knownProviders);
+        } else {
+            return found.iterator().next();
+        }
+    }
+
+    /**
+     * <p>
+     * A convenience method to load specific DSL implementation;
+     * </p>
+     *
+     * @param dsl DSL implementation class
+     * @return new instance of DSL provider
+     * @throws IllegalStateException if implementation could not be instantiated
+     */
+    public DSLKnowledgeProvider getDSL(Class<? extends DSLKnowledgeProvider> dsl) {
+        Objects.requireNonNull(dsl);
+        try {
+            return dsl.getConstructor().newInstance();
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to instantiate DSL class instance", e);
+        }
+    }
+
     /**
      * @param dsl       DSL name
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      */
     public Knowledge newKnowledge(String dsl, URL... resources) throws IOException {
-        return getDslProvider(dsl).create(this, resources);
+        return getDSL(dsl).create(this, resources);
+    }
+
+    /**
+     * @param dsl       DSL class
+     * @param resources DSL resources
+     * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     */
+    public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, URL... resources) throws IOException {
+        return getDSL(dsl).create(this, resources);
+    }
+
+    /**
+     * @param dsl       DSL name
+     * @param resources DSL resources
+     * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     */
+    public Knowledge newKnowledge(String dsl, File... resources) throws IOException {
+        return getDSL(dsl).create(this, resources);
+    }
+
+    /**
+     * @param dsl       DSL class
+     * @param resources DSL resources
+     * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     */
+    public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, File... resources) throws IOException {
+        return getDSL(dsl).create(this, resources);
+    }
+
+    /**
+     * @param dsl       DSL class
+     * @param resolver TypeResolver to use
+     * @param resources DSL resources
+     * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     */
+    public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, TypeResolver resolver, File... resources) throws IOException {
+        return getDSL(dsl).create(this, resolver, resources);
+    }
+
+    /**
+     * @param dsl       DSL class
+     * @param resolver TypeResolver to use
+     * @param resources DSL resources
+     * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     */
+    public Knowledge newKnowledge(String dsl, TypeResolver resolver, File... resources) throws IOException {
+        return getDSL(dsl).create(this, resolver, resources);
     }
 
     /**
@@ -146,7 +220,17 @@ public class KnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      */
     public Knowledge newKnowledge(String dsl, TypeResolver typeResolver, URL... resources) throws IOException {
-        return getDslProvider(dsl).create(this, typeResolver, resources);
+        return getDSL(dsl).create(this, typeResolver, resources);
+    }
+
+    /**
+     * @param dsl          DSL class
+     * @param typeResolver TypeResolver to use
+     * @param resources    DSL resources
+     * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     */
+    public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, TypeResolver typeResolver, URL... resources) throws IOException {
+        return getDSL(dsl).create(this, typeResolver, resources);
     }
 
     /**
@@ -155,7 +239,16 @@ public class KnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      */
     public Knowledge newKnowledge(String dsl, Reader... resources) throws IOException {
-        return getDslProvider(dsl).create(this, resources);
+        return getDSL(dsl).create(this, resources);
+    }
+
+    /**
+     * @param dsl       DSL class
+     * @param resources DSL resources
+     * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     */
+    public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, Reader... resources) throws IOException {
+        return getDSL(dsl).create(this, resources);
     }
 
     /**
@@ -165,7 +258,17 @@ public class KnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      */
     public Knowledge newKnowledge(String dsl, TypeResolver typeResolver, Reader... resources) throws IOException {
-        return getDslProvider(dsl).create(this, typeResolver, resources);
+        return getDSL(dsl).create(this, typeResolver, resources);
+    }
+
+    /**
+     * @param dsl          DSL class
+     * @param typeResolver TypeResolver to use
+     * @param resources    DSL resources
+     * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     */
+    public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, TypeResolver typeResolver, Reader... resources) throws IOException {
+        return getDSL(dsl).create(this, typeResolver, resources);
     }
 
     /**
@@ -174,7 +277,16 @@ public class KnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      */
     public Knowledge newKnowledge(String dsl, InputStream... resources) throws IOException {
-        return getDslProvider(dsl).create(this, resources);
+        return getDSL(dsl).create(this, resources);
+    }
+
+    /**
+     * @param dsl       DSL class
+     * @param resources DSL resources
+     * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     */
+    public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, InputStream... resources) throws IOException {
+        return getDSL(dsl).create(this, resources);
     }
 
     /**
@@ -184,7 +296,17 @@ public class KnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      */
     public Knowledge newKnowledge(String dsl, TypeResolver typeResolver, InputStream... resources) throws IOException {
-        return getDslProvider(dsl).create(this, typeResolver, resources);
+        return getDSL(dsl).create(this, typeResolver, resources);
+    }
+
+    /**
+     * @param dsl          DSL class
+     * @param typeResolver TypeResolver to use
+     * @param resources    DSL resources
+     * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     */
+    public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, TypeResolver typeResolver, InputStream... resources) throws IOException {
+        return getDSL(dsl).create(this, typeResolver, resources);
     }
 
     /**
@@ -197,21 +319,7 @@ public class KnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      */
     public Knowledge newKnowledge(String dsl, Class<?>... resources) throws IOException {
-        return getDslProvider(dsl).create(this, toReaders(resources));
-    }
-
-    /**
-     * <p>
-     * This is a convenience method. The implementation gets URLs of each class and calls {@link #newKnowledge(String, TypeResolver, URL...)}
-     * </p>
-     *
-     * @param dsl          DSL name
-     * @param typeResolver TypeResolver to use
-     * @param resources    DSL resources
-     * @return a {@link Knowledge} instance built by DSL provider from given resources.
-     */
-    public Knowledge newKnowledge(String dsl, TypeResolver typeResolver, Class<?>... resources) throws IOException {
-        return getDslProvider(dsl).create(this, typeResolver, toReaders(resources));
+        return getDSL(dsl).create(this, toReaders(resources));
     }
 
 
@@ -244,13 +352,45 @@ public class KnowledgeService {
         return typeResolverProvider;
     }
 
-    public Knowledge newKnowledge(String dsl, String... resources) throws IOException {
-        if (resources == null || resources.length == 0) throw new IOException("Empty resources");
-        Reader[] urls = new Reader[resources.length];
-        for (int i = 0; i < resources.length; i++) {
-            urls[i] = new StringReader(resources[i]);
-        }
-        return getDslProvider(dsl).create(this, urls);
+    /**
+     * <p>
+     * This is a convenience method. The implementation gets URLs of each class and calls {@link #newKnowledge(String, URL...)}
+     * </p>
+     *
+     * @param dsl       DSL class
+     * @param resources DSL resources
+     * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     */
+    public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, Class<?>... resources) throws IOException {
+        return getDSL(dsl).create(this, toReaders(resources));
+    }
+
+    /**
+     * <p>
+     * This is a convenience method. The implementation gets URLs of each class and calls {@link #newKnowledge(String, TypeResolver, URL...)}
+     * </p>
+     *
+     * @param dsl          DSL name
+     * @param typeResolver TypeResolver to use
+     * @param resources    DSL resources
+     * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     */
+    public Knowledge newKnowledge(String dsl, TypeResolver typeResolver, Class<?>... resources) throws IOException {
+        return getDSL(dsl).create(this, typeResolver, toReaders(resources));
+    }
+
+    /**
+     * <p>
+     * This is a convenience method. The implementation gets URLs of each class and calls {@link #newKnowledge(String, TypeResolver, URL...)}
+     * </p>
+     *
+     * @param dsl          DSL class
+     * @param typeResolver TypeResolver to use
+     * @param resources    DSL resources
+     * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     */
+    public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, TypeResolver typeResolver, Class<?>... resources) throws IOException {
+        return getDSL(dsl).create(this, typeResolver, toReaders(resources));
     }
 
     /**
@@ -279,5 +419,95 @@ public class KnowledgeService {
         return newKnowledge().newStatelessSession();
     }
 
+    public Knowledge newKnowledge(String dsl, String... resources) throws IOException {
+        return getDSL(dsl).create(this, readers(resources));
+    }
 
+    public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, String... resources) throws IOException {
+        return getDSL(dsl).create(this, readers(resources));
+    }
+
+    public static class Builder {
+        private final Configuration conf;
+        private Class<? extends MemoryFactoryProvider> memoryFactoryProvider = DefaultMemoryFactoryProvider.class;
+        private Class<? extends ExpressionResolverProvider> expressionResolverProvider = DefaultExpressionResolverProvider.class;
+        private Class<? extends TypeResolverProvider> typeResolverProvider = DefaultTypeResolverProvider.class;
+        private Class<? extends LiteralRhsCompiler> literalRhsCompiler = DefaultLiteralRhsCompiler.class;
+
+        private Builder(Configuration conf) {
+            this.conf = conf;
+        }
+
+        public Builder withMemoryFactoryProvider(Class<? extends MemoryFactoryProvider> memoryFactoryProvider) {
+            this.memoryFactoryProvider = memoryFactoryProvider;
+            return this;
+        }
+
+        public Builder withExpressionResolverProvider(Class<? extends ExpressionResolverProvider> expressionResolverProvider) {
+            this.expressionResolverProvider = expressionResolverProvider;
+            return this;
+        }
+
+        public Builder withTypeResolverProvider(Class<? extends TypeResolverProvider> typeResolverProvider) {
+            this.typeResolverProvider = typeResolverProvider;
+            return this;
+        }
+
+        public Builder withLiteralRhsCompiler(Class<? extends LiteralRhsCompiler> literalRhsCompiler) {
+            this.literalRhsCompiler = literalRhsCompiler;
+            return this;
+        }
+
+        public KnowledgeService build() {
+            return new KnowledgeService(this);
+        }
+
+        private MemoryFactoryProvider getMemoryFactoryProvider() {
+            return loadCoreSPI(MemoryFactoryProvider.class, Configuration.SPI_MEMORY_FACTORY, memoryFactoryProvider);
+        }
+
+        private ExpressionResolverProvider getExpressionResolverProvider() {
+            return loadCoreSPI(ExpressionResolverProvider.class, Configuration.SPI_EXPRESSION_RESOLVER, expressionResolverProvider);
+        }
+
+        private TypeResolverProvider getTypeResolverProvider() {
+            return loadCoreSPI(TypeResolverProvider.class, Configuration.SPI_TYPE_RESOLVER, typeResolverProvider);
+        }
+
+        private LiteralRhsCompiler getLiteralRhsCompiler() {
+            return loadCoreSPI(LiteralRhsCompiler.class, Configuration.SPI_RHS_COMPILER, literalRhsCompiler);
+        }
+
+        private <Z extends OrderedServiceProvider, I extends Z> Z loadCoreSPI(Class<Z> clazz, String propertyName, Class<I> implClass) {
+            List<Z> providers = new LinkedList<>();
+            Iterator<Z> sl = ServiceLoader.load(clazz).iterator();
+            sl.forEachRemaining(providers::add);
+            Collections.sort(providers);
+            if (providers.isEmpty()) {
+                // No SPI implementations found on the class path
+                if (implClass == null) {
+                    throw new IllegalStateException("Implementation missing: " + clazz);
+                } else {
+                    try {
+                        return implClass.getConstructor().newInstance();
+                    } catch (Exception e) {
+                        throw new IllegalArgumentException("Unable to instantiate implementation instance of " + implClass, e);
+                    }
+                }
+            } else {
+                String className = conf.getProperty(propertyName);
+                if (className == null) {
+                    return providers.iterator().next();
+                } else {
+                    for (Z provider : providers) {
+                        if (provider.getClass().getName().equals(className)) {
+                            return provider;
+                        }
+                    }
+                    throw new IllegalArgumentException("No such service implementation found: '" + className + "'");
+                }
+            }
+        }
+
+    }
 }

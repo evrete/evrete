@@ -12,9 +12,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
+import java.io.IOException;
 import java.util.List;
 
-class StatelessJavaClassTests extends CommonTestMethods {
+class StatelessJavaClassTests {
     private static KnowledgeService service;
 
     @BeforeAll
@@ -33,8 +34,8 @@ class StatelessJavaClassTests extends CommonTestMethods {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void primeTest1(ActivationMode mode) {
-        Knowledge knowledge = applyToRuntimeAsStream(service, SampleRuleSet1.class);
+    void primeTest1(ActivationMode mode) throws IOException {
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, SampleRuleSet1.class);
         StatelessSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
@@ -51,8 +52,8 @@ class StatelessJavaClassTests extends CommonTestMethods {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void primeTest2(ActivationMode mode) {
-        Knowledge knowledge = applyToRuntimeAsStream(service, SampleRuleSet2.class);
+    void primeTest2(ActivationMode mode) throws IOException {
+        Knowledge knowledge = service.newKnowledge(DSLClassProvider.class, SampleRuleSet2.class);
         StatelessSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
@@ -68,8 +69,8 @@ class StatelessJavaClassTests extends CommonTestMethods {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void primeTest3(ActivationMode mode) {
-        Knowledge knowledge = applyToRuntimeAsStream(service, SampleRuleSet3.class);
+    void primeTest3(ActivationMode mode) throws IOException {
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, SampleRuleSet3.class);
         StatelessSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
@@ -85,8 +86,8 @@ class StatelessJavaClassTests extends CommonTestMethods {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void sortInheritance1(ActivationMode mode) {
-        Knowledge knowledge = applyToRuntimeAsStream(service, SortedRuleSet1.class);
+    void sortInheritance1(ActivationMode mode) throws IOException {
+        Knowledge knowledge = service.newKnowledge(DSLClassProvider.class, SortedRuleSet1.class);
         StatelessSession session = session(knowledge, mode);
         List<RuntimeRule> rules = session.getRules();
 
@@ -100,8 +101,8 @@ class StatelessJavaClassTests extends CommonTestMethods {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void sortInheritance2(ActivationMode mode) {
-        Knowledge knowledge = applyToRuntimeAsStream(service, SortedRuleSet2.class);
+    void sortInheritance2(ActivationMode mode) throws IOException {
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, SortedRuleSet2.class);
         StatelessSession session = session(knowledge, mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 5 : "Actual: " + rules.size() + ": " + rules;

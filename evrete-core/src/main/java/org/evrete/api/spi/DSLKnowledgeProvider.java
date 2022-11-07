@@ -4,6 +4,7 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.TypeResolver;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -28,18 +29,31 @@ public interface DSLKnowledgeProvider {
      * @param typeResolver TypeResolver to use.
      * @param service      Knowledge service.
      */
+    @SuppressWarnings("resource")
     default Knowledge create(KnowledgeService service, TypeResolver typeResolver, URL... resources) throws IOException {
         if (resources == null || resources.length == 0) throw new IOException("Empty resources");
         InputStream[] streams = new InputStream[resources.length];
-        for (int i = 0; i < resources.length; i++) {
-            streams[i] = resources[i].openStream();
-        }
-        Knowledge knowledge = create(service, typeResolver, streams);
+        try {
+            for (int i = 0; i < resources.length; i++) {
+                streams[i] = resources[i].openStream();
+            }
+            Knowledge knowledge = create(service, typeResolver, streams);
 
-        for (InputStream stream : streams) {
-            stream.close();
+            for (InputStream stream : streams) {
+                stream.close();
+            }
+            return knowledge;
+        } finally {
+            for(InputStream stream : streams) {
+                if(stream != null) {
+                    try {
+                        stream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
-        return knowledge;
     }
 
     /**
@@ -49,6 +63,30 @@ public interface DSLKnowledgeProvider {
      */
     default Knowledge create(KnowledgeService service, InputStream... streams) throws IOException {
         return create(service, service.newTypeResolver(), streams);
+    }
+
+    /**
+     * @param files file resources
+     * @param service Knowledge service.
+     * @param resolver Type resolver
+     * @see #create(KnowledgeService, URL...)
+     */
+    default Knowledge create(KnowledgeService service, TypeResolver resolver, File... files) throws IOException {
+        URL[] urls = new URL[files.length];
+        for (int i = 0; i < files.length; i++) {
+            urls[i] = files[i].toURI().toURL();
+        }
+
+        return create(service, resolver, urls);
+    }
+
+    /**
+     * @param files file resources
+     * @param service Knowledge service.
+     * @see #create(KnowledgeService, URL...)
+     */
+    default Knowledge create(KnowledgeService service, File... files) throws IOException {
+        return create(service, service.newTypeResolver(), files);
     }
 
     /**

@@ -52,7 +52,6 @@ public class DSLClassProvider extends AbstractDSLProvider {
             current = processRuleSet(current, cl);
         }
         return current;
-
     }
 
     private static Class<?>[] loadClasses(KnowledgeService service, Reader... streams) throws IOException {

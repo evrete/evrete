@@ -11,8 +11,9 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.FilePermission;
+import java.io.IOException;
 
-class JavaJarSecurityTests extends CommonTestMethods {
+class JavaJarSecurityTests {
     private KnowledgeService service;
 
     @BeforeEach
@@ -27,7 +28,7 @@ class JavaJarSecurityTests extends CommonTestMethods {
         Assertions.assertThrows(
                 SecurityException.class,
                 () -> {
-                    Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar2/jar2-tests.jar"));
+                    Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar2/jar2-tests.jar"));
                     try(StatefulSession session = knowledge.newStatefulSession()){
                         assert session.getRules().size() == 2 : "Actual: " + session.getRules().size();
                         for (int i = 2; i < 100; i++) {
@@ -40,7 +41,7 @@ class JavaJarSecurityTests extends CommonTestMethods {
     }
 
     @Test
-    void test1Pass() {
+    void test1Pass() throws IOException {
         assert System.getSecurityManager() != null;
 
         service
@@ -48,7 +49,7 @@ class JavaJarSecurityTests extends CommonTestMethods {
                 .addPermission(RuleScope.BOTH, new FilePermission("<<ALL FILES>>", "read"));
 
 
-        Knowledge knowledge = applyToRuntimeAsURLs(service, AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar2/jar2-tests.jar"));
+        Knowledge knowledge = service.newKnowledge(DSLJarProvider.class, new File("src/test/resources/jars/jar2/jar2-tests.jar"));
         try(StatefulSession session = knowledge.newStatefulSession()){
             assert session.getRules().size() == 2 : "Actual: " + session.getRules().size();
             for (int i = 2; i < 100; i++) {

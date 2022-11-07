@@ -12,8 +12,8 @@
     <version>2.2.04-SNAPSHOT</version>
 
     <properties>
-        <drools.version>7.63.0.t20211129</drools.version>
-        <slf4j.version>1.7.32</slf4j.version>
+        <drools.version>8.29.0.Final</drools.version>
+        <slf4j.version>2.0.3</slf4j.version>
     </properties>
 
     <build>
@@ -37,6 +37,20 @@
                 <artifactId>maven-deploy-plugin</artifactId>
                 <configuration>
                     <skip>true</skip>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-install-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <skipIfEmpty>true</skipIfEmpty>
                 </configuration>
             </plugin>
         </plugins>

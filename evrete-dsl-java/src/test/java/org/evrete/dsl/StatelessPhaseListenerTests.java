@@ -10,7 +10,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-class StatelessPhaseListenerTests extends CommonTestMethods {
+import java.io.IOException;
+
+class StatelessPhaseListenerTests {
     private static KnowledgeService service;
 
     @BeforeAll
@@ -29,9 +31,9 @@ class StatelessPhaseListenerTests extends CommonTestMethods {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void test1(ActivationMode mode) {
+    void test1(ActivationMode mode) throws IOException {
         TestUtils.PhaseHelperData.reset();
-        Knowledge knowledge = applyToRuntimeAsStream(service, PhaseListenerRuleSet1.class);
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, PhaseListenerRuleSet1.class);
         assert TestUtils.PhaseHelperData.total() == 1 && TestUtils.PhaseHelperData.count(Phase.BUILD) == 1;
 
         StatelessSession session = session(knowledge, mode);
