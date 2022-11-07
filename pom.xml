@@ -51,13 +51,6 @@
         </repository>
     </distributionManagement>
 
-    <modules>
-        <module>evrete-core</module>
-        <module>evrete-dsl-java</module>
-        <module>evrete-jsr94</module>
-        <module>evrete-code-samples</module>
-        <module>evrete-benchmarks</module>
-    </modules>
 
     <build>
         <plugins>
@@ -184,6 +177,13 @@
     <profiles>
         <profile>
             <id>normal</id>
+            <modules>
+                <module>evrete-core</module>
+                <module>evrete-dsl-java</module>
+                <module>evrete-jsr94</module>
+                <module>evrete-code-samples</module>
+                <module>evrete-benchmarks</module>
+            </modules>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
