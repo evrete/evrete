@@ -4,10 +4,6 @@ import org.evrete.api.*;
 import org.evrete.api.spi.*;
 import org.evrete.runtime.KnowledgeRuntime;
 import org.evrete.runtime.async.ForkJoinExecutor;
-import org.evrete.spi.minimal.DefaultExpressionResolverProvider;
-import org.evrete.spi.minimal.DefaultLiteralRhsCompiler;
-import org.evrete.spi.minimal.DefaultMemoryFactoryProvider;
-import org.evrete.spi.minimal.DefaultTypeResolverProvider;
 
 import java.io.*;
 import java.net.URL;
@@ -195,7 +191,7 @@ public class KnowledgeService {
 
     /**
      * @param dsl       DSL class
-     * @param resolver TypeResolver to use
+     * @param resolver  TypeResolver to use
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      */
@@ -205,7 +201,7 @@ public class KnowledgeService {
 
     /**
      * @param dsl       DSL class
-     * @param resolver TypeResolver to use
+     * @param resolver  TypeResolver to use
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      */
@@ -323,6 +319,12 @@ public class KnowledgeService {
     }
 
 
+    /**
+     * <p>
+     *     Shuts down the service and releases its internal resources.
+     *     Once a service is shutdown, it can not be reused in the future.
+     * </p>
+     */
     public void shutdown() {
         this.executor.shutdown();
     }
@@ -429,10 +431,10 @@ public class KnowledgeService {
 
     public static class Builder {
         private final Configuration conf;
-        private Class<? extends MemoryFactoryProvider> memoryFactoryProvider = DefaultMemoryFactoryProvider.class;
-        private Class<? extends ExpressionResolverProvider> expressionResolverProvider = DefaultExpressionResolverProvider.class;
-        private Class<? extends TypeResolverProvider> typeResolverProvider = DefaultTypeResolverProvider.class;
-        private Class<? extends LiteralRhsCompiler> literalRhsCompiler = DefaultLiteralRhsCompiler.class;
+        private Class<? extends MemoryFactoryProvider> memoryFactoryProvider;
+        private Class<? extends ExpressionResolverProvider> expressionResolverProvider;
+        private Class<? extends TypeResolverProvider> typeResolverProvider;
+        private Class<? extends LiteralRhsCompiler> literalRhsCompiler;
 
         private Builder(Configuration conf) {
             this.conf = conf;
@@ -478,36 +480,37 @@ public class KnowledgeService {
             return loadCoreSPI(LiteralRhsCompiler.class, Configuration.SPI_RHS_COMPILER, literalRhsCompiler);
         }
 
+        @SuppressWarnings("unchecked")
         private <Z extends OrderedServiceProvider, I extends Z> Z loadCoreSPI(Class<Z> clazz, String propertyName, Class<I> implClass) {
+            // 1. Check the explicit class parameter first
+            if (implClass != null) {
+                try {
+                    return implClass.getConstructor().newInstance();
+                } catch (Exception e) {
+                    throw new IllegalStateException("Unable to instantiate implementation instance of " + implClass, e);
+                }
+            }
+
+            // 2. Check the config's entry
+            String className = conf.getProperty(propertyName);
+            if (className != null) {
+                try {
+                    return (Z) Class.forName(className).getConstructor().newInstance();
+                } catch (Exception e) {
+                    throw new IllegalStateException("Unable to instantiate implementation instance of " + className, e);
+                }
+            }
+
+            // 3. Fall back to the SPI mechanism
             List<Z> providers = new LinkedList<>();
-            Iterator<Z> sl = ServiceLoader.load(clazz).iterator();
-            sl.forEachRemaining(providers::add);
+            ServiceLoader.load(clazz).iterator().forEachRemaining(providers::add);
             Collections.sort(providers);
             if (providers.isEmpty()) {
                 // No SPI implementations found on the class path
-                if (implClass == null) {
-                    throw new IllegalStateException("Implementation missing: " + clazz);
-                } else {
-                    try {
-                        return implClass.getConstructor().newInstance();
-                    } catch (Exception e) {
-                        throw new IllegalArgumentException("Unable to instantiate implementation instance of " + implClass, e);
-                    }
-                }
+                throw new IllegalStateException("Implementation missing: " + clazz);
             } else {
-                String className = conf.getProperty(propertyName);
-                if (className == null) {
-                    return providers.iterator().next();
-                } else {
-                    for (Z provider : providers) {
-                        if (provider.getClass().getName().equals(className)) {
-                            return provider;
-                        }
-                    }
-                    throw new IllegalArgumentException("No such service implementation found: '" + className + "'");
-                }
+                return providers.iterator().next();
             }
         }
-
     }
 }

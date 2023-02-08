@@ -73,7 +73,7 @@ class PackageExplorer {
             try (InputStream stream = connection.getInputStream()) {
                 if (stream instanceof ZipInputStream) {
                     ZipInputStream zis = (ZipInputStream) stream;
-                    result = asZipInputStream(packageName, packageFolderURL, zis);
+                    result = asZipInputStream(packageName, zis);
                 }
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
@@ -144,10 +144,8 @@ class PackageExplorer {
 
 
     }
-    private Collection<JavaFileObject> asZipInputStream(String packageName, URL packageFolderURL, ZipInputStream zis) {
+    private Collection<JavaFileObject> asZipInputStream(String packageName, ZipInputStream zis) {
         ZipEntry entry;
-
-        System.out.println("P: " + packageName + "\t" + packageFolderURL);
         Collection<JavaFileObject> result = new LinkedList<>();
         try {
             while ((entry = zis.getNextEntry()) != null) {
