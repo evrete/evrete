@@ -80,7 +80,6 @@ class PackageExplorer {
             }
         }
 
-
         if (result == null) {
             throw new IllegalStateException("Unknown resource type: " + packageFolderURL);
         } else {
