@@ -3,7 +3,6 @@ package org.evrete.dsl;
 import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
-import org.evrete.api.RuleScope;
 import org.evrete.api.TypeResolver;
 import org.evrete.dsl.annotation.RuleSet;
 import org.evrete.util.compiler.ServiceClassLoader;
@@ -11,7 +10,6 @@ import org.evrete.util.compiler.ServiceClassLoader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.ProtectionDomain;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
@@ -31,8 +29,7 @@ public class DSLJarProvider extends AbstractDSLProvider {
 
     private static Knowledge apply(Knowledge knowledge, Set<String> ruleClasses, InputStream... streams) throws IOException {
         ClassLoader ctxClassLoader = knowledge.getClassLoader();
-        ProtectionDomain domain = knowledge.getService().getSecurity().getProtectionDomain(RuleScope.BOTH);
-        ServiceClassLoader classLoader = new ServiceClassLoader(ctxClassLoader, domain);
+        ServiceClassLoader classLoader = new ServiceClassLoader(ctxClassLoader);
         List<Class<?>> ruleSets = fillClassLoader(classLoader, streams);
         Knowledge current = knowledge;
         if (ruleClasses.isEmpty()) {

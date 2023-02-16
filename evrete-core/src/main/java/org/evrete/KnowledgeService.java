@@ -23,7 +23,6 @@ public class KnowledgeService {
     private final ExpressionResolverProvider expressionResolverProvider;
     private final TypeResolverProvider typeResolverProvider;
     private final LiteralRhsCompiler literalRhsProvider;
-    private final SourceSecurity security = new SourceSecurity();
     private ClassLoader classLoader;
 
     public KnowledgeService(Configuration conf) {
@@ -64,10 +63,6 @@ public class KnowledgeService {
 
     public static Builder builder() {
         return new Builder(new Configuration());
-    }
-
-    public SourceSecurity getSecurity() {
-        return security;
     }
 
     public ClassLoader getClassLoader() {

@@ -2,12 +2,10 @@ package org.evrete.spi.minimal;
 
 import org.evrete.api.NamedType;
 import org.evrete.api.RhsContext;
-import org.evrete.api.RuleScope;
 import org.evrete.api.RuntimeContext;
 import org.evrete.api.spi.LiteralRhsCompiler;
 import org.evrete.util.compiler.CompilationException;
 
-import java.security.ProtectionDomain;
 import java.util.Collection;
 import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -74,8 +72,7 @@ public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider imp
 
         NamedType[] types = factTypes.toArray(new NamedType[0]);
 
-        ProtectionDomain domain = requester.getService().getSecurity().getProtectionDomain(RuleScope.RHS);
-        Class<? extends AbstractLiteralRhs> clazz = buildClass(requester.getClassLoader(), getCreateJavaCompiler(requester, domain), types, literalRhs, imports);
+        Class<? extends AbstractLiteralRhs> clazz = buildClass(requester.getClassLoader(), getCreateJavaCompiler(requester), types, literalRhs, imports);
         try {
             return clazz.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
