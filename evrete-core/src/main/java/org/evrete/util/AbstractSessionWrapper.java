@@ -42,6 +42,11 @@ public abstract class AbstractSessionWrapper<S extends RuleSession<S>> extends R
     }
 
     @Override
+    public void setRuleBuilderExceptionHandler(RuleBuilderExceptionHandler handler) {
+        delegate.setRuleBuilderExceptionHandler(handler);
+    }
+
+    @Override
     public S removeEventListener(SessionLifecycleListener listener) {
         delegate.removeEventListener(listener);
         return thisInstance();
@@ -57,9 +62,8 @@ public abstract class AbstractSessionWrapper<S extends RuleSession<S>> extends R
         return delegate.getRules();
     }
 
-    @Override
-    public RuntimeRule compileRule(RuleBuilder<?> builder) {
-        return delegate.compileRule(builder);
+    public void addRule(RuleBuilder<?> builder) {
+        delegate.addRule(builder);
     }
 
     @Override

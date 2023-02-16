@@ -1,12 +1,11 @@
 package org.evrete;
 
-import org.evrete.api.Imports;
 import org.evrete.api.RhsContext;
 import org.evrete.api.Rule;
-import org.evrete.api.RuleScope;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
@@ -14,7 +13,6 @@ import java.util.logging.Logger;
 public abstract class AbstractRule implements Rule {
     private static final Logger LOGGER = Logger.getLogger(AbstractRule.class.getName());
     private final Consumer<RhsContext> nullRhs;
-    private final Imports imports;
     private final Map<String, Object> properties;
     protected Consumer<RhsContext> rhs;
     private String name;
@@ -22,12 +20,11 @@ public abstract class AbstractRule implements Rule {
     private String literalRhs;
 
     protected AbstractRule(String name, int defaultSalience) {
-        this.name = name;
+        this.name = Objects.requireNonNull(name);
         this.properties = new ConcurrentHashMap<>();
         this.salience = defaultSalience;
         this.nullRhs = arg -> LOGGER.warning("No RHS is set for rule '" + AbstractRule.this.name + '\'');
         this.rhs = nullRhs;
-        this.imports = new Imports();
     }
 
     protected AbstractRule(AbstractRule other, String ruleName, int salience) {
@@ -38,22 +35,6 @@ public abstract class AbstractRule implements Rule {
         this.nullRhs = other.nullRhs;
         this.rhs = other.rhs;
         this.literalRhs = other.literalRhs;
-        this.imports = other.imports.copyOf();
-    }
-
-    protected void appendImports(Imports parent) {
-        imports.append(parent);
-    }
-
-    @Override
-    public Imports getImports() {
-        return imports;
-    }
-
-    @Override
-    public Rule addImport(RuleScope scope, String imp) {
-        this.imports.add(scope, imp);
-        return this;
     }
 
     @Override

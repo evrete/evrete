@@ -34,9 +34,10 @@ public class LiteralRhsTests {
 
     @Test
     void plainTest0() {
-        knowledge.newRule()
+        knowledge
                 .addImport(RuleScope.RHS, "org.evrete.LiteralRhsTests.SystemOut")
                 .addImport(RuleScope.RHS, SystemOut.class)
+                .newRule()
                 .forEach("$n", Number.class)
                 .execute("SystemOut.out($n);");
 
@@ -51,11 +52,12 @@ public class LiteralRhsTests {
 
     @Test
     void plainTest1() {
-        RuleBuilder<Knowledge> builder = knowledge.newRule()
+        RuleBuilder<Knowledge> builder = knowledge
                 .addImport(RuleScope.RHS, "org.evrete.LiteralRhsTests.SystemOut")
                 .addImport(RuleScope.RHS, SystemOut.class)
+                .newRule()
                 .forEach("$n", Number.class)
-                .create();
+                .getRuleBuilder();
 
         RuleDescriptor descriptor = knowledge.compileRule(builder);
         descriptor.setRhs("SystemOut.out($n);");
@@ -70,17 +72,15 @@ public class LiteralRhsTests {
 
     @Test
     void plainTest2() {
-        RuleBuilder<Knowledge> builder = knowledge.newRule("test")
+        RuleBuilder<Knowledge> builder = knowledge
                 .addImport(RuleScope.RHS, "org.evrete.LiteralRhsTests.SystemOut")
                 .addImport(RuleScope.RHS, SystemOut.class)
+                .newRule("test")
                 .forEach("$n", Integer.class)
-                .create();
+                .getRuleBuilder();
 
         RuleDescriptor descriptor = knowledge.compileRule(builder);
-        descriptor
-                .addImport(RuleScope.RHS, "org.evrete.LiteralRhsTests.SystemOut")
-                .addImport(RuleScope.RHS, SystemOut.class)
-                .setRhs("SystemOut.out($n);");
+        descriptor.setRhs("SystemOut.out($n);");
 
         StatefulSession session = knowledge.newStatefulSession();
 
@@ -92,8 +92,6 @@ public class LiteralRhsTests {
 
         RuntimeRule rule = session.getRule("test");
         rule
-                .addImport(RuleScope.RHS, "org.evrete.LiteralRhsTests.SystemOut")
-                .addImport(RuleScope.RHS, SystemOut.class)
                 .setRhs("SystemOut.out($n + 1);");
 
         session.insertAndFire(100, 200);

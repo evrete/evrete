@@ -35,11 +35,6 @@ public class LhsBuilderImpl<C extends RuntimeContext<C>> extends AbstractLhsBuil
     }
 
     @Override
-    public RuleBuilder<C> create() {
-        return getRuleBuilder();
-    }
-
-    @Override
     public C execute() {
         return getRuleBuilder().build();
     }

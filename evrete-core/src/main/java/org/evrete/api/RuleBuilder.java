@@ -6,12 +6,6 @@ public interface RuleBuilder<C extends RuntimeContext<C>> extends Rule, LhsFactS
 
     RuleBuilder<C> salience(int salience);
 
-    @Override
-    RuleBuilder<C> addImport(RuleScope scope, String imp);
-
-    @Override
-    RuleBuilder<C> addImport(RuleScope scope, Class<?> type);
-
     <Z> RuleBuilder<C> property(String property, Z value);
 
     C getRuntime();

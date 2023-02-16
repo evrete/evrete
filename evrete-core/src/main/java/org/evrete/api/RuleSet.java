@@ -21,14 +21,26 @@ public interface RuleSet<R extends Rule> {
     List<R> getRules();
 
     /**
-     * <p>
-     * Builds and saves a new rule from a rule-builder.
-     * </p>
-     *
      * @param builder rule-builder to create a rule from
      * @return rule type parameter
+     * @see #addRule(RuleBuilder)
      */
-    R compileRule(RuleBuilder<?> builder);
+    default R compileRule(RuleBuilder<?> builder) {
+        addRule(builder);
+        return getRule(builder.getName());
+    }
+
+    /**
+     * <p>
+     * Compiles the given rule builder into a new {@link Rule} and adds it to the current ruleset.
+     * </p>
+     *
+     * @param builder rule builder
+     * @throws RuntimeException instances that can be optionally handled by {@link RuleBuilderExceptionHandler}
+     * @see RuleBuilderExceptionHandler
+     * @see #setRuleBuilderExceptionHandler(RuleBuilderExceptionHandler)
+     */
+    void addRule(RuleBuilder<?> builder);
 
     default boolean ruleExists(String name) {
         return getRule(name) != null;
@@ -39,6 +51,15 @@ public interface RuleSet<R extends Rule> {
     default R getRule(Named named) {
         return getRule(named.getName());
     }
+
+    /**
+     * <p>
+     *     Sets custom {@link RuleBuilderExceptionHandler} for the ruleset.
+     * </p>
+     * @param handler exception handler
+     * @see RuleBuilderExceptionHandler
+     */
+    void setRuleBuilderExceptionHandler(RuleBuilderExceptionHandler handler);
 
     FieldReference[] resolveFieldReferences(String[] args, NamedType.Resolver typeMapper);
 }

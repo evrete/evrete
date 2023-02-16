@@ -34,11 +34,10 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
     }
 
     @Override
-    public RuleDescriptor compileRule(RuleBuilder<?> builder) {
+    protected void addRuleInner(RuleBuilder<?> builder) {
         RuleDescriptor rd = super.compileRuleBuilder(builder);
         this.ruleDescriptors.add(rd);
         this.ruleDescriptors.sort(getRuleComparator());
-        return rd;
     }
 
     @Override

@@ -121,7 +121,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
         return knowledge;
     }
 
-    private synchronized RuntimeRule deployRule(RuleDescriptor descriptor, boolean hotDeployment) {
+    private synchronized void deployRule(RuleDescriptor descriptor, boolean hotDeployment) {
         for (FactType factType : descriptor.getLhs().getFactTypes()) {
             TypeMemory tm = memory.getCreateUpdate(factType.type());
             tm.touchMemory(factType.getMemoryAddress());
@@ -131,7 +131,6 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
             getExecutor().invoke(new RuleHotDeploymentTask(rule));
         }
         reSortRules();
-        return rule;
     }
 
     private void reSortRules() {
@@ -139,9 +138,9 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
     }
 
     @Override
-    public RuntimeRule compileRule(RuleBuilder<?> builder) {
+    protected void addRuleInner(RuleBuilder<?> builder) {
         RuleDescriptor rd = compileRuleBuilder(builder);
-        return deployRule(rd, true);
+        deployRule(rd, true);
     }
 
     @Override

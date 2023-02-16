@@ -9,10 +9,32 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
 
     RuleBuilder<C> setRhs(String literalConsumer);
 
-    RuleBuilder<C> create();
+    /**
+     * <p>
+     *     Deprecated, use {@link #getRuleBuilder()} instead.
+     * </p>
+     * @return rule builder
+     */
+    @Deprecated
+    default RuleBuilder<C> create() {
+        return getRuleBuilder();
+    }
 
+    /**
+     * <p>
+     *     Terminates the rule builder without RHS and adds the rule to the current context
+     * </p>
+     * @return context
+     */
     C execute();
 
+    /**
+     * <p>
+     *     Terminates the rule builder with the provided RHS and adds the rule to the current context
+     * </p>
+     * @param consumer RHS
+     * @return context
+     */
     C execute(Consumer<RhsContext> consumer);
 
     RuleBuilder<C> getRuleBuilder();
@@ -57,7 +79,14 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
         return addWhere(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
     }
 
-    LhsBuilder<C> where(String... expressions);
+    default LhsBuilder<C> where(String... expressions) {
+        if(expressions != null) {
+            for (String expression : expressions) {
+                where(expression, EvaluatorHandle.DEFAULT_COMPLEXITY);
+            }
+        }
+        return this;
+    }
 
     LhsBuilder<C> where(EvaluatorHandle... expressions);
 

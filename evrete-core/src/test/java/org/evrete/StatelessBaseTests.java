@@ -1303,4 +1303,47 @@ class StatelessBaseTests {
 
     }
 
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    //TODO fix before the release, add invalid conditions
+    void exceptionHandler1(ActivationMode mode) {
+        RhsAssert rhsAssert1 = new RhsAssert("$a", TypeA.class);
+        RhsAssert rhsAssert2 = new RhsAssert("$a", TypeA.class);
+        RhsAssert rhsAssert3 = new RhsAssert("$a", TypeA.class);
+
+        knowledge.setRuleBuilderExceptionHandler(new RuleBuilderExceptionHandler() {
+            @Override
+            public void handle(RuleSet<?> context, RuleBuilder<?> builder, RuntimeException exception) {
+                // Skip the failing rule
+            }
+        });
+
+        knowledge.newRule("rule 1")
+                .forEach("$a", TypeA.class)
+                .where("$a.i > 4")
+                .execute(rhsAssert1)
+                .newRule("rule 2")
+                .forEach("$a", TypeA.class)
+                .where("$a.i > 5")
+                .execute(rhsAssert2)
+                .newRule("rule 3")
+                .forEach("$a", TypeA.class)
+                .where("$a.i <= 4") // Inverse to rule 1
+                .execute(rhsAssert3);
+
+
+        StatelessSession s = newSession(mode);
+
+        // This insert cycle will result in 5 matching As
+        for (int i = 0; i < 10; i++) {
+            TypeA a = new TypeA("A" + i);
+            a.setI(i);
+            s.insert(a);
+        }
+        s.fire();
+        rhsAssert1.assertCount(5);
+        rhsAssert2.assertCount(4);
+        rhsAssert3.assertCount(5);
+    }
+
 }

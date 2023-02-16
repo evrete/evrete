@@ -10,6 +10,7 @@ import org.evrete.util.DefaultActivationManager;
 import org.evrete.util.compiler.CompilationException;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,13 +22,11 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     private final KnowledgeService service;
     private final Configuration configuration;
     private ExpressionResolver expressionResolver;
+    private final AtomicInteger noNameRuleCounter;
     private Comparator<Rule> ruleComparator = SALIENCE_COMPARATOR;
     private Class<? extends ActivationManager> activationManagerFactory;
     private ActivationMode agendaMode;
-
-    AbstractRuntime(KnowledgeService service) {
-        this(service, service.newTypeResolver());
-    }
+    private RuleBuilderExceptionHandler ruleBuilderExceptionHandler;
 
     AbstractRuntime(KnowledgeService service, TypeResolver typeResolver) {
         super(service, typeResolver);
@@ -35,6 +34,14 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         this.service = service;
         this.activationManagerFactory = DefaultActivationManager.class;
         this.agendaMode = ActivationMode.DEFAULT;
+        this.ruleBuilderExceptionHandler = (context, ruleBuilder, e) -> {
+            throw e;
+        };
+        this.noNameRuleCounter = new AtomicInteger();
+    }
+
+    AbstractRuntime(KnowledgeService service) {
+        this(service, service.newTypeResolver());
     }
 
     /**
@@ -50,10 +57,28 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         this.activationManagerFactory = parent.activationManagerFactory;
         this.agendaMode = parent.agendaMode;
         this.expressionResolver = null;
+        this.ruleBuilderExceptionHandler = parent.ruleBuilderExceptionHandler;
+        this.noNameRuleCounter = parent.noNameRuleCounter;
     }
+
+    protected abstract void addRuleInner(RuleBuilder<?> builder);
 
     ActivationMode getAgendaMode() {
         return agendaMode;
+    }
+
+    @Override
+    public final void addRule(RuleBuilder<?> builder) {
+        try {
+            addRuleInner(builder);
+        } catch (RuntimeException e) {
+            this.ruleBuilderExceptionHandler.handle(this, builder, e);
+        }
+    }
+
+    @Override
+    public void setRuleBuilderExceptionHandler(RuleBuilderExceptionHandler handler) {
+        this.ruleBuilderExceptionHandler = handler;
     }
 
     @Override
@@ -153,7 +178,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
 
     @Override
     public RuleBuilder<C> newRule() {
-        return newRule(null);
+        return newRule("rule_" + noNameRuleCounter.incrementAndGet());
     }
 
     @Override
@@ -179,10 +204,6 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
             int salience = ruleBuilder.getSalience();
             if (salience == RuleBuilderImpl.NULL_SALIENCE) {
                 salience = -1 * (currentRuleCount + 1);
-            }
-
-            if (ruleName == null) {
-                ruleName = "Rule#" + currentRuleCount;
             }
 
             if (ruleExists(ruleBuilder.getName())) {

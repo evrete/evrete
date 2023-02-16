@@ -1,7 +1,6 @@
 package org.evrete.runtime;
 
 import org.evrete.AbstractRule;
-import org.evrete.api.RuleScope;
 import org.evrete.runtime.builder.RuleBuilderImpl;
 import org.evrete.util.MapFunction;
 import org.evrete.util.NextIntSupplier;
@@ -26,12 +25,6 @@ public final class RuleDescriptor extends AbstractRuntimeRule<FactType> {
     @Override
     public RuleDescriptor set(String property, Object value) {
         super.set(property, value);
-        return this;
-    }
-
-    @Override
-    public RuleDescriptor addImport(RuleScope scope, String imp) {
-        super.addImport(scope, imp);
         return this;
     }
 }

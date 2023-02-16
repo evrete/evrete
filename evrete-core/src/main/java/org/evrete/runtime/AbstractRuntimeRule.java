@@ -30,7 +30,6 @@ public abstract class AbstractRuntimeRule<T extends FactType> extends AbstractRu
                 throw new IllegalStateException();
             }
         }
-        appendImports(runtime.getImports());
         setRhs(getLiteralRhs());
     }
 
@@ -51,13 +50,12 @@ public abstract class AbstractRuntimeRule<T extends FactType> extends AbstractRu
 
     @Override
     public final void setRhs(String literalRhs) {
-        Collection<NamedType> namedTypes = new LinkedList<>();
-        for (FactType factType : factTypes) {
-            namedTypes.add(resolve(factType.getName()));
-        }
-
         if (literalRhs != null) {
-            setRhs(runtime.compile(literalRhs, namedTypes, getImports(), RuleScope.BOTH, RuleScope.RHS));
+            Collection<NamedType> namedTypes = new LinkedList<>();
+            for (FactType factType : factTypes) {
+                namedTypes.add(resolve(factType.getName()));
+            }
+            setRhs(runtime.compile(literalRhs, namedTypes, runtime.getImports(), RuleScope.BOTH, RuleScope.RHS));
         }
     }
 }

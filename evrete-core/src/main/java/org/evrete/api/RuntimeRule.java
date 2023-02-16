@@ -6,8 +6,6 @@ import java.util.Properties;
 
 public interface RuntimeRule extends Rule {
 
-    RuntimeRule addImport(RuleScope scope, String imp);
-
     RuleSession<?> getRuntime();
 
     /**
@@ -36,7 +34,7 @@ public interface RuntimeRule extends Rule {
     default Evaluator buildExpression(String expression, ClassLoader classLoader, Properties properties) {
         try {
             ExpressionResolver resolver = getRuntime().getExpressionResolver();
-            return resolver.buildExpression(expression, this, getImports().get(RuleScope.BOTH, RuleScope.LHS), classLoader, properties);
+            return resolver.buildExpression(expression, this, getRuntime().getImports().get(RuleScope.BOTH, RuleScope.LHS), classLoader, properties);
         } catch (CompilationException e) {
             throw new IllegalArgumentException("Unable to compile expression '" + expression + "'", e);
         }

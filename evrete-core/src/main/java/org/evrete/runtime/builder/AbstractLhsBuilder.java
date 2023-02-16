@@ -46,7 +46,7 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
     }
 
     private TypeResolver getTypeResolver() {
-        return ruleBuilder.getRuntimeContext().getTypeResolver();
+        return runtime.getTypeResolver();
     }
 
     private EvaluatorHandle add(EvaluatorHandle handle) {
@@ -74,17 +74,8 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
     }
 
     @Override
-    public G where(String... expressions) {
-        if (expressions == null || expressions.length == 0) return self();
-        for (String expression : expressions) {
-            whereInner(expression);
-        }
-        return self();
-    }
-
-    @Override
     public G where(EvaluatorHandle... expressions) {
-        if (expressions == null || expressions.length == 0) return self();
+        if (expressions == null) return self();
         for (EvaluatorHandle expression : expressions) {
             add(expression);
         }
@@ -147,7 +138,7 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
 
     @Override
     public EvaluatorHandle addWhere(String expression, double complexity, ClassLoader classLoader, Properties properties) {
-        Evaluator evaluator = runtime.compile(expression, this, ruleBuilder.getImports(), classLoader, properties);
+        Evaluator evaluator = runtime.compile(expression, this, ruleBuilder.getRuntime().getImports(), classLoader, properties);
         return add(runtime.addEvaluator(evaluator));
     }
 
@@ -163,18 +154,16 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
 
     @Override
     public EvaluatorHandle addWhere(ValuesPredicate predicate, double complexity, FieldReference... references) {
-        Evaluator evaluator = new EvaluatorOfPredicate(predicate, references);
-        return add(runtime.addEvaluator(evaluator));
+        return add(runtime.addEvaluator(new EvaluatorOfPredicate(predicate, references)));
     }
 
     @Override
     public EvaluatorHandle addWhere(Predicate<Object[]> predicate, double complexity, FieldReference... references) {
-        Evaluator evaluator = new EvaluatorOfArray(predicate, references);
-        return add(runtime.addEvaluator(evaluator));
+        return add(runtime.addEvaluator(new EvaluatorOfArray(predicate, references)));
     }
 
     private void whereInner(String expression, double complexity) {
-        Evaluator evaluator = runtime.compile(expression, this, ruleBuilder.getImports());
+        Evaluator evaluator = runtime.compile(expression, this, ruleBuilder.getRuntime().getImports());
         add(runtime.addEvaluator(evaluator, complexity));
     }
 
@@ -214,10 +203,6 @@ public abstract class AbstractLhsBuilder<C extends RuntimeContext<C>, G extends 
 
     private void whereInner(ValuesPredicate predicate, FieldReference[] references) {
         whereInner(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
-    }
-
-    private void whereInner(String expression) {
-        whereInner(expression, EvaluatorHandle.DEFAULT_COMPLEXITY);
     }
 
     private FieldReference[] resolveFieldReferences(String[] references) {

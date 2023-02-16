@@ -2,7 +2,7 @@ package org.evrete.api;
 
 import java.util.function.Consumer;
 
-public interface Rule extends FluentEnvironment<Rule>, Named, FluentImports<Rule>, NamedType.Resolver {
+public interface Rule extends FluentEnvironment<Rule>, Named, NamedType.Resolver {
 
     Consumer<RhsContext> getRhs();
 

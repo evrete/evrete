@@ -15,7 +15,6 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
     public RuleBuilderImpl(AbstractRuntime<?, C> ctx, String name) {
         super(name, NULL_SALIENCE);
         this.runtime = ctx;
-        this.appendImports(ctx.getImports());
         this.lhsBuilder = new LhsBuilderImpl<>(this);
     }
 
@@ -35,17 +34,6 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
         return lhsBuilder.resolve(var);
     }
 
-    @Override
-    public RuleBuilderImpl<C> addImport(RuleScope scope, String imp) {
-        super.addImport(scope, imp);
-        return this;
-    }
-
-    @Override
-    public RuleBuilder<C> addImport(RuleScope scope, Class<?> type) {
-        super.addImport(scope, type);
-        return this;
-    }
 
     @Override
     public <Z> RuleBuilder<C> property(String property, Z value) {
@@ -60,7 +48,7 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
     }
 
     C build() {
-        runtime.compileRule(this);
+        runtime.addRule(this);
         return getRuntime();
     }
 
