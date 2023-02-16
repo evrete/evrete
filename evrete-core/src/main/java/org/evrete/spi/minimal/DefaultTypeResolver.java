@@ -3,6 +3,7 @@ package org.evrete.spi.minimal;
 import org.evrete.api.Type;
 import org.evrete.api.TypeResolver;
 import org.evrete.api.TypeWrapper;
+import org.evrete.api.annotations.NonNull;
 import org.evrete.collections.ArrayOf;
 
 import java.util.*;
@@ -136,6 +137,7 @@ class DefaultTypeResolver implements TypeResolver {
     }
 
     @Override
+    @NonNull
     public synchronized <T> Type<T> declare(String typeName, Class<T> javaType) {
         Type<T> type = getType(typeName);
         if (type != null)

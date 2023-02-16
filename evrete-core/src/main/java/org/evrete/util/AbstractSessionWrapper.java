@@ -16,29 +16,27 @@ public abstract class AbstractSessionWrapper<S extends RuleSession<S>> extends R
         return delegate.getActivationManager();
     }
 
-    protected abstract S thisInstance();
-
     @Override
     public <T> Collector<T, ?, S> asCollector() {
-        return new SessionCollector<>(thisInstance());
+        return new SessionCollector<>(self());
     }
 
     @Override
     public S setActivationManager(ActivationManager activationManager) {
         delegate.setActivationManager(activationManager);
-        return thisInstance();
+        return self();
     }
 
     @Override
     public S setExecutionPredicate(BooleanSupplier criteria) {
         delegate.setExecutionPredicate(criteria);
-        return thisInstance();
+        return self();
     }
 
     @Override
     public S addEventListener(SessionLifecycleListener listener) {
         delegate.addEventListener(listener);
-        return thisInstance();
+        return self();
     }
 
     @Override
@@ -49,7 +47,7 @@ public abstract class AbstractSessionWrapper<S extends RuleSession<S>> extends R
     @Override
     public S removeEventListener(SessionLifecycleListener listener) {
         delegate.removeEventListener(listener);
-        return thisInstance();
+        return self();
     }
 
     @Override

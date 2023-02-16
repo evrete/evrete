@@ -1,18 +1,18 @@
-package org.evrete.runtime.builder;
+package org.evrete.runtime;
 
 import org.evrete.AbstractRule;
 import org.evrete.api.*;
-import org.evrete.runtime.AbstractRuntime;
+import org.evrete.api.annotations.NonNull;
 
 import java.util.Collection;
 import java.util.function.Consumer;
 
-public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule implements RuleBuilder<C> {
+class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule implements RuleBuilder<C> {
     public static final int NULL_SALIENCE = Integer.MIN_VALUE;
     private final AbstractRuntime<?, C> runtime;
     private final LhsBuilderImpl<C> lhsBuilder;
 
-    public RuleBuilderImpl(AbstractRuntime<?, C> ctx, String name) {
+    RuleBuilderImpl(AbstractRuntime<?, C> ctx, String name) {
         super(name, NULL_SALIENCE);
         this.runtime = ctx;
         this.lhsBuilder = new LhsBuilderImpl<>(this);
@@ -24,16 +24,17 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
         return this;
     }
 
+    @Override
     public RuleBuilderImpl<C> salience(int salience) {
         setSalience(salience);
         return this;
     }
 
     @Override
-    public NamedType resolve(String var) {
+    @NonNull
+    public NamedType resolve(@NonNull String var) {
         return lhsBuilder.resolve(var);
     }
-
 
     @Override
     public <Z> RuleBuilder<C> property(String property, Z value) {
@@ -73,8 +74,7 @@ public class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule i
         return lhsBuilder.buildLhs(facts);
     }
 
-    public AbstractRuntime<?, C> getRuntimeContext() {
+    AbstractRuntime<?, C> getRuntimeContext() {
         return runtime;
     }
-
 }

@@ -1,7 +1,7 @@
 package org.evrete.runtime.evaluation;
 
-import org.evrete.api.ComplexityObject;
 import org.evrete.api.EvaluatorHandle;
+import org.evrete.api.WorkUnit;
 import org.evrete.runtime.ActiveField;
 import org.evrete.runtime.FactType;
 import org.evrete.util.Mask;
@@ -18,7 +18,7 @@ public class BetaEvaluatorGroup implements BetaEvaluator {
     BetaEvaluatorGroup(Collection<BetaEvaluatorSingle> collection) {
         this.factTypeMask = Mask.factTypeMask();
         this.evaluators = collection.toArray(BetaEvaluatorSingle.ZERO_ARRAY);
-        Arrays.sort(evaluators, Comparator.comparingDouble(ComplexityObject::getComplexity));
+        Arrays.sort(evaluators, Comparator.comparingDouble(WorkUnit::getComplexity));
         Set<FactType> factTypes = new HashSet<>();
         double comp = 0.0;
         this.constituents = new EvaluatorHandle[evaluators.length];

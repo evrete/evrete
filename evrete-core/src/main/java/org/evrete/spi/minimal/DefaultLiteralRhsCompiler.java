@@ -68,15 +68,14 @@ public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider imp
     }
 
     @Override
-    public Consumer<RhsContext> compileRhs(RuntimeContext<?> requester, String literalRhs, Collection<NamedType> factTypes, Collection<String> imports) throws CompilationException {
-
-        NamedType[] types = factTypes.toArray(new NamedType[0]);
-
-        Class<? extends AbstractLiteralRhs> clazz = buildClass(requester.getClassLoader(), getCreateJavaCompiler(requester), types, literalRhs, imports);
+    public Consumer<RhsContext> compileRhs(RuntimeContext<?> requester, String literalRhs, NamedType[] types, Collection<String> imports) throws CompilationException {
         try {
+            Class<? extends AbstractLiteralRhs> clazz = buildClass(requester.getClassLoader(), getCreateJavaCompiler(requester), types, literalRhs, imports);
             return clazz.getDeclaredConstructor().newInstance();
-        } catch (Exception e) {
-            throw new IllegalStateException("Unable to initialize RHS", e);
+        } catch (CompilationException e) {
+            throw e;
+        }catch (Exception e) {
+            throw new CompilationException(e, literalRhs);
         }
     }
 }

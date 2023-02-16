@@ -2,6 +2,7 @@ package org.evrete.runtime;
 
 import org.evrete.Configuration;
 import org.evrete.api.*;
+import org.evrete.api.annotations.NonNull;
 import org.evrete.collections.ArrayOf;
 
 import java.util.Collection;
@@ -71,6 +72,7 @@ abstract class MemoryComponent implements TypeResolver {
     }
 
     @Override
+    @NonNull
     public <T> Type<T> declare(String typeName, Class<T> javaType) {
         return runtime.declare(typeName, javaType);
     }

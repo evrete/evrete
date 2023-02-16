@@ -4,7 +4,6 @@ import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.runtime.async.ForkJoinExecutor;
-import org.evrete.runtime.builder.RuleBuilderImpl;
 import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.DefaultActivationManager;
 import org.evrete.util.compiler.CompilationException;
@@ -12,10 +11,9 @@ import org.evrete.util.compiler.CompilationException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C>> extends RuntimeMetaData<C> implements RuleSet<R> {
+public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C>> extends RuntimeMetaData<C> implements RuleSet<R>, RuntimeContext<C> {
     private static final Logger LOGGER = Logger.getLogger(AbstractRuntime.class.getName());
     private final List<RuleBuilder<C>> ruleBuilders = new ArrayList<>();
 
@@ -143,29 +141,10 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         return service.getExecutor();
     }
 
-    public Evaluator compile(String expression, NamedType.Resolver resolver) {
-        return compile(expression, resolver, getClassLoader(), configuration);
-    }
-
-    public Evaluator compile(String expression, NamedType.Resolver resolver, ClassLoader classLoader, Properties properties) {
-        return compile(expression, resolver, getJavaImports(RuleScope.LHS, RuleScope.BOTH), classLoader, properties);
-    }
-
-    public Evaluator compile(String expression, NamedType.Resolver resolver, Imports imports) {
-        return compile(expression, resolver, imports, getClassLoader(), configuration);
-    }
-
-    public Evaluator compile(String expression, NamedType.Resolver resolver, Imports imports, ClassLoader classLoader, Properties properties) {
-        return compile(expression, resolver, imports.get(RuleScope.LHS, RuleScope.BOTH), classLoader,  properties);
-    }
-
-    private Evaluator compile(String expression, NamedType.Resolver resolver, Set<String> imports, ClassLoader classLoader, Properties properties) {
-        _assertActive();
+    Evaluator compileUnchecked(String expression, NamedType.Resolver resolver) {
         try {
-            return getExpressionResolver().buildExpression(expression, resolver, imports, classLoader, properties);
+            return compile(expression, resolver);
         } catch (CompilationException e) {
-            LOGGER.warning("Failed source code:\n" + e.getSource());
-            LOGGER.log(Level.SEVERE, "Compilation error", e);
             throw new RuntimeException(e);
         }
     }
@@ -215,10 +194,10 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         }
     }
 
-    Consumer<RhsContext> compile(String literalRhs, Collection<NamedType> namedTypes, Imports imports, RuleScope... scopes) {
+    Consumer<RhsContext> compile(String literalRhs, Collection<NamedType> namedTypes) {
         _assertActive();
         try {
-            return service.getLiteralRhsCompiler().compileRhs(this, literalRhs, namedTypes, imports.get(scopes));
+            return service.getLiteralRhsCompiler().compileRhs(this, literalRhs, namedTypes, getImports().get());
         } catch (CompilationException e) {
             Logger.getAnonymousLogger().warning("Failed source\n: " + e.getSource());
             throw new IllegalStateException(e);

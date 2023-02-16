@@ -1,5 +1,7 @@
 package org.evrete.api;
 
+import org.evrete.api.annotations.NonNull;
+
 /**
  * <p>
  * A runtime representation of a fact declaration. Every {@link FactBuilder} is eventually
@@ -14,6 +16,7 @@ public interface NamedType {
      *
      * @return runtime type of fact declaration
      */
+    @NonNull
     Type<?> getType();
 
     /**
@@ -30,6 +33,13 @@ public interface NamedType {
     }
 
     interface Resolver {
-        NamedType resolve(String var);
+        /**
+         * Returns {@link NamedType} by its declared variable name
+         * @param var variable name
+         * @return named type
+         * @throws java.util.NoSuchElementException if no type is declared under the given var name
+         */
+        @NonNull
+        NamedType resolve(@NonNull  String var);
     }
 }

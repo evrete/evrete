@@ -8,6 +8,7 @@ import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.runtime.KnowledgeRuntime;
 import org.evrete.util.NextIntSupplier;
+import org.evrete.util.compiler.CompilationException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +39,7 @@ class ExpressionsTest {
     }
 
     @Test
-    void test1() {
+    void test1() throws CompilationException {
         LhsBuilder<Knowledge> root = rule.forEach();
         assert root.addFactDeclaration("$a", TypeA.class).getName().equals("$a");
         NamedType b1 = root.addFactDeclaration("$b", TypeB.class.getName());
@@ -63,7 +64,7 @@ class ExpressionsTest {
     }
 
     @Test
-    void test2() {
+    void test2() throws CompilationException {
         LhsBuilder<Knowledge> root = rule.forEach();
         assert root.addFactDeclaration("$a", TypeA.class).getName().equals("$a");
         Evaluator ev1 = knowledge.compile("$a.i == 1", root);

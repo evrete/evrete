@@ -1,6 +1,8 @@
 package org.evrete;
 
-import org.evrete.api.*;
+import org.evrete.api.Copyable;
+import org.evrete.api.FluentImports;
+import org.evrete.api.Imports;
 
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -71,8 +73,8 @@ public class Configuration extends Properties implements Copyable<Configuration>
         return imports;
     }
 
-    public final Configuration addImport(RuleScope scope, String imp) {
-        this.imports.add(scope, imp);
+    public final Configuration addImport(String imp) {
+        this.imports.add(imp);
         return this;
     }
 

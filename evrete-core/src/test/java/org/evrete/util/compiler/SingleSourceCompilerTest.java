@@ -37,8 +37,8 @@ class SingleSourceCompilerTest {
     void compileMultiple() throws Exception {
         String classA = "\n" +
                 "package test.pkg1;\n" +
-                "import org.evrete.api.RuleScope;\n" +
-                "public class A { String s=RuleScope.class.getName();}";
+                "import org.evrete.api.FactHandle;\n" +
+                "public class A { String s=FactHandle.class.getName();}";
 
         String classB = "\n" +
                 "package test.pkg2;\n" +

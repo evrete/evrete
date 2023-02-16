@@ -9,4 +9,5 @@ public interface RuleBuilder<C extends RuntimeContext<C>> extends Rule, LhsFactS
     <Z> RuleBuilder<C> property(String property, Z value);
 
     C getRuntime();
+
 }

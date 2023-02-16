@@ -1,5 +1,8 @@
 package org.evrete.api;
 
+import org.evrete.api.annotations.NonNull;
+import org.evrete.api.annotations.Nullable;
+
 import java.util.Collection;
 
 /**
@@ -10,18 +13,23 @@ import java.util.Collection;
  */
 public interface TypeResolver extends Copyable<TypeResolver> {
 
+    @Nullable
     <T> Type<T> getType(String name);
 
+    @Nullable
     <T> Type<T> getType(int typeId);
 
     Collection<Type<?>> getKnownTypes();
 
     void wrapType(TypeWrapper<?> typeWrapper);
 
+    @NonNull
     <T> Type<T> declare(String typeName, Class<T> javaType);
 
+    @NonNull
     <T> Type<T> declare(String typeName, String javaType);
 
+    @NonNull
     default <T> Type<T> getOrDeclare(String typeName, Class<T> javaType) {
         Type<T> t = getType(typeName);
         if (t == null) {
@@ -30,6 +38,7 @@ public interface TypeResolver extends Copyable<TypeResolver> {
         return t;
     }
 
+    @NonNull
     default <T> Type<T> getOrDeclare(String typeName, String javaType) {
         Type<T> t = getType(typeName);
         if (t == null) {

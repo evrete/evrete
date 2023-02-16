@@ -1,5 +1,7 @@
 package org.evrete.api;
 
+import org.evrete.api.annotations.NonNull;
+
 import java.util.Collection;
 
 public class TypeResolverWrapper implements TypeResolver {
@@ -35,6 +37,7 @@ public class TypeResolverWrapper implements TypeResolver {
     }
 
     @Override
+    @NonNull
     public <T> Type<T> declare(String typeName, String javaType) {
         return delegate.declare(typeName, javaType);
     }

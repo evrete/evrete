@@ -3,7 +3,7 @@ package org.evrete.api;
 import java.util.HashSet;
 import java.util.Set;
 
-public interface EvaluatorHandle extends ComplexityObject {
+public interface EvaluatorHandle extends WorkUnit {
 
     FieldReference[] descriptor();
 

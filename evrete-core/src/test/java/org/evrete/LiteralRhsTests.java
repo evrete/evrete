@@ -1,6 +1,9 @@
 package org.evrete;
 
-import org.evrete.api.*;
+import org.evrete.api.Knowledge;
+import org.evrete.api.RuleBuilder;
+import org.evrete.api.RuntimeRule;
+import org.evrete.api.StatefulSession;
 import org.evrete.runtime.RuleDescriptor;
 import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
@@ -35,8 +38,8 @@ public class LiteralRhsTests {
     @Test
     void plainTest0() {
         knowledge
-                .addImport(RuleScope.RHS, "org.evrete.LiteralRhsTests.SystemOut")
-                .addImport(RuleScope.RHS, SystemOut.class)
+                .addImport("org.evrete.LiteralRhsTests.SystemOut")
+                .addImport(SystemOut.class)
                 .newRule()
                 .forEach("$n", Number.class)
                 .execute("SystemOut.out($n);");
@@ -53,11 +56,11 @@ public class LiteralRhsTests {
     @Test
     void plainTest1() {
         RuleBuilder<Knowledge> builder = knowledge
-                .addImport(RuleScope.RHS, "org.evrete.LiteralRhsTests.SystemOut")
-                .addImport(RuleScope.RHS, SystemOut.class)
+                .addImport("org.evrete.LiteralRhsTests.SystemOut")
+                .addImport(SystemOut.class)
                 .newRule()
                 .forEach("$n", Number.class)
-                .getRuleBuilder();
+                .create();
 
         RuleDescriptor descriptor = knowledge.compileRule(builder);
         descriptor.setRhs("SystemOut.out($n);");
@@ -73,11 +76,11 @@ public class LiteralRhsTests {
     @Test
     void plainTest2() {
         RuleBuilder<Knowledge> builder = knowledge
-                .addImport(RuleScope.RHS, "org.evrete.LiteralRhsTests.SystemOut")
-                .addImport(RuleScope.RHS, SystemOut.class)
+                .addImport("org.evrete.LiteralRhsTests.SystemOut")
+                .addImport(SystemOut.class)
                 .newRule("test")
                 .forEach("$n", Integer.class)
-                .getRuleBuilder();
+                .create();
 
         RuleDescriptor descriptor = knowledge.compileRule(builder);
         descriptor.setRhs("SystemOut.out($n);");

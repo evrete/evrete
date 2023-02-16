@@ -25,11 +25,6 @@ class DSLStatelessSession extends AbstractDSLSession<StatelessSession> implement
     }
 
     @Override
-    protected StatelessSession thisInstance() {
-        return this;
-    }
-
-    @Override
     public void fire(Consumer<Object> consumer) {
         delegate.fire(consumer);
     }

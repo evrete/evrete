@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 class TypeMemoryMetaData {
     private final int type;
-    private final Evaluators evaluators;
+    private final EvaluatorStorageImpl evaluators;
     private final MetaChangeListener listener;
     private final ArrayOf<FieldKeyMeta> keyMetas;
     private final AtomicInteger bucketCounter;
@@ -18,7 +18,7 @@ class TypeMemoryMetaData {
     ActiveField[] activeFields;
     AlphaEvaluator[] alphaEvaluators;
 
-    TypeMemoryMetaData(int type, Evaluators evaluators, AtomicInteger bucketIds, MetaChangeListener listener) {
+    TypeMemoryMetaData(int type, EvaluatorStorageImpl evaluators, AtomicInteger bucketIds, MetaChangeListener listener) {
         this.type = type;
         this.activeFields = ActiveField.ZERO_ARRAY;
         this.alphaEvaluators = new AlphaEvaluator[0];
@@ -29,7 +29,7 @@ class TypeMemoryMetaData {
         this.bucketIds = bucketIds;
     }
 
-    private TypeMemoryMetaData(TypeMemoryMetaData other, Evaluators evaluators, AtomicInteger bucketIds, MetaChangeListener listener) {
+    private TypeMemoryMetaData(TypeMemoryMetaData other, EvaluatorStorageImpl evaluators, AtomicInteger bucketIds, MetaChangeListener listener) {
         this.activeFields = Arrays.copyOf(other.activeFields, other.activeFields.length);
         this.alphaEvaluators = Arrays.copyOf(other.alphaEvaluators, other.alphaEvaluators.length);
         this.type = other.type;
@@ -53,7 +53,7 @@ class TypeMemoryMetaData {
         return alphaEvaluator;
     }
 
-    TypeMemoryMetaData copyOf(Evaluators evaluators, AtomicInteger bucketIds, MetaChangeListener listener) {
+    TypeMemoryMetaData copyOf(EvaluatorStorageImpl evaluators, AtomicInteger bucketIds, MetaChangeListener listener) {
         return new TypeMemoryMetaData(this, evaluators, bucketIds, listener);
     }
 
@@ -156,9 +156,9 @@ class TypeMemoryMetaData {
             this.direct = direct;
         }
 
-        static TypeMemoryMetaData.MatchedAlphaEvaluator search(Evaluators evaluators, AlphaEvaluator[] scope, EvaluatorHandle subject) {
+        static TypeMemoryMetaData.MatchedAlphaEvaluator search(EvaluatorStorageImpl evaluators, AlphaEvaluator[] scope, EvaluatorHandle subject) {
             for (AlphaEvaluator evaluator : scope) {
-                int cmp = evaluators.compare(evaluator.getDelegate(), subject);// evaluator.delegate.compare(subject);
+                int cmp = evaluators.compare(evaluator.getDelegate(), subject);
                 switch (cmp) {
                     case Evaluator.RELATION_EQUALS:
                         return new TypeMemoryMetaData.MatchedAlphaEvaluator(evaluator, true);

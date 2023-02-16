@@ -1,6 +1,5 @@
 package org.evrete.api;
 
-import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -11,14 +10,11 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
 
     /**
      * <p>
-     *     Deprecated, use {@link #getRuleBuilder()} instead.
+     *     Finishes LHS declaration and returns the rule builder
      * </p>
      * @return rule builder
      */
-    @Deprecated
-    default RuleBuilder<C> create() {
-        return getRuleBuilder();
-    }
+    RuleBuilder<C> create();
 
     /**
      * <p>
@@ -37,17 +33,12 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
      */
     C execute(Consumer<RhsContext> consumer);
 
-    RuleBuilder<C> getRuleBuilder();
 
-    default EvaluatorHandle addWhere(String expression, double complexity) {
-        RuntimeContext<?> ctx = getRuleBuilder().getRuntime();
-        return addWhere(expression, complexity, ctx.getClassLoader(), ctx.getConfiguration());
-    }
-
-    EvaluatorHandle addWhere(String expression, double complexity, ClassLoader classLoader, Properties properties);
+    EvaluatorHandle addWhere(String expression, double complexity);
 
     EvaluatorHandle addWhere(ValuesPredicate predicate, double complexity, String... references);
 
+    //TODO !!!! add javadoc with examples
     EvaluatorHandle addWhere(Predicate<Object[]> predicate, double complexity, String... references);
 
     EvaluatorHandle addWhere(ValuesPredicate predicate, double complexity, FieldReference... references);
@@ -55,34 +46,31 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
     EvaluatorHandle addWhere(Predicate<Object[]> predicate, double complexity, FieldReference... references);
 
     default EvaluatorHandle addWhere(String expression) {
-        RuntimeContext<?> ctx = getRuleBuilder().getRuntime();
-        return addWhere(expression, ctx.getClassLoader(), ctx.getConfiguration());
+        return addWhere(expression, WorkUnit.DEFAULT_COMPLEXITY);
     }
 
-    default EvaluatorHandle addWhere(String expression, ClassLoader classLoader, Properties properties) {
-        return addWhere(expression, EvaluatorHandle.DEFAULT_COMPLEXITY,  classLoader, properties);
-    }
-
+    //TODO !!!! add javadoc with examples
     default EvaluatorHandle addWhere(ValuesPredicate predicate, String... references) {
-        return addWhere(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
+        return addWhere(predicate, WorkUnit.DEFAULT_COMPLEXITY, references);
     }
 
+    //TODO !!!! add javadoc with examples
     default EvaluatorHandle addWhere(Predicate<Object[]> predicate, String... references) {
-        return addWhere(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
+        return addWhere(predicate, WorkUnit.DEFAULT_COMPLEXITY, references);
     }
 
     default EvaluatorHandle addWhere(ValuesPredicate predicate, FieldReference... references) {
-        return addWhere(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
+        return addWhere(predicate, WorkUnit.DEFAULT_COMPLEXITY, references);
     }
 
     default EvaluatorHandle addWhere(Predicate<Object[]> predicate, FieldReference... references) {
-        return addWhere(predicate, EvaluatorHandle.DEFAULT_COMPLEXITY, references);
+        return addWhere(predicate, WorkUnit.DEFAULT_COMPLEXITY, references);
     }
 
     default LhsBuilder<C> where(String... expressions) {
         if(expressions != null) {
             for (String expression : expressions) {
-                where(expression, EvaluatorHandle.DEFAULT_COMPLEXITY);
+                where(expression, WorkUnit.DEFAULT_COMPLEXITY);
             }
         }
         return this;
@@ -94,19 +82,27 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
 
     LhsBuilder<C> where(Predicate<Object[]> predicate, double complexity, String... references);
 
-    LhsBuilder<C> where(Predicate<Object[]> predicate, String... references);
+    default LhsBuilder<C> where(Predicate<Object[]> predicate, String... references) {
+        return where(predicate, WorkUnit.DEFAULT_COMPLEXITY, references);
+    }
 
     LhsBuilder<C> where(ValuesPredicate predicate, double complexity, String... references);
 
-    LhsBuilder<C> where(ValuesPredicate predicate, String... references);
+    default LhsBuilder<C> where(ValuesPredicate predicate, String... references) {
+        return where(predicate, WorkUnit.DEFAULT_COMPLEXITY, references);
+    }
 
     LhsBuilder<C> where(Predicate<Object[]> predicate, double complexity, FieldReference... references);
 
-    LhsBuilder<C> where(Predicate<Object[]> predicate, FieldReference... references);
+    default LhsBuilder<C> where(Predicate<Object[]> predicate, FieldReference... references) {
+        return where(predicate, WorkUnit.DEFAULT_COMPLEXITY, references);
+    }
 
     LhsBuilder<C> where(ValuesPredicate predicate, double complexity, FieldReference... references);
 
-    LhsBuilder<C> where(ValuesPredicate predicate, FieldReference... references);
+    default LhsBuilder<C> where(ValuesPredicate predicate, FieldReference... references) {
+        return where(predicate, WorkUnit.DEFAULT_COMPLEXITY, references);
+    }
 
     NamedType addFactDeclaration(String name, Type<?> type);
 

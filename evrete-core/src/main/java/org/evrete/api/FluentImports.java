@@ -4,20 +4,20 @@ import java.util.Set;
 
 public interface FluentImports<T> {
 
-    T addImport(RuleScope scope, String imp);
+    T addImport(String imp);
 
-    default T addImport(RuleScope scope, Class<?> type) {
+    default T addImport(Class<?> type) {
         String canonicalName = type.getCanonicalName();
         if (canonicalName == null) {
             throw new IllegalArgumentException("Can not import " + type + ", it's canonical name is null.");
         } else {
-            return addImport(scope, canonicalName);
+            return addImport(canonicalName);
         }
     }
 
     Imports getImports();
 
-    default Set<String> getJavaImports(RuleScope... scopes) {
-        return getImports().get(scopes);
+    default Set<String> getJavaImports() {
+        return getImports().get();
     }
 }

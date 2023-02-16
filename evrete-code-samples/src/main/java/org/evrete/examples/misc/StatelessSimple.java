@@ -15,7 +15,7 @@ public class StatelessSimple {
         service.shutdown();
     }
 
-    private static void withoutKnowledge(KnowledgeService service) {
+    private static void withKnowledge(KnowledgeService service) {
         Knowledge knowledge = service
                 .newKnowledge()
                 .newRule()
@@ -35,7 +35,7 @@ public class StatelessSimple {
         System.out.println("Post-value: " + obj.get()); // Prints 10
     }
 
-    private static void withKnowledge(KnowledgeService service) {
+    private static void withoutKnowledge(KnowledgeService service) {
         StatelessSession session = service
                 .newStatelessSession()
                 .newRule()

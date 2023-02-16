@@ -3,6 +3,7 @@ package org.evrete.util;
 import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
+import org.evrete.util.compiler.CompilationException;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -36,17 +37,26 @@ public class RuntimeContextWrapper<C extends RuntimeContext<C>> implements Runti
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    public Evaluator compile(String expression, NamedType.Resolver resolver) throws CompilationException {
+        return delegate.compile(expression, resolver);
+    }
+
+    @Override
     public C set(String property, Object value) {
         delegate.set(property, value);
+        return self();
+    }
+
+
+    @SuppressWarnings("unchecked")
+    protected C self() {
         return (C) this;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public C addImport(RuleScope scope, String imp) {
-        delegate.addImport(scope, imp);
-        return (C) this;
+    public C addImport(String imp) {
+        delegate.addImport(imp);
+        return self();
     }
 
     @Override
@@ -80,10 +90,9 @@ public class RuntimeContextWrapper<C extends RuntimeContext<C>> implements Runti
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public C setActivationMode(ActivationMode activationMode) {
         delegate.setActivationMode(activationMode);
-        return (C) this;
+        return self();
     }
 
     @Override
