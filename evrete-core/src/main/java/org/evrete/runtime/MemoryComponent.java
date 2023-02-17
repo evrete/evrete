@@ -51,11 +51,13 @@ abstract class MemoryComponent implements TypeResolver {
         return runtime.copyOf();
     }
 
+    @NonNull
     @Override
     public <T> Type<T> getType(String name) {
         return runtime.getType(name);
     }
 
+    @NonNull
     @Override
     public <T> Type<T> getType(int typeId) {
         return runtime.getType(typeId);
@@ -73,12 +75,13 @@ abstract class MemoryComponent implements TypeResolver {
 
     @Override
     @NonNull
-    public <T> Type<T> declare(String typeName, Class<T> javaType) {
+    public <T> Type<T> declare(@NonNull String typeName, @NonNull Class<T> javaType) {
         return runtime.declare(typeName, javaType);
     }
 
+    @NonNull
     @Override
-    public <T> Type<T> declare(String typeName, String javaType) {
+    public <T> Type<T> declare(@NonNull String typeName, @NonNull String javaType) {
         return runtime.declare(typeName, javaType);
     }
 

@@ -11,14 +11,18 @@ public interface RuntimeRule extends Rule {
      * <p>
      * Compiles a string expression and returns it as an {@link Evaluator} instance.
      * </p>
+     * <p>
+     * The method is deprecated and will be removed in the upcoming releases,
+     * use the {@link RuntimeContext#compile(String, NamedType.Resolver)} instead
+     * </p>
      *
      * @param expression expression to compile
      * @return evaluator instance
      */
+    @Deprecated
     default Evaluator buildExpression(String expression) {
         try {
-            ExpressionResolver resolver = getRuntime().getExpressionResolver();
-            return resolver.buildExpression(expression, this, getRuntime().getImports().get());
+            return getRuntime().compile(expression, this);
         } catch (CompilationException e) {
             throw new IllegalArgumentException("Unable to compile expression '" + expression + "'", e);
         }

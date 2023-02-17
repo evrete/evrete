@@ -2,6 +2,7 @@ package org.evrete;
 
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
+import org.evrete.api.StatelessSession;
 import org.evrete.api.ValuesPredicate;
 import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
@@ -370,42 +371,42 @@ class PredicatesTests {
                 .where(rule2_3, "$b.f")
                 .execute(rhsAssert2);
 
-        StatefulSession s = knowledge.newStatefulSession();
+        try(StatefulSession s = knowledge.newStatefulSession()) {
+            TypeA a = new TypeA("A");
+            a.setAllNumeric(0);
 
-        TypeA a = new TypeA("A");
-        a.setAllNumeric(0);
+            TypeA aa = new TypeA("AA");
+            aa.setAllNumeric(2);
 
-        TypeA aa = new TypeA("AA");
-        aa.setAllNumeric(2);
+            TypeA aaa = new TypeA("AAA");
+            aaa.setAllNumeric(3);
 
-        TypeA aaa = new TypeA("AAA");
-        aaa.setAllNumeric(3);
+            TypeB b = new TypeB("B");
+            b.setAllNumeric(9);
 
-        TypeB b = new TypeB("B");
-        b.setAllNumeric(9);
+            TypeB bb = new TypeB("BB");
+            bb.setAllNumeric(100);
 
-        TypeB bb = new TypeB("BB");
-        bb.setAllNumeric(100);
+            s.insertAndFire(a, aa, aaa, b, bb);
 
-        s.insertAndFire(a, aa, aaa, b, bb);
+            rhsAssert1
+                    .assertCount(2)
+                    .assertUniqueCount("$b", 1)
+                    .assertContains("$b", bb)
+                    .assertUniqueCount("$a", 2)
+                    .assertContains("$a", aa)
+                    .assertContains("$a", aaa)
+                    .reset();
 
-        rhsAssert1
-                .assertCount(2)
-                .assertUniqueCount("$b", 1)
-                .assertContains("$b", bb)
-                .assertUniqueCount("$a", 2)
-                .assertContains("$a", aa)
-                .assertContains("$a", aaa)
-                .reset();
-
-        rhsAssert2
-                .assertCount(2)
-                .assertUniqueCount("$b", 1)
-                .assertContains("$b", b)
-                .assertUniqueCount("$a", 2)
-                .assertContains("$a", a)
-                .assertContains("$a", aa)
-                .reset();
+            rhsAssert2
+                    .assertCount(2)
+                    .assertUniqueCount("$b", 1)
+                    .assertContains("$b", b)
+                    .assertUniqueCount("$a", 2)
+                    .assertContains("$a", a)
+                    .assertContains("$a", aa)
+                    .reset();
+        }
     }
 
     @Test
@@ -435,45 +436,46 @@ class PredicatesTests {
                         }
                 );
 
-        StatefulSession s = knowledge.newStatefulSession();
+        try (StatefulSession s = knowledge.newStatefulSession()) {
 
-        TypeA a1 = new TypeA("A3");
-        a1.setI(3);
+            TypeA a1 = new TypeA("A3");
+            a1.setI(3);
 
-        TypeA a2 = new TypeA("A5");
-        a2.setI(5);
+            TypeA a2 = new TypeA("A5");
+            a2.setI(5);
 
-        s.insertAndFire(a1, a2);
-        assert collectedJoinedIds.isEmpty();
+            s.insertAndFire(a1, a2);
+            assert collectedJoinedIds.isEmpty();
 
 
-        for (int i = 0; i < 20; i++) {
-            TypeA misc = new TypeA();
-            misc.setI(i + 1000);
-            s.insertAndFire(misc);
+            for (int i = 0; i < 20; i++) {
+                TypeA misc = new TypeA();
+                misc.setI(i + 1000);
+                s.insertAndFire(misc);
+            }
+
+            assert collectedJoinedIds.isEmpty();
+
+            TypeA a3 = new TypeA("A15");
+            a3.setI(15);
+
+            s.insertAndFire(a3);
+            assert collectedJoinedIds.size() == 2 : "Actual data: " + collectedJoinedIds;
+            assert collectedJoinedIds.contains("A3A5A15") : "Actual: " + collectedJoinedIds;
+            assert collectedJoinedIds.contains("A5A3A15");
+
+
+            TypeA a7 = new TypeA("A7");
+            a7.setI(7);
+
+            TypeA a11 = new TypeA("A11");
+            a11.setI(11);
+
+            TypeA a77 = new TypeA("A77");
+            a77.setI(77);
+
+            s.insertAndFire(a7, a11, a77);
         }
-
-        assert collectedJoinedIds.isEmpty();
-
-        TypeA a3 = new TypeA("A15");
-        a3.setI(15);
-
-        s.insertAndFire(a3);
-        assert collectedJoinedIds.size() == 2 : "Actual data: " + collectedJoinedIds;
-        assert collectedJoinedIds.contains("A3A5A15") : "Actual: " + collectedJoinedIds;
-        assert collectedJoinedIds.contains("A5A3A15");
-
-
-        TypeA a7 = new TypeA("A7");
-        a7.setI(7);
-
-        TypeA a11 = new TypeA("A11");
-        a11.setI(11);
-
-        TypeA a77 = new TypeA("A77");
-        a77.setI(77);
-
-        s.insertAndFire(a7, a11, a77);
         assert collectedJoinedIds.size() == 4 : "Actual " + collectedJoinedIds;
         assert collectedJoinedIds.contains("A3A5A15");
         assert collectedJoinedIds.contains("A5A3A15");
@@ -510,32 +512,35 @@ class PredicatesTests {
                 .where(p2, "$b.i")
                 .execute(rhsAssert);
 
-        StatefulSession s = knowledge.newStatefulSession();
+        TypeC c1;
+        TypeC c2;
+        try (StatefulSession s = knowledge.newStatefulSession()) {
 
-        // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
-        for (int i = 0; i < 10; i++) {
-            TypeA a = new TypeA("A" + i);
-            a.setI(i);
-            TypeB b = new TypeB("B" + i);
-            b.setI(i);
-            s.insert(a, b);
+            // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
+            for (int i = 0; i < 10; i++) {
+                TypeA a = new TypeA("A" + i);
+                a.setI(i);
+                TypeB b = new TypeB("B" + i);
+                b.setI(i);
+                s.insert(a, b);
+            }
+            s.fire();
+            c1 = new TypeC("C");
+            c2 = new TypeC("C");
+            rhsAssert.assertCount(0).reset();
+            s.insert(c1);
+            s.fire();
+            rhsAssert
+                    .assertCount(30)
+                    .assertContains("$c", c1)
+                    .reset();
+            s.insert(c2);
+            s.fire();
+            rhsAssert
+                    .assertCount(30)
+                    .assertNotContains("$c", c1)
+                    .assertContains("$c", c2);
         }
-        s.fire();
-        TypeC c1 = new TypeC("C");
-        TypeC c2 = new TypeC("C");
-        rhsAssert.assertCount(0).reset();
-        s.insert(c1);
-        s.fire();
-        rhsAssert
-                .assertCount(30)
-                .assertContains("$c", c1)
-                .reset();
-        s.insert(c2);
-        s.fire();
-        rhsAssert
-                .assertCount(30)
-                .assertNotContains("$c", c1)
-                .assertContains("$c", c2);
     }
 
     @Test
@@ -574,38 +579,39 @@ class PredicatesTests {
                 .execute(rhsAssert)
         ;
 
-        StatefulSession s = knowledge.newStatefulSession();
+        try (StatefulSession s = knowledge.newStatefulSession()) {
 
-        // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
-        for (int i = 0; i < 10; i++) {
-            TypeA a = new TypeA("A" + i);
-            a.setI(i);
-            TypeB b = new TypeB("B" + i);
-            b.setI(i);
-            s.insert(a, b);
-        }
-        s.fire();
-        rhsAssert.assertCount(0).reset(); // No instances of TypeC
+            // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
+            for (int i = 0; i < 10; i++) {
+                TypeA a = new TypeA("A" + i);
+                a.setI(i);
+                TypeB b = new TypeB("B" + i);
+                b.setI(i);
+                s.insert(a, b);
+            }
+            s.fire();
+            rhsAssert.assertCount(0).reset(); // No instances of TypeC
 
-        // This insert cycle will result in 3 matching pairs of C (7,8,9)
-        for (int i = 0; i < 10; i++) {
-            TypeC c = new TypeC("C" + i);
-            c.setI(i);
-            s.insert(c);
+            // This insert cycle will result in 3 matching pairs of C (7,8,9)
+            for (int i = 0; i < 10; i++) {
+                TypeC c = new TypeC("C" + i);
+                c.setI(i);
+                s.insert(c);
+            }
+            s.fire();
+            rhsAssert
+                    .assertCount(30 * 3)
+                    .assertUniqueCount("$a", 5)
+                    .assertUniqueCount("$b", 6)
+                    .assertUniqueCount("$c", 3);
         }
-        s.fire();
-        rhsAssert
-                .assertCount(30 * 3)
-                .assertUniqueCount("$a", 5)
-                .assertUniqueCount("$b", 6)
-                .assertUniqueCount("$c", 3);
     }
 
     @Test
     void testMethodInConditions1() {
         AtomicInteger counter = new AtomicInteger(0);
 
-        StatefulSession session = knowledge
+        knowledge = knowledge
                 .newRule()
                 .forEach(
                         "$a1", TypeA.class,
@@ -617,26 +623,26 @@ class PredicatesTests {
                     TypeA a1 = ctx.get("$a1");
                     TypeA a2 = ctx.get("$a2");
                     assert Objects.equals(a1.getStr(), a2.getStr());
-                })
-                .newStatefulSession();
+                });
 
-        int count = 16;
-        for (int i = 0; i < count; i++) {
-            TypeA a = new TypeA("A" + i);
-            a.setStr(String.valueOf(i));
-            session.insert(a);
+        try (StatefulSession session = knowledge.newStatefulSession()) {
+            int count = 16;
+            for (int i = 0; i < count; i++) {
+                TypeA a = new TypeA("A" + i);
+                a.setStr(String.valueOf(i));
+                session.insert(a);
+            }
+
+            session.fire();
+            assert counter.get() == count;
         }
-
-        session.fire();
-        assert counter.get() == count;
-
     }
 
     @Test
     void testMethodInConditions2() {
         AtomicInteger counter = new AtomicInteger(0);
 
-        StatefulSession session = knowledge
+        StatelessSession session = knowledge
                 .newRule()
                 .forEach(
                         "$a1", TypeA.class
@@ -647,7 +653,7 @@ class PredicatesTests {
                     TypeA a1 = ctx.get("$a1");
                     assert !Objects.equals(a1.getStr(), "0");
                 })
-                .newStatefulSession();
+                .newStatelessSession();
 
         int count = 16;
         for (int i = 0; i < count; i++) {
@@ -665,7 +671,7 @@ class PredicatesTests {
     void testMethodInConditions3() {
         AtomicInteger counter = new AtomicInteger(0);
 
-        StatefulSession session = knowledge
+        StatelessSession session = knowledge
                 .newRule()
                 .forEach(
                         "$a1", TypeA.class
@@ -676,7 +682,7 @@ class PredicatesTests {
                     TypeA a1 = ctx.get("$a1");
                     assert !Objects.equals(a1.getStr(), "0");
                 })
-                .newStatefulSession();
+                .newStatelessSession();
 
         int count = 16;
         for (int i = 0; i < count; i++) {
@@ -694,7 +700,7 @@ class PredicatesTests {
     void testMethodInConditions4() {
         AtomicInteger counter = new AtomicInteger(0);
 
-        StatefulSession session = knowledge
+        StatelessSession session = knowledge
                 .newRule()
                 .forEach(
                         "$a1", TypeA.class
@@ -705,7 +711,7 @@ class PredicatesTests {
                     TypeA a1 = ctx.get("$a1");
                     assert !Objects.equals(a1.getStr(), "0");
                 })
-                .newStatefulSession();
+                .newStatelessSession();
 
         int count = 16;
         for (int i = 0; i < count; i++) {
@@ -723,7 +729,7 @@ class PredicatesTests {
     void testBaseConditionClass() {
         AtomicInteger counter = new AtomicInteger(0);
 
-        StatefulSession session = knowledge
+        StatelessSession session = knowledge
                 .newRule()
                 .forEach(
                         "$a1", TypeA.class,
@@ -739,7 +745,7 @@ class PredicatesTests {
                     assert Objects.equals(a1.getStr(), a2.getStr());
                     assert Objects.equals(a1.getStr(), a3.getStr());
                 })
-                .newStatefulSession();
+                .newStatelessSession();
 
         int count = 16;
         for (int i = 0; i < count; i++) {

@@ -89,7 +89,10 @@ public final class TypeMemory extends TypeMemoryBase {
 
             this.fields = new TypeField[meta.activeFields.length];
             for (int i = 0; i < meta.activeFields.length; i++) {
-                this.fields[i] = type.getField(meta.activeFields[i].field());
+
+                String fieldName = meta.activeFields[i].getName();
+                TypeField tf = type.getField(fieldName);
+                this.fields[i] = tf;
             }
             this.currentValues = new Object[this.fields.length];
             this.hasAlphaConditions = meta.alphaEvaluators.length > 0;

@@ -192,11 +192,13 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         return typeResolver.copyOf();
     }
 
+    @NonNull
     @Override
     public <T> Type<T> getType(String name) {
         return typeResolver.getType(name);
     }
 
+    @NonNull
     @Override
     public <T> Type<T> getType(int typeId) {
         return typeResolver.getType(typeId);
@@ -214,12 +216,13 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
 
     @Override
     @NonNull
-    public <T> Type<T> declare(String typeName, Class<T> javaType) {
+    public <T> Type<T> declare(@NonNull String typeName, @NonNull Class<T> javaType) {
         return typeResolver.declare(typeName, javaType);
     }
 
+    @NonNull
     @Override
-    public <T> Type<T> declare(String typeName, String javaType) {
+    public <T> Type<T> declare(@NonNull String typeName, @NonNull String javaType) {
         return typeResolver.declare(typeName, javaType);
     }
 

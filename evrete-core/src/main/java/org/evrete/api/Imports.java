@@ -36,6 +36,17 @@ public class Imports implements Copyable<Imports>, Serializable {
         return Collections.unmodifiableSet(imports);
     }
 
+
+    public void asJavaImportStatements(StringBuilder destination) {
+        String sep = System.lineSeparator();
+        if (!imports.isEmpty()) {
+            for (String imp : imports) {
+                destination.append("import ").append(imp).append(";").append(sep);
+            }
+            destination.append(sep);
+        }
+    }
+
     @Override
     public Imports copyOf() {
         return new Imports(this);

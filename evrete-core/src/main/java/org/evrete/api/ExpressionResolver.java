@@ -3,8 +3,6 @@ package org.evrete.api;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.util.compiler.CompilationException;
 
-import java.util.Set;
-
 /**
  * An interface with a set of basic methods that are necessary for parsing string expressions.
  */
@@ -52,13 +50,12 @@ public interface ExpressionResolver {
      *
      * @param expression - a String condition expression to parse
      * @param resolver         a mapping function between fact name and {@link NamedType}
-     * @param imports          a collection of class imports
      * @return returns an {@link Evaluator} instance or throws an exception
      * @throws CompilationException     if the argument can not be compiled
      * @throws IllegalArgumentException if the expression can not be resolved
      * @see #resolve(String, NamedType.Resolver)
      */
     @NonNull
-    Evaluator buildExpression(String expression, NamedType.Resolver resolver, Set<String> imports) throws CompilationException;
+    Evaluator buildExpression(String expression, NamedType.Resolver resolver) throws CompilationException;
 
 }

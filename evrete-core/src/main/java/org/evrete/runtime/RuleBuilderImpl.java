@@ -3,9 +3,12 @@ package org.evrete.runtime;
 import org.evrete.AbstractRule;
 import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
+import org.evrete.runtime.evaluation.EvaluatorOfArray;
+import org.evrete.runtime.evaluation.EvaluatorOfPredicate;
 
 import java.util.Collection;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule implements RuleBuilder<C> {
     public static final int NULL_SALIENCE = Integer.MIN_VALUE;
@@ -42,7 +45,6 @@ class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule implemen
         return this;
     }
 
-
     @Override
     public LhsBuilderImpl<C> getLhs() {
         return lhsBuilder;
@@ -77,4 +79,35 @@ class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule implemen
     AbstractRuntime<?, C> getRuntimeContext() {
         return runtime;
     }
+
+    @Override
+    public EvaluatorHandle createCondition(ValuesPredicate predicate, double complexity, FieldReference... references) {
+        return runtime.addEvaluator(new EvaluatorOfPredicate(predicate, references), complexity);
+    }
+
+    @Override
+    public EvaluatorHandle createCondition(Predicate<Object[]> predicate, double complexity, FieldReference... references) {
+        return runtime.addEvaluator(new EvaluatorOfArray(predicate, references), complexity);
+    }
+
+    @Override
+    public EvaluatorHandle createCondition(String expression, double complexity) {
+        Evaluator evaluator = runtime.compileUnchecked(expression, this);
+        return runtime.addEvaluator(evaluator, complexity);
+    }
+
+    @Override
+    public EvaluatorHandle createCondition(ValuesPredicate predicate, double complexity, String... references) {
+        return createCondition(predicate, complexity, resolveFieldReferences(references));
+    }
+
+    @Override
+    public EvaluatorHandle createCondition(Predicate<Object[]> predicate, double complexity, String... references) {
+        return createCondition(predicate, complexity, resolveFieldReferences(references));
+    }
+
+    private FieldReference[] resolveFieldReferences(String[] references) {
+        return runtime.resolveFieldReferences(references, this);
+    }
+
 }

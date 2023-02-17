@@ -2,13 +2,17 @@ package org.evrete.spi.minimal;
 
 import org.evrete.api.Evaluator;
 import org.evrete.api.FieldReference;
+import org.evrete.api.Imports;
 import org.evrete.api.IntToValue;
 import org.evrete.util.NextIntSupplier;
 import org.evrete.util.StringLiteralRemover;
 import org.evrete.util.compiler.CompilationException;
 
 import java.lang.invoke.MethodHandle;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.StringJoiner;
 
 class EvaluatorCompiler {
     private static final String JAVA_EVALUATOR_TEMPLATE = "package %s;\n" +
@@ -54,7 +58,7 @@ class EvaluatorCompiler {
         }
     }
 
-    Evaluator buildExpression(ClassLoader classLoader, String baseClassName, StringLiteralRemover remover, String strippedExpression, List<ConditionStringTerm> terms, Set<String> imports) throws CompilationException {
+    Evaluator buildExpression(ClassLoader classLoader, String baseClassName, StringLiteralRemover remover, String strippedExpression, List<ConditionStringTerm> terms, Imports imports) throws CompilationException {
         int accumulatedShift = 0;
         StringJoiner argClasses = new StringJoiner(", ");
         StringJoiner argTypes = new StringJoiner(", ");
@@ -90,14 +94,8 @@ class EvaluatorCompiler {
         }
 
         // Adding imports
-        //TODO move this duplicated code to the Imports class
         StringBuilder importsBuilder = new StringBuilder(1024);
-        if (!imports.isEmpty()) {
-            for (String imp : imports) {
-                importsBuilder.append("import ").append(imp).append(";\n");
-            }
-            importsBuilder.append("\n");
-        }
+        imports.asJavaImportStatements(importsBuilder);
 
 
         String replaced = remover.unwrapLiterals(strippedExpression);

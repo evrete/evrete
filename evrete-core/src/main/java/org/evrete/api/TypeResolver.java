@@ -13,21 +13,68 @@ import java.util.Collection;
  */
 public interface TypeResolver extends Copyable<TypeResolver> {
 
+    /**
+     * @param name type's declared name
+     * @return existing {@link Type} or {@code null} if not found
+     * @param <T> type parameter
+     */
     @Nullable
     <T> Type<T> getType(String name);
 
-    @Nullable
+    /**
+     * @param typeId type id
+     * @return existing {@link Type}
+     * @param <T> type parameter
+     * @throws java.util.NoSuchElementException if not found
+     */
+    @NonNull
     <T> Type<T> getType(int typeId);
 
     Collection<Type<?>> getKnownTypes();
 
     void wrapType(TypeWrapper<?> typeWrapper);
 
-    @NonNull
-    <T> Type<T> declare(String typeName, Class<T> javaType);
+    /**
+     * <p>
+     *     Declares and registers new {@link Type} with the given Java class name.
+     *     The name of the resulting type will be {@link Class#getName()}
+     * </p>
+     * @param type Java class
+     * @return new internal type
+     * @param <T> java class type parameter
+     * @throws IllegalStateException if such type name has been already declared
+     */
+    default <T> Type<T> declare(@NonNull Class<T> type) {
+        return declare(type.getName(), type);
+    }
 
+    /**
+     * <p>
+     *     Declares and registers new {@link Type} with the given type name and Java class
+     * </p>
+     * @param typeName name of the type
+     * @param javaType Java class
+     * @return new internal type
+     * @param <T> java class type parameter
+     * @throws IllegalStateException if such type name has been already declared
+     */
     @NonNull
-    <T> Type<T> declare(String typeName, String javaType);
+    <T> Type<T> declare(@NonNull String typeName, @NonNull Class<T> javaType);
+
+    /**
+     * <p>
+     *     Declares and registers new {@link Type} with the given type name and Java class name.
+     *     The existence of the corresponding Java class will be checked lazily, when the engine
+     *     requires access to the class's properties.
+     * </p>
+     * @param typeName name of the type
+     * @param javaType Java class
+     * @return new internal type
+     * @param <T> java class type parameter
+     * @throws IllegalStateException if such type name has been already declared
+     */
+    @NonNull
+    <T> Type<T> declare(@NonNull String typeName, @NonNull String javaType);
 
     @NonNull
     default <T> Type<T> getOrDeclare(String typeName, Class<T> javaType) {
@@ -55,9 +102,6 @@ public interface TypeResolver extends Copyable<TypeResolver> {
         return getOrDeclare(cl.getName(), cl);
     }
 
-    default <T> Type<T> declare(Class<T> type) {
-        return declare(type.getName(), type);
-    }
 
     /**
      * @param o   object to resolve

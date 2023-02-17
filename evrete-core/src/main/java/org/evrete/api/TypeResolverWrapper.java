@@ -11,6 +11,7 @@ public class TypeResolverWrapper implements TypeResolver {
         this.delegate = delegate;
     }
 
+    @NonNull
     @Override
     public <T> Type<T> getType(int typeId) {
         return delegate.getType(typeId);
@@ -21,6 +22,7 @@ public class TypeResolverWrapper implements TypeResolver {
         delegate.wrapType(typeWrapper);
     }
 
+    @NonNull
     @Override
     public <T> Type<T> getType(String name) {
         return delegate.getType(name);
@@ -38,7 +40,7 @@ public class TypeResolverWrapper implements TypeResolver {
 
     @Override
     @NonNull
-    public <T> Type<T> declare(String typeName, String javaType) {
+    public <T> Type<T> declare(@NonNull String typeName, @NonNull String javaType) {
         return delegate.declare(typeName, javaType);
     }
 
@@ -47,8 +49,9 @@ public class TypeResolverWrapper implements TypeResolver {
         return new TypeResolverWrapper(delegate.copyOf());
     }
 
+    @NonNull
     @Override
-    public <T> Type<T> declare(String typeName, Class<T> javaType) {
+    public <T> Type<T> declare(@NonNull String typeName, @NonNull Class<T> javaType) {
         return delegate.declare(typeName, javaType);
     }
 }

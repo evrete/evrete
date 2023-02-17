@@ -10,9 +10,9 @@ import java.util.Collection;
 import java.util.function.Consumer;
 
 public interface LiteralRhsCompiler extends OrderedServiceProvider {
-    default Consumer<RhsContext> compileRhs(RuntimeContext<?> requester, String literalRhs, Collection<NamedType> factTypes, Collection<String> imports) throws CompilationException {
+    default Consumer<RhsContext> compileRhs(RuntimeContext<?> requester, String literalRhs, Collection<NamedType> factTypes) throws CompilationException {
         NamedType[] types = factTypes.toArray(new NamedType[0]);
-        return compileRhs(requester,literalRhs, types, imports);
+        return compileRhs(requester,literalRhs, types);
     }
-    Consumer<RhsContext> compileRhs(RuntimeContext<?> requester, String literalRhs, NamedType[] types, Collection<String> imports) throws CompilationException;
+    Consumer<RhsContext> compileRhs(RuntimeContext<?> requester, String literalRhs, NamedType[] types) throws CompilationException;
 }

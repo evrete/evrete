@@ -17,4 +17,14 @@ public class DefaultNamedTypeResolver<T extends NamedType> extends HashMap<Strin
             return t;
         }
     }
+
+    @Override
+    public T put(String key, T value) {
+        T prev = super.put(key, value);
+        if(prev == null) {
+            return null;
+        } else {
+            throw new IllegalArgumentException("Duplicate type reference '" + key + "'");
+        }
+    }
 }

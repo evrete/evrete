@@ -1,5 +1,7 @@
 package org.evrete.api;
 
+import org.evrete.api.annotations.Nullable;
+
 import java.util.function.Consumer;
 
 public interface Rule extends FluentEnvironment<Rule>, Named, NamedType.Resolver {
@@ -8,7 +10,7 @@ public interface Rule extends FluentEnvironment<Rule>, Named, NamedType.Resolver
 
     void setRhs(String literalRhs);
 
-    void setRhs(Consumer<RhsContext> rhs);
+    void setRhs(@Nullable Consumer<RhsContext> rhs);
 
     int getSalience();
 

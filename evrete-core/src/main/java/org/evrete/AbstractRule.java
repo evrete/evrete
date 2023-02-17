@@ -2,6 +2,7 @@ package org.evrete;
 
 import org.evrete.api.RhsContext;
 import org.evrete.api.Rule;
+import org.evrete.api.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Map;
@@ -42,7 +43,7 @@ public abstract class AbstractRule implements Rule {
     }
 
     @Override
-    public void setRhs(Consumer<RhsContext> rhs) {
+    public void setRhs(@Nullable Consumer<RhsContext> rhs) {
         this.rhs = rhs == null ? nullRhs : rhs;
         this.literalRhs = null;
     }

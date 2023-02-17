@@ -1,5 +1,7 @@
 package org.evrete.api;
 
+import org.evrete.api.annotations.NonNull;
+
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -34,38 +36,6 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
     C execute(Consumer<RhsContext> consumer);
 
 
-    EvaluatorHandle addWhere(String expression, double complexity);
-
-    EvaluatorHandle addWhere(ValuesPredicate predicate, double complexity, String... references);
-
-    //TODO !!!! add javadoc with examples
-    EvaluatorHandle addWhere(Predicate<Object[]> predicate, double complexity, String... references);
-
-    EvaluatorHandle addWhere(ValuesPredicate predicate, double complexity, FieldReference... references);
-
-    EvaluatorHandle addWhere(Predicate<Object[]> predicate, double complexity, FieldReference... references);
-
-    default EvaluatorHandle addWhere(String expression) {
-        return addWhere(expression, WorkUnit.DEFAULT_COMPLEXITY);
-    }
-
-    //TODO !!!! add javadoc with examples
-    default EvaluatorHandle addWhere(ValuesPredicate predicate, String... references) {
-        return addWhere(predicate, WorkUnit.DEFAULT_COMPLEXITY, references);
-    }
-
-    //TODO !!!! add javadoc with examples
-    default EvaluatorHandle addWhere(Predicate<Object[]> predicate, String... references) {
-        return addWhere(predicate, WorkUnit.DEFAULT_COMPLEXITY, references);
-    }
-
-    default EvaluatorHandle addWhere(ValuesPredicate predicate, FieldReference... references) {
-        return addWhere(predicate, WorkUnit.DEFAULT_COMPLEXITY, references);
-    }
-
-    default EvaluatorHandle addWhere(Predicate<Object[]> predicate, FieldReference... references) {
-        return addWhere(predicate, WorkUnit.DEFAULT_COMPLEXITY, references);
-    }
 
     default LhsBuilder<C> where(String... expressions) {
         if(expressions != null) {
@@ -78,35 +48,35 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
 
     LhsBuilder<C> where(EvaluatorHandle... expressions);
 
-    LhsBuilder<C> where(String expression, double complexity);
+    LhsBuilder<C> where(@NonNull String expression, double complexity);
 
-    LhsBuilder<C> where(Predicate<Object[]> predicate, double complexity, String... references);
+    LhsBuilder<C> where(@NonNull Predicate<Object[]> predicate, double complexity, String... references);
 
-    default LhsBuilder<C> where(Predicate<Object[]> predicate, String... references) {
+    default LhsBuilder<C> where(@NonNull Predicate<Object[]> predicate, String... references) {
         return where(predicate, WorkUnit.DEFAULT_COMPLEXITY, references);
     }
 
-    LhsBuilder<C> where(ValuesPredicate predicate, double complexity, String... references);
+    LhsBuilder<C> where(@NonNull ValuesPredicate predicate, double complexity, String... references);
 
-    default LhsBuilder<C> where(ValuesPredicate predicate, String... references) {
+    default LhsBuilder<C> where(@NonNull  ValuesPredicate predicate, String... references) {
         return where(predicate, WorkUnit.DEFAULT_COMPLEXITY, references);
     }
 
-    LhsBuilder<C> where(Predicate<Object[]> predicate, double complexity, FieldReference... references);
+    LhsBuilder<C> where(@NonNull Predicate<Object[]> predicate, double complexity, FieldReference... references);
 
-    default LhsBuilder<C> where(Predicate<Object[]> predicate, FieldReference... references) {
+    default LhsBuilder<C> where(@NonNull Predicate<Object[]> predicate, FieldReference... references) {
         return where(predicate, WorkUnit.DEFAULT_COMPLEXITY, references);
     }
 
-    LhsBuilder<C> where(ValuesPredicate predicate, double complexity, FieldReference... references);
+    LhsBuilder<C> where(@NonNull ValuesPredicate predicate, double complexity, FieldReference... references);
 
-    default LhsBuilder<C> where(ValuesPredicate predicate, FieldReference... references) {
+    default LhsBuilder<C> where(@NonNull ValuesPredicate predicate, FieldReference... references) {
         return where(predicate, WorkUnit.DEFAULT_COMPLEXITY, references);
     }
 
-    NamedType addFactDeclaration(String name, Type<?> type);
+    NamedType addFactDeclaration(@NonNull String name, @NonNull Type<?> type);
 
-    NamedType addFactDeclaration(String name, String type);
+    NamedType addFactDeclaration(@NonNull String name, @NonNull String type);
 
-    NamedType addFactDeclaration(String name, Class<?> type);
+    NamedType addFactDeclaration(@NonNull String name, @NonNull Class<?> type);
 }

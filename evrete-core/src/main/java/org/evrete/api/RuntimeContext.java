@@ -28,7 +28,7 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
      * @throws CompilationException if the expression failed to compile
      */
     default Evaluator compile(String expression, NamedType.Resolver resolver) throws CompilationException {
-        return getExpressionResolver().buildExpression(expression, resolver, getImports().get());
+        return getExpressionResolver().buildExpression(expression, resolver);
     }
 
     RuleBuilder<C> newRule();

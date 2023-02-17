@@ -44,8 +44,8 @@ class ExpressionsTest {
         assert root.addFactDeclaration("$a", TypeA.class).getName().equals("$a");
         NamedType b1 = root.addFactDeclaration("$b", TypeB.class.getName());
         NamedType b2 = root.addFactDeclaration("$c", TypeC.class.getName());
-        assert b1.getType().getJavaType().equals(TypeB.class);
-        assert b2.getType().getJavaType().equals(TypeC.class);
+        assert b1.getType().getJavaType().equals(TypeB.class.getName());
+        assert b2.getType().getJavaType().equals(TypeC.class.getName());
         Evaluator ev = knowledge.compile("$a.i + $b.i + $c.i == 1", root);
 
         NextIntSupplier counter = new NextIntSupplier();

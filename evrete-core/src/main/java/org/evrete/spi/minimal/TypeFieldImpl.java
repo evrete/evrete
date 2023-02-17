@@ -9,11 +9,9 @@ class TypeFieldImpl implements TypeField {
     private final String name;
     private final Class<?> valueType;
     private final TypeImpl<?> declaringType;
-    private final int id;
     private Function<Object, ?> function;
 
-    TypeFieldImpl(int id, TypeImpl<?> declaringType, String name, Class<?> valueType, Function<Object, ?> function) {
-        this.id = id;
+    TypeFieldImpl(TypeImpl<?> declaringType, String name, Class<?> valueType, Function<Object, ?> function) {
         this.name = name;
         this.valueType = valueType;
         this.function = function;
@@ -21,7 +19,7 @@ class TypeFieldImpl implements TypeField {
     }
 
     TypeFieldImpl(TypeFieldImpl other, TypeImpl<?> newType) {
-        this(other.id, newType, other.name, other.valueType, other.function);
+        this(newType, other.name, other.valueType, other.function);
     }
 
     public void setFunction(Function<Object, ?> function) {
@@ -30,11 +28,6 @@ class TypeFieldImpl implements TypeField {
 
     TypeFieldImpl copy(TypeImpl<?> newType) {
         return new TypeFieldImpl(this, newType);
-    }
-
-    @Override
-    public int getId() {
-        return id;
     }
 
     @Override

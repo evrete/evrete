@@ -45,9 +45,9 @@ public class FactType {
         ActiveField[] arr = memoryAddress.fields().getFields();
         for (int i = 0; i < arr.length; i++) {
             ActiveField f = arr[i];
-            if (f.field() == field.getId()) return i;
+            if (f.getName().equals(field.getName())) return i;
         }
-        throw new IllegalStateException("Field not found");
+        throw new IllegalStateException("Field not found: " + field);
     }
 
 

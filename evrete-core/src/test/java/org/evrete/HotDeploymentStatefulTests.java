@@ -21,6 +21,7 @@ import java.util.function.Predicate;
 
 import static org.evrete.api.FactBuilder.fact;
 
+@SuppressWarnings("resource")
 class HotDeploymentStatefulTests {
     private static KnowledgeService service;
     private StatefulSession session;

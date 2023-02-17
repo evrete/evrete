@@ -99,7 +99,7 @@ class TypeMemoryMetaData {
 
     synchronized ActiveField getCreate(TypeField field) {
         for (ActiveField af : activeFields) {
-            if (af.field() == field.getId()) {
+            if (af.getName().equals(field.getName())) {
                 return af;
             }
         }

@@ -11,6 +11,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.evrete.api.FactBuilder.fact;
@@ -1305,18 +1307,13 @@ class StatelessBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    //TODO fix before the release, add invalid conditions
     void exceptionHandler1(ActivationMode mode) {
         RhsAssert rhsAssert1 = new RhsAssert("$a", TypeA.class);
         RhsAssert rhsAssert2 = new RhsAssert("$a", TypeA.class);
         RhsAssert rhsAssert3 = new RhsAssert("$a", TypeA.class);
 
-        knowledge.setRuleBuilderExceptionHandler(new RuleBuilderExceptionHandler() {
-            @Override
-            public void handle(RuleSet<?> context, RuleBuilder<?> builder, RuntimeException exception) {
-                // Skip the failing rule
-            }
-        });
+        AtomicInteger exceptionCounter = new AtomicInteger();
+        knowledge.setRuleBuilderExceptionHandler((context, builder, exception) -> exceptionCounter.incrementAndGet());
 
         knowledge.newRule("rule 1")
                 .forEach("$a", TypeA.class)
@@ -1324,7 +1321,7 @@ class StatelessBaseTests {
                 .execute(rhsAssert1)
                 .newRule("rule 2")
                 .forEach("$a", TypeA.class)
-                .where("$a.i > 5")
+                .where("$a.i > five") // Malformed condition
                 .execute(rhsAssert2)
                 .newRule("rule 3")
                 .forEach("$a", TypeA.class)
@@ -1342,8 +1339,48 @@ class StatelessBaseTests {
         }
         s.fire();
         rhsAssert1.assertCount(5);
-        rhsAssert2.assertCount(4);
+        rhsAssert2.assertCount(0); // The second rule has been skipped
         rhsAssert3.assertCount(5);
+
+        assert exceptionCounter.get() == 1;
+    }
+
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void exceptionHandler2(ActivationMode mode) {
+
+        AtomicInteger exceptionCounter = new AtomicInteger();
+        AtomicInteger rhsCounter = new AtomicInteger();
+        knowledge.setRuleBuilderExceptionHandler((context, builder, exception) -> exceptionCounter.incrementAndGet());
+
+        Consumer<RhsContext> rhs = rhsContext -> rhsCounter.incrementAndGet();
+
+        knowledge.newRule("rule 1")
+                .forEach("$a", TypeA.class)
+                .where("$a.i > 4")
+                .execute(rhs)
+                .newRule("rule 2")
+                .forEach("$a", TypeA.class)
+                .where("$a.i > 5") // Malformed condition
+                .execute(rhs)
+                .newRule("rule 3")
+                .forEach("$a", TypeA.class.getName() + "___")
+                .where("$a.i <= 4") // Inverse to rule 1
+                .execute(rhs);
+
+
+        StatelessSession s = newSession(mode);
+
+        // This insert cycle will result in 5 matching As
+        for (int i = 0; i < 10; i++) {
+            TypeA a = new TypeA("A" + i);
+            a.setI(i);
+            s.insert(a);
+        }
+        s.fire();
+
+        assert exceptionCounter.get() == 1;
+        assert rhsCounter.get() == 9; // Third rule excluded
     }
 
 }

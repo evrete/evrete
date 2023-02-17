@@ -1,5 +1,6 @@
 package org.evrete.runtime;
 
+import org.evrete.api.Named;
 import org.evrete.api.TypeField;
 
 import java.io.Serializable;
@@ -10,22 +11,23 @@ import java.io.Serializable;
  * wrapped, thus avoiding unnecessary value reads.
  * </p>
  */
-public final class ActiveField implements Serializable {
+public final class ActiveField implements Serializable, Named {
     public static final ActiveField[] ZERO_ARRAY = new ActiveField[0];
 
     private static final long serialVersionUID = 1318511720324319967L;
     private final int valueIndex;
-    private final int fieldId;
+    private final String fieldName;
     private final int type;
 
     ActiveField(TypeField delegate, int valueIndex) {
         this.valueIndex = valueIndex;
-        this.fieldId = delegate.getId();
         this.type = delegate.getDeclaringType().getId();
+        this.fieldName = delegate.getName();
     }
 
-    int field() {
-        return fieldId;
+    @Override
+    public String getName() {
+        return fieldName;
     }
 
     int type() {
@@ -44,19 +46,19 @@ public final class ActiveField implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ActiveField that = (ActiveField) o;
-        return valueIndex == that.valueIndex && fieldId == that.fieldId;
+        return valueIndex == that.valueIndex && fieldName.equals(that.fieldName);
     }
 
     @Override
     public int hashCode() {
-        return fieldId * 37 + valueIndex;
+        return fieldName.hashCode() * 37 + valueIndex;
     }
 
     @Override
     public String toString() {
         return "{" +
                 "index=" + valueIndex +
-                ", delegate='" + fieldId +
+                ", delegate='" + fieldName +
                 "'}";
     }
 }

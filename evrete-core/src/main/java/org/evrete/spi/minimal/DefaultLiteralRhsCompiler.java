@@ -1,12 +1,12 @@
 package org.evrete.spi.minimal;
 
+import org.evrete.api.Imports;
 import org.evrete.api.NamedType;
 import org.evrete.api.RhsContext;
 import org.evrete.api.RuntimeContext;
 import org.evrete.api.spi.LiteralRhsCompiler;
 import org.evrete.util.compiler.CompilationException;
 
-import java.util.Collection;
 import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -16,30 +16,24 @@ public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider imp
     private static final String classPackage = DefaultLiteralRhsCompiler.class.getPackage().getName() + ".rhs";
 
     @SuppressWarnings("unchecked")
-    private static Class<? extends AbstractLiteralRhs> buildClass(ClassLoader classLoader, JcCompiler compiler, NamedType[] types, String literalRhs, Collection<String> imports) throws CompilationException {
+    private static Class<? extends AbstractLiteralRhs> buildClass(ClassLoader classLoader, JcCompiler compiler, NamedType[] types, String literalRhs, Imports imports) throws CompilationException {
         String simpleName = "Rhs" + classCounter.getAndIncrement();
         String source = buildSource(simpleName, types, literalRhs, imports);
         return (Class<? extends AbstractLiteralRhs>) compiler.compile(classLoader, source);
     }
 
-    private static String buildSource(String className, NamedType[] types, String literalRhs, Collection<String> imports) {
+    private static String buildSource(String className, NamedType[] types, String literalRhs, Imports imports) {
         StringJoiner methodArgs = new StringJoiner(", ");
         StringJoiner args = new StringJoiner(", ");
         for (NamedType t : types) {
-            methodArgs.add(t.getType().getJavaType().getName() + " " + t.getName());
+            methodArgs.add(t.getType().getJavaType() + " " + t.getName());
             args.add(t.getName());
         }
 
         StringBuilder sb = new StringBuilder(2048);
         sb.append("package ").append(classPackage).append(";\n\n");
 
-        // Adding imports
-        if (!imports.isEmpty()) {
-            for (String imp : imports) {
-                sb.append("import ").append(imp).append(";\n");
-            }
-            sb.append("\n");
-        }
+        imports.asJavaImportStatements(sb);
 
         sb.append("public class ").append(className).append(" extends ").append(AbstractLiteralRhs.class.getName()).append(" {\n\n");
 
@@ -47,7 +41,7 @@ public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider imp
         sb.append("\t@").append(Override.class.getName()).append("\n");
         sb.append("\tprotected void doRhs() {\n");
         for (NamedType t : types) {
-            sb.append("\t\t").append(t.getType().getJavaType().getName()).append(" ").append(t.getName()).append(" = ").append("get(\"").append(t.getName()).append("\");\n");
+            sb.append("\t\t").append(t.getType().getJavaType()).append(" ").append(t.getName()).append(" = ").append("get(\"").append(t.getName()).append("\");\n");
 
         }
         sb.append("\t\tdoRhs(").append(args).append(");\n");
@@ -68,8 +62,9 @@ public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider imp
     }
 
     @Override
-    public Consumer<RhsContext> compileRhs(RuntimeContext<?> requester, String literalRhs, NamedType[] types, Collection<String> imports) throws CompilationException {
+    public Consumer<RhsContext> compileRhs(RuntimeContext<?> requester, String literalRhs, NamedType[] types) throws CompilationException {
         try {
+            Imports imports = requester.getImports();
             Class<? extends AbstractLiteralRhs> clazz = buildClass(requester.getClassLoader(), getCreateJavaCompiler(requester), types, literalRhs, imports);
             return clazz.getDeclaredConstructor().newInstance();
         } catch (CompilationException e) {
