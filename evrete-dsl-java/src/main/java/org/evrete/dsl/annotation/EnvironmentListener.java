@@ -7,16 +7,15 @@ import java.lang.annotation.Target;
 
 /**
  * <p>
- *     Class methods that are annotated with {@code @EnvironmentListener} will
- *     be called for each external {@link org.evrete.api.Environment#set(String, Object)} invocation.
- *     Annotated methods must be public, void and have only one argument.
+ * Class methods that are annotated with {@code @EnvironmentListener} will
+ * be called for each external {@link org.evrete.api.Environment#set(String, Object)} invocation.
+ * Annotated methods must be public, void and have only one argument.
  * </p>
  */
 @Target(value = ElementType.METHOD)
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface EnvironmentListener {
     /**
-     *
      * @return property name
      */
     String value() default "";

@@ -27,7 +27,7 @@ class DeltaMemoryStatus {
     }
 
     void commitDeltas() {
-        for(KeyMemoryBucket b : bucketsToCommit){
+        for (KeyMemoryBucket b : bucketsToCommit) {
             b.commitBuffer();
         }
     }

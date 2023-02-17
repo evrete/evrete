@@ -12,7 +12,7 @@ class EnvListenerMethod extends ClassMethod implements SessionCloneable<EnvListe
         super(lookup, method);
         Parameter[] parameters = method.getParameters();
         if (parameters.length != 1) {
-            throw new MalformedResourceException("Method " + method + " in the " + method.getDeclaringClass() + " is annotated as " + EnvironmentListener.class.getSimpleName()  + " but has zero or more than one parameters");
+            throw new MalformedResourceException("Method " + method + " in the " + method.getDeclaringClass() + " is annotated as " + EnvironmentListener.class.getSimpleName() + " but has zero or more than one parameters");
         }
     }
 

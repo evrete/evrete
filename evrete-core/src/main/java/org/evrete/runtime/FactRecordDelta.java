@@ -9,14 +9,6 @@ public final class FactRecordDelta {
         this.latest = latest;
     }
 
-    public FactRecord getPrevious() {
-        return previous;
-    }
-
-    public FactRecord getLatest() {
-        return latest;
-    }
-
     static FactRecordDelta insertDelta(FactRecord record) {
         return new FactRecordDelta(null, record);
     }
@@ -27,6 +19,14 @@ public final class FactRecordDelta {
 
     static FactRecordDelta updateDelta(FactRecord previous, Object newValue) {
         return new FactRecordDelta(previous, FactRecord.updated(previous, newValue));
+    }
+
+    public FactRecord getPrevious() {
+        return previous;
+    }
+
+    public FactRecord getLatest() {
+        return latest;
     }
 
     @Override

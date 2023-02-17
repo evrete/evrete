@@ -75,6 +75,7 @@ class TypeResolverTest {
                 .where("$s.hasTestRule == false")
                 .execute(ctx -> {
                     StatefulSession session = ctx.get("$s");
+                    //noinspection resource
                     session
                             .newRule("Test")
                             .forEach("$i", Integer.class)

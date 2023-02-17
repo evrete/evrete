@@ -44,8 +44,8 @@ public interface DSLKnowledgeProvider {
             }
             return knowledge;
         } finally {
-            for(InputStream stream : streams) {
-                if(stream != null) {
+            for (InputStream stream : streams) {
+                if (stream != null) {
                     try {
                         stream.close();
                     } catch (IOException e) {
@@ -66,8 +66,8 @@ public interface DSLKnowledgeProvider {
     }
 
     /**
-     * @param files file resources
-     * @param service Knowledge service.
+     * @param files    file resources
+     * @param service  Knowledge service.
      * @param resolver Type resolver
      * @see #create(KnowledgeService, URL...)
      */
@@ -81,7 +81,7 @@ public interface DSLKnowledgeProvider {
     }
 
     /**
-     * @param files file resources
+     * @param files   file resources
      * @param service Knowledge service.
      * @see #create(KnowledgeService, URL...)
      */

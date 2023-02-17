@@ -36,41 +36,44 @@ class DefaultFactStorageTest {
     @Test
     void update() {
         NextIntSupplier counter = new NextIntSupplier();
-        StatefulSessionImpl session = (StatefulSessionImpl) knowledge
+        int updates;
+        TypeMemory tm;
+        try (StatefulSessionImpl session = (StatefulSessionImpl) knowledge
                 .newRule()
                 .forEach("$a", TypeA.class)
                 .where("$a.i >= 0")
                 .execute(ctx -> counter.next())
-                .newStatefulSession();
+                .newStatefulSession()) {
 
-        TypeA a = new TypeA();
-        a.setAllNumeric(0);
-        FactHandle h = session.insert(a);
-        session.fire();
-        int updates = 1;
-        for (int i = 0; i < updates; i++) {
-            a.setI(i);
-            session.update(h, a);
+            TypeA a = new TypeA();
+            a.setAllNumeric(0);
+            FactHandle h = session.insert(a);
             session.fire();
+            updates = 1;
+            for (int i = 0; i < updates; i++) {
+                a.setI(i);
+                session.update(h, a);
+                session.fire();
+            }
+
+            tm = session.getMemory().get(0);
+            // Checking fact storage
+            FactStorage<?> factStorage = tm.getFactStorage();
+            assert factStorage.iterator().reset() == 1; // only initial instance should be in the storage
+            assert counter.get() == updates + 1;
+
+            // Memory key storage
+            SharedAlphaData bucket = (SharedAlphaData) tm.getMemoryBuckets().get(0).getFieldData();
+
+            LinkedFactHandles main = bucket.get(KeyMode.OLD_OLD);
+            LinkedFactHandles delta1 = bucket.get(KeyMode.OLD_NEW);
+            LinkedFactHandles delta2 = bucket.get(KeyMode.NEW_NEW);
+
+            assert main.iterator().reset() == 1 : " Actual: " + main;
+            assert delta1.size() == 0;
+            assert delta2.size() == 0;
         }
 
-        TypeMemory tm = session.getMemory().get(0);
-
-        // Checking fact storage
-        FactStorage<?> factStorage = tm.getFactStorage();
-        assert factStorage.iterator().reset() == 1; // only initial instance should be in the storage
-        assert counter.get() == updates + 1;
-
-        // Memory key storage
-        SharedAlphaData bucket = (SharedAlphaData) tm.getMemoryBuckets().get(0).getFieldData();
-
-        LinkedFactHandles main = bucket.get(KeyMode.OLD_OLD);
-        LinkedFactHandles delta1 = bucket.get(KeyMode.OLD_NEW);
-        LinkedFactHandles delta2 = bucket.get(KeyMode.NEW_NEW);
-
-        assert main.iterator().reset() == 1 : " Actual: " + main;
-        assert delta1.size() == 0;
-        assert delta2.size() == 0;
 
     }
 }

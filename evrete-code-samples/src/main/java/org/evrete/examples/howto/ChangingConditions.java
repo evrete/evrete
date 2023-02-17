@@ -2,6 +2,7 @@ package org.evrete.examples.howto;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
+
 import static java.lang.System.out;
 
 public class ChangingConditions {

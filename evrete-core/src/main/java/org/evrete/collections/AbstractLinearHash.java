@@ -12,6 +12,7 @@ import java.util.function.*;
 import java.util.stream.Stream;
 
 // TODO !!!! rewrite the whole concept
+
 /**
  * A simple implementation of linear probing hash table without fail-fast bells and whistles and alike.
  * Unlike the stock Java's HashMap, this implementation can shrink down its bucket table when necessary,
@@ -60,11 +61,6 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         return pos;
     }
 
-    private int findBinIndex0(int hash, IntObjectPredicate<E> stopSearchPredicate) {
-        return findBinIndex0(hash, data, stopSearchPredicate);
-    }
-
-
     private static int findBinIndexForZ1(Object key, int hash, Object[] destination, BiPredicate<Object, Object> eqTest) {
         int mask = destination.length - 1;
         int pos = hash & mask;
@@ -79,19 +75,6 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         return pos;
     }
 
-    public void apply(int hash, Predicate<E> predicate, ObjIntConsumer<E> consumer) {
-        apply(hash, binPredicate2(predicate), consumer);
-    }
-
-    public void apply(int hash, IntObjectPredicate<E> predicate, ObjIntConsumer<E> consumer) {
-        int pos = findBinIndex0(hash, this.data, predicate);
-        consumer.accept(get(pos), pos);
-    }
-
-    private IntObjectPredicate<E> binPredicate2(Predicate<E> predicate) {
-        return (i, o) -> o == null || predicate.test(o);
-    }
-
     /**
      * Returns a power of two size for the given target capacity.
      */
@@ -103,6 +86,23 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         assert ret >= capacity;
         if (ret > MAXIMUM_CAPACITY) throw new OutOfMemoryError();
         return ret;
+    }
+
+    private int findBinIndex0(int hash, IntObjectPredicate<E> stopSearchPredicate) {
+        return findBinIndex0(hash, data, stopSearchPredicate);
+    }
+
+    public void apply(int hash, Predicate<E> predicate, ObjIntConsumer<E> consumer) {
+        apply(hash, binPredicate2(predicate), consumer);
+    }
+
+    public void apply(int hash, IntObjectPredicate<E> predicate, ObjIntConsumer<E> consumer) {
+        int pos = findBinIndex0(hash, this.data, predicate);
+        consumer.accept(get(pos), pos);
+    }
+
+    private IntObjectPredicate<E> binPredicate2(Predicate<E> predicate) {
+        return (i, o) -> o == null || predicate.test(o);
     }
 
     @SuppressWarnings("unchecked")

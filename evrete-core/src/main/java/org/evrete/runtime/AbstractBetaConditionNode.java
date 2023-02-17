@@ -1,6 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.*;
+import org.evrete.api.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,11 +51,8 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode {
         if (mergeToMain) {
             MemoryKeyCollection main = getStore(KeyMode.OLD_OLD);
             for (MemoryKey key : delta1) {
-                //key.setMetaValue(KeyMode.MAIN.ordinal());
                 main.add(key);
             }
-            //TODO !!! make the append working
-            //main.append(delta1);
         }
         delta1.clear();
         delta2.clear();
@@ -124,6 +122,7 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode {
             delegate.add(key);
         }
 
+        @NonNull
         @Override
         public ReIterator<MemoryKey> iterator() {
             return new MemoryKeyIterator(delegate.iterator(), forcedMode);

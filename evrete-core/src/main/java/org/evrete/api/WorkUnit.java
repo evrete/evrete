@@ -1,14 +1,17 @@
 package org.evrete.api;
 
 /**
+ * <p>
  * A unit of work with given complexity. The complexity can either be
  * computed as a sum of underlying complexity objects or assigned by user.
+ * </p>
  * <p>
- * Eventually, the complexity value is a key parameter for a set of
+ * The complexity value is a key parameter for a set of
  * optimization tasks like grouping and sorting of conditions and for
  * building the Rete evaluation graph.
+ * </p>
  */
-public interface ComplexityObject {
+public interface WorkUnit {
     double DEFAULT_COMPLEXITY = 1.0;
 
     default double getComplexity() {

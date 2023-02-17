@@ -187,12 +187,6 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
         return runtime;
     }
 
-    @Override
-    public RuntimeRule addImport(RuleScope scope, String imp) {
-        super.addImport(scope, imp);
-        return this;
-    }
-
     public RuntimeLhs getLhs() {
         return lhs;
     }

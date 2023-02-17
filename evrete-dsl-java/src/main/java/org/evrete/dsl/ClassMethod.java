@@ -9,8 +9,8 @@ import java.util.function.Function;
 
 class ClassMethod {
     final boolean staticMethod;
-    private final MethodHandle handle;
     final Object[] args;
+    private final MethodHandle handle;
 
     ClassMethod(MethodHandles.Lookup lookup, Method method) {
         this.staticMethod = Modifier.isStatic(method.getModifiers());
@@ -82,16 +82,5 @@ class ClassMethod {
                 return handle.toString();
             }
         };
-    }
-
-
-    private static class MethodHandleMeta {
-        private final MethodHandle handle;
-        private final boolean staticMethod;
-
-        MethodHandleMeta(MethodHandle handle, boolean staticMethod) {
-            this.handle = handle;
-            this.staticMethod = staticMethod;
-        }
     }
 }

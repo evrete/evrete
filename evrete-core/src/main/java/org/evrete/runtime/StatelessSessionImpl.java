@@ -70,7 +70,7 @@ class StatelessSessionImpl extends AbstractRuleSessionIO<StatelessSession> imple
         try {
             fireInner();
             getMemory().forEach(tm -> {
-                if (type.equals(tm.type.getJavaType())) {
+                if (type.getName().equals(tm.type.getJavaType())) {
                     tm.forEachFact((factHandle, o) -> consumer.accept((T) o));
                 }
             });

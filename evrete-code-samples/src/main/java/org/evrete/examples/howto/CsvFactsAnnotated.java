@@ -35,8 +35,8 @@ public class CsvFactsAnnotated {
     public static class CvsTypesRuleset {
         @Rule
         @Where(methods = {
-            @MethodPredicate(method = "test1", args = {"$p.age"}),
-            @MethodPredicate(method = "test2", args = {"$p.location", "$l.address"})
+                @MethodPredicate(method = "test1", args = {"$p.age"}),
+                @MethodPredicate(method = "test2", args = {"$p.location", "$l.address"})
         })
         public void rule1(@Fact(value = "$p", type = TYPE_PERSON) String p, @Fact(value = "$l", type = TYPE_LOCATION) String l) {
             System.out.println("Match: <" + p + "> at <" + l + ">");

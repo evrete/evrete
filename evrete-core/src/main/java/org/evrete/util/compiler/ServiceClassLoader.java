@@ -3,23 +3,19 @@ package org.evrete.util.compiler;
 import javax.tools.JavaFileObject;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.security.ProtectionDomain;
 import java.security.SecureClassLoader;
 import java.util.*;
 
 public class ServiceClassLoader extends SecureClassLoader {
     private final Map<String, byte[]> resources = new HashMap<>();
-    private final ProtectionDomain protectionDomain;
     private final List<CompiledClass> localCompiledClasses = new ArrayList<>();
 
-    public ServiceClassLoader(ClassLoader parent, ProtectionDomain protectionDomain) {
+    public ServiceClassLoader(ClassLoader parent) {
         super(parent);
-        Objects.requireNonNull(protectionDomain);
-        this.protectionDomain = protectionDomain;
     }
 
     public Class<?> buildClass(byte[] bytes) {
-        Class<?> cl = defineClass(null, bytes, 0, bytes.length, protectionDomain);
+        Class<?> cl = defineClass(null, bytes, 0, bytes.length);
         this.localCompiledClasses.add(new CompiledClass(cl, bytes));
         return cl;
     }
@@ -32,11 +28,11 @@ public class ServiceClassLoader extends SecureClassLoader {
     Collection<JavaFileObject> getCompiledClasses(String packageName) {
         ClassLoader current = this;
         Collection<JavaFileObject> col = new ArrayList<>();
-        while (current !=  null) {
-            if(current instanceof  ServiceClassLoader) {
+        while (current != null) {
+            if (current instanceof ServiceClassLoader) {
                 ServiceClassLoader scl = (ServiceClassLoader) current;
-                for(CompiledClass cc : scl.localCompiledClasses) {
-                    if(cc.getPackageName().equals(packageName)) {
+                for (CompiledClass cc : scl.localCompiledClasses) {
+                    if (cc.getPackageName().equals(packageName)) {
                         col.add(cc);
                     }
                 }

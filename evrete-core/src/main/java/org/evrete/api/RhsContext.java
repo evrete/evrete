@@ -10,7 +10,6 @@ import java.util.Collection;
  */
 public interface RhsContext {
     /**
-     *
      * @param obj fact to insert
      * @return RHS context
      * @see #insert(Object, boolean)
@@ -21,8 +20,9 @@ public interface RhsContext {
 
     /**
      * <p>
-     *     Buffers a new insert operation in rule's memory
+     * Buffers a new insert operation in rule's memory
      * </p>
+     *
      * @param fact               object to insert
      * @param resolveCollections collection/array inspection flag
      * @return RHS context

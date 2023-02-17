@@ -23,7 +23,6 @@ public class KnowledgeService {
     private final ExpressionResolverProvider expressionResolverProvider;
     private final TypeResolverProvider typeResolverProvider;
     private final LiteralRhsCompiler literalRhsProvider;
-    private final SourceSecurity security = new SourceSecurity();
     private ClassLoader classLoader;
 
     public KnowledgeService(Configuration conf) {
@@ -66,8 +65,8 @@ public class KnowledgeService {
         return new Builder(new Configuration());
     }
 
-    public SourceSecurity getSecurity() {
-        return security;
+    public static Builder builder(Configuration configuration) {
+        return new Builder(configuration);
     }
 
     public ClassLoader getClassLoader() {
@@ -95,10 +94,6 @@ public class KnowledgeService {
 
     public TypeResolver newTypeResolver() {
         return typeResolverProvider.instance(this.classLoader);
-    }
-
-    public static Builder builder(Configuration configuration) {
-        return new Builder(configuration);
     }
 
     /**
@@ -321,8 +316,8 @@ public class KnowledgeService {
 
     /**
      * <p>
-     *     Shuts down the service and releases its internal resources.
-     *     Once a service is shutdown, it can not be reused in the future.
+     * Shuts down the service and releases its internal resources.
+     * Once a service is shutdown, it can not be reused in the future.
      * </p>
      */
     public void shutdown() {

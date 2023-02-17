@@ -1,9 +1,7 @@
 package org.evrete.api;
 
+import org.evrete.api.annotations.NonNull;
 import org.evrete.util.compiler.CompilationException;
-
-import java.util.Properties;
-import java.util.Set;
 
 /**
  * An interface with a set of basic methods that are necessary for parsing string expressions.
@@ -33,9 +31,11 @@ public interface ExpressionResolver {
      * @return returns {@link FieldReference} instance or throws an {@link IllegalArgumentException}
      * @throws IllegalArgumentException if the argument can not be resolved
      */
+    @NonNull
     FieldReference resolve(String arg, NamedType.Resolver resolver);
 
-    default FieldReference[] resolve(NamedType.Resolver resolver, String... strings) {
+    @NonNull
+    default FieldReference[] resolve(@NonNull NamedType.Resolver resolver, String... strings) {
         FieldReference[] references = new FieldReference[strings.length];
         for (int i = 0; i < references.length; i++) {
             references[i] = resolve(strings[i], resolver);
@@ -48,36 +48,14 @@ public interface ExpressionResolver {
      * This method parses a string argument and returns an {@link Evaluator} if possible.
      * </p>
      *
-     * @param stringExpression - a String condition expression to parse
-     * @param resolver         a mapping function between fact name and {@link NamedType}
-     * @param imports          a collection of class imports
+     * @param expression - a String condition expression to parse
+     * @param resolver   a mapping function between fact name and {@link NamedType}
      * @return returns an {@link Evaluator} instance or throws an exception
      * @throws CompilationException     if the argument can not be compiled
-     * @throws IllegalArgumentException if the any parts of the argument can not be resolved
+     * @throws IllegalArgumentException if the expression can not be resolved
      * @see #resolve(String, NamedType.Resolver)
      */
-    Evaluator buildExpression(String stringExpression, NamedType.Resolver resolver, Set<String> imports) throws CompilationException;
+    @NonNull
+    Evaluator buildExpression(String expression, NamedType.Resolver resolver) throws CompilationException;
 
-    /**
-     * <p>
-     * This method parses a string argument and returns an {@link Evaluator} if possible.
-     * </p>
-     * <p>
-     * Introduced in 2.1.06, this method will replace the {@link #buildExpression(String, NamedType.Resolver, Set)} method
-     * which will be deprecated in future releases.
-     * </p>
-     *
-     * @param stringExpression - a String condition expression to parse
-     * @param resolver         a mapping function between fact name and {@link NamedType}
-     * @param imports          a collection of class imports
-     * @param properties       optional properties for the parser/compiler
-     * @return returns an {@link Evaluator} instance or throws an exception
-     * @throws CompilationException     if the argument can not be compiled
-     * @throws IllegalArgumentException if the any parts of the argument can not be resolved
-     * @see #resolve(String, NamedType.Resolver)
-     * @since 2.1.06
-     */
-    default Evaluator buildExpression(String stringExpression, NamedType.Resolver resolver, Set<String> imports, ClassLoader classLoader, Properties properties) throws CompilationException {
-        return buildExpression(stringExpression, resolver, imports);
-    }
 }

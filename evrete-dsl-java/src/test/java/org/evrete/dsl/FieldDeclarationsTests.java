@@ -40,59 +40,63 @@ class FieldDeclarationsTests {
     @EnumSource(ActivationMode.class)
     void test1(ActivationMode mode) throws IOException {
         Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, DeclarationRuleSet1.class);
-        StatefulSession session = session(knowledge, mode);
+        NextIntSupplier primeCounter;
+        try (StatefulSession session = session(knowledge, mode)) {
 
-        for (int i = 2; i < 100; i++) {
-            session.insert(String.valueOf(i));
+            for (int i = 2; i < 100; i++) {
+                session.insert(String.valueOf(i));
+            }
+
+            session.fire();
+
+            primeCounter = new NextIntSupplier();
+            session.forEachFact((h, o) -> primeCounter.next());
+            assert primeCounter.get() == 25;
         }
-
-        session.fire();
-
-        NextIntSupplier primeCounter = new NextIntSupplier();
-        session.forEachFact((h, o) -> primeCounter.next());
-
-        assert primeCounter.get() == 25;
     }
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void test2(ActivationMode mode) throws IOException {
         Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, DeclarationRuleSet2.class);
-        StatefulSession session = session(knowledge, mode);
+        NextIntSupplier primeCounter;
+        try (StatefulSession session = session(knowledge, mode)) {
 
-        for (int i = 2; i < 100; i++) {
-            session.insert(String.valueOf(i));
+            for (int i = 2; i < 100; i++) {
+                session.insert(String.valueOf(i));
+            }
+
+            session.fire();
+
+            primeCounter = new NextIntSupplier();
+            session.forEachFact((h, o) -> primeCounter.next());
+            assert primeCounter.get() == 25;
         }
-
-        session.fire();
-
-        NextIntSupplier primeCounter = new NextIntSupplier();
-        session.forEachFact((h, o) -> primeCounter.next());
-
-        assert primeCounter.get() == 25;
-
     }
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void test3(ActivationMode mode) throws IOException {
         Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, DeclarationRuleSet3.class);
-        StatefulSession session = session(knowledge, mode);
-        session.set("random-offset", 0);
+        NextIntSupplier primeCounter;
+        try (StatefulSession session = session(knowledge, mode)) {
+            session.set("random-offset", 0);
 
-        for (int i = 2; i < 100; i++) {
-            session.insert(String.valueOf(i));
+            for (int i = 2; i < 100; i++) {
+                session.insert(String.valueOf(i));
+            }
+
+            session.fire();
+
+            primeCounter = new NextIntSupplier();
+            session.forEachFact((h, o) -> primeCounter.next());
+            assert primeCounter.get() == 25 : "Actual: " + primeCounter.get();
+
         }
-
-        session.fire();
-
-        NextIntSupplier primeCounter = new NextIntSupplier();
-        session.forEachFact((h, o) -> primeCounter.next());
-
-        assert primeCounter.get() == 25 : "Actual: " + primeCounter.get();
 
     }
 
+    @SuppressWarnings("resource")
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void test4(ActivationMode mode) throws IOException {

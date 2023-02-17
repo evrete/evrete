@@ -2,17 +2,15 @@ package org.evrete.dsl;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
-import org.evrete.api.RuleScope;
 import org.evrete.api.TypeResolver;
-import org.evrete.util.compiler.ServiceClassLoader;
 import org.evrete.util.compiler.CompilationException;
+import org.evrete.util.compiler.ServiceClassLoader;
 import org.evrete.util.compiler.SourceCompiler;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
-import java.security.ProtectionDomain;
 
 import static org.evrete.dsl.Utils.LOGGER;
 
@@ -23,8 +21,7 @@ public class DSLSourceProvider extends AbstractDSLProvider {
 
     private static Knowledge build(Knowledge knowledge, String[] sources) {
         ClassLoader ctxClassLoader = knowledge.getClassLoader();
-        ProtectionDomain domain = knowledge.getService().getSecurity().getProtectionDomain(RuleScope.BOTH);
-        ServiceClassLoader loader = new ServiceClassLoader(ctxClassLoader, domain);
+        ServiceClassLoader loader = new ServiceClassLoader(ctxClassLoader);
         SourceCompiler compiler = new SourceCompiler();
         Knowledge current = knowledge;
         for (String source : sources) {

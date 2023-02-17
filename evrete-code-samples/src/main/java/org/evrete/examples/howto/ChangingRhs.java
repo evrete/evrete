@@ -4,6 +4,7 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
+
 import static java.lang.System.out;
 
 public class ChangingRhs {
@@ -20,7 +21,7 @@ public class ChangingRhs {
                     out.printf("\t%d%n", $i);
                 });
 
-        try(StatefulSession session = knowledge.newStatefulSession()) {
+        try (StatefulSession session = knowledge.newStatefulSession()) {
             RuntimeRule rule = session.getRule("Even numbers");
 
             // 1. Initial test

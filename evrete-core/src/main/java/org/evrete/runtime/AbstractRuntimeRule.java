@@ -2,8 +2,8 @@ package org.evrete.runtime;
 
 import org.evrete.AbstractRule;
 import org.evrete.api.NamedType;
-import org.evrete.api.RuleScope;
 import org.evrete.api.Type;
+import org.evrete.api.annotations.NonNull;
 import org.evrete.util.NamedTypeImpl;
 
 import java.util.Collection;
@@ -30,12 +30,12 @@ public abstract class AbstractRuntimeRule<T extends FactType> extends AbstractRu
                 throw new IllegalStateException();
             }
         }
-        appendImports(runtime.getImports());
         setRhs(getLiteralRhs());
     }
 
     @Override
-    public NamedType resolve(String var) {
+    @NonNull
+    public NamedType resolve(@NonNull String var) {
         FactType factType = typeMapping.get(var);
         Type<?> t = runtime.getTypeResolver().getType(factType.type());
         return new NamedTypeImpl(t, factType.getName());
@@ -51,13 +51,12 @@ public abstract class AbstractRuntimeRule<T extends FactType> extends AbstractRu
 
     @Override
     public final void setRhs(String literalRhs) {
-        Collection<NamedType> namedTypes = new LinkedList<>();
-        for (FactType factType : factTypes) {
-            namedTypes.add(resolve(factType.getName()));
-        }
-
         if (literalRhs != null) {
-            setRhs(runtime.compile(literalRhs, namedTypes, getImports(), RuleScope.BOTH, RuleScope.RHS));
+            Collection<NamedType> namedTypes = new LinkedList<>();
+            for (FactType factType : factTypes) {
+                namedTypes.add(resolve(factType.getName()));
+            }
+            setRhs(runtime.compile(literalRhs, namedTypes));
         }
     }
 }

@@ -48,7 +48,7 @@ public class StatefulSessionImpl extends AbstractRuleSessionIO<StatefulSession> 
     @Override
     public final StatefulSession update(FactHandle handle, Object newValue) {
         FactRecord record = getFactRecord(handle);
-        if(record == null) {
+        if (record == null) {
             throw new IllegalArgumentException("Fact not found, handle: " + handle);
         } else {
             bufferUpdate(handle, record, newValue);

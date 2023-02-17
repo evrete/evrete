@@ -2,6 +2,7 @@ package org.evrete.runtime;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
+import org.evrete.api.annotations.NonNull;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.EvaluatorWrapper;
 import org.evrete.runtime.evaluation.MemoryAddress;
@@ -16,7 +17,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     private final Map<String, Object> properties;
     private final ArrayOf<TypeMemoryMetaData> typeMetas;
     private final ArrayOf<FieldsKey> memoryKeys;
-    private final Evaluators evaluators;
+    private final EvaluatorStorageImpl evaluators;
     private final AtomicInteger bucketIds;
     private TypeResolver typeResolver;
     private ClassLoader classLoader;
@@ -28,7 +29,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         this.typeMetas = new ArrayOf<>(TypeMemoryMetaData.class);
         this.memoryKeys = new ArrayOf<>(FieldsKey.class);
         this.properties = new ConcurrentHashMap<>();
-        this.evaluators = new Evaluators();
+        this.evaluators = new EvaluatorStorageImpl();
         this.bucketIds = new AtomicInteger(0);
     }
 
@@ -48,7 +49,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
                 );
     }
 
-    Evaluators getEvaluators() {
+    EvaluatorStorageImpl getEvaluators() {
         return evaluators;
     }
 
@@ -154,8 +155,8 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     }
 
     @SuppressWarnings("unchecked")
-    public final C addImport(RuleScope scope, String imp) {
-        this.imports.add(scope, imp);
+    public final C addImport(String imp) {
+        this.imports.add(imp);
         return (C) this;
     }
 
@@ -196,6 +197,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         return typeResolver.getType(name);
     }
 
+    @NonNull
     @Override
     public <T> Type<T> getType(int typeId) {
         return typeResolver.getType(typeId);
@@ -212,12 +214,14 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     }
 
     @Override
-    public <T> Type<T> declare(String typeName, Class<T> javaType) {
+    @NonNull
+    public <T> Type<T> declare(@NonNull String typeName, @NonNull Class<T> javaType) {
         return typeResolver.declare(typeName, javaType);
     }
 
+    @NonNull
     @Override
-    public <T> Type<T> declare(String typeName, String javaType) {
+    public <T> Type<T> declare(@NonNull String typeName, @NonNull String javaType) {
         return typeResolver.declare(typeName, javaType);
     }
 

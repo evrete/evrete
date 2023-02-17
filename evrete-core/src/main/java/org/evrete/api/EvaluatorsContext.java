@@ -39,7 +39,7 @@ public interface EvaluatorsContext {
      * @see #addEvaluator(Evaluator, double)
      */
     default EvaluatorHandle addEvaluator(Evaluator evaluator) {
-        return addEvaluator(evaluator, EvaluatorHandle.DEFAULT_COMPLEXITY);
+        return addEvaluator(evaluator, WorkUnit.DEFAULT_COMPLEXITY);
     }
 
     /**

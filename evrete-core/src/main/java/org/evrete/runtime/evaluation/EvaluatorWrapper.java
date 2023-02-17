@@ -36,6 +36,9 @@ public class EvaluatorWrapper implements Evaluator, Copyable<EvaluatorWrapper> {
     }
 
     private static Evaluator unwrap(Evaluator e) {
+        if (e == null) {
+            return null;
+        }
         if (e instanceof EvaluatorWrapper) {
             EvaluatorWrapper wrapper = (EvaluatorWrapper) e;
             return unwrap(wrapper.delegate);
@@ -46,8 +49,7 @@ public class EvaluatorWrapper implements Evaluator, Copyable<EvaluatorWrapper> {
 
     @Override
     public String toString() {
-        return "EW{" +
-                "d=" + delegate +
+        return "{evaluator=" + delegate +
                 ", listeners=" + listeners +
                 ", hash=" + System.identityHashCode(this) +
                 '}';

@@ -4,7 +4,9 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
 import org.evrete.dsl.annotation.Rule;
+
 import java.util.List;
+
 import static java.lang.System.out;
 
 public class SelfMutationAnnotated {
@@ -28,7 +30,7 @@ public class SelfMutationAnnotated {
         // 6. Listing session's rules
         out.printf("%nSession rules:%n");
         List<RuntimeRule> rules = session.getRules();
-        for(int i = 0; i < rules.size(); i++) {
+        for (int i = 0; i < rules.size(); i++) {
             out.printf("%d\t'%s'%n", i + 1, rules.get(i).getName());
         }
 
@@ -38,14 +40,15 @@ public class SelfMutationAnnotated {
 
     public static class MutatingRuleset {
 
+        @SuppressWarnings("resource")
         @Rule("Root rule")
         public void rule(StatefulSession sess, String event) {
             // Appending a new rule
             sess
-                .newRule(event)
-                .forEach("$i", Integer.class)
-                .where("$i % 2 == 0")
-                .execute(c -> evenNumbersAction(event, c.get("$i")));
+                    .newRule(event)
+                    .forEach("$i", Integer.class)
+                    .where("$i % 2 == 0")
+                    .execute(c -> evenNumbersAction(event, c.get("$i")));
             out.printf("New rule created: '%s'%n", event);
         }
 

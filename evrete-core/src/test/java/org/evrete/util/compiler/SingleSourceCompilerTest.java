@@ -1,7 +1,6 @@
 package org.evrete.util.compiler;
 
 import org.evrete.KnowledgeService;
-import org.evrete.api.RuleScope;
 import org.junit.jupiter.api.Test;
 
 class SingleSourceCompilerTest {
@@ -25,7 +24,7 @@ class SingleSourceCompilerTest {
         KnowledgeService service = new KnowledgeService();
         ClassLoader parentClassLoader = Thread.currentThread().getContextClassLoader();
         SourceCompiler compiler = new SourceCompiler();
-        ServiceClassLoader classLoader = new ServiceClassLoader(parentClassLoader, service.getSecurity().getProtectionDomain(RuleScope.BOTH));
+        ServiceClassLoader classLoader = new ServiceClassLoader(parentClassLoader);
         try {
             Class<?> clazz = compiler.compile(code, classLoader);
             assert clazz.getClassLoader() == classLoader;
@@ -38,8 +37,8 @@ class SingleSourceCompilerTest {
     void compileMultiple() throws Exception {
         String classA = "\n" +
                 "package test.pkg1;\n" +
-                "import org.evrete.api.RuleScope;\n" +
-                "public class A { String s=RuleScope.class.getName();}";
+                "import org.evrete.api.FactHandle;\n" +
+                "public class A { String s=FactHandle.class.getName();}";
 
         String classB = "\n" +
                 "package test.pkg2;\n" +
@@ -50,7 +49,7 @@ class SingleSourceCompilerTest {
         KnowledgeService service = new KnowledgeService();
         ClassLoader parentClassLoader = Thread.currentThread().getContextClassLoader();
         SourceCompiler compiler = new SourceCompiler();
-        ServiceClassLoader classLoader = new ServiceClassLoader(parentClassLoader, service.getSecurity().getProtectionDomain(RuleScope.BOTH));
+        ServiceClassLoader classLoader = new ServiceClassLoader(parentClassLoader);
 
 
         Class<?> clazzA = compiler.compile(classA, classLoader);

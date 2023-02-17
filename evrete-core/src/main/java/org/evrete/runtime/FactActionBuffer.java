@@ -16,8 +16,8 @@ import java.util.function.Consumer;
 public class FactActionBuffer {
     private final Map<Integer, ActionQueue> typedQueues = new ConcurrentHashMap<>();
     private final int[] actionCounts = new int[Action.values().length];
-    private long totalActions = 0L;
     private final int capacity;
+    private long totalActions = 0L;
 
     FactActionBuffer(int capacity) {
         this.capacity = capacity;
@@ -28,8 +28,8 @@ public class FactActionBuffer {
     }
 
     private void add(Action action, FactHandle factHandle, FactRecordDelta delta) {
-        if(get(factHandle).add(action, factHandle, Objects.requireNonNull(delta))) {
-            this.actionCounts[action.ordinal()] ++;
+        if (get(factHandle).add(action, factHandle, Objects.requireNonNull(delta))) {
+            this.actionCounts[action.ordinal()]++;
             this.totalActions++;
         }
     }
@@ -55,8 +55,9 @@ public class FactActionBuffer {
     private ActionQueue get(FactHandle h) {
         return get(h.getTypeId());
     }
+
     private ActionQueue get(int typeId) {
-        return typedQueues.computeIfAbsent(typeId, i->new ActionQueue(capacity));
+        return typedQueues.computeIfAbsent(typeId, i -> new ActionQueue(capacity));
     }
 
     void copyToAndClear(FactActionBuffer other) {
@@ -66,8 +67,8 @@ public class FactActionBuffer {
 
     private int getCount(Action... actions) {
         int ret = 0;
-        for(Action a : actions) {
-            ret+= actionCounts[a.ordinal()];
+        for (Action a : actions) {
+            ret += actionCounts[a.ordinal()];
         }
         return ret;
     }
@@ -98,8 +99,8 @@ public class FactActionBuffer {
 
 
     private static class ActionQueue {
-        private final LinearHashSet<AtomicMemoryAction> queue;
         private static final BiPredicate<AtomicMemoryAction, FactHandle> SEARCH_FUNCTION = (existing, factHandle) -> existing.handle.equals(factHandle);
+        private final LinearHashSet<AtomicMemoryAction> queue;
 
         ActionQueue(int capacity) {
             this.queue = new LinearHashSet<>(capacity);

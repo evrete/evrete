@@ -2,6 +2,7 @@ package org.evrete.spi.minimal;
 
 import org.evrete.api.Type;
 import org.evrete.api.TypeField;
+import org.evrete.api.annotations.NonNull;
 import org.evrete.collections.ArrayOf;
 
 import java.lang.invoke.MethodHandle;
@@ -11,32 +12,31 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 class TypeImpl<T> implements Type<T> {
-    static final String THIS_FIELD_NAME = "this";
-    private static final int THIS_FIELD_ID = 0;
     private final int id;
     private final String name;
-    private final Class<T> javaType;
+    private final ClassResolver classResolver;
     private final Map<String, TypeFieldImpl> fieldMap = new HashMap<>();
-    private final ArrayOf<TypeFieldImpl> fieldsArray;
+    private final String javaType;
+    private final Supplier<Class<T>> classSupplier;
 
-    TypeImpl(String name, int id, Class<T> javaType) {
+    TypeImpl(String name, String javaType, int id, Supplier<Class<T>> classSupplier) {
         Objects.requireNonNull(name);
-        Objects.requireNonNull(javaType);
-        this.javaType = javaType;
+        this.classSupplier = classSupplier;
+        this.classResolver = new ClassResolver(classSupplier);
         this.name = name;
+        this.javaType = javaType;
         this.id = id;
-        this.fieldsArray = new ArrayOf<>(TypeFieldImpl.class);
-        TypeFieldImpl thisField = new TypeFieldImpl(THIS_FIELD_ID, this, THIS_FIELD_NAME, javaType, o -> o);
-        save(thisField);
     }
 
     private TypeImpl(TypeImpl<T> other) {
         this.fieldMap.putAll(other.fieldMap);
-        this.fieldsArray = new ArrayOf<>(TypeFieldImpl.class);
-        this.javaType = other.javaType;
+        this.classSupplier = other.classSupplier;
+        this.classResolver = new ClassResolver(this.classSupplier);
         this.name = other.name;
+        this.javaType = other.javaType;
         this.id = other.id;
         for (Map.Entry<String, TypeFieldImpl> entry : other.fieldMap.entrySet()) {
             TypeFieldImpl f = entry.getValue().copy(this);
@@ -95,12 +95,6 @@ class TypeImpl<T> implements Type<T> {
 
     private void save(TypeFieldImpl f) {
         this.fieldMap.put(f.getName(), f);
-        this.fieldsArray.set(f.getId(), f);
-    }
-
-    @Override
-    public TypeField getField(int id) {
-        return this.fieldsArray.get(id);
     }
 
     @Override
@@ -132,17 +126,22 @@ class TypeImpl<T> implements Type<T> {
     }
 
     @Override
-    public TypeField getField(String name) {
+    public @NonNull TypeField getField(@NonNull String name) {
         TypeField field = fieldMap.get(name);
         if (field == null) {
             synchronized (this) {
                 field = fieldMap.get(name);
                 if (field == null) {
-                    field = inspectClass(name);
+                    field = resolveField(name);
                 }
             }
         }
-        return field;
+
+        if (field == null) {
+            throw new IllegalArgumentException();
+        } else {
+            return field;
+        }
     }
 
     @Override
@@ -152,8 +151,13 @@ class TypeImpl<T> implements Type<T> {
     }
 
     @Override
-    public final Class<T> getJavaType() {
+    public final String getJavaType() {
         return javaType;
+    }
+
+    @Override
+    public Class<T> resolveJavaType() {
+        return classResolver.get();
     }
 
     @Override
@@ -164,19 +168,15 @@ class TypeImpl<T> implements Type<T> {
     @Override
     public String toString() {
         return "{name='" + name + '\'' +
-                ", javaType='" + javaType.getName() + '\'' +
                 '}';
     }
 
     private synchronized TypeField innerDeclare(final String name, final Class<?> type, final Function<Object, ?> function) {
         Const.assertName(name);
         TypeFieldImpl field = fieldMap.get(name);
-        int fieldId;
         if (field == null) {
-            fieldId = fieldMap.size();
-            field = new TypeFieldImpl(fieldId, this, name, type, function);
+            field = new TypeFieldImpl(this, name, type, function);
             this.fieldMap.put(name, field);
-            this.fieldsArray.set(fieldId, field);
         } else {
             field.setFunction(function);
         }
@@ -184,31 +184,38 @@ class TypeImpl<T> implements Type<T> {
         return field;
     }
 
-    private TypeField inspectClass(String dottedProp) {
-        String[] parts = dottedProp.split("\\.");
-        ArrayOf<ValueReader> getters = new ArrayOf<>(ValueReader.class);
+    private TypeField resolveField(@NonNull String fieldName) {
+        Function<Object, Object> func;
+        Class<?> valueType;
+        if (fieldName.isEmpty()) {
+            // "this" field
+            valueType = classResolver.get();
+            func = o -> o;
+        } else {
+            String[] parts = fieldName.split("\\.");
+            ArrayOf<ValueReader> getters = new ArrayOf<>(ValueReader.class);
 
-        MethodHandles.Lookup lookup = MethodHandles.lookup();
+            MethodHandles.Lookup lookup = MethodHandles.lookup();
 
-        Class<?> valueType = javaType;
-        for (String part : parts) {
-            Const.assertName(part);
-            ValueReader reader = resolve(lookup, valueType, part);
-            if (reader == null) {
-                return null;
-            } else {
-                valueType = reader.valueType();
-                getters.append(reader);
+            valueType = classResolver.get();
+            for (String part : parts) {
+                Const.assertName(part);
+                ValueReader reader = resolve(lookup, valueType, part);
+                if (reader == null) {
+                    return null;
+                } else {
+                    valueType = reader.valueType();
+                    getters.append(reader);
+                }
             }
+
+            func = getters.data.length == 1 ?
+                    new AtomicFunction(getters.data[0])
+                    :
+                    new NestedFunction(getters.data);
+
         }
-
-        Function<Object, Object> func = getters.data.length == 1 ?
-                new AtomicFunction(getters.data[0])
-                :
-                new NestedFunction(getters.data);
-
-
-        return innerDeclare(dottedProp, valueType, func);
+        return innerDeclare(fieldName, valueType, func);
     }
 
     private enum MethodMeta {
@@ -301,4 +308,28 @@ class TypeImpl<T> implements Type<T> {
             return handle.type().returnType();
         }
     }
+
+    private class ClassResolver {
+        private final Supplier<Class<T>> resolver;
+        private volatile Class<T> resolved;
+
+        ClassResolver(Supplier<Class<T>> resolver) {
+            this.resolver = resolver;
+        }
+
+        Class<T> get() {
+            if (resolved == null) {
+                synchronized (this.resolver) {
+                    if (resolved == null) {
+                        resolved = resolver.get();
+                        if (resolved == null) {
+                            throw new IllegalStateException();
+                        }
+                    }
+                }
+            }
+            return resolved;
+        }
+    }
+
 }

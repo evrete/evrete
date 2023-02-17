@@ -1,5 +1,7 @@
 package org.evrete.api;
 
+import org.evrete.api.annotations.NonNull;
+
 import java.util.Collection;
 
 public class TypeResolverWrapper implements TypeResolver {
@@ -9,6 +11,7 @@ public class TypeResolverWrapper implements TypeResolver {
         this.delegate = delegate;
     }
 
+    @NonNull
     @Override
     public <T> Type<T> getType(int typeId) {
         return delegate.getType(typeId);
@@ -35,7 +38,8 @@ public class TypeResolverWrapper implements TypeResolver {
     }
 
     @Override
-    public <T> Type<T> declare(String typeName, String javaType) {
+    @NonNull
+    public <T> Type<T> declare(@NonNull String typeName, @NonNull String javaType) {
         return delegate.declare(typeName, javaType);
     }
 
@@ -44,8 +48,9 @@ public class TypeResolverWrapper implements TypeResolver {
         return new TypeResolverWrapper(delegate.copyOf());
     }
 
+    @NonNull
     @Override
-    public <T> Type<T> declare(String typeName, Class<T> javaType) {
+    public <T> Type<T> declare(@NonNull String typeName, @NonNull Class<T> javaType) {
         return delegate.declare(typeName, javaType);
     }
 }

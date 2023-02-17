@@ -12,12 +12,12 @@ import java.util.List;
 import java.util.function.Consumer;
 
 class RuleMethod extends ClassMethod implements SessionCloneable<RuleMethod>, Consumer<RhsContext> {
-    private final int contextParamId;
-    private final int salience;
-    private final String ruleName;
     final String[] stringPredicates;
     final MethodPredicate[] methodPredicates;
     final FactDeclaration[] factDeclarations;
+    private final int contextParamId;
+    private final int salience;
+    private final String ruleName;
 
     RuleMethod(MethodHandles.Lookup lookup, Method method) {
         super(lookup, method);

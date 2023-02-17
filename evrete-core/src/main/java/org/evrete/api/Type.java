@@ -1,5 +1,7 @@
 package org.evrete.api;
 
+import org.evrete.api.annotations.NonNull;
+
 import java.util.Collection;
 import java.util.function.*;
 
@@ -24,6 +26,9 @@ public interface Type<T> extends Named, Copyable<Type<T>> {
      */
     int getId();
 
+
+    Class<T> resolveJavaType();
+
     /**
      * <p>
      * There can be only one Type with the given name, but there could be
@@ -31,9 +36,9 @@ public interface Type<T> extends Named, Copyable<Type<T>> {
      * associated Java type.
      * </p>
      *
-     * @return Java Class associated with the type.
+     * @return name of the Java Class associated with the type.
      */
-    Class<T> getJavaType();
+    String getJavaType();
 
     /**
      * <p>
@@ -47,25 +52,26 @@ public interface Type<T> extends Named, Copyable<Type<T>> {
 
     /**
      * <p>
-     * Returns a declared field with the given name, or null
-     * if no such field is found or resolved
+     * Returns a declared field with the given name. If no such field was explicitly declared,
+     * an attempt will be made to resolve the respective field/getter of the declared Java class.
+     * If no such field or getter is found, the method will throw {@link  IllegalArgumentException}
      * </p>
-     *
-     * @param name field name
-     * @return a declared field or null
-     */
-    TypeField getField(String name);
-
-    /**
      * <p>
-     * Returns a declared field with the given name, or null
-     * if no such field is found or resolved
+     * Empty field name has a special meaning of the {@code "this"} value, i.e. such field's values
+     * represent the type's instances themself.
      * </p>
      *
-     * @param id field name
-     * @return a declared field or null
+     * @param name field name or empty string if the field denotes the type's {@code this} value
+     * @return declared or resolved field
+     * @throws IllegalArgumentException if no field with such name could be found or resolved
      */
-    TypeField getField(int id);
+    @NonNull
+    TypeField getField(@NonNull String name);
+
+    @Deprecated
+    default TypeField getField(int id) {
+        throw new UnsupportedOperationException();
+    }
 
 
     /**

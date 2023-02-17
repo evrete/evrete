@@ -1,14 +1,13 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
+import org.evrete.api.annotations.NonNull;
 import org.evrete.util.NextIntSupplier;
 import org.evrete.util.StringLiteralRemover;
 import org.evrete.util.compiler.CompilationException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,6 +36,7 @@ class DefaultExpressionResolver implements ExpressionResolver {
     }
 
     @Override
+    @NonNull
     public FieldReference resolve(String arg, NamedType.Resolver resolver) {
         Type<?> type;
         TypeField field;
@@ -45,16 +45,10 @@ class DefaultExpressionResolver implements ExpressionResolver {
         int firstDot = arg.indexOf('.');
         if (firstDot < 0) {
             // Var references type
-            if ((typeRef = resolver.resolve(arg)) == null) {
-                throw new IllegalArgumentException("There's no declared reference '" + arg + "' in provided context.");
-            }
-
-            type = typeRef.getType();
-
-            field = type.getField(TypeImpl.THIS_FIELD_NAME);
-            if (field == null) {
-                throw new IllegalArgumentException("Type implementation doesn't support default 'this' field for " + type + ". As a workaround, use a specific type field in your expression rather than referencing the whole type.");
-            }
+            typeRef = resolver.resolve(arg);
+            field = typeRef
+                    .getType()
+                    .getField(""); // empty value has a special meaning of "this" field
         } else {
             // Var references field
             String lhsFactType = arg.substring(0, firstDot);
@@ -62,44 +56,40 @@ class DefaultExpressionResolver implements ExpressionResolver {
             Const.assertName(dottedProp);
             Const.assertName(lhsFactType.substring(1));
 
-            if ((typeRef = resolver.resolve(lhsFactType)) == null) {
-                throw new IllegalArgumentException("There's no declared reference '" + lhsFactType + "' in provided context.");
-            }
-
+            typeRef = resolver.resolve(lhsFactType);
             type = typeRef.getType();
             field = type.getField(dottedProp);
-            if (field == null) {
-                throw new IllegalArgumentException("Unable to resolve property '" + dottedProp + "' of the type " + type);
-            }
         }
-
-
         return new FieldReferenceImpl(typeRef, field);
     }
 
     @Override
-    public synchronized Evaluator buildExpression(String rawExpression, NamedType.Resolver resolver, Set<String> imports) throws CompilationException {
-        return this.buildExpression(rawExpression, resolver, imports, context.getClassLoader(), context.getConfiguration());
-    }
-
-    @Override
-    public synchronized Evaluator buildExpression(String rawExpression, NamedType.Resolver resolver, Set<String> imports, ClassLoader classLoader, Properties properties) throws CompilationException {
-        // Which class the compiled condition will extend?
-        String conditionBaseClass = properties.getProperty(BASE_CLASS_PROPERTY);
-        if (conditionBaseClass == null) {
-            conditionBaseClass = BaseConditionClass.class.getName();
-        }
-
+    @NonNull
+    public synchronized Evaluator buildExpression(String expression, NamedType.Resolver resolver) throws CompilationException {
         try {
-            return buildExpression(classLoader, rawExpression, conditionBaseClass, resolver, imports, true);
-        } catch (Throwable e) {
-            // Trying again with the original expression. There might be a keyword like 'new',
-            // which requires whitespaces to be preserved.
-            return buildExpression(classLoader, rawExpression, conditionBaseClass, resolver, imports, false);
+            // Which class the compiled condition will extend?
+            String conditionBaseClass = context.getConfiguration().getProperty(BASE_CLASS_PROPERTY);
+            if (conditionBaseClass == null) {
+                conditionBaseClass = BaseConditionClass.class.getName();
+            }
+
+            Imports imports = context.getImports();
+            try {
+                return buildExpression(expression, conditionBaseClass, resolver, imports, true);
+            } catch (Throwable e) {
+                // Trying again with the original expression. There might be a keyword like 'new',
+                // which requires whitespaces to be preserved.
+                return buildExpression(expression, conditionBaseClass, resolver, imports, false);
+            }
+        } catch (CompilationException e) {
+            throw e;
+        } catch (Throwable t) {
+            throw new CompilationException(t, expression);
         }
     }
 
-    private Evaluator buildExpression(ClassLoader classLoader, String rawExpression, String conditionBaseClassName, NamedType.Resolver resolver, Set<String> imports, boolean stripWhiteSpaces) throws CompilationException {
+    private Evaluator buildExpression(String rawExpression, String conditionBaseClassName, NamedType.Resolver resolver, Imports imports, boolean stripWhiteSpaces) throws CompilationException {
+        ClassLoader classLoader = context.getClassLoader();
         StringLiteralRemover remover = StringLiteralRemover.of(rawExpression, stripWhiteSpaces);
         String strippedExpression = remover.getConverted();
         Matcher m = REFERENCE_PATTERN.matcher(strippedExpression);

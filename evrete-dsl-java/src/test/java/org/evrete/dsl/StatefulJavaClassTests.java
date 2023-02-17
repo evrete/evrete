@@ -33,7 +33,7 @@ class StatefulJavaClassTests {
     @EnumSource(ActivationMode.class)
     void primeTest1(ActivationMode mode) throws IOException {
         Knowledge knowledge = service.newKnowledge(DSLClassProvider.class, SampleRuleSet1.class);
-        try(StatefulSession session = session(knowledge, mode)) {
+        try (StatefulSession session = session(knowledge, mode)) {
             assert session.getRules().size() == 1;
             for (int i = 2; i < 100; i++) {
                 session.insert(i);
@@ -52,7 +52,7 @@ class StatefulJavaClassTests {
     void primeTest1_1(ActivationMode mode) throws IOException {
         TypeResolver typeResolver = service.newTypeResolver();
         Knowledge knowledge = service.newKnowledge(DSLClassProvider.class, typeResolver, SampleRuleSet1.class);
-        try(StatefulSession session = session(knowledge, mode)) {
+        try (StatefulSession session = session(knowledge, mode)) {
             assert session.getRules().size() == 1;
             for (int i = 2; i < 100; i++) {
                 session.insert(i);
@@ -70,7 +70,7 @@ class StatefulJavaClassTests {
     @EnumSource(ActivationMode.class)
     void primeTest2(ActivationMode mode) throws IOException {
         Knowledge knowledge = service.newKnowledge(DSLClassProvider.class, SampleRuleSet2.class);
-        try(StatefulSession session = session(knowledge, mode)) {
+        try (StatefulSession session = session(knowledge, mode)) {
             assert session.getRules().size() == 1;
             for (int i = 2; i < 100; i++) {
                 session.insert(i);
@@ -88,7 +88,7 @@ class StatefulJavaClassTests {
     @EnumSource(ActivationMode.class)
     void primeTest3(ActivationMode mode) throws IOException {
         Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, SampleRuleSet3.class);
-        try(StatefulSession session = session(knowledge, mode)) {
+        try (StatefulSession session = session(knowledge, mode)) {
             assert session.getRules().size() == 1;
             for (int i = 2; i < 100; i++) {
                 session.insert(i);
@@ -106,7 +106,7 @@ class StatefulJavaClassTests {
     @EnumSource(ActivationMode.class)
     void sortInheritance1(ActivationMode mode) throws IOException {
         Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, SortedRuleSet1.class);
-        try(StatefulSession session = session(knowledge, mode)) {
+        try (StatefulSession session = session(knowledge, mode)) {
             List<RuntimeRule> rules = session.getRules();
 
             assert rules.size() == 5;
@@ -123,7 +123,7 @@ class StatefulJavaClassTests {
     @EnumSource(ActivationMode.class)
     void sortInheritance2(ActivationMode mode) throws IOException {
         Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, SortedRuleSet2.class);
-        try(StatefulSession session = session(knowledge, mode)) {
+        try (StatefulSession session = session(knowledge, mode)) {
             List<RuntimeRule> rules = session.getRules();
             assert rules.size() == 5 : "Actual: " + rules.size() + ": " + rules;
             assert rules.get(0).getName().endsWith("rule2"); // Salience 100

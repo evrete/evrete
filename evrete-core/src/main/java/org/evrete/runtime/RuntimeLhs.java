@@ -5,7 +5,7 @@ import java.util.Collection;
 
 public class RuntimeLhs {
     private final Collection<BetaEndNode> endNodes = new ArrayList<>();
-    private final AbstractLhsDescriptor descriptor;
+    private final LhsDescriptor descriptor;
     private final RhsFactGroup[] rhsFactGroups;
 
     RuntimeLhs(RuntimeRuleImpl rule, LhsDescriptor descriptor) {

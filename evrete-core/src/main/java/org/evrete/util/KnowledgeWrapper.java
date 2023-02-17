@@ -32,9 +32,13 @@ public abstract class KnowledgeWrapper extends RuntimeContextWrapper<Knowledge> 
         return delegate.getRules();
     }
 
+    public void addRule(RuleBuilder<?> builder) {
+        delegate.addRule(builder);
+    }
+
     @Override
-    public RuleDescriptor compileRule(RuleBuilder<?> builder) {
-        return delegate.compileRule(builder);
+    public void setRuleBuilderExceptionHandler(RuleBuilderExceptionHandler handler) {
+        delegate.setRuleBuilderExceptionHandler(handler);
     }
 
     @Override

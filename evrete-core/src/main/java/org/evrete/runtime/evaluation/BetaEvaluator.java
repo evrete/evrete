@@ -1,14 +1,14 @@
 package org.evrete.runtime.evaluation;
 
-import org.evrete.api.ComplexityObject;
 import org.evrete.api.EvaluatorHandle;
+import org.evrete.api.WorkUnit;
 import org.evrete.runtime.ActiveField;
 import org.evrete.runtime.FactType;
 import org.evrete.util.Mask;
 
 import java.util.Set;
 
-public interface BetaEvaluator extends ComplexityObject {
+public interface BetaEvaluator extends WorkUnit {
 
     boolean evaluatesField(ActiveField field);
 

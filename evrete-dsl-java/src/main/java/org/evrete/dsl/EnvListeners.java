@@ -13,10 +13,10 @@ class EnvListeners implements SessionCloneable<EnvListeners> {
     }
 
     private EnvListeners(EnvListeners parent, Object sessionInstance) {
-        for(Map.Entry<String, Collection<EnvListenerMethod>> entry : parent.methods.entrySet()) {
+        for (Map.Entry<String, Collection<EnvListenerMethod>> entry : parent.methods.entrySet()) {
             Collection<EnvListenerMethod> col = entry.getValue();
             ArrayList<EnvListenerMethod> copy = new ArrayList<>(col.size());
-            for(EnvListenerMethod m : col) {
+            for (EnvListenerMethod m : col) {
                 copy.add(m.copy(sessionInstance));
             }
             this.methods.put(entry.getKey(), copy);
@@ -30,8 +30,8 @@ class EnvListeners implements SessionCloneable<EnvListeners> {
 
     void fire(String property, Object value, boolean staticOnly) {
         Collection<EnvListenerMethod> col = methods.get(property);
-        if(col != null) {
-            for(EnvListenerMethod m : col) {
+        if (col != null) {
+            for (EnvListenerMethod m : col) {
                 m.call(value, staticOnly);
             }
         }

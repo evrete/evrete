@@ -9,18 +9,18 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 
-public class Evaluators implements Copyable<Evaluators>, EvaluationListeners {
+class EvaluatorStorageImpl implements Copyable<EvaluatorStorageImpl>, EvaluationListeners {
     private final Map<EvaluatorHandleImpl, EvaluatorWrapper> conditions;
     private final Map<Evaluator, EvaluatorHandleImpl> inverse;
     private final LinkedHashSet<EvaluationListener> listeners;
 
-    Evaluators() {
+    EvaluatorStorageImpl() {
         this.conditions = new HashMap<>();
         this.inverse = new HashMap<>();
         this.listeners = new LinkedHashSet<>();
     }
 
-    private Evaluators(Evaluators other) {
+    private EvaluatorStorageImpl(EvaluatorStorageImpl other) {
         this.conditions = new HashMap<>();
         this.inverse = new HashMap<>();
         this.listeners = new LinkedHashSet<>();
@@ -49,7 +49,7 @@ public class Evaluators implements Copyable<Evaluators>, EvaluationListeners {
         }
     }
 
-    public int compare(EvaluatorHandle h1, EvaluatorHandle h2) {
+    int compare(EvaluatorHandle h1, EvaluatorHandle h2) {
         EvaluatorWrapper w1 = get(h1, false);
         EvaluatorWrapper w2 = get(h2, false);
         return w1.compare(w2);
@@ -102,6 +102,7 @@ public class Evaluators implements Copyable<Evaluators>, EvaluationListeners {
         }
     }
 
+
     public EvaluatorHandle save(Evaluator evaluator, double complexity) {
         if (complexity <= 0.0) throw new IllegalArgumentException("Complexity must be positive");
 
@@ -129,8 +130,8 @@ public class Evaluators implements Copyable<Evaluators>, EvaluationListeners {
     }
 
     @Override
-    public Evaluators copyOf() {
-        return new Evaluators(this);
+    public EvaluatorStorageImpl copyOf() {
+        return new EvaluatorStorageImpl(this);
     }
 
     private static class EvaluatorHandleImpl implements EvaluatorHandle {
