@@ -25,9 +25,9 @@ package org.evrete.api;
 public interface RuleBuilderExceptionHandler {
 
     /**
-     * @param context     is either a {@link Knowledge} or a {@link RuleSession} instance
-     * @param builder     rule builder that caused the exception
-     * @param exception   the exception
+     * @param context   is either a {@link Knowledge} or a {@link RuleSession} instance
+     * @param builder   rule builder that caused the exception
+     * @param exception the exception
      * @throws RuntimeException if developer decides that the original exception is unrecoverable and re-throws the exception (or any other instance of {@link RuntimeException})
      * @see RuleSet#setRuleBuilderExceptionHandler(RuleBuilderExceptionHandler)
      */

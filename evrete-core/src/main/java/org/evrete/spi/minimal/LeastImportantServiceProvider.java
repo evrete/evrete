@@ -10,7 +10,7 @@ abstract class LeastImportantServiceProvider implements OrderedServiceProvider {
     private final WeakHashMap<RuntimeContext<?>, JcCompiler> javaCompilers = new WeakHashMap<>();
 
     final JcCompiler getCreateJavaCompiler(RuntimeContext<?> ctx) {
-        return javaCompilers.computeIfAbsent(ctx, k->new JcCompiler());
+        return javaCompilers.computeIfAbsent(ctx, k -> new JcCompiler());
     }
 
     @Override

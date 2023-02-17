@@ -54,8 +54,9 @@ public interface RuleSet<R extends Rule> {
 
     /**
      * <p>
-     *     Sets custom {@link RuleBuilderExceptionHandler} for the ruleset.
+     * Sets custom {@link RuleBuilderExceptionHandler} for the ruleset.
      * </p>
+     *
      * @param handler exception handler
      * @see RuleBuilderExceptionHandler
      */

@@ -371,7 +371,7 @@ class PredicatesTests {
                 .where(rule2_3, "$b.f")
                 .execute(rhsAssert2);
 
-        try(StatefulSession s = knowledge.newStatefulSession()) {
+        try (StatefulSession s = knowledge.newStatefulSession()) {
             TypeA a = new TypeA("A");
             a.setAllNumeric(0);
 

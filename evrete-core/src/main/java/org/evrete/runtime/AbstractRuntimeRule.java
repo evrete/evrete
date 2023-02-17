@@ -6,7 +6,10 @@ import org.evrete.api.Type;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.util.NamedTypeImpl;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
 
 public abstract class AbstractRuntimeRule<T extends FactType> extends AbstractRule {
     final T[] factTypes;
@@ -35,11 +38,7 @@ public abstract class AbstractRuntimeRule<T extends FactType> extends AbstractRu
     public NamedType resolve(@NonNull String var) {
         FactType factType = typeMapping.get(var);
         Type<?> t = runtime.getTypeResolver().getType(factType.type());
-        if(t == null) {
-            throw new NoSuchElementException("No type registered with variable '" + var + "'");
-        } else {
-            return new NamedTypeImpl(t, factType.getName());
-        }
+        return new NamedTypeImpl(t, factType.getName());
     }
 
     T resolveFactType(NamedType type) {

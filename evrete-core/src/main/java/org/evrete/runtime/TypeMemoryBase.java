@@ -104,7 +104,7 @@ class TypeMemoryBase extends MemoryComponent implements Iterable<KeyMemoryBucket
 
     @Override
     public String toString() {
-        return "TypeMemory{" +type.getName() +
+        return "TypeMemory{" + type.getName() +
                 '}';
     }
 }

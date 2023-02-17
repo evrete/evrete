@@ -196,19 +196,19 @@ class LhsBuilderImpl<C extends RuntimeContext<C>> implements LhsBuilder<C> {
     }
 
     private synchronized NamedTypeResolver resolver() {
-        if(typeResolver == null) {
+        if (typeResolver == null) {
             typeResolver = new NamedTypeResolver();
         }
         return typeResolver;
     }
 
 
-    private class NamedTypeResolver implements NamedType.Resolver{
+    private class NamedTypeResolver implements NamedType.Resolver {
         private final DefaultNamedTypeResolver<NamedTypeImpl> resolver;
 
         NamedTypeResolver() {
             this.resolver = new DefaultNamedTypeResolver<>();
-            for(NamedTypeImpl t : declaredLhsTypes) {
+            for (NamedTypeImpl t : declaredLhsTypes) {
                 this.resolver.put(t.getName(), t);
             }
         }

@@ -2,7 +2,7 @@ package org.evrete.benchmarks.models.github;
 
 /**
  * <p>
- *     Bug testing, <a href="https://github.com/andbi/evrete/issues/11">Bug with activation mode</a>
+ * Bug testing, <a href="https://github.com/andbi/evrete/issues/11">Bug with activation mode</a>
  * </p>
  */
 public class XLocalDevMyNumber {

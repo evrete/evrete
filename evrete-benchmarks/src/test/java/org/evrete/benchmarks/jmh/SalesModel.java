@@ -46,11 +46,11 @@ public class SalesModel {
     @Benchmark
     public void baseline(BenchmarkState state) {
         SalesReport report = new SalesReport();
-        for(Object o1 : state.sessionObjects) {
-            if(o1 instanceof SalesUnit) {
+        for (Object o1 : state.sessionObjects) {
+            if (o1 instanceof SalesUnit) {
                 SalesUnit u = (SalesUnit) o1;
-                for(Object o2 : state.sessionObjects) {
-                    if(o2 instanceof Customer) {
+                for (Object o2 : state.sessionObjects) {
+                    if (o2 instanceof Customer) {
                         Customer c = (Customer) o2;
                         if (c.rating > 4.0) {
                             for (Object o3 : state.sessionObjects) {
@@ -66,7 +66,7 @@ public class SalesModel {
                 }
             }
         }
-        int b = report.hashCode() > 1000? 1:2;
+        int b = report.hashCode() > 1000 ? 1 : 2;
         Blackhole.consumeCPU(b);
     }
 

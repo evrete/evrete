@@ -49,7 +49,7 @@ public interface ExpressionResolver {
      * </p>
      *
      * @param expression - a String condition expression to parse
-     * @param resolver         a mapping function between fact name and {@link NamedType}
+     * @param resolver   a mapping function between fact name and {@link NamedType}
      * @return returns an {@link Evaluator} instance or throws an exception
      * @throws CompilationException     if the argument can not be compiled
      * @throws IllegalArgumentException if the expression can not be resolved

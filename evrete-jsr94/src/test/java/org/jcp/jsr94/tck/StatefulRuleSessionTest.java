@@ -1,5 +1,5 @@
 /*
- * J A V A  C O M M U N I T Y  P R O C E S S
+ * JAVA COMMUNITY PROCESS
  *
  * J S R  9 4
  *
@@ -102,7 +102,6 @@ import java.util.List;
  * @see javax.rules.StatefulRuleSession
  * @since JSR-94 1.0
  */
-@SuppressWarnings("ConstantConditions")
 class StatefulRuleSessionTest {
     /**
      * Test the compliance for javax.rules.StatefulRuleSession.
@@ -310,7 +309,6 @@ class StatefulRuleSessionTest {
 
             itr = results.iterator();
 
-            resultCustomer = null;
             resultInvoice = null;
 
             while (itr.hasNext()) {
@@ -383,7 +381,6 @@ class StatefulRuleSessionTest {
             itr = results.iterator();
 
             resultCustomer = null;
-            resultInvoice = null;
 
             while (itr.hasNext()) {
                 obj = itr.next();

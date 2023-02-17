@@ -29,10 +29,10 @@ public class TypeDeclarationAnnotated {
             long factorial1 = factorial(i1);
             long factorial2 = factorial(i2);
             System.out.printf("i1: %d (%d)\t\ti2: %d (%d)%n",
-                i1,
-                factorial1,
-                i2,
-                factorial2
+                    i1,
+                    factorial1,
+                    i2,
+                    factorial2
             );
         }
 

@@ -20,10 +20,11 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
 
     /**
      * <p>
-     *     A convenience wrapper for compiling literal conditions.
+     * A convenience wrapper for compiling literal conditions.
      * </p>
+     *
      * @param expression string condition
-     * @param resolver named type resolver
+     * @param resolver   named type resolver
      * @return new evaluator instance
      * @throws CompilationException if the expression failed to compile
      */

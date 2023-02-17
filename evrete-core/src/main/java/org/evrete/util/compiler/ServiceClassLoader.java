@@ -28,11 +28,11 @@ public class ServiceClassLoader extends SecureClassLoader {
     Collection<JavaFileObject> getCompiledClasses(String packageName) {
         ClassLoader current = this;
         Collection<JavaFileObject> col = new ArrayList<>();
-        while (current !=  null) {
-            if(current instanceof  ServiceClassLoader) {
+        while (current != null) {
+            if (current instanceof ServiceClassLoader) {
                 ServiceClassLoader scl = (ServiceClassLoader) current;
-                for(CompiledClass cc : scl.localCompiledClasses) {
-                    if(cc.getPackageName().equals(packageName)) {
+                for (CompiledClass cc : scl.localCompiledClasses) {
+                    if (cc.getPackageName().equals(packageName)) {
                         col.add(cc);
                     }
                 }

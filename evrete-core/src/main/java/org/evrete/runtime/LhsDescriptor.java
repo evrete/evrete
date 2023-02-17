@@ -28,7 +28,7 @@ class LhsDescriptor {
         Set<EvaluatorHandle> betaHandles = new HashSet<>();
         MapOfSet<String, TypeField> betaFields = new MapOfSet<>();
 
-        for(EvaluatorHandle h : lhsBuilder.resolveConditions()) {
+        for (EvaluatorHandle h : lhsBuilder.resolveConditions()) {
             Set<NamedType> involvedTypes = h.namedTypes();
             if (involvedTypes.size() == 1) {
                 // This is an alpha condition
@@ -41,9 +41,6 @@ class LhsDescriptor {
                 }
             }
         }
-
-
-
 
 
         Set<FactType> keyedFactTypes = new HashSet<>();

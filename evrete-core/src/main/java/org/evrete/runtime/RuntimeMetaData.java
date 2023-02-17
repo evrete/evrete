@@ -192,7 +192,6 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         return typeResolver.copyOf();
     }
 
-    @NonNull
     @Override
     public <T> Type<T> getType(String name) {
         return typeResolver.getType(name);

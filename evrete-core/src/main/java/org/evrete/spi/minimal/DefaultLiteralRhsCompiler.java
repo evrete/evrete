@@ -69,7 +69,7 @@ public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider imp
             return clazz.getDeclaredConstructor().newInstance();
         } catch (CompilationException e) {
             throw e;
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new CompilationException(e, literalRhs);
         }
     }

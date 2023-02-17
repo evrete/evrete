@@ -58,7 +58,7 @@ class DSLKnowledge extends KnowledgeWrapper {
             Properties copy = delegate.getConfiguration().copyOf();
             // TODO !! make it optional/configurable
             copy.setProperty("evrete.impl.condition-base-class", canonicalName(meta.javaClass));
-            for(String predicate : rm.stringPredicates) {
+            for (String predicate : rm.stringPredicates) {
                 lhs.where(predicate);
             }
 

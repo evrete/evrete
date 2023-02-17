@@ -7,13 +7,13 @@ import static org.evrete.dsl.TestUtils.EnvHelperData.add;
 
 public class EnvListenerRuleSet1 {
 
-    @Rule
-    public void rule(int i) {
-    }
-
     @EnvironmentListener("property1")
     public static void set(String s) {
         add("property1", s);
+    }
+
+    @Rule
+    public void rule(int i) {
     }
 
     @EnvironmentListener("property2")

@@ -19,8 +19,8 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
 
     private final KnowledgeService service;
     private final Configuration configuration;
-    private ExpressionResolver expressionResolver;
     private final AtomicInteger noNameRuleCounter;
+    private ExpressionResolver expressionResolver;
     private Comparator<Rule> ruleComparator = SALIENCE_COMPARATOR;
     private Class<? extends ActivationManager> activationManagerFactory;
     private ActivationMode agendaMode;

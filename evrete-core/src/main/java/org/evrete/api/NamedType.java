@@ -35,11 +35,12 @@ public interface NamedType {
     interface Resolver {
         /**
          * Returns {@link NamedType} by its declared variable name
+         *
          * @param var variable name
          * @return named type
          * @throws java.util.NoSuchElementException if no type is declared under the given var name
          */
         @NonNull
-        NamedType resolve(@NonNull  String var);
+        NamedType resolve(@NonNull String var);
     }
 }

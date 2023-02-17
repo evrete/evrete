@@ -73,14 +73,13 @@ class EvaluationContextTests {
                 );
 
 
-
         EvaluatorHandle betaHandle = ruleBuilder.createCondition("$a.i == $b.i");
         EvaluatorHandle alphaHandle1 = ruleBuilder.createCondition("$a.i > 1");
         EvaluatorHandle alphaHandle2 = ruleBuilder.createCondition("$b.i > 1");
 
         lhsBuilder.where(betaHandle, alphaHandle1, alphaHandle2).execute(rhsAssert);
 
-        try(StatefulSession session1 = knowledge.newStatefulSession().setActivationMode(mode); StatefulSession session2 = knowledge.newStatefulSession().setActivationMode(mode)) {
+        try (StatefulSession session1 = knowledge.newStatefulSession().setActivationMode(mode); StatefulSession session2 = knowledge.newStatefulSession().setActivationMode(mode)) {
             session1.insertAndFire(facts);
             rhsAssert.assertCount(count - 2).reset(); // With zero 'i' values excluded
             rhsAssert.reset();
@@ -112,7 +111,6 @@ class EvaluationContextTests {
             session2.insertAndFire(facts);
             rhsAssert.assertCount(count * (count - 1)).reset(); // n * (n - 1)
         }
-
 
 
     }

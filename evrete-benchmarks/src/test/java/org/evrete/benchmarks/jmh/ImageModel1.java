@@ -57,6 +57,10 @@ public class ImageModel1 {
         private KieContainer dKnowledge;
         private Knowledge eKnowledge;
 
+        private static boolean imagePredicate(IntToValue values) {
+            return values.apply(0) == values.apply(1);
+        }
+
         @Setup(Level.Iteration)
         public void initInvocationData() {
             images = new ArrayList<>();
@@ -66,10 +70,6 @@ public class ImageModel1 {
                 Image image = new Image("Image-Label-" + label);
                 images.add(image);
             }
-        }
-
-        private static boolean imagePredicate(IntToValue values) {
-            return values.apply(0) == values.apply(1);
         }
 
         @Setup(Level.Invocation)

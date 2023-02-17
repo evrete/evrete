@@ -701,26 +701,29 @@ class StatefulBaseTests {
                 .where("$a.i == $b.i")
                 .execute(rhsAssert);
 
-        StatefulSession s = newSession(mode);
+        TypeB b1;
+        TypeA a1_1;
+        try (StatefulSession s = newSession(mode)) {
 
-        TypeA a1 = new TypeA("A1");
-        a1.setAllNumeric(1);
+            TypeA a1 = new TypeA("A1");
+            a1.setAllNumeric(1);
 
-        TypeA a2 = new TypeA("A2");
-        a2.setAllNumeric(2);
+            TypeA a2 = new TypeA("A2");
+            a2.setAllNumeric(2);
 
-        TypeB b1 = new TypeB("B1");
-        b1.setAllNumeric(1);
+            b1 = new TypeB("B1");
+            b1.setAllNumeric(1);
 
-        TypeB b2 = new TypeB("B2");
-        b2.setAllNumeric(2);
+            TypeB b2 = new TypeB("B2");
+            b2.setAllNumeric(2);
 
-        s.insertAndFire(a1, a2, b1, b2);
-        rhsAssert.assertCount(2).reset();
+            s.insertAndFire(a1, a2, b1, b2);
+            rhsAssert.assertCount(2).reset();
 
-        TypeA a1_1 = new TypeA("A1_1");
-        a1_1.setAllNumeric(1);
-        s.insertAndFire(a1_1);
+            a1_1 = new TypeA("A1_1");
+            a1_1.setAllNumeric(1);
+            s.insertAndFire(a1_1);
+        }
         rhsAssert.assertCount(1);
         rhsAssert.assertContains("$a", a1_1);
         rhsAssert.assertContains("$b", b1);
@@ -759,24 +762,30 @@ class StatefulBaseTests {
                 .execute(rhsAssert2)
         ;
 
-        StatefulSession s = newSession(mode);
+        TypeA a;
+        TypeA aa;
+        TypeA aaa;
+        TypeB b;
+        TypeB bb;
+        try (StatefulSession s = newSession(mode)) {
 
-        TypeA a = new TypeA("A");
-        a.setAllNumeric(0);
+            a = new TypeA("A");
+            a.setAllNumeric(0);
 
-        TypeA aa = new TypeA("AA");
-        aa.setAllNumeric(2);
+            aa = new TypeA("AA");
+            aa.setAllNumeric(2);
 
-        TypeA aaa = new TypeA("AAA");
-        aaa.setAllNumeric(3);
+            aaa = new TypeA("AAA");
+            aaa.setAllNumeric(3);
 
-        TypeB b = new TypeB("B");
-        b.setAllNumeric(9);
+            b = new TypeB("B");
+            b.setAllNumeric(9);
 
-        TypeB bb = new TypeB("BB");
-        bb.setAllNumeric(100);
+            bb = new TypeB("BB");
+            bb.setAllNumeric(100);
 
-        s.insertAndFire(a, aa, aaa, b, bb);
+            s.insertAndFire(a, aa, aaa, b, bb);
+        }
 
         rhsAssert1
                 .assertCount(2)
@@ -815,21 +824,22 @@ class StatefulBaseTests {
                 .execute(rhsAssert);
 
 
-        StatefulSession s = newSession(mode);
+        try (StatefulSession s = newSession(mode)) {
 
-        TypeA a1 = new TypeA("A1");
-        a1.setI(1);
+            TypeA a1 = new TypeA("A1");
+            a1.setI(1);
 
-        TypeB b1 = new TypeB("B1");
-        b1.setD(10.0);
+            TypeB b1 = new TypeB("B1");
+            b1.setD(10.0);
 
-        TypeA a2 = new TypeA("A2");
-        a2.setI(1);
+            TypeA a2 = new TypeA("A2");
+            a2.setI(1);
 
-        TypeB b2 = new TypeB("B2");
-        b2.setD(10.0);
+            TypeB b2 = new TypeB("B2");
+            b2.setD(10.0);
 
-        s.insertAndFire(a1, b1, a2, b2);
+            s.insertAndFire(a1, b1, a2, b2);
+        }
         rhsAssert.assertCount(4);
     }
 
@@ -851,25 +861,26 @@ class StatefulBaseTests {
                 .where("$a.f < $b.l")
                 .execute(rhsAssert);
 
-        StatefulSession s = newSession(mode);
+        try (StatefulSession s = newSession(mode)) {
 
-        TypeA a1 = new TypeA("A1");
-        a1.setI(1);
-        a1.setF(1.0f);
+            TypeA a1 = new TypeA("A1");
+            a1.setI(1);
+            a1.setF(1.0f);
 
-        TypeB b1 = new TypeB("B1");
-        b1.setD(10.0);
-        b1.setL(10L);
+            TypeB b1 = new TypeB("B1");
+            b1.setD(10.0);
+            b1.setL(10L);
 
-        TypeA a2 = new TypeA("A2");
-        a2.setI(1);
-        a2.setF(1.0f);
+            TypeA a2 = new TypeA("A2");
+            a2.setI(1);
+            a2.setF(1.0f);
 
-        TypeB b2 = new TypeB("B2");
-        b2.setD(10.0);
-        b2.setL(10L);
+            TypeB b2 = new TypeB("B2");
+            b2.setD(10.0);
+            b2.setL(10L);
 
-        s.insertAndFire(a1, b1, a2, b2);
+            s.insertAndFire(a1, b1, a2, b2);
+        }
         rhsAssert.assertCount(4);
 
 
@@ -899,41 +910,42 @@ class StatefulBaseTests {
                 .where("$c.f < $d.l")
                 .execute(rhsAssert);
 
-        StatefulSession s = newSession(mode);
+        try (StatefulSession s = newSession(mode)) {
 
-        TypeA a1 = new TypeA("A1");
-        a1.setI(1);
-        a1.setF(1.0f);
+            TypeA a1 = new TypeA("A1");
+            a1.setI(1);
+            a1.setF(1.0f);
 
-        TypeA a2 = new TypeA("A2");
-        a2.setI(1);
-        a2.setF(1.0f);
+            TypeA a2 = new TypeA("A2");
+            a2.setI(1);
+            a2.setF(1.0f);
 
-        TypeB b1 = new TypeB("B1");
-        b1.setD(2.0);
-        b1.setL(2L);
+            TypeB b1 = new TypeB("B1");
+            b1.setD(2.0);
+            b1.setL(2L);
 
-        TypeB b2 = new TypeB("B2");
-        b2.setD(2.0);
-        b2.setL(2L);
+            TypeB b2 = new TypeB("B2");
+            b2.setD(2.0);
+            b2.setL(2L);
 
-        TypeC c1 = new TypeC("C1");
-        c1.setI(10);
-        c1.setF(10.0f);
+            TypeC c1 = new TypeC("C1");
+            c1.setI(10);
+            c1.setF(10.0f);
 
-        TypeC c2 = new TypeC("C2");
-        c2.setI(10);
-        c2.setF(10.0f);
+            TypeC c2 = new TypeC("C2");
+            c2.setI(10);
+            c2.setF(10.0f);
 
-        TypeD d1 = new TypeD("D1");
-        d1.setD(20.0);
-        d1.setL(20L);
+            TypeD d1 = new TypeD("D1");
+            d1.setD(20.0);
+            d1.setL(20L);
 
-        TypeD d2 = new TypeD("D2");
-        d2.setD(20.0);
-        d2.setL(20L);
+            TypeD d2 = new TypeD("D2");
+            d2.setD(20.0);
+            d2.setL(20L);
 
-        s.insertAndFire(a1, b1, c1, d1, a2, b2, c2, d2);
+            s.insertAndFire(a1, b1, c1, d1, a2, b2, c2, d2);
+        }
         rhsAssert.assertCount(16);
     }
 
@@ -953,21 +965,22 @@ class StatefulBaseTests {
                 .where("$a.i != $b.i")
                 .execute(rhsAssert);
 
-        StatefulSession s = newSession(mode);
+        try (StatefulSession s = newSession(mode)) {
 
-        TypeA a1 = new TypeA("A1");
-        a1.setI(1);
+            TypeA a1 = new TypeA("A1");
+            a1.setI(1);
 
-        TypeA a2 = new TypeA("A2");
-        a2.setI(1);
+            TypeA a2 = new TypeA("A2");
+            a2.setI(1);
 
-        TypeB b1 = new TypeB("B1");
-        b1.setI(10);
+            TypeB b1 = new TypeB("B1");
+            b1.setI(10);
 
-        TypeB b2 = new TypeB("B2");
-        b2.setI(10);
+            TypeB b2 = new TypeB("B2");
+            b2.setI(10);
 
-        s.insertAndFire(a1, b1, a2, b2);
+            s.insertAndFire(a1, b1, a2, b2);
+        }
         rhsAssert.assertCount(4);
     }
 
@@ -987,15 +1000,16 @@ class StatefulBaseTests {
                 .where("$a1.i != $a2.i")
                 .execute(rhsAssert);
 
-        StatefulSession s = newSession(mode);
+        try (StatefulSession s = newSession(mode)) {
 
-        TypeA a1 = new TypeA("A1");
-        a1.setI(1);
+            TypeA a1 = new TypeA("A1");
+            a1.setI(1);
 
-        TypeA a2 = new TypeA("A2");
-        a2.setI(10);
+            TypeA a2 = new TypeA("A2");
+            a2.setI(10);
 
-        s.insertAndFire(a1, a2);
+            s.insertAndFire(a1, a2);
+        }
         rhsAssert.assertCount(2); // [a1, a2], [a2, a1]
     }
 
@@ -1019,45 +1033,46 @@ class StatefulBaseTests {
                         }
                 );
 
-        StatefulSession s = newSession(mode);
+        try (StatefulSession s = newSession(mode)) {
 
-        TypeA a1 = new TypeA("A3");
-        a1.setI(3);
+            TypeA a1 = new TypeA("A3");
+            a1.setI(3);
 
-        TypeA a2 = new TypeA("A5");
-        a2.setI(5);
+            TypeA a2 = new TypeA("A5");
+            a2.setI(5);
 
-        s.insertAndFire(a1, a2);
-        assert collectedJoinedIds.isEmpty();
+            s.insertAndFire(a1, a2);
+            assert collectedJoinedIds.isEmpty();
 
 
-        for (int i = 0; i < 20; i++) {
-            TypeA misc = new TypeA();
-            misc.setI(i + 1000);
-            s.insertAndFire(misc);
+            for (int i = 0; i < 20; i++) {
+                TypeA misc = new TypeA();
+                misc.setI(i + 1000);
+                s.insertAndFire(misc);
+            }
+
+            assert collectedJoinedIds.isEmpty();
+
+            TypeA a3 = new TypeA("A15");
+            a3.setI(15);
+
+            s.insertAndFire(a3);
+            assert collectedJoinedIds.size() == 2 : "Actual data: " + collectedJoinedIds;
+            assert collectedJoinedIds.contains("A3A5A15") : "Actual: " + collectedJoinedIds;
+            assert collectedJoinedIds.contains("A5A3A15");
+
+
+            TypeA a7 = new TypeA("A7");
+            a7.setI(7);
+
+            TypeA a11 = new TypeA("A11");
+            a11.setI(11);
+
+            TypeA a77 = new TypeA("A77");
+            a77.setI(77);
+
+            s.insertAndFire(a7, a11, a77);
         }
-
-        assert collectedJoinedIds.isEmpty();
-
-        TypeA a3 = new TypeA("A15");
-        a3.setI(15);
-
-        s.insertAndFire(a3);
-        assert collectedJoinedIds.size() == 2 : "Actual data: " + collectedJoinedIds;
-        assert collectedJoinedIds.contains("A3A5A15") : "Actual: " + collectedJoinedIds;
-        assert collectedJoinedIds.contains("A5A3A15");
-
-
-        TypeA a7 = new TypeA("A7");
-        a7.setI(7);
-
-        TypeA a11 = new TypeA("A11");
-        a11.setI(11);
-
-        TypeA a77 = new TypeA("A77");
-        a77.setI(77);
-
-        s.insertAndFire(a7, a11, a77);
         assert collectedJoinedIds.size() == 4 : "Actual " + collectedJoinedIds;
         assert collectedJoinedIds.contains("A3A5A15");
         assert collectedJoinedIds.contains("A5A3A15");
@@ -1087,21 +1102,22 @@ class StatefulBaseTests {
                 .where("$a2.i > $a1.i")
                 .execute(rhsAssert);
 
-        StatefulSession s = newSession(mode);
+        try (StatefulSession s = newSession(mode)) {
 
-        TypeA a1 = new TypeA("A1");
-        a1.setI(1);
+            TypeA a1 = new TypeA("A1");
+            a1.setI(1);
 
-        TypeA a2 = new TypeA("A2");
-        a2.setI(10);
+            TypeA a2 = new TypeA("A2");
+            a2.setI(10);
 
-        s.insertAndFire(a1, a2);
-        rhsAssert.assertCount(0).reset();
+            s.insertAndFire(a1, a2);
+            rhsAssert.assertCount(0).reset();
 
-        TypeA a3 = new TypeA("A3");
-        a3.setI(11);
+            TypeA a3 = new TypeA("A3");
+            a3.setI(11);
 
-        s.insertAndFire(a3);
+            s.insertAndFire(a3);
+        }
         rhsAssert.assertCount(1); //[a1, a2, a3]
     }
 
@@ -1124,27 +1140,28 @@ class StatefulBaseTests {
                 .where("$a2.i > $a1.i")
                 .execute(rhsAssert);
 
-        StatefulSession s = newSession(mode);
+        try (StatefulSession s = newSession(mode)) {
 
-        TypeA a1 = new TypeA("A1-1");
-        a1.setI(1);
+            TypeA a1 = new TypeA("A1-1");
+            a1.setI(1);
 
-        TypeA a2 = new TypeA("A2-1");
-        a2.setI(10);
+            TypeA a2 = new TypeA("A2-1");
+            a2.setI(10);
 
-        TypeA a3 = new TypeA("A3-1");
-        a3.setI(11);
+            TypeA a3 = new TypeA("A3-1");
+            a3.setI(11);
 
-        TypeA a11 = new TypeA("A1-2");
-        a11.setI(1);
+            TypeA a11 = new TypeA("A1-2");
+            a11.setI(1);
 
-        TypeA a22 = new TypeA("A2-2");
-        a22.setI(10);
+            TypeA a22 = new TypeA("A2-2");
+            a22.setI(10);
 
-        TypeA a33 = new TypeA("A3-2");
-        a33.setI(11);
+            TypeA a33 = new TypeA("A3-2");
+            a33.setI(11);
 
-        s.insertAndFire(a1, a2, a3, a11, a22, a33);
+            s.insertAndFire(a1, a2, a3, a11, a22, a33);
+        }
 
         rhsAssert.assertCount(8);
 
@@ -1170,25 +1187,26 @@ class StatefulBaseTests {
                 .where("$b.i > 3")
                 .execute(rhsAssert);
 
-        StatefulSession s = newSession(mode);
+        try (StatefulSession s = newSession(mode)) {
 
-        // This insert cycle will result in 5 matching pairs of [A,B] with i=5,6,7,8,9
-        for (int i = 0; i < 10; i++) {
-            TypeA a = new TypeA("A" + i);
-            a.setI(i);
-            TypeB b = new TypeB("B" + i);
-            b.setI(i);
-            s.insert(a, b);
+            // This insert cycle will result in 5 matching pairs of [A,B] with i=5,6,7,8,9
+            for (int i = 0; i < 10; i++) {
+                TypeA a = new TypeA("A" + i);
+                a.setI(i);
+                TypeB b = new TypeB("B" + i);
+                b.setI(i);
+                s.insert(a, b);
+            }
+            s.fire();
+            rhsAssert.assertCount(0).reset();
+            s.insertAndFire(new TypeC("C"));
+            rhsAssert.assertCount(5).reset();
+
+            s.fire();
+            rhsAssert.assertCount(0).reset();
+
+            s.insertAndFire(new TypeC("C"));
         }
-        s.fire();
-        rhsAssert.assertCount(0).reset();
-        s.insertAndFire(new TypeC("C"));
-        rhsAssert.assertCount(5).reset();
-
-        s.fire();
-        rhsAssert.assertCount(0).reset();
-
-        s.insertAndFire(new TypeC("C"));
         rhsAssert.assertCount(5);
 
     }
@@ -1212,17 +1230,18 @@ class StatefulBaseTests {
                 .where("$b.i > 3")
                 .execute(rhsAssert);
 
-        StatefulSession s = newSession(mode);
+        try (StatefulSession s = newSession(mode)) {
 
-        // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
-        for (int i = 0; i < 10; i++) {
-            TypeA a = new TypeA("A" + i);
-            a.setAllNumeric(i);
-            TypeB b = new TypeB("B" + i);
-            b.setAllNumeric(i);
-            s.insert(a, b);
+            // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
+            for (int i = 0; i < 10; i++) {
+                TypeA a = new TypeA("A" + i);
+                a.setAllNumeric(i);
+                TypeB b = new TypeB("B" + i);
+                b.setAllNumeric(i);
+                s.insert(a, b);
+            }
+            s.fire();
         }
-        s.fire();
         rhsAssert.assertCount(30);
     }
 
@@ -1245,28 +1264,31 @@ class StatefulBaseTests {
                 .where("$b.i > 3")
                 .execute(rhsAssert);
 
-        StatefulSession s = newSession(mode);
+        TypeC c1;
+        TypeC c2;
+        try (StatefulSession s = newSession(mode)) {
 
-        // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
-        for (int i = 0; i < 10; i++) {
-            TypeA a = new TypeA("A" + i);
-            a.setI(i);
-            TypeB b = new TypeB("B" + i);
-            b.setI(i);
-            s.insert(a, b);
+            // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
+            for (int i = 0; i < 10; i++) {
+                TypeA a = new TypeA("A" + i);
+                a.setI(i);
+                TypeB b = new TypeB("B" + i);
+                b.setI(i);
+                s.insert(a, b);
+            }
+            s.fire();
+            rhsAssert.assertCount(0).reset();
+            c1 = new TypeC("C");
+            c2 = new TypeC("C");
+            s.insert(c1);
+            s.fire();
+            rhsAssert
+                    .assertCount(30)
+                    .assertContains("$c", c1)
+                    .reset();
+            s.insert(c2);
+            s.fire();
         }
-        s.fire();
-        rhsAssert.assertCount(0).reset();
-        TypeC c1 = new TypeC("C");
-        TypeC c2 = new TypeC("C");
-        s.insert(c1);
-        s.fire();
-        rhsAssert
-                .assertCount(30)
-                .assertContains("$c", c1)
-                .reset();
-        s.insert(c2);
-        s.fire();
         rhsAssert
                 .assertCount(30)
                 .assertNotContains("$c", c1)
@@ -1293,26 +1315,27 @@ class StatefulBaseTests {
                 .where("$c.i > 6")
                 .execute(rhsAssert);
 
-        StatefulSession session = newSession(mode);
+        try (StatefulSession session = newSession(mode)) {
 
-        // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
-        for (int i = 0; i < 10; i++) {
-            TypeA a = new TypeA("A" + i);
-            a.setI(i);
-            TypeB b = new TypeB("B" + i);
-            b.setI(i);
-            session.insert(a, b);
-        }
-        session.fire();
-        rhsAssert.assertCount(0).reset();
+            // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
+            for (int i = 0; i < 10; i++) {
+                TypeA a = new TypeA("A" + i);
+                a.setI(i);
+                TypeB b = new TypeB("B" + i);
+                b.setI(i);
+                session.insert(a, b);
+            }
+            session.fire();
+            rhsAssert.assertCount(0).reset();
 
-        // This insert cycle will result in 3 matching pairs of C (7,8,9)
-        for (int i = 0; i < 10; i++) {
-            TypeC c = new TypeC("C" + i);
-            c.setI(i);
-            session.insert(c);
+            // This insert cycle will result in 3 matching pairs of C (7,8,9)
+            for (int i = 0; i < 10; i++) {
+                TypeC c = new TypeC("C" + i);
+                c.setI(i);
+                session.insert(c);
+            }
+            session.fire();
         }
-        session.fire();
         rhsAssert
                 .assertCount(30 * 3)
                 .assertUniqueCount("$a", 5)
@@ -1348,15 +1371,16 @@ class StatefulBaseTests {
                 .execute(rhsAssert3);
 
 
-        StatefulSession session = newSession(mode);
+        try (StatefulSession session = newSession(mode)) {
 
-        // This insert cycle will result in 5 matching As
-        for (int i = 0; i < 10; i++) {
-            TypeA a = new TypeA("A" + i);
-            a.setI(i);
-            session.insert(a);
+            // This insert cycle will result in 5 matching As
+            for (int i = 0; i < 10; i++) {
+                TypeA a = new TypeA("A" + i);
+                a.setI(i);
+                session.insert(a);
+            }
+            session.fire();
         }
-        session.fire();
         rhsAssert1.assertCount(5);
         rhsAssert2.assertCount(4);
         rhsAssert3.assertCount(3);
@@ -1385,15 +1409,16 @@ class StatefulBaseTests {
                 .execute(rhsAssert3);
 
 
-        StatefulSession s = newSession(mode);
+        try (StatefulSession s = newSession(mode)) {
 
-        // This insert cycle will result in 5 matching As
-        for (int i = 0; i < 10; i++) {
-            TypeA a = new TypeA("A" + i);
-            a.setI(i);
-            s.insert(a);
+            // This insert cycle will result in 5 matching As
+            for (int i = 0; i < 10; i++) {
+                TypeA a = new TypeA("A" + i);
+                a.setI(i);
+                s.insert(a);
+            }
+            s.fire();
         }
-        s.fire();
         rhsAssert1.assertCount(5);
         rhsAssert2.assertCount(4);
         rhsAssert3.assertCount(5);
@@ -1420,13 +1445,14 @@ class StatefulBaseTests {
                 .where("!$a.id.equals('A5')") // Inverse to rule 1
                 .execute(rhsAssert3);
 
-        StatefulSession s = newSession(mode);
+        try (StatefulSession s = newSession(mode)) {
 
-        for (int i = 0; i < 10; i++) {
-            String id = "A" + i;
-            s.insert(new TypeA(id));
+            for (int i = 0; i < 10; i++) {
+                String id = "A" + i;
+                s.insert(new TypeA(id));
+            }
+            s.fire();
         }
-        s.fire();
 
         rhsAssert1.assertCount(1);
         rhsAssert2.assertCount(1);
@@ -1450,29 +1476,33 @@ class StatefulBaseTests {
                 .where("$b.i > 3")
                 .execute(rhsAssert);
 
-        StatefulSession s = newSession(mode);
+        TypeA $a1;
+        TypeA $a2;
+        TypeB $b3;
+        try (StatefulSession s = newSession(mode)) {
 
-        TypeA $a1 = new TypeA("A1");
-        TypeA $a2 = new TypeA("A2");
-        $a1.setI(5);
-        $a2.setI(5);
-        TypeB $b1 = new TypeB("B1");
-        $b1.setI(4);
-        s.insertAndFire($a1, $a2, $b1);
+            $a1 = new TypeA("A1");
+            $a2 = new TypeA("A2");
+            $a1.setI(5);
+            $a2.setI(5);
+            TypeB $b1 = new TypeB("B1");
+            $b1.setI(4);
+            s.insertAndFire($a1, $a2, $b1);
 
-        rhsAssert.assertCount(2).reset();
-        // Assert that the rules never fires again unless there's a new data
-        s.fire();
-        rhsAssert.assertCount(0).reset();
+            rhsAssert.assertCount(2).reset();
+            // Assert that the rules never fires again unless there's a new data
+            s.fire();
+            rhsAssert.assertCount(0).reset();
 
-        TypeB $b2 = new TypeB("B1");
-        $b2.setI(1);
-        s.insertAndFire($b2);
-        rhsAssert.assertCount(0).reset();
+            TypeB $b2 = new TypeB("B1");
+            $b2.setI(1);
+            s.insertAndFire($b2);
+            rhsAssert.assertCount(0).reset();
 
-        TypeB $b3 = new TypeB("B1");
-        $b3.setI(4);
-        s.insertAndFire($b3);
+            $b3 = new TypeB("B1");
+            $b3.setI(4);
+            s.insertAndFire($b3);
+        }
         rhsAssert
                 .assertCount(2)
                 .assertUniqueCount("$b", 1)
@@ -1508,41 +1538,42 @@ class StatefulBaseTests {
                 .where("$c.i > 0")
                 .execute(rhsAssert);
 
-        StatefulSession s = newSession(mode);
+        try (StatefulSession s = newSession(mode)) {
 
-        TypeA a1 = new TypeA("A1");
-        a1.setI(1);
+            TypeA a1 = new TypeA("A1");
+            a1.setI(1);
 
-        TypeA a2 = new TypeA("A2");
-        a2.setI(1);
+            TypeA a2 = new TypeA("A2");
+            a2.setI(1);
 
-        TypeB b1 = new TypeB("B1");
-        b1.setI(10);
+            TypeB b1 = new TypeB("B1");
+            b1.setI(10);
 
-        TypeB b2 = new TypeB("B2");
-        b2.setI(10);
+            TypeB b2 = new TypeB("B2");
+            b2.setI(10);
 
-        TypeC c1 = new TypeC("C1");
-        c1.setI(-1);
+            TypeC c1 = new TypeC("C1");
+            c1.setI(-1);
 
-        TypeD d1 = new TypeD("D1");
+            TypeD d1 = new TypeD("D1");
 
-        s.insertAndFire(a1, b1, a2, b2, c1, d1);
-        rhsAssert.assertCount(0).reset();
+            s.insertAndFire(a1, b1, a2, b2, c1, d1);
+            rhsAssert.assertCount(0).reset();
 
-        TypeC c2 = new TypeC("C2");
-        c2.setI(1);
-        s.insertAndFire(c2);
+            TypeC c2 = new TypeC("C2");
+            c2.setI(1);
+            s.insertAndFire(c2);
 
-        rhsAssert.assertCount(4 * 4).reset();
+            rhsAssert.assertCount(4 * 4).reset();
 
-        TypeC c3 = new TypeC("C3");
-        c3.setI(100);
-        s.insertAndFire(c3);
-        rhsAssert.assertCount(4 * 4).reset();
+            TypeC c3 = new TypeC("C3");
+            c3.setI(100);
+            s.insertAndFire(c3);
+            rhsAssert.assertCount(4 * 4).reset();
 
-        TypeD d2 = new TypeD("D2");
-        s.insertAndFire(d2);
+            TypeD d2 = new TypeD("D2");
+            s.insertAndFire(d2);
+        }
         rhsAssert.assertCount(2 * 4 * 4);
 
     }
@@ -1563,31 +1594,32 @@ class StatefulBaseTests {
                 .where("$a.i != $b.i")
                 .execute(rhsAssert);
 
-        StatefulSession s = newSession(mode);
+        try (StatefulSession s = newSession(mode)) {
 
 
-        TypeA a1 = new TypeA();
-        a1.setAllNumeric(-1);
-        a1.setId("a1");
+            TypeA a1 = new TypeA();
+            a1.setAllNumeric(-1);
+            a1.setId("a1");
 
-        TypeB b1 = new TypeB();
-        b1.setAllNumeric(2);
-        b1.setId("b1");
+            TypeB b1 = new TypeB();
+            b1.setAllNumeric(2);
+            b1.setId("b1");
 
-        s.insertAndFire(b1, a1);
-        rhsAssert.assertCount(1).reset();
+            s.insertAndFire(b1, a1);
+            rhsAssert.assertCount(1).reset();
 
-        // Second batch
+            // Second batch
 
-        TypeA a2 = new TypeA();
-        a2.setAllNumeric(-1);
-        a2.setId("a2");
+            TypeA a2 = new TypeA();
+            a2.setAllNumeric(-1);
+            a2.setId("a2");
 
-        TypeB b2 = new TypeB();
-        b2.setAllNumeric(3);
-        b2.setId("b2");
+            TypeB b2 = new TypeB();
+            b2.setAllNumeric(3);
+            b2.setId("b2");
 
-        s.insertAndFire(b2, a2);
+            s.insertAndFire(b2, a2);
+        }
         rhsAssert.assertCount(3).reset();
 
     }
@@ -1613,25 +1645,26 @@ class StatefulBaseTests {
                 .where(beta, "$a.i", "$b.i")
                 .execute(rhsAssert);
 
-        StatefulSession s1 = newSession();
+        try (StatefulSession s1 = newSession()) {
 
 
-        TypeA a1 = new TypeA("a1");
-        a1.setAllNumeric(1);
+            TypeA a1 = new TypeA("a1");
+            a1.setAllNumeric(1);
 
-        TypeA a2 = new TypeA("a2");
-        a2.setAllNumeric(1);
+            TypeA a2 = new TypeA("a2");
+            a2.setAllNumeric(1);
 
-        s1.insertAndFire(a1, a2);
-        rhsAssert.assertCount(0);
-        rhsAssert.reset();
+            s1.insertAndFire(a1, a2);
+            rhsAssert.assertCount(0);
+            rhsAssert.reset();
 
-        TypeA a3 = new TypeA("a3");
-        a3.setAllNumeric(1);
-        TypeB b1 = new TypeB("b1");
-        b1.setAllNumeric(-1);
+            TypeA a3 = new TypeA("a3");
+            a3.setAllNumeric(1);
+            TypeB b1 = new TypeB("b1");
+            b1.setAllNumeric(-1);
 
-        s1.insertAndFire(a3, b1);
+            s1.insertAndFire(a3, b1);
+        }
         rhsAssert.assertCount(3);
         rhsAssert.reset();
 

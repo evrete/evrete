@@ -35,7 +35,7 @@ class StatefulJavaJarTests {
     @EnumSource(ActivationMode.class)
     void test1(ActivationMode mode) throws IOException {
         Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar2/jar2-tests.jar").toURI().toURL());
-        try(StatefulSession session = session(knowledge, mode)) {
+        try (StatefulSession session = session(knowledge, mode)) {
             assert session.getRules().size() == 2;
             for (int i = 2; i < 100; i++) {
                 session.insert(i);
@@ -55,7 +55,7 @@ class StatefulJavaJarTests {
 
         Knowledge knowledge = service.newKnowledge(DSLJarProvider.class, new File("src/test/resources/jars/jar2/jar2-tests.jar").toURI().toURL());
 
-        try(StatefulSession session = session(knowledge, mode)) {
+        try (StatefulSession session = session(knowledge, mode)) {
             assert session.getRules().size() == 2;
             for (int i = 2; i < 100; i++) {
                 session.insert(i);

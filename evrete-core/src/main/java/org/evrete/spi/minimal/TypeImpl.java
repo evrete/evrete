@@ -137,7 +137,7 @@ class TypeImpl<T> implements Type<T> {
             }
         }
 
-        if(field == null) {
+        if (field == null) {
             throw new IllegalArgumentException();
         } else {
             return field;
@@ -187,10 +187,10 @@ class TypeImpl<T> implements Type<T> {
     private TypeField resolveField(@NonNull String fieldName) {
         Function<Object, Object> func;
         Class<?> valueType;
-        if(fieldName.isEmpty()) {
+        if (fieldName.isEmpty()) {
             // "this" field
             valueType = classResolver.get();
-            func = o->o;
+            func = o -> o;
         } else {
             String[] parts = fieldName.split("\\.");
             ArrayOf<ValueReader> getters = new ArrayOf<>(ValueReader.class);
@@ -318,11 +318,11 @@ class TypeImpl<T> implements Type<T> {
         }
 
         Class<T> get() {
-            if(resolved == null) {
+            if (resolved == null) {
                 synchronized (this.resolver) {
-                    if(resolved == null) {
+                    if (resolved == null) {
                         resolved = resolver.get();
-                        if(resolved == null) {
+                        if (resolved == null) {
                             throw new IllegalStateException();
                         }
                     }

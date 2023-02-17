@@ -22,7 +22,6 @@ public class TypeResolverWrapper implements TypeResolver {
         delegate.wrapType(typeWrapper);
     }
 
-    @NonNull
     @Override
     public <T> Type<T> getType(String name) {
         return delegate.getType(name);

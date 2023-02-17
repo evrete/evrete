@@ -9,7 +9,7 @@ import java.util.zip.ZipEntry;
 
 public final class IOUtils {
     public static byte[] toByteArray(InputStream is) {
-        try(ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
             int nRead;
             byte[] data = new byte[4];
 

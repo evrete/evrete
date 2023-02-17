@@ -43,7 +43,7 @@ public class TestUtils {
         }
 
         public static void add(String property, Object val) {
-            data.computeIfAbsent(property, k-> new ArrayList<>()).add(val);
+            data.computeIfAbsent(property, k -> new ArrayList<>()).add(val);
             count++;
         }
 

@@ -22,17 +22,15 @@ import java.util.stream.Collector;
  */
 abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRuntime<RuntimeRule, S> implements RuleSession<S> {
     private static final Logger LOGGER = Logger.getLogger(AbstractRuleSession.class.getName());
-    private final boolean warnUnknownTypes;
     final List<SessionLifecycleListener> lifecycleListeners = new ArrayList<>();
     final SessionMemory memory;
     final RuntimeRules ruleStorage;
+    final FactActionBuffer actionBuffer;
+    private final boolean warnUnknownTypes;
     private final KnowledgeRuntime knowledge;
     ActivationManager activationManager;
     private BooleanSupplier fireCriteria = () -> true;
     private volatile boolean active = true;
-    final FactActionBuffer actionBuffer;
-
-    protected abstract S thisInstance();
 
     AbstractRuleSession(KnowledgeRuntime knowledge) {
         super(knowledge);
@@ -50,6 +48,32 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
             deployRule(descriptor, false);
         }
     }
+
+    static void bufferUpdate(FactHandle handle, FactRecord previous, Object updatedFact, FactActionBuffer buffer) {
+        buffer.newUpdate(handle, previous, updatedFact);
+    }
+
+    static void bufferDelete(FactHandle handle, FactRecord previous, FactActionBuffer buffer) {
+        buffer.newDelete(handle, previous);
+    }
+
+    private static Optional<Collection<?>> resolveCollection(Object o, boolean resolveCollection) {
+        if (!resolveCollection) {
+            return Optional.empty();
+        }
+
+        if (o.getClass().isArray()) {
+            return Optional.of(Arrays.asList((Object[]) o));
+        } else if (o instanceof Iterable) {
+            Collection<Object> ret = new LinkedList<>();
+            ((Iterable<?>) o).forEach((Consumer<Object>) ret::add);
+            return Optional.of(ret);
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    protected abstract S thisInstance();
 
     FactActionBuffer newActionBuffer() {
         return new FactActionBuffer(getConfiguration().getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT));
@@ -101,7 +125,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
     final FactRecord getFactRecord(FactHandle handle) {
         AtomicMemoryAction bufferedAction = actionBuffer.find(handle);
         FactRecord found;
-        if(bufferedAction == null) {
+        if (bufferedAction == null) {
             found = memory.get(handle.getTypeId()).getFactRecord(handle);
         } else {
             found = bufferedAction.action == Action.RETRACT ? null : bufferedAction.getDelta().getLatest();
@@ -270,14 +294,6 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
 
     abstract void bufferDelete(FactHandle handle);
 
-    static void bufferUpdate(FactHandle handle, FactRecord previous, Object updatedFact, FactActionBuffer buffer) {
-        buffer.newUpdate(handle, previous, updatedFact);
-    }
-
-    static void bufferDelete(FactHandle handle, FactRecord previous, FactActionBuffer buffer) {
-        buffer.newDelete(handle, previous);
-    }
-
     final FactHandle bufferInsert(Object fact, boolean resolveCollections, FactActionBuffer buffer) {
         _assertActive();
         Object arg = Objects.requireNonNull(fact, "Null facts are not supported");
@@ -321,22 +337,6 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
             Optional<FactTuple> insertResult = insertAtomic(type, arg);
             insertResult.ifPresent(t -> buffer.newInsert(t.handle, t.record));
             return insertResult.map(t -> t.handle).orElse(null);
-        }
-    }
-
-    private static Optional<Collection<?>> resolveCollection(Object o, boolean resolveCollection) {
-        if (!resolveCollection) {
-            return Optional.empty();
-        }
-
-        if (o.getClass().isArray()) {
-            return Optional.of(Arrays.asList((Object[]) o));
-        } else if (o instanceof Iterable) {
-            Collection<Object> ret = new LinkedList<>();
-            ((Iterable<?>) o).forEach((Consumer<Object>) ret::add);
-            return Optional.of(ret);
-        } else {
-            return Optional.empty();
         }
     }
 

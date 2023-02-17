@@ -10,7 +10,7 @@ public class SourceCompiler {
     private final JavaCompiler compiler;
 
     public SourceCompiler() {
-        this.compiler = Objects.requireNonNull(ToolProvider.getSystemJavaCompiler(), "No Java compiler provided by this platform") ;
+        this.compiler = Objects.requireNonNull(ToolProvider.getSystemJavaCompiler(), "No Java compiler provided by this platform");
     }
 
     public final Class<?> compile(String source, ServiceClassLoader classLoader) throws CompilationException {

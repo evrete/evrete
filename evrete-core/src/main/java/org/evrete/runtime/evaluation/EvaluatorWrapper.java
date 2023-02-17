@@ -36,7 +36,7 @@ public class EvaluatorWrapper implements Evaluator, Copyable<EvaluatorWrapper> {
     }
 
     private static Evaluator unwrap(Evaluator e) {
-        if(e == null) {
+        if (e == null) {
             return null;
         }
         if (e instanceof EvaluatorWrapper) {

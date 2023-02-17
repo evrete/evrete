@@ -20,7 +20,7 @@ public enum SessionTypes {
     }
 
     RuleSession<?> session(Knowledge knowledge) {
-        if(stateful) {
+        if (stateful) {
             return knowledge.newStatefulSession(mode);
         } else {
             return knowledge.newStatelessSession(mode);

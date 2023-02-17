@@ -97,6 +97,7 @@ public class PrimeNumbersInline {
 ```
 
 As annotated Java source file:
+
 ```java
 public class PrimeNumbersDSLUrl {
     public static void main(String[] args) {
@@ -126,8 +127,8 @@ as [PrimeNumbersSource.java](https://www.evrete.org/examples/PrimeNumbersSource.
 
 For further details see the official [documentation](https://www.evrete.org/docs/)
 
-
 ## License
+
 <!--- If you're not sure which open license to use see https://choosealicense.com/--->
 
 This project uses the following license: [MIT](https://opensource.org/licenses/MIT)

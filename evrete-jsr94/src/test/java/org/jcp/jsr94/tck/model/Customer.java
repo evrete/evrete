@@ -1,6 +1,6 @@
 /*
 
- * J A V A  C O M M U N I T Y  P R O C E S S
+ * JAVA COMMUNITY PROCESS
  *
  * J S R  9 4
  *

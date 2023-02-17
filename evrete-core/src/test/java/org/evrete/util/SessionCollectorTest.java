@@ -24,6 +24,7 @@ class SessionCollectorTest {
         service.shutdown();
     }
 
+    @SuppressWarnings("resource")
     @Test
     void statefulTest() {
         Knowledge knowledge = service

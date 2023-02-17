@@ -6,12 +6,12 @@ import org.evrete.api.annotations.NonNull;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
 
-public class DefaultNamedTypeResolver<T extends NamedType> extends HashMap<String, T> implements  NamedType.Resolver {
+public class DefaultNamedTypeResolver<T extends NamedType> extends HashMap<String, T> implements NamedType.Resolver {
     @NonNull
     @Override
     public NamedType resolve(@NonNull String var) {
         T t = get(var);
-        if(t == null) {
+        if (t == null) {
             throw new NoSuchElementException("No type registered with variable '" + var + "'");
         } else {
             return t;
@@ -21,7 +21,7 @@ public class DefaultNamedTypeResolver<T extends NamedType> extends HashMap<Strin
     @Override
     public T put(String key, T value) {
         T prev = super.put(key, value);
-        if(prev == null) {
+        if (prev == null) {
             return null;
         } else {
             throw new IllegalArgumentException("Duplicate type reference '" + key + "'");

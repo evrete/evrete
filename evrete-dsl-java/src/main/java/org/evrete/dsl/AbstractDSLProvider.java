@@ -48,7 +48,7 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider {
 
             if (envListener != null) {
                 String property = envListener.value();
-                if(property.isEmpty()) {
+                if (property.isEmpty()) {
                     LOGGER.warning("The @" + EnvironmentListener.class.getSimpleName() + " annotation on " + m + " has no property value and will be ignored");
                 } else {
                     meta.addEnvListener(m, property);

@@ -14,6 +14,20 @@ class CompiledClass extends AbstractCompiledClass {
         this.bytes = bytes;
     }
 
+    private static String resolvePackageName(Class<?> clazz) {
+        Package p = clazz.getPackage();
+        if (p == null) {
+            String name = clazz.getName();
+            int lastDot = name.lastIndexOf('.');
+            if (lastDot < 0) {
+                return "unnamed";
+            } else {
+                return name.substring(0, lastDot);
+            }
+        } else {
+            return p.getName();
+        }
+    }
 
     String getPackageName() {
         return packageName;
@@ -27,20 +41,5 @@ class CompiledClass extends AbstractCompiledClass {
     @Override
     public InputStream openInputStream() {
         return new ByteArrayInputStream(bytes);
-    }
-
-    private static String resolvePackageName(Class<?> clazz) {
-        Package p = clazz.getPackage();
-        if(p == null) {
-            String name = clazz.getName();
-            int lastDot = name.lastIndexOf('.');
-            if(lastDot < 0) {
-                return "unnamed";
-            } else {
-                return name.substring(0, lastDot);
-            }
-        } else {
-            return p.getName();
-        }
     }
 }

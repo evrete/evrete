@@ -75,7 +75,7 @@ class DefaultTypeResolver implements TypeResolver {
     @SuppressWarnings("unchecked")
     public <T> Type<T> getType(int typeId) {
         Type<?> t = typesById.get(typeId);
-        if(t == null) {
+        if (t == null) {
             throw new NoSuchElementException("No type found with id=" + typeId);
         } else {
             return (Type<T>) t;
@@ -86,7 +86,7 @@ class DefaultTypeResolver implements TypeResolver {
     @Override
     @SuppressWarnings("unchecked")
     public <T> Type<T> getType(String name) {
-        return  (Type<T>) typeDeclarationMap.get(name);
+        return (Type<T>) typeDeclarationMap.get(name);
     }
 
 
@@ -143,7 +143,7 @@ class DefaultTypeResolver implements TypeResolver {
     public synchronized <T> Type<T> declare(@NonNull String typeName, @NonNull String javaType) {
         return saveNewType(typeName, new TypeImpl<>(typeName, javaType, newId(), () -> {
             Class<T> resolvedJavaType = classForName(javaType);
-            if(resolvedJavaType == null) {
+            if (resolvedJavaType == null) {
                 throw new IllegalStateException("Unable to resolve Java class '" + javaType + "'");
             } else {
                 return resolvedJavaType;
@@ -162,7 +162,7 @@ class DefaultTypeResolver implements TypeResolver {
     }
 
     private <T> Type<T> saveNewType(String typeName, Type<T> type) {
-        if(typeDeclarationMap.put(typeName, type) == null) {
+        if (typeDeclarationMap.put(typeName, type) == null) {
             typesById.put(type.getId(), type);
             typesByJavaType.computeIfAbsent(
                             type.getJavaType(),

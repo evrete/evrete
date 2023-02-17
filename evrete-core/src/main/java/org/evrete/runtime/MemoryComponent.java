@@ -3,6 +3,7 @@ package org.evrete.runtime;
 import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
+import org.evrete.api.annotations.Nullable;
 import org.evrete.collections.ArrayOf;
 
 import java.util.Collection;
@@ -51,7 +52,7 @@ abstract class MemoryComponent implements TypeResolver {
         return runtime.copyOf();
     }
 
-    @NonNull
+    @Nullable
     @Override
     public <T> Type<T> getType(String name) {
         return runtime.getType(name);

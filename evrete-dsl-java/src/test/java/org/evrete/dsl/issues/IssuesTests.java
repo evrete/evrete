@@ -26,7 +26,7 @@ class IssuesTests {
 
     /**
      * <p>
-     *    Tests imports of third-party classes (<a href="https://github.com/andbi/evrete/issues/15">Issue 15</a>)
+     * Tests imports of third-party classes (<a href="https://github.com/andbi/evrete/issues/15">Issue 15</a>)
      * </p>
      */
     @Test

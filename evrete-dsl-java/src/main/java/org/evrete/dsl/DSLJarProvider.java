@@ -111,7 +111,7 @@ public class DSLJarProvider extends AbstractDSLProvider {
         }
 
         // Building classes and resources
-        List<Class<?>> rulesets = new LinkedList<>();
+        List<Class<?>> ruleSets = new LinkedList<>();
         for (Map.Entry<String, byte[]> e : classes.entrySet()) {
             String className = e.getKey();
             byte[] bytes = e.getValue();
@@ -127,7 +127,7 @@ public class DSLJarProvider extends AbstractDSLProvider {
             }
 
             if (clazz.getAnnotation(RuleSet.class) != null) {
-                rulesets.add(clazz);
+                ruleSets.add(clazz);
             }
 
         }
@@ -136,15 +136,7 @@ public class DSLJarProvider extends AbstractDSLProvider {
             secureClassLoader.addResource(e.getKey(), e.getValue());
         }
 
-        return rulesets;
-    }
-
-    @Override
-    public Knowledge create(KnowledgeService service, TypeResolver typeResolver, InputStream... streams) throws IOException {
-        if (streams == null || streams.length == 0) throw new IOException("Empty streams");
-        Set<String> ruleClasses = ruleClasses(service.getConfiguration());
-        Knowledge knowledge = service.newKnowledge(typeResolver);
-        return apply(knowledge, ruleClasses, streams);
+        return ruleSets;
     }
 
     private static void validateClassName(String className) {
@@ -164,6 +156,14 @@ public class DSLJarProvider extends AbstractDSLProvider {
         bos.flush();
         bos.close();
         return bos.toByteArray();
+    }
+
+    @Override
+    public Knowledge create(KnowledgeService service, TypeResolver typeResolver, InputStream... streams) throws IOException {
+        if (streams == null || streams.length == 0) throw new IOException("Empty streams");
+        Set<String> ruleClasses = ruleClasses(service.getConfiguration());
+        Knowledge knowledge = service.newKnowledge(typeResolver);
+        return apply(knowledge, ruleClasses, streams);
     }
 
     @Override

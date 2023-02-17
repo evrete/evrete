@@ -55,9 +55,10 @@ class SessionUpdateDeleteTests {
                     ctx.update($a);
                     counter.next();
                 });
-        StatefulSession s = knowledge.newStatefulSession(mode);
+        try (StatefulSession s = knowledge.newStatefulSession(mode)) {
 
-        s.insertAndFire(a);
+            s.insertAndFire(a);
+        }
         assert counter.get() == 10 : "Actual: " + counter.get();
         assert a.getI() == 10;
     }
@@ -77,8 +78,9 @@ class SessionUpdateDeleteTests {
                     ctx.update($a);
                     counter.next();
                 });
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
-        s.insertAndFire(ref);
+        try (StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode)) {
+            s.insertAndFire(ref);
+        }
         assert counter.get() == 10 : "Actual: " + counter.get();
         assert ref.getD() == 10.1;
     }

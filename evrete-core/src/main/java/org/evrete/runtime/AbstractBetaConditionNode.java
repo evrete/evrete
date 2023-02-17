@@ -1,6 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.*;
+import org.evrete.api.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -121,6 +122,7 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode {
             delegate.add(key);
         }
 
+        @NonNull
         @Override
         public ReIterator<MemoryKey> iterator() {
             return new MemoryKeyIterator(delegate.iterator(), forcedMode);

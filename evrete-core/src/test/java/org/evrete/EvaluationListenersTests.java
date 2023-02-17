@@ -103,34 +103,38 @@ class EvaluationListenersTests {
 
         knowledge.addListener((evaluator, values, result) -> knowledgeListenerCounter.incrementAndGet());
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
-        s.addListener((evaluator, values, result) -> sessionListenerCounter.incrementAndGet());
+        TypeB b1;
+        TypeA a1_1;
+        try (StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode)) {
+            s.addListener((evaluator, values, result) -> sessionListenerCounter.incrementAndGet());
 
-        TypeA a1 = new TypeA("A1");
-        a1.setAllNumeric(1);
+            TypeA a1 = new TypeA("A1");
+            a1.setAllNumeric(1);
 
-        TypeA a2 = new TypeA("A2");
-        a2.setAllNumeric(2);
+            TypeA a2 = new TypeA("A2");
+            a2.setAllNumeric(2);
 
-        TypeB b1 = new TypeB("B1");
-        b1.setAllNumeric(1);
+            b1 = new TypeB("B1");
+            b1.setAllNumeric(1);
 
-        TypeB b2 = new TypeB("B2");
-        b2.setAllNumeric(2);
+            TypeB b2 = new TypeB("B2");
+            b2.setAllNumeric(2);
 
-        s.insertAndFire(a1, a2, b1, b2);
-        rhsAssert.assertCount(2).reset();
+            s.insertAndFire(a1, a2, b1, b2);
+            rhsAssert.assertCount(2).reset();
 
-        TypeA a1_1 = new TypeA("A1_1");
-        a1_1.setAllNumeric(1);
-        s.insertAndFire(a1_1);
-        rhsAssert.assertCount(1);
-        rhsAssert.assertContains("$a", a1_1);
-        rhsAssert.assertContains("$b", b1);
+            a1_1 = new TypeA("A1_1");
+            a1_1.setAllNumeric(1);
+            s.insertAndFire(a1_1);
 
-        int expected = 8 + 3; // 8 first fire (4 alpha + 4 beta)  + 3 second fire (1 alpha + 2 beta)
-        assert sessionListenerCounter.get() == knowledgeListenerCounter.get() : "Actual " + sessionListenerCounter.get() + " vs " + knowledgeListenerCounter.get();
-        assert sessionListenerCounter.get() == expected : "Actual " + sessionListenerCounter.get() + " vs expected " + expected;
+            rhsAssert.assertCount(1);
+            rhsAssert.assertContains("$a", a1_1);
+            rhsAssert.assertContains("$b", b1);
+
+            int expected = 8 + 3; // 8 first fire (4 alpha + 4 beta)  + 3 second fire (1 alpha + 2 beta)
+            assert sessionListenerCounter.get() == knowledgeListenerCounter.get() : "Actual " + sessionListenerCounter.get() + " vs " + knowledgeListenerCounter.get();
+            assert sessionListenerCounter.get() == expected : "Actual " + sessionListenerCounter.get() + " vs expected " + expected;
+        }
     }
 
     @ParameterizedTest
@@ -152,22 +156,23 @@ class EvaluationListenersTests {
                 .execute(rhsAssert);
 
 
-        StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
-        s.addListener((evaluator, values, result) -> sessionListenerCounter.incrementAndGet());
+        int mod;
+        try (StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode)) {
+            s.addListener((evaluator, values, result) -> sessionListenerCounter.incrementAndGet());
 
-        int mod = 4;
+            mod = 4;
 
-        for (int i = 0; i < 512; i++) {
-            int val = i % mod;
-            TypeA a = new TypeA("A" + i);
-            a.setAllNumeric(val);
-            TypeB b = new TypeB("B" + i);
-            b.setAllNumeric(val);
-            s.insert(a);
-            s.insert(b);
+            for (int i = 0; i < 512; i++) {
+                int val = i % mod;
+                TypeA a = new TypeA("A" + i);
+                a.setAllNumeric(val);
+                TypeB b = new TypeB("B" + i);
+                b.setAllNumeric(val);
+                s.insert(a);
+                s.insert(b);
+            }
+            s.fire();
+            assert sessionListenerCounter.get() == mod * mod;
         }
-        s.fire();
-
-        assert sessionListenerCounter.get() == mod * mod;
     }
 }

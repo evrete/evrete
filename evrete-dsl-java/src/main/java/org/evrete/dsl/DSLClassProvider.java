@@ -12,13 +12,28 @@ import java.net.URL;
 
 public class DSLClassProvider extends AbstractDSLProvider {
 
+    private static Class<?>[] loadClasses(KnowledgeService service, Reader... streams) throws IOException {
+        Class<?>[] classes = new Class<?>[streams.length];
+        for (int i = 0; i < streams.length; i++) {
+
+            BufferedReader br = new BufferedReader(streams[i]);
+            String className = br.readLine();
+            try {
+                classes[i] = service.getClassLoader().loadClass(className);
+            } catch (ClassNotFoundException e) {
+                throw new IllegalArgumentException("Unable to load class '" + className + "'", e);
+            }
+        }
+        return classes;
+    }
+
     @Override
     public String getName() {
         return PROVIDER_JAVA_C;
     }
 
     @Override
-    public Knowledge create(KnowledgeService service, TypeResolver typeResolver, InputStream... streams)  {
+    public Knowledge create(KnowledgeService service, TypeResolver typeResolver, InputStream... streams) {
         throw new UnsupportedOperationException();
     }
 
@@ -52,20 +67,5 @@ public class DSLClassProvider extends AbstractDSLProvider {
             current = processRuleSet(current, cl);
         }
         return current;
-    }
-
-    private static Class<?>[] loadClasses(KnowledgeService service, Reader... streams) throws IOException {
-        Class<?>[] classes = new Class<?>[streams.length];
-        for (int i = 0; i < streams.length; i++) {
-
-            BufferedReader br = new BufferedReader(streams[i]);
-            String className = br.readLine();
-            try {
-                classes[i] = service.getClassLoader().loadClass(className);
-            } catch (ClassNotFoundException e) {
-                throw new IllegalArgumentException("Unable to load class '" + className + "'", e);
-            }
-        }
-        return classes;
     }
 }

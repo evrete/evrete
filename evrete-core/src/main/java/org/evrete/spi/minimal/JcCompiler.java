@@ -8,7 +8,7 @@ class JcCompiler extends SourceCompiler {
 
     Class<?> compile(ClassLoader classLoader, String source) throws CompilationException {
         ServiceClassLoader cl;
-        if(classLoader instanceof ServiceClassLoader) {
+        if (classLoader instanceof ServiceClassLoader) {
             cl = (ServiceClassLoader) classLoader;
         } else {
             cl = new ServiceClassLoader(classLoader);

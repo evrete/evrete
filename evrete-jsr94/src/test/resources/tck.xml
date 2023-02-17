@@ -1,3 +1,3 @@
 <tck-configuration>
-   <rule-service-provider>org.evrete.jsr94.RuleServiceProviderImpl</rule-service-provider>
+    <rule-service-provider>org.evrete.jsr94.RuleServiceProviderImpl</rule-service-provider>
 </tck-configuration>

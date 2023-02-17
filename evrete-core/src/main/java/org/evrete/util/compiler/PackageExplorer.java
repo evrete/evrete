@@ -25,14 +25,32 @@ import java.util.zip.ZipInputStream;
 class PackageExplorer {
     private static final String CLASS_FILE_EXTENSION = ".class";
     private static final String CLASS_MODULE_INFO = "module-info.class";
-    private final ServiceClassLoader classLoader;
-
     private static final Logger LOGGER = Logger.getLogger(PackageExplorer.class.getName());
+    private final ServiceClassLoader classLoader;
     private final Map<String, Collection<JavaFileObject>> cache = new HashMap<>();
 
 
     PackageExplorer(ServiceClassLoader classLoader) {
         this.classLoader = classLoader;
+    }
+
+    private static Path uriToPath(URI uri) {
+        String scheme = uri.getScheme();
+        if (scheme == null)
+            throw new IllegalArgumentException("Missing scheme");
+
+        // check for default provider to avoid loading of installed providers
+        if (scheme.equalsIgnoreCase("file"))
+            return FileSystems.getDefault().provider().getPath(uri);
+
+        // try to find provider
+        for (FileSystemProvider provider : FileSystemProvider.installedProviders()) {
+            if (provider.getScheme().equalsIgnoreCase(scheme)) {
+                return provider.getPath(uri);
+            }
+        }
+
+        throw new FileSystemNotFoundException("Provider \"" + scheme + "\" not installed");
     }
 
     private Collection<JavaFileObject> listUnder(String packageName, URL packageFolderURL) {
@@ -143,14 +161,15 @@ class PackageExplorer {
 
 
     }
+
     private Collection<JavaFileObject> asZipInputStream(String packageName, ZipInputStream zis) {
         ZipEntry entry;
         Collection<JavaFileObject> result = new LinkedList<>();
         try {
             while ((entry = zis.getNextEntry()) != null) {
-                if(!entry.isDirectory()) {
+                if (!entry.isDirectory()) {
                     String entryName = entry.getName();
-                    if(entryName.endsWith(CLASS_FILE_EXTENSION) && entryName.indexOf('/') < 0 && !entryName.endsWith(CLASS_MODULE_INFO)) {
+                    if (entryName.endsWith(CLASS_FILE_EXTENSION) && entryName.indexOf('/') < 0 && !entryName.endsWith(CLASS_MODULE_INFO)) {
                         String classEntry = entryName.substring(0, entryName.length() - CLASS_FILE_EXTENSION.length());
                         String className = packageName + "." + classEntry;
 
@@ -169,26 +188,6 @@ class PackageExplorer {
             throw new IllegalStateException(e);
         }
 
-    }
-
-
-    private static Path uriToPath(URI uri) {
-        String scheme = uri.getScheme();
-        if (scheme == null)
-            throw new IllegalArgumentException("Missing scheme");
-
-        // check for default provider to avoid loading of installed providers
-        if (scheme.equalsIgnoreCase("file"))
-            return FileSystems.getDefault().provider().getPath(uri);
-
-        // try to find provider
-        for (FileSystemProvider provider : FileSystemProvider.installedProviders()) {
-            if (provider.getScheme().equalsIgnoreCase(scheme)) {
-                return provider.getPath(uri);
-            }
-        }
-
-        throw new FileSystemNotFoundException("Provider \"" + scheme + "\" not installed");
     }
 
     List<JavaFileObject> find(String packageName) throws IOException {

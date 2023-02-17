@@ -25,7 +25,7 @@ public interface ReIterator<T> extends Iterator<T> {
 
     /**
      * <p>
-     *     Resets the iterator to its initial position and returns the size of the underlying data collection
+     * Resets the iterator to its initial position and returns the size of the underlying data collection
      * </p>
      *
      * @return size of the underlying data
