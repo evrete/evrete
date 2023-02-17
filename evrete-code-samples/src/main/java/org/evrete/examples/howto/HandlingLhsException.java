@@ -15,7 +15,7 @@ public class HandlingLhsException {
         LhsBuilder<Knowledge> lhsBuilder = builder.forEach("$i", Integer.class);
 
         // Without exception handling, the condition below will throw an ArithmeticException
-        EvaluatorHandle handle = lhsBuilder.addWhere("$i / 0 == 1");
+        EvaluatorHandle handle = builder.createCondition("$i / 0 == 1");
         Evaluator failingEvaluator = knowledge.getEvaluator(handle);
 
         // We want our rule to print matching numbers
