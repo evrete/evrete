@@ -10,6 +10,7 @@ import org.evrete.benchmarks.models.misc.TypeA;
 import org.evrete.benchmarks.models.misc.TypeB;
 import org.evrete.benchmarks.models.misc.TypeC;
 import org.evrete.runtime.KnowledgeRuntime;
+import org.evrete.util.compiler.CompilationException;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
@@ -60,7 +61,7 @@ public class Expressions {
 
 
         @Setup(Level.Trial)
-        public void initAll() {
+        public void initAll() throws CompilationException {
             service = new KnowledgeService(new Configuration());
             KnowledgeRuntime knowledge = (KnowledgeRuntime) service.newKnowledge();
             RuleBuilder<Knowledge> rule = knowledge.newRule();
