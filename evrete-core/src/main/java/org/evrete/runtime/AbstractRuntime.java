@@ -4,13 +4,16 @@ import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.runtime.async.ForkJoinExecutor;
+import org.evrete.runtime.compiler.CompilationException;
+import org.evrete.runtime.compiler.RuntimeClassloader;
+import org.evrete.runtime.compiler.SourceCompiler;
 import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.DefaultActivationManager;
-import org.evrete.util.compiler.CompilationException;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C>> extends RuntimeMetaData<C> implements RuleSet<R>, RuntimeContext<C> {
@@ -25,10 +28,12 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     private Class<? extends ActivationManager> activationManagerFactory;
     private ActivationMode agendaMode;
     private RuleBuilderExceptionHandler ruleBuilderExceptionHandler;
+    private RuntimeClassloader classloader;
 
     AbstractRuntime(KnowledgeService service, TypeResolver typeResolver) {
         super(service, typeResolver);
         this.configuration = service.getConfiguration().copyOf();
+        this.classloader = new RuntimeClassloader(service.getClassLoader());
         this.service = service;
         this.activationManagerFactory = DefaultActivationManager.class;
         this.agendaMode = ActivationMode.DEFAULT;
@@ -57,6 +62,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         this.expressionResolver = null;
         this.ruleBuilderExceptionHandler = parent.ruleBuilderExceptionHandler;
         this.noNameRuleCounter = parent.noNameRuleCounter;
+        this.classloader = new RuntimeClassloader(parent.classloader);
     }
 
     protected abstract void addRuleInner(RuleBuilder<?> builder);
@@ -75,8 +81,23 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     }
 
     @Override
+    public final RuntimeClassloader getClassLoader() {
+        return classloader;
+    }
+
+    @Override
+    public void setClassLoader(ClassLoader classLoader) {
+        this.classloader = new RuntimeClassloader(classLoader);
+    }
+
+    @Override
     public void setRuleBuilderExceptionHandler(RuleBuilderExceptionHandler handler) {
         this.ruleBuilderExceptionHandler = handler;
+    }
+
+    @Override
+    public final JavaSourceCompiler getSourceCompiler() {
+        return new SourceCompiler(classloader);
     }
 
     @Override
@@ -199,7 +220,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         try {
             return service.getLiteralRhsCompiler().compileRhs(this, literalRhs, namedTypes);
         } catch (CompilationException e) {
-            Logger.getAnonymousLogger().warning("Failed source\n: " + e.getSource());
+            LOGGER.log(Level.WARNING,  e.getMessage(), e);
             throw new IllegalStateException(e);
         }
     }

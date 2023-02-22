@@ -1,6 +1,6 @@
 package org.evrete.api;
 
-import org.evrete.util.compiler.CompilationException;
+import org.evrete.runtime.compiler.CompilationException;
 
 public interface RuntimeRule extends Rule {
 

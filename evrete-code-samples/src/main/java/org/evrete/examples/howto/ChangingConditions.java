@@ -15,6 +15,7 @@ public class ChangingConditions {
         RuleBuilder<Knowledge> builder = knowledge.newRule("Even numbers");
         LhsBuilder<Knowledge> lhsBuilder = builder.forEach("$i", Integer.class);
         EvaluatorHandle handle = builder.createCondition("$i % 2 == 0");
+        lhsBuilder.where(handle);
         lhsBuilder.execute(ctx -> {
             int $i = ctx.get("$i");
             out.printf("\t%d%n", $i);

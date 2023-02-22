@@ -2,7 +2,7 @@ package org.evrete.api;
 
 import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
-import org.evrete.util.compiler.CompilationException;
+import org.evrete.runtime.compiler.CompilationException;
 
 import java.util.Comparator;
 
@@ -42,6 +42,12 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
 
     ClassLoader getClassLoader();
 
+    /**
+     * <p>
+     *     Sets new parent classloader for this context's internal classloader.
+     * </p>
+     * @param classLoader this context's new parent classloader
+     */
     void setClassLoader(ClassLoader classLoader);
 
     KnowledgeService getService();
@@ -55,4 +61,7 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
     TypeResolver getTypeResolver();
 
     Configuration getConfiguration();
+
+    JavaSourceCompiler getSourceCompiler();
+
 }

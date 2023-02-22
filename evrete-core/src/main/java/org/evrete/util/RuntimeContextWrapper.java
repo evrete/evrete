@@ -3,7 +3,6 @@ package org.evrete.util;
 import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
-import org.evrete.util.compiler.CompilationException;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -37,16 +36,15 @@ public class RuntimeContextWrapper<C extends RuntimeContext<C>> implements Runti
     }
 
     @Override
-    public Evaluator compile(String expression, NamedType.Resolver resolver) throws CompilationException {
-        return delegate.compile(expression, resolver);
-    }
-
-    @Override
     public C set(String property, Object value) {
         delegate.set(property, value);
         return self();
     }
 
+    @Override
+    public void setClassLoader(ClassLoader classLoader) {
+        delegate.setClassLoader(classLoader);
+    }
 
     @SuppressWarnings("unchecked")
     protected C self() {
@@ -126,11 +124,6 @@ public class RuntimeContextWrapper<C extends RuntimeContext<C>> implements Runti
     }
 
     @Override
-    public void setClassLoader(ClassLoader classLoader) {
-        delegate.setClassLoader(classLoader);
-    }
-
-    @Override
     public KnowledgeService getService() {
         return delegate.getService();
     }
@@ -160,4 +153,8 @@ public class RuntimeContextWrapper<C extends RuntimeContext<C>> implements Runti
         return delegate.getConfiguration();
     }
 
+    @Override
+    public JavaSourceCompiler getSourceCompiler() {
+        return delegate.getSourceCompiler();
+    }
 }

@@ -2,6 +2,7 @@ package org.evrete.examples.run;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
+import org.evrete.api.annotations.NonNull;
 
 import java.util.HashMap;
 
@@ -55,17 +56,14 @@ public class WhoIsFritzAdvanced {
             super(delegate);
         }
 
+        @NonNull
         @Override
-        public TypeField getField(String name) {
-            TypeField field = super.getField(name);
-            if (field == null) {
-                // Declaring a new field on the fly
-                field = declareBooleanField(
-                        name,
-                        obj -> Boolean.TRUE.equals(obj.get(name))
-                );
-            }
-            return field;
+        public TypeField getField(@NonNull String name) {
+            // Declaring a new field on the fly
+            return declareBooleanField(
+                    name,
+                    obj -> Boolean.TRUE.equals(obj.get(name))
+            );
         }
     }
 }

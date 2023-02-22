@@ -10,7 +10,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class StatelessSimple {
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
+        System.out.println("With a Knowledge instance");
         withKnowledge(service);
+        System.out.println("Without a Knowledge instance");
         withoutKnowledge(service);
         service.shutdown();
     }
@@ -30,9 +32,9 @@ public class StatelessSimple {
         StatelessSession session = knowledge.newStatelessSession();
 
         AtomicInteger obj = new AtomicInteger(0);
-        System.out.println("Pre-value: " + obj.get()); // Prints 0
+        System.out.println("\tPre-value: " + obj.get()); // Prints 0
         session.insertAndFire(obj);
-        System.out.println("Post-value: " + obj.get()); // Prints 10
+        System.out.println("\tPost-value: " + obj.get()); // Prints 10
     }
 
     private static void withoutKnowledge(KnowledgeService service) {
@@ -48,8 +50,8 @@ public class StatelessSimple {
                 });
 
         AtomicInteger obj = new AtomicInteger(0);
-        System.out.println("Pre-value: " + obj.get()); // Prints 0
+        System.out.println("\tPre-value: " + obj.get()); // Prints 0
         session.insertAndFire(obj);
-        System.out.println("Post-value: " + obj.get()); // Prints 10
+        System.out.println("\tPost-value: " + obj.get()); // Prints 10
     }
 }

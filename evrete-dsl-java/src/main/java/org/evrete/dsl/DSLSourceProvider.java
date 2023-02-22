@@ -1,16 +1,16 @@
 package org.evrete.dsl;
 
 import org.evrete.KnowledgeService;
+import org.evrete.api.JavaSourceCompiler;
 import org.evrete.api.Knowledge;
 import org.evrete.api.TypeResolver;
-import org.evrete.util.compiler.CompilationException;
-import org.evrete.util.compiler.ServiceClassLoader;
-import org.evrete.util.compiler.SourceCompiler;
+import org.evrete.runtime.compiler.CompilationException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.util.logging.Level;
 
 import static org.evrete.dsl.Utils.LOGGER;
 
@@ -20,16 +20,14 @@ public class DSLSourceProvider extends AbstractDSLProvider {
     private static final String CHARSET_DEFAULT = "UTF-8";
 
     private static Knowledge build(Knowledge knowledge, String[] sources) {
-        ClassLoader ctxClassLoader = knowledge.getClassLoader();
-        ServiceClassLoader loader = new ServiceClassLoader(ctxClassLoader);
-        SourceCompiler compiler = new SourceCompiler();
         Knowledge current = knowledge;
+        JavaSourceCompiler compiler = knowledge.getSourceCompiler();
         for (String source : sources) {
             try {
-                Class<?> ruleSet = compiler.compile(source, loader);
+                Class<?> ruleSet = compiler.compile(source);
                 current = processRuleSet(current, ruleSet);
             } catch (CompilationException e) {
-                LOGGER.warning("Source code: \n" + e.getSource());
+                LOGGER.log(Level.WARNING,  e.getMessage(), e);
                 throw new IllegalStateException(e);
             }
         }

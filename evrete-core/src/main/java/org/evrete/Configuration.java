@@ -19,6 +19,8 @@ public class Configuration extends Properties implements Copyable<Configuration>
     static final String SPI_TYPE_RESOLVER = "evrete.spi.type-resolver";
     static final String SPI_RHS_COMPILER = "evrete.spi.rhs-compiler";
     static final String PARALLELISM = "evrete.core.parallelism";
+    public static final String CONDITION_BASE_CLASS = "evrete.impl.condition-base-class";
+
     private static final Logger LOGGER = Logger.getLogger(Configuration.class.getName());
     private static final long serialVersionUID = -9015471049604658637L;
     private final Imports imports;

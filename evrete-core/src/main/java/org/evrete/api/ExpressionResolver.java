@@ -1,7 +1,7 @@
 package org.evrete.api;
 
 import org.evrete.api.annotations.NonNull;
-import org.evrete.util.compiler.CompilationException;
+import org.evrete.runtime.compiler.CompilationException;
 
 /**
  * An interface with a set of basic methods that are necessary for parsing string expressions.

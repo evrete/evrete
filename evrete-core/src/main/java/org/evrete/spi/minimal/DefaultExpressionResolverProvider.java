@@ -7,7 +7,7 @@ import org.evrete.api.spi.ExpressionResolverProvider;
 public class DefaultExpressionResolverProvider extends LeastImportantServiceProvider implements ExpressionResolverProvider {
 
     @Override
-    public ExpressionResolver instance(RuntimeContext<?> requester) {
-        return new DefaultExpressionResolver(requester, getCreateJavaCompiler(requester));
+    public ExpressionResolver instance(RuntimeContext<?> context) {
+        return new DefaultExpressionResolver(context);
     }
 }

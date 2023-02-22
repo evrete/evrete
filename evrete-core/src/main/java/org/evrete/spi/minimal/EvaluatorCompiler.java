@@ -1,12 +1,9 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.Evaluator;
-import org.evrete.api.FieldReference;
-import org.evrete.api.Imports;
-import org.evrete.api.IntToValue;
+import org.evrete.api.*;
+import org.evrete.runtime.compiler.CompilationException;
 import org.evrete.util.NextIntSupplier;
 import org.evrete.util.StringLiteralRemover;
-import org.evrete.util.compiler.CompilationException;
 
 import java.lang.invoke.MethodHandle;
 import java.util.ArrayList;
@@ -43,22 +40,22 @@ class EvaluatorCompiler {
 
     private final static NextIntSupplier javaClassCounter = new NextIntSupplier();
 
-    private final JcCompiler compiler;
+    private final RuntimeContext<?> context;
 
-    EvaluatorCompiler(JcCompiler compiler) {
-        this.compiler = compiler;
+    EvaluatorCompiler(RuntimeContext<?> context) {
+        this.context = context;
     }
 
-    private MethodHandle compileExpression(ClassLoader classLoader, String classJavaSource) throws CompilationException {
+    private MethodHandle compileExpression(String classJavaSource) throws CompilationException {
         try {
-            Class<?> compiledClass = compiler.compile(classLoader, classJavaSource);
+            Class<?> compiledClass = context.getSourceCompiler().compile(classJavaSource);
             return (MethodHandle) compiledClass.getDeclaredField("HANDLE").get(null);
         } catch (IllegalAccessException | NoSuchFieldException e) {
             throw new CompilationException(e, classJavaSource);
         }
     }
 
-    Evaluator buildExpression(ClassLoader classLoader, String baseClassName, StringLiteralRemover remover, String strippedExpression, List<ConditionStringTerm> terms, Imports imports) throws CompilationException {
+    Evaluator buildExpression(String baseClassName, StringLiteralRemover remover, String strippedExpression, List<ConditionStringTerm> terms, Imports imports) throws CompilationException {
         int accumulatedShift = 0;
         StringJoiner argClasses = new StringJoiner(", ");
         StringJoiner argTypes = new StringJoiner(", ");
@@ -102,7 +99,7 @@ class EvaluatorCompiler {
 
         String pkg = this.getClass().getPackage().getName() + ".compiled";
         String clazz = "Condition" + javaClassCounter.next();
-        String classJavaSource = String.format(
+        String javaClassSource = String.format(
                 JAVA_EVALUATOR_TEMPLATE,
                 pkg,
                 importsBuilder,
@@ -117,27 +114,34 @@ class EvaluatorCompiler {
                 "fields in use: " + argTypes
         );
 
-        String comparableClassSource = classJavaSource.replaceAll(clazz, "CLASS_STUB");
+        String comparableClassSource = javaClassSource.replaceAll(clazz, "CLASS_STUB");
 
         FieldReference[] descriptor = descriptorBuilder.toArray(FieldReference.ZERO_ARRAY);
         if (descriptor.length == 0)
             throw new IllegalArgumentException("No field references were resolved in the '" + strippedExpression + "'");
-        MethodHandle methodHandle = compileExpression(classLoader, classJavaSource);
-        return new CompiledEvaluator(methodHandle, remover.getOriginal(), comparableClassSource, descriptor);
+        MethodHandle methodHandle = compileExpression(javaClassSource);
+        return new CompiledEvaluator(methodHandle, remover.getOriginal(), javaClassSource, comparableClassSource, descriptor);
 
     }
 
-    private static class CompiledEvaluator implements Evaluator {
+    static class CompiledEvaluator implements Evaluator {
         private final FieldReference[] descriptor;
         private final MethodHandle methodHandle;
-        private final String original;
+        private final String originalCondition;
+        private final String javaClassSource;
         private final String comparableClassSource;
 
-        CompiledEvaluator(MethodHandle methodHandle, String original, String comparableClassSource, FieldReference[] descriptor) {
+        CompiledEvaluator(MethodHandle methodHandle, String originalCondition, String javaClassSource, String comparableClassSource, FieldReference[] descriptor) {
             this.descriptor = descriptor;
-            this.original = original;
+            this.originalCondition = originalCondition;
+            this.javaClassSource = javaClassSource;
             this.comparableClassSource = comparableClassSource;
             this.methodHandle = methodHandle;
+        }
+
+
+        String getSource() {
+            return javaClassSource;
         }
 
         @Override
@@ -168,13 +172,13 @@ class EvaluatorCompiler {
                 for (int i = 0; i < args.length; i++) {
                     args[i] = values.apply(i);
                 }
-                throw new IllegalStateException("Evaluation exception at '" + original + "', arguments: " + Arrays.toString(descriptor) + " -> " + Arrays.toString(args), t);
+                throw new IllegalStateException("Evaluation exception at '" + originalCondition + "', arguments: " + Arrays.toString(descriptor) + " -> " + Arrays.toString(args), t);
             }
         }
 
         @Override
         public String toString() {
-            return "\"" + original + "\"";
+            return "\"" + originalCondition + "\"";
         }
     }
 

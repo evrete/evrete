@@ -5,7 +5,7 @@ import org.evrete.api.NamedType;
 import org.evrete.api.RhsContext;
 import org.evrete.api.RuntimeContext;
 import org.evrete.api.spi.LiteralRhsCompiler;
-import org.evrete.util.compiler.CompilationException;
+import org.evrete.runtime.compiler.CompilationException;
 
 import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -15,11 +15,12 @@ public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider imp
     private static final AtomicInteger classCounter = new AtomicInteger(0);
     private static final String classPackage = DefaultLiteralRhsCompiler.class.getPackage().getName() + ".rhs";
 
+
     @SuppressWarnings("unchecked")
-    private static Class<? extends AbstractLiteralRhs> buildClass(ClassLoader classLoader, JcCompiler compiler, NamedType[] types, String literalRhs, Imports imports) throws CompilationException {
+    private static Class<? extends AbstractLiteralRhs> buildClass(RuntimeContext<?> context, NamedType[] types, String literalRhs, Imports imports) throws CompilationException {
         String simpleName = "Rhs" + classCounter.getAndIncrement();
         String source = buildSource(simpleName, types, literalRhs, imports);
-        return (Class<? extends AbstractLiteralRhs>) compiler.compile(classLoader, source);
+        return (Class<? extends AbstractLiteralRhs>) context.getSourceCompiler().compile(source);
     }
 
     private static String buildSource(String className, NamedType[] types, String literalRhs, Imports imports) {
@@ -62,10 +63,10 @@ public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider imp
     }
 
     @Override
-    public Consumer<RhsContext> compileRhs(RuntimeContext<?> requester, String literalRhs, NamedType[] types) throws CompilationException {
+    public Consumer<RhsContext> compileRhs(RuntimeContext<?> context, String literalRhs, NamedType[] types) throws CompilationException {
         try {
-            Imports imports = requester.getImports();
-            Class<? extends AbstractLiteralRhs> clazz = buildClass(requester.getClassLoader(), getCreateJavaCompiler(requester), types, literalRhs, imports);
+            Imports imports = context.getImports();
+            Class<? extends AbstractLiteralRhs> clazz = buildClass(context, types, literalRhs, imports);
             return clazz.getDeclaredConstructor().newInstance();
         } catch (CompilationException e) {
             throw e;

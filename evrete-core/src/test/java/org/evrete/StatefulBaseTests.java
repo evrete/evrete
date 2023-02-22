@@ -237,7 +237,6 @@ class StatefulBaseTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void createDestroy1(ActivationMode mode) {
-        knowledge.setClassLoader(Thread.currentThread().getContextClassLoader()); // Shouldn't make a difference
         knowledge.newRule("test")
                 .forEach(
                         fact("$a1", TypeA.class.getName()),

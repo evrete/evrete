@@ -6,7 +6,7 @@ package org.evrete.api;
  * the Rete memory graph. Each field reference consists of a {@link NamedType} and the type's
  * property/field {@link TypeField}. For example, the following condition
  * </p>
- * <p><code>"$a.id > $b.type"</code></p>
+ * <pre>{@code .where("$a.id > $b.type")}</pre>
  * <p>
  * contains two field references: one is referring the <code>id</code> property in a named type
  * <code>$a</code>, and the other is related to the field <code>type</code> in a named type <code>$b</code>.
@@ -22,10 +22,12 @@ package org.evrete.api;
  * If you decide to use functional interfaces instead of literal conditions, then using String arrays is the most
  * convenient form of providing field references:
  * </p>
- * <code><pre>   .where(predicate, "$a.id", "$b.type")</pre></code>
+ * <pre>{@code
+ * .where(predicate, "$a.id", "$b.type")
+ * }</pre>
  * <p>
  * In that case, the engine will consult with the rule's declared fact types and automatically resolve
- * these two string references into an array of {@link FieldReference} instances.
+ * these two string references into a {@link FieldReference} array.
  * </p>
  */
 public interface FieldReference {
