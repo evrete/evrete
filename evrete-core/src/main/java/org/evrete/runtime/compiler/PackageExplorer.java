@@ -1,5 +1,7 @@
-package org.evrete.util.compiler;
+package org.evrete.runtime.compiler;
 
+import org.evrete.api.annotations.NonNull;
+import org.evrete.api.annotations.Nullable;
 import org.evrete.util.IOUtils;
 
 import javax.tools.JavaFileObject;
@@ -16,7 +18,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -25,12 +26,11 @@ import java.util.zip.ZipInputStream;
 class PackageExplorer {
     private static final String CLASS_FILE_EXTENSION = ".class";
     private static final String CLASS_MODULE_INFO = "module-info.class";
-    private static final Logger LOGGER = Logger.getLogger(PackageExplorer.class.getName());
-    private final ServiceClassLoader classLoader;
     private final Map<String, Collection<JavaFileObject>> cache = new HashMap<>();
 
+    private final RuntimeClassloader classLoader;
 
-    PackageExplorer(ServiceClassLoader classLoader) {
+    public PackageExplorer(RuntimeClassloader classLoader) {
         this.classLoader = classLoader;
     }
 
@@ -57,33 +57,31 @@ class PackageExplorer {
         String key = packageName + packageFolderURL;
         Collection<JavaFileObject> cached = cache.get(key);
         if (cached == null) {
-            cached = listUnderUncached(packageName, packageFolderURL);
+            cached = new LinkedList<>(listUnderUncached(packageName, packageFolderURL));
             cache.put(key, cached);
         }
         return cached;
     }
 
-    private Collection<JavaFileObject> listUnderUncached(String packageName, URL packageFolderURL) {
+    private Collection<JavaFileObject> listUnderUncached(String packageName, URL packageURL) {
         Collection<JavaFileObject> result = null;
 
 
         URLConnection connection;
         try {
-            connection = packageFolderURL.openConnection();
+            connection = packageURL.openConnection();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
 
 
         if (connection instanceof JarURLConnection) {
             // Read from JarURLConnection
-            result = asUrlConnection((JarURLConnection) connection);
+            return asUrlConnection((JarURLConnection) connection);
         }
 
-        if (result == null) {
-            // Try as a filesystem resource
-            result = asFileResource(packageName, packageFolderURL);
-        }
+        // Try as a filesystem resource
+        result = asFileResource(packageName, packageURL);
 
 
         if (result == null) {
@@ -99,12 +97,13 @@ class PackageExplorer {
         }
 
         if (result == null) {
-            throw new IllegalStateException("Unknown resource type: " + packageFolderURL);
+            throw new IllegalStateException("Unknown resource type: " + packageURL);
         } else {
             return result;
         }
     }
 
+    @Nullable
     private Collection<JavaFileObject> asFileResource(String packageName, URL packageFolderURL) {
         try (Stream<Path> stream = Files.walk(uriToPath(packageFolderURL.toURI()), 1)) {
             return stream
@@ -115,16 +114,16 @@ class PackageExplorer {
                                 .toString();
                         fileName = fileName.substring(0, fileName.length() - CLASS_FILE_EXTENSION.length());
                         String binaryName = packageName + '.' + fileName;
-                        return new ClassPathClass(binaryName, path.toUri());
+                        return new ClassPathSource(binaryName, path.toUri());
                     })
                     .collect(Collectors.toList());
         } catch (FileSystemNotFoundException | URISyntaxException | IOException ignored) {
-            LOGGER.fine("Not a filesystem resource: " + packageFolderURL);
             // Failed to read classes, probably not a filesystem resources
             return null;
         }
     }
 
+    @NonNull
     private Collection<JavaFileObject> asUrlConnection(JarURLConnection jarConn) {
         try {
 
@@ -148,9 +147,8 @@ class PackageExplorer {
                         fileName = fileName.substring(0, fileName.length() - CLASS_FILE_EXTENSION.length());
 
                         byte[] bytes = IOUtils.bytes(jarFile, entry);
-
                         try {
-                            return new CompiledClass(Class.forName(fileName, false, classLoader), bytes);
+                            return new ClassPathJavaObject(Class.forName(fileName, false, classLoader), bytes);
                         } catch (ClassNotFoundException e) {
                             throw new RuntimeException(e);
                         }
@@ -158,8 +156,6 @@ class PackageExplorer {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-
-
     }
 
     private Collection<JavaFileObject> asZipInputStream(String packageName, ZipInputStream zis) {
@@ -175,8 +171,7 @@ class PackageExplorer {
 
 
                         byte[] bytes = IOUtils.toByteArray(zis);
-
-                        CompiledClass compiledClass = new CompiledClass(Class.forName(className, false, classLoader), bytes);
+                        ClassPathJavaObject compiledClass = new ClassPathJavaObject(Class.forName(className, false, classLoader), bytes);
                         result.add(compiledClass);
                     }
                 }
@@ -184,7 +179,7 @@ class PackageExplorer {
             return result;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
-        } catch (ClassNotFoundException e) {
+        }catch (ClassNotFoundException e) {
             throw new IllegalStateException(e);
         }
 
@@ -193,11 +188,11 @@ class PackageExplorer {
     List<JavaFileObject> find(String packageName) throws IOException {
         String javaPackageName = packageName.replaceAll("\\.", "/");
         List<JavaFileObject> result = new ArrayList<>();
-        Enumeration<URL> urlEnumeration = classLoader.getResources(javaPackageName);
-        while (urlEnumeration.hasMoreElements()) {
+        Enumeration<URL> resources = classLoader.getResources(javaPackageName);
+        while (resources.hasMoreElements()) {
             // one URL for each jar on the classpath that has the given package
-            URL packageFolderURL = urlEnumeration.nextElement();
-            result.addAll(listUnder(packageName, packageFolderURL));
+            URL url = resources.nextElement();
+            result.addAll(listUnder(packageName, url));
         }
         return result;
     }

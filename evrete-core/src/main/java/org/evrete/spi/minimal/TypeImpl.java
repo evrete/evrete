@@ -138,7 +138,7 @@ class TypeImpl<T> implements Type<T> {
         }
 
         if (field == null) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Field not declared: '" + name + "'");
         } else {
             return field;
         }

@@ -10,7 +10,7 @@ import org.evrete.benchmarks.models.misc.TypeA;
 import org.evrete.benchmarks.models.misc.TypeB;
 import org.evrete.benchmarks.models.misc.TypeC;
 import org.evrete.runtime.KnowledgeRuntime;
-import org.evrete.util.compiler.CompilationException;
+import org.evrete.runtime.compiler.CompilationException;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 

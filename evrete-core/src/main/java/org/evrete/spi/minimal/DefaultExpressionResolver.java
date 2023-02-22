@@ -2,26 +2,26 @@ package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
+import org.evrete.runtime.compiler.CompilationException;
 import org.evrete.util.NextIntSupplier;
 import org.evrete.util.StringLiteralRemover;
-import org.evrete.util.compiler.CompilationException;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class DefaultExpressionResolver implements ExpressionResolver {
-    private static final String BASE_CLASS_PROPERTY = "evrete.impl.condition-base-class";
+import static org.evrete.Configuration.CONDITION_BASE_CLASS;
 
+class DefaultExpressionResolver implements ExpressionResolver {
     private static final Pattern REFERENCE_PATTERN = Pattern.compile("\\$[a-zA-Z0-9]+(\\.[_a-zA-Z][_a-zA-Z0-9]*)*");
 
     private final EvaluatorCompiler evaluatorCompiler;
     private final RuntimeContext<?> context;
 
-    DefaultExpressionResolver(RuntimeContext<?> requester, JcCompiler compiler) {
-        this.evaluatorCompiler = new EvaluatorCompiler(compiler);
-        this.context = requester;
+    DefaultExpressionResolver(RuntimeContext<?> context) {
+        this.evaluatorCompiler = new EvaluatorCompiler(context);
+        this.context = context;
     }
 
     private static ConditionStringTerm resolveTerm(int start, int actualEnd, FieldReference ref, NextIntSupplier fieldCounter, List<ConditionStringTerm> terms) {
@@ -67,12 +67,10 @@ class DefaultExpressionResolver implements ExpressionResolver {
     @NonNull
     public synchronized Evaluator buildExpression(String expression, NamedType.Resolver resolver) throws CompilationException {
         try {
-            // Which class the compiled condition will extend?
-            String conditionBaseClass = context.getConfiguration().getProperty(BASE_CLASS_PROPERTY);
-            if (conditionBaseClass == null) {
-                conditionBaseClass = BaseConditionClass.class.getName();
-            }
-
+            // Getting the base class for condition
+            String conditionBaseClass = context
+                    .getConfiguration()
+                    .getProperty(CONDITION_BASE_CLASS, BaseConditionClass.class.getName());
             Imports imports = context.getImports();
             try {
                 return buildExpression(expression, conditionBaseClass, resolver, imports, true);
@@ -89,7 +87,6 @@ class DefaultExpressionResolver implements ExpressionResolver {
     }
 
     private Evaluator buildExpression(String rawExpression, String conditionBaseClassName, NamedType.Resolver resolver, Imports imports, boolean stripWhiteSpaces) throws CompilationException {
-        ClassLoader classLoader = context.getClassLoader();
         StringLiteralRemover remover = StringLiteralRemover.of(rawExpression, stripWhiteSpaces);
         String strippedExpression = remover.getConverted();
         Matcher m = REFERENCE_PATTERN.matcher(strippedExpression);
@@ -112,7 +109,7 @@ class DefaultExpressionResolver implements ExpressionResolver {
             terms.add(t);
         }
 
-        return evaluatorCompiler.buildExpression(classLoader, conditionBaseClassName, remover, strippedExpression, terms, imports);
+        return evaluatorCompiler.buildExpression(conditionBaseClassName, remover, strippedExpression, terms, imports);
     }
 
 }

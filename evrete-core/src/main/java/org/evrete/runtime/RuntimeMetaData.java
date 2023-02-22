@@ -20,10 +20,10 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     private final EvaluatorStorageImpl evaluators;
     private final AtomicInteger bucketIds;
     private TypeResolver typeResolver;
-    private ClassLoader classLoader;
+    //private ClassLoader classLoader;
 
     RuntimeMetaData(KnowledgeService service, TypeResolver typeResolver) {
-        this.classLoader = service.getClassLoader();
+        //this.classLoader = service.getClassLoader();
         this.typeResolver = typeResolver;
         this.imports = service.getConfiguration().getImports().copyOf();
         this.typeMetas = new ArrayOf<>(TypeMemoryMetaData.class);
@@ -34,7 +34,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     }
 
     RuntimeMetaData(RuntimeMetaData<?> parent) {
-        this.classLoader = parent.classLoader;
+        //this.classLoader = parent.classLoader;
         this.typeResolver = parent.typeResolver.copyOf();
         this.imports = parent.imports.copyOf();
         this.evaluators = parent.evaluators.copyOf();
@@ -53,6 +53,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         return evaluators;
     }
 
+/*
     @Override
     public ClassLoader getClassLoader() {
         return Objects.requireNonNull(classLoader);
@@ -62,6 +63,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     public void setClassLoader(ClassLoader classLoader) {
         this.classLoader = classLoader;
     }
+*/
 
     @Override
     public final void wrapTypeResolver(TypeResolverWrapper wrapper) {

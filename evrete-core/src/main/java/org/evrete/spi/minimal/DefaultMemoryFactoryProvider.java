@@ -11,7 +11,7 @@ public class DefaultMemoryFactoryProvider extends LeastImportantServiceProvider 
 
 
     @Override
-    public MemoryFactory instance(RuntimeContext<?> ctx) {
-        return instances.computeIfAbsent(ctx, k -> new DefaultMemoryFactory(ctx));
+    public MemoryFactory instance(RuntimeContext<?> context) {
+        return instances.computeIfAbsent(context, k -> new DefaultMemoryFactory(context));
     }
 }

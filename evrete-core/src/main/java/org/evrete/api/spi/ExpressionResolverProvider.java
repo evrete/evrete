@@ -15,8 +15,8 @@ public interface ExpressionResolverProvider extends OrderedServiceProvider {
      * provided {@link RuntimeContext} as a {@link java.lang.ref.WeakReference} key for that state.
      * </p>
      *
-     * @param requester a runtime context from which the resolver is requested
+     * @param context runtime context from which the resolver is requested
      * @return new or existing instance of {@link ExpressionResolver}
      */
-    ExpressionResolver instance(RuntimeContext<?> requester);
+    ExpressionResolver instance(RuntimeContext<?> context);
 }

@@ -2,10 +2,11 @@ package org.evrete.dsl;
 
 import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
+import org.evrete.api.JavaSourceCompiler;
 import org.evrete.api.Knowledge;
+import org.evrete.api.RuntimeContext;
 import org.evrete.api.TypeResolver;
 import org.evrete.dsl.annotation.RuleSet;
-import org.evrete.util.compiler.ServiceClassLoader;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -29,8 +30,8 @@ public class DSLJarProvider extends AbstractDSLProvider {
 
     private static Knowledge apply(Knowledge knowledge, Set<String> ruleClasses, InputStream... streams) throws IOException {
         ClassLoader ctxClassLoader = knowledge.getClassLoader();
-        ServiceClassLoader classLoader = new ServiceClassLoader(ctxClassLoader);
-        List<Class<?>> ruleSets = fillClassLoader(classLoader, streams);
+        //ServiceClassLoader classLoader = new ServiceClassLoader(ctxClassLoader);
+        List<Class<?>> ruleSets = fillClassLoader(knowledge, streams);
         Knowledge current = knowledge;
         if (ruleClasses.isEmpty()) {
             // Implicit declaration via @RuleSet
@@ -46,7 +47,7 @@ public class DSLJarProvider extends AbstractDSLProvider {
             // Classes specified explicitly
             for (String ruleClass : ruleClasses) {
                 try {
-                    Class<?> cl = classLoader.loadClass(ruleClass);
+                    Class<?> cl = current.getClassLoader().loadClass(ruleClass);
                     current = processRuleSet(current, cl);
                 } catch (ClassNotFoundException e) {
                     // No such rule class
@@ -72,7 +73,7 @@ public class DSLJarProvider extends AbstractDSLProvider {
         return ruleClasses;
     }
 
-    private static List<Class<?>> fillClassLoader(ServiceClassLoader classLoader, InputStream... resources) throws IOException {
+    private static List<Class<?>> fillClassLoader(RuntimeContext<?> ctx, InputStream... resources) throws IOException {
         JarInputStream[] streams = new JarInputStream[resources.length];
         for (int i = 0; i < resources.length; i++) {
             streams[i] = new JarInputStream(resources[i]);
@@ -82,17 +83,18 @@ public class DSLJarProvider extends AbstractDSLProvider {
 
         for (JarInputStream resource : streams) {
             try (JarInputStream is = resource) {
-                List<Class<?>> jarRuleSets = applyJar(classLoader, is);
+                List<Class<?>> jarRuleSets = applyJar(ctx, is);
                 ruleSets.addAll(jarRuleSets);
             }
         }
         return ruleSets;
     }
 
-    private static List<Class<?>> applyJar(ServiceClassLoader secureClassLoader, JarInputStream is) throws IOException {
+    private static List<Class<?>> applyJar(RuntimeContext<?> ctx, JarInputStream is) throws IOException {
+        JavaSourceCompiler compiler = ctx.getSourceCompiler();
         JarEntry entry;
         byte[] buffer = new byte[1024];
-        Map<String, byte[]> resources = new HashMap<>();
+        //Map<String, byte[]> resources = new HashMap<>();
         Map<String, byte[]> classes = new HashMap<>();
         while ((entry = is.getNextJarEntry()) != null) {
             if (!entry.isDirectory()) {
@@ -105,16 +107,17 @@ public class DSLJarProvider extends AbstractDSLProvider {
                     validateClassName(className);
                     classes.put(className, bytes);
                 } else {
-                    resources.put(name, bytes);
+                    //resources.put(name, bytes);
                 }
             }
         }
 
         // Building classes and resources
-        List<Class<?>> ruleSets = new LinkedList<>();
         for (Map.Entry<String, byte[]> e : classes.entrySet()) {
             String className = e.getKey();
             byte[] bytes = e.getValue();
+            compiler.defineClass(className, bytes);
+/*
             Class<?> clazz;
             try {
                 clazz = secureClassLoader.loadClass(className);
@@ -129,11 +132,17 @@ public class DSLJarProvider extends AbstractDSLProvider {
             if (clazz.getAnnotation(RuleSet.class) != null) {
                 ruleSets.add(clazz);
             }
+*/
 
         }
 
-        for (Map.Entry<String, byte[]> e : resources.entrySet()) {
-            secureClassLoader.addResource(e.getKey(), e.getValue());
+        List<Class<?>> ruleSets = new LinkedList<>();
+        for(String classNme : classes.keySet()) {
+            try {
+                ruleSets.add(ctx.getClassLoader().loadClass(classNme));
+            } catch (ClassNotFoundException e) {
+                throw new IllegalStateException("Class '" + classNme + "' couldn't be loaded", e);
+            }
         }
 
         return ruleSets;

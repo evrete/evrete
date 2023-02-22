@@ -33,12 +33,13 @@ public interface StatelessSession extends RuleSession<StatelessSession> {
      * Customer c = new Customer();
      * session.insert(c);
      * session.fire();
-     * System.out.println(c.getSomeUpdatedProperty());
+     * Log.info(c.getSomeUpdatedProperty());
      * }</pre>
      * <p>
-     * While this method is the fastest among the other {@code fire(..)} methods, it is only
+     * While this method is the easiest among the other {@code fire(..)} methods, it is only
      * applicable if the provided {@link FactStorage} SPI implementation stores facts by reference
-     * (e.g. does not serialize/deserialize objects)
+     * (e.g. does not serialize/deserialize objects). The default implementation does not serialize or
+     * otherwise transform fact instances
      * </p>
      */
     Void fire();

@@ -7,8 +7,8 @@ import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.runtime.KnowledgeRuntime;
+import org.evrete.runtime.compiler.CompilationException;
 import org.evrete.util.NextIntSupplier;
-import org.evrete.util.compiler.CompilationException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -147,6 +147,7 @@ class ExpressionsTest {
 
         assert counter.get() == 2 : "Actual: " + counter.get();
     }
+
 
     public static class Nested1 {
         public final Nested1 parent;

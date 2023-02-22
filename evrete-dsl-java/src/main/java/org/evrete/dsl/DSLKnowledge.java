@@ -10,7 +10,8 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Properties;
+
+import static org.evrete.Configuration.CONDITION_BASE_CLASS;
 
 class DSLKnowledge extends KnowledgeWrapper {
     private final Constructor<?> constructor;
@@ -30,6 +31,7 @@ class DSLKnowledge extends KnowledgeWrapper {
         // "not supported" declaration so that rule builders would be able to resolve fields.
         FieldDeclarations fieldDeclarations = meta.fieldDeclarations;
         fieldDeclarations.applyInitial(getTypeResolver());
+
 
 
         // Building rules
@@ -55,12 +57,30 @@ class DSLKnowledge extends KnowledgeWrapper {
             }
 
             // Adding literal conditions
-            Properties copy = delegate.getConfiguration().copyOf();
-            // TODO !! make it optional/configurable
-            copy.setProperty("evrete.impl.condition-base-class", canonicalName(meta.javaClass));
-            for (String predicate : rm.stringPredicates) {
-                lhs.where(predicate);
+            if(rm.stringPredicates.length > 0) {
+                EvaluatorHandle[] handles = new EvaluatorHandle[rm.stringPredicates.length];
+                // Saving current base class
+                String currentConditionBaseClass = delegate.getConfiguration().getProperty(CONDITION_BASE_CLASS);
+                // Setting new base class for conditions
+                delegate
+                        .getConfiguration()
+                        .setProperty(CONDITION_BASE_CLASS, canonicalName(meta.javaClass));
+
+                // Compiling & applying conditions
+                for (int i = 0; i < handles.length; i++) {
+                    handles[i] = builder.createCondition(rm.stringPredicates[i]);
+                }
+                lhs.where(handles);
+
+                // Restoring the original base class
+                if(currentConditionBaseClass != null) {
+                    delegate
+                            .getConfiguration()
+                            .setProperty(CONDITION_BASE_CLASS, currentConditionBaseClass);
+                }
             }
+
+
 
             // Adding method predicates
             List<PredicateMethod> predicateMethods = new LinkedList<>();
