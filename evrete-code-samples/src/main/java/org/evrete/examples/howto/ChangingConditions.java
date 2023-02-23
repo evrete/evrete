@@ -15,6 +15,8 @@ public class ChangingConditions {
         RuleBuilder<Knowledge> builder = knowledge.newRule("Even numbers");
         LhsBuilder<Knowledge> lhsBuilder = builder.forEach("$i", Integer.class);
         EvaluatorHandle handle = builder.createCondition("$i % 2 == 0");
+
+        // 2. Using the handle in the "where" instruction
         lhsBuilder.where(handle);
         lhsBuilder.execute(ctx -> {
             int $i = ctx.get("$i");
@@ -24,17 +26,17 @@ public class ChangingConditions {
 
         try (StatefulSession s = knowledge.newStatefulSession()) {
             RuntimeRule rule = s.getRule("Even numbers");
-            // 2. Initial test
+            // 3. Initial test
             out.println("\n2. Testing the rule as-is:");
             s.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
 
-            // 3. Building a new expression and replacing the old one
+            // 4. Building a new expression and replacing the old one
             Evaluator newCondition = rule.buildExpression("$i % 2 == 1");
             s.replaceEvaluator(handle, newCondition);
             out.println("\n3. Testing new condition:");
             s.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
 
-            // 4. Yet another condition, as a Predicate this time
+            // 5. Yet another condition, as a Predicate this time
             s.replaceEvaluator(handle, t -> {
                 int $i = t.get(0);
                 return $i % 3 == 0;
@@ -44,7 +46,7 @@ public class ChangingConditions {
         }
 
         try (StatefulSession s = knowledge.newStatefulSession()) {
-            // 5. New session shouldn't be affected by the changes
+            // 6. New session shouldn't be affected by the changes
             out.println("\n5. Testing a new session:");
             s.insertAndFire(0, 1, 2, 3, 4, 5, 6, 7);
         }
