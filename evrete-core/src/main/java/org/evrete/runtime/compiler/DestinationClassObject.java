@@ -19,6 +19,11 @@ public class DestinationClassObject extends AbstractJavaObject {
     }
 
     @Override
+    public boolean isNameCompatible(String simpleName, Kind kind) {
+        return kind.equals(getKind());
+    }
+
+    @Override
     public OutputStream openOutputStream()  {
         return outputStream;
     }
@@ -54,6 +59,6 @@ public class DestinationClassObject extends AbstractJavaObject {
 
     @Override
     public Kind getKind() {
-        throw new UnsupportedOperationException("TODO implement");
+        return Kind.CLASS;
     }
 }

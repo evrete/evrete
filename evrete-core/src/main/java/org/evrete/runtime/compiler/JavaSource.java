@@ -22,6 +22,11 @@ public class JavaSource extends AbstractJavaObject {
         this.uri = URI.create("string:///" + prefix + "/" + packageName.replaceAll("\\.", "/") + "/" + className + Kind.SOURCE.extension);
     }
 
+    @Override
+    public boolean isNameCompatible(String simpleName, Kind kind) {
+        return kind == Kind.SOURCE && className.equals(simpleName);
+    }
+
     static JavaSource parse(long prefix, String source) {
         if(prefix < 0) {
             throw new IllegalStateException();

@@ -21,11 +21,6 @@ abstract class AbstractJavaObject implements JavaFileObject {
     abstract String getBinaryName();
 
     @Override
-    public boolean isNameCompatible(String simpleName, Kind kind) {
-        return true;
-    }
-
-    @Override
     public NestingKind getNestingKind() {
         return null;
     }

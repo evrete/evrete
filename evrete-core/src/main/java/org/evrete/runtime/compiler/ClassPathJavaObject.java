@@ -7,21 +7,20 @@ import java.io.Writer;
 import java.net.URI;
 
 class ClassPathJavaObject extends AbstractJavaObject {
-    private final String packageName;
     private final byte[] bytes;
 
     private final Class<?> clazz;
     private final URI uri;
 
     ClassPathJavaObject(Class<?> cl, byte[] bytes) {
-        this.packageName = resolvePackageName(cl);
         this.bytes = bytes;
         this.clazz = cl;
         this.uri = URI.create("class:///" + cl.getName().replaceAll("\\.", "/") + "." + Kind.CLASS.extension);
     }
 
-    public String getPackageName() {
-        return packageName;
+    @Override
+    public boolean isNameCompatible(String simpleName, Kind kind) {
+        return kind.equals(getKind()) && simpleName.equals(this.clazz.getSimpleName());
     }
 
     @Override
@@ -42,22 +41,6 @@ class ClassPathJavaObject extends AbstractJavaObject {
     @Override
     public OutputStream openOutputStream() {
         throw new UnsupportedOperationException();
-    }
-
-
-    private static String resolvePackageName(Class<?> clazz) {
-        Package p = clazz.getPackage();
-        if (p == null) {
-            String name = clazz.getName();
-            int lastDot = name.lastIndexOf('.');
-            if (lastDot < 0) {
-                return "unnamed";
-            } else {
-                return name.substring(0, lastDot);
-            }
-        } else {
-            return p.getName();
-        }
     }
 
     @Override
