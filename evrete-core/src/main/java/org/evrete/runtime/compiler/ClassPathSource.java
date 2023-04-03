@@ -17,6 +17,11 @@ class ClassPathSource extends AbstractJavaObject {
     }
 
     @Override
+    public boolean isNameCompatible(String simpleName, Kind kind) {
+        return kind.equals(getKind());
+    }
+
+    @Override
     public Kind getKind() {
         return Kind.CLASS;
     }
