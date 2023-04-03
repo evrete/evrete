@@ -4,12 +4,12 @@
     <parent>
         <artifactId>evrete</artifactId>
         <groupId>org.evrete</groupId>
-        <version>3.0.03</version>
+        <version>3.0.04-SNAPSHOT</version>
     </parent>
     <artifactId>evrete-core</artifactId>
     <packaging>jar</packaging>
     <name>evrete-core</name>
-    <version>3.0.03</version>
+    <version>3.0.04-SNAPSHOT</version>
 
     <build>
         <plugins>
