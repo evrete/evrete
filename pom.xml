@@ -22,7 +22,6 @@
         <connection>scm:git:https://github.com/evrete/evrete.git</connection>
         <developerConnection>scm:git:https://github.com/evrete/evrete.git</developerConnection>
         <url>https://github.com/evrete/evrete</url>
-        <tag>evrete-3.0.03</tag>
     </scm>
 
     <licenses>
