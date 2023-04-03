@@ -122,7 +122,7 @@
         <dependency>
             <groupId>org.evrete</groupId>
             <artifactId>evrete-core</artifactId>
-            <version>3.0.03</version>
+            <version>3.0.03-SNAPSHOT</version>
         </dependency>
 
 
