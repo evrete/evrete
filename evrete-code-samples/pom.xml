@@ -6,12 +6,12 @@
     <parent>
         <artifactId>evrete</artifactId>
         <groupId>org.evrete</groupId>
-        <version>3.0.03-SNAPSHOT</version>
+        <version>3.0.04-SNAPSHOT</version>
     </parent>
 
     <packaging>jar</packaging>
     <name>evrete-code-samples</name>
-    <version>3.0.03-SNAPSHOT</version>
+    <version>3.0.04-SNAPSHOT</version>
     <build>
         <plugins>
             <plugin>
@@ -27,13 +27,13 @@
         <dependency>
             <groupId>org.evrete</groupId>
             <artifactId>evrete-core</artifactId>
-            <version>3.0.03-SNAPSHOT</version>
+            <version>3.0.04-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>org.evrete</groupId>
             <artifactId>evrete-dsl-java</artifactId>
-            <version>3.0.03-SNAPSHOT</version>
+            <version>3.0.04-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>
