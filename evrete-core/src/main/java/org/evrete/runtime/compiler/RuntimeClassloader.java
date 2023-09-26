@@ -1,7 +1,6 @@
 package org.evrete.runtime.compiler;
 
 import javax.tools.JavaFileObject;
-import java.security.SecureClassLoader;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -12,7 +11,7 @@ import java.util.stream.Collectors;
 
 import static org.evrete.runtime.compiler.SourceCompiler.packageName;
 
-public class RuntimeClassloader extends SecureClassLoader {
+public class RuntimeClassloader extends ClassLoader {
 
     private static final AtomicLong instanceCounter = new AtomicLong();
     private static final Collection<JavaFileObject> EMPTY = Collections.emptyList();

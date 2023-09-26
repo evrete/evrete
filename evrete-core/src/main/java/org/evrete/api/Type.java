@@ -68,12 +68,6 @@ public interface Type<T> extends Named, Copyable<Type<T>> {
     @NonNull
     TypeField getField(@NonNull String name);
 
-    @Deprecated
-    default TypeField getField(int id) {
-        throw new UnsupportedOperationException();
-    }
-
-
     /**
      * <p>
      * Field declaration with a {@link Function} as value reader.

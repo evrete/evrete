@@ -1,34 +1,24 @@
-package org.evrete.util;
+package org.evrete.spi.minimal;
 
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * <p>
- * This utility class encodes and decodes any occurrences of quoted fragments in a given string so that the content of
- * these fragments doesn't interfere with type and variable resolution.
- * </p>
- * @deprecated This class is only used in the default SPI implementations and shouldn't be exposed.
- * If you're using this class in your projects, please make a local copy, the class will be removed in future releases
- */
-@Deprecated
-@SuppressWarnings("unused")
-public final class StringLiteralRemover {
+final class StringLiteralEncoder {
     private static final String PREFIX = "${const";
     private static final String SUFFIX = "}";
     private static final char[] QUOTES = new char[]{'\'', '"', '`'};
 
     private final String original;
-    private final String converted;
+    private final Encoded encoded;
     private final Map<String, String> stringConstantMap;
 
-    private StringLiteralRemover(String original, String converted, Map<String, String> stringConstantMap) {
+    private StringLiteralEncoder(String original, Encoded encoded, Map<String, String> stringConstantMap) {
         this.original = original;
-        this.converted = converted;
+        this.encoded = encoded;
         this.stringConstantMap = stringConstantMap;
     }
 
-    public static StringLiteralRemover of(String s, boolean stripWhiteSpaces) {
+    static StringLiteralEncoder of(String s, boolean stripWhiteSpaces) {
 
         // First name and replace all String constants
         int stringConstantId = 0;
@@ -61,7 +51,7 @@ public final class StringLiteralRemover {
             current = current.replaceAll("\\s{2,}", " ");
         }
 
-        return new StringLiteralRemover(s, current, stringConstantMap);
+        return new StringLiteralEncoder(s, new Encoded(current), stringConstantMap);
     }
 
     @SuppressWarnings("unused")
@@ -69,7 +59,7 @@ public final class StringLiteralRemover {
         return stringConstantMap;
     }
 
-    public String unwrapLiterals(String arg) {
+    public String unwrapLiterals(final String arg) {
         String s = arg;
         for (Map.Entry<String, String> entry : stringConstantMap.entrySet()) {
             s = s.replace(entry.getKey(), "\"" + entry.getValue() + "\"");
@@ -77,8 +67,8 @@ public final class StringLiteralRemover {
         return s;
     }
 
-    public String getConverted() {
-        return converted;
+    public Encoded getEncoded() {
+        return encoded;
     }
 
     public String getOriginal() {
@@ -89,8 +79,16 @@ public final class StringLiteralRemover {
     public String toString() {
         return "StringLiteralRemover{" +
                 "original='" + original + '\'' +
-                ", converted='" + converted + '\'' +
+                ", converted='" + encoded + '\'' +
                 ", stringConstantMap=" + stringConstantMap +
                 '}';
+    }
+
+    static final class Encoded {
+        final String value;
+
+        public Encoded(String value) {
+            this.value = value;
+        }
     }
 }

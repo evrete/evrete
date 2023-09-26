@@ -5,7 +5,7 @@ import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 
 public class PrimeNumbersDSLSource {
     public static void main(String[] args) throws IOException {
@@ -13,7 +13,7 @@ public class PrimeNumbersDSLSource {
         Knowledge knowledge = service
                 .newKnowledge(
                         "JAVA-SOURCE",
-                        new URL("https://www.evrete.org/examples/PrimeNumbersSource.java"));
+                        URI.create("https://www.evrete.org/examples/PrimeNumbersSource.java").toURL());
 
         // Stateful sessions are AutoCloseable
         try (StatefulSession session = knowledge.newStatefulSession()) {

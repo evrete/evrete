@@ -3,6 +3,9 @@ package org.evrete.api;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.runtime.compiler.CompilationException;
 
+import java.util.Collection;
+import java.util.Collections;
+
 /**
  * An interface with a set of basic methods that are necessary for parsing string expressions.
  */
@@ -44,18 +47,47 @@ public interface ExpressionResolver {
     }
 
     /**
+     * @deprecated use {@link #buildExpression(LiteralExpression)} instead
+     */
+    @NonNull
+    @Deprecated
+    default Evaluator buildExpression(String expression, NamedType.Resolver resolver) throws CompilationException {
+        return buildExpression(LiteralExpression.of(expression, resolver));
+    }
+
+    /**
      * <p>
      * This method parses a string argument and returns an {@link Evaluator} if possible.
      * </p>
      *
-     * @param expression - a String condition expression to parse
-     * @param resolver   a mapping function between fact name and {@link NamedType}
+     * @param expression - literal expression and its context
      * @return returns an {@link Evaluator} instance or throws an exception
      * @throws CompilationException     if the argument can not be compiled
      * @throws IllegalArgumentException if the expression can not be resolved
-     * @see #resolve(String, NamedType.Resolver)
+     * @throws IllegalStateException if the resolver is not in an appropriate state
      */
     @NonNull
-    Evaluator buildExpression(String expression, NamedType.Resolver resolver) throws CompilationException;
+    default Evaluator buildExpression(LiteralExpression expression) throws CompilationException {
+        Collection<LiteralEvaluator> col = buildExpressions(Collections.singleton(expression));
+        if(col.size() == 1) {
+            return col.iterator().next();
+        } else {
+            throw new IllegalStateException();
+        }
+    }
 
+
+    /**
+     * <p>
+     * This method builds literal expressions all at once and returns a collection of compiled results.
+     * Order is not guaranteed, use the {@link LiteralEvaluator#getSource()} method to associate
+     * the resulting evaluators with the method's argument list.
+     * </p>
+     *
+     * @param expressions - literal expressions
+     * @return collection of {@link LiteralEvaluator} instances
+     * @throws CompilationException  if the argument can not be compiled
+     * @throws IllegalArgumentException if the expression can not be resolved
+     */
+    Collection<LiteralEvaluator> buildExpressions(Collection<LiteralExpression> expressions) throws CompilationException;
 }

@@ -92,7 +92,7 @@ class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule implemen
 
     @Override
     public EvaluatorHandle createCondition(String expression, double complexity) {
-        Evaluator evaluator = runtime.compileUnchecked(expression, this);
+        Evaluator evaluator = runtime.compileUnchecked(LiteralExpression.of(expression, this));
         return runtime.addEvaluator(evaluator, complexity);
     }
 

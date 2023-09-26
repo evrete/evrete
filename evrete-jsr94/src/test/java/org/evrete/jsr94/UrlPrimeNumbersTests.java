@@ -8,7 +8,7 @@ import javax.rules.admin.RuleExecutionSet;
 import javax.rules.admin.RuleExecutionSetCreateException;
 import javax.rules.admin.RuleExecutionSetRegisterException;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,7 +35,7 @@ class UrlPrimeNumbersTests {
         RuleExecutionSet ruleSet = administrator
                 .getRuleExecutionSetProvider(null)
                 .createRuleExecutionSet(
-                        new URL("https://www.evrete.org/examples/PrimeNumbersSource.java"),
+                        URI.create("https://www.evrete.org/examples/PrimeNumbersSource.java").toURL(),
                         config
                 );
 

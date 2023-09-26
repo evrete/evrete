@@ -2,10 +2,7 @@ package org.evrete.benchmarks.jmh;
 
 import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
-import org.evrete.api.Evaluator;
-import org.evrete.api.IntToValue;
-import org.evrete.api.Knowledge;
-import org.evrete.api.RuleBuilder;
+import org.evrete.api.*;
 import org.evrete.benchmarks.models.misc.TypeA;
 import org.evrete.benchmarks.models.misc.TypeB;
 import org.evrete.benchmarks.models.misc.TypeC;
@@ -68,7 +65,7 @@ public class Expressions {
             rule.forEach().addFactDeclaration("$a", TypeA.class);
             rule.forEach().addFactDeclaration("$b", TypeB.class.getName());
             rule.forEach().addFactDeclaration("$c", TypeC.class.getName());
-            evaluator = knowledge.compile("$a.i + $b.i + $c.i > 10_000", rule);
+            evaluator = knowledge.compile(LiteralExpression.of("$a.i + $b.i + $c.i > 10_000", rule));
 
             Random random = new Random();
             Object[] vars = new Object[8192 * 256];

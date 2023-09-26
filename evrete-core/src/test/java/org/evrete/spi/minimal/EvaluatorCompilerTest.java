@@ -50,8 +50,8 @@ class EvaluatorCompilerTest {
                 );
 
         EvaluatorHandle betaHandle = ruleBuilder.createCondition(CONDITION);
-        EvaluatorCompiler.CompiledEvaluator condition = (EvaluatorCompiler.CompiledEvaluator) knowledge.getEvaluator(betaHandle);
-        String source = condition.getSource();
+        CompiledEvaluator condition = (CompiledEvaluator) knowledge.getEvaluator(betaHandle);
+        String source = condition.getJavaSource();
 
         assert source.contains("extends " + BaseConditionClass.class.getName());
 
@@ -83,8 +83,8 @@ class EvaluatorCompilerTest {
 
             handles[i] = betaHandle;
 
-            EvaluatorCompiler.CompiledEvaluator condition = (EvaluatorCompiler.CompiledEvaluator) knowledge.getEvaluator(betaHandle);
-            String source = condition.getSource();
+            CompiledEvaluator condition = (CompiledEvaluator) knowledge.getEvaluator(betaHandle);
+            String source = condition.getJavaSource();
             assert source.contains("extends " + baseClass.getName());
 
         }

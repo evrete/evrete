@@ -21,6 +21,8 @@ public interface JavaSourceCompiler {
      */
     void compile(Collection<String> sources) throws CompilationException;
 
+    ClassLoader getClassLoader();
+
     /**
      * @param source plain Java source code
      * @return compiled class
@@ -33,5 +35,5 @@ public interface JavaSourceCompiler {
      * @param binaryName class binary name
      * @param classBytes class bytes
      */
-    void  defineClass(String binaryName, byte[] classBytes);
+    void defineClass(String binaryName, byte[] classBytes);
 }

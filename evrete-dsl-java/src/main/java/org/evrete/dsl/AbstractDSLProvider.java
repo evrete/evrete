@@ -25,7 +25,6 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider {
             LOGGER.warning("Method " + m + " declared in " + m.getDeclaringClass() + " is not public and will be disregarded.");
         }
 
-
         // 1. Scanning all the class methods and saving those with annotations
         RulesetMeta meta = new RulesetMeta(javaClass);
         for (Method m : javaClass.getMethods()) {

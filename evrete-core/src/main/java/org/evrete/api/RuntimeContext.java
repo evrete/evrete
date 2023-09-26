@@ -19,17 +19,24 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
     RuleBuilder<C> newRule(String name);
 
     /**
+     * @deprecated use {@link #compile(LiteralExpression)} instead
+     */
+    @Deprecated
+    default Evaluator compile(String expression, NamedType.Resolver resolver) throws CompilationException {
+        return getExpressionResolver().buildExpression(expression, resolver);
+    }
+
+    /**
      * <p>
      * A convenience wrapper for compiling literal conditions.
      * </p>
      *
-     * @param expression string condition
-     * @param resolver   named type resolver
+     * @param expression literal condition and its context
      * @return new evaluator instance
      * @throws CompilationException if the expression failed to compile
      */
-    default Evaluator compile(String expression, NamedType.Resolver resolver) throws CompilationException {
-        return getExpressionResolver().buildExpression(expression, resolver);
+    default Evaluator compile(LiteralExpression expression) throws CompilationException {
+        return getExpressionResolver().buildExpression(expression);
     }
 
     RuleBuilder<C> newRule();

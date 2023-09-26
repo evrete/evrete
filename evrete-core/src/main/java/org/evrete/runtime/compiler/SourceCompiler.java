@@ -31,7 +31,7 @@ public class SourceCompiler implements JavaSourceCompiler {
     }
 
     @Override
-    public void compile(@NonNull Collection<String> sources) throws CompilationException {
+    public synchronized void compile(@NonNull Collection<String> sources) throws CompilationException {
         try {
             compileUnchecked(sources);
         } catch (CompilationException e) {
@@ -40,6 +40,11 @@ public class SourceCompiler implements JavaSourceCompiler {
             String allSources = String.join("\n", sources);
             throw new CompilationException(t, allSources);
         }
+    }
+
+    @Override
+    public ClassLoader getClassLoader() {
+        return classLoader;
     }
 
     @Override
@@ -80,7 +85,7 @@ public class SourceCompiler implements JavaSourceCompiler {
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
         try (StandardJavaFileManager systemFm = compiler.getStandardFileManager(diagnostics, null, null)) {
 
-            try (InMemoryFileManager fm = new InMemoryFileManager(systemFm, classLoader, parsedSources)) {
+            try (InMemoryFileManager fm = new InMemoryFileManager(systemFm, classLoader)) {
 
                 // Does compiler support the "-parameters" option?
                 List<String> parameters = compiler.isSupportedOption(COMPILER_PARAM_OPTION) < 0 ?

@@ -162,9 +162,9 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         return service.getExecutor();
     }
 
-    Evaluator compileUnchecked(String expression, NamedType.Resolver resolver) {
+    Evaluator compileUnchecked(LiteralExpression expression) {
         try {
-            return compile(expression, resolver);
+            return compile(expression);
         } catch (CompilationException e) {
             throw new RuntimeException(e);
         }
@@ -182,7 +182,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     }
 
     @Override
-    public RuleBuilderImpl<C> newRule(String name) {
+    public RuleBuilder<C> newRule(String name) {
         _assertActive();
         RuleBuilderImpl<C> rb = new RuleBuilderImpl<>(this, name);
         this.ruleBuilders.add(rb);
