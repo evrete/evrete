@@ -79,6 +79,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         } catch (RuntimeException e) {
             this.ruleBuilderExceptionHandler.handle(this, builder, e);
         } catch (CompilationException e) {
+            e.log(LOGGER, Level.WARNING);
             this.ruleBuilderExceptionHandler.handle(this, builder, new RuntimeException(e));
         }
     }
@@ -220,7 +221,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         try {
             return service.getLiteralRhsCompiler().compileRhs(this, literalRhs, namedTypes);
         } catch (CompilationException e) {
-            LOGGER.log(Level.WARNING, e.getMessage(), e);
+            e.log(LOGGER, Level.WARNING);
             throw new IllegalStateException(e);
         }
     }
