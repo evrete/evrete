@@ -29,17 +29,15 @@ public class DSLJarProvider extends AbstractDSLProvider {
     };
 
     private static Knowledge apply(Knowledge knowledge, Set<String> ruleClasses, InputStream... streams) throws IOException {
-        ClassLoader ctxClassLoader = knowledge.getClassLoader();
-        //ServiceClassLoader classLoader = new ServiceClassLoader(ctxClassLoader);
-        List<Class<?>> ruleSets = fillClassLoader(knowledge, streams);
+        List<Class<?>> jarClasses = fillClassLoader(knowledge, streams);
         Knowledge current = knowledge;
         if (ruleClasses.isEmpty()) {
             // Implicit declaration via @RuleSet
-            if (ruleSets.isEmpty()) {
+            if (jarClasses.isEmpty()) {
                 LOGGER.warning("Classes annotated with @" + RuleSet.class.getSimpleName() + " not found");
                 return knowledge;
             } else {
-                for (Class<?> cl : ruleSets) {
+                for (Class<?> cl : jarClasses) {
                     current = processRuleSet(current, cl);
                 }
             }
@@ -106,8 +104,6 @@ public class DSLJarProvider extends AbstractDSLProvider {
                             .replaceAll("/", ".");
                     validateClassName(className);
                     classes.put(className, bytes);
-                } else {
-                    //resources.put(name, bytes);
                 }
             }
         }
@@ -117,35 +113,17 @@ public class DSLJarProvider extends AbstractDSLProvider {
             String className = e.getKey();
             byte[] bytes = e.getValue();
             compiler.defineClass(className, bytes);
-/*
-            Class<?> clazz;
-            try {
-                clazz = secureClassLoader.loadClass(className);
-            } catch (ClassNotFoundException cnf) {
-                // Class not found, building new one
-                clazz = secureClassLoader.buildClass(bytes);
-                if (!clazz.getName().equals(className)) {
-                    throw new IllegalStateException();
-                }
-            }
-
-            if (clazz.getAnnotation(RuleSet.class) != null) {
-                ruleSets.add(clazz);
-            }
-*/
-
         }
 
-        List<Class<?>> ruleSets = new LinkedList<>();
+        List<Class<?>> allClasses = new LinkedList<>();
         for(String classNme : classes.keySet()) {
             try {
-                ruleSets.add(ctx.getClassLoader().loadClass(classNme));
+                allClasses.add(ctx.getClassLoader().loadClass(classNme));
             } catch (ClassNotFoundException e) {
                 throw new IllegalStateException("Class '" + classNme + "' couldn't be loaded", e);
             }
         }
-
-        return ruleSets;
+        return allClasses;
     }
 
     private static void validateClassName(String className) {

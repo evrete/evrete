@@ -4,6 +4,8 @@ import org.evrete.api.JavaSourceCompiler;
 import org.evrete.api.annotations.NonNull;
 
 import javax.tools.*;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -17,70 +19,40 @@ public class SourceCompiler implements JavaSourceCompiler {
         this.compiler = Objects.requireNonNull(ToolProvider.getSystemJavaCompiler(), "No Java compiler provided by this platform");
     }
 
-    static String packageName(String binaryName) {
-        int dotPos = binaryName.lastIndexOf('.');
-        if (dotPos < 0) {
-            throw new UnsupportedOperationException("Empty/default packages are not supported");
-        }
-        return binaryName.substring(0, dotPos);
-    }
-
     @Override
     public void defineClass(String binaryName, byte[] classBytes) {
         this.classLoader.saveClass(binaryName, classBytes);
     }
 
     @Override
-    public void compile(@NonNull Collection<String> sources) throws CompilationException {
-        try {
-            compileUnchecked(sources);
-        } catch (CompilationException e) {
-            throw e;
-        } catch (Throwable t) {
-            String allSources = String.join("\n", sources);
-            throw new CompilationException(t, allSources);
+    public synchronized Map<String, Class<?>> compile(@NonNull Set<String> sources) throws CompilationException {
+        Map<String, ClassSource> sourceMap = new HashMap<>(sources.size());
+        for(String source : sources) {
+            sourceMap.put(source, JavaSourceObject.parse(source));
         }
+
+        Map<String, Class<?>> resultMap = new HashMap<>(sources.size());
+
+        Collection<Result<ClassSource>> results = compile(sourceMap.values());
+        for(Result<ClassSource> r : results) {
+            resultMap.put(r.getSource().getSource(), r.getCompiledClass());
+        }
+
+        return resultMap;
     }
 
     @Override
-    public Class<?> compile(@NonNull String source) throws CompilationException {
-        try {
-            Collection<Class<?>> result = compileUnchecked(Collections.singletonList(source))
-                    .stream()
-                    .map(s -> {
-                        try {
-                            return Class.forName(s, true, classLoader);
-                        } catch (ClassNotFoundException e) {
-                            throw new IllegalStateException("Class has been compiled, but can not be resolved", e);
-                        }
-                    })
-                    .collect(Collectors.toList());
-
-            for (Class<?> c : result) {
-                if (c.getEnclosingClass() == null) {
-                    return c;
-                }
-            }
-
-            throw new IllegalStateException("No compiled top-level class has been found");
-
-        } catch (CompilationException e) {
-            throw e;
-        } catch (Throwable t) {
-            throw new CompilationException(t, source);
+     public <S extends ClassSource> Collection<Result<S>> compile(Collection<S> sources) throws CompilationException {
+        Map<String, S> sourcesByClassName = new HashMap<>(sources.size());
+        for(S s : sources) {
+            sourcesByClassName.put(s.binaryName(), s);
         }
-    }
-
-    private Collection<String> compileUnchecked(@NonNull Collection<String> sources) throws Exception {
-        Collection<JavaSource> parsedSources = sources
-                .stream()
-                .map(s -> JavaSource.parse(classLoader.getInstanceId(), s))
-                .collect(Collectors.toCollection(LinkedList::new));
-
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
         try (StandardJavaFileManager systemFm = compiler.getStandardFileManager(diagnostics, null, null)) {
 
-            try (InMemoryFileManager fm = new InMemoryFileManager(systemFm, classLoader, parsedSources)) {
+            Collection<JavaSourceObject> parsedSources = sources.stream().map(JavaSourceObject::new).collect(Collectors.toList());
+
+            try (InMemoryFileManager fm = new InMemoryFileManager(systemFm, classLoader)) {
 
                 // Does compiler support the "-parameters" option?
                 List<String> parameters = compiler.isSupportedOption(COMPILER_PARAM_OPTION) < 0 ?
@@ -101,20 +73,59 @@ public class SourceCompiler implements JavaSourceCompiler {
                 if (success) {
                     Collection<String> binaryNames = new LinkedList<>();
                     for (DestinationClassObject compiled : fm.getOutput()) {
-                        binaryNames.add(compiled.getBinaryName());
                         classLoader.saveClass(compiled);
+                        binaryNames.add(compiled.getBinaryName());
                     }
-                    return binaryNames;
-                } else {
-                    StringJoiner errors = new StringJoiner(", ");
-                    for (Diagnostic<?> diagnostic : diagnostics.getDiagnostics()) {
-                        if (diagnostic.getKind() == Diagnostic.Kind.ERROR) {
-                            errors.add(diagnostic.toString());
+
+                    Collection<Class<?>> compiled = new ArrayList<>(binaryNames.size());
+                    for(String binaryName : binaryNames) {
+                        try {
+                            Class<?> cl = Class.forName(binaryName, false, classLoader);
+                            compiled.add(cl);
+                        } catch (ClassNotFoundException e) {
+                            throw new IllegalStateException("Class has been compiled, but can not be resolved", e);
                         }
                     }
-                    throw new CompilationException("Compilation error(s): " + errors, parsedSources);
+
+                    return compiled.stream().map(cl -> {
+                        String binaryName = cl.getName();
+                        final S source = sourcesByClassName.get(binaryName);
+                        if (source == null) {
+                            return null;
+                        } else {
+                            return new Result<S>() {
+                                @Override
+                                public S getSource() {
+                                    return source;
+                                }
+
+                                @Override
+                                public Class<?> getCompiledClass() {
+                                    return cl;
+                                }
+                            };
+                        }
+                    }).filter(Objects::nonNull).collect(Collectors.toList());
+                } else {
+                    List<String> otherErrors = new LinkedList<>();
+                    Map<ClassSource, String> errorSources = new IdentityHashMap<>();
+                    for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
+                        if (diagnostic.getKind() == Diagnostic.Kind.ERROR) {
+                            JavaFileObject errorSource = diagnostic.getSource();
+                            String err = diagnostic.toString();
+                            if(errorSource instanceof JavaSourceObject) {
+                                JavaSourceObject javaSource = (JavaSourceObject) errorSource;
+                                errorSources.put(javaSource.getSource(), err);
+                            } else {
+                                otherErrors.add(err);
+                            }
+                        }
+                    }
+                    throw new CompilationException(otherErrors, errorSources);
                 }
             }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 }

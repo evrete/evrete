@@ -32,12 +32,18 @@ class DSLKnowledge extends KnowledgeWrapper {
         FieldDeclarations fieldDeclarations = meta.fieldDeclarations;
         fieldDeclarations.applyInitial(getTypeResolver());
 
-
-
         // Building rules
         RuleSet.Sort defaultSort = Utils.deriveSort(meta.javaClass);
         meta.ruleMethods.sort(new RuleComparator(defaultSort));
         for (RuleMethod rm : meta.ruleMethods) {
+            // Saving current base class
+            String currentConditionBaseClass = delegate.getConfiguration().getProperty(CONDITION_BASE_CLASS);
+            // Setting new base class for conditions
+            delegate
+                    .getConfiguration()
+                    .setProperty(CONDITION_BASE_CLASS, canonicalName(meta.javaClass));
+
+
             RuleBuilder<Knowledge> builder = this
                     .newRule(rm.getRuleName());
 
@@ -57,30 +63,7 @@ class DSLKnowledge extends KnowledgeWrapper {
             }
 
             // Adding literal conditions
-            if(rm.stringPredicates.length > 0) {
-                EvaluatorHandle[] handles = new EvaluatorHandle[rm.stringPredicates.length];
-                // Saving current base class
-                String currentConditionBaseClass = delegate.getConfiguration().getProperty(CONDITION_BASE_CLASS);
-                // Setting new base class for conditions
-                delegate
-                        .getConfiguration()
-                        .setProperty(CONDITION_BASE_CLASS, canonicalName(meta.javaClass));
-
-                // Compiling & applying conditions
-                for (int i = 0; i < handles.length; i++) {
-                    handles[i] = builder.createCondition(rm.stringPredicates[i]);
-                }
-                lhs.where(handles);
-
-                // Restoring the original base class
-                if(currentConditionBaseClass != null) {
-                    delegate
-                            .getConfiguration()
-                            .setProperty(CONDITION_BASE_CLASS, currentConditionBaseClass);
-                }
-            }
-
-
+            lhs.where(rm.stringPredicates);
 
             // Adding method predicates
             List<PredicateMethod> predicateMethods = new LinkedList<>();
@@ -100,11 +83,18 @@ class DSLKnowledge extends KnowledgeWrapper {
                 predicateMethods.add(new PredicateMethod(mv, descriptor, evaluatorHandle));
             }
 
-            // Assigning dummy RHS too
+            // Assigning dummy RHS to finalize builder
             lhs.execute(c -> {
                 throw new IllegalStateException();
             });
             rules.add(new DSLRule(rm, predicateMethods));
+            // Restoring the original base class
+            if(currentConditionBaseClass != null) {
+                delegate
+                        .getConfiguration()
+                        .setProperty(CONDITION_BASE_CLASS, currentConditionBaseClass);
+            }
+
         }
 
         // There is one listener that should be called right now

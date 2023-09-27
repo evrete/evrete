@@ -1,5 +1,7 @@
 package org.evrete.api;
 
+import org.evrete.runtime.compiler.CompilationException;
+
 import java.util.function.Predicate;
 
 public interface RuleBuilder<C extends RuntimeContext<C>> extends Rule, LhsFactSelector<LhsBuilder<C>> {
@@ -107,8 +109,9 @@ public interface RuleBuilder<C extends RuntimeContext<C>> extends Rule, LhsFactS
      * @param complexity condition's relative complexity
      * @return evaluator handle
      * @see WorkUnit
+     * @throws CompilationException if the engine fails to compile the expression
      */
-    EvaluatorHandle createCondition(String expression, double complexity);
+    EvaluatorHandle createCondition(String expression, double complexity) throws CompilationException;
 
     /**
      * <p>
@@ -199,8 +202,9 @@ public interface RuleBuilder<C extends RuntimeContext<C>> extends Rule, LhsFactS
      * @param expression literal condition
      * @return evaluator handle
      * @see WorkUnit
+     * @throws CompilationException if the engine fails to compile the expression
      */
-    default EvaluatorHandle createCondition(String expression) {
+    default EvaluatorHandle createCondition(String expression) throws CompilationException {
         return createCondition(expression, WorkUnit.DEFAULT_COMPLEXITY);
     }
 

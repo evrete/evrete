@@ -5,26 +5,22 @@ import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
-import java.util.*;
-import java.util.logging.Logger;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Set;
 
 import static javax.tools.StandardLocation.CLASS_PATH;
 
 final class InMemoryFileManager extends ForwardingJavaFileManager<JavaFileManager> {
-    private static final Logger LOGGER = Logger.getLogger(InMemoryFileManager.class.getName());
     private final RuntimeClassloader classLoader;
     private final PackageExplorer finder;
 
     private final Collection<DestinationClassObject> output = new LinkedList<>();
-    private final Map<String, List<JavaSource>> sources = new HashMap<>();
 
-    InMemoryFileManager(JavaFileManager fileManager, RuntimeClassloader classLoader, Collection<JavaSource> sources) {
+    InMemoryFileManager(JavaFileManager fileManager, RuntimeClassloader classLoader) {
         super(fileManager);
         this.classLoader = classLoader;
         this.finder = new PackageExplorer(classLoader);
-        for (JavaSource source : sources) {
-            this.sources.computeIfAbsent(source.getPackageName(), k -> new LinkedList<>()).add(source);
-        }
     }
 
     public Collection<DestinationClassObject> getOutput() {
@@ -58,6 +54,7 @@ final class InMemoryFileManager extends ForwardingJavaFileManager<JavaFileManage
         }
 
         Collection<JavaFileObject> result = new LinkedList<>();
+
         defaultFiles.iterator().forEachRemaining(result::add);
         result.addAll(classLoader.getDefinedClasses(packageName));
         result.addAll(finder.find(packageName));
@@ -68,7 +65,8 @@ final class InMemoryFileManager extends ForwardingJavaFileManager<JavaFileManage
     public String inferBinaryName(Location location, JavaFileObject file) {
         if (file instanceof AbstractJavaObject) {
             return ((AbstractJavaObject) file).getBinaryName();
-        } else { // if it's not CustomJavaFileObject, then it's coming from standard file manager - let it handle the file
+        } else {
+            // if it's not our custom JavaFileObject, then it's coming from standard file manager - let it handle the file
             return super.inferBinaryName(location, file);
         }
     }

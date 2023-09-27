@@ -16,6 +16,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Random;
 
+import static org.evrete.spi.minimal.DefaultExpressionResolver.SPI_LHS_STRIP_WHITESPACES;
+
 @SuppressWarnings("ALL")
 class ExpressionsTest {
     private static KnowledgeService service;
@@ -46,7 +48,8 @@ class ExpressionsTest {
         NamedType b2 = root.addFactDeclaration("$c", TypeC.class.getName());
         assert b1.getType().getJavaType().equals(TypeB.class.getName());
         assert b2.getType().getJavaType().equals(TypeC.class.getName());
-        Evaluator ev = knowledge.compile("$a.i + $b.i + $c.i == 1", root);
+
+        Evaluator ev = knowledge.compile(LiteralExpression.of("$a.i + $b.i + $c.i == 1", root));
 
         NextIntSupplier counter = new NextIntSupplier();
         Random random = new Random();
@@ -67,9 +70,25 @@ class ExpressionsTest {
     void test2() throws CompilationException {
         LhsBuilder<Knowledge> root = rule.forEach();
         assert root.addFactDeclaration("$a", TypeA.class).getName().equals("$a");
-        Evaluator ev1 = knowledge.compile("$a.i == 1", root);
-        Evaluator ev2 = knowledge.compile("   $a.i ==     1     ", root);
+        Evaluator ev1 = knowledge.compile(LiteralExpression.of( "$a.i == 1", root));
+        Evaluator ev2 = knowledge.compile(LiteralExpression.of("   $a.i ==     1     ", root));
         assert ev1.compare(ev2) == Evaluator.RELATION_EQUALS;
+    }
+
+    @Test
+    void test3() throws CompilationException {
+
+        Configuration configuration = new Configuration();
+        configuration.setProperty(SPI_LHS_STRIP_WHITESPACES, "false");
+        KnowledgeService service = new KnowledgeService(configuration);
+
+        Knowledge knowledge = (KnowledgeRuntime) service.newKnowledge();
+        RuleBuilder<Knowledge> rule = knowledge.newRule();
+        LhsBuilder<Knowledge> root = rule.forEach();
+        assert root.addFactDeclaration("$a", TypeA.class).getName().equals("$a");
+        Evaluator ev1 = knowledge.compile(LiteralExpression.of( "$a.i ==1", root));
+        Evaluator ev2 = knowledge.compile(LiteralExpression.of("   $a.i ==      1     ", root));
+        assert ev1.compare(ev2) == Evaluator.RELATION_NONE;
     }
 
     @Test

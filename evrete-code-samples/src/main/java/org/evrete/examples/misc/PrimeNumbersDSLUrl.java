@@ -5,7 +5,7 @@ import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class PrimeNumbersDSLUrl {
@@ -14,7 +14,7 @@ public class PrimeNumbersDSLUrl {
         Knowledge knowledge = service
                 .newKnowledge(
                         "JAVA-SOURCE",
-                        new URL("https://www.evrete.org/examples/PrimeNumbersSource.java")
+                        URI.create("https://www.evrete.org/examples/PrimeNumbersSource.java").toURL()
                 );
 
         try (StatefulSession session = knowledge.newStatefulSession()) {

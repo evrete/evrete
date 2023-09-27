@@ -1,12 +1,13 @@
 package org.evrete.runtime.compiler;
 
+import org.evrete.api.JavaSourceCompiler;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.*;
 
 class SourceCompilerTest {
     RuntimeClassloader classloader;
@@ -32,7 +33,7 @@ class SourceCompilerTest {
                 "import org.evrete.api.FactHandle;\n" +
                 "public   class   A1  { String s=FactHandle.class.getName();}";
 
-        compiler.compile(Collections.singletonList(source));
+        compiler.compile(Collections.singleton(source));
         Class.forName("test.pkg1.A1", initClass, classloader);
     }
 
@@ -60,7 +61,7 @@ class SourceCompilerTest {
                 "import test.pkg1.A;\n" +
                 "class B extends A {}";
 
-        compiler.compile(Arrays.asList(classA, classB));
+        compiler.compile(new HashSet<>(Arrays.asList(classA, classB)));
         Class<?> a = Class.forName("test.pkg1.A", initClass, classloader);
         Class<?> b = Class.forName("test.pkg2.B", initClass, classloader);
         assert b.getSuperclass().equals(a);
@@ -90,11 +91,13 @@ class SourceCompilerTest {
                 "import test.pkg1.A;\n" +
                 "class B extends A {}";
 
-        compiler.compile(Arrays.asList(classB, classA));
+        // Use inverse order
+        compiler.compile(new HashSet<>(Arrays.asList(classB, classA)));
         Class<?> a = Class.forName("test.pkg1.A", initClass, classloader);
         Class<?> b = Class.forName("test.pkg2.B", initClass, classloader);
         assert b.getSuperclass().equals(a);
     }
+
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
@@ -116,13 +119,13 @@ class SourceCompilerTest {
                 "public class A { String s=FactHandle.class.getName();}";
 
 
-        compiler.compile(Collections.singletonList(classA));
+        compiler.compile(Collections.singleton(classA));
 
         String classB = "package test.pkg2;\n" +
                 "import test.pkg1.A;\n" +
                 "class B extends A {}";
 
-        compiler.compile(Collections.singletonList(classB));
+        compiler.compile(Collections.singleton(classB));
 
         Class<?> a = Class.forName("test.pkg1.A", initClass, classloader);
         Class<?> b = Class.forName("test.pkg2.B", initClass, classloader);
@@ -159,7 +162,7 @@ class SourceCompilerTest {
                 "import test.pkg1.A;\n" +
                 "public class B extends A {}";
 
-        compiler.compile(Arrays.asList(classB, classA));
+        compiler.compile(new HashSet<>(Arrays.asList(classB, classA)));
 
 
         //
@@ -168,7 +171,7 @@ class SourceCompilerTest {
                 "import test.pkg2.B;\n" +
                 "class C extends B {}";
 
-        compiler.compile(Collections.singletonList(classC));
+        compiler.compile(Collections.singleton(classC));
 
 
         Class<?> a = Class.forName("test.pkg1.A", initClass, classloader);
@@ -197,7 +200,7 @@ class SourceCompilerTest {
                 "    }\n" +
                 "}";
 
-        compiler.compile(Collections.singletonList(sourceA));
+        compiler.compile(Collections.singleton(sourceA));
         Class<?> a = Class.forName("test.pkg1.A", initClass, classloader);
         Class<?> nested = Class.forName("test.pkg1.A$Nested", initClass, classloader);
         assert nested.getEnclosingClass().equals(a);
@@ -227,9 +230,75 @@ class SourceCompilerTest {
                 "import test.pkg1.A;\n" +
                 "public class B extends A.Nested {}";
 
-        compiler.compile(Arrays.asList(sourceA, sourceB));
+        compiler.compile(new HashSet<>(Arrays.asList(sourceA, sourceB)));
         Class<?> a = Class.forName("test.pkg1.A", initClass, classloader);
         Class<?> nested = Class.forName("test.pkg1.A$Nested", initClass, classloader);
         assert nested.getEnclosingClass().equals(a);
+    }
+
+    @Test
+    void compileMultipleShuffled() throws CompilationException {
+
+        List<String> sources = new ArrayList<>();
+        String root = "\n" +
+                "package test.pkg;\n" +
+                "public class A0 {}";
+
+        sources.add(root);
+        for (int i = 1; i < 30; i++) {
+            String next = "\n" +
+                    "package test.pkg;\n" +
+                    "import test.pkg.A" + (i-1)+ ";\n" +
+                    "public class A" + i +" extends A"+ (i-1) + "  {}";
+            sources.add(next);
+        }
+
+        Collections.shuffle(sources);
+
+        Map<String, Class<?>> compiled = compiler.compile(new HashSet<>(sources));
+        assert compiled.size() == sources.size();
+
+        compiled.entrySet().iterator().forEachRemaining(e -> {
+            String source = e.getKey();
+            Class<?> cl = e.getValue();
+            assert source.contains(cl.getSimpleName());
+        });
+    }
+
+    @Test
+    void testException()  {
+        List<JavaSourceCompiler.ClassSource> invalidSources = new LinkedList<>();
+
+        for (int i = 0; i < 10; i++) {
+            invalidSources.add(new InvalidSource(i));
+        }
+
+        try {
+            compiler.compile(invalidSources);
+        } catch (CompilationException e) {
+            assert e.getOtherErrors().isEmpty();
+            for(JavaSourceCompiler.ClassSource source : e.getErrorSources()) {
+                assert source instanceof InvalidSource;
+                assert e.getErrorMessage(source) != null;
+            }
+        }
+    }
+
+    static class InvalidSource implements JavaSourceCompiler.ClassSource {
+        private final int idx;
+
+        public InvalidSource(int idx) {
+            this.idx = idx;
+        }
+
+        @Override
+        public String binaryName() {
+            return "test.pkg.Clazz" + idx;
+        }
+
+        @Override
+        public String getSource() {
+            return "Hello World";
+        }
     }
 }

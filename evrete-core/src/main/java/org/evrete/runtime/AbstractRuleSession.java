@@ -3,6 +3,7 @@ package org.evrete.runtime;
 import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.runtime.async.RuleHotDeploymentTask;
+import org.evrete.runtime.compiler.CompilationException;
 import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.SessionCollector;
 
@@ -145,6 +146,12 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
         return knowledge;
     }
 
+    private synchronized void deployRules(Collection<RuleDescriptor> descriptors, boolean hotDeployment) {
+        for(RuleDescriptor rd : descriptors) {
+            deployRule(rd, hotDeployment);
+        }
+    }
+
     private synchronized void deployRule(RuleDescriptor descriptor, boolean hotDeployment) {
         for (FactType factType : descriptor.getLhs().getFactTypes()) {
             TypeMemory tm = memory.getCreateUpdate(factType.type());
@@ -161,9 +168,11 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
         ruleStorage.sort(getRuleComparator());
     }
 
+
     @Override
-    protected void addRuleInner(RuleBuilder<?> builder) {
-        RuleDescriptor rd = compileRuleBuilder(builder);
+    protected void addRuleInner(RuleBuilder<?> builder) throws CompilationException {
+        RuleBuilderImpl<?> impl = (RuleBuilderImpl<?>) builder;
+        RuleDescriptor rd = compileRuleBuilder(impl);
         deployRule(rd, true);
     }
 

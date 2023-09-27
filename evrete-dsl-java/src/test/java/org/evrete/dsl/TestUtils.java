@@ -1,8 +1,19 @@
 package org.evrete.dsl;
 
-import java.io.File;
+import org.evrete.runtime.compiler.RuntimeClassloader;
+import org.evrete.runtime.compiler.SourceCompiler;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class TestUtils {
@@ -11,26 +22,53 @@ public class TestUtils {
         new File(f.toString()).exists();
     }
 
-    /**
-     * Returns the Java version as an int value.
-     *
-     * @return the Java version as an int value (8, 9, etc.)
-     * @since 12130
-     */
-    static int getJavaVersion() {
-        String version = System.getProperty("java.version");
-        if (version.startsWith("1.")) {
-            version = version.substring(2);
+
+    static synchronized File jarFile(String root) throws Exception {
+
+        Path compileRoot = new File(root).toPath();
+
+        SourceCompiler sourceCompiler = new SourceCompiler(new RuntimeClassloader(ClassLoader.getSystemClassLoader()));
+
+        Stream<Path> javaFiles = Files.find(compileRoot, Integer.MAX_VALUE, (path, attrs) -> path.toString().endsWith(".java"));
+
+        Set<String> sources = javaFiles.map(path -> {
+            try {
+                return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }).collect(Collectors.toSet());
+
+        Collection<Class<?>> classes = sourceCompiler.compile(sources).values();
+
+        File out = File.createTempFile("speakace-test", ".jar");
+        FileOutputStream fos = new FileOutputStream(out);
+        JarOutputStream jar = new JarOutputStream(fos);
+        for(Class<?> c : classes) {
+            String binaryName = c.getName().replaceAll("\\.", "/");
+            String name = binaryName + ".class";
+            ZipEntry zipEntry = new JarEntry(name);
+            jar.putNextEntry(zipEntry);
+
+            assert c.getClassLoader() instanceof RuntimeClassloader;
+            InputStream stream = Objects.requireNonNull(c.getClassLoader().getResourceAsStream(name));
+            copy(stream, jar);
+            stream.close();
+            jar.closeEntry();
         }
-        // Allow these formats:
-        // 1.8.0_72-ea
-        // 9-ea
-        // 9
-        // 9.0.1
-        int dotPos = version.indexOf('.');
-        int dashPos = version.indexOf('-');
-        return Integer.parseInt(version.substring(0,
-                dotPos > -1 ? dotPos : dashPos > -1 ? dashPos : 1));
+        jar.close();
+
+        return out;
+
+
+    }
+
+    private static void copy(InputStream source, OutputStream sink) throws IOException {
+        byte[] buf = new byte[4096];
+        int n;
+        while ((n = source.read(buf)) > 0) {
+            sink.write(buf, 0, n);
+        }
     }
 
     public static class EnvHelperData {

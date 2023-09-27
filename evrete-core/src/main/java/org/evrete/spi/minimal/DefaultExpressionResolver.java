@@ -3,36 +3,24 @@ package org.evrete.spi.minimal;
 import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.runtime.compiler.CompilationException;
-import org.evrete.util.NextIntSupplier;
-import org.evrete.util.StringLiteralRemover;
 
+import java.lang.invoke.MethodHandle;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
-import static org.evrete.Configuration.CONDITION_BASE_CLASS;
+import static org.evrete.spi.minimal.ConditionStringTerm.resolveTerms;
 
 class DefaultExpressionResolver implements ExpressionResolver {
-    private static final Pattern REFERENCE_PATTERN = Pattern.compile("\\$[a-zA-Z0-9]+(\\.[_a-zA-Z][_a-zA-Z0-9]*)*");
+    static final String SPI_LHS_STRIP_WHITESPACES = "evrete.spi.compiler.lhs-strip-whitespaces";
 
-    private final EvaluatorCompiler evaluatorCompiler;
     private final RuntimeContext<?> context;
+    private final boolean stripWhitespaces;
 
     DefaultExpressionResolver(RuntimeContext<?> context) {
-        this.evaluatorCompiler = new EvaluatorCompiler(context);
         this.context = context;
-    }
-
-    private static ConditionStringTerm resolveTerm(int start, int actualEnd, FieldReference ref, NextIntSupplier fieldCounter, List<ConditionStringTerm> terms) {
-        // Scanning existing terms
-        for (ConditionStringTerm t : terms) {
-            if (t.type().equals(ref.type()) && t.field().equals(ref.field())) {
-                // Found the same reference
-                return new ConditionStringTerm(start, actualEnd, t);
-            }
-        }
-        return new ConditionStringTerm(start, actualEnd, ref, fieldCounter);
+        this.stripWhitespaces = context.getConfiguration().getAsBoolean(SPI_LHS_STRIP_WHITESPACES, true);
     }
 
     @Override
@@ -64,52 +52,42 @@ class DefaultExpressionResolver implements ExpressionResolver {
     }
 
     @Override
-    @NonNull
-    public synchronized Evaluator buildExpression(String expression, NamedType.Resolver resolver) throws CompilationException {
-        try {
-            // Getting the base class for condition
-            String conditionBaseClass = context
-                    .getConfiguration()
-                    .getProperty(CONDITION_BASE_CLASS, BaseConditionClass.class.getName());
-            Imports imports = context.getImports();
+    public Collection<LiteralEvaluator> buildExpressions(Collection<LiteralExpression> expressions) throws CompilationException {
+        Collection<EvaluatorClassSource> sources = expressions
+                .stream()
+                .parallel()
+                .map(expression -> {
+                    NamedType.Resolver resolver = expression.getContext();
+                    StringLiteralEncoder encoder = StringLiteralEncoder.of(expression.getSource(), stripWhitespaces);
+
+                    final List<ConditionStringTerm> terms = resolveTerms(encoder.getEncoded(), s -> resolve(s, resolver));
+                    return new EvaluatorClassSource(context, expression, encoder, terms);
+                })
+                .collect(Collectors.toList());
+
+        // Compile all sources
+        Collection<JavaSourceCompiler.Result<EvaluatorClassSource>> compiled = context.getSourceCompiler()
+                .compile(sources);
+
+        // Retrieve compiled classes
+        List<LiteralEvaluator> result = new ArrayList<>(sources.size());
+
+        for(JavaSourceCompiler.Result<EvaluatorClassSource> r : compiled) {
+            EvaluatorClassSource source = r.getSource();
+            Class<?> compiledClass = r.getCompiledClass();
             try {
-                return buildExpression(expression, conditionBaseClass, resolver, imports, true);
-            } catch (Throwable e) {
-                // Trying again with the original expression. There might be a keyword like 'new',
-                // which requires whitespaces to be preserved.
-                return buildExpression(expression, conditionBaseClass, resolver, imports, false);
+                MethodHandle handle = getHandle(compiledClass);
+                result.add(new CompiledEvaluator(handle, source));
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                throw new IllegalStateException(e);
             }
-        } catch (CompilationException e) {
-            throw e;
-        } catch (Throwable t) {
-            throw new CompilationException(t, expression);
         }
+
+        return result;
     }
 
-    private Evaluator buildExpression(String rawExpression, String conditionBaseClassName, NamedType.Resolver resolver, Imports imports, boolean stripWhiteSpaces) throws CompilationException {
-        StringLiteralRemover remover = StringLiteralRemover.of(rawExpression, stripWhiteSpaces);
-        String strippedExpression = remover.getConverted();
-        Matcher m = REFERENCE_PATTERN.matcher(strippedExpression);
-        List<ConditionStringTerm> terms = new ArrayList<>();
-
-        NextIntSupplier fieldCounter = new NextIntSupplier();
-        while (m.find()) {
-            int start = m.start(), end = m.end(), actualEnd = end;
-            if (end < strippedExpression.length() && strippedExpression.charAt(end) == '(') {
-                // The last group is a method call that needs to be effectively stripped off
-                // by moving the actualEnd to the rightmost dot
-                actualEnd = strippedExpression.substring(start, end).lastIndexOf('.') + start;
-            }
-
-            String s = strippedExpression.substring(start, actualEnd);
-            FieldReference fieldReference = resolve(s, resolver);
-
-
-            ConditionStringTerm t = resolveTerm(start, actualEnd, fieldReference, fieldCounter, terms);
-            terms.add(t);
-        }
-
-        return evaluatorCompiler.buildExpression(conditionBaseClassName, remover, strippedExpression, terms, imports);
+    static MethodHandle getHandle(Class<?> compiledClass) throws NoSuchFieldException, IllegalAccessException {
+        return (MethodHandle) compiledClass.getDeclaredField("HANDLE").get(null);
     }
 
 }

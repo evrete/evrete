@@ -3,6 +3,7 @@ package org.evrete.runtime;
 import org.evrete.AbstractRule;
 import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
+import org.evrete.runtime.compiler.CompilationException;
 import org.evrete.runtime.evaluation.EvaluatorOfArray;
 import org.evrete.runtime.evaluation.EvaluatorOfPredicate;
 
@@ -10,7 +11,7 @@ import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule implements RuleBuilder<C> {
+class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule implements RuleBuilder<C>, LhsConditionsHolder {
     public static final int NULL_SALIENCE = Integer.MIN_VALUE;
     private final AbstractRuntime<?, C> runtime;
     private final LhsBuilderImpl<C> lhsBuilder;
@@ -19,6 +20,16 @@ class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule implemen
         super(name, NULL_SALIENCE);
         this.runtime = ctx;
         this.lhsBuilder = new LhsBuilderImpl<>(this);
+    }
+
+    @Override
+    public LhsConditions getConditions() {
+        return lhsBuilder.getConditions();
+    }
+
+    @Override
+    public Collection<NamedType> getDeclaredFactTypes() {
+        return lhsBuilder.getDeclaredFactTypes();
     }
 
     @Override
@@ -91,8 +102,8 @@ class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule implemen
     }
 
     @Override
-    public EvaluatorHandle createCondition(String expression, double complexity) {
-        Evaluator evaluator = runtime.compileUnchecked(expression, this);
+    public EvaluatorHandle createCondition(String expression, double complexity) throws CompilationException {
+        Evaluator evaluator = runtime.compile(LiteralExpression.of(expression, this));
         return runtime.addEvaluator(evaluator, complexity);
     }
 

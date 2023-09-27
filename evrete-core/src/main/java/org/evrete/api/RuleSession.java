@@ -8,7 +8,7 @@ import java.util.stream.Collector;
  * Base interface for both stateful and stateless sessions
  * </p>
  */
-public interface RuleSession<S extends RuleSession<S>> extends RuntimeContext<S>, RuleSet<RuntimeRule> {
+public interface RuleSession<S extends RuleSession<S>> extends RuleSetContext<S, RuntimeRule> {
     /**
      * <p>
      * Inserts a fact in working memory and returns a serializable fact handle.

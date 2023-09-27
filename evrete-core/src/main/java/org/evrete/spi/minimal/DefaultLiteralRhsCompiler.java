@@ -70,8 +70,8 @@ public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider imp
             return clazz.getDeclaredConstructor().newInstance();
         } catch (CompilationException e) {
             throw e;
-        } catch (Exception e) {
-            throw new CompilationException(e, literalRhs);
+        } catch (Throwable e) {
+            throw new RuntimeException("Failed to compile RHS:\n" + literalRhs);
         }
     }
 }

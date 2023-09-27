@@ -1,5 +1,7 @@
 package org.evrete.runtime.compiler;
 
+import org.evrete.api.JavaSourceCompiler;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -7,30 +9,33 @@ import java.io.Writer;
 import java.net.URI;
 import java.util.Objects;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicLong;
 
-public class JavaSource extends AbstractJavaObject {
-    private final String className;
-    private final String packageName;
-    private final String source;
+class JavaSourceObject extends AbstractJavaObject {
+    private static final AtomicLong SOURCE_COUNTER = new AtomicLong();
+
+    private final String simpleName;
+    private final JavaSourceCompiler.ClassSource source;
 
     private final URI uri;
 
-    private JavaSource(long prefix, String packageName, String className, String source) {
-        this.packageName = packageName;
-        this.className = className;
+    JavaSourceObject(JavaSourceCompiler.ClassSource source) {
+        ClassMeta meta = new ClassMeta(source.binaryName());
+        this.simpleName = meta.getSimpleName();
         this.source = source;
-        this.uri = URI.create("string:///" + prefix + "/" + packageName.replaceAll("\\.", "/") + "/" + className + Kind.SOURCE.extension);
+        this.uri = URI.create("string:///source-" + SOURCE_COUNTER.incrementAndGet() + "."  + Kind.SOURCE.extension);
     }
 
     @Override
     public boolean isNameCompatible(String simpleName, Kind kind) {
-        return kind == Kind.SOURCE && className.equals(simpleName);
+        return kind == Kind.SOURCE && this.simpleName.equals(simpleName);
     }
 
-    static JavaSource parse(long prefix, String source) {
-        if(prefix < 0) {
-            throw new IllegalStateException();
-        }
+    JavaSourceCompiler.ClassSource getSource() {
+        return source;
+    }
+
+    static JavaSourceCompiler.ClassSource parse(String source) {
 
         // 1. Remove block comments first
         String src = removeBlockComments(Objects.requireNonNull(source));
@@ -80,8 +85,19 @@ public class JavaSource extends AbstractJavaObject {
         for (int i = 0; i < words.length - 1; i++) {
             String w = words[i];
             if(isClassDef(w)) {
-                // The next word should be the class's name
-                return new JavaSource(prefix, packageName, words[i+1].trim(), source);
+                // The next word should be the class's simple name
+                ClassMeta meta = new ClassMeta(packageName, words[i+1].trim());
+                return new JavaSourceCompiler.ClassSource() {
+                    @Override
+                    public String binaryName() {
+                        return meta.getBinaryName();
+                    }
+
+                    @Override
+                    public String getSource() {
+                        return source;
+                    }
+                };
             }
         }
 
@@ -119,17 +135,10 @@ public class JavaSource extends AbstractJavaObject {
         throw new UnsupportedOperationException();
     }
 
-    String getClassName() {
-        return className;
-    }
-
-    String getPackageName() {
-        return packageName;
-    }
 
     @Override
     public InputStream openInputStream() {
-        return new ByteArrayInputStream(source.getBytes());
+        return new ByteArrayInputStream(source.getSource().getBytes());
     }
 
     @Override
@@ -149,25 +158,25 @@ public class JavaSource extends AbstractJavaObject {
 
     @Override
     public CharSequence getCharContent(boolean ignoreEncodingErrors) {
-        return this.source;
+        return this.source.getSource();
     }
 
     @Override
     String getBinaryName() {
-        return packageName + "." + className;
+        return source.binaryName();
     }
 
     @Override
     public String toString() {
         String sep =  System.lineSeparator();
-        StringBuilder sb = new StringBuilder(this.source.length() * 2);
+        StringBuilder sb = new StringBuilder(this.source.getSource().length() * 2);
         sb.append(sep)
                 .append('\'')
                 .append(getBinaryName()).append("':")
                 .append(sep)
         ;
 
-        Scanner scanner = new Scanner(source);
+        Scanner scanner = new Scanner(source.getSource());
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
             sb.append("\t").append(line).append(sep);

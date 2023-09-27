@@ -2,12 +2,13 @@ package org.evrete.examples.howto;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
+import org.evrete.runtime.compiler.CompilationException;
 
 import static java.lang.System.out;
 
 public class ChangingConditions {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws CompilationException {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service.newKnowledge();
 

@@ -4,7 +4,7 @@ import org.evrete.runtime.RuleDescriptor;
 
 import java.util.Collection;
 
-public interface Knowledge extends RuntimeContext<Knowledge>, RuleSet<RuleDescriptor> {
+public interface Knowledge extends RuleSetContext<Knowledge, RuleDescriptor> {
     Collection<RuleSession<?>> getSessions();
 
     /**

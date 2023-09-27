@@ -6,37 +6,32 @@ import org.evrete.runtime.evaluation.EvaluatorOfArray;
 import org.evrete.runtime.evaluation.EvaluatorOfPredicate;
 import org.evrete.util.NamedTypeImpl;
 
-import java.util.*;
-import java.util.concurrent.Callable;
+import java.util.Collection;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-class LhsBuilderImpl<C extends RuntimeContext<C>> implements LhsBuilder<C> {
+class LhsBuilderImpl<C extends RuntimeContext<C>> extends  DefaultTypeResolver implements LhsBuilder<C> {
     private final RuleBuilderImpl<C> ruleBuilder;
-    private final Collection<NamedTypeImpl> declaredLhsTypes;
     private final AbstractRuntime<?, C> runtime;
-    private final Collection<Callable<EvaluatorHandle>> conditions = new LinkedList<>();
-    private NamedTypeResolver typeResolver;
+    private final LhsConditions conditions = new LhsConditions();
 
     LhsBuilderImpl(RuleBuilderImpl<C> ruleBuilder) {
         this.ruleBuilder = ruleBuilder;
-        this.declaredLhsTypes = new LinkedList<>();
         this.runtime = ruleBuilder.getRuntimeContext();
     }
 
     @Override
     public synchronized NamedTypeImpl addFactDeclaration(@NonNull String name, @NonNull Type<?> type) {
         // Resetting type resolver
-        this.typeResolver = null;
         NamedTypeImpl factType = new NamedTypeImpl(type, name);
-        this.declaredLhsTypes.add(factType);
+        this.save(factType);
         return factType;
     }
 
-    Set<NamedType> getDeclaredFactTypes() {
-        return new HashSet<>(resolver().resolver.values());
+    LhsConditions getConditions() {
+        return conditions;
     }
-
 
     @Override
     public RuleBuilder<C> create() {
@@ -70,26 +65,11 @@ class LhsBuilderImpl<C extends RuntimeContext<C>> implements LhsBuilder<C> {
         return ruleBuilder;
     }
 
-
-    Collection<EvaluatorHandle> resolveConditions() {
-        try {
-            Collection<EvaluatorHandle> resolved = new ArrayList<>(this.conditions.size());
-            for (Callable<EvaluatorHandle> c : this.conditions) {
-                resolved.add(c.call());
-            }
-            return resolved;
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (Throwable t) {
-            throw new RuntimeException(t);
-        }
-    }
-
     @Override
     public LhsBuilderImpl<C> where(EvaluatorHandle... expressions) {
         if (expressions == null) return this;
         for (EvaluatorHandle expression : expressions) {
-            add(() -> expression);
+            this.conditions.add(Objects.requireNonNull(expression));
         }
         return this;
     }
@@ -116,12 +96,6 @@ class LhsBuilderImpl<C extends RuntimeContext<C>> implements LhsBuilder<C> {
     public LhsBuilderImpl<C> where(@NonNull Predicate<Object[]> predicate, double complexity, String... references) {
         whereInner(predicate, complexity, references);
         return this;
-    }
-
-    @NonNull
-    @Override
-    public NamedType resolve(@NonNull String var) {
-        return resolver().resolve(var);
     }
 
     @Override
@@ -151,72 +125,31 @@ class LhsBuilderImpl<C extends RuntimeContext<C>> implements LhsBuilder<C> {
     }
 
     private void whereInner(String expression, double complexity) {
-        add(() -> {
-            Evaluator evaluator = runtime.compile(expression, LhsBuilderImpl.this);
-            return runtime.addEvaluator(evaluator, complexity);
-        });
+        LiteralExpression literalExpression = LiteralExpression.of(Objects.requireNonNull(expression), this);
+        this.conditions.add(literalExpression, complexity);
     }
 
     private void whereInner(ValuesPredicate predicate, double complexity, FieldReference[] references) {
-        add(() -> {
-            EvaluatorOfPredicate evaluator = new EvaluatorOfPredicate(predicate, references);
-            return runtime.addEvaluator(evaluator, complexity);
-        });
+        this.conditions.add(new EvaluatorOfPredicate(Objects.requireNonNull(predicate), references), complexity);
     }
 
     private void whereInner(Predicate<Object[]> predicate, double complexity, FieldReference[] references) {
-        add(() -> {
-            EvaluatorOfArray evaluator = new EvaluatorOfArray(predicate, references);
-            return runtime.addEvaluator(evaluator, complexity);
-        });
+        this.conditions.add(new EvaluatorOfArray(Objects.requireNonNull(predicate), references), complexity);
     }
 
     private void whereInner(ValuesPredicate predicate, double complexity, String[] references) {
-        add(() -> {
-            FieldReference[] descriptor = resolveFieldReferences(references);
-            EvaluatorOfPredicate evaluator = new EvaluatorOfPredicate(predicate, descriptor);
-            return runtime.addEvaluator(evaluator, complexity);
-        });
+        FieldReference[] descriptor = resolveFieldReferences(references);
+        EvaluatorOfPredicate evaluator = new EvaluatorOfPredicate(Objects.requireNonNull(predicate), descriptor);
+        this.conditions.add(evaluator, complexity);
     }
 
     private void whereInner(Predicate<Object[]> predicate, double complexity, String[] references) {
-        add(() -> {
-            FieldReference[] descriptor = resolveFieldReferences(references);
-            EvaluatorOfArray evaluator = new EvaluatorOfArray(predicate, descriptor);
-            return runtime.addEvaluator(evaluator, complexity);
-        });
+        FieldReference[] descriptor = resolveFieldReferences(references);
+        EvaluatorOfArray evaluator = new EvaluatorOfArray(Objects.requireNonNull(predicate), descriptor);
+        this.conditions.add(evaluator, complexity);
     }
 
     private FieldReference[] resolveFieldReferences(String[] references) {
         return runtime.resolveFieldReferences(references, LhsBuilderImpl.this);
-    }
-
-    private void add(Callable<EvaluatorHandle> handle) {
-        this.conditions.add(handle);
-    }
-
-    private synchronized NamedTypeResolver resolver() {
-        if (typeResolver == null) {
-            typeResolver = new NamedTypeResolver();
-        }
-        return typeResolver;
-    }
-
-
-    private class NamedTypeResolver implements NamedType.Resolver {
-        private final DefaultNamedTypeResolver<NamedTypeImpl> resolver;
-
-        NamedTypeResolver() {
-            this.resolver = new DefaultNamedTypeResolver<>();
-            for (NamedTypeImpl t : declaredLhsTypes) {
-                this.resolver.put(t.getName(), t);
-            }
-        }
-
-        @NonNull
-        @Override
-        public NamedType resolve(@NonNull String var) {
-            return resolver.resolve(var);
-        }
     }
 }
