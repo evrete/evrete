@@ -56,7 +56,6 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider {
         }
 
         if (meta.ruleMethods.isEmpty()) {
-            LOGGER.warning("No rule methods found in the source, ruleset is empty");
             return knowledge;
         } else {
             return new DSLKnowledge(knowledge, meta);

@@ -5,7 +5,9 @@ import org.evrete.api.annotations.NonNull;
 import org.evrete.runtime.compiler.CompilationException;
 
 import java.lang.invoke.MethodHandle;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.evrete.spi.minimal.ConditionStringTerm.resolveTerms;
@@ -51,7 +53,8 @@ class DefaultExpressionResolver implements ExpressionResolver {
 
     @Override
     public Collection<LiteralEvaluator> buildExpressions(Collection<LiteralExpression> expressions) throws CompilationException {
-        Collection<EvaluatorClassSource> sources = expressions.stream()
+        Collection<EvaluatorClassSource> sources = expressions
+                .stream()
                 .parallel()
                 .map(expression -> {
                     NamedType.Resolver resolver = expression.getContext();
@@ -62,32 +65,21 @@ class DefaultExpressionResolver implements ExpressionResolver {
                 })
                 .collect(Collectors.toList());
 
-        Map<String, EvaluatorClassSource> classNameMap = new HashMap<>(sources.size());
-        List<String> plainJavaSources = new ArrayList<>(sources.size());
-        for(EvaluatorClassSource s : sources) {
-            classNameMap.put(s.getClassName(), s);
-            plainJavaSources.add(s.getFullJavaSource());
-        }
-
         // Compile all sources
-        JavaSourceCompiler compiler = context.getSourceCompiler();
-
-        ClassLoader classLoader = compiler.getClassLoader();
-        compiler.compile(plainJavaSources);
+        Collection<JavaSourceCompiler.Result<EvaluatorClassSource>> compiled = context.getSourceCompiler()
+                .compile(sources);
 
         // Retrieve compiled classes
         List<LiteralEvaluator> result = new ArrayList<>(sources.size());
 
-        for(Map.Entry<String, EvaluatorClassSource> entry : classNameMap.entrySet()) {
-            String className = entry.getKey();
-            EvaluatorClassSource source = entry.getValue();
-
+        for(JavaSourceCompiler.Result<EvaluatorClassSource> r : compiled) {
+            EvaluatorClassSource source = r.getSource();
+            Class<?> compiledClass = r.getCompiledClass();
             try {
-                Class<?> compiledClass = Class.forName(className, true, classLoader);
                 MethodHandle handle = getHandle(compiledClass);
                 result.add(new CompiledEvaluator(handle, source));
-            } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
-                throw new CompilationException(e, source.getExpression().getSource());
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                throw new IllegalStateException(e);
             }
         }
 

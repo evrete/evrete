@@ -54,6 +54,7 @@ final class InMemoryFileManager extends ForwardingJavaFileManager<JavaFileManage
         }
 
         Collection<JavaFileObject> result = new LinkedList<>();
+
         defaultFiles.iterator().forEachRemaining(result::add);
         result.addAll(classLoader.getDefinedClasses(packageName));
         result.addAll(finder.find(packageName));
@@ -64,7 +65,8 @@ final class InMemoryFileManager extends ForwardingJavaFileManager<JavaFileManage
     public String inferBinaryName(Location location, JavaFileObject file) {
         if (file instanceof AbstractJavaObject) {
             return ((AbstractJavaObject) file).getBinaryName();
-        } else { // if it's not CustomJavaFileObject, then it's coming from standard file manager - let it handle the file
+        } else {
+            // if it's not our custom JavaFileObject, then it's coming from standard file manager - let it handle the file
             return super.inferBinaryName(location, file);
         }
     }

@@ -39,7 +39,7 @@ class EvaluatorCompilerTest {
     }
 
     @Test
-    void testConditionBaseClass1() {
+    void testConditionBaseClass1() throws Exception {
 
         RuleBuilder<Knowledge> ruleBuilder = knowledge.newRule();
 
@@ -60,7 +60,7 @@ class EvaluatorCompilerTest {
     }
 
     @Test
-    void testConditionBaseClass2() {
+    void testConditionBaseClass2() throws Exception {
 
         RuleBuilder<Knowledge> ruleBuilder = knowledge.newRule();
 

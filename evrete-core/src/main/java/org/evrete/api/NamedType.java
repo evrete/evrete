@@ -2,6 +2,8 @@ package org.evrete.api;
 
 import org.evrete.api.annotations.NonNull;
 
+import java.util.Collection;
+
 /**
  * <p>
  * A runtime representation of a fact declaration. Every {@link FactBuilder} is eventually
@@ -42,5 +44,10 @@ public interface NamedType {
          */
         @NonNull
         NamedType resolve(@NonNull String var);
+
+        /**
+         * @return collection of currently defined named types
+         */
+        Collection<NamedType> getDeclaredFactTypes();
     }
 }

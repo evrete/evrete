@@ -6,12 +6,13 @@ import org.evrete.api.*;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 
-public class RuntimeContextWrapper<C extends RuntimeContext<C>> implements RuntimeContext<C> {
-    protected final C delegate;
+public class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends RuntimeContext<C>, R extends Rule> implements RuleSetContext<C, R> {
+    protected final D delegate;
 
     @SuppressWarnings("WeakerAccess")
-    protected RuntimeContextWrapper(C delegate) {
+    protected RuntimeContextWrapper(D delegate) {
         this.delegate = delegate;
     }
 
@@ -36,10 +37,32 @@ public class RuntimeContextWrapper<C extends RuntimeContext<C>> implements Runti
     }
 
     @Override
+    public final void addRule(RuleBuilder<?> builder) {
+        delegate.addRule(builder);
+    }
+
+    @Override
+    public final void setRuleBuilderExceptionHandler(RuleBuilderExceptionHandler handler) {
+        delegate.setRuleBuilderExceptionHandler(handler);
+    }
+
+    @Override
+    public final FieldReference[] resolveFieldReferences(String[] args, NamedType.Resolver typeMapper) {
+        return delegate.resolveFieldReferences(args, typeMapper);
+    }
+
+    @Override
+    public final R getRule(String name) {
+        return delegate.getRule(name);
+    }
+
+    @Override
     public C set(String property, Object value) {
         delegate.set(property, value);
         return self();
     }
+
+
 
     @Override
     public void setClassLoader(ClassLoader classLoader) {
@@ -55,6 +78,11 @@ public class RuntimeContextWrapper<C extends RuntimeContext<C>> implements Runti
     public C addImport(String imp) {
         delegate.addImport(imp);
         return self();
+    }
+
+    @Override
+    public final List<R> getRules() {
+        return delegate.getRules();
     }
 
     @Override

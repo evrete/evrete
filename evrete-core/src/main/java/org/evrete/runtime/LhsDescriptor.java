@@ -1,9 +1,6 @@
 package org.evrete.runtime;
 
-import org.evrete.api.EvaluatorHandle;
-import org.evrete.api.FieldReference;
-import org.evrete.api.NamedType;
-import org.evrete.api.TypeField;
+import org.evrete.api.*;
 import org.evrete.runtime.evaluation.BetaEvaluator;
 import org.evrete.runtime.evaluation.EvaluatorFactory;
 import org.evrete.util.MapFunction;
@@ -20,15 +17,15 @@ class LhsDescriptor {
     private final FactType[] factTypes;
     private final RhsFactGroupDescriptor[] allFactGroups;
 
-    LhsDescriptor(AbstractRuntime<?, ?> runtime, LhsBuilderImpl<?> lhsBuilder, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
-        Set<NamedType> declaredTypes = lhsBuilder.getDeclaredFactTypes();
+    LhsDescriptor(AbstractRuntime<?, ?> runtime, LhsBuilder<?> builder, LhsConditionHandles lhsConditions, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
+        Collection<NamedType> declaredTypes = builder.getDeclaredFactTypes();
 
         // Split conditions into alpha and beta ones
         MapOfSet<String, EvaluatorHandle> alphaHandles = new MapOfSet<>();
         Set<EvaluatorHandle> betaHandles = new HashSet<>();
         MapOfSet<String, TypeField> betaFields = new MapOfSet<>();
 
-        for (EvaluatorHandle h : lhsBuilder.resolveConditions()) {
+        for (EvaluatorHandle h : lhsConditions.getHandles()) {
             Set<NamedType> involvedTypes = h.namedTypes();
             if (involvedTypes.size() == 1) {
                 // This is an alpha condition

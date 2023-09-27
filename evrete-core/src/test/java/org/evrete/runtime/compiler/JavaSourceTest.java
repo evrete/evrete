@@ -1,6 +1,7 @@
 
 package org.evrete.runtime.compiler;
 
+import org.evrete.api.JavaSourceCompiler;
 import org.junit.jupiter.api.Test;
 
 class JavaSourceTest {
@@ -12,9 +13,9 @@ class JavaSourceTest {
                 "import org.evrete.api.FactHandle;\n" +
                 "public   class   A1     { String s=FactHandle.class.getName();}";
 
-        JavaSource src = JavaSource.parse(1, source);
+        JavaSourceCompiler.ClassSource src = JavaSourceObject.parse(source);
 
-        assert "A1".equals(src.getClassName());
+        assert "A1".equals(new ClassMeta(src.binaryName()).getSimpleName());
     }
     @Test
 
@@ -24,43 +25,43 @@ class JavaSourceTest {
                 "import org.evrete.api.FactHandle;\n" +
                 "public   class   A1  extends B  { String s=FactHandle.class.getName();}";
 
-        JavaSource src = JavaSource.parse(0, source);
+        JavaSourceCompiler.ClassSource src = JavaSourceObject.parse(source);
 
-        assert "A1".equals(src.getClassName());
+        assert "A1".equals(new ClassMeta(src.binaryName()).getSimpleName());
     }
-/**/
+
     @Test
     void removeBlockComments1() {
         String arg = "A/*Hello World*/";
-        assert "A".equals(JavaSource.removeBlockComments(arg));
+        assert "A".equals(JavaSourceObject.removeBlockComments(arg));
     }
     @Test
     void removeBlockComments2() {
         String arg = "/*Hello World*/";
-        assert "".equals(JavaSource.removeBlockComments(arg));
+        assert JavaSourceObject.removeBlockComments(arg).isEmpty();
     }
     @Test
     void removeBlockComments3() {
         String arg = "A/**/";
-        assert "A".equals(JavaSource.removeBlockComments(arg));
+        assert "A".equals(JavaSourceObject.removeBlockComments(arg));
     }
 
     @Test
     void removeBlockComments4() {
         String arg = "/**/";
-        assert "".equals(JavaSource.removeBlockComments(arg));
+        assert JavaSourceObject.removeBlockComments(arg).isEmpty();
     }
 
     /*//**/
     @Test
     void removeBlockComments5() {
         String arg = "/**//**//**//**/";
-        assert "".equals(JavaSource.removeBlockComments(arg));
+        assert JavaSourceObject.removeBlockComments(arg).isEmpty();
     }
     @Test
     void removeBlockComments6() {
         String arg = "A/* 0 *//* 1 *//* 2 *//* /*3 */B/* /*4 */";
-        assert "AB".equals(JavaSource.removeBlockComments(arg));
+        assert "AB".equals(JavaSourceObject.removeBlockComments(arg));
     }
 
 }

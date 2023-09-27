@@ -1,33 +1,24 @@
 package org.evrete.runtime.compiler;
 
 import javax.tools.JavaFileObject;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-
-import static org.evrete.runtime.compiler.SourceCompiler.packageName;
 
 public class RuntimeClassloader extends ClassLoader {
 
-    private static final AtomicLong instanceCounter = new AtomicLong();
     private static final Collection<JavaFileObject> EMPTY = Collections.emptyList();
     private final Map<String, Collection<String>> definedClasses = new ConcurrentHashMap<>();
 
     private final Map<String, byte[]> classDefinitions = new ConcurrentHashMap<>();
 
-    private final long instanceId;
-
     public RuntimeClassloader(ClassLoader parent) {
         super(parent);
-        this.instanceId = instanceCounter.incrementAndGet();
-    }
-
-    long getInstanceId() {
-        return instanceId;
     }
 
     @Override
@@ -37,7 +28,24 @@ public class RuntimeClassloader extends ClassLoader {
             if(bytes == null) {
                 throw new ClassNotFoundException("Local class definition not found for '" + name + "'");
             } else {
-                return defineClass(null, bytes, 0, bytes.length);
+                return defineClass(name, bytes, 0, bytes.length);
+            }
+        }
+    }
+
+    @Override
+    public InputStream getResourceAsStream(String name) {
+        int pos = name.lastIndexOf(".class");
+        if(pos < 0) {
+            return super.getResourceAsStream(name);
+        } else  {
+            String noExtension = name.substring(0, pos);
+            String binaryName = noExtension.replaceAll("/", ".");
+            byte[] bytes = this.classDefinitions.get(binaryName);
+            if(bytes == null) {
+                return super.getResourceAsStream(name);
+            } else {
+                return new ByteArrayInputStream(bytes);
             }
         }
     }
@@ -49,11 +57,10 @@ public class RuntimeClassloader extends ClassLoader {
     }
 
     void saveClass(String binaryName, byte[] classBytes) {
-        String packageName = packageName(binaryName);
+        ClassMeta meta = new ClassMeta(binaryName);
         this.classDefinitions.put(binaryName, classBytes);
-        this.definedClasses.computeIfAbsent(packageName, k->new LinkedList<>()).add(binaryName);
+        this.definedClasses.computeIfAbsent(meta.getPackageName(), k->new LinkedList<>()).add(binaryName);
     }
-
 
     private ClassPathJavaObject getLocallyDefined(String binaryName) {
         byte[] bytes = classDefinitions.get(binaryName);

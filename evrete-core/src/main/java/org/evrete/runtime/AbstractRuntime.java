@@ -13,10 +13,11 @@ import org.evrete.util.DefaultActivationManager;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C>> extends RuntimeMetaData<C> implements RuleSet<R>, RuntimeContext<C> {
+public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C>> extends RuntimeMetaData<C> implements RuleSetContext<C, R> {
     private static final Logger LOGGER = Logger.getLogger(AbstractRuntime.class.getName());
     private final List<RuleBuilder<C>> ruleBuilders = new ArrayList<>();
 
@@ -65,7 +66,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         this.classloader = new RuntimeClassloader(parent.classloader);
     }
 
-    protected abstract void addRuleInner(RuleBuilder<?> builder);
+    protected abstract void addRuleInner(RuleBuilder<?> builder) throws CompilationException;
 
     ActivationMode getAgendaMode() {
         return agendaMode;
@@ -77,6 +78,8 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
             addRuleInner(builder);
         } catch (RuntimeException e) {
             this.ruleBuilderExceptionHandler.handle(this, builder, e);
+        } catch (CompilationException e) {
+            this.ruleBuilderExceptionHandler.handle(this, builder, new RuntimeException(e));
         }
     }
 
@@ -162,14 +165,6 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         return service.getExecutor();
     }
 
-    Evaluator compileUnchecked(LiteralExpression expression) {
-        try {
-            return compile(expression);
-        } catch (CompilationException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     FactType buildFactType(NamedType builder, Set<TypeField> fields, Set<EvaluatorHandle> alphaEvaluators, int inRuleId) {
         _assertActive();
         MemoryAddress memoryAddress = buildMemoryAddress(builder.getType(), fields, alphaEvaluators);
@@ -194,7 +189,13 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         return this.configuration;
     }
 
-    synchronized RuleDescriptor compileRuleBuilder(RuleBuilder<?> ruleBuilder) {
+
+    synchronized RuleDescriptor compileRuleBuilder(RuleBuilderImpl<?> ruleBuilder) throws CompilationException {
+        Function<RuleBuilderImpl<?>, LhsConditionHandles> func = LhsConditions.compile(this, Collections.singletonList(ruleBuilder));
+        return compileRuleBuilder(ruleBuilder, func);
+    }
+
+    synchronized RuleDescriptor compileRuleBuilder(RuleBuilderImpl<?> ruleBuilder, Function<RuleBuilderImpl<?>, LhsConditionHandles> lhsConditions) {
         _assertActive();
         if (!this.ruleBuilders.remove(ruleBuilder)) {
             throw new IllegalArgumentException("No such rule builder");
@@ -209,8 +210,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
             if (ruleExists(ruleBuilder.getName())) {
                 throw new IllegalArgumentException("Rule '" + ruleBuilder.getName() + "' already exists");
             } else {
-                RuleBuilderImpl<?> rb = (RuleBuilderImpl<?>) ruleBuilder;
-                return RuleDescriptor.factory(this, rb, ruleName, salience);
+                return RuleDescriptor.factory(this, ruleBuilder, lhsConditions.apply(ruleBuilder), ruleName, salience);
             }
         }
     }
@@ -220,7 +220,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         try {
             return service.getLiteralRhsCompiler().compileRhs(this, literalRhs, namedTypes);
         } catch (CompilationException e) {
-            LOGGER.log(Level.WARNING,  e.getMessage(), e);
+            LOGGER.log(Level.WARNING, e.getMessage(), e);
             throw new IllegalStateException(e);
         }
     }

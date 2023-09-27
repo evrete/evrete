@@ -38,9 +38,9 @@ public interface RuleSet<R extends Rule> {
      * @param builder rule builder
      * @throws RuntimeException instances that can be optionally handled by {@link RuleBuilderExceptionHandler}
      * @see RuleBuilderExceptionHandler
-     * @see #setRuleBuilderExceptionHandler(RuleBuilderExceptionHandler)
      */
     void addRule(RuleBuilder<?> builder);
+
 
     default boolean ruleExists(String name) {
         return getRule(name) != null;

@@ -44,7 +44,7 @@ class EvaluationContextTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void testAlphaBeta(ActivationMode mode) {
+    void testAlphaBeta(ActivationMode mode) throws Exception {
 
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,

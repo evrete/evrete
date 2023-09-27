@@ -35,7 +35,7 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
      * @return new evaluator instance
      * @throws CompilationException if the expression failed to compile
      */
-    default Evaluator compile(LiteralExpression expression) throws CompilationException {
+    default LiteralEvaluator compile(LiteralExpression expression) throws CompilationException {
         return getExpressionResolver().buildExpression(expression);
     }
 

@@ -67,7 +67,7 @@ public interface ExpressionResolver {
      * @throws IllegalStateException if the resolver is not in an appropriate state
      */
     @NonNull
-    default Evaluator buildExpression(LiteralExpression expression) throws CompilationException {
+    default LiteralEvaluator buildExpression(LiteralExpression expression) throws CompilationException {
         Collection<LiteralEvaluator> col = buildExpressions(Collections.singleton(expression));
         if(col.size() == 1) {
             return col.iterator().next();

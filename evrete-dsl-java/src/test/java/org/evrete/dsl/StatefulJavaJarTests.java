@@ -11,7 +11,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.io.File;
-import java.io.IOException;
 
 class StatefulJavaJarTests {
     private static KnowledgeService service;
@@ -28,44 +27,55 @@ class StatefulJavaJarTests {
 
 
     private static StatefulSession session(Knowledge knowledge, ActivationMode mode) {
-        return knowledge.newStatefulSession().setActivationMode(mode);
+        return knowledge.newStatefulSession(mode);
     }
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void test1(ActivationMode mode) throws IOException {
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_J, new File("src/test/resources/jars/jar2/jar2-tests.jar").toURI().toURL());
-        try (StatefulSession session = session(knowledge, mode)) {
-            assert session.getRules().size() == 2;
-            for (int i = 2; i < 100; i++) {
-                session.insert(i);
+    void test1(ActivationMode mode) throws Exception {
+        File jarFile = TestUtils.jarFile("src/test/resources/jars/jar2");
+
+        try {
+            Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_J, jarFile.toURI().toURL());
+            try (StatefulSession session = session(knowledge, mode)) {
+                assert session.getRules().size() == 2;
+                for (int i = 2; i < 100; i++) {
+                    session.insert(i);
+                }
+                session.fire();
+
+                NextIntSupplier primeCounter = new NextIntSupplier();
+                session.forEachFact((h, o) -> primeCounter.next());
+
+                assert primeCounter.get() == 25;
             }
-            session.fire();
-
-            NextIntSupplier primeCounter = new NextIntSupplier();
-            session.forEachFact((h, o) -> primeCounter.next());
-
-            assert primeCounter.get() == 25;
+        } finally {
+            assert jarFile.delete();
         }
     }
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void test2(ActivationMode mode) throws IOException {
+    void test2(ActivationMode mode) throws Exception {
+        File jarFile = TestUtils.jarFile("src/test/resources/jars/jar2");
 
-        Knowledge knowledge = service.newKnowledge(DSLJarProvider.class, new File("src/test/resources/jars/jar2/jar2-tests.jar").toURI().toURL());
+        try {
+            Knowledge knowledge = service.newKnowledge(DSLJarProvider.class, jarFile.toURI().toURL());
 
-        try (StatefulSession session = session(knowledge, mode)) {
-            assert session.getRules().size() == 2;
-            for (int i = 2; i < 100; i++) {
-                session.insert(i);
+            try (StatefulSession session = session(knowledge, mode)) {
+                assert session.getRules().size() == 2;
+                for (int i = 2; i < 100; i++) {
+                    session.insert(i);
+                }
+                session.fire();
+
+                NextIntSupplier primeCounter = new NextIntSupplier();
+                session.forEachFact((h, o) -> primeCounter.next());
+
+                assert primeCounter.get() == 25;
             }
-            session.fire();
-
-            NextIntSupplier primeCounter = new NextIntSupplier();
-            session.forEachFact((h, o) -> primeCounter.next());
-
-            assert primeCounter.get() == 25;
+        } finally {
+            assert jarFile.delete();
         }
     }
 }

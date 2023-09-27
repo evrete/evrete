@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.evrete.Configuration.CONDITION_BASE_CLASS;
 
-class EvaluatorClassSource {
+class EvaluatorClassSource implements JavaSourceCompiler.ClassSource {
     private final static AtomicLong JAVA_CLASS_COUNTER = new AtomicLong();
 
     private static final String JAVA_EVALUATOR_TEMPLATE = "package %s;\n" +
@@ -117,11 +117,13 @@ class EvaluatorClassSource {
         }
     }
 
-    public String getClassName() {
+    @Override
+    public String binaryName() {
         return className;
     }
 
-    public String getFullJavaSource() {
+
+    public String getSource() {
         return fullJavaSource;
     }
 

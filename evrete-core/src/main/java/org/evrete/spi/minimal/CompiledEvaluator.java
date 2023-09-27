@@ -17,7 +17,7 @@ class CompiledEvaluator implements LiteralEvaluator {
         this.source = source.getExpression();
         this.descriptor = source.getDescriptor();
         this.originalCondition = source.getExpression().getSource();
-        this.javaClassSource = source.getFullJavaSource();
+        this.javaClassSource = source.getSource();
         this.comparableClassSource = source.getComparableClassSource();
         this.methodHandle = methodHandle;
     }
