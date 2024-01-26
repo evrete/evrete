@@ -135,6 +135,7 @@ class PackageExplorer {
                         String entryName = e.getName();
                         return
                                 !e.isDirectory()
+                                        && rootEntryName != null
                                         && entryName.startsWith(rootEntryName)
                                         && entryName.endsWith(CLASS_FILE_EXTENSION)
                                         && !entryName.endsWith(CLASS_MODULE_INFO)
