@@ -5,6 +5,8 @@ import org.evrete.api.spi.*;
 import org.evrete.runtime.KnowledgeRuntime;
 import org.evrete.runtime.async.ForkJoinExecutor;
 
+import aQute.bnd.annotation.spi.ServiceConsumer;
+
 import java.io.*;
 import java.net.URL;
 import java.util.*;
@@ -16,6 +18,11 @@ import java.util.*;
  * required SPI implementations, and an instance of Java ExecutorService.
  * </p>
  */
+@ServiceConsumer(value = DSLKnowledgeProvider.class)
+@ServiceConsumer(value = MemoryFactoryProvider.class)
+@ServiceConsumer(value = ExpressionResolverProvider.class)
+@ServiceConsumer(value = TypeResolverProvider.class)
+@ServiceConsumer(value = LiteralRhsCompiler.class)
 public class KnowledgeService {
     private final Configuration configuration;
     private final ForkJoinExecutor executor;

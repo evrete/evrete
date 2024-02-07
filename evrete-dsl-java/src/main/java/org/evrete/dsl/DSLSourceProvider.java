@@ -4,7 +4,10 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.JavaSourceCompiler;
 import org.evrete.api.Knowledge;
 import org.evrete.api.TypeResolver;
+import org.evrete.api.spi.DSLKnowledgeProvider;
 import org.evrete.runtime.compiler.CompilationException;
+
+import aQute.bnd.annotation.spi.ServiceProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +17,7 @@ import java.util.logging.Level;
 
 import static org.evrete.dsl.Utils.LOGGER;
 
+@ServiceProvider(value = DSLKnowledgeProvider.class)
 public class DSLSourceProvider extends AbstractDSLProvider {
 
     private static final String CHARSET_PROPERTY = "org.evrete.source-charset";

@@ -15,6 +15,11 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>biz.aQute.bnd</groupId>
+                <artifactId>bnd-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
                 <artifactId>maven-deploy-plugin</artifactId>
                 <configuration>
                     <skip>true</skip>

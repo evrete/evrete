@@ -32,6 +32,11 @@
                     <attach>true</attach>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>biz.aQute.bnd</groupId>
+                <artifactId>bnd-maven-plugin</artifactId>
+            </plugin>
         </plugins>
     </build>
 
@@ -76,6 +81,13 @@
             <version>1.1</version>
             <scope>provided</scope>
             <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.annotation.bundle</artifactId>
+            <version>${org.osgi.annotation.bundle.version}</version>
+            <scope>compile</scope>
         </dependency>
 
     </dependencies>

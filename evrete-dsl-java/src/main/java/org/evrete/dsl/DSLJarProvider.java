@@ -6,7 +6,10 @@ import org.evrete.api.JavaSourceCompiler;
 import org.evrete.api.Knowledge;
 import org.evrete.api.RuntimeContext;
 import org.evrete.api.TypeResolver;
+import org.evrete.api.spi.DSLKnowledgeProvider;
 import org.evrete.dsl.annotation.RuleSet;
+
+import aQute.bnd.annotation.spi.ServiceProvider;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -17,6 +20,7 @@ import java.util.jar.JarInputStream;
 
 import static org.evrete.dsl.Utils.LOGGER;
 
+@ServiceProvider(value = DSLKnowledgeProvider.class)
 public class DSLJarProvider extends AbstractDSLProvider {
     static final String CLASSES_PROPERTY = "org.evrete.dsl.rule-classes";
     private static final String EMPTY_CLASSES = "";

@@ -3,6 +3,9 @@ package org.evrete.dsl;
 import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.TypeResolver;
+import org.evrete.api.spi.DSLKnowledgeProvider;
+
+import aQute.bnd.annotation.spi.ServiceProvider;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,6 +13,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.net.URL;
 
+@ServiceProvider(value = DSLKnowledgeProvider.class)
 public class DSLClassProvider extends AbstractDSLProvider {
 
     private static Class<?>[] loadClasses(KnowledgeService service, Reader... streams) throws IOException {

@@ -7,10 +7,13 @@ import org.evrete.api.RuntimeContext;
 import org.evrete.api.spi.LiteralRhsCompiler;
 import org.evrete.runtime.compiler.CompilationException;
 
+import aQute.bnd.annotation.spi.ServiceProvider;
+
 import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
+@ServiceProvider(value = LiteralRhsCompiler.class)
 public class DefaultLiteralRhsCompiler extends LeastImportantServiceProvider implements LiteralRhsCompiler {
     private static final AtomicInteger classCounter = new AtomicInteger(0);
     private static final String classPackage = DefaultLiteralRhsCompiler.class.getPackage().getName() + ".rhs";

@@ -36,6 +36,11 @@
                 <artifactId>maven-failsafe-plugin</artifactId>
             </plugin>
 
+            <plugin>
+                <groupId>biz.aQute.bnd</groupId>
+                <artifactId>bnd-maven-plugin</artifactId>
+            </plugin>
+
         </plugins>
     </build>
 
@@ -59,6 +64,20 @@
             <artifactId>junit-jupiter-params</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>biz.aQute.bnd</groupId>
+            <artifactId>biz.aQute.bnd.annotation</artifactId>
+            <version>${bnd.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.annotation.bundle</artifactId>
+            <version>${org.osgi.annotation.bundle.version}</version>
+            <scope>compile</scope>
         </dependency>
 
     </dependencies>
