@@ -7,6 +7,7 @@ import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.classes.TypeD;
+import org.evrete.helper.IgnoreTestInOSGi;
 import org.evrete.runtime.KnowledgeRuntime;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -39,6 +40,7 @@ class EvaluatorCompilerTest {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void testConditionBaseClass1() throws Exception {
 
         RuleBuilder<Knowledge> ruleBuilder = knowledge.newRule();
@@ -60,6 +62,7 @@ class EvaluatorCompilerTest {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void testConditionBaseClass2() throws Exception {
 
         RuleBuilder<Knowledge> ruleBuilder = knowledge.newRule();

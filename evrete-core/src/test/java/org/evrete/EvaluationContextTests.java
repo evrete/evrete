@@ -1,8 +1,20 @@
 package org.evrete;
 
-import org.evrete.api.*;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.evrete.api.ActivationMode;
+import org.evrete.api.Evaluator;
+import org.evrete.api.EvaluatorHandle;
+import org.evrete.api.FieldReference;
+import org.evrete.api.Knowledge;
+import org.evrete.api.LhsBuilder;
+import org.evrete.api.RuleBuilder;
+import org.evrete.api.StatefulSession;
+import org.evrete.api.ValuesPredicate;
 import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
+import org.evrete.helper.IgnoreTestInOSGi;
 import org.evrete.runtime.evaluation.EvaluatorOfPredicate;
 import org.evrete.spi.minimal.DefaultExpressionResolverProvider;
 import org.evrete.spi.minimal.DefaultLiteralRhsCompiler;
@@ -14,9 +26,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-
-import java.util.LinkedList;
-import java.util.List;
 
 class EvaluationContextTests {
     private static KnowledgeService service;
@@ -44,6 +53,7 @@ class EvaluationContextTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testAlphaBeta(ActivationMode mode) throws Exception {
 
         RhsAssert rhsAssert = new RhsAssert(

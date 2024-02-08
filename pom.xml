@@ -15,6 +15,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <junit.version>5.9.2</junit.version>
+        <junit.platform.version>1.9.2</junit.platform.version>
         <jmh.version>1.34</jmh.version>
         <bnd.version>6.4.0</bnd.version>
     </properties>
@@ -65,17 +66,6 @@
                     <compilerArgs>
                         <arg>-Xlint:deprecation</arg>
                     </compilerArgs>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.3.0</version>
-                <configuration>
-                    <archive>
-                        <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-                    </archive>
                 </configuration>
             </plugin>
 
@@ -171,12 +161,13 @@
                     <groupId>biz.aQute.bnd</groupId>
                     <artifactId>bnd-maven-plugin</artifactId>
                     <version>${bnd.version}</version>
+                    <extensions>true</extensions>
                     <configuration>
                         <bnd><![CDATA[
                             Implementation-Title: ${project.description}
                             Implementation-Version: ${project.version}
                             Implementation-URL: https://www.evrete.org
-                            
+
                             SPDX-License-Identifier: ${project.licenses[0].name}
                             
                             -noextraheaders: true

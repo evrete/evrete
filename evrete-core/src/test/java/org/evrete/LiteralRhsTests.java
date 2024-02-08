@@ -4,6 +4,7 @@ import org.evrete.api.Knowledge;
 import org.evrete.api.RuleBuilder;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
+import org.evrete.helper.IgnoreTestInOSGi;
 import org.evrete.runtime.RuleDescriptor;
 import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
@@ -36,6 +37,7 @@ public class LiteralRhsTests {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void plainTest0() {
         knowledge
                 .addImport("org.evrete.LiteralRhsTests.SystemOut")
@@ -54,6 +56,7 @@ public class LiteralRhsTests {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void plainTest1() {
         RuleBuilder<Knowledge> builder = knowledge
                 .addImport("org.evrete.LiteralRhsTests.SystemOut")
@@ -74,6 +77,7 @@ public class LiteralRhsTests {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void plainTest2() {
         RuleBuilder<Knowledge> builder = knowledge
                 .addImport("org.evrete.LiteralRhsTests.SystemOut")

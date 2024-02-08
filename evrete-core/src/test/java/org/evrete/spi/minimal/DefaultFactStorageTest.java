@@ -5,6 +5,7 @@ import org.evrete.api.FactHandle;
 import org.evrete.api.FactStorage;
 import org.evrete.api.KeyMode;
 import org.evrete.classes.TypeA;
+import org.evrete.helper.IgnoreTestInOSGi;
 import org.evrete.runtime.KnowledgeRuntime;
 import org.evrete.runtime.StatefulSessionImpl;
 import org.evrete.runtime.TypeMemory;
@@ -34,6 +35,7 @@ class DefaultFactStorageTest {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void update() {
         NextIntSupplier counter = new NextIntSupplier();
         int updates;

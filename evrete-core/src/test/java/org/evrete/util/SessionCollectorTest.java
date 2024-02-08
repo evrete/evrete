@@ -3,6 +3,7 @@ package org.evrete.util;
 import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
+import org.evrete.helper.IgnoreTestInOSGi;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ class SessionCollectorTest {
 
     @SuppressWarnings("resource")
     @Test
+    @IgnoreTestInOSGi
     void statefulTest() {
         Knowledge knowledge = service
                 .newKnowledge()

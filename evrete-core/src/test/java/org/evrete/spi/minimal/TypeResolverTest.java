@@ -6,6 +6,7 @@ import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
 import org.evrete.api.Type;
 import org.evrete.api.TypeResolver;
+import org.evrete.helper.IgnoreTestInOSGi;
 import org.evrete.util.RhsAssert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -43,6 +44,7 @@ class TypeResolverTest {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void testInheritance2() {
         RhsAssert rhsAssert = new RhsAssert("$s", StatefulSession.class);
         TypeResolver typeResolver = service.newTypeResolver();
@@ -62,6 +64,7 @@ class TypeResolverTest {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void testInheritance3() {
         TypeResolver typeResolver = service.newTypeResolver();
         Type<StatefulSession> sessionType = typeResolver.declare(StatefulSession.class);

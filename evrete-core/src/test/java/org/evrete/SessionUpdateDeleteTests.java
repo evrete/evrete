@@ -5,6 +5,7 @@ import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.helper.FactEntry;
+import org.evrete.helper.IgnoreTestInOSGi;
 import org.evrete.helper.TestUtils;
 import org.evrete.util.NextIntSupplier;
 import org.evrete.util.RhsAssert;
@@ -42,6 +43,7 @@ class SessionUpdateDeleteTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void updateAlpha1(ActivationMode mode) {
         NextIntSupplier counter = new NextIntSupplier();
         TypeA a = new TypeA();
@@ -65,6 +67,7 @@ class SessionUpdateDeleteTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void updateAlpha2(ActivationMode mode) {
         NextIntSupplier counter = new NextIntSupplier();
         TypeA ref = new TypeA();
@@ -87,6 +90,7 @@ class SessionUpdateDeleteTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void updateAlpha3(ActivationMode mode) {
         NextIntSupplier counter = new NextIntSupplier();
 
@@ -113,6 +117,7 @@ class SessionUpdateDeleteTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void retractBeta1(ActivationMode mode) {
         knowledge.newRule()
                 .forEach(
@@ -149,6 +154,7 @@ class SessionUpdateDeleteTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void statefulBetaUpdateDelete1(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
@@ -230,6 +236,7 @@ class SessionUpdateDeleteTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void updateBeta2(ActivationMode mode) {
         NextIntSupplier counter = new NextIntSupplier();
 
@@ -309,6 +316,7 @@ class SessionUpdateDeleteTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void updateBeta3(ActivationMode mode) {
         NextIntSupplier counter = new NextIntSupplier();
 
@@ -387,6 +395,7 @@ class SessionUpdateDeleteTests {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void updateBeta2_mini() {
         NextIntSupplier counter = new NextIntSupplier();
 
@@ -464,6 +473,7 @@ class SessionUpdateDeleteTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void retractMemoryTest(ActivationMode mode) {
         NextIntSupplier counter = new NextIntSupplier();
 
@@ -521,6 +531,7 @@ class SessionUpdateDeleteTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void retractBeta(ActivationMode mode) {
 
         NextIntSupplier counter = new NextIntSupplier();
@@ -605,6 +616,7 @@ class SessionUpdateDeleteTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void primeNumbers1(ActivationMode mode) {
         knowledge.newRule("prime numbers")
                 .forEach(
@@ -637,6 +649,7 @@ class SessionUpdateDeleteTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void primeNumbers2(ActivationMode mode) {
         knowledge.newRule("prime numbers")
                 .forEach(
@@ -669,6 +682,7 @@ class SessionUpdateDeleteTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void externalUpdate1(ActivationMode mode) {
         NextIntSupplier counter = new NextIntSupplier();
         StatefulSession session = knowledge
@@ -708,6 +722,7 @@ class SessionUpdateDeleteTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void externalUpdate2(ActivationMode mode) {
         NextIntSupplier counter = new NextIntSupplier();
         StatefulSession session = knowledge
@@ -746,6 +761,7 @@ class SessionUpdateDeleteTests {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void externalUpdate3() {
         NextIntSupplier counter = new NextIntSupplier();
 

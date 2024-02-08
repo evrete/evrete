@@ -8,6 +8,7 @@ import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.classes.TypeD;
+import org.evrete.helper.IgnoreTestInOSGi;
 import org.evrete.util.RhsAssert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -115,6 +116,7 @@ class PredicatesTests {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void testCircularMultiFinal() {
 
         ValuesPredicate p1 = values -> {
@@ -608,6 +610,7 @@ class PredicatesTests {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void testMethodInConditions1() {
         AtomicInteger counter = new AtomicInteger(0);
 
@@ -639,6 +642,7 @@ class PredicatesTests {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void testMethodInConditions2() {
         AtomicInteger counter = new AtomicInteger(0);
 
@@ -668,6 +672,7 @@ class PredicatesTests {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void testMethodInConditions3() {
         AtomicInteger counter = new AtomicInteger(0);
 
@@ -697,6 +702,7 @@ class PredicatesTests {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void testMethodInConditions4() {
         AtomicInteger counter = new AtomicInteger(0);
 
@@ -726,6 +732,7 @@ class PredicatesTests {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void testBaseConditionClass() {
         AtomicInteger counter = new AtomicInteger(0);
 

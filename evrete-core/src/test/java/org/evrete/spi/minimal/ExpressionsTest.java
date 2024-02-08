@@ -6,6 +6,7 @@ import org.evrete.api.*;
 import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
+import org.evrete.helper.IgnoreTestInOSGi;
 import org.evrete.runtime.KnowledgeRuntime;
 import org.evrete.runtime.compiler.CompilationException;
 import org.evrete.util.NextIntSupplier;
@@ -41,6 +42,7 @@ class ExpressionsTest {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void test1() throws CompilationException {
         LhsBuilder<Knowledge> root = rule.forEach();
         assert root.addFactDeclaration("$a", TypeA.class).getName().equals("$a");
@@ -67,6 +69,7 @@ class ExpressionsTest {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void test2() throws CompilationException {
         LhsBuilder<Knowledge> root = rule.forEach();
         assert root.addFactDeclaration("$a", TypeA.class).getName().equals("$a");
@@ -76,6 +79,7 @@ class ExpressionsTest {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void test3() throws CompilationException {
 
         Configuration configuration = new Configuration();
@@ -92,6 +96,7 @@ class ExpressionsTest {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void testNestedFields1() {
         NextIntSupplier counter = new NextIntSupplier();
         StatefulSession session = rule
@@ -113,6 +118,7 @@ class ExpressionsTest {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void testNestedFields2() {
         NextIntSupplier counter = new NextIntSupplier();
         StatefulSession session = rule
@@ -133,6 +139,7 @@ class ExpressionsTest {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void testThisFields2() {
         NextIntSupplier counter = new NextIntSupplier();
         StatefulSession session = rule
@@ -151,6 +158,7 @@ class ExpressionsTest {
     }
 
     @Test
+    @IgnoreTestInOSGi
     void testRepeatedReference() {
         NextIntSupplier counter = new NextIntSupplier();
         StatefulSession session = rule

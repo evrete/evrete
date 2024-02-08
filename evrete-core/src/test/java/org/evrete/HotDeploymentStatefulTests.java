@@ -5,6 +5,7 @@ import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.classes.TypeD;
+import org.evrete.helper.IgnoreTestInOSGi;
 import org.evrete.util.NextIntSupplier;
 import org.evrete.util.RhsAssert;
 import org.junit.jupiter.api.AfterAll;
@@ -59,6 +60,7 @@ class HotDeploymentStatefulTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void plainTest1(ActivationMode mode) {
         session.setActivationMode(mode);
         RhsAssert rhsAssert = new RhsAssert("$n", Integer.class);
@@ -168,6 +170,7 @@ class HotDeploymentStatefulTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testCircularMultiFinal(ActivationMode mode) {
         session.setActivationMode(mode);
 
@@ -362,6 +365,7 @@ class HotDeploymentStatefulTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testMixed1(ActivationMode mode) {
         session.setActivationMode(mode);
 
@@ -607,6 +611,7 @@ class HotDeploymentStatefulTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testAlpha1(ActivationMode mode) {
         session.setActivationMode(mode);
 
@@ -655,6 +660,7 @@ class HotDeploymentStatefulTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testAlpha2(ActivationMode mode) {
         session.setActivationMode(mode);
 
@@ -702,6 +708,7 @@ class HotDeploymentStatefulTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testAlpha3(ActivationMode mode) {
         session.setActivationMode(mode);
 
@@ -852,6 +859,7 @@ class HotDeploymentStatefulTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testAlpha5(ActivationMode mode) {
         session.setActivationMode(mode);
 
@@ -881,6 +889,7 @@ class HotDeploymentStatefulTests {
     // An "inverse" version of the previous test
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testAlpha6(ActivationMode mode) {
         session.setActivationMode(mode);
 
@@ -912,6 +921,7 @@ class HotDeploymentStatefulTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testMixedMulti(ActivationMode mode) {
         session.setActivationMode(mode);
 

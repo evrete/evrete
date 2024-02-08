@@ -3,6 +3,7 @@ package org.evrete;
 import org.evrete.api.*;
 import org.evrete.classes.*;
 import org.evrete.helper.FactEntry;
+import org.evrete.helper.IgnoreTestInOSGi;
 import org.evrete.helper.TestUtils;
 import org.evrete.util.NextIntSupplier;
 import org.evrete.util.RhsAssert;
@@ -214,6 +215,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void plainTest1(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert("$n", Integer.class);
         knowledge.newRule()
@@ -287,6 +289,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testMultiFinal1(ActivationMode mode) {
         knowledge.newRule()
                 .forEach(
@@ -335,6 +338,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testMultiFinal2(ActivationMode mode) {
         String ruleName = "testMultiFinal2";
 
@@ -395,6 +399,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testSingleFinalNode1(ActivationMode mode) {
 
         knowledge.newRule("testSingleFinalNode1")
@@ -461,6 +466,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testCircularMultiFinal(ActivationMode mode) {
 
         knowledge.newRule("test circular")
@@ -524,6 +530,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void randomExpressionsTest(ActivationMode mode) {
         for (int objectCount = 1; objectCount < 8; objectCount++) {
             for (int conditions = 1; conditions < 8; conditions++) {
@@ -534,6 +541,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testMultiFinal2_mini(ActivationMode mode) {
         String ruleName = "testMultiFinal2_mini";
 
@@ -590,6 +598,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testFields(ActivationMode mode) {
         String ruleName = "testMultiFields";
 
@@ -635,6 +644,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testSingleFinalNode2(ActivationMode mode) {
         knowledge.newRule("testSingleFinalNode2")
                 .forEach(
@@ -685,6 +695,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testBeta1(ActivationMode mode) {
 
         RhsAssert rhsAssert = new RhsAssert(
@@ -730,6 +741,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testAlphaBeta1(ActivationMode mode) {
         RhsAssert rhsAssert1 = new RhsAssert(
                 "$a", TypeA.class,
@@ -808,6 +820,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testSimple1(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
@@ -844,6 +857,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testSimple2(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
@@ -887,6 +901,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testSimple3(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
@@ -950,6 +965,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testSimple4(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
@@ -985,6 +1001,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testUniType1(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a1", TypeA.class,
@@ -1014,6 +1031,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testUniType2(ActivationMode mode) {
         Set<String> collectedJoinedIds = new HashSet<>();
         knowledge.newRule("test uni 2")
@@ -1082,6 +1100,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testUniType3(ActivationMode mode) {
         int rule = 0;
         RhsAssert rhsAssert = new RhsAssert(
@@ -1122,6 +1141,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testUniType4(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a1", TypeA.class,
@@ -1168,6 +1188,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testAlphaBeta2(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
@@ -1212,6 +1233,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testAlpha0(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
@@ -1246,6 +1268,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testAlpha1(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
@@ -1296,6 +1319,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testAlpha2(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
@@ -1344,6 +1368,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testAlpha3(ActivationMode mode) {
         Configuration conf = knowledge.getConfiguration();
         conf.setProperty(Configuration.WARN_UNKNOWN_TYPES, "false");
@@ -1389,6 +1414,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testAlpha4(ActivationMode mode) {
         RhsAssert rhsAssert1 = new RhsAssert("$a", TypeA.class);
         RhsAssert rhsAssert2 = new RhsAssert("$a", TypeA.class);
@@ -1425,6 +1451,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testAlpha5(ActivationMode mode) {
         RhsAssert rhsAssert1 = new RhsAssert("$a", TypeA.class);
         RhsAssert rhsAssert2 = new RhsAssert("$a", TypeA.class);
@@ -1460,6 +1487,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testAlpha6(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class,
@@ -1513,6 +1541,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testMixed1(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a1", TypeA.class,
@@ -1579,6 +1608,7 @@ class StatefulBaseTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void statefulBeta1(ActivationMode mode) {
 
         RhsAssert rhsAssert = new RhsAssert(

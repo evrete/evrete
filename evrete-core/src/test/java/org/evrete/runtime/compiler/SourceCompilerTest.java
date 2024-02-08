@@ -1,6 +1,7 @@
 package org.evrete.runtime.compiler;
 
 import org.evrete.api.JavaSourceCompiler;
+import org.evrete.helper.IgnoreTestInOSGi;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ class SourceCompilerTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
+    @IgnoreTestInOSGi
     void compile1(boolean initClass) throws CompilationException, ClassNotFoundException {
 
         Assertions.assertThrows(
@@ -39,6 +41,7 @@ class SourceCompilerTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
+    @IgnoreTestInOSGi
     void compile2(boolean initClass) throws CompilationException, ClassNotFoundException {
 
         Assertions.assertThrows(
@@ -69,6 +72,7 @@ class SourceCompilerTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
+    @IgnoreTestInOSGi
     void compile3(boolean initClass) throws CompilationException, ClassNotFoundException {
 
         Assertions.assertThrows(
@@ -101,6 +105,7 @@ class SourceCompilerTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
+    @IgnoreTestInOSGi
     void compile4(boolean initClass) throws CompilationException, ClassNotFoundException {
 
         Assertions.assertThrows(
@@ -134,6 +139,7 @@ class SourceCompilerTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
+    @IgnoreTestInOSGi
     void compile5(boolean initClass) throws CompilationException, ClassNotFoundException {
 
         Assertions.assertThrows(
@@ -183,6 +189,7 @@ class SourceCompilerTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
+    @IgnoreTestInOSGi
     void compileNested1(boolean initClass) throws CompilationException, ClassNotFoundException {
 
         Assertions.assertThrows(
@@ -208,6 +215,7 @@ class SourceCompilerTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
+    @IgnoreTestInOSGi
     void compileNested2(boolean initClass) throws CompilationException, ClassNotFoundException {
 
         Assertions.assertThrows(

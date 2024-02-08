@@ -3,6 +3,7 @@ package org.evrete;
 import org.evrete.api.*;
 import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
+import org.evrete.helper.IgnoreTestInOSGi;
 import org.evrete.util.NextIntSupplier;
 import org.evrete.util.RhsAssert;
 import org.junit.jupiter.api.AfterAll;
@@ -34,6 +35,7 @@ class EvaluationListenersTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void plainTest(ActivationMode mode) {
         NextIntSupplier knowledgeListenerCounter = new NextIntSupplier();
         NextIntSupplier sessionListenerCounter = new NextIntSupplier();
@@ -82,6 +84,7 @@ class EvaluationListenersTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testAlphaBeta(ActivationMode mode) {
         AtomicInteger knowledgeListenerCounter = new AtomicInteger(0);
         AtomicInteger sessionListenerCounter = new AtomicInteger(0);
@@ -139,6 +142,7 @@ class EvaluationListenersTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
+    @IgnoreTestInOSGi
     void testBeta(ActivationMode mode) {
         AtomicInteger sessionListenerCounter = new AtomicInteger(0);
 
