@@ -36,6 +36,65 @@
                 <artifactId>maven-failsafe-plugin</artifactId>
             </plugin>
 
+            <plugin>
+                <groupId>biz.aQute.bnd</groupId>
+                <artifactId>bnd-maven-plugin</artifactId>
+                <configuration>
+                        <bnd><![CDATA[
+                            Export-Package: org.evrete*
+
+                            Provide-Capability:\
+                                osgi.service;\
+                                    objectClass:List<String>="org.evrete.api.spi.ExpressionResolverProvider";\
+                                    effective:=active,\
+                                osgi.service;\
+                                    objectClass:List<String>="org.evrete.api.spi.LiteralRhsCompiler";\
+                                    effective:=active,\
+                                osgi.service;\
+                                    objectClass:List<String>="org.evrete.api.spi.MemoryFactoryProvider";\
+                                    effective:=active,\
+                                osgi.service;\
+                                    objectClass:List<String>="org.evrete.api.spi.TypeResolverProvider";\
+                                    effective:=active,\
+                                osgi.serviceloader;\
+                                    osgi.serviceloader="org.evrete.api.spi.ExpressionResolverProvider";\
+                                    register:="org.evrete.spi.minimal.DefaultExpressionResolverProvider",\
+                                osgi.serviceloader;\
+                                    osgi.serviceloader="org.evrete.api.spi.LiteralRhsCompiler";\
+                                    register:="org.evrete.spi.minimal.DefaultLiteralRhsCompiler",\
+                                osgi.serviceloader;\
+                                    osgi.serviceloader="org.evrete.api.spi.MemoryFactoryProvider";\
+                                    register:="org.evrete.spi.minimal.DefaultMemoryFactoryProvider",\
+                                osgi.serviceloader;\
+                                    osgi.serviceloader="org.evrete.api.spi.TypeResolverProvider";\
+                                    register:="org.evrete.spi.minimal.DefaultTypeResolverProvider"
+ 
+                            Require-Capability:\
+                                osgi.extender;\
+                                    filter:="(&(osgi.extender=osgi.serviceloader.processor)(version>=1.0.0)(!(version>=2.0.0)))",\
+                                osgi.extender;\
+                                    filter:="(&(osgi.extender=osgi.serviceloader.registrar)(version>=1.0.0)(!(version>=2.0.0)))",\
+                                osgi.serviceloader;\
+                                    filter:="(osgi.serviceloader=org.evrete.api.spi.DSLKnowledgeProvider)";\
+                                    osgi.serviceloader="org.evrete.api.spi.DSLKnowledgeProvider",\
+                                osgi.serviceloader;\
+                                    filter:="(osgi.serviceloader=org.evrete.api.spi.ExpressionResolverProvider)";\
+                                    osgi.serviceloader="org.evrete.api.spi.ExpressionResolverProvider",\
+                                osgi.serviceloader;\
+                                    filter:="(osgi.serviceloader=org.evrete.api.spi.LiteralRhsCompiler)";\
+                                    osgi.serviceloader="org.evrete.api.spi.LiteralRhsCompiler",\
+                                osgi.serviceloader;\
+                                    filter:="(osgi.serviceloader=org.evrete.api.spi.MemoryFactoryProvider)";\
+                                    osgi.serviceloader="org.evrete.api.spi.MemoryFactoryProvider",\
+                                osgi.serviceloader;\
+                                    filter:="(osgi.serviceloader=org.evrete.api.spi.TypeResolverProvider)";\
+                                    osgi.serviceloader="org.evrete.api.spi.TypeResolverProvider",\
+                                osgi.ee;\
+                                    filter:="(&(osgi.ee=JavaSE)(version=1.8))"
+                        ]]></bnd>
+                    </configuration>
+            </plugin>
+
         </plugins>
     </build>
 

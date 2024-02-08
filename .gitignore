@@ -27,3 +27,7 @@ benchmark*.csv
 XLocalDev*.*
 *tests.jar
 
+**/*.project
+**/*.classpath
+**/.settings/*
+

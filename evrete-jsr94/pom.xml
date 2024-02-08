@@ -32,6 +32,20 @@
                     <attach>true</attach>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>biz.aQute.bnd</groupId>
+                <artifactId>bnd-maven-plugin</artifactId>
+                <configuration>
+                        <bnd><![CDATA[
+                                Export-Package: org.evrete.jsr94*
+
+                                Require-Capability:\
+                                    osgi.ee;\
+                                        filter:="(&(osgi.ee=JavaSE)(version=1.8))"
+                        ]]></bnd>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
