@@ -9,12 +9,16 @@ import org.evrete.runtime.compiler.CompilationException;
 import java.util.Collection;
 import java.util.function.Consumer;
 
-//TODO remove
+/**
+ * @deprecated use {@link LiteralSourceCompiler} instead
+ */
+@Deprecated
 public interface LiteralRhsCompiler extends OrderedServiceProvider {
     default Consumer<RhsContext> compileRhs(RuntimeContext<?> context, String literalRhs, Collection<NamedType> factTypes) throws CompilationException {
-        NamedType[] types = factTypes.toArray(new NamedType[0]);
-        return compileRhs(context, literalRhs, types);
+        throw new UnsupportedOperationException("Deprecated");
     }
 
-    Consumer<RhsContext> compileRhs(RuntimeContext<?> context, String literalRhs, NamedType[] types) throws CompilationException;
+    default Consumer<RhsContext> compileRhs(RuntimeContext<?> context, String literalRhs, NamedType[] types) throws CompilationException {
+        throw new UnsupportedOperationException("Deprecated");
+    }
 }

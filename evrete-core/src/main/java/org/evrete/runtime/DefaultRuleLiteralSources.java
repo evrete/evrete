@@ -28,7 +28,7 @@ class DefaultRuleLiteralSources implements RuleLiteralSources<DefaultRuleBuilder
         this.rhs = rhs == null ? null : new LiteralExpression() {
             @Override
             public String getSource() {
-                throw new UnsupportedOperationException("Not implemented");
+                return rhs;
             }
 
             @Override

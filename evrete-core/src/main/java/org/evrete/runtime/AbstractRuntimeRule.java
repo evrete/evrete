@@ -1,6 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.AbstractRule;
+import org.evrete.api.LiteralExpression;
 import org.evrete.api.NamedType;
 import org.evrete.api.Type;
 import org.evrete.api.annotations.NonNull;
@@ -8,7 +9,6 @@ import org.evrete.util.NamedTypeImpl;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 
 public abstract class AbstractRuntimeRule<T extends FactType> extends AbstractRule {
@@ -60,11 +60,8 @@ public abstract class AbstractRuntimeRule<T extends FactType> extends AbstractRu
     @Override
     public final void setRhs(String literalRhs) {
         if (literalRhs != null) {
-            Collection<NamedType> namedTypes = new LinkedList<>();
-            for (FactType factType : factTypes) {
-                namedTypes.add(resolve(factType.getName()));
-            }
-            setRhs(runtime.compileRHS(literalRhs, namedTypes));
+            LiteralExpression expression = LiteralExpression.of(literalRhs, this);
+            setRhs(runtime.compileRHS(expression));
         }
     }
 }

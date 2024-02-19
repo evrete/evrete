@@ -376,10 +376,12 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         }
     }
 
-    Consumer<RhsContext> compileRHS(String literalRhs, Collection<NamedType> namedTypes) {
+    Consumer<RhsContext> compileRHS(LiteralExpression rhs) {
         _assertActive();
+
         try {
-            return service.getLiteralRhsCompiler().compileRhs(this, literalRhs, namedTypes);
+            JustRhsRuleSources sources = new JustRhsRuleSources(rhs);
+            return compileRules(Collections.singletonList(sources)).iterator().next().rhs();
         } catch (CompilationException e) {
             e.log(LOGGER, Level.WARNING);
             throw new IllegalStateException(e);

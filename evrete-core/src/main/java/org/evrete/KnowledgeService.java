@@ -22,7 +22,6 @@ public class KnowledgeService {
     private final MemoryFactoryProvider collectionsServiceProvider;
     private final ExpressionResolverProvider expressionResolverProvider;
     private final TypeResolverProvider typeResolverProvider;
-    private final LiteralRhsCompiler literalRhsProvider;
     private final LiteralSourceCompiler literalSourceCompiler;
     private ClassLoader classLoader;
 
@@ -36,7 +35,6 @@ public class KnowledgeService {
         this.collectionsServiceProvider = builder.getMemoryFactoryProvider();
         this.expressionResolverProvider = builder.getExpressionResolverProvider();
         this.typeResolverProvider = builder.getTypeResolverProvider();
-        this.literalRhsProvider = builder.getLiteralRhsCompiler();
         this.literalSourceCompiler = builder.getLiteralSourceCompiler();
         this.classLoader = Thread.currentThread().getContextClassLoader();
     }
@@ -342,10 +340,6 @@ public class KnowledgeService {
         return expressionResolverProvider;
     }
 
-    public LiteralRhsCompiler getLiteralRhsCompiler() {
-        return literalRhsProvider;
-    }
-
     public LiteralSourceCompiler getLiteralSourceCompiler() {
         return literalSourceCompiler;
     }
@@ -435,7 +429,6 @@ public class KnowledgeService {
         private Class<? extends MemoryFactoryProvider> memoryFactoryProvider;
         private Class<? extends ExpressionResolverProvider> expressionResolverProvider;
         private Class<? extends TypeResolverProvider> typeResolverProvider;
-        private Class<? extends LiteralRhsCompiler> literalRhsCompiler;
         private Class<? extends LiteralSourceCompiler> literalSourceCompiler;
 
         private Builder(Configuration conf) {
@@ -457,8 +450,8 @@ public class KnowledgeService {
             return this;
         }
 
-        public Builder withLiteralRhsCompiler(Class<? extends LiteralRhsCompiler> literalRhsCompiler) {
-            this.literalRhsCompiler = literalRhsCompiler;
+        public Builder withLiteralSourceCompiler(Class<? extends LiteralSourceCompiler> literalSourceCompiler) {
+            this.literalSourceCompiler = literalSourceCompiler;
             return this;
         }
 
@@ -476,10 +469,6 @@ public class KnowledgeService {
 
         private TypeResolverProvider getTypeResolverProvider() {
             return loadCoreSPI(TypeResolverProvider.class, Configuration.SPI_TYPE_RESOLVER, typeResolverProvider);
-        }
-
-        private LiteralRhsCompiler getLiteralRhsCompiler() {
-            return loadCoreSPI(LiteralRhsCompiler.class, Configuration.SPI_RHS_COMPILER, literalRhsCompiler);
         }
 
         private LiteralSourceCompiler getLiteralSourceCompiler() {

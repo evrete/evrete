@@ -1,6 +1,5 @@
 package org.evrete.api.builders;
 
-import org.evrete.api.builders.RuleBuilder;
 import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
 
@@ -28,6 +27,7 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
      *
      * @return rule builder
      */
+    //TODO review usage/delete
     RuleBuilder<C> create();
 
     /**

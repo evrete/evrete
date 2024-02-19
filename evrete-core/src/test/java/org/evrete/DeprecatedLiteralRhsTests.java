@@ -15,7 +15,8 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 @SuppressWarnings("WeakerAccess")
-public class LiteralRhsTests {
+//TODO remove on next release
+public class DeprecatedLiteralRhsTests {
     private static KnowledgeService service;
     private Knowledge knowledge;
 
@@ -37,13 +38,12 @@ public class LiteralRhsTests {
     @Test
     void plainTest0() {
         knowledge
-                .addImport("org.evrete.LiteralRhsTests.SystemOut")
+                .addImport("org.evrete.DeprecatedLiteralRhsTests.SystemOut")
                 .addImport(SystemOut.class)
-                .builder()
                 .newRule()
                 .forEach("$n", Number.class)
-                .execute("SystemOut.out($n);")
-                .build();
+                .execute("SystemOut.out($n);");
+
 
         try (StatefulSession session = knowledge.newStatefulSession()) {
             session.insertAndFire(10, 20);
@@ -56,16 +56,15 @@ public class LiteralRhsTests {
     @Test
     void plainTest1() {
         knowledge
-                .addImport("org.evrete.LiteralRhsTests.SystemOut")
+                .addImport("org.evrete.DeprecatedLiteralRhsTests.SystemOut")
                 .addImport(SystemOut.class)
-                .builder()
                 .newRule("Test rule")
                 .forEach("$n", Number.class)
-                .execute()
-                .build();
+                .execute();
 
         RuleDescriptor descriptor = knowledge.getRule("Test rule");
         descriptor.setRhs("SystemOut.out($n);");
+
         try (StatefulSession session = knowledge.newStatefulSession()) {
             session.insertAndFire(10, 20);
             SystemOut.assertSize(2);
@@ -77,17 +76,14 @@ public class LiteralRhsTests {
     @Test
     void plainTest2() {
         knowledge
-                .addImport("org.evrete.LiteralRhsTests.SystemOut")
+                .addImport("org.evrete.DeprecatedLiteralRhsTests.SystemOut")
                 .addImport(SystemOut.class)
-                .builder()
                 .newRule("test")
                 .forEach("$n", Integer.class)
-                .execute()
-                .build();
+                .execute();
 
         RuleDescriptor descriptor = knowledge.getRule("test");
         descriptor.setRhs("SystemOut.out($n);");
-
         try (StatefulSession session = knowledge.newStatefulSession()) {
             session.insertAndFire(10, 20);
             SystemOut.assertSize(2);
@@ -111,6 +107,7 @@ public class LiteralRhsTests {
             SystemOut.reset();
         }
     }
+
 
     @SuppressWarnings("unused")
     public static class SystemOut {

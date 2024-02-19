@@ -15,6 +15,10 @@ import static org.evrete.Configuration.RULE_BASE_CLASS;
 import static org.evrete.spi.minimal.DefaultExpressionResolver.SPI_LHS_STRIP_WHITESPACES;
 
 public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider implements LiteralSourceCompiler {
+    private static final String TAB = "  ";
+    private static final String RHS_CLASS_NAME = "Rhs";
+    private static final String RHS_INSTANCE_VAR = "ACTION";
+
     private static final AtomicInteger classCounter = new AtomicInteger(0);
 
     static final String CLASS_PACKAGE = DefaultLiteralSourceCompiler.class.getPackage().getName() + ".compiled";
@@ -87,7 +91,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
     @Override
     public <S extends RuleLiteralSources<R>, R extends Rule> Collection<RuleCompiledSources<S, R>> compile(RuntimeContext<?> context, Collection<S> sources) throws CompilationException {
         // Return if nothing to compile (Java compiler throws exceptions otherwise)
-        if(sources.isEmpty()) {
+        if (sources.isEmpty()) {
             return Collections.emptyList();
         }
 
@@ -122,7 +126,6 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
     }
 
     static class RuleSource<S extends RuleLiteralSources<R>, R extends Rule> implements JavaSourceCompiler.ClassSource {
-        private static final String TAB = "  ";
         private final String className;
         private final String classSimpleName;
 
@@ -157,6 +160,11 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
             // Class header
             appendHeader(sb);
 
+            // Class RHS body
+            if (this.rhsSource != null) {
+                this.rhsSource.appendClassVar(sb);
+            }
+
             // Class conditions declarations
             for (ConditionSource source : this.conditionSources) {
                 sb.append(TAB);
@@ -164,18 +172,20 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
             }
 
             // Class conditions definitions
-            sb.append("\n").append(TAB).append("static {\n");
-            sb.append(TAB).append(TAB).append("try {\n");
-            for (ConditionSource source : this.conditionSources) {
-                sb.append(TAB);
-                sb.append(TAB);
-                sb.append(TAB);
-                source.appendDefinition(sb);
+            if (!this.conditionSources.isEmpty()) {
+                sb.append("\n").append(TAB).append("static {\n");
+                sb.append(TAB).append(TAB).append("try {\n");
+                for (ConditionSource source : this.conditionSources) {
+                    sb.append(TAB);
+                    sb.append(TAB);
+                    sb.append(TAB);
+                    source.appendDefinition(sb);
+                }
+                sb.append(TAB).append(TAB).append("} catch (Exception e) {\n");
+                sb.append(TAB).append(TAB).append(TAB).append("throw new IllegalStateException(e);\n");
+                sb.append(TAB).append(TAB).append("}\n");
+                sb.append(TAB).append("}\n");
             }
-            sb.append(TAB).append(TAB).append("} catch (Exception e) {\n");
-            sb.append(TAB).append(TAB).append(TAB).append("throw new IllegalStateException(e);\n");
-            sb.append(TAB).append(TAB).append("}\n");
-            sb.append(TAB).append("}\n");
 
             // Class conditions methods
             for (ConditionSource source : this.conditionSources) {
@@ -184,9 +194,9 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
                 sb.append("\n");
             }
 
-            // Class RHS
+            // Class RHS body
             if (this.rhsSource != null) {
-                this.rhsSource.appendTo(sb);
+                this.rhsSource.appendClassBody(sb);
             }
 
             // Class footer
@@ -322,12 +332,88 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
         @NonNull
         final LiteralExpression rhs;
 
+        final StringJoiner methodArgs;
+        final StringJoiner args;
+
         RhsSource(LiteralExpression rhs) {
             this.rhs = rhs;
+            this.methodArgs = new StringJoiner(", ");
+            this.args = new StringJoiner(", ");
+            for (NamedType t : rhs.getContext().getDeclaredFactTypes()) {
+                methodArgs.add(t.getType().getJavaType() + " " + t.getName());
+                args.add(t.getName());
+            }
         }
 
-        void appendTo(StringBuilder target) {
-            throw new UnsupportedOperationException();
+        void appendClassVar(StringBuilder target) {
+            target
+                    .append(TAB)
+                    .append("public static final " + RHS_CLASS_NAME + " ")
+                    .append(RHS_INSTANCE_VAR + " = new " + RHS_CLASS_NAME + "();")
+                    .append("\n")
+            ;
+        }
+
+        void appendClassBody(StringBuilder target) {
+            target
+                    .append("\n")
+                    .append(TAB)
+                    .append("public static class " + RHS_CLASS_NAME + " extends ")
+                    .append(AbstractLiteralRhs.class.getName())
+                    .append(" {\n\n")
+                    .append(TAB).append(TAB)
+                    .append("@Override\n")
+                    .append(TAB).append(TAB)
+                    .append("protected final void doRhs() {\n")
+            ;
+
+            // Assign vars
+            for (NamedType t : rhs.getContext().getDeclaredFactTypes()) {
+                target
+                        .append(TAB).append(TAB).append(TAB)
+                        .append(t.getType().getJavaType()).append(" ")
+                        .append(t.getName())
+                        .append(" = ")
+                        .append("get(\"")
+                        .append(t.getName())
+                        .append("\");\n");
+            }
+
+            // Inner method call
+            target
+                    .append(TAB).append(TAB).append(TAB)
+                    .append("this.doRhs(")
+                    .append(this.args)
+                    .append(");\n")
+                    .append(TAB).append(TAB)
+                    .append("}\n\n")
+            ;
+
+            // Inner method declaration
+            target.append(TAB).append(TAB)
+                    .append("private void doRhs(")
+                    .append(this.methodArgs)
+                    .append(") {\n")
+            ;
+
+            String source = "/***** Start RHS source *****/\n" + this.rhs.getSource() + "\n" + "/****** End RHS source ******/";
+            String[] lines = source.split("\n");
+            for (String line : lines) {
+                target
+                        .append(TAB)
+                        .append(TAB)
+                        .append(TAB)
+                        .append(line)
+                        .append("\n");
+            }
+
+            // end of class
+            target.append(TAB).append(TAB)
+                    .append("}\n")
+
+                    .append(TAB)
+                    .append("}")
+            ;
         }
 
     }
@@ -339,24 +425,38 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
 
         private final Collection<LiteralEvaluator> conditions;
 
+        private final Consumer<RhsContext> rhs;
+
         public RuleCompiledSourcesImpl(Class<?> ruleClass, RuleSource<S, R> source) {
             this.source = source;
 
             Map<LiteralExpression, ConditionSource> compiledConditions = new IdentityHashMap<>();
-            for(ConditionSource conditionSource : source.conditionSources) {
+            for (ConditionSource conditionSource : source.conditionSources) {
                 compiledConditions.put(conditionSource.source, conditionSource);
             }
 
             Collection<LiteralExpression> originalConditions = source.delegate.conditions();
             this.conditions = new ArrayList<>(originalConditions.size());
 
-            for(LiteralExpression condition : originalConditions) {
+            for (LiteralExpression condition : originalConditions) {
                 ConditionSource compiled = compiledConditions.get(condition);
-                if(compiled == null) {
+                if (compiled == null) {
                     throw new IllegalStateException("Condition not found or not compiled");
                 } else {
                     assert compiled.source == condition;
                     this.conditions.add(new LiteralEvaluatorImpl(compiled, ruleClass));
+                }
+            }
+
+            // Define RHS if present
+            if (source.delegate.rhs() == null) {
+                this.rhs = null;
+            } else {
+                try {
+                    //noinspection unchecked
+                    this.rhs = (Consumer<RhsContext>) ruleClass.getDeclaredField(RHS_INSTANCE_VAR).get(null);
+                } catch (IllegalAccessException | NoSuchFieldException e) {
+                    throw new IllegalStateException("RHS source provided but not compiled");
                 }
             }
         }
@@ -373,7 +473,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
 
         @Override
         public Consumer<RhsContext> rhs() {
-            throw new UnsupportedOperationException("Not implemented");
+            return this.rhs;
         }
     }
 

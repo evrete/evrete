@@ -5,7 +5,7 @@ import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.runtime.evaluation.EvaluatorOfPredicate;
 import org.evrete.spi.minimal.DefaultExpressionResolverProvider;
-import org.evrete.spi.minimal.DefaultLiteralRhsCompiler;
+import org.evrete.spi.minimal.DefaultLiteralSourceCompiler;
 import org.evrete.spi.minimal.DefaultMemoryFactoryProvider;
 import org.evrete.spi.minimal.DefaultTypeResolverProvider;
 import org.evrete.util.RhsAssert;
@@ -29,7 +29,7 @@ class DeprecatedEvaluationContextTests {
                 .withExpressionResolverProvider(DefaultExpressionResolverProvider.class)
                 .withMemoryFactoryProvider(DefaultMemoryFactoryProvider.class)
                 .withTypeResolverProvider(DefaultTypeResolverProvider.class)
-                .withLiteralRhsCompiler(DefaultLiteralRhsCompiler.class)
+                .withLiteralSourceCompiler(DefaultLiteralSourceCompiler.class)
                 .build();
     }
 
