@@ -24,7 +24,8 @@ import java.util.function.Predicate;
 import static org.evrete.api.FactBuilder.fact;
 
 
-class PredicatesTests {
+//TODO remove on next release
+class DeprecatedPredicatesTests {
     private static KnowledgeService service;
     private Knowledge knowledge;
 
@@ -52,9 +53,7 @@ class PredicatesTests {
             return i1 != i2;
         };
 
-        knowledge
-                .builder()
-                .newRule("testSingleFinalNode1")
+        knowledge.newRule("testSingleFinalNode1")
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -64,8 +63,7 @@ class PredicatesTests {
                 .where(sharedPredicate, "$a.i", "$b.i")
                 .where(sharedPredicate, "$a.i", "$c.i")
                 .where(sharedPredicate, "$a.i", "$d.i")
-                .execute()
-                .build();
+                .execute();
 
 
         StatefulSession s = knowledge.newStatefulSession();
@@ -139,9 +137,7 @@ class PredicatesTests {
         };
 
 
-        knowledge
-                .builder()
-                .newRule("test circular")
+        knowledge.newRule("test circular")
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -151,8 +147,7 @@ class PredicatesTests {
                 .where(p1, "$a.i", "$b.i")
                 .where(p2, "$c.l", "$b.l")
                 .where(p3, "$c.i", "$a.l")
-                .execute()
-                .build();
+                .execute();
 
         StatefulSession s = knowledge.newStatefulSession();
 
@@ -205,9 +200,7 @@ class PredicatesTests {
     void testMultiFinal2_mini() {
         String ruleName = "testMultiFinal2_mini";
 
-        knowledge
-                .builder()
-                .newRule(ruleName)
+        knowledge.newRule(ruleName)
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -223,8 +216,7 @@ class PredicatesTests {
                     long i2 = (long) values[1];
                     return i1 == i2;
                 }, "$c.l", "$b.l")
-                .execute()
-                .build();
+                .execute();
 
         StatefulSession s = knowledge.newStatefulSession();
 
@@ -279,16 +271,13 @@ class PredicatesTests {
             return ai * bl * bs == al;
         };
 
-        knowledge
-                .builder()
-                .newRule(ruleName)
+        knowledge.newRule(ruleName)
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
                 )
                 .where(predicate, "$a.i", "$b.l", "$b.s", "$a.l")
-                .execute()
-                .build();
+                .execute();
 
         StatefulSession s = knowledge.newStatefulSession();
 
@@ -364,9 +353,7 @@ class PredicatesTests {
             return bf < 10;
         };
 
-        knowledge
-                .builder()
-                .newRule("test alpha 1")
+        knowledge.newRule("test alpha 1")
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
@@ -383,9 +370,7 @@ class PredicatesTests {
                 .where(rule2_1, "$a.i", "$b.i")
                 .where(rule2_2, "$a.i")
                 .where(rule2_3, "$b.f")
-                .execute(rhsAssert2)
-                .build()
-        ;
+                .execute(rhsAssert2);
 
         try (StatefulSession s = knowledge.newStatefulSession()) {
             TypeA a = new TypeA("A");
@@ -436,10 +421,7 @@ class PredicatesTests {
 
             return i1 * i2 == i3;
         };
-
-        knowledge
-                .builder()
-                .newRule("test uni 2")
+        knowledge.newRule("test uni 2")
                 .forEach(
                         "$a1", TypeA.class,
                         "$a2", TypeA.class,
@@ -453,8 +435,7 @@ class PredicatesTests {
                             TypeA a3 = ctx.get("$a3");
                             collectedJoinedIds.add(a1.getId() + a2.getId() + a3.getId());
                         }
-                )
-                .build();
+                );
 
         try (StatefulSession s = knowledge.newStatefulSession()) {
 
@@ -522,9 +503,7 @@ class PredicatesTests {
             return i1 > 3;
         };
 
-        knowledge
-                .builder()
-                .newRule()
+        knowledge.newRule()
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -532,8 +511,7 @@ class PredicatesTests {
                 )
                 .where(p1, "$a.i")
                 .where(p2, "$b.i")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
         TypeC c1;
         TypeC c2;
@@ -590,9 +568,7 @@ class PredicatesTests {
         };
 
 
-        knowledge
-                .builder()
-                .newRule()
+        knowledge.newRule()
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class,
@@ -602,7 +578,6 @@ class PredicatesTests {
                 .where(p2, "$b.i")
                 .where(p3, "$c.i")
                 .execute(rhsAssert)
-                .build()
         ;
 
         try (StatefulSession s = knowledge.newStatefulSession()) {
@@ -638,7 +613,6 @@ class PredicatesTests {
         AtomicInteger counter = new AtomicInteger(0);
 
         knowledge = knowledge
-                .builder()
                 .newRule()
                 .forEach(
                         "$a1", TypeA.class,
@@ -650,8 +624,7 @@ class PredicatesTests {
                     TypeA a1 = ctx.get("$a1");
                     TypeA a2 = ctx.get("$a2");
                     assert Objects.equals(a1.getStr(), a2.getStr());
-                })
-                .build();
+                });
 
         try (StatefulSession session = knowledge.newStatefulSession()) {
             int count = 16;
@@ -671,7 +644,6 @@ class PredicatesTests {
         AtomicInteger counter = new AtomicInteger(0);
 
         StatelessSession session = knowledge
-                .builder()
                 .newRule()
                 .forEach(
                         "$a1", TypeA.class
@@ -682,7 +654,6 @@ class PredicatesTests {
                     TypeA a1 = ctx.get("$a1");
                     assert !Objects.equals(a1.getStr(), "0");
                 })
-                .build()
                 .newStatelessSession();
 
         int count = 16;
@@ -702,7 +673,6 @@ class PredicatesTests {
         AtomicInteger counter = new AtomicInteger(0);
 
         StatelessSession session = knowledge
-                .builder()
                 .newRule()
                 .forEach(
                         "$a1", TypeA.class
@@ -713,7 +683,6 @@ class PredicatesTests {
                     TypeA a1 = ctx.get("$a1");
                     assert !Objects.equals(a1.getStr(), "0");
                 })
-                .build()
                 .newStatelessSession();
 
         int count = 16;
@@ -733,7 +702,6 @@ class PredicatesTests {
         AtomicInteger counter = new AtomicInteger(0);
 
         StatelessSession session = knowledge
-                .builder()
                 .newRule()
                 .forEach(
                         "$a1", TypeA.class
@@ -744,7 +712,6 @@ class PredicatesTests {
                     TypeA a1 = ctx.get("$a1");
                     assert !Objects.equals(a1.getStr(), "0");
                 })
-                .build()
                 .newStatelessSession();
 
         int count = 16;
@@ -759,13 +726,11 @@ class PredicatesTests {
 
     }
 
-
     @Test
     void testBaseConditionClass() {
         AtomicInteger counter = new AtomicInteger(0);
 
         StatelessSession session = knowledge
-                .builder()
                 .newRule()
                 .forEach(
                         "$a1", TypeA.class,
@@ -781,7 +746,6 @@ class PredicatesTests {
                     assert Objects.equals(a1.getStr(), a2.getStr());
                     assert Objects.equals(a1.getStr(), a3.getStr());
                 })
-                .build()
                 .newStatelessSession();
 
         int count = 16;

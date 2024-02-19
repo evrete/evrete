@@ -17,8 +17,13 @@ class LhsDescriptor {
     private final FactType[] factTypes;
     private final RhsFactGroupDescriptor[] allFactGroups;
 
+/*
     LhsDescriptor(AbstractRuntime<?, ?> runtime, LhsBuilder<?> builder, LhsConditionHandles lhsConditions, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
-        Collection<NamedType> declaredTypes = builder.getDeclaredFactTypes();
+        this(runtime, builder.getDeclaredFactTypes(), lhsConditions, factIdGenerator, typeMapping);
+    }
+*/
+
+    LhsDescriptor(AbstractRuntime<?, ?> runtime, Collection<NamedType> declaredTypes, LhsConditionHandles lhsConditions, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
 
         // Split conditions into alpha and beta ones
         MapOfSet<String, EvaluatorHandle> alphaHandles = new MapOfSet<>();

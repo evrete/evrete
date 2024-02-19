@@ -64,7 +64,7 @@ public abstract class AbstractRuntimeRule<T extends FactType> extends AbstractRu
             for (FactType factType : factTypes) {
                 namedTypes.add(resolve(factType.getName()));
             }
-            setRhs(runtime.compile(literalRhs, namedTypes));
+            setRhs(runtime.compileRHS(literalRhs, namedTypes));
         }
     }
 }

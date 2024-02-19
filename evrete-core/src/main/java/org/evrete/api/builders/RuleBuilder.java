@@ -1,5 +1,6 @@
-package org.evrete.api;
+package org.evrete.api.builders;
 
+import org.evrete.api.*;
 import org.evrete.runtime.compiler.CompilationException;
 
 import java.util.function.Predicate;

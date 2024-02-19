@@ -3,6 +3,8 @@ package org.evrete.util;
 import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
+import org.evrete.api.builders.RuleSetBuilder;
+import org.evrete.runtime.compiler.CompilationException;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -42,8 +44,8 @@ public class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends Run
     }
 
     @Override
-    public final void setRuleBuilderExceptionHandler(RuleBuilderExceptionHandler handler) {
-        delegate.setRuleBuilderExceptionHandler(handler);
+    public LiteralEvaluator compile(LiteralExpression expression) throws CompilationException {
+        return delegate.compile(expression);
     }
 
     @Override
@@ -108,6 +110,11 @@ public class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends Run
     @Override
     public RuleBuilder<C> newRule() {
         return delegate.newRule();
+    }
+
+    @Override
+    public RuleSetBuilder<C> builder() {
+        return delegate.builder();
     }
 
     @Override

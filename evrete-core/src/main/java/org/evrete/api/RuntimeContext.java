@@ -2,6 +2,7 @@ package org.evrete.api;
 
 import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
+import org.evrete.api.builders.RuleSetBuilder;
 import org.evrete.runtime.compiler.CompilationException;
 
 import java.util.Comparator;
@@ -16,15 +17,40 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
 
     void setRuleComparator(Comparator<Rule> comparator);
 
+    /**
+     * Creates a new rule with the provided name.
+     *
+     * @param name rule name
+     * @return a new rule builder
+     * @deprecated this method is deprecated in favor of a more efficient way of building rules,
+     * especially for large rule sets. See {@link #builder()} for details
+     */
+    @Deprecated
     RuleBuilder<C> newRule(String name);
 
     /**
-     * @deprecated use {@link #compile(LiteralExpression)} instead
+     * Creates a new unnamed rule.
+     *
+     * @return a new rule builder
+     * @deprecated this method is deprecated in favor of a more efficient way of building rules,
+     * especially for large rule sets. See {@link #builder()} for details
      */
     @Deprecated
-    default Evaluator compile(String expression, NamedType.Resolver resolver) throws CompilationException {
-        return getExpressionResolver().buildExpression(expression, resolver);
-    }
+    RuleBuilder<C> newRule();
+
+
+    /**
+     * <p>
+     *     Returns an instance of {@link RuleSetBuilder} for building and appending rules to the current context.
+     * </p>
+     * <p>
+     *     Builder <strong>MUST</strong> be terminated with the {@link RuleSetBuilder#build()} call for changes to take effect.
+     * </p>
+     *
+     * @return new instance of RuleSetBuilder.
+     */
+    RuleSetBuilder<C> builder();
+
 
     /**
      * <p>
@@ -35,11 +61,7 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
      * @return new evaluator instance
      * @throws CompilationException if the expression failed to compile
      */
-    default LiteralEvaluator compile(LiteralExpression expression) throws CompilationException {
-        return getExpressionResolver().buildExpression(expression);
-    }
-
-    RuleBuilder<C> newRule();
+    LiteralEvaluator compile(LiteralExpression expression) throws CompilationException;
 
     void wrapTypeResolver(TypeResolverWrapper wrapper);
 
@@ -51,8 +73,9 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
 
     /**
      * <p>
-     *     Sets new parent classloader for this context's internal classloader.
+     * Sets new parent classloader for this context's internal classloader.
      * </p>
+     *
      * @param classLoader this context's new parent classloader
      */
     void setClassLoader(ClassLoader classLoader);

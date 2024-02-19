@@ -2,6 +2,7 @@ package org.evrete.api;
 
 import org.evrete.api.annotations.NonNull;
 import org.evrete.runtime.compiler.CompilationException;
+import org.evrete.runtime.compiler.LHSCompilationException;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -47,15 +48,6 @@ public interface ExpressionResolver {
     }
 
     /**
-     * @deprecated use {@link #buildExpression(LiteralExpression)} instead
-     */
-    @NonNull
-    @Deprecated
-    default Evaluator buildExpression(String expression, NamedType.Resolver resolver) throws CompilationException {
-        return buildExpression(LiteralExpression.of(expression, resolver));
-    }
-
-    /**
      * <p>
      * This method parses a string argument and returns an {@link Evaluator} if possible.
      * </p>
@@ -86,8 +78,8 @@ public interface ExpressionResolver {
      *
      * @param expressions - literal expressions
      * @return collection of {@link LiteralEvaluator} instances
-     * @throws CompilationException  if the argument can not be compiled
+     * @throws LHSCompilationException  if the argument can not be compiled
      * @throws IllegalArgumentException if the expression can not be resolved
      */
-    Collection<LiteralEvaluator> buildExpressions(Collection<LiteralExpression> expressions) throws CompilationException;
+    Collection<LiteralEvaluator> buildExpressions(Collection<LiteralExpression> expressions) throws LHSCompilationException;
 }

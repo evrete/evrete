@@ -12,9 +12,13 @@ public final class RuleDescriptor extends AbstractRuntimeRule<FactType> {
         this.lhsDescriptor = lhsDescriptor;
     }
 
-    static RuleDescriptor factory(AbstractRuntime<?, ?> runtime, RuleBuilderImpl<?> rule, LhsConditionHandles lhsConditions,  String ruleName, int salience) {
-        LhsDescriptor lhsDescriptor = new LhsDescriptor(runtime, rule.getLhs(), lhsConditions, new NextIntSupplier(), new MapFunction<>());
-        return new RuleDescriptor(runtime, rule, ruleName, salience, lhsDescriptor);
+    static RuleDescriptor factory(AbstractRuntime<?, ?> runtime, RuleBuilderImpl<?> rule, LhsConditionHandles lhsConditions, int salience) {
+        LhsDescriptor lhsDescriptor = new LhsDescriptor(runtime, rule.getLhs().getDeclaredFactTypes(), lhsConditions, new NextIntSupplier(), new MapFunction<>());
+        return new RuleDescriptor(runtime, rule, rule.getName(), salience, lhsDescriptor);
+    }
+    static RuleDescriptor factory(AbstractRuntime<?, ?> runtime, DefaultRuleBuilder<?> rule, LhsConditionHandles lhsConditions, int salience) {
+        LhsDescriptor lhsDescriptor = new LhsDescriptor(runtime, rule.getLhs().getDeclaredFactTypes(), lhsConditions, new NextIntSupplier(), new MapFunction<>());
+        return new RuleDescriptor(runtime, rule, rule.getName(), salience, lhsDescriptor);
     }
 
     LhsDescriptor getLhs() {

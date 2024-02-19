@@ -38,8 +38,17 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
     protected void addRuleInner(org.evrete.api.RuleBuilder<?> builder) throws CompilationException {
         RuleBuilderImpl<?> impl = (RuleBuilderImpl<?>) builder;
         RuleDescriptor rd = super.compileRuleBuilder(impl);
-        this.ruleDescriptors.add(rd);
-        this.ruleDescriptors.sort(getRuleComparator());
+        this.addRuleDescriptors(Collections.singletonList(rd));
+    }
+
+    @Override
+    void addRuleDescriptors(List<RuleDescriptor> descriptors) {
+        if(!descriptors.isEmpty()) {
+            for(RuleDescriptor rd : descriptors) {
+                this.ruleDescriptors.add(rd);
+            }
+            this.ruleDescriptors.sort(getRuleComparator());
+        }
     }
 
     @Override

@@ -14,17 +14,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-import java.util.HashSet;
 import java.util.Random;
-import java.util.Set;
 import java.util.function.Predicate;
 
 import static org.evrete.api.FactBuilder.fact;
 
-@SuppressWarnings("resource")
-class HotDeploymentStatefulTests {
+//TODO remove on next release
+class DeprecatedHotDeploymentStatelessTests {
     private static KnowledgeService service;
-    private StatefulSession session;
+    private StatelessSession session;
 
     @BeforeAll
     static void setUpClass() {
@@ -38,7 +36,7 @@ class HotDeploymentStatefulTests {
 
     @BeforeEach
     void init() {
-        session = service.newStatefulSession();
+        session = service.newStatelessSession();
     }
 
     @ParameterizedTest
@@ -46,18 +44,12 @@ class HotDeploymentStatefulTests {
     void plainTest0(ActivationMode mode) {
         session.setActivationMode(mode);
         RhsAssert rhsAssert = new RhsAssert("$n", Integer.class);
-        session
-                .builder()
-                .newRule()
+        session.newRule()
                 .forEach("$n", Integer.class)
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
         session.insertAndFire(1, 2);
         rhsAssert.assertCount(2).reset();
-        session.insertAndFire(3);
-        rhsAssert.assertCount(1).assertContains("$n", 3);
-        session.close();
     }
 
     @ParameterizedTest
@@ -65,24 +57,13 @@ class HotDeploymentStatefulTests {
     void plainTest1(ActivationMode mode) {
         session.setActivationMode(mode);
         RhsAssert rhsAssert = new RhsAssert("$n", Integer.class);
-        session
-                .builder()
-                .newRule()
+        session.newRule()
                 .forEach("$n", Integer.class)
                 .where("$n.intValue >= 0 ")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
         session.insertAndFire(1, 2);
         rhsAssert.assertCount(2).reset();
-        session.insertAndFire(3);
-        rhsAssert.assertCount(1).assertContains("$n", 3).reset();
-
-        session.fire();
-        rhsAssert.assertCount(0);
-        session.insertAndFire(-1);
-        rhsAssert.assertCount(0);
-        session.close();
     }
 
 
@@ -90,21 +71,14 @@ class HotDeploymentStatefulTests {
     @EnumSource(ActivationMode.class)
     void namingTest(ActivationMode mode) {
         session.setActivationMode(mode);
-        session
-                .builder()
-                .newRule("A")
-                .forEach("$a", String.class)
-                .execute()
-                .build();
+        session.newRule("A").forEach("$a", String.class).execute();
         RuntimeRule a = session.getRule("A");
         assert a != null;
         Assertions.assertThrows(RuntimeException.class,
                 () -> session
-                        .builder()
                         .newRule("A") // Same name
                         .forEach("$a", String.class)
                         .execute()
-                        .build()
         );
     }
 
@@ -119,9 +93,7 @@ class HotDeploymentStatefulTests {
             return i1 != i2;
         };
 
-        session
-                .builder()
-                .newRule("testSingleFinalNode1")
+        session.newRule("testSingleFinalNode1")
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -131,8 +103,7 @@ class HotDeploymentStatefulTests {
                 .where(sharedPredicate, "$a.i", "$b.i")
                 .where(sharedPredicate, "$a.i", "$c.i")
                 .where(sharedPredicate, "$a.i", "$d.i")
-                .execute()
-                .build();
+                .execute();
 
         RhsAssert rhsAssert = new RhsAssert(session);
 
@@ -206,9 +177,7 @@ class HotDeploymentStatefulTests {
         };
 
 
-        session
-                .builder()
-                .newRule("test circular")
+        session.newRule("test circular")
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -218,8 +187,7 @@ class HotDeploymentStatefulTests {
                 .where(p1, "$a.i", "$b.i")
                 .where(p2, "$c.l", "$b.l")
                 .where(p3, "$c.i", "$a.l")
-                .execute()
-                .build();
+                .execute();
 
         TypeA a = new TypeA("A");
         a.setI(1);
@@ -259,8 +227,8 @@ class HotDeploymentStatefulTests {
 
         RhsAssert rhsAssert = new RhsAssert(session, "test circular");
 
-        session.insertAndFire(a, aa, aaa);
-        session.insertAndFire(b, bb, bbb);
+        session.insert(a, aa, aaa);
+        session.insert(b, bb, bbb);
         session.insertAndFire(c, cc, ccc);
 
         rhsAssert.assertCount(3);
@@ -272,9 +240,7 @@ class HotDeploymentStatefulTests {
         String ruleName = "testMultiFinal2_mini";
         session.setActivationMode(mode);
 
-        session
-                .builder()
-                .newRule(ruleName)
+        session.newRule(ruleName)
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -290,8 +256,7 @@ class HotDeploymentStatefulTests {
                     long i2 = (long) values[1];
                     return i1 == i2;
                 }, "$c.l", "$b.l")
-                .execute()
-                .build();
+                .execute();
 
 
         TypeA a = new TypeA("AA");
@@ -311,24 +276,6 @@ class HotDeploymentStatefulTests {
 
         session.insertAndFire(a, b, c);
         rhsAssert.assertCount(1).reset();
-
-        //Second insert
-        TypeA aa = new TypeA("A");
-        aa.setI(2);
-        aa.setL(2);
-
-        TypeB bb = new TypeB("B");
-        bb.setI(2);
-        bb.setL(2);
-
-        TypeC cc = new TypeC("C");
-        cc.setI(2);
-        cc.setL(2);
-
-        session.insertAndFire(aa, bb, cc);
-        rhsAssert.assertCount(1);
-
-        session.close();
     }
 
     @ParameterizedTest
@@ -346,16 +293,13 @@ class HotDeploymentStatefulTests {
             return ai * bl * bs == al;
         };
 
-        session
-                .builder()
-                .newRule(ruleName)
+        session.newRule(ruleName)
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
                 )
                 .where(predicate, "$a.i", "$b.l", "$b.s", "$a.l")
-                .execute()
-                .build();
+                .execute();
 
 
         TypeA a1 = new TypeA("A1");
@@ -369,20 +313,6 @@ class HotDeploymentStatefulTests {
         RhsAssert rhsAssert = new RhsAssert(session, ruleName);
         session.insertAndFire(a1, b1);
         rhsAssert.assertCount(1).reset();
-
-        //Second insert
-        TypeA a2 = new TypeA("A2");
-        a2.setI(7);
-        a2.setL(693L);
-
-        TypeB b2 = new TypeB("B2");
-        b2.setL(9);
-        b2.setS((short) 11);
-
-        session.insertAndFire(a2, b2);
-        rhsAssert.assertCount(1);
-
-        session.close();
     }
 
     @ParameterizedTest
@@ -399,9 +329,7 @@ class HotDeploymentStatefulTests {
                 "$d", TypeD.class
         );
 
-        session
-                .builder()
-                .newRule("test alpha 1")
+        session.newRule("test alpha 1")
                 .forEach(
                         "$a1", TypeA.class,
                         "$b1", TypeB.class,
@@ -413,8 +341,7 @@ class HotDeploymentStatefulTests {
                 .where("$a1.i != $b1.i")
                 .where("$a2.i != $b2.i")
                 .where("$c.i > 0")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
 
         TypeA a1 = new TypeA("A1");
@@ -434,7 +361,7 @@ class HotDeploymentStatefulTests {
 
         TypeD d1 = new TypeD("D1");
 
-        session.insertAndFire(a1, b1, a2, b2, c1, d1);
+        session.insert(a1, b1, a2, b2, c1, d1);
         rhsAssert.assertCount(0).reset();
 
         TypeC c2 = new TypeC("C2");
@@ -442,15 +369,6 @@ class HotDeploymentStatefulTests {
         session.insertAndFire(c2);
 
         rhsAssert.assertCount(4 * 4).reset();
-
-        TypeC c3 = new TypeC("C3");
-        c3.setI(100);
-        session.insertAndFire(c3);
-        rhsAssert.assertCount(4 * 4).reset();
-
-        TypeD d2 = new TypeD("D2");
-        session.insertAndFire(d2);
-        rhsAssert.assertCount(2 * 4 * 4);
     }
 
     @ParameterizedTest
@@ -500,9 +418,7 @@ class HotDeploymentStatefulTests {
             return bf < 10;
         };
 
-        session
-                .builder()
-                .newRule("test alpha 1")
+        session.newRule("test alpha 1")
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
@@ -520,7 +436,6 @@ class HotDeploymentStatefulTests {
                 .where(rule2_2, "$a.i")
                 .where(rule2_3, "$b.f")
                 .execute(rhsAssert2)
-                .build()
         ;
 
         TypeA a = new TypeA("A");
@@ -560,84 +475,6 @@ class HotDeploymentStatefulTests {
                 .reset();
     }
 
-    @ParameterizedTest
-    @EnumSource(ActivationMode.class)
-    void testUniType2(ActivationMode mode) {
-        session.setActivationMode(mode);
-
-        Set<String> collectedJoinedIds = new HashSet<>();
-
-        ValuesPredicate predicate = v -> {
-            int i1 = (int) v.apply(0);
-            int i2 = (int) v.apply(1);
-            int i3 = (int) v.apply(2);
-
-            return i1 * i2 == i3;
-        };
-        session
-                .builder()
-                .newRule("test uni 2")
-                .forEach(
-                        "$a1", TypeA.class,
-                        "$a2", TypeA.class,
-                        "$a3", TypeA.class
-                )
-                .where(predicate, "$a1.i", "$a2.i", "$a3.i")
-                .execute(
-                        ctx -> {
-                            TypeA a1 = ctx.get("$a1");
-                            TypeA a2 = ctx.get("$a2");
-                            TypeA a3 = ctx.get("$a3");
-                            collectedJoinedIds.add(a1.getId() + a2.getId() + a3.getId());
-                        }
-                )
-                .build();
-
-
-        TypeA a1 = new TypeA("A3");
-        a1.setI(3);
-
-        TypeA a2 = new TypeA("A5");
-        a2.setI(5);
-
-        session.insertAndFire(a1, a2);
-        assert collectedJoinedIds.isEmpty();
-
-
-        for (int i = 0; i < 20; i++) {
-            TypeA misc = new TypeA();
-            misc.setI(i + 1000);
-            session.insertAndFire(misc);
-        }
-
-        assert collectedJoinedIds.isEmpty();
-
-        TypeA a3 = new TypeA("A15");
-        a3.setI(15);
-
-        session.insertAndFire(a3);
-        assert collectedJoinedIds.size() == 2 : "Actual data: " + collectedJoinedIds;
-        assert collectedJoinedIds.contains("A3A5A15") : "Actual: " + collectedJoinedIds;
-        assert collectedJoinedIds.contains("A5A3A15");
-
-
-        TypeA a7 = new TypeA("A7");
-        a7.setI(7);
-
-        TypeA a11 = new TypeA("A11");
-        a11.setI(11);
-
-        TypeA a77 = new TypeA("A77");
-        a77.setI(77);
-
-        session.insertAndFire(a7, a11, a77);
-        assert collectedJoinedIds.size() == 4 : "Actual " + collectedJoinedIds;
-        assert collectedJoinedIds.contains("A3A5A15");
-        assert collectedJoinedIds.contains("A5A3A15");
-        assert collectedJoinedIds.contains("A7A11A77");
-        assert collectedJoinedIds.contains("A11A7A77");
-
-    }
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
@@ -650,9 +487,7 @@ class HotDeploymentStatefulTests {
                 "$c", TypeC.class
         );
 
-        session
-                .builder()
-                .newRule()
+        session.newRule()
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -660,8 +495,7 @@ class HotDeploymentStatefulTests {
                 )
                 .where("$a.i > 4")
                 .where("$b.i > 3")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
 
         // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
@@ -672,9 +506,7 @@ class HotDeploymentStatefulTests {
             b.setI(i);
             session.insert(a, b);
         }
-        session.fire();
         TypeC c1 = new TypeC("C");
-        TypeC c2 = new TypeC("C");
         rhsAssert.assertCount(0).reset();
         session.insert(c1);
         session.fire();
@@ -682,12 +514,6 @@ class HotDeploymentStatefulTests {
                 .assertCount(30)
                 .assertContains("$c", c1)
                 .reset();
-        session.insert(c2);
-        session.fire();
-        rhsAssert
-                .assertCount(30)
-                .assertNotContains("$c", c1)
-                .assertContains("$c", c2);
     }
 
     @ParameterizedTest
@@ -701,9 +527,7 @@ class HotDeploymentStatefulTests {
                 "$c", TypeC.class
         );
 
-        session
-                .builder()
-                .newRule()
+        session.newRule()
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class,
@@ -712,8 +536,7 @@ class HotDeploymentStatefulTests {
                 .where("$a.i > 4")
                 .where("$b.i > 3")
                 .where("$c.i > 6")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
         // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
         for (int i = 0; i < 10; i++) {
@@ -723,7 +546,6 @@ class HotDeploymentStatefulTests {
             b.setI(i);
             session.insert(a, b);
         }
-        session.fire();
         rhsAssert.assertCount(0).reset();
 
         // This insert cycle will result in 3 matching pairs of C (7,8,9)
@@ -749,9 +571,7 @@ class HotDeploymentStatefulTests {
         RhsAssert rhsAssert2 = new RhsAssert("$a", TypeA.class);
         RhsAssert rhsAssert3 = new RhsAssert("$a", TypeA.class);
 
-        session
-                .builder()
-                .newRule("rule 1")
+        session.newRule("rule 1")
                 .forEach("$a", TypeA.class)
                 .where("$a.i > 4")
                 .execute(rhsAssert1)
@@ -762,8 +582,7 @@ class HotDeploymentStatefulTests {
                 .newRule("rule 3")
                 .forEach("$a", TypeA.class)
                 .where("$a.i > 6")
-                .execute(rhsAssert3)
-                .build();
+                .execute(rhsAssert3);
 
 
         // This insert cycle will result in 5 matching As
@@ -810,9 +629,7 @@ class HotDeploymentStatefulTests {
             }
         };
 
-        session
-                .builder()
-                .newRule("rule 1")
+        session.newRule("rule 1")
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -820,8 +637,7 @@ class HotDeploymentStatefulTests {
                 )
                 .where(p1_1, "$a.i")
                 .where(p1_2, "$b.i")
-                .execute()
-                .build();
+                .execute();
 
         // This insert cycle will result in 5x6 = 30 matching pairs of [A,B]
         for (int i = 0; i < 10; i++) {
@@ -833,69 +649,15 @@ class HotDeploymentStatefulTests {
         }
         RhsAssert rhsAssert1 = new RhsAssert(session, "rule 1");
 
-        session.fire();
         rhsAssert1.assertCount(0).reset();
 
         TypeC c = new TypeC();
 
-        FactHandle ch = session.insert(c);
+        session.insert(c);
         session.fire();
         rhsAssert1.assertCount(30).reset();
 
 
-        // Adding another rule
-
-        ValuesPredicate p2_1 = new ValuesPredicate() {
-            @Override
-            public boolean test(IntToValue v) {
-                int i1 = (int) v.apply(0);
-                return i1 > 3;
-            }
-
-            @Override
-            public String toString() {
-                return "$a.i > 3";
-            }
-        };
-
-        ValuesPredicate p2_2 = new ValuesPredicate() {
-            @Override
-            public boolean test(IntToValue v) {
-                int i1 = (int) v.apply(0);
-                return i1 > 2;
-            }
-
-            @Override
-            public String toString() {
-                return "$b.i > 2";
-            }
-        };
-
-        session
-                .builder()
-                .newRule("rule 2")
-                .forEach(
-                        fact("$a", TypeA.class),
-                        fact("$b", TypeB.class),
-                        fact("$c", TypeC.class)
-                )
-                .where(p2_1, "$a.i")
-                .where(p2_2, "$b.i")
-                .execute()
-                .build();
-        RhsAssert rhsAssert2 = new RhsAssert(session, "rule 2");
-
-        session.fire();
-        rhsAssert2.assertCount(0).reset();
-
-        session.delete(ch);
-        session.fire();
-        rhsAssert1.assertCount(0).reset();
-        rhsAssert2.assertCount(0).reset();
-
-        session.insertAndFire(c);
-        rhsAssert1.assertCount(6 * 5);
-        rhsAssert2.assertCount(7 * 6);
     }
 
 
@@ -906,30 +668,16 @@ class HotDeploymentStatefulTests {
 
         RhsAssert rhsAssert1 = new RhsAssert("$i", Integer.class);
 
-        session
-                .builder()
-                .newRule("rule 1")
+        session.newRule("rule 1")
                 .forEach("$i", Integer.class)
                 .where("$i.intValue > 2")
-                .execute(rhsAssert1)
-                .build();
+                .execute(rhsAssert1);
 
         for (int i = 0; i < 10; i++) {
             session.insert(i);
         }
         session.fire();
         rhsAssert1.assertCount(7); //3,4,5,6,7,8,9
-
-        // Another rule w/o alpha
-        RhsAssert rhsAssert2 = new RhsAssert("$i", Integer.class);
-        session
-                .builder()
-                .newRule("rule 2")
-                .forEach("$i", Integer.class)
-                .execute(rhsAssert2)
-                .build();
-        session.fire();
-        rhsAssert2.assertCount(0);
 
     }
 
@@ -941,14 +689,11 @@ class HotDeploymentStatefulTests {
 
         NextIntSupplier ruleCounter1 = new NextIntSupplier();
 
-        session
-                .builder()
-                .newRule("rule 1")
+        session.newRule("rule 1")
                 .forEach("$i", Integer.class)
                 .execute(
                         ctx -> ruleCounter1.next()
-                )
-                .build();
+                );
 
         for (int i = 0; i < 10; i++) {
             session.insert(i);
@@ -956,19 +701,6 @@ class HotDeploymentStatefulTests {
         session.fire();
         assert ruleCounter1.get() == 10;
 
-        // Another rule w/ alpha
-        NextIntSupplier ruleCounter2 = new NextIntSupplier();
-        session
-                .builder()
-                .newRule("rule 2")
-                .forEach("$i", Integer.class)
-                .where("$i.intValue > 2")
-                .execute(
-                        ctx -> ruleCounter2.next()
-                )
-                .build();
-        session.fire();
-        assert ruleCounter2.get() == 0; //3,4,5,6,7,8,9
     }
 
     @ParameterizedTest
@@ -985,8 +717,6 @@ class HotDeploymentStatefulTests {
                 "$d", TypeD.class
         );
 
-        RhsAssert rhsAssert2 = rhsAssert1.copyOf();
-        RhsAssert rhsAssert3 = rhsAssert1.copyOf();
         // A shared predicate between $a1.i != $b1.i and $a2.i != $b2.i
         Predicate<Object[]> beta = arr -> {
             int a1i = (int) arr[0];
@@ -1000,9 +730,7 @@ class HotDeploymentStatefulTests {
             return i > 0;
         };
 
-        session
-                .builder()
-                .newRule("test alpha 1")
+        session.newRule("test alpha 1")
                 .forEach(
                         "$a1", TypeA.class,
                         "$b1", TypeB.class,
@@ -1014,8 +742,8 @@ class HotDeploymentStatefulTests {
                 .where(beta, "$a1.i", "$b1.i")
                 .where(beta, "$a2.i", "$b2.i")
                 .where(alpha, "$c.i")
-                .execute(rhsAssert1)
-                .build();
+                .execute(rhsAssert1);
+
 
         TypeA a1 = new TypeA("A1");
         a1.setI(1);
@@ -1035,101 +763,13 @@ class HotDeploymentStatefulTests {
         TypeD d1 = new TypeD("D1");
         d1.setI(400);
 
-        session.insertAndFire(a1, b1, a2, b2, c1, d1);
+        session.insert(a1, b1, a2, b2, c1, d1);
         rhsAssert1.assertCount(0);
 
         TypeC c2 = new TypeC("C2");
         c2.setI(301);
         session.insertAndFire(c2);
 
-        rhsAssert1.assertCount(4 * 4).reset();
-
-        TypeC c3 = new TypeC("C3");
-        c3.setI(302);
-        session.insertAndFire(c3);
-
-        rhsAssert1.assertCount(4 * 4).reset();
-
-        TypeD d2 = new TypeD("D2");
-        d2.setI(4000);
-        session.insertAndFire(d2);
-
-        rhsAssert1
-                .assertCount(2 * 4 * 4)
-                .assertUniqueCount("$d", 1)
-                .assertUniqueCount("$a1", 2)
-                .assertUniqueCount("$b1", 2)
-                .assertUniqueCount("$a2", 2)
-                .assertUniqueCount("$b2", 2)
-                .assertUniqueCount("$c", 2)
-                .reset();
-
-
-        // Creating the same rule under another name
-        session
-                .builder()
-                .newRule("test alpha 2")
-                .forEach(
-                        "$a1", TypeA.class,
-                        "$b1", TypeB.class,
-                        "$a2", TypeA.class,
-                        "$b2", TypeB.class,
-                        "$c", TypeC.class,
-                        "$d", TypeD.class
-                )
-                .where(beta, "$a1.i", "$b1.i")
-                .where(beta, "$a2.i", "$b2.i")
-                .where(alpha, "$c.i")
-                .execute(rhsAssert2)
-                .build();
-
-        session.fire();
-        rhsAssert1.assertCount(0).reset();
-        rhsAssert2.assertCount(0).reset();
-
-        // Another rule  with extra alpha predicates
-        session
-                .builder()
-                .newRule("test alpha 3")
-                .forEach(
-                        "$a1", TypeA.class,
-                        "$b1", TypeB.class,
-                        "$a2", TypeA.class,
-                        "$b2", TypeB.class,
-                        "$c", TypeC.class,
-                        "$d", TypeD.class
-                )
-                .where(beta, "$a1.i", "$b1.i")
-                .where(beta, "$a2.i", "$b2.i")
-                .where(alpha, "$c.i")
-                .where("$d.i > 100")
-                .execute(rhsAssert3)
-                .build();
-
-        session.fire();
-
-        rhsAssert1.assertCount(0);
-        rhsAssert2.assertCount(0);
-        rhsAssert3.assertCount(0);
-
-        // Test the new ruleset as a whole
-        TypeD d3 = new TypeD("D3");
-        d3.setI(-4000);
-
-        session.insertAndFire(d3);
-        rhsAssert1.assertCount(2 * 4 * 4).reset();
-        rhsAssert2.assertCount(2 * 4 * 4).reset();
-        rhsAssert3.assertCount(0).reset();
-
-        TypeD d4 = new TypeD("D4");
-        d4.setI(4000);
-        session.insertAndFire(d4);
-        rhsAssert1.assertCount(2 * 4 * 4).reset();
-        rhsAssert2.assertCount(2 * 4 * 4).reset();
-        rhsAssert3.assertCount(2 * 4 * 4).reset();
-
-
-        session.close();
     }
 
 }

@@ -146,7 +146,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
         return knowledge;
     }
 
-    private synchronized void deployRules(Collection<RuleDescriptor> descriptors, boolean hotDeployment) {
+    private void deployRules(Collection<RuleDescriptor> descriptors, boolean hotDeployment) {
         for(RuleDescriptor rd : descriptors) {
             deployRule(rd, hotDeployment);
         }
@@ -174,6 +174,11 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
         RuleBuilderImpl<?> impl = (RuleBuilderImpl<?>) builder;
         RuleDescriptor rd = compileRuleBuilder(impl);
         deployRule(rd, true);
+    }
+
+    @Override
+    void addRuleDescriptors(List<RuleDescriptor> descriptors) {
+        deployRules(descriptors, true);
     }
 
     @Override

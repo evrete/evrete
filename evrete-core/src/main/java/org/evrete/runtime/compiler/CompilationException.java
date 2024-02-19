@@ -15,7 +15,7 @@ public class CompilationException extends Exception {
     private final List<String> otherErrors;
     private final Map<JavaSourceCompiler.ClassSource, String> errorSources;
 
-    CompilationException(List<String> otherErrors, Map<JavaSourceCompiler.ClassSource, String> errorSources) {
+    protected CompilationException(List<String> otherErrors, Map<JavaSourceCompiler.ClassSource, String> errorSources) {
         super("Source compilation error. Failed sources: " + errorSources.size() + ", other errors: " + otherErrors.size() + ", see application logs for details.");
         this.otherErrors = otherErrors;
         this.errorSources = errorSources;

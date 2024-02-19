@@ -17,6 +17,7 @@ public interface RuntimeRule extends Rule {
      */
     default Evaluator buildExpression(String expression) {
         try {
+            //TODO review usage / deprecate
             return getRuntime().compile(LiteralExpression.of(expression, this));
         } catch (CompilationException e) {
             throw new IllegalArgumentException("Unable to compile expression '" + expression + "'", e);

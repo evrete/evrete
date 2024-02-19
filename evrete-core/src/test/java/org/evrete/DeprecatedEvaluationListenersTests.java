@@ -13,7 +13,8 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-class EvaluationListenersTests {
+//TODO remove on next release
+class DeprecatedEvaluationListenersTests {
     private static KnowledgeService service;
     private Knowledge knowledge;
 
@@ -39,13 +40,10 @@ class EvaluationListenersTests {
         NextIntSupplier sessionListenerCounter = new NextIntSupplier();
 
         RhsAssert rhsAssert = new RhsAssert("$n", Integer.class);
-        knowledge
-                .builder()
-                .newRule()
+        knowledge.newRule()
                 .forEach("$n", Integer.class)
                 .where("$n.intValue > 1")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
 
         EvaluationListener kl = new EvaluationListener() {
@@ -94,9 +92,7 @@ class EvaluationListenersTests {
                 "$b", TypeB.class
         );
 
-        knowledge
-                .builder()
-                .newRule()
+        knowledge.newRule()
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
@@ -104,8 +100,7 @@ class EvaluationListenersTests {
                 .where("$a.i == $b.i")
                 .where("$a.i > 0")
                 .where("$b.i > 0")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
         knowledge.addListener((evaluator, values, result) -> knowledgeListenerCounter.incrementAndGet());
 
@@ -153,16 +148,13 @@ class EvaluationListenersTests {
                 "$b", TypeB.class
         );
 
-        knowledge
-                .builder()
-                .newRule()
+        knowledge.newRule()
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
                 )
                 .where("$a.i == $b.i")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
 
         int mod;

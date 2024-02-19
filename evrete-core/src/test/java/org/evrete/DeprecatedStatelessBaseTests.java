@@ -1,8 +1,6 @@
 package org.evrete;
 
 import org.evrete.api.*;
-import org.evrete.api.builders.LhsBuilder;
-import org.evrete.api.builders.RuleBuilder;
 import org.evrete.classes.*;
 import org.evrete.util.NextIntSupplier;
 import org.evrete.util.RhsAssert;
@@ -13,11 +11,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.evrete.api.FactBuilder.fact;
 
-class StatelessBaseTests {
+//TODO remove on next release
+class DeprecatedStatelessBaseTests {
     private static KnowledgeService service;
     private Knowledge knowledge;
 
@@ -93,7 +94,7 @@ class StatelessBaseTests {
         FieldReference[][] references = new FieldReference[allTypes.length][fields.length];
 
 
-        RuleBuilder<Knowledge> builder = kn.builder().newRule("random");
+        RuleBuilder<Knowledge> builder = kn.newRule("random");
 
         LhsBuilder<Knowledge> rootGroup = builder.getLhs();
 
@@ -133,8 +134,7 @@ class StatelessBaseTests {
             rootGroup.where(randomCondition(references));
         }
 
-        rootGroup.execute()
-                .build();
+        rootGroup.execute();
 
 
         StatelessSession s = kn.newStatelessSession(mode);
@@ -179,12 +179,9 @@ class StatelessBaseTests {
     @EnumSource(ActivationMode.class)
     void plainTest0(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert("$n", Integer.class);
-        knowledge
-                .builder()
-                .newRule()
+        knowledge.newRule()
                 .forEach("$n", Integer.class)
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
 
         StatelessSession session = newSession(mode);
@@ -202,13 +199,10 @@ class StatelessBaseTests {
     @EnumSource(ActivationMode.class)
     void plainTest1(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert("$n", Integer.class);
-        knowledge
-                .builder()
-                .newRule()
+        knowledge.newRule()
                 .forEach("$n", Integer.class)
                 .where("$n.intValue >= 0 ")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
         StatelessSession session = newSession(mode);
         session.insertAndFire(1, 2);
@@ -218,27 +212,16 @@ class StatelessBaseTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void createDestroy1(ActivationMode mode) {
-        knowledge
-                .builder()
-                .newRule("test")
+        knowledge.newRule("test")
                 .forEach(
                         fact("$a1", TypeA.class.getName()),
                         fact("$a2", TypeA.class)
                 )
-                .where("$a1.id == $a2.id")
-                .execute()
-                .build();
+                .where("$a1.id == $a2.id");
 
         StatelessSession session1 = newSession(mode);
         StatelessSession session2 = newSession(mode);
-
-        session1
-                .builder()
-                .newRule()
-                .forEach("$a", TypeA.class)
-                .execute()
-                .build()
-                ;
+        session1.newRule();
 
         assert knowledge.getSessions().size() == 2;
         session2.fire();
@@ -253,14 +236,11 @@ class StatelessBaseTests {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class
         );
-        knowledge
-                .builder()
-                .newRule("test")
+        knowledge.newRule("test")
                 .forEach(
                         "$a", TypeA.class
                 )
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
         StatelessSession s = newSession(mode);
 
@@ -276,9 +256,7 @@ class StatelessBaseTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void testMultiFinal1(ActivationMode mode) {
-        knowledge
-                .builder()
-                .newRule()
+        knowledge.newRule()
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -286,8 +264,7 @@ class StatelessBaseTests {
                 )
                 .where("$a.i != $b.i")
                 .where("$c.l != $b.l")
-                .execute()
-                .build();
+                .execute();
 
 
         StatelessSession s = newSession(mode);
@@ -330,9 +307,7 @@ class StatelessBaseTests {
     void testMultiFinal2(ActivationMode mode) {
         String ruleName = "testMultiFinal2";
 
-        knowledge
-                .builder()
-                .newRule(ruleName)
+        knowledge.newRule(ruleName)
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -341,9 +316,7 @@ class StatelessBaseTests {
                 .where(
                         "$a.i == $b.i",
                         "$c.l == $b.l"
-                )
-                .execute()
-                .build();
+                ).execute();
 
         StatelessSession s = newSession(mode);
 
@@ -393,9 +366,7 @@ class StatelessBaseTests {
     @EnumSource(ActivationMode.class)
     void testSingleFinalNode1(ActivationMode mode) {
 
-        knowledge
-                .builder()
-                .newRule("testSingleFinalNode1")
+        knowledge.newRule("testSingleFinalNode1")
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -405,8 +376,7 @@ class StatelessBaseTests {
                 .where("$a.i != $b.i")
                 .where("$a.i != $c.i")
                 .where("$a.i != $d.i")
-                .execute()
-                .build();
+                .execute();
 
         StatelessSession s = newSession(mode);
 
@@ -462,9 +432,7 @@ class StatelessBaseTests {
     @EnumSource(ActivationMode.class)
     void testCircularMultiFinal(ActivationMode mode) {
 
-        knowledge
-                .builder()
-                .newRule("test circular")
+        knowledge.newRule("test circular")
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -473,8 +441,7 @@ class StatelessBaseTests {
                         "$a.i == $b.i",
                         "$c.l == $b.l",
                         "$c.i == $a.l")
-                .execute()
-                .build();
+                .execute();
 
         StatelessSession s = newSession(mode);
 
@@ -539,9 +506,7 @@ class StatelessBaseTests {
     void testMultiFinal2_mini(ActivationMode mode) {
         String ruleName = "testMultiFinal2_mini";
 
-        knowledge
-                .builder()
-                .newRule(ruleName)
+        knowledge.newRule(ruleName)
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -551,8 +516,7 @@ class StatelessBaseTests {
                         "$a.i == $b.i",
                         "$c.l == $b.l"
                 )
-                .execute()
-                .build();
+                .execute();
 
         StatelessSession s = newSession(mode);
 
@@ -580,9 +544,7 @@ class StatelessBaseTests {
     void testFields(ActivationMode mode) {
         String ruleName = "testMultiFields";
 
-        knowledge
-                .builder()
-                .newRule(ruleName)
+        knowledge.newRule(ruleName)
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
@@ -590,8 +552,7 @@ class StatelessBaseTests {
                 .where(
                         "$a.i * $b.l * $b.s == $a.l"
                 )
-                .execute()
-                .build();
+                .execute();
 
         StatelessSession s = newSession(mode);
 
@@ -612,9 +573,7 @@ class StatelessBaseTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void testSingleFinalNode2(ActivationMode mode) {
-        knowledge
-                .builder()
-                .newRule("testSingleFinalNode2")
+        knowledge.newRule("testSingleFinalNode2")
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -624,9 +583,7 @@ class StatelessBaseTests {
                 .where("$a.i == $b.i")
                 .where("$a.i == $c.i")
                 .where("$a.i == $d.i")
-                .execute()
-                .build();
-
+                .execute();
         StatelessSession s = newSession(mode);
         RhsAssert rhsAssert = new RhsAssert(s);
 
@@ -672,16 +629,13 @@ class StatelessBaseTests {
                 "$b", TypeB.class
         );
 
-        knowledge
-                .builder()
-                .newRule()
+        knowledge.newRule()
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
                 )
                 .where("$a.i == $b.i")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
         StatelessSession s = newSession(mode);
 
@@ -714,9 +668,7 @@ class StatelessBaseTests {
                 "$b", TypeB.class
         );
 
-        knowledge
-                .builder()
-                .newRule("test alpha 1")
+        knowledge.newRule("test alpha 1")
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
@@ -734,7 +686,6 @@ class StatelessBaseTests {
                 .where("$a.i < 3")
                 .where("$b.f < 10")
                 .execute(rhsAssert2)
-                .build()
         ;
 
         StatelessSession s = newSession(mode);
@@ -784,16 +735,13 @@ class StatelessBaseTests {
                 "$b", TypeB.class
         );
 
-        knowledge
-                .builder()
-                .newRule()
+        knowledge.newRule()
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
                 )
                 .where("$a.i < $b.d")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
 
         StatelessSession s = newSession(mode);
@@ -823,17 +771,14 @@ class StatelessBaseTests {
         );
 
 
-        knowledge
-                .builder()
-                .newRule()
+        knowledge.newRule()
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
                 )
                 .where("$a.i < $b.d")
                 .where("$a.f < $b.l")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
         StatelessSession s = newSession(mode);
 
@@ -870,9 +815,7 @@ class StatelessBaseTests {
         );
 
 
-        knowledge
-                .builder()
-                .newRule()
+        knowledge.newRule()
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class,
@@ -883,8 +826,7 @@ class StatelessBaseTests {
                 .where("$a.f < $b.l")
                 .where("$c.i < $d.d")
                 .where("$c.f < $d.l")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
         StatelessSession s = newSession(mode);
 
@@ -932,16 +874,13 @@ class StatelessBaseTests {
                 "$b", TypeB.class
         );
 
-        knowledge
-                .builder()
-                .newRule("test alpha 1")
+        knowledge.newRule("test alpha 1")
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
                 )
                 .where("$a.i != $b.i")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
         StatelessSession s = newSession(mode);
 
@@ -969,16 +908,13 @@ class StatelessBaseTests {
                 "$a2", TypeA.class
         );
 
-        knowledge
-                .builder()
-                .newRule("test alpha 1")
+        knowledge.newRule("test alpha 1")
                 .forEach(
                         "$a1", TypeA.class,
                         "$a2", TypeA.class
                 )
                 .where("$a1.i != $a2.i")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
         StatelessSession s = newSession(mode);
 
@@ -1002,9 +938,7 @@ class StatelessBaseTests {
                 "$a3", TypeA.class
         );
 
-        knowledge
-                .builder()
-                .newRule("test uni " + rule)
+        knowledge.newRule("test uni " + rule)
                 .forEach(
                         "$a1", TypeA.class,
                         "$a2", TypeA.class,
@@ -1013,8 +947,7 @@ class StatelessBaseTests {
                 .where("$a1.i + $a2.i == $a3.i")
                 .where("$a3.i > $a2.i")
                 .where("$a2.i > $a1.i")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
         StatelessSession s = newSession(mode);
 
@@ -1042,9 +975,7 @@ class StatelessBaseTests {
                 "$a3", TypeA.class
         );
 
-        knowledge
-                .builder()
-                .newRule("test uni 2")
+        knowledge.newRule("test uni 2")
                 .forEach(
                         "$a1", TypeA.class,
                         "$a2", TypeA.class,
@@ -1052,8 +983,7 @@ class StatelessBaseTests {
                 )
                 .where("$a1.i + $a2.i == $a3.i")
                 .where("$a2.i > $a1.i")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
         StatelessSession s = newSession(mode);
 
@@ -1090,9 +1020,7 @@ class StatelessBaseTests {
                 "$c", TypeC.class
         );
 
-        knowledge
-                .builder()
-                .newRule()
+        knowledge.newRule()
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -1101,8 +1029,7 @@ class StatelessBaseTests {
                 .where("$a.i == $b.i")
                 .where("$a.i > 4")
                 .where("$b.i > 3")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
         StatelessSession s = newSession(mode);
 
@@ -1128,9 +1055,7 @@ class StatelessBaseTests {
                 "$b", TypeB.class
         );
 
-        knowledge
-                .builder()
-                .newRule()
+        knowledge.newRule()
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class)
@@ -1139,8 +1064,7 @@ class StatelessBaseTests {
                 .where("$a.l > 4")
                 .where("$b.l > 3")
                 .where("$b.i > 3")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
         StatelessSession s = newSession(mode);
 
@@ -1171,9 +1095,7 @@ class StatelessBaseTests {
         Set<String> uniqueEvaluators = new HashSet<>();
         knowledge.addListener((evaluator, values, result) -> uniqueEvaluators.add(evaluator.toString()));
 
-        knowledge
-                .builder()
-                .newRule("rule 1")
+        knowledge.newRule("rule 1")
                 .forEach("$a", TypeA.class)
                 .where("$a.i > 4")
                 .execute(rhsAssert1)
@@ -1184,8 +1106,7 @@ class StatelessBaseTests {
                 .newRule("rule 3")
                 .forEach("$a", TypeA.class)
                 .where("$a.i > 6")
-                .execute(rhsAssert3)
-                .build();
+                .execute(rhsAssert3);
 
 
         StatelessSession session = newSession(mode);
@@ -1211,9 +1132,7 @@ class StatelessBaseTests {
         RhsAssert rhsAssert2 = new RhsAssert("$a", TypeA.class);
         RhsAssert rhsAssert3 = new RhsAssert("$a", TypeA.class);
 
-        knowledge
-                .builder()
-                .newRule("rule 1")
+        knowledge.newRule("rule 1")
                 .forEach("$a", TypeA.class)
                 .where("$a.i > 4")
                 .execute(rhsAssert1)
@@ -1224,8 +1143,7 @@ class StatelessBaseTests {
                 .newRule("rule 3")
                 .forEach("$a", TypeA.class)
                 .where("$a.i <= 4") // Inverse to rule 1
-                .execute(rhsAssert3)
-                .build();
+                .execute(rhsAssert3);
 
 
         StatelessSession s = newSession(mode);
@@ -1250,7 +1168,6 @@ class StatelessBaseTests {
         RhsAssert rhsAssert3 = new RhsAssert("$a", TypeA.class);
 
         knowledge
-                .builder()
                 .newRule("rule 1")
                 .forEach(fact("$a", TypeA.class))
                 .where("$a.id.equals('A5')")
@@ -1262,8 +1179,7 @@ class StatelessBaseTests {
                 .newRule("rule 3")
                 .forEach("$a", TypeA.class)
                 .where("!$a.id.equals('A5')") // Inverse to rule 1
-                .execute(rhsAssert3)
-                .build();
+                .execute(rhsAssert3);
 
         StatelessSession s = newSession(mode);
 
@@ -1286,17 +1202,14 @@ class StatelessBaseTests {
                 "$b", TypeB.class
         );
 
-        knowledge
-                .builder()
-                .newRule()
+        knowledge.newRule()
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class)
                 )
                 .where("$a.i > 4")
                 .where("$b.i > 3")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
         StatelessSession s = newSession(mode);
 
@@ -1323,9 +1236,7 @@ class StatelessBaseTests {
                 "$d", TypeD.class
         );
 
-        knowledge
-                .builder()
-                .newRule("test alpha 1")
+        knowledge.newRule("test alpha 1")
                 .forEach(
                         "$a1", TypeA.class,
                         "$b1", TypeB.class,
@@ -1337,8 +1248,7 @@ class StatelessBaseTests {
                 .where("$a1.i != $b1.i")
                 .where("$a2.i != $b2.i")
                 .where("$c.i > 0")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
         StatelessSession s = newSession(mode);
 
@@ -1371,16 +1281,13 @@ class StatelessBaseTests {
                 "$a", TypeA.class,
                 "$b", TypeB.class
         );
-        knowledge
-                .builder()
-                .newRule("test alpha 1")
+        knowledge.newRule("test alpha 1")
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
                 )
                 .where("$a.i != $b.i")
-                .execute(rhsAssert)
-                .build();
+                .execute(rhsAssert);
 
         StatelessSession s = newSession(mode);
 

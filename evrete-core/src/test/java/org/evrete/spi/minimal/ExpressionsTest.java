@@ -42,6 +42,9 @@ class ExpressionsTest {
 
     @Test
     void test1() throws CompilationException {
+        throw new UnsupportedOperationException("TODO");
+
+/*
         LhsBuilder<Knowledge> root = rule.forEach();
         assert root.addFactDeclaration("$a", TypeA.class).getName().equals("$a");
         NamedType b1 = root.addFactDeclaration("$b", TypeB.class.getName());
@@ -63,21 +66,27 @@ class ExpressionsTest {
         };
 
         ev.test(func); // No exception
+*/
 
     }
 
     @Test
     void test2() throws CompilationException {
+        throw new UnsupportedOperationException("TODO");
+/*
         LhsBuilder<Knowledge> root = rule.forEach();
         assert root.addFactDeclaration("$a", TypeA.class).getName().equals("$a");
         Evaluator ev1 = knowledge.compile(LiteralExpression.of( "$a.i == 1", root));
         Evaluator ev2 = knowledge.compile(LiteralExpression.of("   $a.i ==     1     ", root));
         assert ev1.compare(ev2) == Evaluator.RELATION_EQUALS;
+*/
     }
 
     @Test
     void test3() throws CompilationException {
+        throw new UnsupportedOperationException("TODO");
 
+/*
         Configuration configuration = new Configuration();
         configuration.setProperty(SPI_LHS_STRIP_WHITESPACES, "false");
         KnowledgeService service = new KnowledgeService(configuration);
@@ -89,6 +98,7 @@ class ExpressionsTest {
         Evaluator ev1 = knowledge.compile(LiteralExpression.of( "$a.i ==1", root));
         Evaluator ev2 = knowledge.compile(LiteralExpression.of("   $a.i ==      1     ", root));
         assert ev1.compare(ev2) == Evaluator.RELATION_NONE;
+*/
     }
 
     @Test
