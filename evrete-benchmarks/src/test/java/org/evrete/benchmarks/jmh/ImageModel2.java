@@ -87,7 +87,9 @@ public class ImageModel2 {
         public void initKnowledge() {
             service = new KnowledgeService();
             eKnowledge = service.newKnowledge();
-            eKnowledge.newRule("sample01")
+            eKnowledge
+                    .builder()
+                    .newRule("sample01")
                     .forEach(
                             "$model", ImageProcessor.class,
                             "$img1", Image.class,
@@ -99,7 +101,8 @@ public class ImageModel2 {
                         Image img2 = ctx.get("$img2");
                         ImageProcessor model = ctx.get("$model");
                         model.compute(img1, img2);
-                    });
+                    })
+                    .build();
 
             // Drools
             dKnowledge = TestUtils.droolsKnowledge("src/test/drl/image-model2.drl");

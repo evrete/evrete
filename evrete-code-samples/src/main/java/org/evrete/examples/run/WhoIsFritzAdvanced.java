@@ -16,6 +16,7 @@ public class WhoIsFritzAdvanced {
         typeResolver.wrapType(new SubjectType(subjectType));
 
         StatelessSession session = knowledge
+                .builder()
                 .newRule()
                 .forEach("$s", Subject.class)
                 .where("$s.croaks && $s.eatsFlies && !$s.isFrog")
@@ -32,6 +33,7 @@ public class WhoIsFritzAdvanced {
                     $s.set("green");
                     ctx.update($s);
                 })
+                .build()
                 .newStatelessSession();
 
         // Init subject and its known properties

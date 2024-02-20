@@ -127,8 +127,7 @@ class LhsBuilderImpl<C extends RuntimeContext<C>> extends  DefaultTypeResolver i
     }
 
     private void whereInner(String expression, double complexity) {
-        LiteralExpression literalExpression = LiteralExpression.of(Objects.requireNonNull(expression), this.ruleBuilder);
-        this.conditions.add(literalExpression, complexity);
+        this.conditions.add(expression, complexity);
     }
 
     private void whereInner(ValuesPredicate predicate, double complexity, FieldReference[] references) {

@@ -25,7 +25,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
     static final String CLASS_PACKAGE = DefaultLiteralSourceCompiler.class.getPackage().getName() + ".compiled";
 
     @Override
-    public <S extends RuleLiteralSources<R>, R extends Rule> Collection<RuleCompiledSources<S, R>> compile(RuntimeContext<?> context, Collection<S> sources) throws CompilationException {
+    public <S extends RuleLiteralData<R>, R extends Rule> Collection<RuleCompiledSources<S, R>> compile(RuntimeContext<?> context, Collection<S> sources) throws CompilationException {
         // Return if nothing to compile (Java compiler throws exceptions otherwise)
         if (sources.isEmpty()) {
             return Collections.emptyList();
@@ -49,7 +49,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
                     .collect(Collectors.toList());
     }
 
-    static class RuleSource<S extends RuleLiteralSources<R>, R extends Rule> implements JavaSourceCompiler.ClassSource {
+    static class RuleSource<S extends RuleLiteralData<R>, R extends Rule> implements JavaSourceCompiler.ClassSource {
         private final String className;
         private final String classSimpleName;
 
@@ -69,11 +69,11 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
             AtomicInteger conditionCounter = new AtomicInteger();
             this.conditionSources = delegate.conditions()
                     .stream()
-                    .map(s -> new ConditionSource("condition" + conditionCounter.incrementAndGet(), this.classSimpleName, s, context))
+                    .map(s -> new ConditionSource(delegate.getRule(), "condition" + conditionCounter.incrementAndGet(), this.classSimpleName, s, context))
                     .collect(Collectors.toList());
 
-            LiteralExpression rhs = delegate.rhs();
-            this.rhsSource = rhs == null ? null : new RhsSource(rhs);
+            String rhs = delegate.rhs();
+            this.rhsSource = rhs == null ? null : new RhsSource(delegate.getRule(), rhs);
             this.javaSource = this.buildSource();
         }
 
@@ -174,7 +174,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
                 "  }\n";
 
 
-        final LiteralExpression source;
+        final String source;
         final String methodName;
         final String handleName;
         final String className;
@@ -183,17 +183,17 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
         private final StringJoiner argCasts;
         private final FieldReference[] descriptor;
 
-        public ConditionSource(String name, String className, LiteralExpression source, RuntimeContext<?> context) {
+        public ConditionSource(Rule rule, String name, String className, String source, RuntimeContext<?> context) {
             this.className = className;
             this.source = source;
             this.methodName = name;
             this.handleName = name.toUpperCase() + "_HANDLE";
             boolean stripWhitespaces = context.getConfiguration().getAsBoolean(SPI_LHS_STRIP_WHITESPACES, true);
-            StringLiteralEncoder encoder = StringLiteralEncoder.of(source.getSource(), stripWhitespaces);
+            StringLiteralEncoder encoder = StringLiteralEncoder.of(source, stripWhitespaces);
 
             ExpressionResolver resolver = context.getExpressionResolver();
 
-            final List<ConditionStringTerm> terms = ConditionStringTerm.resolveTerms(encoder.getEncoded(), s -> resolver.resolve(s, source.getContext()));
+            final List<ConditionStringTerm> terms = ConditionStringTerm.resolveTerms(encoder.getEncoded(), s -> resolver.resolve(s, rule));
 
             List<ConditionStringTerm> uniqueReferences = new ArrayList<>();
             List<FieldReference> descriptorBuilder = new ArrayList<>();
@@ -251,16 +251,19 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
 
     private static class RhsSource {
         @NonNull
-        final LiteralExpression rhs;
+        final String rhs;
+
+        final Rule rule;
 
         final StringJoiner methodArgs;
         final StringJoiner args;
 
-        RhsSource(LiteralExpression rhs) {
+        RhsSource(Rule rule, String rhs) {
+            this.rule = rule;
             this.rhs = rhs;
             this.methodArgs = new StringJoiner(", ");
             this.args = new StringJoiner(", ");
-            for (NamedType t : rhs.getContext().getDeclaredFactTypes()) {
+            for (NamedType t : rule.getDeclaredFactTypes()) {
                 methodArgs.add(t.getType().getJavaType() + " " + t.getName());
                 args.add(t.getName());
             }
@@ -289,7 +292,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
             ;
 
             // Assign vars
-            for (NamedType t : rhs.getContext().getDeclaredFactTypes()) {
+            for (NamedType t : rule.getDeclaredFactTypes()) {
                 target
                         .append(TAB).append(TAB).append(TAB)
                         .append(t.getType().getJavaType()).append(" ")
@@ -317,7 +320,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
                     .append(") {\n")
             ;
 
-            String source = "/***** Start RHS source *****/\n" + this.rhs.getSource() + "\n" + "/****** End RHS source ******/";
+            String source = "/***** Start RHS source *****/\n" + this.rhs + "\n" + "/****** End RHS source ******/";
             String[] lines = source.split("\n");
             for (String line : lines) {
                 target
@@ -340,7 +343,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
     }
 
 
-    private static class RuleCompiledSourcesImpl<S extends RuleLiteralSources<R>, R extends Rule> implements RuleCompiledSources<S, R> {
+    private static class RuleCompiledSourcesImpl<S extends RuleLiteralData<R>, R extends Rule> implements RuleCompiledSources<S, R> {
 
         private final RuleSource<S, R> source;
 
@@ -351,21 +354,21 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
         public RuleCompiledSourcesImpl(Class<?> ruleClass, RuleSource<S, R> source) {
             this.source = source;
 
-            Map<LiteralExpression, ConditionSource> compiledConditions = new IdentityHashMap<>();
+            Map<String, ConditionSource> compiledConditions = new IdentityHashMap<>();
             for (ConditionSource conditionSource : source.conditionSources) {
                 compiledConditions.put(conditionSource.source, conditionSource);
             }
 
-            Collection<LiteralExpression> originalConditions = source.delegate.conditions();
+            Collection<String> originalConditions = source.delegate.conditions();
             this.conditions = new ArrayList<>(originalConditions.size());
 
-            for (LiteralExpression condition : originalConditions) {
+            for (String condition : originalConditions) {
                 ConditionSource compiled = compiledConditions.get(condition);
                 if (compiled == null) {
                     throw new IllegalStateException("Condition not found or not compiled");
                 } else {
-                    assert compiled.source == condition;
-                    this.conditions.add(new LiteralEvaluatorImpl(compiled, ruleClass));
+                    assert compiled.source.equals(condition);
+                    this.conditions.add(new LiteralEvaluatorImpl(getSources().getRule(), compiled, ruleClass));
                 }
             }
 
@@ -404,15 +407,17 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
 
     private static class LiteralEvaluatorImpl implements LiteralEvaluator {
         private final FieldReference[] descriptor;
-        private final LiteralExpression source;
+        private final String source;
 
         private final MethodHandle handle;
 
-        public LiteralEvaluatorImpl(ConditionSource compiled, Class<?> ruleClass) {
+        private final LiteralExpression sourceExpression;
+
+        public LiteralEvaluatorImpl(Rule rule, ConditionSource compiled, Class<?> ruleClass) {
             this.descriptor = compiled.descriptor;
             this.source = compiled.source;
             this.handle = getHandle(ruleClass, compiled.handleName);
-
+            this.sourceExpression = LiteralExpression.of(this.source, rule);
         }
 
         @Override
@@ -422,7 +427,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
 
         @Override
         public LiteralExpression getSource() {
-            return source;
+            return sourceExpression;
         }
 
         @Override
@@ -434,7 +439,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
                 for (int i = 0; i < args.length; i++) {
                     args[i] = values.apply(i);
                 }
-                throw new IllegalStateException("Evaluation exception at '" + source.getSource() + "', arguments: " + Arrays.toString(descriptor) + " -> " + Arrays.toString(args), t);
+                throw new IllegalStateException("Evaluation exception at '" + source + "', arguments: " + Arrays.toString(descriptor) + " -> " + Arrays.toString(args), t);
             }
         }
 

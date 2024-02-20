@@ -15,6 +15,7 @@ public class SelfMutationInline {
         KnowledgeService service = new KnowledgeService();
         StatefulSession session = service
                 .newKnowledge()
+                .builder()
                 .newRule("Root rule")
                 .forEach(
                         "$s", StatefulSession.class,
@@ -25,12 +26,15 @@ public class SelfMutationInline {
                     String event = ctx.get("$e");
                     // Appending a new rule
                     sess
+                            .builder()
                             .newRule(event)
                             .forEach("$i", Integer.class)
                             .where("$i % 2 == 0")
-                            .execute(c -> out.printf("%s:\t%s%n", event, c.get("$i")));
+                            .execute(c -> out.printf("%s:\t%s%n", event, c.get("$i")))
+                            .build();
                     out.printf("New rule created: '%s'%n", event);
                 })
+                .build()
                 .newStatefulSession();
 
         // 1. Inserting session into self

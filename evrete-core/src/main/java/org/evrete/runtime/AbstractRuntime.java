@@ -186,9 +186,9 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     synchronized List<RuleDescriptor> compileRuleBuilders(List<DefaultRuleBuilder<C>> rules) {
 
         // Collect sources to compile
-        List<DefaultRuleLiteralSources> ruleLiteralSources = rules.stream()
-                .map(DefaultRuleLiteralSources::new)
-                .filter(DefaultRuleLiteralSources::nonEmpty)
+        List<DefaultRuleLiteralData> ruleLiteralSources = rules.stream()
+                .map(DefaultRuleLiteralData::new)
+                .filter(DefaultRuleLiteralData::nonEmpty)
                 .collect(Collectors.toList());
         try {
             return compileRuleBuilders(rules, this.compileRules(ruleLiteralSources));
@@ -198,12 +198,12 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         }
     }
 
-    private List<RuleDescriptor> compileRuleBuilders(List<DefaultRuleBuilder<C>> rules, Collection<RuleCompiledSources<DefaultRuleLiteralSources, DefaultRuleBuilder<?>>> compiled) {
+    private List<RuleDescriptor> compileRuleBuilders(List<DefaultRuleBuilder<C>> rules, Collection<RuleCompiledSources<DefaultRuleLiteralData, DefaultRuleBuilder<?>>> compiled) {
         // Finally we have all we need to create descriptor for each rule: compiled classes and original data in rule builders
         int currentRuleCount = getRules().size();
 
         Map<DefaultRuleBuilder<?>, RuleCompiledSources<?,?>> mapping = new IdentityHashMap<>();
-        for(RuleCompiledSources<DefaultRuleLiteralSources,?> entry : compiled) {
+        for (RuleCompiledSources<DefaultRuleLiteralData, ?> entry : compiled) {
             DefaultRuleBuilder<?> ruleBuilder = entry.getSources().getRule();
             mapping.put(ruleBuilder, entry);
         }
@@ -238,7 +238,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
             }
 
             // 3.3 Register literal conditions
-            Collection<WorkUnitObject<LiteralExpression>> literalConditions = builderConditions.literals;
+            Collection<WorkUnitObject<String>> literalConditions = builderConditions.literals;
             if(!literalConditions.isEmpty()) {
                 // There must be compiled copies for each literal condition
                 RuleCompiledSources<?,?> compiledData = mapping.get(ruleBuilder);
@@ -248,18 +248,18 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
                 }
 
                 // Create mapping
-                Map<LiteralExpression, LiteralEvaluator> conditionMap = new IdentityHashMap<>();
+                Map<String, LiteralEvaluator> conditionMap = new IdentityHashMap<>();
                 for(LiteralEvaluator evaluator : compiledData.conditions()) {
-                    conditionMap.put(evaluator.getSource(), evaluator);
+                    conditionMap.put(evaluator.getSource().getSource(), evaluator);
                 }
 
                 // Register condition handles
-                for(WorkUnitObject<LiteralExpression> meta : literalConditions) {
-                    LiteralExpression expression = meta.getDelegate();
+                for (WorkUnitObject<String> meta : literalConditions) {
+                    String expression = meta.getDelegate();
                     double complexity = meta.getComplexity();
                     LiteralEvaluator evaluator = conditionMap.get(expression);
                     if(evaluator == null) {
-                        throw new IllegalStateException("Compiled condition not found for " + expression.getSource());
+                        throw new IllegalStateException("Compiled condition not found for " + expression);
                     } else {
                         EvaluatorHandle handle = addEvaluator(evaluator, complexity);
                         handles.add(handle);
@@ -299,7 +299,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     Consumer<RhsContext> compileRHS(LiteralExpression rhs) {
         _assertActive();
         try {
-            JustRhsRuleSources sources = new JustRhsRuleSources(rhs);
+            JustRhsRuleData sources = new JustRhsRuleData(rhs);
             return compileRules(Collections.singletonList(sources)).iterator().next().rhs();
         } catch (CompilationException e) {
             e.log(LOGGER, Level.WARNING);
@@ -307,7 +307,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         }
     }
 
-    <S extends RuleLiteralSources<R1>, R1 extends Rule> Collection<RuleCompiledSources<S, R1>> compileRules(Collection<S> sources) throws CompilationException {
+    <S extends RuleLiteralData<R1>, R1 extends Rule> Collection<RuleCompiledSources<S, R1>> compileRules(Collection<S> sources) throws CompilationException {
         _assertActive();
         return service.getLiteralSourceCompiler().compile(this, sources);
     }
@@ -339,8 +339,16 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     abstract void _assertActive();
 
     @Override
-    public LiteralEvaluator compile(LiteralExpression expression) throws CompilationException {
-        return compileRules(Collections.singletonList(new SingleConditionRuleSources(expression)))
-                .iterator().next().conditions().iterator().next();
+    public Collection<LiteralEvaluator> compile(Collection<LiteralExpression> expressions) throws CompilationException {
+        Map<LiteralExpression, JustConditionsRuleData> mapping = new IdentityHashMap<>();
+        expressions.forEach(expression -> {
+            JustConditionsRuleData data = mapping.computeIfAbsent(expression, k -> new JustConditionsRuleData(expression.getContext()));
+            data.conditions().add(expression.getSource());
+        });
+
+        return compileRules(mapping.values())
+                .stream()
+                .flatMap(compiled -> compiled.conditions().stream())
+                .collect(Collectors.toList());
     }
 }

@@ -2,7 +2,11 @@ package org.evrete.benchmarks.jmh;
 
 import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
-import org.evrete.api.*;
+import org.evrete.api.Evaluator;
+import org.evrete.api.IntToValue;
+import org.evrete.api.Knowledge;
+import org.evrete.api.LiteralExpression;
+import org.evrete.api.builders.RuleBuilder;
 import org.evrete.benchmarks.models.misc.TypeA;
 import org.evrete.benchmarks.models.misc.TypeB;
 import org.evrete.benchmarks.models.misc.TypeC;
@@ -61,7 +65,7 @@ public class Expressions {
         public void initAll() throws CompilationException {
             service = new KnowledgeService(new Configuration());
             KnowledgeRuntime knowledge = (KnowledgeRuntime) service.newKnowledge();
-            RuleBuilder<Knowledge> rule = knowledge.newRule();
+            RuleBuilder<Knowledge> rule = knowledge.builder().newRule();
             rule.forEach().addFactDeclaration("$a", TypeA.class);
             rule.forEach().addFactDeclaration("$b", TypeB.class.getName());
             rule.forEach().addFactDeclaration("$c", TypeC.class.getName());

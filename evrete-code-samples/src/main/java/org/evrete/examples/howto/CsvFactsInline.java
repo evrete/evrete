@@ -29,6 +29,7 @@ public class CsvFactsInline {
 
         // Build knowledge & session
         StatelessSession session = knowledge
+                .builder()
                 .newRule()
                 .forEach(
                         "$p", TYPE_PERSON,
@@ -40,6 +41,7 @@ public class CsvFactsInline {
                     String location = ctx.get("$l");
                     System.out.println("Match: <" + person + "> at <" + location + ">");
                 })
+                .build()
                 .newStatelessSession();
 
         // Mike is 17 y.o., located at '5246 Elm Street'

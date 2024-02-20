@@ -13,6 +13,7 @@ public class GuessingNumbersInline {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
                 .newKnowledge()
+                .builder()
                 .newRule("Number is guessed")
                 .forEach(
                         "$p", Player.class,
@@ -35,7 +36,8 @@ public class GuessingNumbersInline {
                     Guess nextGuess = new Guess(p);
                     ctx.insert(nextGuess);
                     System.out.println(nextGuess);
-                });
+                })
+                .build();
 
         try (StatefulSession session = knowledge.newStatefulSession()) {
             Player p1 = new Player("Ana");

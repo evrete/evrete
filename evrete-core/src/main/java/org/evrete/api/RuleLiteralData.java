@@ -18,7 +18,7 @@ import java.util.Collection;
  *     each of them into Java method handles.
  * </p>
  */
-public interface RuleLiteralSources<R extends Rule> {
+public interface RuleLiteralData<R extends Rule> {
     /**
      * Returns the rule associated with this instance of `LiteralRuleSources`.
      *
@@ -33,7 +33,7 @@ public interface RuleLiteralSources<R extends Rule> {
      * @return the conditions associated with this instance of `LiteralRuleSources`
      */
     @NonNull
-    Collection<LiteralExpression> conditions();
+    Collection<String> conditions();
 
     /**
      * Returns the right-hand side (RHS) expression associated with this instance of LiteralRuleSources. The RHS expression
@@ -43,5 +43,5 @@ public interface RuleLiteralSources<R extends Rule> {
      *         or if the RHS expression is represented by a functional interface.
      */
     @Nullable
-    LiteralExpression rhs();
+    String rhs();
 }

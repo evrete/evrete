@@ -2,6 +2,8 @@ package org.evrete.examples.howto;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
+import org.evrete.api.builders.LhsBuilder;
+import org.evrete.api.builders.RuleBuilder;
 import org.evrete.runtime.compiler.CompilationException;
 
 import static java.lang.System.out;
@@ -12,7 +14,9 @@ public class HandlingLhsException {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service.newKnowledge();
 
-        RuleBuilder<Knowledge> builder = knowledge.newRule("Test rule");
+        RuleBuilder<Knowledge> builder = knowledge
+                .builder()
+                .newRule("Test rule");
         LhsBuilder<Knowledge> lhsBuilder = builder.forEach("$i", Integer.class);
 
         // Without exception handling, the condition below will throw an ArithmeticException
@@ -20,11 +24,13 @@ public class HandlingLhsException {
         Evaluator failingEvaluator = knowledge.getEvaluator(handle);
 
         // We want our rule to print matching numbers
-        lhsBuilder.execute(ctx -> {
-                    int i = ctx.get("$i");
-                    out.println(i);
-                }
-        );
+        lhsBuilder
+                .execute(ctx -> {
+                            int i = ctx.get("$i");
+                            out.println(i);
+                        }
+                )
+                .build();
 
         // Replacing the condition
         knowledge.replaceEvaluator(handle, new Evaluator() {

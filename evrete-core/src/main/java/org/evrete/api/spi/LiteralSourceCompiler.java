@@ -8,5 +8,5 @@ import java.util.Collection;
 
 public interface LiteralSourceCompiler extends OrderedServiceProvider {
 
-    <S extends RuleLiteralSources<R>, R extends Rule> Collection<RuleCompiledSources<S, R>> compile(RuntimeContext<?> context, Collection<S> sources) throws CompilationException;
+    <S extends RuleLiteralData<R>, R extends Rule> Collection<RuleCompiledSources<S, R>> compile(RuntimeContext<?> context, Collection<S> sources) throws CompilationException;
 }

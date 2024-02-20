@@ -52,13 +52,12 @@ public interface ExpressionResolver {
      * @return returns an {@link Evaluator} instance or throws an exception
      * @throws IllegalArgumentException if the expression can not be resolved
      * @throws IllegalStateException if the resolver is not in an appropriate state
-     * @deprecated use {@link org.evrete.api.spi.LiteralSourceCompiler}
+     * @deprecated in favor of {@link org.evrete.api.spi.LiteralSourceCompiler}
      */
     @NonNull
     default LiteralEvaluator buildExpression(LiteralExpression ignored) {
         throw new UnsupportedOperationException();
     }
-
 
     /**
      * <p>
@@ -69,7 +68,7 @@ public interface ExpressionResolver {
      *
      * @return collection of {@link LiteralEvaluator} instances
      * @throws IllegalArgumentException if the expression can not be resolved
-     * @deprecated use {@link org.evrete.api.spi.LiteralSourceCompiler}
+     * @deprecated in favor of {@link org.evrete.api.spi.LiteralSourceCompiler}
      */
     @Deprecated
     default Collection<LiteralEvaluator> buildExpressions(Collection<LiteralExpression> ignored) {

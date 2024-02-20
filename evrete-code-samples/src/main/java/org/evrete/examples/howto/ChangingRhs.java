@@ -13,13 +13,15 @@ public class ChangingRhs {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
                 .newKnowledge()
+                .builder()
                 .newRule("Even numbers")
                 .forEach("$i", Integer.class)
                 .where("$i % 2 == 0")
                 .execute(ctx -> {
                     int $i = ctx.get("$i");
                     out.printf("\t%d%n", $i);
-                });
+                })
+                .build();
 
         try (StatefulSession session = knowledge.newStatefulSession()) {
             RuntimeRule rule = session.getRule("Even numbers");

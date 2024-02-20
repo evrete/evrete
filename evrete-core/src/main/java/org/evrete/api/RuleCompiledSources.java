@@ -8,10 +8,10 @@ import java.util.function.Consumer;
 
 /**
  * <p>
- *     This class represents a compiled version of {@link RuleLiteralSources}
+ *     This class represents a compiled version of {@link RuleLiteralData}
  * </p>
  */
-public interface RuleCompiledSources<S extends RuleLiteralSources<R>, R extends Rule> {
+public interface RuleCompiledSources<S extends RuleLiteralData<R>, R extends Rule> {
     /**
      * Returns the sources for this compilation.
      *

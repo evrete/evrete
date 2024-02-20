@@ -2,15 +2,15 @@ package org.evrete.runtime;
 
 import org.evrete.api.LiteralExpression;
 import org.evrete.api.Rule;
-import org.evrete.api.RuleLiteralSources;
+import org.evrete.api.RuleLiteralData;
 
 import java.util.Collection;
 import java.util.Collections;
 
-class JustRhsRuleSources implements RuleLiteralSources<Rule> {
+class JustRhsRuleData implements RuleLiteralData<Rule> {
     private final LiteralExpression rhs;
 
-    public JustRhsRuleSources(LiteralExpression rhs) {
+    public JustRhsRuleData(LiteralExpression rhs) {
         this.rhs = rhs;
     }
 
@@ -20,13 +20,13 @@ class JustRhsRuleSources implements RuleLiteralSources<Rule> {
     }
 
     @Override
-    public Collection<LiteralExpression> conditions() {
+    public Collection<String> conditions() {
         return Collections.emptyList();
     }
 
     @Override
-    public LiteralExpression rhs() {
-        return rhs;
+    public String rhs() {
+        return rhs.getSource();
     }
 
 

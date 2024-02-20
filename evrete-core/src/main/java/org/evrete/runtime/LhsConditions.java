@@ -2,7 +2,6 @@ package org.evrete.runtime;
 
 import org.evrete.api.Evaluator;
 import org.evrete.api.EvaluatorHandle;
-import org.evrete.api.LiteralExpression;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.util.WorkUnitObject;
 
@@ -21,7 +20,7 @@ class LhsConditions {
     // Functional conditions
     final Collection<WorkUnitObject<Evaluator>> evaluators = new LinkedList<>();
     // Literal conditions
-    final Collection<WorkUnitObject<LiteralExpression>> literals = new LinkedList<>();
+    final Collection<WorkUnitObject<String>> literals = new LinkedList<>();
 
     void copyFrom(LhsConditions other) {
         this.literals.addAll(other.literals);
@@ -33,7 +32,7 @@ class LhsConditions {
         this.evaluators.add(new WorkUnitObject<>(Objects.requireNonNull(evaluator), complexity));
     }
 
-    void add(@NonNull LiteralExpression expression, double complexity) {
+    void add(@NonNull String expression, double complexity) {
         this.literals.add(new WorkUnitObject<>(Objects.requireNonNull(expression), complexity));
     }
 

@@ -39,8 +39,8 @@ public class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends Run
     }
 
     @Override
-    public LiteralEvaluator compile(LiteralExpression expression) throws CompilationException {
-        return delegate.compile(expression);
+    public Collection<LiteralEvaluator> compile(Collection<LiteralExpression> expressions) throws CompilationException {
+        return delegate.compile(expressions);
     }
 
     @Override

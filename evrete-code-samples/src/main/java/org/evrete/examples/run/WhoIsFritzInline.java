@@ -8,6 +8,7 @@ public class WhoIsFritzInline {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
                 .newKnowledge()
+                .builder()
                 .newRule()
                 .forEach("$s", Subject.class)
                 .where("$s.isFrog").where("!$s.green")
@@ -23,7 +24,8 @@ public class WhoIsFritzInline {
                     Subject $s = ctx.get("$s");
                     $s.isFrog = true;
                     ctx.update($s);
-                });
+                })
+                .build();
 
         // Init subject and its known properties
         Subject fritz = new Subject();
