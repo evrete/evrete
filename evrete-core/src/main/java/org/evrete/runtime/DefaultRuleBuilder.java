@@ -2,14 +2,13 @@ package org.evrete.runtime;
 
 import org.evrete.AbstractRule;
 import org.evrete.api.*;
-import org.evrete.api.builders.RuleBuilder;
 import org.evrete.api.annotations.NonNull;
+import org.evrete.api.builders.RuleBuilder;
 import org.evrete.runtime.compiler.CompilationException;
 import org.evrete.runtime.evaluation.EvaluatorOfArray;
 import org.evrete.runtime.evaluation.EvaluatorOfPredicate;
 
 import java.util.Collection;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 class DefaultRuleBuilder<C extends RuntimeContext<C>> extends AbstractRule implements RuleBuilder<C>, LhsConditionsHolder {
@@ -71,25 +70,29 @@ class DefaultRuleBuilder<C extends RuntimeContext<C>> extends AbstractRule imple
         return lhsBuilder;
     }
 
-    C build() {
-        throw new UnsupportedOperationException("TODO");
-    }
-
     @SuppressWarnings("unchecked")
     @Override
     public C getRuntime() {
         return (C) runtime();
     }
 
-    C build(Consumer<RhsContext> rhs) {
-        setRhs(rhs);
-        return build();
+    void copyFrom(RuleBuilderImpl<C> old) {
+        // 1. Name & salience
+        this.salience(old.getSalience());
+        this.setName(old.getName());
+
+        // 2. LHS
+        this.lhsBuilder.copyFrom(old.getLhs());
+
+        // 3. RHS
+        String literalRhs = old.getLiteralRhs();
+        if (literalRhs != null) {
+            this.setRhs(literalRhs);
+        } else {
+            this.setRhs(old.getRhs());
+        }
     }
 
-    C build(String literalRhs) {
-        setRhs(literalRhs);
-        return build();
-    }
 
     @Override
     public DefaultLhsBuilder<C> forEach(Collection<FactBuilder> facts) {

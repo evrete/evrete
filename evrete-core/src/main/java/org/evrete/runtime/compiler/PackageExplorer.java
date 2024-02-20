@@ -64,7 +64,7 @@ class PackageExplorer {
     }
 
     private Collection<JavaFileObject> listUnderUncached(String packageName, URL packageURL) {
-        Collection<JavaFileObject> result = null;
+        Collection<JavaFileObject> result;
 
 
         URLConnection connection;

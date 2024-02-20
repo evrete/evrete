@@ -62,8 +62,10 @@ class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule implemen
     }
 
     C build() {
-        runtime.addRule(this);
-        return getRuntime();
+        DefaultRuleSetBuilder<C> ruleSetBuilder = new DefaultRuleSetBuilder<>(runtime);
+        DefaultRuleBuilder<C> ruleBuilder = ruleSetBuilder.newRule(this.getName());
+        ruleBuilder.copyFrom(this);
+        return ruleSetBuilder.build();
     }
 
     @SuppressWarnings("unchecked")

@@ -8,6 +8,6 @@ public class DefaultExpressionResolverProvider extends LeastImportantServiceProv
 
     @Override
     public ExpressionResolver instance(RuntimeContext<?> context) {
-        return new DefaultExpressionResolver(context);
+        return new DefaultExpressionResolver();
     }
 }

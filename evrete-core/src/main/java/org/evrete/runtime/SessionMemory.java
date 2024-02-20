@@ -71,8 +71,4 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
         }
         return m;
     }
-
-    void commitBuffer() {
-        typedMemories.forEach(TypeMemory::commitBuffer);
-    }
 }

@@ -1,6 +1,9 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
+import org.evrete.api.EvaluatorHandle;
+import org.evrete.api.FieldReference;
+import org.evrete.api.NamedType;
+import org.evrete.api.TypeField;
 import org.evrete.runtime.evaluation.BetaEvaluator;
 import org.evrete.runtime.evaluation.EvaluatorFactory;
 import org.evrete.util.MapFunction;
@@ -16,12 +19,6 @@ class LhsDescriptor {
 
     private final FactType[] factTypes;
     private final RhsFactGroupDescriptor[] allFactGroups;
-
-/*
-    LhsDescriptor(AbstractRuntime<?, ?> runtime, LhsBuilder<?> builder, LhsConditionHandles lhsConditions, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
-        this(runtime, builder.getDeclaredFactTypes(), lhsConditions, factIdGenerator, typeMapping);
-    }
-*/
 
     LhsDescriptor(AbstractRuntime<?, ?> runtime, Collection<NamedType> declaredTypes, LhsConditionHandles lhsConditions, NextIntSupplier factIdGenerator, MapFunction<NamedType, FactType> typeMapping) {
 

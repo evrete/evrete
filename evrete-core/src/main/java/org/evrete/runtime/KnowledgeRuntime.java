@@ -2,7 +2,6 @@ package org.evrete.runtime;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
-import org.evrete.runtime.compiler.CompilationException;
 import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.SearchList;
 
@@ -32,13 +31,6 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
     @Override
     public void onNewAlphaBucket(MemoryAddress address) {
         // Do nothing
-    }
-
-    @Override
-    protected void addRuleInner(org.evrete.api.RuleBuilder<?> builder) throws CompilationException {
-        RuleBuilderImpl<?> impl = (RuleBuilderImpl<?>) builder;
-        RuleDescriptor rd = super.compileRuleBuilder(impl);
-        this.addRuleDescriptors(Collections.singletonList(rd));
     }
 
     @Override

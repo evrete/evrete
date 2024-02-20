@@ -13,6 +13,8 @@ public interface RuleBuilderExceptionHandler {
      * @param exception the exception
      * @throws RuntimeException if developer decides that the original exception is unrecoverable and re-throws the exception (or any other instance of {@link RuntimeException})
      * @see RuleSet#setRuleBuilderExceptionHandler(RuleBuilderExceptionHandler)
+     * @deprecated
      */
+    @Deprecated
     void handle(RuleSet<?> context, Rule rule, RuntimeException exception);
 }

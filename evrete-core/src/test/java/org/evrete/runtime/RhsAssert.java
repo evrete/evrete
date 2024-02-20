@@ -1,12 +1,9 @@
-package org.evrete.util;
+package org.evrete.runtime;
 
 import org.evrete.api.Copyable;
 import org.evrete.api.RhsContext;
 import org.evrete.api.RuleSession;
 import org.evrete.api.RuntimeRule;
-import org.evrete.runtime.FactType;
-import org.evrete.runtime.RuleDescriptor;
-import org.evrete.runtime.RuntimeRuleImpl;
 
 import java.io.PrintStream;
 import java.util.*;
@@ -112,7 +109,7 @@ public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
 
     private static RuntimeRuleImpl getSingleRule(RuleSession<?> s) {
         List<RuntimeRule> rules = s.getRules();
-        if (rules.size() == 0) {
+        if (rules.isEmpty()) {
             throw new IllegalStateException("Zero rule count, one expected");
         } else if (rules.size() > 1) {
             throw new IllegalStateException("Multiple rule count, one expected");

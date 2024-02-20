@@ -24,7 +24,10 @@ public abstract class AbstractRule implements Rule {
         this.name = Objects.requireNonNull(name);
         this.properties = new ConcurrentHashMap<>();
         this.salience = defaultSalience;
-        this.nullRhs = arg -> LOGGER.warning("No RHS is set for rule '" + AbstractRule.this.name + '\'');
+        //TODO uncomment
+        //this.nullRhs = arg -> LOGGER.warning("No RHS is set for rule '" + AbstractRule.this.name + '\'');
+        this.nullRhs = arg -> {
+        };
         this.rhs = nullRhs;
     }
 
@@ -57,7 +60,7 @@ public abstract class AbstractRule implements Rule {
         return properties.keySet();
     }
 
-    protected String getLiteralRhs() {
+    public String getLiteralRhs() {
         return literalRhs;
     }
 

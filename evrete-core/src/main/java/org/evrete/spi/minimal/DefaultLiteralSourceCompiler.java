@@ -12,9 +12,10 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.evrete.Configuration.RULE_BASE_CLASS;
-import static org.evrete.spi.minimal.DefaultExpressionResolver.SPI_LHS_STRIP_WHITESPACES;
 
 public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider implements LiteralSourceCompiler {
+    static final String SPI_LHS_STRIP_WHITESPACES = "evrete.spi.compiler.lhs-strip-whitespaces";
+
     private static final String TAB = "  ";
     private static final String RHS_CLASS_NAME = "Rhs";
     private static final String RHS_INSTANCE_VAR = "ACTION";
@@ -22,71 +23,6 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
     private static final AtomicInteger classCounter = new AtomicInteger(0);
 
     static final String CLASS_PACKAGE = DefaultLiteralSourceCompiler.class.getPackage().getName() + ".compiled";
-
-/*
-    @SuppressWarnings("unchecked")
-    private static Class<? extends AbstractLiteralRhs> buildClass(RuntimeContext<?> context, NamedType[] types, String literalRhs, Imports imports) throws CompilationException {
-        String simpleName = "Rhs" + classCounter.getAndIncrement();
-        String source = buildSource(simpleName, types, literalRhs, imports);
-        return (Class<? extends AbstractLiteralRhs>) context.getSourceCompiler().compile(source);
-    }
-*/
-
-//    private static String buildSource(String className, NamedType[] types, String literalRhs, Imports imports) {
-//        StringJoiner methodArgs = new StringJoiner(", ");
-//        StringJoiner args = new StringJoiner(", ");
-//        for (NamedType t : types) {
-//            methodArgs.add(t.getType().getJavaType() + " " + t.getName());
-//            args.add(t.getName());
-//        }
-//
-//        StringBuilder sb = new StringBuilder(2048);
-//        sb.append("package ").append(classPackage).append(";\n\n");
-//
-//        imports.asJavaImportStatements(sb);
-//
-//        sb.append("public class ").append(className).append(" extends ").append(AbstractLiteralRhs.class.getName()).append(" {\n\n");
-//
-//        // Abstract method
-//        sb.append("\t@").append(Override.class.getName()).append("\n");
-//        sb.append("\tprotected void doRhs() {\n");
-//        for (NamedType t : types) {
-//            sb.append("\t\t").append(t.getType().getJavaType()).append(" ").append(t.getName()).append(" = ").append("get(\"").append(t.getName()).append("\");\n");
-//
-//        }
-//        sb.append("\t\tdoRhs(").append(args).append(");\n");
-//        sb.append("\t}\n\n");
-//
-//        // main method
-//        sb.append("\tprivate void doRhs(").append(methodArgs).append(") {\n");
-//        sb.append("\t\t/***** Start RHS source *****/\n");
-//        sb.append(literalRhs).append("\n");
-//        sb.append("\t\t/****** End RHS source ******/\n");
-//
-//        sb.append("\t}\n");
-//
-//
-//        // End of class
-//        sb.append("}\n");
-//        return sb.toString();
-//    }
-
-
-
-/*
-    @Override
-    public Consumer<RhsContext> compileRhs(RuntimeContext<?> context, String literalRhs, NamedType[] types) throws CompilationException {
-        try {
-            Imports imports = context.getImports();
-            Class<? extends AbstractLiteralRhs> clazz = buildClass(context, types, literalRhs, imports);
-            return clazz.getDeclaredConstructor().newInstance();
-        } catch (CompilationException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new RuntimeException("Failed to compile RHS:\n" + literalRhs);
-        }
-    }
-*/
 
     @Override
     public <S extends RuleLiteralSources<R>, R extends Rule> Collection<RuleCompiledSources<S, R>> compile(RuntimeContext<?> context, Collection<S> sources) throws CompilationException {
@@ -102,27 +38,15 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
                 .map(o -> new RuleSource<>(o, context))
                 .collect(Collectors.toList());
 
-        JavaSourceCompiler.CompileResult<RuleSource<S, R>> result = compiler.compileSources(javaSources);
+        Collection<JavaSourceCompiler.Result<RuleSource<S, R>>> result = compiler.compile(javaSources);
 
-        if (result.isSuccessful()) {
-            return result.getSuccess()
+        return result
                     .stream()
                     .map(compiledSource -> {
                         Class<?> ruleClass = compiledSource.getCompiledClass();
                         return new RuleCompiledSourcesImpl<>(ruleClass, compiledSource.getSource());
                     })
                     .collect(Collectors.toList());
-        } else {
-            JavaSourceCompiler.Failure<RuleSource<S, R>> failure = result.getFailure();
-
-            Collection<RuleCompilationException.Failure> failures = new LinkedList<>();
-            for (JavaSourceCompiler.FailedSource<RuleSource<S, R>> f : failure.getFailedSources()) {
-                RuleCompilationException.Failure mapped = new RuleCompilationException.Failure(f.getSource().delegate.getRule(), f.getSource().getSource(), f.getFailure());
-                failures.add(mapped);
-            }
-
-            throw new RuleCompilationException(failures, failure.getOtherErrors());
-        }
     }
 
     static class RuleSource<S extends RuleLiteralSources<R>, R extends Rule> implements JavaSourceCompiler.ClassSource {

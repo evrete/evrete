@@ -1,9 +1,8 @@
 package org.evrete.runtime;
 
 import org.evrete.api.*;
-import org.evrete.api.builders.RuleBuilder;
-import org.evrete.api.builders.LhsBuilder;
 import org.evrete.api.annotations.NonNull;
+import org.evrete.api.builders.LhsBuilder;
 import org.evrete.runtime.evaluation.EvaluatorOfArray;
 import org.evrete.runtime.evaluation.EvaluatorOfPredicate;
 import org.evrete.util.NamedTypeImpl;
@@ -13,7 +12,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-class DefaultLhsBuilder<C extends RuntimeContext<C>> extends  DefaultTypeResolver implements LhsBuilder<C> {
+class DefaultLhsBuilder<C extends RuntimeContext<C>> extends DefaultTypeResolver implements LhsBuilder<C> {
     private final DefaultRuleBuilder<C> ruleBuilder;
     private final AbstractRuntime<?, C> runtime;
     private final LhsConditions conditions = new LhsConditions();
@@ -35,9 +34,9 @@ class DefaultLhsBuilder<C extends RuntimeContext<C>> extends  DefaultTypeResolve
         return conditions;
     }
 
-    @Override
-    public RuleBuilder<C> create() {
-        return ruleBuilder;
+    void copyFrom(LhsBuilderImpl<C> old) {
+        super.copyFrom(old);
+        this.conditions.copyFrom(old.getConditions());
     }
 
     @Override
@@ -61,12 +60,6 @@ class DefaultLhsBuilder<C extends RuntimeContext<C>> extends  DefaultTypeResolve
     @Override
     public NamedType addFactDeclaration(@NonNull String name, @NonNull String type) {
         return addFactDeclaration(name, runtime.getTypeResolver().getOrDeclare(type));
-    }
-
-    @Override
-    public RuleBuilder<C> setRhs(String literalConsumer) {
-        ruleBuilder.setRhs(literalConsumer);
-        return ruleBuilder;
     }
 
     @Override

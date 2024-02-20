@@ -22,6 +22,10 @@ public class DefaultTypeResolver implements NamedType.Resolver {
         }
     }
 
+    void copyFrom(DefaultTypeResolver other) {
+        this.map.putAll(other.map);
+    }
+
     public void save(NamedType value) {
         NamedType prev = map.put(value.getName(), value);
         if (prev != null) {

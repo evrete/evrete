@@ -193,7 +193,7 @@ class LinkedDataRWDTest {
         ReIterator<Integer> ldi = ld.iterator();
 
         // Randomly delete entries until both collections get empty
-        while (ll.size() > 0) {
+        while (!ll.isEmpty()) {
             int size = (int) ldi.reset();
             assert ll.size() == size;
             Iterator<Integer> lli = ll.iterator();

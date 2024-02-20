@@ -6,7 +6,7 @@ import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
 import org.evrete.api.Type;
 import org.evrete.api.TypeResolver;
-import org.evrete.util.RhsAssert;
+import org.evrete.runtime.RhsAssert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -33,9 +33,11 @@ class TypeResolverTest {
         RhsAssert rhsAssert = new RhsAssert("$s", StatefulSession.class);
         Knowledge knowledge = service
                 .newKnowledge()
+                .builder()
                 .newRule()
                 .forEach("$s", StatefulSession.class)
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
         StatefulSession session = knowledge.newStatefulSession();
         session.insertAndFire(session);
@@ -51,10 +53,12 @@ class TypeResolverTest {
 
         Knowledge knowledge = service
                 .newKnowledge(typeResolver)
+                .builder()
                 .newRule("Test")
                 .forEach("$s", StatefulSession.class)
                 .where("$s.hasTestRule")
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
         StatefulSession session = knowledge.newStatefulSession();
         session.insertAndFire(session);
@@ -70,6 +74,7 @@ class TypeResolverTest {
         Set<Integer> assertSet = new HashSet<>();
         Knowledge knowledge = service
                 .newKnowledge(typeResolver)
+                .builder()
                 .newRule()
                 .forEach("$s", StatefulSession.class)
                 .where("$s.hasTestRule == false")
@@ -77,15 +82,18 @@ class TypeResolverTest {
                     StatefulSession session = ctx.get("$s");
                     //noinspection resource
                     session
+                            .builder()
                             .newRule("Test")
                             .forEach("$i", Integer.class)
                             .where("$i > 5")
                             .execute(context -> {
                                 Integer i = context.get("$i");
                                 assertSet.add(i);
-                            });
+                            })
+                            .build();
                     ctx.update(session);
-                });
+                })
+                .build();
 
         StatefulSession session = knowledge.newStatefulSession();
         session.insertAndFire(session);

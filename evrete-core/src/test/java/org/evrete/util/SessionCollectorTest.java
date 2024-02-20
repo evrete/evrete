@@ -29,6 +29,7 @@ class SessionCollectorTest {
     void statefulTest() {
         Knowledge knowledge = service
                 .newKnowledge()
+                .builder()
                 .newRule("prime numbers")
                 .forEach(
                         "$i1", Integer.class,
@@ -36,7 +37,8 @@ class SessionCollectorTest {
                         "$i3", Integer.class
                 )
                 .where("$i1 * $i2 == $i3")
-                .execute(ctx -> ctx.deleteFact("$i3"));
+                .execute(ctx -> ctx.deleteFact("$i3"))
+                .build();
 
         StatefulSession sess1 = knowledge.newStatefulSession();
         Set<Object> set1 = new HashSet<>();

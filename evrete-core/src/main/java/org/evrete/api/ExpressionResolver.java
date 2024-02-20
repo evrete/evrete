@@ -1,11 +1,8 @@
 package org.evrete.api;
 
 import org.evrete.api.annotations.NonNull;
-import org.evrete.runtime.compiler.CompilationException;
-import org.evrete.runtime.compiler.LHSCompilationException;
 
 import java.util.Collection;
-import java.util.Collections;
 
 /**
  * An interface with a set of basic methods that are necessary for parsing string expressions.
@@ -52,20 +49,14 @@ public interface ExpressionResolver {
      * This method parses a string argument and returns an {@link Evaluator} if possible.
      * </p>
      *
-     * @param expression - literal expression and its context
      * @return returns an {@link Evaluator} instance or throws an exception
-     * @throws CompilationException     if the argument can not be compiled
      * @throws IllegalArgumentException if the expression can not be resolved
      * @throws IllegalStateException if the resolver is not in an appropriate state
+     * @deprecated use {@link org.evrete.api.spi.LiteralSourceCompiler}
      */
     @NonNull
-    default LiteralEvaluator buildExpression(LiteralExpression expression) throws CompilationException {
-        Collection<LiteralEvaluator> col = buildExpressions(Collections.singleton(expression));
-        if(col.size() == 1) {
-            return col.iterator().next();
-        } else {
-            throw new IllegalStateException();
-        }
+    default LiteralEvaluator buildExpression(LiteralExpression ignored) {
+        throw new UnsupportedOperationException();
     }
 
 
@@ -76,10 +67,12 @@ public interface ExpressionResolver {
      * the resulting evaluators with the method's argument list.
      * </p>
      *
-     * @param expressions - literal expressions
      * @return collection of {@link LiteralEvaluator} instances
-     * @throws LHSCompilationException  if the argument can not be compiled
      * @throws IllegalArgumentException if the expression can not be resolved
+     * @deprecated use {@link org.evrete.api.spi.LiteralSourceCompiler}
      */
-    Collection<LiteralEvaluator> buildExpressions(Collection<LiteralExpression> expressions) throws LHSCompilationException;
+    @Deprecated
+    default Collection<LiteralEvaluator> buildExpressions(Collection<LiteralExpression> ignored) {
+        throw new UnsupportedOperationException();
+    }
 }

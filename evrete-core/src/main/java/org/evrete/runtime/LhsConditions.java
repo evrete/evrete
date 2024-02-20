@@ -23,6 +23,12 @@ class LhsConditions {
     // Literal conditions
     final Collection<WorkUnitObject<LiteralExpression>> literals = new LinkedList<>();
 
+    void copyFrom(LhsConditions other) {
+        this.literals.addAll(other.literals);
+        this.evaluators.addAll(other.evaluators);
+        this.directHandles.addAll(other.directHandles);
+    }
+
     void add(@NonNull Evaluator evaluator, double complexity) {
         this.evaluators.add(new WorkUnitObject<>(Objects.requireNonNull(evaluator), complexity));
     }

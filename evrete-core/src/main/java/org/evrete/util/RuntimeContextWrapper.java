@@ -39,11 +39,6 @@ public class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends Run
     }
 
     @Override
-    public final void addRule(RuleBuilder<?> builder) {
-        delegate.addRule(builder);
-    }
-
-    @Override
     public LiteralEvaluator compile(LiteralExpression expression) throws CompilationException {
         return delegate.compile(expression);
     }
@@ -63,8 +58,6 @@ public class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends Run
         delegate.set(property, value);
         return self();
     }
-
-
 
     @Override
     public void setClassLoader(ClassLoader classLoader) {
@@ -103,11 +96,13 @@ public class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends Run
     }
 
     @Override
+    @Deprecated
     public RuleBuilder<C> newRule(String name) {
         return delegate.newRule(name);
     }
 
     @Override
+    @Deprecated
     public RuleBuilder<C> newRule() {
         return delegate.newRule();
     }

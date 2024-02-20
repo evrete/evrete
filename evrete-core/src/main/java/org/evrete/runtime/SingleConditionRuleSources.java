@@ -3,11 +3,9 @@ package org.evrete.runtime;
 import org.evrete.api.LiteralExpression;
 import org.evrete.api.Rule;
 import org.evrete.api.RuleLiteralSources;
-import org.evrete.util.WorkUnitObject;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedList;
 
 class SingleConditionRuleSources implements RuleLiteralSources<Rule> {
     private final LiteralExpression expression;

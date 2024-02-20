@@ -4,8 +4,8 @@ import org.evrete.api.*;
 import org.evrete.classes.*;
 import org.evrete.helper.FactEntry;
 import org.evrete.helper.TestUtils;
+import org.evrete.runtime.RhsAssert;
 import org.evrete.util.NextIntSupplier;
-import org.evrete.util.RhsAssert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -132,7 +132,7 @@ class DeprecatedStatefulBaseTests {
         }
         s.fire();
         sessionObjects = TestUtils.sessionFacts(s);
-        assert sessionObjects.size() == 0 : "Actual: " + sessionObjects.size();
+        assert sessionObjects.isEmpty() : "Actual: " + sessionObjects.size();
 
         s.close();
 

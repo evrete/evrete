@@ -6,8 +6,8 @@ import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.helper.FactEntry;
 import org.evrete.helper.TestUtils;
+import org.evrete.runtime.RhsAssert;
 import org.evrete.util.NextIntSupplier;
-import org.evrete.util.RhsAssert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -107,9 +107,12 @@ class DeprecatedSessionUpdateDeleteTests {
 
         AtomicReference<TypeA> ref = new AtomicReference<>(new TypeA());
 
-        knowledge.newStatefulSession().setActivationMode(mode).insertAndFire(ref.get());
-        assert counter.get() == 10 : "Actual " + counter.get() + " vs expected " + 10;
-        assert ref.get().getStr().equals("0123456789");
+        try (StatefulSession session = knowledge.newStatefulSession().setActivationMode(mode)) {
+            session.insertAndFire(ref.get());
+            assert counter.get() == 10 : "Actual " + counter.get() + " vs expected " + 10;
+            assert ref.get().getStr().equals("0123456789");
+        }
+
     }
 
     @ParameterizedTest
@@ -166,7 +169,7 @@ class DeprecatedSessionUpdateDeleteTests {
         StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
 
         Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
-        assert allObjects.size() == 0;
+        assert allObjects.isEmpty();
 
         final int size = 3;
         int count = 3;
@@ -225,7 +228,7 @@ class DeprecatedSessionUpdateDeleteTests {
             }
             s.fire();
             facts = TestUtils.sessionFacts(s);
-            assert facts.size() == 0;
+            assert facts.isEmpty();
         }
     }
 
@@ -246,7 +249,7 @@ class DeprecatedSessionUpdateDeleteTests {
         StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
 
         Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
-        assert allObjects.size() == 0;
+        assert allObjects.isEmpty();
 
         int fireCount = 0;
 
@@ -304,7 +307,7 @@ class DeprecatedSessionUpdateDeleteTests {
             s.fire();
 
             allObjects = TestUtils.sessionFacts(s);
-            assert allObjects.size() == 0;
+            assert allObjects.isEmpty();
         }
     }
 
@@ -325,7 +328,7 @@ class DeprecatedSessionUpdateDeleteTests {
         StatefulSession s = knowledge.newStatefulSession().setActivationMode(mode);
 
         Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
-        assert allObjects.size() == 0;
+        assert allObjects.isEmpty();
 
         int fireCount = 0;
 
@@ -383,7 +386,7 @@ class DeprecatedSessionUpdateDeleteTests {
             s.fire();
 
             allObjects = TestUtils.sessionFacts(s);
-            assert allObjects.size() == 0;
+            assert allObjects.isEmpty();
         }
     }
 
@@ -403,7 +406,7 @@ class DeprecatedSessionUpdateDeleteTests {
         StatefulSession s = knowledge.newStatefulSession().setActivationMode(ActivationMode.DEFAULT);
 
         Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
-        assert allObjects.size() == 0;
+        assert allObjects.isEmpty();
 
         int fireCount = 0;
 
@@ -459,7 +462,7 @@ class DeprecatedSessionUpdateDeleteTests {
             s.fire();
 
             allObjects = TestUtils.sessionFacts(s);
-            assert allObjects.size() == 0;
+            assert allObjects.isEmpty();
         }
     }
 
@@ -479,7 +482,7 @@ class DeprecatedSessionUpdateDeleteTests {
         //RuntimeRule rule = s.getRules().iterator().next();
 
         Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
-        assert allObjects.size() == 0;
+        assert allObjects.isEmpty();
 
 
         final int count = 200;
@@ -539,7 +542,7 @@ class DeprecatedSessionUpdateDeleteTests {
 
         // Initial state, zero objects
         Collection<FactEntry> allObjects = TestUtils.sessionFacts(s);
-        assert allObjects.size() == 0;
+        assert allObjects.isEmpty();
 
         TypeA a1 = new TypeA("A1");
         a1.setI(1);
@@ -600,7 +603,7 @@ class DeprecatedSessionUpdateDeleteTests {
         s.fire();
 
         allObjects = TestUtils.sessionFacts(s);
-        assert allObjects.size() == 0;
+        assert allObjects.isEmpty();
 
     }
 

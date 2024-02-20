@@ -15,15 +15,12 @@ import org.evrete.util.WorkUnitObject;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C>> extends RuntimeMetaData<C> implements RuleSetContext<C, R> {
     private static final Logger LOGGER = Logger.getLogger(AbstractRuntime.class.getName());
-    private final List<RuleBuilder<C>> ruleBuilders = new ArrayList<>();
-
     private final KnowledgeService service;
     private final Configuration configuration;
     private final AtomicInteger noNameRuleCounter;
@@ -64,23 +61,10 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         this.classloader = new RuntimeClassloader(parent.classloader);
     }
 
-    protected abstract void addRuleInner(RuleBuilder<?> builder) throws CompilationException;
-
     abstract void addRuleDescriptors(List<RuleDescriptor> descriptors);
 
     ActivationMode getAgendaMode() {
         return agendaMode;
-    }
-
-    @Override
-    public final void addRule(RuleBuilder<?> builder) {
-        try {
-            addRuleInner(builder);
-        } catch (RuntimeException e) {
-            //TODO
-        } catch (CompilationException e) {
-            e.log(LOGGER, Level.WARNING);
-        }
     }
 
     void addRules(List<DefaultRuleBuilder<C>> rules) {
@@ -184,9 +168,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     @Override
     public RuleBuilder<C> newRule(String name) {
         _assertActive();
-        RuleBuilderImpl<C> rb = new RuleBuilderImpl<>(this, name);
-        this.ruleBuilders.add(rb);
-        return rb;
+        return new RuleBuilderImpl<>(this, name);
     }
 
     @Override
@@ -198,11 +180,6 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     @Override
     public Configuration getConfiguration() {
         return this.configuration;
-    }
-
-    synchronized RuleDescriptor compileRuleBuilder(RuleBuilderImpl<?> ruleBuilder) throws CompilationException {
-        Function<RuleBuilderImpl<?>, LhsConditionHandles> func = compileConditions(Collections.singletonList(ruleBuilder));
-        return compileRuleBuilder(ruleBuilder, func);
     }
 
     synchronized List<RuleDescriptor> compileRuleBuilders(List<DefaultRuleBuilder<C>> rules) {
@@ -269,13 +246,13 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
                     throw new IllegalStateException("No compiled data for literal sources");
                 }
 
-                // Create
+                // Create mapping
                 Map<LiteralExpression, LiteralEvaluator> conditionMap = new IdentityHashMap<>();
                 for(LiteralEvaluator evaluator : compiledData.conditions()) {
                     conditionMap.put(evaluator.getSource(), evaluator);
                 }
 
-
+                // Register condition handles
                 for(WorkUnitObject<LiteralExpression> meta : literalConditions) {
                     LiteralExpression expression = meta.getDelegate();
                     double complexity = meta.getComplexity();
@@ -289,6 +266,24 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
                 }
             }
 
+            // 4. Handle literal RHS
+            String literalRhs = ruleBuilder.getLiteralRhs();
+            if (literalRhs != null) {
+                RuleCompiledSources<?, ?> compiledData = mapping.get(ruleBuilder);
+
+                if (compiledData == null) {
+                    throw new IllegalStateException("No compiled data for literal sources");
+                } else {
+                    Consumer<RhsContext> compiledRhs = compiledData.rhs();
+                    if (compiledRhs == null) {
+                        throw new IllegalStateException("No compiled RHS for literal actions");
+                    } else {
+                        // Assign RHS action
+                        ruleBuilder.setRhs(compiledRhs);
+                    }
+                }
+            }
+
 
             // Build the descriptor and append it to the result
             RuleDescriptor descriptor = RuleDescriptor.factory(this, ruleBuilder, handles, salience);
@@ -298,82 +293,6 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         }
 
         return descriptors;
-    }
-
-    <T extends LhsConditionsHolder> Function<T, LhsConditionHandles> compileConditions(Collection<T> sources) throws CompilationException {
-        Map<T, LhsConditionHandles> map = new IdentityHashMap<>();
-
-        Map<LiteralExpression, WorkUnitObject<T>> allLiteralExpressions = new IdentityHashMap<>();
-        for (T source : sources) {
-            LhsConditions conditions = source.getConditions();
-            for (WorkUnitObject<LiteralExpression> e : conditions.literals) {
-                allLiteralExpressions.put(e.getDelegate(), new WorkUnitObject<>(source, e.getComplexity()));
-            }
-        }
-
-        Collection<LiteralExpression> allSources = allLiteralExpressions.keySet();
-        Map<T, Collection<WorkUnitObject<Evaluator>>> perSourceLiterals = new IdentityHashMap<>();
-
-        if (!allSources.isEmpty()) {
-            Collection<LiteralEvaluator> allCompiled = getExpressionResolver().buildExpressions(allSources);
-            for (LiteralEvaluator e : allCompiled) {
-                WorkUnitObject<T> helper = allLiteralExpressions.get(e.getSource());
-                if (helper == null) {
-                    throw new IllegalStateException("Couldn't find source condition by identity");
-                } else {
-                    perSourceLiterals.computeIfAbsent(helper.getDelegate(), t -> new LinkedList<>()).add(new WorkUnitObject<>(e, helper.getComplexity()));
-                }
-            }
-        }
-
-        // Build the result
-        for (T source : sources) {
-            LhsConditionHandles handles = map.computeIfAbsent(source, k -> new LhsConditionHandles());
-            LhsConditions conditions = source.getConditions();
-
-            // Add direct handles
-            for (EvaluatorHandle d : conditions.directHandles) {
-                handles.add(d);
-            }
-
-            // Add evaluators
-            for (WorkUnitObject<Evaluator> d : conditions.evaluators) {
-                EvaluatorHandle h = addEvaluator(d.getDelegate(), d.getComplexity());
-                handles.add(h);
-            }
-
-            // Add compiled literal evaluators
-            Collection<WorkUnitObject<Evaluator>> literals = perSourceLiterals.get(source);
-            if (literals != null) {
-                for (WorkUnitObject<Evaluator> d : literals) {
-                    EvaluatorHandle h = addEvaluator(d.getDelegate(), d.getComplexity());
-                    handles.add(h);
-                }
-            }
-        }
-
-        return t -> Objects.requireNonNull(map.get(t), "Illegal state");
-    }
-
-
-    private synchronized RuleDescriptor compileRuleBuilder(RuleBuilderImpl<?> ruleBuilder, Function<RuleBuilderImpl<?>, LhsConditionHandles> lhsConditions) {
-        _assertActive();
-        if (!this.ruleBuilders.remove(ruleBuilder)) {
-            throw new IllegalArgumentException("No such rule builder");
-        } else {
-            int currentRuleCount = getRules().size();
-            String ruleName = ruleBuilder.getName();
-            int salience = ruleBuilder.getSalience();
-            if (salience == RuleBuilderImpl.NULL_SALIENCE) {
-                salience = -1 * (currentRuleCount + 1);
-            }
-
-            if (ruleExists(ruleBuilder.getName())) {
-                throw new IllegalArgumentException("Rule '" + ruleName + "' already exists");
-            } else {
-                return RuleDescriptor.factory(this, ruleBuilder, lhsConditions.apply(ruleBuilder), salience);
-            }
-        }
     }
 
     Consumer<RhsContext> compileRHS(LiteralExpression rhs) {

@@ -2,8 +2,8 @@ package org.evrete;
 
 import org.evrete.api.*;
 import org.evrete.classes.*;
+import org.evrete.runtime.RhsAssert;
 import org.evrete.util.NextIntSupplier;
-import org.evrete.util.RhsAssert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,8 +11,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.evrete.api.FactBuilder.fact;

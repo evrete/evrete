@@ -17,19 +17,6 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
      */
     RuleSetBuilder<C> execute(String literalRhs);
 
-    //TODO !!!! review usage / discard
-    RuleBuilder<C> setRhs(String literalConsumer);
-
-    /**
-     * <p>
-     * Finishes LHS declaration and returns the rule builder
-     * </p>
-     *
-     * @return rule builder
-     */
-    //TODO review usage/delete
-    RuleBuilder<C> create();
-
     /**
      * <p>
      * Terminates current rule builder as a rule without action.

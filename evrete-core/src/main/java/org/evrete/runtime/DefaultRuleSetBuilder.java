@@ -1,8 +1,8 @@
 package org.evrete.runtime;
 
+import org.evrete.api.RuntimeContext;
 import org.evrete.api.builders.RuleBuilder;
 import org.evrete.api.builders.RuleSetBuilder;
-import org.evrete.api.RuntimeContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +16,7 @@ class DefaultRuleSetBuilder<C extends RuntimeContext<C>> implements RuleSetBuild
     }
 
     @Override
-    public RuleBuilder<C> newRule(String name) {
+    public DefaultRuleBuilder<C> newRule(String name) {
         DefaultRuleBuilder<C> ruleBuilder = new DefaultRuleBuilder<>(this, name);
         this.ruleBuilders.add(ruleBuilder);
         return ruleBuilder;

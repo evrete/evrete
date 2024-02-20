@@ -2,26 +2,17 @@ package org.evrete.spi.minimal;
 
 import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
-import org.evrete.api.*;
-import org.evrete.classes.TypeA;
-import org.evrete.classes.TypeB;
-import org.evrete.classes.TypeC;
+import org.evrete.api.StatefulSession;
 import org.evrete.runtime.KnowledgeRuntime;
-import org.evrete.runtime.compiler.CompilationException;
 import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Random;
-
-import static org.evrete.spi.minimal.DefaultExpressionResolver.SPI_LHS_STRIP_WHITESPACES;
-
 @SuppressWarnings("ALL")
 class ExpressionsTest {
     private static KnowledgeService service;
-    private RuleBuilder<Knowledge> rule;
     private KnowledgeRuntime knowledge;
 
     @BeforeAll
@@ -37,78 +28,20 @@ class ExpressionsTest {
     @BeforeEach
     void init() {
         knowledge = (KnowledgeRuntime) service.newKnowledge();
-        rule = knowledge.newRule();
     }
 
-    @Test
-    void test1() throws CompilationException {
-        throw new UnsupportedOperationException("TODO");
 
-/*
-        LhsBuilder<Knowledge> root = rule.forEach();
-        assert root.addFactDeclaration("$a", TypeA.class).getName().equals("$a");
-        NamedType b1 = root.addFactDeclaration("$b", TypeB.class.getName());
-        NamedType b2 = root.addFactDeclaration("$c", TypeC.class.getName());
-        assert b1.getType().getJavaType().equals(TypeB.class.getName());
-        assert b2.getType().getJavaType().equals(TypeC.class.getName());
-
-        Evaluator ev = knowledge.compile(LiteralExpression.of("$a.i + $b.i + $c.i == 1", root));
-
-        NextIntSupplier counter = new NextIntSupplier();
-        Random random = new Random();
-        Object[] vars = new Object[8192];
-        for (int i = 0; i < vars.length; i++) {
-            vars[i] = random.nextInt();
-        }
-        IntToValue func = i -> {
-            int l = i ^ counter.next() % vars.length;
-            return vars[l];
-        };
-
-        ev.test(func); // No exception
-*/
-
-    }
-
-    @Test
-    void test2() throws CompilationException {
-        throw new UnsupportedOperationException("TODO");
-/*
-        LhsBuilder<Knowledge> root = rule.forEach();
-        assert root.addFactDeclaration("$a", TypeA.class).getName().equals("$a");
-        Evaluator ev1 = knowledge.compile(LiteralExpression.of( "$a.i == 1", root));
-        Evaluator ev2 = knowledge.compile(LiteralExpression.of("   $a.i ==     1     ", root));
-        assert ev1.compare(ev2) == Evaluator.RELATION_EQUALS;
-*/
-    }
-
-    @Test
-    void test3() throws CompilationException {
-        throw new UnsupportedOperationException("TODO");
-
-/*
-        Configuration configuration = new Configuration();
-        configuration.setProperty(SPI_LHS_STRIP_WHITESPACES, "false");
-        KnowledgeService service = new KnowledgeService(configuration);
-
-        Knowledge knowledge = (KnowledgeRuntime) service.newKnowledge();
-        RuleBuilder<Knowledge> rule = knowledge.newRule();
-        LhsBuilder<Knowledge> root = rule.forEach();
-        assert root.addFactDeclaration("$a", TypeA.class).getName().equals("$a");
-        Evaluator ev1 = knowledge.compile(LiteralExpression.of( "$a.i ==1", root));
-        Evaluator ev2 = knowledge.compile(LiteralExpression.of("   $a.i ==      1     ", root));
-        assert ev1.compare(ev2) == Evaluator.RELATION_NONE;
-*/
-    }
 
     @Test
     void testNestedFields1() {
         NextIntSupplier counter = new NextIntSupplier();
-        StatefulSession session = rule
+        StatefulSession session = knowledge.builder()
+                .newRule()
                 .forEach("$o", Nested1.class)
                 .where("$o.parent.parent.id > 0")
                 .where("$o.id > 2")
                 .execute(ctx -> counter.next())
+                .build()
                 .newStatefulSession();
 
 
@@ -125,11 +58,13 @@ class ExpressionsTest {
     @Test
     void testNestedFields2() {
         NextIntSupplier counter = new NextIntSupplier();
-        StatefulSession session = rule
+        StatefulSession session = knowledge.builder()
+                .newRule()
                 .forEach("$o", NestedB.class)
                 .where("$o.parent.ida > 0")
                 .where("$o.idb > 2")
                 .execute(ctx -> counter.next())
+                .build()
                 .newStatefulSession();
 
 
@@ -145,13 +80,16 @@ class ExpressionsTest {
     @Test
     void testThisFields2() {
         NextIntSupplier counter = new NextIntSupplier();
-        StatefulSession session = rule
+        StatefulSession session = knowledge
+                .builder()
+                .newRule()
                 .forEach(
                         "$i1", Integer.class,
                         "$i2", Integer.class
                 )
                 .where("$i1 > $i2")
                 .execute(ctx -> counter.next())
+                .build()
                 .newStatefulSession();
 
 
@@ -163,12 +101,14 @@ class ExpressionsTest {
     @Test
     void testRepeatedReference() {
         NextIntSupplier counter = new NextIntSupplier();
-        StatefulSession session = rule
+        StatefulSession session = knowledge.builder()
+                .newRule()
                 .forEach(
                         "$i", Integer.class
                 )
                 .where("$i > 0 || $i < 0")
                 .execute(ctx -> counter.next())
+                .build()
                 .newStatefulSession();
 
 

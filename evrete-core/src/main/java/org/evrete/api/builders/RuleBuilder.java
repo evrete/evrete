@@ -60,9 +60,9 @@ public interface RuleBuilder<C extends RuntimeContext<C>> extends Rule, LhsFactS
      * <p>
      * Registers the provided predicate with the current context (a {@link Knowledge} or a {@link RuleSession}).
      * The resulting {@link EvaluatorHandle} can later be used in the {@link LhsBuilder#where(EvaluatorHandle...)}
-     * code blocks, shared among other rules (if appropriate), or provided to the
+     * code blocks, shared among other rules (if appropriate), or used in the
      * {@link EvaluatorsContext#replaceEvaluator(EvaluatorHandle, Evaluator)} and
-     * {@link EvaluatorsContext#replaceEvaluator(EvaluatorHandle, ValuesPredicate)} methods to replace conditions
+     * {@link EvaluatorsContext#replaceEvaluator(EvaluatorHandle, ValuesPredicate)} methods to replace existing conditions
      * on the fly.
      * </p>
      *

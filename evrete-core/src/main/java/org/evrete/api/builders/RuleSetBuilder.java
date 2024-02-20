@@ -1,6 +1,5 @@
 package org.evrete.api.builders;
 
-import org.evrete.api.builders.RuleBuilder;
 import org.evrete.api.RuntimeContext;
 
 /**

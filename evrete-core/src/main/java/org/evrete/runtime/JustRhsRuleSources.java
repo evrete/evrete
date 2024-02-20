@@ -10,9 +10,7 @@ import java.util.Collections;
 class JustRhsRuleSources implements RuleLiteralSources<Rule> {
     private final LiteralExpression rhs;
 
-
     public JustRhsRuleSources(LiteralExpression rhs) {
-
         this.rhs = rhs;
     }
 

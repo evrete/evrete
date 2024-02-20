@@ -4,7 +4,6 @@ import org.evrete.api.*;
 import org.evrete.runtime.compiler.CompilationException;
 
 import java.util.Collection;
-import java.util.function.Consumer;
 
 
 public interface LiteralSourceCompiler extends OrderedServiceProvider {
