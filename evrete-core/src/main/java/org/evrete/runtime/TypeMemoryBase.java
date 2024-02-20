@@ -1,7 +1,10 @@
 package org.evrete.runtime;
 
 import org.evrete.Configuration;
-import org.evrete.api.*;
+import org.evrete.api.FactHandle;
+import org.evrete.api.FactHandleVersioned;
+import org.evrete.api.FactStorage;
+import org.evrete.api.Type;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.MemoryAddress;
 
@@ -62,12 +65,6 @@ class TypeMemoryBase extends MemoryComponent implements Iterable<KeyMemoryBucket
         this.memoryBuckets.clear();
     }
 
-    void commitBuffer() {
-        for (KeyMemoryBucket bucket : memoryBuckets.data) {
-            bucket.commitBuffer();
-        }
-    }
-
     public ArrayOf<KeyMemoryBucket> getMemoryBuckets() {
         return memoryBuckets;
     }
@@ -82,10 +79,6 @@ class TypeMemoryBase extends MemoryComponent implements Iterable<KeyMemoryBucket
                         address.getBucketIndex(),
                         k -> KeyMemoryBucket.factory(TypeMemoryBase.this, address)
                 );
-    }
-
-    public KeyedFactStorage get(MemoryAddress bucket) {
-        return getMemoryBucket(bucket).getFieldData();
     }
 
     KeyMemoryBucket getMemoryBucket(MemoryAddress bucket) {

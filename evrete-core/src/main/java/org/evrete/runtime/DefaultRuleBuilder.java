@@ -12,13 +12,12 @@ import java.util.Collection;
 import java.util.function.Predicate;
 
 class DefaultRuleBuilder<C extends RuntimeContext<C>> extends AbstractRule implements RuleBuilder<C>, LhsConditionsHolder {
-    public static final int NULL_SALIENCE = Integer.MIN_VALUE;
     private final DefaultLhsBuilder<C> lhsBuilder;
 
     private final DefaultRuleSetBuilder<C> ruleSetBuilder;
 
     DefaultRuleBuilder(DefaultRuleSetBuilder<C> ruleSetBuilder, String name) {
-        super(name, NULL_SALIENCE);
+        super(name);
         this.ruleSetBuilder = ruleSetBuilder;
         this.lhsBuilder = new DefaultLhsBuilder<>(this);
     }
@@ -76,6 +75,7 @@ class DefaultRuleBuilder<C extends RuntimeContext<C>> extends AbstractRule imple
         return (C) runtime();
     }
 
+    @Deprecated
     void copyFrom(RuleBuilderImpl<C> old) {
         // 1. Name & salience
         this.salience(old.getSalience());

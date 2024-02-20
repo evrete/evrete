@@ -17,13 +17,8 @@ public class Configuration extends Properties implements Copyable<Configuration>
     static final String SPI_MEMORY_FACTORY = "evrete.spi.memory-factory";
     static final String SPI_EXPRESSION_RESOLVER = "evrete.spi.expression-resolver";
     static final String SPI_TYPE_RESOLVER = "evrete.spi.type-resolver";
-    // TODO remove from docs
-    //static final String SPI_RHS_COMPILER = "evrete.spi.rhs-compiler";
     static final String SPI_SOURCE_COMPILER = "evrete.spi.source-compiler";
     static final String PARALLELISM = "evrete.core.parallelism";
-    public static final String CONDITION_BASE_CLASS = "evrete.impl.condition-base-class";
-
-    //TODO document
     public static final String RULE_BASE_CLASS = "evrete.impl.rule-base-class";
 
     private static final Logger LOGGER = Logger.getLogger(Configuration.class.getName());

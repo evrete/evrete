@@ -4,6 +4,10 @@ import org.evrete.runtime.compiler.CompilationException;
 
 import java.util.function.Predicate;
 
+/**
+ * @deprecated in favor of {@link org.evrete.api.builders.RuleBuilder}
+ */
+@Deprecated
 public interface RuleBuilder<C extends RuntimeContext<C>> extends Rule, LhsFactSelector<LhsBuilder<C>> {
 
     LhsBuilder<C> getLhs();

@@ -3,10 +3,7 @@ package org.evrete.api;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.runtime.compiler.CompilationException;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * <p>
@@ -18,6 +15,21 @@ import java.util.Set;
 public interface JavaSourceCompiler {
 
     /**
+     * @param sources Java sources to compile
+     * @return compiled classes.
+     * @throws CompilationException if compilation failed
+     */
+    <S extends ClassSource> Collection<Result<S>> compile(Collection<S> sources) throws CompilationException;
+
+    /**
+     * Resolves plain String java class source into a {@link ClassSource} instance by deriving the class's binary name
+     *
+     * @param classSource plain Java class source
+     * @return resolved {@link ClassSource} instance
+     */
+    ClassSource resolve(String classSource);
+
+    /**
      * <p>
      *     This method tries to resolve every source's package and class names and calls the {@link #compile(Collection)} afterwards
      * </p>
@@ -26,16 +38,21 @@ public interface JavaSourceCompiler {
      * @return map that associates sources and their respective compilation results
      * @throws CompilationException if compilation failed
      */
-    @Deprecated
-    Map<String, Class<?>> compile(Set<String> sources) throws CompilationException;
+    default Map<String, Class<?>> compile(Set<String> sources) throws CompilationException {
+        Map<String, ClassSource> sourceMap = new HashMap<>(sources.size());
+        for (String source : sources) {
+            sourceMap.put(source, resolve(source));
+        }
 
+        Map<String, Class<?>> resultMap = new HashMap<>(sources.size());
 
-    /**
-     * @param sources Java sources to compile
-     * @return compiled classes.
-     * @throws CompilationException if compilation failed
-     */
-    <S extends ClassSource> Collection<Result<S>> compile(Collection<S> sources) throws CompilationException;
+        Collection<Result<ClassSource>> results = compile(sourceMap.values());
+        for (Result<ClassSource> r : results) {
+            resultMap.put(r.getSource().getSource(), r.getCompiledClass());
+        }
+        return resultMap;
+    }
+
 
     /**
      * @param source plain Java source code
@@ -53,18 +70,30 @@ public interface JavaSourceCompiler {
     }
 
     /**
-     * @param binaryName class binary name
-     * @param classBytes class bytes
+     * Defines a class by loading its binary representation into the current runtime context's classloader.
+     * This method is used when dynamically generating classes at runtime.
+     *
+     * @param binaryName  the fully qualified binary name of the class
+     * @param classBytes  the byte array of the class's binary representation
      */
     void defineClass(String binaryName, byte[] classBytes);
 
-
+    /**
+     * The ClassSource interface represents a source code file that can be compiled by a Java compiler.
+     * It provides methods to retrieve the binary name of the class and the source code content.
+     */
     interface ClassSource {
         String binaryName();
 
         String getSource();
     }
 
+    /**
+     * The Result interface represents the result of compiling a source code file using a Java compiler.
+     * It provides methods to retrieve the source code and the compiled class.
+     *
+     * @param <S> the type of the source code file
+     */
     interface Result<S extends ClassSource> {
         S getSource();
 

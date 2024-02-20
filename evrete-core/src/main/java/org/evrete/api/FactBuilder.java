@@ -2,7 +2,7 @@ package org.evrete.api;
 
 /**
  * <p>
- * A fact declaration for {@link org.evrete.api.RuleBuilder}. Fact type can be specified
+ * A fact declaration for {@link org.evrete.api.builders.RuleBuilder}. Fact type can be specified
  * both as a Java {@link Class} or as a type name.
  * </p>
  */

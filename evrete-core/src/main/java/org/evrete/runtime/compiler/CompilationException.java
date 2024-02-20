@@ -13,9 +13,9 @@ public class CompilationException extends Exception {
     private static final long serialVersionUID = -8017644675581374126L;
 
     private final List<String> otherErrors;
-    private final Map<JavaSourceCompiler.ClassSource, String> errorSources;
+    private final Map<JavaSourceCompiler.ClassSource, List<String>> errorSources;
 
-    protected CompilationException(List<String> otherErrors, Map<JavaSourceCompiler.ClassSource, String> errorSources) {
+    protected CompilationException(List<String> otherErrors, Map<JavaSourceCompiler.ClassSource, List<String>> errorSources) {
         super("Source compilation error. Failed sources: " + errorSources.size() + ", other errors: " + otherErrors.size() + ", see application logs for details.");
         this.otherErrors = otherErrors;
         this.errorSources = errorSources;
@@ -23,20 +23,23 @@ public class CompilationException extends Exception {
 
     public void log(Logger logger, Level level) {
         for(JavaSourceCompiler.ClassSource s : getErrorSources()) {
-            String error = getErrorMessage(s);
-            logger.log(level, error + "\nin source:\n" + s.getSource());
-        }
-    }
+            List<String> sourceErrors = getErrorMessage(s);
+            for (String error : sourceErrors) {
+                logger.log(level, error);
+            }
 
-    public List<String> getOtherErrors() {
-        return otherErrors;
+            logger.log(level, "\nIn source:\n" + s.getSource());
+        }
+        if (!otherErrors.isEmpty()) {
+            logger.log(level, "Other errors:\n" + otherErrors);
+        }
     }
 
     public Collection<JavaSourceCompiler.ClassSource> getErrorSources() {
         return errorSources.keySet();
     }
 
-    public String getErrorMessage(JavaSourceCompiler.ClassSource source) {
+    public List<String> getErrorMessage(JavaSourceCompiler.ClassSource source) {
         return errorSources.get(source);
     }
 }

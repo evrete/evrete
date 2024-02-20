@@ -11,13 +11,15 @@ import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+
+@Deprecated
 class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule implements RuleBuilder<C>, LhsConditionsHolder {
-    public static final int NULL_SALIENCE = Integer.MIN_VALUE;
+
     private final AbstractRuntime<?, C> runtime;
     private final LhsBuilderImpl<C> lhsBuilder;
 
     RuleBuilderImpl(AbstractRuntime<?, C> ctx, String name) {
-        super(name, NULL_SALIENCE);
+        super(name);
         this.runtime = ctx;
         this.lhsBuilder = new LhsBuilderImpl<>(this);
     }

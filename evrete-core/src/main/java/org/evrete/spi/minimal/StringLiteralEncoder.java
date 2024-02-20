@@ -71,10 +71,6 @@ final class StringLiteralEncoder {
         return encoded;
     }
 
-    public String getOriginal() {
-        return original;
-    }
-
     @Override
     public String toString() {
         return "StringLiteralRemover{" +

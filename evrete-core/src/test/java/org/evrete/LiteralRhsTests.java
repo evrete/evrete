@@ -42,7 +42,7 @@ public class LiteralRhsTests {
                 .builder()
                 .newRule()
                 .forEach("$n", Number.class)
-                .execute("SystemOut.out($n);")
+                .execute("SystemOut.out($n, true);")
                 .build();
 
         try (StatefulSession session = knowledge.newStatefulSession()) {

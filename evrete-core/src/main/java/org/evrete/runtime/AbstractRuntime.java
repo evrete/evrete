@@ -68,7 +68,6 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     }
 
     void addRules(List<DefaultRuleBuilder<C>> rules) {
-        // TODO exception handlers!!
         List<RuleDescriptor> descriptors = compileRuleBuilders(rules);
         addRuleDescriptors(descriptors);
     }
@@ -157,6 +156,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     }
 
     @Override
+    @Deprecated
     public RuleBuilder<C> newRule() {
         return newRule(unnamedRuleName());
     }
@@ -166,6 +166,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     }
 
     @Override
+    @Deprecated
     public RuleBuilder<C> newRule(String name) {
         _assertActive();
         return new RuleBuilderImpl<>(this, name);
@@ -192,7 +193,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         try {
             return compileRuleBuilders(rules, this.compileRules(ruleLiteralSources));
         } catch (CompilationException e) {
-            //TODO !!!! exception handler
+            e.log(LOGGER, Level.WARNING);
             throw new RuntimeException(e);
         }
     }
@@ -216,7 +217,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
 
             // 2. Compute salience
             int salience = ruleBuilder.getSalience();
-            if (salience == RuleBuilderImpl.NULL_SALIENCE) {
+            if (salience == DefaultRuleBuilder.NULL_SALIENCE) {
                 salience = -1 * (currentRuleCount + 1);
             }
 
@@ -297,7 +298,6 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
 
     Consumer<RhsContext> compileRHS(LiteralExpression rhs) {
         _assertActive();
-
         try {
             JustRhsRuleSources sources = new JustRhsRuleSources(rhs);
             return compileRules(Collections.singletonList(sources)).iterator().next().rhs();

@@ -20,7 +20,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
     private final BetaEndNode[] endNodes;
     private long rhsCallCounter = 0;
 
-    public RuntimeRuleImpl(RuleDescriptor rd, AbstractRuleSession<?> runtime) {
+    RuntimeRuleImpl(RuleDescriptor rd, AbstractRuleSession<?> runtime) {
         super(runtime, rd, build(runtime, rd.getLhs().getFactTypes()));
         this.descriptor = rd;
         this.runtime = runtime;

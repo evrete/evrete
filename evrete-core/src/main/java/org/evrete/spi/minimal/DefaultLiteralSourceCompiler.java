@@ -75,8 +75,6 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
             LiteralExpression rhs = delegate.rhs();
             this.rhsSource = rhs == null ? null : new RhsSource(rhs);
             this.javaSource = this.buildSource();
-
-
         }
 
         private String buildSource() {
@@ -203,7 +201,6 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
             String encodedExpression = encoder.getEncoded().value;
             int accumulatedShift = 0;
             int castVarIndex = 0;
-            //StringJoiner argTypes = new StringJoiner(", ");
             this.argCasts = new StringJoiner(", ");
             this.methodArgs = new StringJoiner(", ");
             for (ConditionStringTerm term : terms) {
@@ -376,12 +373,16 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
             if (source.delegate.rhs() == null) {
                 this.rhs = null;
             } else {
-                try {
-                    //noinspection unchecked
-                    this.rhs = (Consumer<RhsContext>) ruleClass.getDeclaredField(RHS_INSTANCE_VAR).get(null);
-                } catch (IllegalAccessException | NoSuchFieldException e) {
-                    throw new IllegalStateException("RHS source provided but not compiled");
-                }
+                this.rhs = fromClass(ruleClass);
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        private static Consumer<RhsContext> fromClass(Class<?> ruleClass) {
+            try {
+                return (Consumer<RhsContext>) ruleClass.getDeclaredField(RHS_INSTANCE_VAR).get(null);
+            } catch (IllegalAccessException | NoSuchFieldException e) {
+                throw new IllegalStateException("RHS source provided but not compiled");
             }
         }
 

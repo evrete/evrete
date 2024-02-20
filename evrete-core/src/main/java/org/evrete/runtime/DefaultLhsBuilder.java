@@ -34,6 +34,7 @@ class DefaultLhsBuilder<C extends RuntimeContext<C>> extends DefaultTypeResolver
         return conditions;
     }
 
+    @Deprecated
     void copyFrom(LhsBuilderImpl<C> old) {
         super.copyFrom(old);
         this.conditions.copyFrom(old.getConditions());

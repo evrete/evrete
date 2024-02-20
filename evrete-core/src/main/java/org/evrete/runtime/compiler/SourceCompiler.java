@@ -1,7 +1,6 @@
 package org.evrete.runtime.compiler;
 
 import org.evrete.api.JavaSourceCompiler;
-import org.evrete.api.annotations.NonNull;
 
 import javax.tools.*;
 import java.io.IOException;
@@ -25,20 +24,8 @@ public class SourceCompiler implements JavaSourceCompiler {
     }
 
     @Override
-    public synchronized Map<String, Class<?>> compile(@NonNull Set<String> sources) throws CompilationException {
-        Map<String, ClassSource> sourceMap = new HashMap<>(sources.size());
-        for (String source : sources) {
-            sourceMap.put(source, JavaSourceObject.parse(source));
-        }
-
-        Map<String, Class<?>> resultMap = new HashMap<>(sources.size());
-
-        Collection<Result<ClassSource>> results = compile(sourceMap.values());
-        for (Result<ClassSource> r : results) {
-            resultMap.put(r.getSource().getSource(), r.getCompiledClass());
-        }
-
-        return resultMap;
+    public ClassSource resolve(String classSource) {
+        return JavaSourceObject.parse(classSource);
     }
 
     @Override
@@ -111,14 +98,16 @@ public class SourceCompiler implements JavaSourceCompiler {
                             .collect(Collectors.toList());
                 } else {
                     List<String> otherErrors = new LinkedList<>();
-                    Map<ClassSource, String> errorSources = new IdentityHashMap<>();
+                    Map<ClassSource, List<String>> errorSources = new IdentityHashMap<>();
                     for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
                         if (diagnostic.getKind() == Diagnostic.Kind.ERROR) {
                             JavaFileObject errorSource = diagnostic.getSource();
                             String err = diagnostic.toString();
                             if (errorSource instanceof JavaSourceObject) {
                                 JavaSourceObject javaSource = (JavaSourceObject) errorSource;
-                                errorSources.put(javaSource.getSource(), err);
+                                errorSources
+                                        .computeIfAbsent(javaSource.getSource(), k -> new ArrayList<>())
+                                        .add(err);
                             } else {
                                 otherErrors.add(err);
                             }
