@@ -43,7 +43,7 @@ Maven Central Repository, core module:
 <dependency>
     <groupId>org.evrete</groupId>
     <artifactId>evrete-core</artifactId>
-    <version>3.0.06</version>
+    <version>3.1.00</version>
 </dependency>
 ```
 
@@ -54,7 +54,7 @@ Support for annotated rules (optional):
 <dependency>
     <groupId>org.evrete</groupId>
     <artifactId>evrete-dsl-java</artifactId>
-    <version>3.0.06</version>
+    <version>3.1.00</version>
 </dependency>
 ```
 
@@ -70,6 +70,7 @@ public class PrimeNumbersInline {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
                 .newKnowledge()
+                .builder()
                 .newRule("prime numbers")
                 .forEach(
                         "$i1", Integer.class,
@@ -77,7 +78,8 @@ public class PrimeNumbersInline {
                         "$i3", Integer.class
                 )
                 .where("$i1 * $i2 == $i3")
-                .execute(ctx -> ctx.deleteFact("$i3"));
+                .execute(ctx -> ctx.deleteFact("$i3"))
+                .build();
 
         try (StatefulSession session = knowledge.newStatefulSession()) {
             // Inject candidates
