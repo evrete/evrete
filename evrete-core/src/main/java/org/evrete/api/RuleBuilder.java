@@ -4,6 +4,10 @@ import org.evrete.runtime.compiler.CompilationException;
 
 import java.util.function.Predicate;
 
+/**
+ * @deprecated in favor of {@link org.evrete.api.builders.RuleBuilder}
+ */
+@Deprecated
 public interface RuleBuilder<C extends RuntimeContext<C>> extends Rule, LhsFactSelector<LhsBuilder<C>> {
 
     LhsBuilder<C> getLhs();
@@ -207,6 +211,4 @@ public interface RuleBuilder<C extends RuntimeContext<C>> extends Rule, LhsFactS
     default EvaluatorHandle createCondition(String expression) throws CompilationException {
         return createCondition(expression, WorkUnit.DEFAULT_COMPLEXITY);
     }
-
-
 }

@@ -11,6 +11,7 @@ public class PrimeNumbersPredicates {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
                 .newKnowledge()
+                .builder()
                 .newRule("prime numbers")
                 .forEach(
                         "$i1", Integer.class,
@@ -20,7 +21,8 @@ public class PrimeNumbersPredicates {
                 .where(
                         PrimeNumbersPredicates::test,
                         "$i1", "$i2", "$i3")
-                .execute(); // No RHS
+                .execute()
+                .build(); // No RHS
 
         try (StatefulSession session = knowledge.newStatefulSession()) {
             // Change RHS on an active session

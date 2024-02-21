@@ -26,6 +26,7 @@ public class TypeDeclarationInline {
 
         // New 'factorial' field in a rule
         StatelessSession session = knowledge
+                .builder()
                 .newRule()
                 .forEach(
                         "$i1", Integer.class,
@@ -43,6 +44,7 @@ public class TypeDeclarationInline {
                             factorial2
                     );
                 })
+                .build()
                 .newStatelessSession();
 
         // Testing the rule

@@ -20,27 +20,6 @@ public interface RuleSet<R extends Rule> {
      */
     List<R> getRules();
 
-    /**
-     * @param builder rule-builder to create a rule from
-     * @return rule type parameter
-     * @see #addRule(RuleBuilder)
-     */
-    default R compileRule(RuleBuilder<?> builder) {
-        addRule(builder);
-        return getRule(builder.getName());
-    }
-
-    /**
-     * <p>
-     * Compiles the given rule builder into a new {@link Rule} and adds it to the current ruleset.
-     * </p>
-     *
-     * @param builder rule builder
-     * @throws RuntimeException instances that can be optionally handled by {@link RuleBuilderExceptionHandler}
-     * @see RuleBuilderExceptionHandler
-     */
-    void addRule(RuleBuilder<?> builder);
-
 
     default boolean ruleExists(String name) {
         return getRule(name) != null;
@@ -53,14 +32,14 @@ public interface RuleSet<R extends Rule> {
     }
 
     /**
-     * <p>
-     * Sets custom {@link RuleBuilderExceptionHandler} for the ruleset.
-     * </p>
-     *
-     * @param handler exception handler
-     * @see RuleBuilderExceptionHandler
-     */
-    void setRuleBuilderExceptionHandler(RuleBuilderExceptionHandler handler);
+     * @deprecated Since version 3.1.0, for performance reasons, rules are no longer compiled one by one.
+     *             As such, the use of this exception handler has become obsolete.
+     *             Please join our discussions on GitHub to propose a new approach.
+     **/
+    @Deprecated
+    default void setRuleBuilderExceptionHandler(RuleBuilderExceptionHandler ignored) {
+        throw new UnsupportedOperationException("Deprecated");
+    }
 
     FieldReference[] resolveFieldReferences(String[] args, NamedType.Resolver typeMapper);
 }

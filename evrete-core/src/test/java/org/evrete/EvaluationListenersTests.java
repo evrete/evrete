@@ -3,8 +3,8 @@ package org.evrete;
 import org.evrete.api.*;
 import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
+import org.evrete.runtime.RhsAssert;
 import org.evrete.util.NextIntSupplier;
-import org.evrete.util.RhsAssert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,10 +39,13 @@ class EvaluationListenersTests {
         NextIntSupplier sessionListenerCounter = new NextIntSupplier();
 
         RhsAssert rhsAssert = new RhsAssert("$n", Integer.class);
-        knowledge.newRule()
+        knowledge
+                .builder()
+                .newRule()
                 .forEach("$n", Integer.class)
                 .where("$n.intValue > 1")
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
 
         EvaluationListener kl = new EvaluationListener() {
@@ -91,7 +94,9 @@ class EvaluationListenersTests {
                 "$b", TypeB.class
         );
 
-        knowledge.newRule()
+        knowledge
+                .builder()
+                .newRule()
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
@@ -99,7 +104,8 @@ class EvaluationListenersTests {
                 .where("$a.i == $b.i")
                 .where("$a.i > 0")
                 .where("$b.i > 0")
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
         knowledge.addListener((evaluator, values, result) -> knowledgeListenerCounter.incrementAndGet());
 
@@ -147,13 +153,16 @@ class EvaluationListenersTests {
                 "$b", TypeB.class
         );
 
-        knowledge.newRule()
+        knowledge
+                .builder()
+                .newRule()
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
                 )
                 .where("$a.i == $b.i")
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
 
         int mod;

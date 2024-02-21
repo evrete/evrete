@@ -15,8 +15,8 @@ package org.evrete.api;
  * If condition is a string literal, the engine will consult with {@link org.evrete.api.spi.ExpressionResolverProvider}
  * to determine the condition's field references. If you decide to use Java's {@link java.util.function.Predicate}
  * or the library's {@link ValuesPredicate} as a condition, then the corresponding field references must be
- * explicitly specified like in {@link LhsBuilder#where(ValuesPredicate, String...)} or in
- * {@link LhsBuilder#where(ValuesPredicate, FieldReference...)}
+ * explicitly specified like in {@link org.evrete.api.builders.LhsBuilder#where(ValuesPredicate, String...)} or in
+ * {@link org.evrete.api.builders.LhsBuilder#where(ValuesPredicate, FieldReference...)}
  * </p>
  * <p>
  * If you decide to use functional interfaces instead of literal conditions, then using String arrays is the most

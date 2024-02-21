@@ -26,6 +26,7 @@ public class HelloWorldType {
         );
 
         StatefulSession session = knowledge
+                .builder()
                 .newRule()
                 .forEach("$hw", HELLO_WORLD_CONST)
                 .where("$hw.lenSquared > 1")
@@ -34,6 +35,7 @@ public class HelloWorldType {
                     int lenSquared = lenSquaredField.readValue(s);
                     System.out.println(s + ", lenSquared = " + lenSquared);
                 })
+                .build()
                 .newStatefulSession();
 
 

@@ -1,7 +1,6 @@
 package org.evrete.runtime.compiler;
 
 import org.evrete.api.JavaSourceCompiler;
-import org.evrete.api.annotations.NonNull;
 
 import javax.tools.*;
 import java.io.IOException;
@@ -25,26 +24,14 @@ public class SourceCompiler implements JavaSourceCompiler {
     }
 
     @Override
-    public synchronized Map<String, Class<?>> compile(@NonNull Set<String> sources) throws CompilationException {
-        Map<String, ClassSource> sourceMap = new HashMap<>(sources.size());
-        for(String source : sources) {
-            sourceMap.put(source, JavaSourceObject.parse(source));
-        }
-
-        Map<String, Class<?>> resultMap = new HashMap<>(sources.size());
-
-        Collection<Result<ClassSource>> results = compile(sourceMap.values());
-        for(Result<ClassSource> r : results) {
-            resultMap.put(r.getSource().getSource(), r.getCompiledClass());
-        }
-
-        return resultMap;
+    public ClassSource resolve(String classSource) {
+        return JavaSourceObject.parse(classSource);
     }
 
     @Override
-     public <S extends ClassSource> Collection<Result<S>> compile(Collection<S> sources) throws CompilationException {
+    public <S extends ClassSource> Collection<Result<S>> compile(Collection<S> sources) throws CompilationException {
         Map<String, S> sourcesByClassName = new HashMap<>(sources.size());
-        for(S s : sources) {
+        for (S s : sources) {
             sourcesByClassName.put(s.binaryName(), s);
         }
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
@@ -78,7 +65,7 @@ public class SourceCompiler implements JavaSourceCompiler {
                     }
 
                     Collection<Class<?>> compiled = new ArrayList<>(binaryNames.size());
-                    for(String binaryName : binaryNames) {
+                    for (String binaryName : binaryNames) {
                         try {
                             Class<?> cl = Class.forName(binaryName, false, classLoader);
                             compiled.add(cl);
@@ -87,35 +74,40 @@ public class SourceCompiler implements JavaSourceCompiler {
                         }
                     }
 
-                    return compiled.stream().map(cl -> {
-                        String binaryName = cl.getName();
-                        final S source = sourcesByClassName.get(binaryName);
-                        if (source == null) {
-                            return null;
-                        } else {
-                            return new Result<S>() {
-                                @Override
-                                public S getSource() {
-                                    return source;
-                                }
+                    return compiled.stream()
+                            .map(cl -> {
+                                String binaryName = cl.getName();
+                                final S source = sourcesByClassName.get(binaryName);
+                                if (source == null) {
+                                    return null;
+                                } else {
+                                    return new Result<S>() {
+                                        @Override
+                                        public S getSource() {
+                                            return source;
+                                        }
 
-                                @Override
-                                public Class<?> getCompiledClass() {
-                                    return cl;
+                                        @Override
+                                        public Class<?> getCompiledClass() {
+                                            return cl;
+                                        }
+                                    };
                                 }
-                            };
-                        }
-                    }).filter(Objects::nonNull).collect(Collectors.toList());
+                            })
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toList());
                 } else {
                     List<String> otherErrors = new LinkedList<>();
-                    Map<ClassSource, String> errorSources = new IdentityHashMap<>();
+                    Map<ClassSource, List<String>> errorSources = new IdentityHashMap<>();
                     for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
                         if (diagnostic.getKind() == Diagnostic.Kind.ERROR) {
                             JavaFileObject errorSource = diagnostic.getSource();
                             String err = diagnostic.toString();
-                            if(errorSource instanceof JavaSourceObject) {
+                            if (errorSource instanceof JavaSourceObject) {
                                 JavaSourceObject javaSource = (JavaSourceObject) errorSource;
-                                errorSources.put(javaSource.getSource(), err);
+                                errorSources
+                                        .computeIfAbsent(javaSource.getSource(), k -> new ArrayList<>())
+                                        .add(err);
                             } else {
                                 otherErrors.add(err);
                             }

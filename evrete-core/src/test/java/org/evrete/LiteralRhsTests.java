@@ -1,7 +1,6 @@
 package org.evrete;
 
 import org.evrete.api.Knowledge;
-import org.evrete.api.RuleBuilder;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
 import org.evrete.runtime.RuleDescriptor;
@@ -40,78 +39,78 @@ public class LiteralRhsTests {
         knowledge
                 .addImport("org.evrete.LiteralRhsTests.SystemOut")
                 .addImport(SystemOut.class)
+                .builder()
                 .newRule()
                 .forEach("$n", Number.class)
-                .execute("SystemOut.out($n);");
+                .execute("SystemOut.out($n);")
+                .build();
 
-
-        StatefulSession session = knowledge.newStatefulSession();
-        session.insertAndFire(10, 20);
-        SystemOut.assertSize(2);
-        assert SystemOut.collector.containsAll(Arrays.asList(10, 20));
-        SystemOut.reset();
-        session.close();
+        try (StatefulSession session = knowledge.newStatefulSession()) {
+            session.insertAndFire(10, 20);
+            SystemOut.assertSize(2);
+            assert SystemOut.collector.containsAll(Arrays.asList(10, 20));
+            SystemOut.reset();
+        }
     }
 
     @Test
     void plainTest1() {
-        RuleBuilder<Knowledge> builder = knowledge
+        knowledge
                 .addImport("org.evrete.LiteralRhsTests.SystemOut")
                 .addImport(SystemOut.class)
-                .newRule()
+                .builder()
+                .newRule("Test rule")
                 .forEach("$n", Number.class)
-                .create();
+                .execute()
+                .build();
 
-        RuleDescriptor descriptor = knowledge.compileRule(builder);
+        RuleDescriptor descriptor = knowledge.getRule("Test rule");
         descriptor.setRhs("SystemOut.out($n);");
-
-        StatefulSession session = knowledge.newStatefulSession();
-        session.insertAndFire(10, 20);
-        SystemOut.assertSize(2);
-        assert SystemOut.collector.containsAll(Arrays.asList(10, 20));
-        SystemOut.reset();
-        session.close();
+        try (StatefulSession session = knowledge.newStatefulSession()) {
+            session.insertAndFire(10, 20);
+            SystemOut.assertSize(2);
+            assert SystemOut.collector.containsAll(Arrays.asList(10, 20));
+            SystemOut.reset();
+        }
     }
 
     @Test
     void plainTest2() {
-        RuleBuilder<Knowledge> builder = knowledge
+        knowledge
                 .addImport("org.evrete.LiteralRhsTests.SystemOut")
                 .addImport(SystemOut.class)
+                .builder()
                 .newRule("test")
                 .forEach("$n", Integer.class)
-                .create();
+                .execute()
+                .build();
 
-        RuleDescriptor descriptor = knowledge.compileRule(builder);
+        RuleDescriptor descriptor = knowledge.getRule("test");
         descriptor.setRhs("SystemOut.out($n);");
 
-        StatefulSession session = knowledge.newStatefulSession();
-
-        session.insertAndFire(10, 20);
-        SystemOut.assertSize(2);
-        assert SystemOut.collector.containsAll(Arrays.asList(10, 20));
-        SystemOut.reset();
-
-
-        RuntimeRule rule = session.getRule("test");
-        rule
-                .setRhs("SystemOut.out($n + 1);");
-
-        session.insertAndFire(100, 200);
-        SystemOut.assertSize(2);
-        assert SystemOut.collector.containsAll(Arrays.asList(101, 201));
-        SystemOut.reset();
+        try (StatefulSession session = knowledge.newStatefulSession()) {
+            session.insertAndFire(10, 20);
+            SystemOut.assertSize(2);
+            assert SystemOut.collector.containsAll(Arrays.asList(10, 20));
+            SystemOut.reset();
 
 
-        rule.setRhs("SystemOut.out($n + 2);");
-        session.insertAndFire(1000, 2000);
-        SystemOut.assertSize(2);
-        assert SystemOut.collector.containsAll(Arrays.asList(1002, 2002));
-        SystemOut.reset();
+            RuntimeRule rule = session.getRule("test");
+            rule
+                    .setRhs("SystemOut.out($n + 1);");
 
-        session.close();
+            session.insertAndFire(100, 200);
+            SystemOut.assertSize(2);
+            assert SystemOut.collector.containsAll(Arrays.asList(101, 201));
+            SystemOut.reset();
+
+            rule.setRhs("SystemOut.out($n + 2);");
+            session.insertAndFire(1000, 2000);
+            SystemOut.assertSize(2);
+            assert SystemOut.collector.containsAll(Arrays.asList(1002, 2002));
+            SystemOut.reset();
+        }
     }
-
 
     @SuppressWarnings("unused")
     public static class SystemOut {

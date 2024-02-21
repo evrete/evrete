@@ -12,6 +12,8 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 public abstract class AbstractRule implements Rule {
+    public static final int NULL_SALIENCE = Integer.MIN_VALUE;
+
     private static final Logger LOGGER = Logger.getLogger(AbstractRule.class.getName());
     private final Consumer<RhsContext> nullRhs;
     private final Map<String, Object> properties;
@@ -20,10 +22,10 @@ public abstract class AbstractRule implements Rule {
     private int salience;
     private String literalRhs;
 
-    protected AbstractRule(String name, int defaultSalience) {
+    protected AbstractRule(String name) {
         this.name = Objects.requireNonNull(name);
         this.properties = new ConcurrentHashMap<>();
-        this.salience = defaultSalience;
+        this.salience = NULL_SALIENCE;
         this.nullRhs = arg -> LOGGER.warning("No RHS is set for rule '" + AbstractRule.this.name + '\'');
         this.rhs = nullRhs;
     }
@@ -57,7 +59,7 @@ public abstract class AbstractRule implements Rule {
         return properties.keySet();
     }
 
-    protected String getLiteralRhs() {
+    public String getLiteralRhs() {
         return literalRhs;
     }
 

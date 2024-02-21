@@ -35,7 +35,7 @@ class SharedAlphaData implements KeyedFactStorage {
 
     @Override
     public ReIterator<MemoryKey> keys(KeyMode mode) {
-        return new KeyIterator(mode);
+        return new KeyIterator();
     }
 
     @Override
@@ -60,9 +60,8 @@ class SharedAlphaData implements KeyedFactStorage {
         private final MemoryKeyMulti row;
         private boolean hasNext = true;
 
-        KeyIterator(KeyMode mode) {
+        KeyIterator() {
             this.row = new MemoryKeyMulti();
-            //this.row.setMetaValue(mode.ordinal());
         }
 
         @Override

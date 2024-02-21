@@ -3,7 +3,6 @@ package org.evrete.runtime;
 import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.runtime.async.RuleHotDeploymentTask;
-import org.evrete.runtime.compiler.CompilationException;
 import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.SessionCollector;
 
@@ -38,16 +37,13 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
         this.knowledge = knowledge;
         this.warnUnknownTypes = knowledge.getConfiguration().getAsBoolean(Configuration.WARN_UNKNOWN_TYPES);
         this.activationManager = newActivationManager();
-        //int bufferSize = getConfiguration().getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT);
         this.actionBuffer = newActionBuffer();
 
         this.ruleStorage = new RuntimeRules();
         MemoryFactory memoryFactory = getService().getMemoryFactoryProvider().instance(this);
         this.memory = new SessionMemory(this, memoryFactory);
         // Deploy existing rules
-        for (RuleDescriptor descriptor : knowledge.getRules()) {
-            deployRule(descriptor, false);
-        }
+        deployRules(knowledge.getRules(), false);
     }
 
     static void bufferUpdate(FactHandle handle, FactRecord previous, Object updatedFact, FactActionBuffer buffer) {
@@ -146,7 +142,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
         return knowledge;
     }
 
-    private synchronized void deployRules(Collection<RuleDescriptor> descriptors, boolean hotDeployment) {
+    private void deployRules(Collection<RuleDescriptor> descriptors, boolean hotDeployment) {
         for(RuleDescriptor rd : descriptors) {
             deployRule(rd, hotDeployment);
         }
@@ -170,10 +166,8 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
 
 
     @Override
-    protected void addRuleInner(RuleBuilder<?> builder) throws CompilationException {
-        RuleBuilderImpl<?> impl = (RuleBuilderImpl<?>) builder;
-        RuleDescriptor rd = compileRuleBuilder(impl);
-        deployRule(rd, true);
+    void addRuleDescriptors(List<RuleDescriptor> descriptors) {
+        deployRules(descriptors, true);
     }
 
     @Override

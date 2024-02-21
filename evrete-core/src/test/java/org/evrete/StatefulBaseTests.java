@@ -1,11 +1,13 @@
 package org.evrete;
 
 import org.evrete.api.*;
+import org.evrete.api.builders.LhsBuilder;
+import org.evrete.api.builders.RuleBuilder;
 import org.evrete.classes.*;
 import org.evrete.helper.FactEntry;
 import org.evrete.helper.TestUtils;
+import org.evrete.runtime.RhsAssert;
 import org.evrete.util.NextIntSupplier;
-import org.evrete.util.RhsAssert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,7 +58,7 @@ class StatefulBaseTests {
         FieldReference[][] references = new FieldReference[allTypes.length][fields.length];
 
 
-        RuleBuilder<Knowledge> builder = kn.newRule("random");
+        RuleBuilder<Knowledge> builder = kn.builder().newRule("random");
 
         LhsBuilder<Knowledge> rootGroup = builder.getLhs();
 
@@ -96,7 +98,7 @@ class StatefulBaseTests {
             rootGroup.where(randomCondition(references));
         }
 
-        rootGroup.execute();
+        rootGroup.execute().build();
 
 
         StatefulSession s = kn.newStatefulSession(mode);
@@ -131,7 +133,7 @@ class StatefulBaseTests {
         }
         s.fire();
         sessionObjects = TestUtils.sessionFacts(s);
-        assert sessionObjects.size() == 0 : "Actual: " + sessionObjects.size();
+        assert sessionObjects.isEmpty() : "Actual: " + sessionObjects.size();
 
         s.close();
 
@@ -173,7 +175,6 @@ class StatefulBaseTests {
             joiner.add(s);
         }
         return joiner.toString();
-
     }
 
     private StatefulSession newSession() {
@@ -193,60 +194,76 @@ class StatefulBaseTests {
     @EnumSource(ActivationMode.class)
     void plainTest0(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert("$n", Integer.class);
-        knowledge.newRule()
+        knowledge
+                .builder()
+                .newRule()
                 .forEach("$n", Integer.class)
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
+        try(StatefulSession session = newSession(mode)) {
+            // Chaining RHS
+            RuntimeRule rule = session.getRules().iterator().next();
+            NextIntSupplier counter = new NextIntSupplier();
+            rule.chainRhs(ctx -> counter.next());
 
-        StatefulSession session = newSession(mode);
-        // Chaining RHS
-        RuntimeRule rule = session.getRules().iterator().next();
-        NextIntSupplier counter = new NextIntSupplier();
-        rule.chainRhs(ctx -> counter.next());
-
-        session.insertAndFire(1, 2);
-        rhsAssert.assertCount(2).reset();
-        assert counter.get() == 2;
-        session.insertAndFire(3);
-        rhsAssert.assertCount(1).assertContains("$n", 3);
-        session.close();
+            session.insertAndFire(1, 2);
+            rhsAssert.assertCount(2).reset();
+            assert counter.get() == 2;
+            session.insertAndFire(3);
+            rhsAssert.assertCount(1).assertContains("$n", 3);
+        }
     }
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void plainTest1(ActivationMode mode) {
         RhsAssert rhsAssert = new RhsAssert("$n", Integer.class);
-        knowledge.newRule()
+        knowledge
+                .builder()
+                .newRule()
                 .forEach("$n", Integer.class)
                 .where("$n.intValue >= 0 ")
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
-        StatefulSession session = newSession(mode);
-        session.insertAndFire(1, 2);
-        rhsAssert.assertCount(2).reset();
-        session.insertAndFire(3);
-        rhsAssert.assertCount(1).assertContains("$n", 3).reset();
+        try(StatefulSession session = newSession(mode)) {
+            session.insertAndFire(1, 2);
+            rhsAssert.assertCount(2).reset();
+            session.insertAndFire(3);
+            rhsAssert.assertCount(1).assertContains("$n", 3).reset();
 
-        session.fire();
-        rhsAssert.assertCount(0);
-        session.insertAndFire(-1);
-        rhsAssert.assertCount(0);
-        session.close();
+            session.fire();
+            rhsAssert.assertCount(0);
+            session.insertAndFire(-1);
+            rhsAssert.assertCount(0);
+        }
     }
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void createDestroy1(ActivationMode mode) {
-        knowledge.newRule("test")
+        knowledge
+                .builder()
+                .newRule("test")
                 .forEach(
                         fact("$a1", TypeA.class.getName()),
                         fact("$a2", TypeA.class)
                 )
-                .where("$a1.id == $a2.id");
+                .where("$a1.id == $a2.id")
+                .execute()
+                .build();
 
         StatefulSession session1 = newSession(mode);
         StatefulSession session2 = newSession(mode);
-        session1.newRule();
+        //noinspection resource
+        session1
+                .builder()
+                .newRule()
+                .forEach("$a", TypeA.class)
+                .execute()
+                .build()
+        ;
 
         assert knowledge.getSessions().size() == 2;
         session2.close();
@@ -262,33 +279,37 @@ class StatefulBaseTests {
         RhsAssert rhsAssert = new RhsAssert(
                 "$a", TypeA.class
         );
-        knowledge.newRule("test")
+        knowledge
+                .builder()
+                .newRule("test")
                 .forEach(
                         "$a", TypeA.class
                 )
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
-        StatefulSession s = newSession(mode);
+        try(StatefulSession s = newSession(mode)) {
+            TypeA a = new TypeA();
+            FactHandle ah = s.insert(a);
+            assert s.getFact(ah) == a;
 
-        TypeA a = new TypeA();
-        FactHandle ah = s.insert(a);
-        assert s.getFact(ah) == a;
 
+            s.fire();
+            rhsAssert.assertCount(1).reset();
+            s.insert(new TypeA());
+            s.setExecutionPredicate(() -> false).fire();
+            rhsAssert.assertCount(0);
 
-        s.fire();
-        rhsAssert.assertCount(1).reset();
-        s.insert(new TypeA());
-        s.setExecutionPredicate(() -> false).fire();
-        rhsAssert.assertCount(0);
-
-        assert TestUtils.sessionFacts(s).size() == 2;
-
+            assert TestUtils.sessionFacts(s).size() == 2;
+        }
     }
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void testMultiFinal1(ActivationMode mode) {
-        knowledge.newRule()
+        knowledge
+                .builder()
+                .newRule()
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -296,41 +317,42 @@ class StatefulBaseTests {
                 )
                 .where("$a.i != $b.i")
                 .where("$c.l != $b.l")
-                .execute();
+                .execute()
+                .build();
 
-        StatefulSession s = newSession(mode);
+        try(StatefulSession s = newSession(mode)) {
+            assert s.getParentContext() == knowledge;
+            RhsAssert rhsAssert = new RhsAssert(s);
+            TypeA a = new TypeA("A");
+            a.setAllNumeric(1);
 
-        assert s.getParentContext() == knowledge;
-        RhsAssert rhsAssert = new RhsAssert(s);
-        TypeA a = new TypeA("A");
-        a.setAllNumeric(1);
+            TypeA aa = new TypeA("AA");
+            aa.setAllNumeric(11);
 
-        TypeA aa = new TypeA("AA");
-        aa.setAllNumeric(11);
+            TypeA aaa = new TypeA("AAA");
+            aaa.setAllNumeric(111);
 
-        TypeA aaa = new TypeA("AAA");
-        aaa.setAllNumeric(111);
+            TypeB b = new TypeB("B");
+            b.setAllNumeric(2);
 
-        TypeB b = new TypeB("B");
-        b.setAllNumeric(2);
+            TypeB bb = new TypeB("BB");
+            bb.setAllNumeric(22);
 
-        TypeB bb = new TypeB("BB");
-        bb.setAllNumeric(22);
+            TypeB bbb = new TypeB("BBB");
+            bbb.setAllNumeric(222);
 
-        TypeB bbb = new TypeB("BBB");
-        bbb.setAllNumeric(222);
+            TypeC c = new TypeC("C");
+            c.setAllNumeric(3);
 
-        TypeC c = new TypeC("C");
-        c.setAllNumeric(3);
+            TypeC cc = new TypeC("CC");
+            cc.setAllNumeric(33);
 
-        TypeC cc = new TypeC("CC");
-        cc.setAllNumeric(33);
+            TypeC ccc = new TypeC("CCC");
+            ccc.setAllNumeric(333);
 
-        TypeC ccc = new TypeC("CCC");
-        ccc.setAllNumeric(333);
-
-        s.insertAndFire(a, aa, aaa, b, bb, bbb, c, cc, ccc);
-        rhsAssert.assertCount(27);
+            s.insertAndFire(a, aa, aaa, b, bb, bbb, c, cc, ccc);
+            rhsAssert.assertCount(27);
+        }
     }
 
     @ParameterizedTest
@@ -338,7 +360,9 @@ class StatefulBaseTests {
     void testMultiFinal2(ActivationMode mode) {
         String ruleName = "testMultiFinal2";
 
-        knowledge.newRule(ruleName)
+        knowledge
+                .builder()
+                .newRule(ruleName)
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -347,57 +371,61 @@ class StatefulBaseTests {
                 .where(
                         "$a.i == $b.i",
                         "$c.l == $b.l"
-                ).execute();
+                )
+                .execute()
+                .build();
 
-        StatefulSession s = newSession(mode);
+        try(StatefulSession s = newSession(mode)) {
+            TypeA a = new TypeA("A");
+            a.setI(1);
+            a.setL(1);
 
-        TypeA a = new TypeA("A");
-        a.setI(1);
-        a.setL(1);
+            TypeA aa = new TypeA("AA");
+            aa.setI(2);
+            aa.setL(2);
 
-        TypeA aa = new TypeA("AA");
-        aa.setI(2);
-        aa.setL(2);
+            TypeA aaa = new TypeA("AAA");
+            aaa.setI(3);
+            aaa.setL(3);
 
-        TypeA aaa = new TypeA("AAA");
-        aaa.setI(3);
-        aaa.setL(3);
+            TypeB b = new TypeB("B");
+            b.setI(1);
+            b.setL(1);
 
-        TypeB b = new TypeB("B");
-        b.setI(1);
-        b.setL(1);
+            TypeB bb = new TypeB("BB");
+            bb.setI(2);
+            bb.setL(2);
 
-        TypeB bb = new TypeB("BB");
-        bb.setI(2);
-        bb.setL(2);
+            TypeB bbb = new TypeB("BBB");
+            bbb.setI(3);
+            bbb.setL(3);
 
-        TypeB bbb = new TypeB("BBB");
-        bbb.setI(3);
-        bbb.setL(3);
+            TypeC c = new TypeC("C");
+            c.setI(1);
+            c.setL(1);
 
-        TypeC c = new TypeC("C");
-        c.setI(1);
-        c.setL(1);
+            TypeC cc = new TypeC("CC");
+            cc.setI(2);
+            cc.setL(2);
 
-        TypeC cc = new TypeC("CC");
-        cc.setI(2);
-        cc.setL(2);
+            TypeC ccc = new TypeC("CCC");
+            ccc.setI(3);
+            ccc.setL(3);
 
-        TypeC ccc = new TypeC("CCC");
-        ccc.setI(3);
-        ccc.setL(3);
+            RhsAssert rhsAssert = new RhsAssert(s, ruleName);
 
-        RhsAssert rhsAssert = new RhsAssert(s, ruleName);
-
-        s.insertAndFire(a, aa, aaa, b, bb, bbb, c, cc, ccc);
-        rhsAssert.assertCount(3);
+            s.insertAndFire(a, aa, aaa, b, bb, bbb, c, cc, ccc);
+            rhsAssert.assertCount(3);
+        }
     }
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void testSingleFinalNode1(ActivationMode mode) {
 
-        knowledge.newRule("testSingleFinalNode1")
+        knowledge
+                .builder()
+                .newRule("testSingleFinalNode1")
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -407,63 +435,66 @@ class StatefulBaseTests {
                 .where("$a.i != $b.i")
                 .where("$a.i != $c.i")
                 .where("$a.i != $d.i")
-                .execute();
+                .execute()
+                .build();
 
-        StatefulSession s = newSession(mode);
+        try(StatefulSession s = newSession(mode)) {
+            RhsAssert rhsAssert = new RhsAssert(s);
 
-        RhsAssert rhsAssert = new RhsAssert(s);
+            int ai = new Random().nextInt(10) + 1;
+            int bi = new Random().nextInt(10) + 1;
+            int ci = new Random().nextInt(10) + 1;
+            int di = new Random().nextInt(10) + 1;
 
-        int ai = new Random().nextInt(10) + 1;
-        int bi = new Random().nextInt(10) + 1;
-        int ci = new Random().nextInt(10) + 1;
-        int di = new Random().nextInt(10) + 1;
+            int id = 0;
 
-        int id = 0;
+            for (int i = 0; i < ai; i++) {
+                int n = id++;
+                TypeA obj = new TypeA(String.valueOf(n));
+                obj.setI(n);
+                s.insert(obj);
+            }
 
-        for (int i = 0; i < ai; i++) {
-            int n = id++;
-            TypeA obj = new TypeA(String.valueOf(n));
-            obj.setI(n);
-            s.insert(obj);
+            for (int i = 0; i < bi; i++) {
+                int n = id++;
+                TypeB obj = new TypeB(String.valueOf(n));
+                obj.setI(n);
+                s.insert(obj);
+            }
+
+            for (int i = 0; i < ci; i++) {
+                int n = id++;
+                TypeC obj = new TypeC(String.valueOf(n));
+                obj.setI(n);
+                s.insert(obj);
+            }
+
+            for (int i = 0; i < di; i++) {
+                int n = id++;
+                TypeD obj = new TypeD(String.valueOf(n));
+                obj.setI(n);
+                s.insert(obj);
+            }
+
+            s.fire();
+
+            rhsAssert
+                    .assertCount(ai * bi * ci * di)
+                    .assertUniqueCount("$a", ai)
+                    .assertUniqueCount("$b", bi)
+                    .assertUniqueCount("$c", ci)
+                    .assertUniqueCount("$d", di)
+            ;
         }
-
-        for (int i = 0; i < bi; i++) {
-            int n = id++;
-            TypeB obj = new TypeB(String.valueOf(n));
-            obj.setI(n);
-            s.insert(obj);
-        }
-
-        for (int i = 0; i < ci; i++) {
-            int n = id++;
-            TypeC obj = new TypeC(String.valueOf(n));
-            obj.setI(n);
-            s.insert(obj);
-        }
-
-        for (int i = 0; i < di; i++) {
-            int n = id++;
-            TypeD obj = new TypeD(String.valueOf(n));
-            obj.setI(n);
-            s.insert(obj);
-        }
-
-        s.fire();
-
-        rhsAssert
-                .assertCount(ai * bi * ci * di)
-                .assertUniqueCount("$a", ai)
-                .assertUniqueCount("$b", bi)
-                .assertUniqueCount("$c", ci)
-                .assertUniqueCount("$d", di)
-        ;
     }
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void testCircularMultiFinal(ActivationMode mode) {
 
-        knowledge.newRule("test circular")
+        knowledge
+                .builder()
+                .newRule("test circular")
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -472,53 +503,54 @@ class StatefulBaseTests {
                         "$a.i == $b.i",
                         "$c.l == $b.l",
                         "$c.i == $a.l")
-                .execute();
+                .execute()
+                .build();
 
-        StatefulSession s = newSession(mode);
+        try(StatefulSession s = newSession(mode)) {
+            TypeA a = new TypeA("A");
+            a.setI(1);
+            a.setL(1);
 
-        TypeA a = new TypeA("A");
-        a.setI(1);
-        a.setL(1);
+            TypeA aa = new TypeA("AA");
+            aa.setI(2);
+            aa.setL(2);
 
-        TypeA aa = new TypeA("AA");
-        aa.setI(2);
-        aa.setL(2);
+            TypeA aaa = new TypeA("AAA");
+            aaa.setI(3);
+            aaa.setL(3);
 
-        TypeA aaa = new TypeA("AAA");
-        aaa.setI(3);
-        aaa.setL(3);
+            TypeB b = new TypeB("B");
+            b.setI(1);
+            b.setL(1);
 
-        TypeB b = new TypeB("B");
-        b.setI(1);
-        b.setL(1);
+            TypeB bb = new TypeB("BB");
+            bb.setI(2);
+            bb.setL(2);
 
-        TypeB bb = new TypeB("BB");
-        bb.setI(2);
-        bb.setL(2);
+            TypeB bbb = new TypeB("BBB");
+            bbb.setI(3);
+            bbb.setL(3);
 
-        TypeB bbb = new TypeB("BBB");
-        bbb.setI(3);
-        bbb.setL(3);
+            TypeC c = new TypeC("C");
+            c.setI(1);
+            c.setL(1);
 
-        TypeC c = new TypeC("C");
-        c.setI(1);
-        c.setL(1);
+            TypeC cc = new TypeC("CC");
+            cc.setI(2);
+            cc.setL(2);
 
-        TypeC cc = new TypeC("CC");
-        cc.setI(2);
-        cc.setL(2);
+            TypeC ccc = new TypeC("CCC");
+            ccc.setI(3);
+            ccc.setL(3);
 
-        TypeC ccc = new TypeC("CCC");
-        ccc.setI(3);
-        ccc.setL(3);
+            RhsAssert rhsAssert = new RhsAssert(s, "test circular");
 
-        RhsAssert rhsAssert = new RhsAssert(s, "test circular");
+            s.insertAndFire(a, aa, aaa);
+            s.insertAndFire(b, bb, bbb);
+            s.insertAndFire(c, cc, ccc);
 
-        s.insertAndFire(a, aa, aaa);
-        s.insertAndFire(b, bb, bbb);
-        s.insertAndFire(c, cc, ccc);
-
-        rhsAssert.assertCount(3);
+            rhsAssert.assertCount(3);
+        }
     }
 
 
@@ -537,7 +569,9 @@ class StatefulBaseTests {
     void testMultiFinal2_mini(ActivationMode mode) {
         String ruleName = "testMultiFinal2_mini";
 
-        knowledge.newRule(ruleName)
+        knowledge
+                .builder()
+                .newRule(ruleName)
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -547,45 +581,44 @@ class StatefulBaseTests {
                         "$a.i == $b.i",
                         "$c.l == $b.l"
                 )
-                .execute();
+                .execute()
+                .build();
 
-        StatefulSession s = newSession(mode);
+        try(StatefulSession s = newSession(mode)) {
+            TypeA a = new TypeA("AA");
+            a.setI(1);
 
-        TypeA a = new TypeA("AA");
-        a.setI(1);
+            TypeB b = new TypeB("BB");
+            b.setI(1);
+            b.setL(1);
 
-        TypeB b = new TypeB("BB");
-        b.setI(1);
-        b.setL(1);
+            TypeC c = new TypeC("CC");
+            c.setL(1);
 
-        TypeC c = new TypeC("CC");
-        c.setL(1);
+            RhsAssert rhsAssert = new RhsAssert(s);
 
-        RhsAssert rhsAssert = new RhsAssert(s);
+            s.getRule(ruleName)
+                    .setRhs(rhsAssert); // RHS can be overridden
 
-        s.getRule(ruleName)
-                .setRhs(rhsAssert); // RHS can be overridden
+            s.insertAndFire(a, b, c);
+            rhsAssert.assertCount(1).reset();
 
-        s.insertAndFire(a, b, c);
-        rhsAssert.assertCount(1).reset();
+            //Second insert
+            TypeA aa = new TypeA("A");
+            aa.setI(2);
+            aa.setL(2);
 
-        //Second insert
-        TypeA aa = new TypeA("A");
-        aa.setI(2);
-        aa.setL(2);
+            TypeB bb = new TypeB("B");
+            bb.setI(2);
+            bb.setL(2);
 
-        TypeB bb = new TypeB("B");
-        bb.setI(2);
-        bb.setL(2);
+            TypeC cc = new TypeC("C");
+            cc.setI(2);
+            cc.setL(2);
 
-        TypeC cc = new TypeC("C");
-        cc.setI(2);
-        cc.setL(2);
-
-        s.insertAndFire(aa, bb, cc);
-        rhsAssert.assertCount(1);
-
-        s.close();
+            s.insertAndFire(aa, bb, cc);
+            rhsAssert.assertCount(1);
+        }
     }
 
     @ParameterizedTest
@@ -593,7 +626,9 @@ class StatefulBaseTests {
     void testFields(ActivationMode mode) {
         String ruleName = "testMultiFields";
 
-        knowledge.newRule(ruleName)
+        knowledge
+                .builder()
+                .newRule(ruleName)
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
@@ -601,42 +636,43 @@ class StatefulBaseTests {
                 .where(
                         "$a.i * $b.l * $b.s == $a.l"
                 )
-                .execute();
+                .execute()
+                .build();
 
-        StatefulSession s = newSession(mode);
+        try(StatefulSession s = newSession(mode)) {
+            TypeA a1 = new TypeA("A1");
+            a1.setI(2);
+            a1.setL(30L);
 
-        TypeA a1 = new TypeA("A1");
-        a1.setI(2);
-        a1.setL(30L);
+            TypeB b1 = new TypeB("B1");
+            b1.setL(3);
+            b1.setS((short) 5);
 
-        TypeB b1 = new TypeB("B1");
-        b1.setL(3);
-        b1.setS((short) 5);
+            RhsAssert rhsAssert = new RhsAssert(s, ruleName);
 
-        RhsAssert rhsAssert = new RhsAssert(s, ruleName);
+            s.insertAndFire(a1, b1);
+            rhsAssert.assertCount(1).reset();
 
-        s.insertAndFire(a1, b1);
-        rhsAssert.assertCount(1).reset();
+            //Second insert
+            TypeA a2 = new TypeA("A2");
+            a2.setI(7);
+            a2.setL(693L);
 
-        //Second insert
-        TypeA a2 = new TypeA("A2");
-        a2.setI(7);
-        a2.setL(693L);
+            TypeB b2 = new TypeB("B2");
+            b2.setL(9);
+            b2.setS((short) 11);
 
-        TypeB b2 = new TypeB("B2");
-        b2.setL(9);
-        b2.setS((short) 11);
-
-        s.insertAndFire(a2, b2);
-        rhsAssert.assertCount(1);
-
-        s.close();
+            s.insertAndFire(a2, b2);
+            rhsAssert.assertCount(1);
+        }
     }
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void testSingleFinalNode2(ActivationMode mode) {
-        knowledge.newRule("testSingleFinalNode2")
+        knowledge
+                .builder()
+                .newRule("testSingleFinalNode2")
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -646,41 +682,44 @@ class StatefulBaseTests {
                 .where("$a.i == $b.i")
                 .where("$a.i == $c.i")
                 .where("$a.i == $d.i")
-                .execute();
-        StatefulSession s = newSession(mode);
-        RhsAssert rhsAssert = new RhsAssert(s);
+                .execute()
+                .build();
 
-        int count = new Random().nextInt(100) + 1;
+        try(StatefulSession s = newSession(mode)) {
+            RhsAssert rhsAssert = new RhsAssert(s);
 
-        int id = 0;
+            int count = new Random().nextInt(100) + 1;
 
-        for (int i = 0; i < count; i++) {
-            String stringId = String.valueOf(id++);
-            TypeA a = new TypeA(stringId);
-            a.setI(i);
-            s.insert(a);
+            int id = 0;
 
-            TypeB b = new TypeB(stringId);
-            b.setI(i);
-            s.insert(b);
+            for (int i = 0; i < count; i++) {
+                String stringId = String.valueOf(id++);
+                TypeA a = new TypeA(stringId);
+                a.setI(i);
+                s.insert(a);
 
-            TypeC c = new TypeC(stringId);
-            c.setI(i);
-            s.insert(c);
+                TypeB b = new TypeB(stringId);
+                b.setI(i);
+                s.insert(b);
 
-            TypeD d = new TypeD(stringId);
-            d.setI(i);
-            s.insert(d);
+                TypeC c = new TypeC(stringId);
+                c.setI(i);
+                s.insert(c);
 
+                TypeD d = new TypeD(stringId);
+                d.setI(i);
+                s.insert(d);
+
+            }
+            s.fire();
+
+            rhsAssert
+                    .assertCount(count)
+                    .assertUniqueCount("$a", count)
+                    .assertUniqueCount("$b", count)
+                    .assertUniqueCount("$c", count)
+                    .assertUniqueCount("$d", count);
         }
-        s.fire();
-
-        rhsAssert
-                .assertCount(count)
-                .assertUniqueCount("$a", count)
-                .assertUniqueCount("$b", count)
-                .assertUniqueCount("$c", count)
-                .assertUniqueCount("$d", count);
     }
 
     @ParameterizedTest
@@ -692,13 +731,16 @@ class StatefulBaseTests {
                 "$b", TypeB.class
         );
 
-        knowledge.newRule()
+        knowledge
+                .builder()
+                .newRule()
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
                 )
                 .where("$a.i == $b.i")
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
         TypeB b1;
         TypeA a1_1;
@@ -741,7 +783,9 @@ class StatefulBaseTests {
                 "$b", TypeB.class
         );
 
-        knowledge.newRule("test alpha 1")
+        knowledge
+                .builder()
+                .newRule("test alpha 1")
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
@@ -759,6 +803,7 @@ class StatefulBaseTests {
                 .where("$a.i < 3")
                 .where("$b.f < 10")
                 .execute(rhsAssert2)
+                .build()
         ;
 
         TypeA a;
@@ -814,13 +859,16 @@ class StatefulBaseTests {
                 "$b", TypeB.class
         );
 
-        knowledge.newRule()
+        knowledge
+                .builder()
+                .newRule()
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
                 )
                 .where("$a.i < $b.d")
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
 
         try (StatefulSession s = newSession(mode)) {
@@ -851,14 +899,17 @@ class StatefulBaseTests {
         );
 
 
-        knowledge.newRule()
+        knowledge
+                .builder()
+                .newRule()
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
                 )
                 .where("$a.i < $b.d")
                 .where("$a.f < $b.l")
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
         try (StatefulSession s = newSession(mode)) {
 
@@ -896,7 +947,9 @@ class StatefulBaseTests {
         );
 
 
-        knowledge.newRule()
+        knowledge
+                .builder()
+                .newRule()
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class,
@@ -907,7 +960,8 @@ class StatefulBaseTests {
                 .where("$a.f < $b.l")
                 .where("$c.i < $d.d")
                 .where("$c.f < $d.l")
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
         try (StatefulSession s = newSession(mode)) {
 
@@ -956,13 +1010,16 @@ class StatefulBaseTests {
                 "$b", TypeB.class
         );
 
-        knowledge.newRule("test alpha 1")
+        knowledge
+                .builder()
+                .newRule("test alpha 1")
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
                 )
                 .where("$a.i != $b.i")
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
         try (StatefulSession s = newSession(mode)) {
 
@@ -991,13 +1048,16 @@ class StatefulBaseTests {
                 "$a2", TypeA.class
         );
 
-        knowledge.newRule("test alpha 1")
+        knowledge
+                .builder()
+                .newRule("test alpha 1")
                 .forEach(
                         "$a1", TypeA.class,
                         "$a2", TypeA.class
                 )
                 .where("$a1.i != $a2.i")
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
         try (StatefulSession s = newSession(mode)) {
 
@@ -1016,7 +1076,9 @@ class StatefulBaseTests {
     @EnumSource(ActivationMode.class)
     void testUniType2(ActivationMode mode) {
         Set<String> collectedJoinedIds = new HashSet<>();
-        knowledge.newRule("test uni 2")
+        knowledge
+                .builder()
+                .newRule("test uni 2")
                 .forEach(
                         "$a1", TypeA.class,
                         "$a2", TypeA.class,
@@ -1030,7 +1092,8 @@ class StatefulBaseTests {
                             TypeA a3 = ctx.get("$a3");
                             collectedJoinedIds.add(a1.getId() + a2.getId() + a3.getId());
                         }
-                );
+                )
+                .build();
 
         try (StatefulSession s = newSession(mode)) {
 
@@ -1090,7 +1153,9 @@ class StatefulBaseTests {
                 "$a3", TypeA.class
         );
 
-        knowledge.newRule("test uni " + rule)
+        knowledge
+                .builder()
+                .newRule("test uni " + rule)
                 .forEach(
                         "$a1", TypeA.class,
                         "$a2", TypeA.class,
@@ -1099,7 +1164,8 @@ class StatefulBaseTests {
                 .where("$a1.i + $a2.i == $a3.i")
                 .where("$a3.i > $a2.i")
                 .where("$a2.i > $a1.i")
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
         try (StatefulSession s = newSession(mode)) {
 
@@ -1129,7 +1195,9 @@ class StatefulBaseTests {
                 "$a3", TypeA.class
         );
 
-        knowledge.newRule("test uni 2")
+        knowledge
+                .builder()
+                .newRule("test uni 2")
                 .forEach(
                         "$a1", TypeA.class,
                         "$a2", TypeA.class,
@@ -1137,7 +1205,8 @@ class StatefulBaseTests {
                 )
                 .where("$a1.i + $a2.i == $a3.i")
                 .where("$a2.i > $a1.i")
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
         try (StatefulSession s = newSession(mode)) {
 
@@ -1175,7 +1244,9 @@ class StatefulBaseTests {
                 "$c", TypeC.class
         );
 
-        knowledge.newRule()
+        knowledge
+                .builder()
+                .newRule()
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -1184,7 +1255,8 @@ class StatefulBaseTests {
                 .where("$a.i == $b.i")
                 .where("$a.i > 4")
                 .where("$b.i > 3")
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
         try (StatefulSession s = newSession(mode)) {
 
@@ -1218,7 +1290,9 @@ class StatefulBaseTests {
                 "$b", TypeB.class
         );
 
-        knowledge.newRule()
+        knowledge
+                .builder()
+                .newRule()
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class)
@@ -1227,7 +1301,8 @@ class StatefulBaseTests {
                 .where("$a.l > 4")
                 .where("$b.l > 3")
                 .where("$b.i > 3")
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
         try (StatefulSession s = newSession(mode)) {
 
@@ -1253,7 +1328,9 @@ class StatefulBaseTests {
                 "$c", TypeC.class
         );
 
-        knowledge.newRule("test rule 1")
+        knowledge
+                .builder()
+                .newRule("test rule 1")
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class),
@@ -1261,7 +1338,8 @@ class StatefulBaseTests {
                 )
                 .where("$a.i > 4")
                 .where("$b.i > 3")
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
         TypeC c1;
         TypeC c2;
@@ -1303,7 +1381,9 @@ class StatefulBaseTests {
                 "$c", TypeC.class
         );
 
-        knowledge.newRule()
+        knowledge
+                .builder()
+                .newRule()
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class,
@@ -1312,7 +1392,8 @@ class StatefulBaseTests {
                 .where("$a.i > 4")
                 .where("$b.i > 3")
                 .where("$c.i > 6")
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
         try (StatefulSession session = newSession(mode)) {
 
@@ -1356,7 +1437,9 @@ class StatefulBaseTests {
         Set<String> uniqueEvaluators = new HashSet<>();
         knowledge.addListener((evaluator, values, result) -> uniqueEvaluators.add(evaluator.toString()));
 
-        knowledge.newRule("rule 1")
+        knowledge
+                .builder()
+                .newRule("rule 1")
                 .forEach("$a", TypeA.class)
                 .where("$a.i > 4")
                 .execute(rhsAssert1)
@@ -1367,7 +1450,8 @@ class StatefulBaseTests {
                 .newRule("rule 3")
                 .forEach("$a", TypeA.class)
                 .where("$a.i > 6")
-                .execute(rhsAssert3);
+                .execute(rhsAssert3)
+                .build();
 
 
         try (StatefulSession session = newSession(mode)) {
@@ -1394,7 +1478,9 @@ class StatefulBaseTests {
         RhsAssert rhsAssert2 = new RhsAssert("$a", TypeA.class);
         RhsAssert rhsAssert3 = new RhsAssert("$a", TypeA.class);
 
-        knowledge.newRule("rule 1")
+        knowledge
+                .builder()
+                .newRule("rule 1")
                 .forEach("$a", TypeA.class)
                 .where("$a.i > 4")
                 .execute(rhsAssert1)
@@ -1405,7 +1491,8 @@ class StatefulBaseTests {
                 .newRule("rule 3")
                 .forEach("$a", TypeA.class)
                 .where("$a.i <= 4") // Inverse to rule 1
-                .execute(rhsAssert3);
+                .execute(rhsAssert3)
+                .build();
 
 
         try (StatefulSession s = newSession(mode)) {
@@ -1431,6 +1518,7 @@ class StatefulBaseTests {
         RhsAssert rhsAssert3 = new RhsAssert("$a", TypeA.class);
 
         knowledge
+                .builder()
                 .newRule("rule 1")
                 .forEach(fact("$a", TypeA.class))
                 .where("$a.id.equals('A5')")
@@ -1442,7 +1530,8 @@ class StatefulBaseTests {
                 .newRule("rule 3")
                 .forEach("$a", TypeA.class)
                 .where("!$a.id.equals('A5')") // Inverse to rule 1
-                .execute(rhsAssert3);
+                .execute(rhsAssert3)
+                .build();
 
         try (StatefulSession s = newSession(mode)) {
 
@@ -1466,14 +1555,17 @@ class StatefulBaseTests {
                 "$b", TypeB.class
         );
 
-        knowledge.newRule()
+        knowledge
+                .builder()
+                .newRule()
                 .forEach(
                         fact("$a", TypeA.class),
                         fact("$b", TypeB.class)
                 )
                 .where("$a.i > 4")
                 .where("$b.i > 3")
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
         TypeA $a1;
         TypeA $a2;
@@ -1523,7 +1615,9 @@ class StatefulBaseTests {
                 "$d", TypeD.class
         );
 
-        knowledge.newRule("test alpha 1")
+        knowledge
+                .builder()
+                .newRule("test alpha 1")
                 .forEach(
                         "$a1", TypeA.class,
                         "$b1", TypeB.class,
@@ -1535,7 +1629,8 @@ class StatefulBaseTests {
                 .where("$a1.i != $b1.i")
                 .where("$a2.i != $b2.i")
                 .where("$c.i > 0")
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
         try (StatefulSession s = newSession(mode)) {
 
@@ -1585,13 +1680,16 @@ class StatefulBaseTests {
                 "$a", TypeA.class,
                 "$b", TypeB.class
         );
-        knowledge.newRule("test alpha 1")
+        knowledge
+                .builder()
+                .newRule("test alpha 1")
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
                 )
                 .where("$a.i != $b.i")
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
         try (StatefulSession s = newSession(mode)) {
 
@@ -1636,16 +1734,18 @@ class StatefulBaseTests {
                 "$a", TypeA.class,
                 "$b", TypeB.class
         );
-        knowledge.newRule("test alpha 1")
+        knowledge
+                .builder()
+                .newRule("test alpha 1")
                 .forEach(
                         "$a", TypeA.class,
                         "$b", TypeB.class
                 )
                 .where(beta, "$a.i", "$b.i")
-                .execute(rhsAssert);
+                .execute(rhsAssert)
+                .build();
 
         try (StatefulSession s1 = newSession()) {
-
 
             TypeA a1 = new TypeA("a1");
             a1.setAllNumeric(1);

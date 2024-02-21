@@ -11,10 +11,12 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+@Deprecated
 class LhsBuilderImpl<C extends RuntimeContext<C>> extends  DefaultTypeResolver implements LhsBuilder<C> {
     private final RuleBuilderImpl<C> ruleBuilder;
     private final AbstractRuntime<?, C> runtime;
     private final LhsConditions conditions = new LhsConditions();
+
 
     LhsBuilderImpl(RuleBuilderImpl<C> ruleBuilder) {
         this.ruleBuilder = ruleBuilder;
@@ -125,8 +127,7 @@ class LhsBuilderImpl<C extends RuntimeContext<C>> extends  DefaultTypeResolver i
     }
 
     private void whereInner(String expression, double complexity) {
-        LiteralExpression literalExpression = LiteralExpression.of(Objects.requireNonNull(expression), this);
-        this.conditions.add(literalExpression, complexity);
+        this.conditions.add(expression, complexity);
     }
 
     private void whereInner(ValuesPredicate predicate, double complexity, FieldReference[] references) {

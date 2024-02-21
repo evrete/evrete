@@ -2,7 +2,7 @@ package org.evrete.spi.minimal;
 
 import java.util.Objects;
 
-public abstract class BaseConditionClass {
+public abstract class BaseRuleClass {
 
     @SuppressWarnings("unused")
     protected static boolean eq(Object o1, Object o2) {

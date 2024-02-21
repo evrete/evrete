@@ -48,6 +48,7 @@ public class XMLFacts {
 
         // Creating knowledge and session
         StatelessSession session = knowledge
+                .builder()
                 .newRule("Process active XML Customers")
                 .forEach("$c", CUSTOMER_TYPE_NAME)
                 .where("$c.active == true")
@@ -58,6 +59,7 @@ public class XMLFacts {
                             asString(customer)
                     );
                 })
+                .build()
                 .newStatelessSession();
 
         Document customer1 = newCustomer("ABC Ltd", true);

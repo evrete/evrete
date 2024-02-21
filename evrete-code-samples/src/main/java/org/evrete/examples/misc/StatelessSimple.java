@@ -20,6 +20,7 @@ public class StatelessSimple {
     private static void withKnowledge(KnowledgeService service) {
         Knowledge knowledge = service
                 .newKnowledge()
+                .builder()
                 .newRule()
                 .forEach("$ai", AtomicInteger.class)
                 .where("$ai.get() < 10")
@@ -27,7 +28,8 @@ public class StatelessSimple {
                     AtomicInteger obj = context.get("$ai");
                     obj.incrementAndGet();
                     context.update(obj);
-                });
+                })
+                .build();
 
         StatelessSession session = knowledge.newStatelessSession();
 
@@ -40,6 +42,7 @@ public class StatelessSimple {
     private static void withoutKnowledge(KnowledgeService service) {
         StatelessSession session = service
                 .newStatelessSession()
+                .builder()
                 .newRule()
                 .forEach("$ai", AtomicInteger.class)
                 .where("$ai.get() < 10")
@@ -47,7 +50,8 @@ public class StatelessSimple {
                     AtomicInteger obj = context.get("$ai");
                     obj.incrementAndGet();
                     context.update(obj);
-                });
+                })
+                .build();
 
         AtomicInteger obj = new AtomicInteger(0);
         System.out.println("\tPre-value: " + obj.get()); // Prints 0

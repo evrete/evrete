@@ -48,7 +48,7 @@ public final class EvaluatorFactory {
     }
 
     private static BetaEvaluatorGroup flattenEvaluators(Collection<BetaEvaluatorSingle> collection) {
-        assert collection.size() > 0;
+        assert !collection.isEmpty();
         return new BetaEvaluatorGroup(collection);
     }
 

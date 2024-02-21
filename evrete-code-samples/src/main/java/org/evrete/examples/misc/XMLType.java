@@ -48,6 +48,7 @@ public class XMLType {
                 );
 
         StatefulSession session = knowledge
+                .builder()
                 .newRule("Process active XML Customers")
                 .forEach("$c", CUSTOMER_TYPE_NAME)
                 .where("$c.active == true")
@@ -58,6 +59,7 @@ public class XMLType {
                             System.out.printf("An active customer processed:\n\tname='%s', \n\tactive='%s', \n\tsource='%s'\n", nameValue, activeValue, asString(customer));
                         }
                 )
+                .build()
                 .newStatefulSession();
 
         Document customer1 = newCustomer("ABC Ltd", true);

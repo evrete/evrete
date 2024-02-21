@@ -5,6 +5,10 @@ import org.evrete.api.annotations.NonNull;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+/**
+ * @deprecated in favor of {@link org.evrete.api.builders.LhsBuilder}
+ */
+@Deprecated
 public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resolver {
     C execute(String literalRhs);
 

@@ -9,6 +9,7 @@ public class PrimeNumbersInline {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
                 .newKnowledge()
+                .builder()
                 .newRule("prime numbers")
                 .forEach(
                         "$i1", Integer.class,
@@ -16,7 +17,8 @@ public class PrimeNumbersInline {
                         "$i3", Integer.class
                 )
                 .where("$i1 * $i2 == $i3")
-                .execute(ctx -> ctx.deleteFact("$i3"));
+                .execute(ctx -> ctx.deleteFact("$i3"))
+                .build();
 
         // Stateful sessions are AutoCloseable
         try (StatefulSession session = knowledge.newStatefulSession()) {

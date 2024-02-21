@@ -11,10 +11,10 @@ import org.evrete.api.annotations.NonNull;
 public interface LiteralExpression {
     String getSource();
 
-    NamedType.Resolver getContext();
+    Rule getContext();
 
     @NonNull
-    static LiteralExpression of(final String source, final NamedType.Resolver context) {
+    static LiteralExpression of(final String source, final Rule context) {
         return new LiteralExpression() {
             @Override
             public String getSource() {
@@ -22,9 +22,10 @@ public interface LiteralExpression {
             }
 
             @Override
-            public NamedType.Resolver getContext() {
+            public Rule getContext() {
                 return context;
             }
+
         };
     }
 }

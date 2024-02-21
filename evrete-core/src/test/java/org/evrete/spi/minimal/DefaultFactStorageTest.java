@@ -39,10 +39,12 @@ class DefaultFactStorageTest {
         int updates;
         TypeMemory tm;
         try (StatefulSessionImpl session = (StatefulSessionImpl) knowledge
+                .builder()
                 .newRule()
                 .forEach("$a", TypeA.class)
                 .where("$a.i >= 0")
                 .execute(ctx -> counter.next())
+                .build()
                 .newStatefulSession()) {
 
             TypeA a = new TypeA();

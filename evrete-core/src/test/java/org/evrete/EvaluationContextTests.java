@@ -1,14 +1,16 @@
 package org.evrete;
 
 import org.evrete.api.*;
+import org.evrete.api.builders.LhsBuilder;
+import org.evrete.api.builders.RuleBuilder;
 import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
+import org.evrete.runtime.RhsAssert;
 import org.evrete.runtime.evaluation.EvaluatorOfPredicate;
 import org.evrete.spi.minimal.DefaultExpressionResolverProvider;
-import org.evrete.spi.minimal.DefaultLiteralRhsCompiler;
+import org.evrete.spi.minimal.DefaultLiteralSourceCompiler;
 import org.evrete.spi.minimal.DefaultMemoryFactoryProvider;
 import org.evrete.spi.minimal.DefaultTypeResolverProvider;
-import org.evrete.util.RhsAssert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +30,7 @@ class EvaluationContextTests {
                 .withExpressionResolverProvider(DefaultExpressionResolverProvider.class)
                 .withMemoryFactoryProvider(DefaultMemoryFactoryProvider.class)
                 .withTypeResolverProvider(DefaultTypeResolverProvider.class)
-                .withLiteralRhsCompiler(DefaultLiteralRhsCompiler.class)
+                .withLiteralSourceCompiler(DefaultLiteralSourceCompiler.class)
                 .build();
     }
 
@@ -64,7 +66,7 @@ class EvaluationContextTests {
             facts.add(b1);
         }
 
-        RuleBuilder<Knowledge> ruleBuilder = knowledge.newRule();
+        RuleBuilder<Knowledge> ruleBuilder = knowledge.builder().newRule();
 
         LhsBuilder<Knowledge> lhsBuilder = ruleBuilder
                 .forEach(
@@ -78,6 +80,9 @@ class EvaluationContextTests {
         EvaluatorHandle alphaHandle2 = ruleBuilder.createCondition("$b.i > 1");
 
         lhsBuilder.where(betaHandle, alphaHandle1, alphaHandle2).execute(rhsAssert);
+        lhsBuilder
+                .execute() // Do nothing
+                .build();
 
         try (StatefulSession session1 = knowledge.newStatefulSession().setActivationMode(mode); StatefulSession session2 = knowledge.newStatefulSession().setActivationMode(mode)) {
             session1.insertAndFire(facts);

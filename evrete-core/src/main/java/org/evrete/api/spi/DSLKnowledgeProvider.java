@@ -48,8 +48,8 @@ public interface DSLKnowledgeProvider {
                 if (stream != null) {
                     try {
                         stream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    } catch (IOException ignored) {
+
                     }
                 }
             }

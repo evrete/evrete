@@ -1,6 +1,9 @@
 package org.evrete.dsl;
 
 import org.evrete.api.*;
+import org.evrete.api.builders.LhsBuilder;
+import org.evrete.api.builders.RuleBuilder;
+import org.evrete.api.builders.RuleSetBuilder;
 import org.evrete.dsl.annotation.MethodPredicate;
 import org.evrete.dsl.annotation.RuleSet;
 import org.evrete.util.KnowledgeWrapper;
@@ -11,7 +14,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import static org.evrete.Configuration.CONDITION_BASE_CLASS;
+import static org.evrete.Configuration.RULE_BASE_CLASS;
 
 class DSLKnowledge extends KnowledgeWrapper {
     private final Constructor<?> constructor;
@@ -35,17 +38,21 @@ class DSLKnowledge extends KnowledgeWrapper {
         // Building rules
         RuleSet.Sort defaultSort = Utils.deriveSort(meta.javaClass);
         meta.ruleMethods.sort(new RuleComparator(defaultSort));
+
+        RuleSetBuilder<Knowledge> rulesetBuilder = this.builder();
+
         for (RuleMethod rm : meta.ruleMethods) {
             // Saving current base class
-            String currentConditionBaseClass = delegate.getConfiguration().getProperty(CONDITION_BASE_CLASS);
+            String currentRuleBaseClass = delegate.getConfiguration().getProperty(RULE_BASE_CLASS);
             // Setting new base class for conditions
             delegate
                     .getConfiguration()
-                    .setProperty(CONDITION_BASE_CLASS, canonicalName(meta.javaClass));
+                    .setProperty(RULE_BASE_CLASS, canonicalName(meta.javaClass));
 
 
-            RuleBuilder<Knowledge> builder = this
-                    .newRule(rm.getRuleName());
+            RuleBuilder<Knowledge> builder = rulesetBuilder
+                    .newRule(rm.getRuleName())
+                    .property(RULE_BASE_CLASS, canonicalName(meta.javaClass));
 
             if (rm.getSalience() != Integer.MIN_VALUE) {
                 builder.salience(rm.getSalience());
@@ -89,13 +96,13 @@ class DSLKnowledge extends KnowledgeWrapper {
             });
             rules.add(new DSLRule(rm, predicateMethods));
             // Restoring the original base class
-            if(currentConditionBaseClass != null) {
+            if (currentRuleBaseClass != null) {
                 delegate
                         .getConfiguration()
-                        .setProperty(CONDITION_BASE_CLASS, currentConditionBaseClass);
+                        .setProperty(RULE_BASE_CLASS, currentRuleBaseClass);
             }
-
         }
+        rulesetBuilder.build();
 
         // There is one listener that should be called right now
         meta.phaseListeners.fire(Phase.BUILD, this);

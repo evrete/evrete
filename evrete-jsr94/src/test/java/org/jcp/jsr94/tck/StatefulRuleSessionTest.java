@@ -291,7 +291,7 @@ class StatefulRuleSessionTest {
             // reset should have taken care of the removal.
             list = ruleSession.getObjects();
             assert list != null;
-            assert list.size() == 0;
+            assert list.isEmpty();
 
             // Add the objects all at once.
             handles = ruleSession.addObjects(input);

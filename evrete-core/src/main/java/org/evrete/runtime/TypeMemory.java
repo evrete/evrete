@@ -30,12 +30,6 @@ public final class TypeMemory extends TypeMemoryBase {
         return getStoredRecord(handle);
     }
 
-    public Object getFact(FactHandle handle) {
-        FactRecord record = getFactRecord(handle);
-        return record == null ? null : record.instance;
-    }
-
-
     void forEachFact(BiConsumer<FactHandle, Object> consumer) {
         factStorage.iterator().forEachRemaining(record -> {
             FactHandle handle = record.getHandle();

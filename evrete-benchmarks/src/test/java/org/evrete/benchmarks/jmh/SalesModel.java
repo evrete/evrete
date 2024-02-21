@@ -120,7 +120,9 @@ public class SalesModel {
         public void initKnowledge() {
             service = new KnowledgeService();
             eKnowledge = service.newKnowledge();
-            eKnowledge.newRule("sales")
+            eKnowledge
+                    .builder()
+                    .newRule("sales")
                     .forEach(
                             "$report", SalesReport.class,
                             "$unit", SalesUnit.class,
@@ -135,7 +137,8 @@ public class SalesModel {
                         Invoice i = ctx.get("$i");
                         SalesUnit unit = ctx.get("$unit");
                         report.add(unit, i.amount);
-                    });
+                    })
+                    .build();
 
             // Drools
             dKnowledge = TestUtils.droolsKnowledge("src/test/drl/sales-model.drl");

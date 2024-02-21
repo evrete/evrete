@@ -53,18 +53,6 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         return evaluators;
     }
 
-/*
-    @Override
-    public ClassLoader getClassLoader() {
-        return Objects.requireNonNull(classLoader);
-    }
-
-    @Override
-    public void setClassLoader(ClassLoader classLoader) {
-        this.classLoader = classLoader;
-    }
-*/
-
     @Override
     public final void wrapTypeResolver(TypeResolverWrapper wrapper) {
         this.typeResolver = wrapper;

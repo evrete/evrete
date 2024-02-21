@@ -2,6 +2,8 @@ package org.evrete.examples.howto;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
+import org.evrete.api.builders.LhsBuilder;
+import org.evrete.api.builders.RuleBuilder;
 import org.evrete.runtime.compiler.CompilationException;
 
 import static java.lang.System.out;
@@ -13,7 +15,9 @@ public class ChangingConditions {
         Knowledge knowledge = service.newKnowledge();
 
         // 1. Creating a rule and getting its condition handle
-        RuleBuilder<Knowledge> builder = knowledge.newRule("Even numbers");
+        RuleBuilder<Knowledge> builder = knowledge
+                .builder()
+                .newRule("Even numbers");
         LhsBuilder<Knowledge> lhsBuilder = builder.forEach("$i", Integer.class);
         EvaluatorHandle handle = builder.createCondition("$i % 2 == 0");
 
@@ -22,7 +26,8 @@ public class ChangingConditions {
         lhsBuilder.execute(ctx -> {
             int $i = ctx.get("$i");
             out.printf("\t%d%n", $i);
-        });
+                })
+                .build();
         out.println("1. Rule created.");
 
         try (StatefulSession s = knowledge.newStatefulSession()) {

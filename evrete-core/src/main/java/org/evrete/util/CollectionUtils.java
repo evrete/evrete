@@ -17,7 +17,7 @@ public final class CollectionUtils {
 
     public static <E> List<List<E>> permutation(List<E> l) {
         ArrayList<E> original = new ArrayList<>(l); // ArrayList supports remove
-        if (original.size() == 0) {
+        if (original.isEmpty()) {
             List<List<E>> result = new ArrayList<>();
             result.add(new ArrayList<>());
             return result;

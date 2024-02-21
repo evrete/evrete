@@ -129,7 +129,7 @@ abstract class AbstractRuleSessionIO<S extends RuleSession<S>> extends AbstractR
             tasks.add(new RuleMemoryInsertTask(affectedEndNodes, matchMask, true));
         }
 
-        if (tasks.size() > 0) {
+        if (!tasks.isEmpty()) {
             ForkJoinExecutor executor = getExecutor();
             for (Completer task : tasks) {
                 executor.invoke(task);

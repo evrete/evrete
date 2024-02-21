@@ -45,10 +45,12 @@ public class SelfMutationAnnotated {
         public void rule(StatefulSession sess, String event) {
             // Appending a new rule
             sess
+                    .builder()
                     .newRule(event)
                     .forEach("$i", Integer.class)
                     .where("$i % 2 == 0")
-                    .execute(c -> evenNumbersAction(event, c.get("$i")));
+                    .execute(c -> evenNumbersAction(event, c.get("$i")))
+                    .build();
             out.printf("New rule created: '%s'%n", event);
         }
 

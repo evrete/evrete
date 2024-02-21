@@ -250,9 +250,9 @@ class JoinReIteratorTest {
         }
 
 
-        assert colA.size() == 0;
-        assert colB.size() == 0;
-        assert colC.size() == 0;
+        assert colA.isEmpty();
+        assert colB.isEmpty();
+        assert colC.isEmpty();
         assert joined.reset() == 0;
     }
 }

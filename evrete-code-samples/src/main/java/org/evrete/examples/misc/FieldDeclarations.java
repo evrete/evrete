@@ -24,6 +24,7 @@ class FieldDeclarations {
                 .declareLongField("factorial", FieldDeclarations::computeFactorial);
 
         StatefulSession session = knowledge
+                .builder()
                 .newRule()
                 .forEach(
                         "$i1", Integer.class,
@@ -37,6 +38,7 @@ class FieldDeclarations {
                     System.out.printf("i1: %d (%d)\t\ti2: %d (%d)\n", i1, factorial1, i2, factorial2);
 
                 })
+                .build()
                 .newStatefulSession();
 
 

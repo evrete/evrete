@@ -152,7 +152,7 @@ class RuleExecutionSetTest {
             // Test the getRules.
             List<?> rules = res.getRules();
             assert rules != null;
-            assert 0 < rules.size();
+            assert !rules.isEmpty();
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
