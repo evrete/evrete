@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class FactActionBuffer {
     private final Map<Integer, ActionQueue> typedQueues = new ConcurrentHashMap<>();
@@ -107,9 +108,7 @@ public class FactActionBuffer {
         }
 
         AtomicMemoryAction get(FactHandle factHandle) {
-            int hash = factHandle.hashCode();
-            int binIndex = queue.findBinIndex(factHandle, hash, SEARCH_FUNCTION);
-            return queue.get(binIndex);
+            return queue.getByKey(factHandle, SEARCH_FUNCTION);
         }
 
         void forEachDataEntry(Consumer<AtomicMemoryAction> consumer) {
@@ -117,17 +116,18 @@ public class FactActionBuffer {
         }
 
         boolean add(Action action, FactHandle factHandle, FactRecordDelta delta) {
-            queue.resize();
-            int hash = factHandle.hashCode();
-            int binIndex = queue.findBinIndex(factHandle, hash, SEARCH_FUNCTION);
-            AtomicMemoryAction existingAction = queue.get(binIndex);
-            if (existingAction == null) {
-                queue.saveDirect(new AtomicMemoryAction(action, factHandle, delta), binIndex);
-                return true;
-            } else {
-                existingAction.rebuild(action, delta);
-                return false;
-            }
+            return queue.computeIfAbsent(factHandle, SEARCH_FUNCTION, new Function<FactHandle, AtomicMemoryAction>() {
+                @Override
+                public AtomicMemoryAction apply(FactHandle factHandle) {
+                    return new AtomicMemoryAction(action, factHandle, delta);
+                }
+            }, new Consumer<AtomicMemoryAction>() {
+                @Override
+                public void accept(AtomicMemoryAction existingAction) {
+                    existingAction.rebuild(action, delta);
+                }
+            });
+
         }
 
         void clear() {

@@ -1,6 +1,5 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.IntToValueHandle;
 import org.evrete.api.MemoryKey;
 import org.evrete.api.ValueHandle;
 
@@ -17,12 +16,12 @@ class MemoryKeyMulti implements MemoryKey {
         this.hash = 0;
     }
 
-    MemoryKeyMulti(int fieldCount, IntToValueHandle key, int hash) {
+    MemoryKeyMulti(int fieldCount, MemoryKeyHashed key) {
         this.data = new ValueHandle[fieldCount];
         for (int i = 0; i < fieldCount; i++) {
-            this.data[i] = key.apply(i);
+            this.data[i] = key.values.apply(i);
         }
-        this.hash = hash;
+        this.hash = key.hash;
     }
 
     @Override

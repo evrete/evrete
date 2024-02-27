@@ -12,7 +12,7 @@ class KeyedFactStorageSingle extends AbstractKeyedFactStorage<FactsMapSingle> {
     }
 
     @Override
-    KeyState writeKey(ValueHandle h) {
+    MemoryKeyHashed writeKey(ValueHandle h) {
         this.state.values = value -> h;
         this.state.hash = h.hashCode();
         return this.state;
@@ -25,7 +25,7 @@ class KeyedFactStorageSingle extends AbstractKeyedFactStorage<FactsMapSingle> {
         main.merge(get(KeyMode.OLD_NEW));
     }
 
-    private static class SingleState extends AbstractKeyedFactStorage.KeyState {
+    private static class SingleState extends MemoryKeyHashed {
 
     }
 }

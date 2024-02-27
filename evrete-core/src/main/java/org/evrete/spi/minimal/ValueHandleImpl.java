@@ -26,6 +26,6 @@ class ValueHandleImpl implements ValueHandle {
 
     @Override
     public String toString() {
-        return value == null ? "null" : value.toString();
+        return Objects.toString(value);
     }
 }

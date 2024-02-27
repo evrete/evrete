@@ -1,7 +1,5 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.IntToValueHandle;
-
 import java.util.Objects;
 
 class FactsMapMulti extends AbstractFactsMap<MemoryKeyMulti> {
@@ -21,7 +19,7 @@ class FactsMapMulti extends AbstractFactsMap<MemoryKeyMulti> {
     }
 
     @Override
-    MemoryKeyMulti newKeyInstance(IntToValueHandle fieldValues, int hash) {
-        return new MemoryKeyMulti(fieldCount, fieldValues, hash);
+    MemoryKeyMulti newKeyInstance(MemoryKeyHashed key) {
+        return new MemoryKeyMulti(fieldCount, key);
     }
 }

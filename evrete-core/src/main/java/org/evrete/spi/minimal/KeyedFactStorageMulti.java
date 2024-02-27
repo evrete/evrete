@@ -12,7 +12,7 @@ class KeyedFactStorageMulti extends AbstractKeyedFactStorage<FactsMapMulti> {
     }
 
     @Override
-    KeyState writeKey(ValueHandle h) {
+    MemoryKeyHashed writeKey(ValueHandle h) {
         return this.multiState.update(h);
     }
 
@@ -23,7 +23,7 @@ class KeyedFactStorageMulti extends AbstractKeyedFactStorage<FactsMapMulti> {
         main.merge(get(KeyMode.OLD_NEW));
     }
 
-    private static class MultiState extends AbstractKeyedFactStorage.KeyState {
+    private static class MultiState extends MemoryKeyHashed {
         private final ValueHandle[] data;
         private int currentPosition = 0;
 
@@ -34,6 +34,7 @@ class KeyedFactStorageMulti extends AbstractKeyedFactStorage<FactsMapMulti> {
 
         MultiState update(ValueHandle h) {
             if (currentPosition == data.length) {
+                // Rotate the value position and reset computed hash
                 currentPosition = 0;
                 super.hash = 0;
             }

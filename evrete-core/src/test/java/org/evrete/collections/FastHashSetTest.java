@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("AssertWithSideEffects")
-class FastHashSetTest {
+class FastHashSetTest extends LinearHashTestBase {
 
     private static final int DEFAULT_MIN_CAPACITY = 64;
 
@@ -38,6 +38,13 @@ class FastHashSetTest {
         }
     }
 
+
+    @Test
+    void location1() {
+        LinearHashSet<TypeA> set = new LinearHashSet<>(16);
+        TypeA arg = new TypeA();
+
+    }
 
     @Test
     void basic1() {

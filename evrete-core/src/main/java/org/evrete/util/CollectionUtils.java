@@ -15,6 +15,16 @@ public final class CollectionUtils {
         return Arrays.copyOf(arr, arr.length);
     }
 
+    public static int tableSizeFor(int dataSize, float loadFactor, int minCapacity, int maxCapacity) {
+        int capacity = (int) (dataSize / loadFactor);
+        int cap = Math.max(capacity, minCapacity);
+        int n = -1 >>> Integer.numberOfLeadingZeros(cap - 1);
+        int ret = n + 1;
+        assert ret >= capacity;
+        if (ret > maxCapacity) throw new OutOfMemoryError();
+        return ret;
+    }
+
     public static <E> List<List<E>> permutation(List<E> l) {
         ArrayList<E> original = new ArrayList<>(l); // ArrayList supports remove
         if (original.isEmpty()) {
