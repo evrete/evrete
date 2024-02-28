@@ -1,7 +1,7 @@
 package org.evrete.collections;
 
+import java.util.Objects;
 import java.util.function.BiPredicate;
-import java.util.function.ToIntFunction;
 
 public class LinearHashSet<K> extends AbstractLinearHashSet<K> {
 
@@ -10,12 +10,7 @@ public class LinearHashSet<K> extends AbstractLinearHashSet<K> {
     }
 
     @Override
-    protected ToIntFunction<Object> getHashFunction() {
-        return DEFAULT_HASH;
-    }
-
-    @Override
-    protected BiPredicate<Object, Object> getEqualsPredicate() {
-        return DEFAULT_EQUALS;
+    protected BiPredicate<K, K> getEqualsPredicate() {
+        return Objects::equals;
     }
 }

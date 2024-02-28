@@ -9,14 +9,6 @@ public abstract class AbstractLinearHashSet<K> extends AbstractLinearHash<K> {
         super(minimumCapacity);
     }
 
-    public final boolean contains(K element) {
-        return super.containsEntry(element);
-    }
-
-    public final boolean remove(K element) {
-        return removeEntry(element);
-    }
-
     public final void delete(Predicate<K> predicate) {
         super.deleteEntries(predicate);
     }

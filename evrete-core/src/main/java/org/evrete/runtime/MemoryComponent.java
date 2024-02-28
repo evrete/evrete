@@ -42,9 +42,7 @@ abstract class MemoryComponent implements TypeResolver {
 
     public final void clear() {
         clearLocalData();
-        for (MemoryComponent child : childComponents) {
-            child.clear();
-        }
+        childComponents.forEach(MemoryComponent::clear);
     }
 
     @Override

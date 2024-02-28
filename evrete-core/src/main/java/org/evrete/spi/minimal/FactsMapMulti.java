@@ -11,9 +11,9 @@ class FactsMapMulti extends AbstractFactsMap<MemoryKeyMulti> {
     }
 
     @Override
-    boolean sameData(MapKey<MemoryKeyMulti> mapEntry, IntToValueHandle key) {
+    boolean sameData(FactsWithKey<MemoryKeyMulti> factsWithKey, IntToValueHandle key) {
         for (int i = 0; i < fieldCount; i++) {
-            if (!Objects.equals(mapEntry.key.get(i), key.apply(i))) return false;
+            if (!Objects.equals(factsWithKey.key.get(i), key.apply(i))) return false;
         }
         return true;
     }

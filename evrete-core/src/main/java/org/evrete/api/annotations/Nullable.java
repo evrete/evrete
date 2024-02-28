@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * A source-level annotation to declare that annotated elements can be {@code null} under some circumstances
  */
-@Target({ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD})
+@Target({ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD, ElementType.LOCAL_VARIABLE})
 @Retention(value = RetentionPolicy.SOURCE)
 public @interface Nullable {
 }

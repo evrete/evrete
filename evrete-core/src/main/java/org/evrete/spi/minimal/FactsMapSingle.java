@@ -16,8 +16,8 @@ class FactsMapSingle extends AbstractFactsMap<MemoryKeySingle> {
     }
 
     @Override
-    boolean sameData(MapKey<MemoryKeySingle> mapEntry, IntToValueHandle key) {
-        ValueHandle h1 = mapEntry.key.data;
+    boolean sameData(FactsWithKey<MemoryKeySingle> factsWithKey, IntToValueHandle key) {
+        ValueHandle h1 = factsWithKey.key.data;
         ValueHandle h2 = key.apply(0);
         return Objects.equals(h1, h2);
     }

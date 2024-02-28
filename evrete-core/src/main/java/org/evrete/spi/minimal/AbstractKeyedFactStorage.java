@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Function;
 
-abstract class AbstractKeyedFactStorage<T extends AbstractFactsMap<?>> implements KeyedFactStorage {
+abstract class AbstractKeyedFactStorage<K extends MemoryKey, T extends AbstractFactsMap<K>> implements KeyedFactStorage {
     private final T[] maps;
     private MemoryKeyHashed currentRecord = null;
 
@@ -20,6 +20,14 @@ abstract class AbstractKeyedFactStorage<T extends AbstractFactsMap<?>> implement
     }
 
     abstract MemoryKeyHashed writeKey(ValueHandle h);
+
+    @Override
+    public final void commitChanges() {
+        T main = get(KeyMode.OLD_OLD);
+        main.merge(get(KeyMode.NEW_NEW));
+        main.merge(get(KeyMode.OLD_NEW));
+    }
+
 
     @Override
     public final ReIterator<FactHandleVersioned> values(KeyMode mode, MemoryKey key) {

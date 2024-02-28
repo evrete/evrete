@@ -1,9 +1,9 @@
 package org.evrete.collections;
 
-import org.evrete.api.IntObjectPredicate;
 import org.evrete.api.ReIterable;
 import org.evrete.api.ReIterator;
 import org.evrete.api.annotations.NonNull;
+import org.evrete.api.annotations.Nullable;
 import org.evrete.util.CollectionUtils;
 
 import java.util.Arrays;
@@ -12,19 +12,14 @@ import java.util.StringJoiner;
 import java.util.function.*;
 import java.util.stream.Stream;
 
-// TODO !!!! rewrite the whole concept
-
 /**
  * A simple implementation of a linear probing hash table, devoid of fail-fast bells and whistles and similar features.
  * Contrary to Java's standard HashMap, this implementation can reduce its bucket table size when required,
- * preserving the true O(N) scan complexity.
+ * thus preserving the true O(N) scan complexity.
  *
  * @param <E> Entry type
  */
 public abstract class AbstractLinearHash<E> implements ReIterable<E> {
-    static final ToIntFunction<Object> DEFAULT_HASH = Object::hashCode;
-    static final BiPredicate<Object, Object> DEFAULT_EQUALS = Object::equals;
-    private static final IntObjectPredicate<Object> NULL_BIN_PREDICATE = (i, o) -> o == null;
 
     private static final float loadFactor = 0.75f;
     private static final int MAXIMUM_CAPACITY = 1 << 30;
@@ -49,16 +44,10 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         this.deletedIndices = new boolean[capacity];
     }
 
-    static long location(int hash, int binIndex) {
-        return ((long) hash << 32) | (binIndex & 0xFFFFFFFFL);
-    }
-
-
-    @SuppressWarnings("unchecked")
-    private static <Z> int findBinIndex0(int hash, Object[] scope, IntObjectPredicate<Z> stopSearchPredicate) {
-        int mask = scope.length - 1, counter = 0, pos = hash & mask;
-        while (!stopSearchPredicate.test(pos, (Z) scope[pos])) {
-            if (counter++ == scope.length) {
+    private static int findEmptyBin(int hash, int mask, Object[] destination) {
+        int pos = hash & mask, counter = 0;
+        while (destination[pos] != null) {
+            if (counter++ == destination.length) {
                 throw new IllegalStateException("Low-level implementation error, please submit a bug.");
             } else {
                 pos = (pos + 1) & mask;
@@ -67,15 +56,20 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         return pos;
     }
 
-    private static int findBinIndexForZ1(Object key, int hash, Object[] destination, BiPredicate<Object, Object> eqTest) {
-        int mask = destination.length - 1;
-        int pos = hash & mask;
+    @SuppressWarnings("unchecked")
+    private <T> int findBinIndexRaw(T key, int hash, BiPredicate<E, T> eqTest) {
+        final int size = data.length, mask = size - 1;
+        int pos = hash & mask, counter = 0;
         Object found;
-        while ((found = destination[pos]) != null) {
-            if (eqTest.test(key, found)) {
+        while ((found = data[pos]) != null) {
+            if (eqTest.test((E) found, key)) {
                 return pos;
             } else {
-                pos = (pos + 1) & mask;
+                if (counter++ == size) {
+                    throw new IllegalStateException("Low-level implementation error, please submit a bug.");
+                } else {
+                    pos = (pos + 1) & mask;
+                }
             }
         }
         return pos;
@@ -94,57 +88,6 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         return ret;
     }
 
-    private int findBinIndex0(int hash, IntObjectPredicate<E> stopSearchPredicate) {
-        return findBinIndex0(hash, data, stopSearchPredicate);
-    }
-
-    public void apply(int hash, Predicate<E> predicate, ObjIntConsumer<E> consumer) {
-        apply(hash, binPredicate2(predicate), consumer);
-    }
-
-    public void apply(int hash, IntObjectPredicate<E> predicate, ObjIntConsumer<E> consumer) {
-        int pos = findBinIndex0(hash, this.data, predicate);
-        consumer.accept(get(pos), pos);
-    }
-
-    private IntObjectPredicate<E> binPredicate2(Predicate<E> predicate) {
-        return (i, o) -> o == null || predicate.test(o);
-    }
-
-    static int hash(long location) {
-        return (int) (location >> 32);
-    }
-
-    static int binIndex(long location) {
-        return (int) location;
-    }
-
-    // Method to extract two int values from a long
-    public static int[] extractInts(long value) {
-        int value1 = (int) (value >> 32);
-        int value2 = (int) value;
-
-        return new int[] { value1, value2 };
-    }
-
-    /**
-     * <p>
-     * Returns the encoded location of a given argument in the hash table. The location is simply
-     * the concatenated hash and bin index of where the argument would be placed based on its hash and equality test.
-     * This function returns a long to minimize the overhead of Object creation and garbage collection.
-     * </p>
-     *
-     * @param arg           The argument to compute the location from.
-     * @param matchFunction The function to test objects with equal hash.
-     * @param <K>           The type of the argument.
-     * @return The location of the argument in the hash table.
-     */
-    public <K> long locationFor(@NonNull K arg, BiPredicate<? super E, K> matchFunction) {
-        int hash = arg.hashCode();
-        int binIndex = findBinIndex(arg, hash, matchFunction);
-        return location(hash, binIndex);
-    }
-
     /**
      * Computes the value associated with the given key if it is absent in the hash table. If the value is absent, the supplied producer function is called to generate the value.
      * If the value is present, the supplied action function is called with the existing value as an argument.
@@ -159,14 +102,37 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     public <K> boolean computeIfAbsent(K key, BiPredicate<E, K> searchFunction, Function<K, E> producer, Consumer<E> action) {
         this.resize();
         int hash = key.hashCode();
-        int binIndex = this.findBinIndex(key, hash, searchFunction);
-        E existingAction = this.get(binIndex);
-        if (existingAction == null) {
+        int binIndex = this.findBinIndexRaw(key, hash, searchFunction);
+        E existing = this.get(binIndex);
+        if (existing == null) {
             this.saveDirect(producer.apply(key), binIndex);
             return true;
         } else {
-            action.accept(existingAction);
+            action.accept(existing);
             return false;
+        }
+    }
+
+    /**
+     * Inserts an element into the hash table if it does not already exist.
+     *
+     * @param key            The key used to compute the value.
+     * @param searchFunction A function to test if the existing value matches the key.
+     * @param producer       A function to generate the value if it is absent. The function accepts the key and it's computed hash
+     * @param <K>            The type of the key.
+     * @return The inserted element if it does not already exist, null otherwise.
+     */
+    public <K> E insertIfAbsent(K key, BiPredicate<E, K> searchFunction, ObjIntFunction<K, E> producer) {
+        this.resize();
+        int hash = key.hashCode();
+        int binIndex = this.findBinIndexRaw(key, hash, searchFunction);
+        E existing = this.get(binIndex);
+        if (existing == null) {
+            E newValue = producer.apply(hash, key);
+            this.saveDirect(newValue, binIndex);
+            return newValue;
+        } else {
+            return null;
         }
     }
 
@@ -183,7 +149,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     public <K> E computeIfAbsent(K key, BiPredicate<E, K> searchFunction, Function<K, E> producer) {
         this.resize();
         int hash = key.hashCode();
-        int binIndex = this.findBinIndex(key, hash, searchFunction);
+        int binIndex = this.findBinIndexRaw(key, hash, searchFunction);
         E result = this.get(binIndex);
         if (result == null) {
             result = producer.apply(key);
@@ -192,66 +158,55 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         return result;
     }
 
-    //TODO optimize, no extra jobs must be done
-    public <K> boolean exists(K key, BiPredicate<E, K> searchFunction) {
+    public <K> boolean remove(K key, BiPredicate<E, K> searchFunction) {
+        this.resize();
         int hash = key.hashCode();
-        int binIndex = this.findBinIndex(key, hash, searchFunction);
+        int binIndex = this.findBinIndexRaw(key, hash, searchFunction);
+        return deleteEntry(binIndex);
+    }
+
+    public <K> boolean contains(K key, BiPredicate<E, K> searchFunction) {
+        int hash = key.hashCode();
+        int binIndex = this.findBinIndexRaw(key, hash, searchFunction);
         return this.get(binIndex) != null;
     }
 
-    //TODO optimize, no extra jobs must be done
     public <K> E get(K key, BiPredicate<E, K> searchFunction) {
         int hash = key.hashCode();
-        int binIndex = this.findBinIndex(key, hash, searchFunction);
+        int binIndex = this.findBinIndexRaw(key, hash, searchFunction);
         return this.get(binIndex);
     }
 
     @SuppressWarnings("unchecked")
-    // TODO !!!! analyze/rewrite
-    public E get(int pos) {
+    private E get(int pos) {
         return deletedIndices[pos] ? null : (E) data[pos];
     }
 
-    public <K> E getByKey(@NonNull K key, BiPredicate<? super E, K> matchFunction) {
-        int hash = key.hashCode();
-        int binIndex = this.findBinIndex(key, hash, matchFunction);
-        return this.get(binIndex);
+    /**
+     * Adds an element to the collection.
+     *
+     * @param element the element to be added (must not be null)
+     * @return true if this collection did not already contain the specified element
+     */
+    public final boolean add(@NonNull E element) {
+        return replace(element) == null;
     }
 
-
-    private int findBinIndexForZ1(Object key, int hash, BiPredicate<Object, Object> eqTest) {
-        return findBinIndexForZ1(key, hash, data, eqTest);
-    }
-
-    public <K> int findBinIndex(K key, int hash, BiPredicate<? super E, K> eqTest) {
-        IntObjectPredicate<E> mainPredicate = binPredicate2(e -> eqTest.test(e, key));
-        return findBinIndex0(hash, mainPredicate);
-    }
-
-    public final boolean addVerbose(E element) {
+    /**
+     * Replaces the element in the collection with the specified element.
+     *
+     * @param element the element to be replaced
+     * @return the replaced element, or null if the element was not found in the collection
+     */
+    public final E replace(E element) {
         resize();
-        BiPredicate<Object, Object> eq = getEqualsPredicate();
-        int hash = getHashFunction().applyAsInt(element);
-        int pos = findBinIndexForZ1(element, hash, eq);
-        E old = saveDirect(element, pos);
-        return old == null || !eq.test(element, old);
+        int pos = findBinIndexRaw(element, element.hashCode(), getEqualsPredicate());
+        return saveDirect(element, pos);
     }
 
-    public final void addSilent(E element) {
-        resize();
-        addNoResize(element);
-    }
-
-    private void addNoResize(E element) {
-        int hash = getHashFunction().applyAsInt(element);
-        int pos = findBinIndexForZ1(element, hash, getEqualsPredicate());
-        saveDirect(element, pos);
-    }
 
     @SuppressWarnings("unchecked")
-    // TODO !!!! analyze/rewrite
-    // TODO in some calls, this method is doing unnecessary job
-    public final E saveDirect(E element, int pos) {
+    private E saveDirect(E element, int pos) {
         Object old = data[pos];
         data[pos] = element;
         if (old == null) {
@@ -267,9 +222,8 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         return (E) old;
     }
 
-    protected abstract ToIntFunction<Object> getHashFunction();
 
-    protected abstract BiPredicate<Object, Object> getEqualsPredicate();
+    protected abstract BiPredicate<E, E> getEqualsPredicate();
 
     public final int size() {
         return size;
@@ -287,6 +241,32 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         }
     }
 
+    /**
+     * Adds all elements from a given source object to the current object. If elements with the same key exist, it uses a combine function to resolve the conflict.
+     * <p>
+     * The combine function's first argument is an element from this collection (and it may be null), and the second one is an element from the source collection (non-null).
+     * The result of this function must produce a null or a value with the same hash code as the original keys. If the result is null, then the associated local value (if any) will be deleted.
+     *
+     * @param source          the source collection to add elements from.
+     * @param combineFunction a BinaryOperator function which acts on two inputs of type E (the element type in
+     *                        the collection) and produces an output of the same type.
+     */
+    public void addAll(AbstractLinearHash<E> source, BinaryOperator<E> combineFunction) {
+        BiPredicate<E, E> matchFunction = getEqualsPredicate();
+        source.forEachDataEntry(externalElement -> {
+            resize();
+            int hash = externalElement.hashCode();
+            int binIndex = findBinIndexRaw(externalElement, hash, matchFunction);
+            @Nullable E result = combineFunction.apply(get(binIndex), externalElement);
+
+            if (result == null) {
+                deleteEntry(binIndex);
+            } else {
+                saveDirect(result, binIndex);
+            }
+        });
+    }
+
     public void forEachDataEntry(Consumer<E> consumer) {
         E obj;
         for (int i = 0; i < currentInsertIndex; i++) {
@@ -295,6 +275,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
             }
         }
     }
+
 
     private void forEachDataEntry(ObjIntConsumer<E> consumer) {
         int i, idx;
@@ -307,11 +288,15 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         }
     }
 
-    protected void markDeleted(int pos) {
-        if (!deletedIndices[pos]) {
+    protected boolean markDeleted(int pos) {
+        if (deletedIndices[pos]) {
+            // Already deleted
+            return false;
+        } else {
             deletedIndices[pos] = true;
             deletes++;
             size--;
+            return true;
         }
     }
 
@@ -331,39 +316,30 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         this.deletes = 0;
     }
 
-    // TODO !!!! analyze/rewrite
-    boolean containsEntry(E e) {
-        int pos = findBinIndexForZ1(e, getHashFunction().applyAsInt(e), getEqualsPredicate());
-        return data[pos] != null && !deletedIndices[pos];
+    public boolean contains(E e) {
+        return contains(e, getEqualsPredicate());
     }
 
-    boolean removeEntry(Object e) {
-        int pos = findBinIndexForZ1(e, getHashFunction().applyAsInt(e), getEqualsPredicate());
-        return removeEntry(pos);
+    public boolean remove(E e) {
+        return remove(e, getEqualsPredicate());
     }
 
-    private boolean removeEntry(int pos) {
+    private boolean deleteEntry(int pos) {
         if (data[pos] == null) {
             // Nothing to delete
             return false;
         } else {
-            if (deletedIndices[pos]) {
-                // Nothing to delete
-                return false;
-            } else {
-                markDeleted(pos);
-                return true;
-            }
+            return markDeleted(pos);
         }
     }
 
     @Override
+    @NonNull
     public ReIterator<E> iterator() {
         return new It();
     }
 
     @SuppressWarnings("unchecked")
-    //TODO !!!! analyze usage / rewrite
     public Stream<E> stream() {
         return Arrays.stream(unsignedIndices, 0, currentInsertIndex)
                 .filter(i -> !deletedIndices[i])
@@ -396,13 +372,13 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
 
     private void rebuild(int newArrSize) {
         Object[] newData = new Object[newArrSize];
+        int mask = newArrSize - 1;
         int[] newUnsignedIndices = new int[newArrSize];
         int newCurrentInsertIndex = 0;
-        ToIntFunction<Object> hashFunction = getHashFunction();
         E obj;
         for (int i = 0; i < currentInsertIndex; i++) {
             if ((obj = get(unsignedIndices[i])) != null) {
-                int pos = findBinIndex0(hashFunction.applyAsInt(obj), newData, NULL_BIN_PREDICATE);
+                int pos = findEmptyBin(obj.hashCode(), mask, newData);
                 newData[pos] = obj;
                 newUnsignedIndices[newCurrentInsertIndex++] = pos;
             }
@@ -454,7 +430,6 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
             }
             return -1;
         }
-
 
         @Override
         @SuppressWarnings("unchecked")

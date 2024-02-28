@@ -1,6 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.RuleLiteralData;
+import org.evrete.api.annotations.NonNull;
 import org.evrete.util.WorkUnitObject;
 
 import java.util.Collection;
@@ -29,11 +30,13 @@ class DefaultRuleLiteralData implements RuleLiteralData<DefaultRuleBuilder<?>> {
         return this.rhs != null || !this.conditions.isEmpty();
     }
 
+    @NonNull
     @Override
     public DefaultRuleBuilder<?> getRule() {
         return ruleBuilder;
     }
 
+    @NonNull
     @Override
     public Collection<String> conditions() {
         return conditions;

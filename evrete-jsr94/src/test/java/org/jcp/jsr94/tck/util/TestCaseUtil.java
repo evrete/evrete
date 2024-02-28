@@ -38,6 +38,7 @@ import java.util.Map;
  * @version 1.0
  * @since JSR-94 1.0
  */
+@SuppressWarnings("ExtractMethodRecommender")
 public abstract class TestCaseUtil {
     // The rule service provider as defined in the configuration file.
     private static String ruleServiceProvider;

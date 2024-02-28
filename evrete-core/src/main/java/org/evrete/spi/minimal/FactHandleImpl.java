@@ -28,7 +28,7 @@ class FactHandleImpl implements FactHandle {
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return hash;
     }
 

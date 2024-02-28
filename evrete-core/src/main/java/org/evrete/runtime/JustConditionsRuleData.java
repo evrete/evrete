@@ -2,6 +2,7 @@ package org.evrete.runtime;
 
 import org.evrete.api.Rule;
 import org.evrete.api.RuleLiteralData;
+import org.evrete.api.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,11 +21,13 @@ class JustConditionsRuleData implements RuleLiteralData<Rule> {
         this(rule, new ArrayList<>());
     }
 
+    @NonNull
     @Override
     public Rule getRule() {
         return rule;
     }
 
+    @NonNull
     @Override
     public Collection<String> conditions() {
         return expressions;

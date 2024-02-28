@@ -67,7 +67,6 @@ public class LinkedDataRWD<T> implements ReIterable<T> {
                 // Join nodes
                 myOldLastNode.next = other.firstNode;
                 other.firstNode.prev = myOldLastNode;
-
                 // Update size
                 this.size += other.size;
             }
@@ -115,18 +114,18 @@ public class LinkedDataRWD<T> implements ReIterable<T> {
         this.size = 0;
     }
 
-    private void removeNode(Node<T> last) {
+    private void removeNode(Node<T> node) {
         updateSize(-1);
-        if (last.prev == null) {
+        if (node.prev == null) {
             // Last was the first node
-            setFirst(last.next);
-            last.clearRefs();
-        } else if (last.next == null) {
+            setFirst(node.next);
+            node.clearRefs();
+        } else if (node.next == null) {
             // Last was the last node
-            setLast(last.prev);
-            last.clearRefs();
+            setLast(node.prev);
+            node.clearRefs();
         } else {
-            last.drop();
+            node.drop();
         }
     }
 

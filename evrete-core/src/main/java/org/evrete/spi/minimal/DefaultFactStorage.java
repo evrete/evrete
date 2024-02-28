@@ -4,12 +4,12 @@ import org.evrete.api.FactHandle;
 import org.evrete.api.FactStorage;
 import org.evrete.api.ReIterator;
 import org.evrete.api.Type;
+import org.evrete.api.annotations.NonNull;
 import org.evrete.collections.AbstractLinearHash;
 
 import java.util.StringJoiner;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
-import java.util.function.ToIntFunction;
 
 class DefaultFactStorage<T> implements FactStorage<T> {
     private final TupleCollection<T> collection;
@@ -31,7 +31,7 @@ class DefaultFactStorage<T> implements FactStorage<T> {
 
     @Override
     public void update(FactHandle handle, T newInstance) {
-        this.collection.addSilent(new Tuple<>((FactHandleImpl) handle, newInstance));
+        this.collection.replace(new Tuple<>((FactHandleImpl) handle, newInstance));
     }
 
     @Override
@@ -51,23 +51,15 @@ class DefaultFactStorage<T> implements FactStorage<T> {
         return sj.toString();
     }
 
+    @NonNull
     @Override
     public ReIterator<Entry<T>> iterator() {
         return collection.iterator(ITERATOR_MAPPER);
     }
 
     static class TupleCollection<T> extends AbstractLinearHash<DefaultFactStorage.Tuple<T>> {
-        private static final ToIntFunction<Object> HASH_FUNCTION = Object::hashCode;
         private final BiPredicate<T, T> identityFunction;
-        private final BiPredicate<Object, Object> EQ_PREDICATE = new BiPredicate<Object, Object>() {
-            @Override
-            @SuppressWarnings("unchecked")
-            public boolean test(Object o1, Object o2) {
-                Tuple<T> t1 = (Tuple<T>) o1;
-                Tuple<T> t2 = (Tuple<T>) o2;
-                return identityFunction.test(t1.object, t2.object);
-            }
-        };
+        private final BiPredicate<Tuple<T>, Tuple<T>> equalsPredicate;
         private final BiPredicate<Tuple<T>, FactHandleImpl> searchByHandle = (tuple, o) -> tuple.handle.id == o.id;
         private final BiPredicate<Tuple<T>, T> searchByFact = new BiPredicate<Tuple<T>, T>() {
             @Override
@@ -81,45 +73,32 @@ class DefaultFactStorage<T> implements FactStorage<T> {
         TupleCollection(int minCapacity, Type<?> type, BiPredicate<T, T> identityFunction) {
             super(minCapacity);
             this.identityFunction = identityFunction;
+            this.equalsPredicate = (t1, t2) -> identityFunction.test(t1.object, t2.object);
             this.type = type;
         }
 
         @Override
-        protected ToIntFunction<Object> getHashFunction() {
-            return HASH_FUNCTION;
-        }
-
-        @Override
-        protected BiPredicate<Object, Object> getEqualsPredicate() {
-            return EQ_PREDICATE;
+        protected BiPredicate<Tuple<T>, Tuple<T>> getEqualsPredicate() {
+            return equalsPredicate;
         }
 
         FactHandleImpl insert(T fact) {
-            resize();
-            int hash = HASH_FUNCTION.applyAsInt(fact);
-            int pos = findBinIndex(fact, hash, searchByFact);
-            Tuple<T> tuple = get(pos);
-            if (tuple == null) {
-                // Object id unknown, creating new handle...
-                FactHandleImpl handle = new FactHandleImpl(handleId++, hash, this.type.getId());
-                tuple = new Tuple<>(handle, fact);
-                saveDirect(tuple, pos);
-                return handle;
-            } else {
-                return null;
-            }
+
+            Tuple<T> tuple = insertIfAbsent(fact, searchByFact, (hash, t) -> {
+                FactHandleImpl handle = new FactHandleImpl(handleId++, hash, type.getId());
+                return new Tuple<>(handle, fact);
+            });
+
+            return tuple == null ? null : tuple.handle;
         }
 
         void delete(FactHandle handle) {
             FactHandleImpl impl = (FactHandleImpl) handle;
-            int pos = findBinIndex(impl, impl.hash, searchByHandle);
-            if (get(pos) != null) {
-                markDeleted(pos);
-            }
+            remove(impl, searchByHandle);
         }
 
         T getFact(FactHandleImpl impl) {
-            Tuple<T> t = get(findBinIndex(impl, impl.hash, searchByHandle));
+            Tuple<T> t = get(impl, searchByHandle);
             return t == null ? null : t.object;
         }
     }

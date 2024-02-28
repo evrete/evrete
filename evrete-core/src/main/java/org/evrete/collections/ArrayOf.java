@@ -1,7 +1,5 @@
 package org.evrete.collections;
 
-import org.evrete.api.ReIterable;
-import org.evrete.api.ReIterator;
 import org.evrete.util.CollectionUtils;
 
 import java.util.Arrays;
@@ -15,11 +13,8 @@ import java.util.function.ObjIntConsumer;
  *
  * @param <T> type parameter
  */
-//TODO create tests
-public class ArrayOf<T> implements ReIterable<T> {
-    private final static int NULL_INDEX = -1;
-    //TODO make private
-    public T[] data;
+public class ArrayOf<T> {
+    private T[] data;
 
     public ArrayOf(T[] data) {
         this.data = data;
@@ -33,19 +28,18 @@ public class ArrayOf<T> implements ReIterable<T> {
         this(CollectionUtils.array(type, 0));
     }
 
-    //TODO keep track of current size
-    private int computeSize() {
-        int size = 0;
-        for (T o : data) {
-            if (o != null) size++;
-        }
-        return size;
+    public int length() {
+        return data.length;
+    }
+
+    public T[] getData() {
+        return data;
     }
 
     public void append(T element) {
-        int ret = this.data.length;
-        this.data = Arrays.copyOf(this.data, ret + 1);
-        this.data[ret] = element;
+        int index = this.data.length;
+        this.data = Arrays.copyOf(this.data, index + 1);
+        this.set(index, element);
     }
 
     public void set(int index, T element) {
@@ -105,50 +99,5 @@ public class ArrayOf<T> implements ReIterable<T> {
     @Override
     public String toString() {
         return Arrays.toString(data);
-    }
-
-    @Override
-    public ReIterator<T> iterator() {
-        return new It();
-    }
-
-    private class It implements ReIterator<T> {
-
-        private int cursor;
-
-        It() {
-            init();
-        }
-
-        private void init() {
-            cursor = findNonNullIndex(0);
-        }
-
-        private int findNonNullIndex(int startInclusive) {
-            int current = startInclusive;
-            while (current < data.length) {
-                if (data[current] != null) return current;
-                current++;
-            }
-            return NULL_INDEX;
-        }
-
-        @Override
-        public long reset() {
-            init();
-            return computeSize();
-        }
-
-        @Override
-        public boolean hasNext() {
-            return this.cursor != NULL_INDEX;
-        }
-
-        @Override
-        public T next() {
-            T obj = data[this.cursor];
-            this.cursor = findNonNullIndex(this.cursor + 1);
-            return obj;
-        }
     }
 }

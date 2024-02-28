@@ -1,6 +1,7 @@
 package org.evrete.util;
 
 import org.evrete.api.Named;
+import org.evrete.api.annotations.NonNull;
 
 import java.util.*;
 
@@ -17,6 +18,7 @@ public class SearchList<T extends Named> implements Iterable<T> {
         this.list.sort(comparator);
     }
 
+    @NonNull
     @Override
     public Iterator<T> iterator() {
         return list.iterator();

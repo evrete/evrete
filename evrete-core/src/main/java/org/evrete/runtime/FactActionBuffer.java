@@ -6,17 +6,14 @@ import org.evrete.api.ReIterator;
 import org.evrete.api.Type;
 import org.evrete.collections.LinearHashSet;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class FactActionBuffer {
     private final Map<Integer, ActionQueue> typedQueues = new ConcurrentHashMap<>();
-    private final int[] actionCounts = new int[Action.values().length];
     private final int capacity;
     private long totalActions = 0L;
 
@@ -30,7 +27,6 @@ public class FactActionBuffer {
 
     private void add(Action action, FactHandle factHandle, FactRecordDelta delta) {
         if (get(factHandle).add(action, factHandle, Objects.requireNonNull(delta))) {
-            this.actionCounts[action.ordinal()]++;
             this.totalActions++;
         }
     }
@@ -40,13 +36,8 @@ public class FactActionBuffer {
     }
 
     void clear() {
-        Arrays.fill(this.actionCounts, 0);
         this.typedQueues.values().forEach(ActionQueue::clear);
         this.totalActions = 0L;
-    }
-
-    int deltaOperations() {
-        return getCount(Action.INSERT, Action.UPDATE);
     }
 
     private ActionQueue get(Type<?> t) {
@@ -64,14 +55,6 @@ public class FactActionBuffer {
     void copyToAndClear(FactActionBuffer other) {
         this.typedQueues.values().forEach(queue -> queue.queue.forEachDataEntry(a -> other.add(a.action, a.handle, a.getDelta())));
         this.clear();
-    }
-
-    private int getCount(Action... actions) {
-        int ret = 0;
-        for (Action a : actions) {
-            ret += actionCounts[a.ordinal()];
-        }
-        return ret;
     }
 
     void newUpdate(FactHandle handle, FactRecord previous, Object updatedFact) {
@@ -108,7 +91,7 @@ public class FactActionBuffer {
         }
 
         AtomicMemoryAction get(FactHandle factHandle) {
-            return queue.getByKey(factHandle, SEARCH_FUNCTION);
+            return queue.get(factHandle, SEARCH_FUNCTION);
         }
 
         void forEachDataEntry(Consumer<AtomicMemoryAction> consumer) {
@@ -116,18 +99,12 @@ public class FactActionBuffer {
         }
 
         boolean add(Action action, FactHandle factHandle, FactRecordDelta delta) {
-            return queue.computeIfAbsent(factHandle, SEARCH_FUNCTION, new Function<FactHandle, AtomicMemoryAction>() {
-                @Override
-                public AtomicMemoryAction apply(FactHandle factHandle) {
-                    return new AtomicMemoryAction(action, factHandle, delta);
-                }
-            }, new Consumer<AtomicMemoryAction>() {
-                @Override
-                public void accept(AtomicMemoryAction existingAction) {
-                    existingAction.rebuild(action, delta);
-                }
-            });
-
+            return queue.computeIfAbsent(
+                    factHandle,
+                    SEARCH_FUNCTION,
+                    handle -> new AtomicMemoryAction(action, handle, delta),
+                    existingAction -> existingAction.rebuild(action, delta)
+            );
         }
 
         void clear() {
@@ -135,5 +112,4 @@ public class FactActionBuffer {
         }
 
     }
-
 }

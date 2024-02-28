@@ -1,9 +1,8 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.KeyMode;
 import org.evrete.api.ValueHandle;
 
-class KeyedFactStorageMulti extends AbstractKeyedFactStorage<FactsMapMulti> {
+class KeyedFactStorageMulti extends AbstractKeyedFactStorage<MemoryKeyMulti, FactsMapMulti> {
     private final MultiState multiState;
 
     KeyedFactStorageMulti(int initialSize, int fieldCount) {
@@ -16,14 +15,7 @@ class KeyedFactStorageMulti extends AbstractKeyedFactStorage<FactsMapMulti> {
         return this.multiState.update(h);
     }
 
-    @Override
-    public void commitChanges() {
-        FactsMapMulti main = get(KeyMode.OLD_OLD);
-        main.merge(get(KeyMode.NEW_NEW));
-        main.merge(get(KeyMode.OLD_NEW));
-    }
-
-    private static class MultiState extends MemoryKeyHashed {
+    static class MultiState extends MemoryKeyHashed {
         private final ValueHandle[] data;
         private int currentPosition = 0;
 
@@ -34,7 +26,7 @@ class KeyedFactStorageMulti extends AbstractKeyedFactStorage<FactsMapMulti> {
 
         MultiState update(ValueHandle h) {
             if (currentPosition == data.length) {
-                // Rotate the value position and reset computed hash
+                // Rotate the value position and reset the computed hash
                 currentPosition = 0;
                 super.hash = 0;
             }

@@ -130,7 +130,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         }
 
         // Scanning existing data
-        for (int i = 0; i < memoryKeys.data.length; i++) {
+        for (int i = 0; i < memoryKeys.length(); i++) {
             FieldsKey key = memoryKeys.getChecked(i);
             if (Arrays.equals(key.getFields(), activeFields) && type.getId() == key.type()) {
                 return key;
@@ -138,7 +138,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         }
 
         // No match found, creating new key
-        int newId = memoryKeys.data.length;
+        int newId = memoryKeys.length();
         FieldsKey newKey = new FieldsKey(newId, type, activeFields);
         memoryKeys.set(newId, newKey);
         return newKey;

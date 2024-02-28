@@ -1,9 +1,8 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.KeyMode;
 import org.evrete.api.ValueHandle;
 
-class KeyedFactStorageSingle extends AbstractKeyedFactStorage<FactsMapSingle> {
+class KeyedFactStorageSingle extends AbstractKeyedFactStorage<MemoryKeySingle, FactsMapSingle> {
 
     private final SingleState state = new SingleState();
 
@@ -16,13 +15,6 @@ class KeyedFactStorageSingle extends AbstractKeyedFactStorage<FactsMapSingle> {
         this.state.values = value -> h;
         this.state.hash = h.hashCode();
         return this.state;
-    }
-
-    @Override
-    public void commitChanges() {
-        FactsMapSingle main = get(KeyMode.OLD_OLD);
-        main.merge(get(KeyMode.NEW_NEW));
-        main.merge(get(KeyMode.OLD_NEW));
     }
 
     private static class SingleState extends MemoryKeyHashed {

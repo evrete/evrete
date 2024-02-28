@@ -112,9 +112,9 @@ class DefaultTypeResolver implements TypeResolver {
         }
 
         boolean changed = false;
-        for (int i = 0; i < byJavaTypes.data.length; i++) {
-            if (byJavaTypes.data[i] == delegate) {
-                byJavaTypes.data[i] = typeWrapper; // Replacing the type
+        for (int i = 0; i < byJavaTypes.length(); i++) {
+            if (byJavaTypes.get(i) == delegate) {
+                byJavaTypes.set(i, typeWrapper); // Replacing the type
                 changed = true;
                 break;
             }
@@ -209,11 +209,11 @@ class DefaultTypeResolver implements TypeResolver {
 
         ArrayOf<Type<?>> associatedTypes = typesByJavaType.get(name);
         if (associatedTypes != null) {
-            if (associatedTypes.data.length > 1) {
-                LOGGER.warning("Ambiguous type declaration found, there are " + associatedTypes.data.length + " types associated with '" + name + "' Java type, returning <null>.");
+            if (associatedTypes.length() > 1) {
+                LOGGER.warning("Ambiguous type declaration found, there are " + associatedTypes.length() + " types associated with '" + name + "' Java type, returning <null>.");
                 return null;
             } else {
-                return (Type<T>) associatedTypes.data[0];
+                return (Type<T>) associatedTypes.get(0);
             }
         } else {
             // There is no direct match, but there might be a registered super class that can be used instead

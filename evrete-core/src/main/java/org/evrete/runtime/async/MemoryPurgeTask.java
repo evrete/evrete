@@ -3,7 +3,6 @@ package org.evrete.runtime.async;
 import org.evrete.api.FactHandleVersioned;
 import org.evrete.runtime.KeyMemoryBucket;
 import org.evrete.runtime.SessionMemory;
-import org.evrete.runtime.TypeMemory;
 import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.Mask;
 
@@ -17,14 +16,14 @@ public class MemoryPurgeTask extends Completer {
     private final transient Mask<MemoryAddress> keyPurgeMask = Mask.addressMask();
 
     public MemoryPurgeTask(SessionMemory memory, Mask<MemoryAddress> factPurgeMask) {
-        for (TypeMemory tm : memory) {
+        memory.forEach(tm -> {
             Predicate<FactHandleVersioned> predicate = handle -> !tm.factExists(handle);
-            for (KeyMemoryBucket bucket : tm) {
+            tm.forEach(bucket -> {
                 if (factPurgeMask.get(bucket.address)) {
-                    this.subtasks.add(new TypeMemoryTask(this, bucket, predicate));
+                    MemoryPurgeTask.this.subtasks.add(new TypeMemoryTask(MemoryPurgeTask.this, bucket, predicate));
                 }
-            }
-        }
+            });
+        });
     }
 
     public Mask<MemoryAddress> getKeyPurgeMask() {

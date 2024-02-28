@@ -3,6 +3,7 @@ package org.evrete.runtime;
 import org.evrete.api.LiteralExpression;
 import org.evrete.api.Rule;
 import org.evrete.api.RuleLiteralData;
+import org.evrete.api.annotations.NonNull;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -14,11 +15,13 @@ class JustRhsRuleData implements RuleLiteralData<Rule> {
         this.rhs = rhs;
     }
 
+    @NonNull
     @Override
     public Rule getRule() {
         return rhs.getContext();
     }
 
+    @NonNull
     @Override
     public Collection<String> conditions() {
         return Collections.emptyList();
