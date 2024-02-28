@@ -11,6 +11,7 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.openjdk.jmh.runner.options.TimeValue;
 
+@SuppressWarnings("NewClassNamingConvention")
 public class RuleEngines {
     private static final int ITERATIONS = 10;
     private static final TimeValue DURATION = TimeValue.milliseconds(1000L);

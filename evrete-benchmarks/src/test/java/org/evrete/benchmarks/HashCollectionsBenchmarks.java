@@ -9,6 +9,7 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.openjdk.jmh.runner.options.TimeValue;
 
 
+@SuppressWarnings("NewClassNamingConvention")
 class HashCollectionsBenchmarks {
 
     @Test
