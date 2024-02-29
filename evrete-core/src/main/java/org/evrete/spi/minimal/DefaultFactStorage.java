@@ -31,7 +31,7 @@ class DefaultFactStorage<T> implements FactStorage<T> {
 
     @Override
     public void update(FactHandle handle, T newInstance) {
-        this.collection.replace(new Tuple<>((FactHandleImpl) handle, newInstance));
+        this.collection.add(new Tuple<>((FactHandleImpl) handle, newInstance));
     }
 
     @Override
@@ -77,18 +77,15 @@ class DefaultFactStorage<T> implements FactStorage<T> {
             this.type = type;
         }
 
-        @Override
-        protected BiPredicate<Tuple<T>, Tuple<T>> getEqualsPredicate() {
-            return equalsPredicate;
+        void add(Tuple<T> tuple) {
+            this.add(tuple, equalsPredicate, tuple);
         }
 
         FactHandleImpl insert(T fact) {
-
             Tuple<T> tuple = insertIfAbsent(fact, searchByFact, (hash, t) -> {
                 FactHandleImpl handle = new FactHandleImpl(handleId++, hash, type.getId());
                 return new Tuple<>(handle, fact);
             });
-
             return tuple == null ? null : tuple.handle;
         }
 

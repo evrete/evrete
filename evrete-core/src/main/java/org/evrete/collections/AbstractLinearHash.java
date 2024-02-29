@@ -182,28 +182,11 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         return deletedIndices[pos] ? null : (E) data[pos];
     }
 
-    /**
-     * Adds an element to the collection.
-     *
-     * @param element the element to be added (must not be null)
-     * @return true if this collection did not already contain the specified element
-     */
-    public final boolean add(@NonNull E element) {
-        return replace(element) == null;
-    }
-
-    /**
-     * Replaces the element in the collection with the specified element.
-     *
-     * @param element the element to be replaced
-     * @return the replaced element, or null if the element was not found in the collection
-     */
-    public final E replace(E element) {
+    public final <K> E add(K key, BiPredicate<E, K> equalsTest, E element) {
         resize();
-        int pos = findBinIndexRaw(element, element.hashCode(), getEqualsPredicate());
+        int pos = findBinIndexRaw(key, key.hashCode(), equalsTest);
         return saveDirect(element, pos);
     }
-
 
     @SuppressWarnings("unchecked")
     private E saveDirect(E element, int pos) {
@@ -222,8 +205,6 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         return (E) old;
     }
 
-
-    protected abstract BiPredicate<E, E> getEqualsPredicate();
 
     public final int size() {
         return size;
@@ -251,8 +232,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
      * @param combineFunction a BinaryOperator function which acts on two inputs of type E (the element type in
      *                        the collection) and produces an output of the same type.
      */
-    public void addAll(AbstractLinearHash<E> source, BinaryOperator<E> combineFunction) {
-        BiPredicate<E, E> matchFunction = getEqualsPredicate();
+    public void addAll(AbstractLinearHash<E> source, BinaryOperator<E> combineFunction, BiPredicate<E, E> matchFunction) {
         source.forEachDataEntry(externalElement -> {
             resize();
             int hash = externalElement.hashCode();
@@ -314,14 +294,6 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         this.currentInsertIndex = 0;
         this.size = 0;
         this.deletes = 0;
-    }
-
-    public boolean contains(E e) {
-        return contains(e, getEqualsPredicate());
-    }
-
-    public boolean remove(E e) {
-        return remove(e, getEqualsPredicate());
     }
 
     private boolean deleteEntry(int pos) {
