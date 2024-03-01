@@ -9,11 +9,12 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.openjdk.jmh.runner.options.TimeValue;
 
 
+@SuppressWarnings("NewClassNamingConvention")
 class HashCollectionsBenchmarks {
 
     @Test
     void benchmark() throws RunnerException {
-        TimeValue duration = TimeValue.milliseconds(1000L);
+        TimeValue duration = TimeValue.milliseconds(2000L);
         int iterations = 10;
         Options opt = new OptionsBuilder()
                 .include(HashCollections.class.getSimpleName())

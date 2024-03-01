@@ -38,14 +38,14 @@ public final class TypeMemory extends TypeMemoryBase {
         });
     }
 
-    Optional<FactTuple> register(Object fact) {
+    Optional<InsertedFact> registerInsertedFact(Object fact) {
         FactRecord record = new FactRecord(fact);
         FactHandle handle = factStorage.insert(record);
         if (handle == null) {
             LOGGER.warning("Fact " + fact + " has been already inserted");
             return Optional.empty();
         } else {
-            return Optional.of(new FactTuple(handle, record));
+            return Optional.of(new InsertedFact(handle, record));
         }
     }
 

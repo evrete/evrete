@@ -2,12 +2,13 @@ package org.evrete.runtime;
 
 import org.evrete.api.KeyedFactStorage;
 import org.evrete.api.MemoryFactory;
-import org.evrete.api.ReIterator;
 import org.evrete.api.Type;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.MemoryAddress;
 
-public class SessionMemory extends MemoryComponent implements Iterable<TypeMemory> {
+import java.util.function.Consumer;
+
+public class SessionMemory extends MemoryComponent {
     private final ArrayOf<TypeMemory> typedMemories;
 
     SessionMemory(AbstractRuleSession<?> runtime, MemoryFactory memoryFactory) {
@@ -19,16 +20,13 @@ public class SessionMemory extends MemoryComponent implements Iterable<TypeMemor
     protected void clearLocalData() {
     }
 
-    @Override
-    public ReIterator<TypeMemory> iterator() {
-        return typedMemories.iterator();
+    public void forEach(Consumer<? super TypeMemory> consumer) {
+        typedMemories.forEach(consumer);
     }
 
     void destroy() {
         clear();
-        for (TypeMemory tm : typedMemories) {
-            tm.destroy();
-        }
+        typedMemories.forEach(TypeMemoryBase::destroy);
     }
 
     void onNewActiveField(ActiveField newField) {

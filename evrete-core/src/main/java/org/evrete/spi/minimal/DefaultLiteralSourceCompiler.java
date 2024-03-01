@@ -258,7 +258,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
         final StringJoiner methodArgs;
         final StringJoiner args;
 
-        RhsSource(Rule rule, String rhs) {
+        RhsSource(Rule rule, @NonNull String rhs) {
             this.rule = rule;
             this.rhs = rhs;
             this.methodArgs = new StringJoiner(", ");
@@ -389,11 +389,13 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
             }
         }
 
+        @NonNull
         @Override
         public S getSources() {
             return source.delegate;
         }
 
+        @NonNull
         @Override
         public Collection<LiteralEvaluator> conditions() {
             return conditions;

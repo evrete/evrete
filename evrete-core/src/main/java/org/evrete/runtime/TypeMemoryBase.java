@@ -8,10 +8,10 @@ import org.evrete.api.Type;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.MemoryAddress;
 
-import java.util.Iterator;
 import java.util.Objects;
+import java.util.function.Consumer;
 
-class TypeMemoryBase extends MemoryComponent implements Iterable<KeyMemoryBucket> {
+class TypeMemoryBase extends MemoryComponent {
     final FactStorage<FactRecord> factStorage;
     final Type<?> type;
     private final ArrayOf<KeyMemoryBucket> memoryBuckets;
@@ -47,9 +47,9 @@ class TypeMemoryBase extends MemoryComponent implements Iterable<KeyMemoryBucket
         return factStorage;
     }
 
-    @Override
-    public Iterator<KeyMemoryBucket> iterator() {
-        return memoryBuckets.iterator();
+
+    public void forEach(Consumer<? super KeyMemoryBucket> consumer) {
+        memoryBuckets.forEach(consumer);
     }
 
     public final Type<?> getType() {
@@ -83,10 +83,10 @@ class TypeMemoryBase extends MemoryComponent implements Iterable<KeyMemoryBucket
 
     KeyMemoryBucket getMemoryBucket(MemoryAddress bucket) {
         int bucketIndex = bucket.getBucketIndex();
-        if (bucketIndex >= memoryBuckets.data.length) {
+        if (bucketIndex >= memoryBuckets.length()) {
             throw new IllegalArgumentException("No alpha bucket created for " + bucket);
         } else {
-            KeyMemoryBucket storage = memoryBuckets.data[bucketIndex];
+            KeyMemoryBucket storage = memoryBuckets.get(bucketIndex);
             if (storage == null) {
                 throw new IllegalArgumentException("No alpha bucket created for " + bucket);
             } else {

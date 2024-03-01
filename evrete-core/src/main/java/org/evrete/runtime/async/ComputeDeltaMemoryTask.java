@@ -19,9 +19,7 @@ public class ComputeDeltaMemoryTask extends Completer {
     private final Collection<KeyMemoryBucket> bucketsToCommit = new LinkedList<>();
 
     public ComputeDeltaMemoryTask(FactActionBuffer buffer, SessionMemory memory) {
-        for (TypeMemory tm : memory) {
-            this.subtasks.add(new TypeMemoryDeltaTask(this, tm, buffer));
-        }
+        memory.forEach(tm -> subtasks.add(new TypeMemoryDeltaTask(ComputeDeltaMemoryTask.this, tm, buffer)));
     }
 
     @Override
@@ -118,12 +116,12 @@ public class ComputeDeltaMemoryTask extends Completer {
 
             if (inserts.size() > 0) {
                 // Performing insert
-                for (KeyMemoryBucket bucket : tm) {
+                tm.forEach(bucket -> {
                     addToPendingCount(1);
-                    BucketInsertTask task = new BucketInsertTask(this, bucket, inserts);
-                    this.bucketInsertTasks.add(task);
+                    BucketInsertTask task = new BucketInsertTask(TypeMemoryDeltaTask.this, bucket, inserts);
+                    TypeMemoryDeltaTask.this.bucketInsertTasks.add(task);
                     task.fork();
-                }
+                });
                 postInsert();
             }
         }

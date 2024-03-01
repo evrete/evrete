@@ -35,7 +35,7 @@ class UrlPrimeNumbersTests {
         RuleExecutionSet ruleSet = administrator
                 .getRuleExecutionSetProvider(null)
                 .createRuleExecutionSet(
-                        URI.create("https://www.evrete.org/examples/PrimeNumbersSource.java").toURL(),
+                        URI.create("https://raw.githubusercontent.com/evrete/evrete/master/evrete-dsl-java/src/test/resources/java/PrimeNumbers1.java").toURL(),
                         config
                 );
 

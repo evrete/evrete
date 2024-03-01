@@ -20,7 +20,7 @@ import java.util.stream.Collector;
  *
  * @param <S> session type parameter
  */
-abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRuntime<RuntimeRule, S> implements RuleSession<S> {
+public abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRuntime<RuntimeRule, S> implements RuleSession<S> {
     private static final Logger LOGGER = Logger.getLogger(AbstractRuleSession.class.getName());
     final List<SessionLifecycleListener> lifecycleListeners = new ArrayList<>();
     final SessionMemory memory;
@@ -73,7 +73,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
     protected abstract S thisInstance();
 
     FactActionBuffer newActionBuffer() {
-        return new FactActionBuffer(getConfiguration().getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT));
+        return new FactActionBuffer();
     }
 
     boolean fireCriteriaMet() {
@@ -207,9 +207,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
      */
     private void forEachFactCommitted(BiConsumer<FactHandle, Object> consumer) {
         // Scanning main memory and making sure fact handles are not deleted
-        for (TypeMemory tm : memory) {
-            tm.forEachFact(consumer);
-        }
+        memory.forEach(tm -> tm.forEachFact(consumer));
     }
 
     @SuppressWarnings("unchecked")
@@ -305,13 +303,13 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
         if (collection.isPresent()) {
             // Treat the argument as a collection
             for (Object o : collection.get()) {
-                Optional<FactTuple> insertResult = insertAtomic(o);
+                Optional<InsertedFact> insertResult = insertAtomic(o);
                 insertResult.ifPresent(t -> buffer.newInsert(t.handle, t.record));
             }
             return null;
         } else {
             // Treat the argument as a single fact
-            Optional<FactTuple> insertResult = insertAtomic(arg);
+            Optional<InsertedFact> insertResult = insertAtomic(arg);
             insertResult.ifPresent(t -> buffer.newInsert(t.handle, t.record));
             return insertResult.map(t -> t.handle).orElse(null);
         }
@@ -331,19 +329,19 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
         if (collection.isPresent()) {
             // Treat the argument as a collection
             for (Object o : collection.get()) {
-                Optional<FactTuple> insertResult = insertAtomic(type, o);
+                Optional<InsertedFact> insertResult = insertAtomic(type, o);
                 insertResult.ifPresent(t -> buffer.newInsert(t.handle, t.record));
             }
             return null;
         } else {
             // Treat the argument as a single fact
-            Optional<FactTuple> insertResult = insertAtomic(type, arg);
+            Optional<InsertedFact> insertResult = insertAtomic(type, arg);
             insertResult.ifPresent(t -> buffer.newInsert(t.handle, t.record));
             return insertResult.map(t -> t.handle).orElse(null);
         }
     }
 
-    private Optional<FactTuple> insertAtomic(Object o) {
+    private Optional<InsertedFact> insertAtomic(Object o) {
         Type<?> type = resolve(o);
         if (type == null) {
             if (warnUnknownTypes) {
@@ -356,7 +354,7 @@ abstract class AbstractRuleSession<S extends RuleSession<S>> extends AbstractRun
     }
 
 
-    private Optional<FactTuple> insertAtomic(Type<?> type, Object o) {
-        return memory.get(type).register(o);
+    private Optional<InsertedFact> insertAtomic(Type<?> type, Object o) {
+        return memory.get(type).registerInsertedFact(o);
     }
 }

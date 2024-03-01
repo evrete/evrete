@@ -48,9 +48,8 @@ public class BetaEndNode extends BetaConditionNode implements RhsFactGroup {
     }
 
     @Override
-    //TODO !!!! bad interfaces/abstract methods
     public void commitDelta() {
-        forEachConditionNode(AbstractBetaConditionNode::commitDelta1);
+        forEachConditionNode(AbstractBetaConditionNode::commitDeltaMemory);
     }
 
     @Override

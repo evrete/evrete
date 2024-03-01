@@ -1,73 +1,49 @@
 package org.evrete.collections;
 
-import org.evrete.api.IntObjectPredicate;
 import org.evrete.api.ReIterable;
 import org.evrete.api.ReIterator;
+import org.evrete.api.annotations.NonNull;
+import org.evrete.api.annotations.Nullable;
 import org.evrete.util.CollectionUtils;
 
 import java.util.Arrays;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.function.*;
 import java.util.stream.Stream;
 
-// TODO !!!! rewrite the whole concept
-
 /**
- * A simple implementation of linear probing hash table without fail-fast bells and whistles and alike.
- * Unlike the stock Java's HashMap, this implementation can shrink down its bucket table when necessary,
- * thus preserving the real O(N) scan complexity. See benchmark tests for performance comparisons.
+ * A simple implementation of a linear probing hash table, devoid of fail-fast bells and whistles and similar features.
+ * Contrary to Java's standard HashMap, this implementation can reduce its bucket table size when required,
+ * thus preserving the true O(N) scan complexity.
  *
  * @param <E> Entry type
  */
 public abstract class AbstractLinearHash<E> implements ReIterable<E> {
-    static final ToIntFunction<Object> DEFAULT_HASH = Object::hashCode;
-    static final BiPredicate<Object, Object> DEFAULT_EQUALS = Object::equals;
-    private static final IntObjectPredicate<Object> NULL_BIN_PREDICATE = (i, o) -> o == null;
-
-    private static final float loadFactor = 0.75f;
     private static final int MAXIMUM_CAPACITY = 1 << 30;
-    private static final int MINIMUM_CAPACITY = 1 << 1;
-    private static final int NULL_VALUE = -1;
-    private final int minDataSize;
+    private static final int MINIMUM_CAPACITY = 1 << 4;
     int size = 0;
-    private Object[] data;
-    private boolean[] deletedIndices1;
-    private int deletes = 0;
-    private int currentInsertIndex;
-    private int[] unsignedIndices;
+    int deletes = 0;
+    Entry[] data;
+    int upperResizeBound;
+    int lowerResizeBound;
 
-    protected AbstractLinearHash(int minCapacity) {
-        int capacity = tableSizeFor(minCapacity);
-        this.unsignedIndices = new int[capacity];
-        CollectionUtils.systemFill(this.unsignedIndices, NULL_VALUE);
-        this.currentInsertIndex = 0;
-
-        this.minDataSize = capacity;
-        this.data = new Object[capacity];
-        this.deletedIndices1 = new boolean[capacity];
+    protected AbstractLinearHash() {
+        this(MINIMUM_CAPACITY);
     }
 
-    @SuppressWarnings("unchecked")
-    private static <Z> int findBinIndex0(int hash, Object[] scope, IntObjectPredicate<Z> stopSearchPredicate) {
-        int mask = scope.length - 1, counter = 0, pos = hash & mask;
-        while (!stopSearchPredicate.test(pos, (Z) scope[pos])) {
-            if (counter++ == scope.length) {
+    private AbstractLinearHash(int initialCapacity) {
+        int capacity = tableSizeFor(initialCapacity);
+        this.data = new Entry[capacity];
+        this.setResizeBounds(capacity);
+    }
+
+    private static int findEmptyBin(int hash, int mask, Entry[] destination) {
+        int pos = hash & mask, counter = 0;
+        while (destination[pos] != null) {
+            if (counter++ == destination.length) {
                 throw new IllegalStateException("Low-level implementation error, please submit a bug.");
-            } else {
-                pos = (pos + 1) & mask;
-            }
-        }
-        return pos;
-    }
-
-    private static int findBinIndexForZ1(Object key, int hash, Object[] destination, BiPredicate<Object, Object> eqTest) {
-        int mask = destination.length - 1;
-        int pos = hash & mask;
-        Object found;
-        while ((found = destination[pos]) != null) {
-            if (eqTest.test(key, found)) {
-                return pos;
             } else {
                 pos = (pos + 1) & mask;
             }
@@ -79,142 +55,244 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
      * Returns a power of two size for the given target capacity.
      */
     private static int tableSizeFor(int dataSize) {
-        int capacity = (int) (dataSize / loadFactor);
-        int cap = Math.max(capacity, MINIMUM_CAPACITY);
-        int n = -1 >>> Integer.numberOfLeadingZeros(cap - 1);
-        int ret = n + 1;
-        assert ret >= capacity;
-        if (ret > MAXIMUM_CAPACITY) throw new OutOfMemoryError();
-        return ret;
-    }
-
-    private int findBinIndex0(int hash, IntObjectPredicate<E> stopSearchPredicate) {
-        return findBinIndex0(hash, data, stopSearchPredicate);
-    }
-
-    public void apply(int hash, Predicate<E> predicate, ObjIntConsumer<E> consumer) {
-        apply(hash, binPredicate2(predicate), consumer);
-    }
-
-    public void apply(int hash, IntObjectPredicate<E> predicate, ObjIntConsumer<E> consumer) {
-        int pos = findBinIndex0(hash, this.data, predicate);
-        consumer.accept(get(pos), pos);
-    }
-
-    private IntObjectPredicate<E> binPredicate2(Predicate<E> predicate) {
-        return (i, o) -> o == null || predicate.test(o);
-    }
-
-    @SuppressWarnings("unchecked")
-    // TODO !!!! analyze/rewrite
-    public E get(int pos) {
-        return deletedIndices1[pos] ? null : (E) data[pos];
-    }
-
-    private int findBinIndexForZ1(Object key, int hash, BiPredicate<Object, Object> eqTest) {
-        return findBinIndexForZ1(key, hash, data, eqTest);
-    }
-
-    public <K> int findBinIndex(K key, int hash, BiPredicate<? super E, K> eqTest) {
-        IntObjectPredicate<E> mainPredicate = binPredicate2(e -> eqTest.test(e, key));
-        return findBinIndex0(hash, mainPredicate);
-    }
-
-    public final boolean addVerbose(E element) {
-        resize();
-        BiPredicate<Object, Object> eq = getEqualsPredicate();
-        int hash = getHashFunction().applyAsInt(element);
-        int pos = findBinIndexForZ1(element, hash, eq);
-        E old = saveDirect(element, pos);
-        return old == null || !eq.test(element, old);
-    }
-
-    public final void addSilent(E element) {
-        resize();
-        addNoResize(element);
-    }
-
-    @SuppressWarnings("unused")
-    public final E add(E element) {
-        resize();
-        return addGetPrevious(element);
-    }
-
-    private void addNoResize(E element) {
-        int hash = getHashFunction().applyAsInt(element);
-        int pos = findBinIndexForZ1(element, hash, getEqualsPredicate());
-        saveDirect(element, pos);
-    }
-
-    private E addGetPrevious(E element) {
-        int hash = getHashFunction().applyAsInt(element);
-        int pos = findBinIndexForZ1(element, hash, getEqualsPredicate());
-        return saveDirect(element, pos);
-    }
-
-    @SuppressWarnings("unchecked")
-    // TODO !!!! analyze/rewrite
-    public final E saveDirect(E element, int pos) {
-        Object old = data[pos];
-        data[pos] = element;
-        if (old == null) {
-            unsignedIndices[currentInsertIndex++] = pos;
-            size++;
+        int nextPowerOfTwo = Integer.highestOneBit(dataSize);
+        final int cap;
+        if (dataSize == nextPowerOfTwo) {
+            cap = dataSize;
         } else {
-            if (deletedIndices1[pos]) {
-                deletedIndices1[pos] = false;
-                deletes--;
-                size++;
+            cap = nextPowerOfTwo << 1;
+        }
+        assert cap >= dataSize;
+        if (cap > MAXIMUM_CAPACITY) throw new OutOfMemoryError();
+        return Math.max(MINIMUM_CAPACITY, cap);
+    }
+
+    private <T> int findBinIndex(T key, int hash, BiPredicate<E, T> eqTest) {
+        final int size = data.length, mask = size - 1;
+        int pos = hash & mask, counter = 0;
+        Entry found;
+        while ((found = data[pos]) != null) {
+            if (eqTest.test(found.cast(), key)) {
+                return pos;
+            } else {
+                if (counter++ == size) {
+                    throw new IllegalStateException("Low-level implementation error, please submit a bug.");
+                } else {
+                    pos = (pos + 1) & mask;
+                }
             }
         }
-        return (E) old;
+        return pos;
     }
 
-    protected abstract ToIntFunction<Object> getHashFunction();
+    private <T> int findBinIndexForInsert(T key, int hash, BiPredicate<E, T> eqTest) {
+        final int size = data.length, mask = size - 1;
+        int pos = hash & mask, counter = 0;
+        Entry found;
+        while ((found = data[pos]) != null && !found.deleted) {
+            if (eqTest.test(found.cast(), key)) {
+                return pos;
+            } else {
+                if (counter++ == size) {
+                    throw new IllegalStateException("Low-level implementation error, please submit a bug.");
+                } else {
+                    pos = (pos + 1) & mask;
+                }
+            }
+        }
+        return pos;
+    }
 
-    protected abstract BiPredicate<Object, Object> getEqualsPredicate();
+    /**
+     * Computes the value associated with the given key if it is absent in the hash table. If the value is absent, the supplied producer function is called to generate the value.
+     * If the value is present, the supplied action function is called with the existing value as an argument.
+     *
+     * @param key            The key used to compute the value.
+     * @param searchFunction A function to test if the existing value matches the key.
+     * @param producer       A function to generate the value if it is absent.
+     * @param action         A consumer function to perform an action on the existing value.
+     * @param <K>            The type of the key.
+     * @return true if the value was absent and added, false if the value was present.
+     */
+    public <K> boolean computeIfAbsent(K key, BiPredicate<E, K> searchFunction, Function<K, E> producer, Consumer<E> action) {
+        this.resize();
+        int hash = key.hashCode();
+        int binIndex = this.findBinIndexForInsert(key, hash, searchFunction);
+        E existing = this.get(binIndex);
+        if (existing == null) {
+            this.saveDirect(producer.apply(key), hash, binIndex);
+            return true;
+        } else {
+            action.accept(existing);
+            return false;
+        }
+    }
+
+    /**
+     * Inserts an element into the hash table if it does not already exist.
+     *
+     * @param key            The key used to compute the value.
+     * @param searchFunction A function to test if the existing value matches the key.
+     * @param producer       A function to generate the value if it is absent. The function accepts the key and it's computed hash
+     * @param <K>            The type of the key.
+     * @return The inserted element if it does not already exist, null otherwise.
+     */
+    public <K> E insertIfAbsent(K key, BiPredicate<E, K> searchFunction, ObjIntFunction<K, E> producer) {
+        this.resize();
+        int hash = key.hashCode();
+        int binIndex = this.findBinIndexForInsert(key, hash, searchFunction);
+        E existing = this.get(binIndex);
+        if (existing == null) {
+            E newValue = producer.apply(hash, key);
+            this.saveDirect(newValue, hash, binIndex);
+            return newValue;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the value associated with the given key.
+     * If the value is absent, the supplied producer function is called to generate the value and update the hash table.
+     *
+     * @param <K>            The type of the key.
+     * @param key            The key used to compute the value.
+     * @param searchFunction A function to test if the existing value matches the key.
+     * @param producer       A function to generate the value if it is absent.
+     * @return The computed value.
+     */
+    public <K> E computeIfAbsent(K key, BiPredicate<E, K> searchFunction, Function<K, E> producer) {
+        this.resize();
+        int hash = key.hashCode();
+        int binIndex = this.findBinIndexForInsert(key, hash, searchFunction);
+        E result = this.get(binIndex);
+        if (result == null) {
+            result = producer.apply(key);
+            this.saveDirect(result, hash, binIndex);
+        }
+        return result;
+    }
+
+    public <K> boolean remove(K key, BiPredicate<E, K> searchFunction) {
+        this.resize();
+        int hash = key.hashCode();
+        int binIndex = this.findBinIndex(key, hash, searchFunction);
+        return deleteEntry(binIndex);
+    }
+
+    public <K> boolean contains(K key, BiPredicate<E, K> searchFunction) {
+        int hash = key.hashCode();
+        int binIndex = this.findBinIndex(key, hash, searchFunction);
+        Entry entry = data[binIndex];
+        return entry != null && !entry.deleted;
+    }
+
+    public <K> E get(K key, BiPredicate<E, K> searchFunction) {
+        int hash = key.hashCode();
+        int binIndex = this.findBinIndex(key, hash, searchFunction);
+        return this.get(binIndex);
+    }
+
+    private E get(int pos) {
+        Entry entry = data[pos];
+        return entry == null || entry.deleted ? null : entry.cast();
+    }
+
+    public final <K> E add(K key, BiPredicate<E, K> equalsTest, @NonNull E element) {
+        resize();
+        int hash = key.hashCode();
+        int pos = findBinIndexForInsert(key, hash, equalsTest);
+        return saveDirect(element, hash, pos);
+    }
+
+    private E saveDirect(@NonNull E element, int hash, int pos) {
+        Entry existing = data[pos];
+        if (existing == null) {
+            Entry newEntry = new Entry(element, false, hash);
+            data[pos] = newEntry;
+            size++;
+            return null;
+        } else {
+            if (existing.deleted) {
+                existing.value = element;
+                existing.hash = hash;
+                existing.deleted = false;
+                size++;
+                deletes--;
+                return null;
+            } else {
+                E ret = existing.cast();
+                existing.value = element;
+                existing.hash = hash;
+                return ret;
+            }
+        }
+    }
+
 
     public final int size() {
         return size;
     }
 
     final void deleteEntries(Predicate<E> predicate) {
-        int initialDeletes = this.deletes;
         forEachDataEntry((e, i) -> {
             if (predicate.test(e)) {
-                markDeleted(i);
+                deleteEntry(i);
             }
         });
-        if (initialDeletes != this.deletes) {
+        resize();
+    }
+
+    /**
+     * Adds all elements from a given source object to the current object. If elements with the same key exist, it uses a combine function to resolve the conflict.
+     * <p>
+     * The combine function's first argument is an element from this collection (and it may be null), and the second one is an element from the source collection (non-null).
+     * The result of this function must produce a null or a value with the same hash code as the original keys. If the result is null, then the associated local value (if any) will be deleted.
+     *
+     * @param source          the source collection to add elements from.
+     * @param combineFunction a BinaryOperator function which acts on two inputs of type E (the element type in
+     *                        the collection) and produces an output of the same type.
+     */
+    public void addAll(AbstractLinearHash<E> source, BinaryOperator<E> combineFunction, BiPredicate<E, E> matchFunction) {
+        //TODO create new table here (or continue as-is if size allows)
+        source.forEachInnerEntry(otherEntry -> {
             resize();
+            int hash = otherEntry.hash;
+            E otherValue = otherEntry.cast();
+            int binIndex = findBinIndexForInsert(otherValue, hash, matchFunction);
+            @Nullable E result = combineFunction.apply(get(binIndex), otherValue);
+
+            if (result == null) {
+                deleteEntry(binIndex);
+            } else {
+                saveDirect(result, hash, binIndex);
+            }
+        });
+    }
+
+    void forEachInnerEntry(Consumer<Entry> consumer) {
+        for (Entry o : this.data) {
+            if (o != null && !o.deleted) {
+                consumer.accept(o);
+            }
         }
     }
 
     public void forEachDataEntry(Consumer<E> consumer) {
-        E obj;
-        for (int i = 0; i < currentInsertIndex; i++) {
-            if ((obj = get(unsignedIndices[i])) != null) {
-                consumer.accept(obj);
+        for (Entry o : this.data) {
+            if (o != null && !o.deleted) {
+                consumer.accept(o.cast());
             }
         }
     }
 
     private void forEachDataEntry(ObjIntConsumer<E> consumer) {
-        int i, idx;
+        int idx;
         E obj;
-        for (i = 0; i < currentInsertIndex; i++) {
-            idx = unsignedIndices[i];
+        for (idx = 0; idx < data.length; idx++) {
             if ((obj = get(idx)) != null) {
                 consumer.accept(obj, idx);
             }
-        }
-    }
-
-    protected void markDeleted(int pos) {
-        if (!deletedIndices1[pos]) {
-            deletedIndices1[pos] = true;
-            deletes++;
-            size--;
         }
     }
 
@@ -227,101 +305,105 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
 
     public void clear() {
         CollectionUtils.systemFill(this.data, null);
-        CollectionUtils.systemFill(this.deletedIndices1, false);
-        CollectionUtils.systemFill(this.unsignedIndices, NULL_VALUE);
-        this.currentInsertIndex = 0;
         this.size = 0;
-        this.deletes = 0;
     }
 
-    // TODO !!!! analyze/rewrite
-    boolean containsEntry(E e) {
-        int pos = findBinIndexForZ1(e, getHashFunction().applyAsInt(e), getEqualsPredicate());
-        return data[pos] != null && !deletedIndices1[pos];
-    }
-
-    boolean removeEntry(Object e) {
-        int pos = findBinIndexForZ1(e, getHashFunction().applyAsInt(e), getEqualsPredicate());
-        return removeEntry(pos);
-    }
-
-    private boolean removeEntry(int pos) {
-        if (data[pos] == null) {
-            // Nothing to delete
+    private boolean deleteEntry(int pos) {
+        Entry entry = data[pos];
+        if (entry == null) {
+            return false;
+        } else if (entry.deleted) {
             return false;
         } else {
-            if (deletedIndices1[pos]) {
-                // Nothing to delete
-                return false;
-            } else {
-                markDeleted(pos);
-                return true;
-            }
+            entry.deleted = true;
+            size--;
+            deletes++;
+            return true;
         }
     }
 
     @Override
+    @NonNull
     public ReIterator<E> iterator() {
         return new It();
     }
 
-    @SuppressWarnings("unchecked")
-    //TODO !!!! analyze usage / rewrite
     public Stream<E> stream() {
-        return Arrays.stream(unsignedIndices, 0, currentInsertIndex)
-                .filter(i -> !deletedIndices1[i])
-                .mapToObj(value -> (E) data[value]);
+        return Arrays.stream(data, 0, data.length)
+                .filter(Objects::nonNull)
+                .map(Entry::cast)
+                ;
+    }
+
+    private void setResizeBounds(int tableSize) {
+        this.upperResizeBound = (int) (tableSize * 0.75f);
+        this.lowerResizeBound = (int) (tableSize * 0.25f);
     }
 
     public void resize() {
-        int upperBound = (int) (data.length * loadFactor);
-        int lowerBound = (int) (data.length * loadFactor / 4);
-        if (size > upperBound) {
-            // Resize up
-            rebuild(data.length * 2);
-            return;
-        }
+        int newTableSize = -1;
 
-        if (size < lowerBound) {
+        if (size >= upperResizeBound) {
+            // Resize up
+            newTableSize = data.length * 2;
+        } else if (size <= lowerResizeBound) {
             // Resize down
-            int newDataSize = Math.max(minDataSize, tableSizeFor(lowerBound * 2));
-            if (newDataSize != data.length) {
-                rebuild(newDataSize);
-                return;
+            int shrunkSize = Math.max(data.length / 2, MINIMUM_CAPACITY);
+            if (shrunkSize != this.data.length) {
+                newTableSize = shrunkSize;
             }
         }
 
-        if (deletes > size && size > MINIMUM_CAPACITY) {
-            // Purge deleted data and indices
-            rebuild(this.data.length);
+        if (newTableSize > 0) {
+            rebuild(newTableSize);
         }
+
     }
 
     private void rebuild(int newArrSize) {
-        Object[] newData = new Object[newArrSize];
-        int[] newUnsignedIndices = new int[newArrSize];
-        int newCurrentInsertIndex = 0;
-        ToIntFunction<Object> hashFunction = getHashFunction();
-        E obj;
-        for (int i = 0; i < currentInsertIndex; i++) {
-            if ((obj = get(unsignedIndices[i])) != null) {
-                int pos = findBinIndex0(hashFunction.applyAsInt(obj), newData, NULL_BIN_PREDICATE);
-                newData[pos] = obj;
-                newUnsignedIndices[newCurrentInsertIndex++] = pos;
+        Entry[] newData = new Entry[newArrSize];
+        int mask = newArrSize - 1;
+        for (Entry o : this.data) {
+            if (o != null && !o.deleted) {
+                int pos = findEmptyBin(o.hash, mask, newData);
+                newData[pos] = o;
             }
         }
         this.data = newData;
         this.deletes = 0;
-        this.deletedIndices1 = new boolean[newArrSize];
-        this.currentInsertIndex = newCurrentInsertIndex;
-        this.unsignedIndices = newUnsignedIndices;
+        this.setResizeBounds(newArrSize);
     }
 
-    void assertStructure() {
-        int indices = currentInsertIndex;
-        int deletes = this.deletes;
-        assert indices == size + deletes : "indices: " + indices + " size: " + size + ", deletes: " + deletes;
-        assert this.data.length >= minDataSize;
+    static class Entry {
+        @NonNull
+        Object value;
+        boolean deleted;
+        int hash;
+
+        public Entry(@NonNull Object value, boolean deleted, int hash) {
+            this.value = value;
+            this.deleted = deleted;
+            this.hash = hash;
+        }
+
+        @SuppressWarnings("unchecked")
+        <T> T cast() {
+            return (T) value;
+        }
+
+        @Override
+        public int hashCode() {
+            return hash;
+        }
+
+        @Override
+        public String toString() {
+            return "{" +
+                    "value=" + value +
+                    ", del=" + deleted +
+                    ", hash=" + hash +
+                    '}';
+        }
     }
 
     private final class It implements ReIterator<E> {
@@ -347,20 +429,18 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         }
 
         private int computeNextIndex() {
-            while (pos < currentInsertIndex) {
-                int idx = unsignedIndices[pos];
-                if (deletedIndices1[idx]) {
+            Entry entry;
+            while (pos < data.length) {
+                if ((entry = data[pos]) == null || entry.deleted) {
                     pos++;
                 } else {
-                    return idx;
+                    return pos;
                 }
             }
             return -1;
         }
 
-
         @Override
-        @SuppressWarnings("unchecked")
         public E next() {
             if (nextIndex < 0) {
                 throw new NoSuchElementException();
@@ -368,7 +448,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
                 pos++;
                 currentIndex = nextIndex;
                 nextIndex = computeNextIndex();
-                return (E) data[currentIndex];
+                return data[currentIndex].cast();
             }
         }
 
@@ -377,7 +457,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
             if (currentIndex < 0) {
                 throw new NoSuchElementException();
             } else {
-                markDeleted(currentIndex);
+                deleteEntry(currentIndex);
             }
         }
     }

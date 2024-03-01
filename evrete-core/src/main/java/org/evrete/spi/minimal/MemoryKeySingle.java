@@ -11,9 +11,9 @@ class MemoryKeySingle implements MemoryKey {
     private final int hash;
     private transient int transientValue;
 
-    MemoryKeySingle(ValueHandle data, int hash) {
-        this.data = data;
-        this.hash = hash;
+    MemoryKeySingle(MemoryKeyHashed key) {
+        this.data = key.values.apply(0);
+        this.hash = key.hash;
     }
 
     @Override

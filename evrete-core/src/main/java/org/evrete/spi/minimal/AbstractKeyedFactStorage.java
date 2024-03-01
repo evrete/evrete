@@ -7,9 +7,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Function;
 
-abstract class AbstractKeyedFactStorage<T extends AbstractFactsMap<?>> implements KeyedFactStorage {
+abstract class AbstractKeyedFactStorage<K extends MemoryKey, T extends AbstractFactsMap<K>> implements KeyedFactStorage {
     private final T[] maps;
-    private KeyState currentRecord = null;
+    private MemoryKeyHashed currentRecord = null;
 
     AbstractKeyedFactStorage(Class<T> mapType, Function<KeyMode, T> mapSupplier) {
         //this.fields = fields;
@@ -19,7 +19,15 @@ abstract class AbstractKeyedFactStorage<T extends AbstractFactsMap<?>> implement
         }
     }
 
-    abstract KeyState writeKey(ValueHandle h);
+    abstract MemoryKeyHashed writeKey(ValueHandle h);
+
+    @Override
+    public final void commitChanges() {
+        T main = get(KeyMode.OLD_OLD);
+        main.merge(get(KeyMode.NEW_NEW));
+        main.merge(get(KeyMode.OLD_NEW));
+    }
+
 
     @Override
     public final ReIterator<FactHandleVersioned> values(KeyMode mode, MemoryKey key) {
@@ -33,16 +41,15 @@ abstract class AbstractKeyedFactStorage<T extends AbstractFactsMap<?>> implement
         }
     }
 
-    private void insert(IntToValueHandle key, int keyHash, Collection<FactHandleVersioned> factHandles) {
-        if (get(KeyMode.OLD_OLD).hasKey(keyHash, key)) {
+    private void insert(MemoryKeyHashed key, Collection<FactHandleVersioned> factHandles) {
+        if (get(KeyMode.OLD_OLD).hasKey(key)) {
             // Existing key
-            get(KeyMode.OLD_NEW).add(key, keyHash, factHandles);
+            get(KeyMode.OLD_NEW).add(key, factHandles);
         } else {
             // New key
-            get(KeyMode.NEW_NEW).add(key, keyHash, factHandles);
+            get(KeyMode.NEW_NEW).add(key, factHandles);
         }
     }
-
 
     @Override
     public void write(ValueHandle partialKey) {
@@ -51,7 +58,7 @@ abstract class AbstractKeyedFactStorage<T extends AbstractFactsMap<?>> implement
 
     @Override
     public void write(Collection<FactHandleVersioned> factHandles) {
-        insert(currentRecord.values, currentRecord.hash, factHandles);
+        insert(currentRecord, factHandles);
         this.currentRecord = null;
     }
 
@@ -68,8 +75,4 @@ abstract class AbstractKeyedFactStorage<T extends AbstractFactsMap<?>> implement
         return Arrays.toString(maps);
     }
 
-    static class KeyState {
-        int hash;
-        IntToValueHandle values;
-    }
 }

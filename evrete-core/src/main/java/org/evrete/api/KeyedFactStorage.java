@@ -10,20 +10,20 @@ public interface KeyedFactStorage extends InnerFactMemory {
 
     /**
      * <p>
-     * Method similar to the {@link java.util.jar.JarOutputStream#putNextEntry(ZipEntry)}, except
-     * both sides are expected to know how many keys are to be written until  {@link #write(Collection)}
-     * gets called.
+     * This method is similar to the {@link java.util.jar.JarOutputStream#putNextEntry(ZipEntry)}. However,
+     * it expects both sides to know the number of keys to be written until the {@link #write(Collection)} method
+     * is called.
      * </p>
      *
-     * @param partialKey next component of the memory key
+     * @param partialKey The next component of the memory key.
      */
     void write(ValueHandle partialKey);
 
     /**
      * <p>
-     * This method will be called after necessary count of keys are provided via {@link #write(ValueHandle)}.
-     * After fact handles are provided, the implementation must reset its internal key counter and wait for the
-     * next call of {@link #write(ValueHandle)}.
+     * This method will be called after the necessary number of keys are provided via {@link #write(ValueHandle)}.
+     * After the fact handles are provided, the implementation must reset its internal key counter and wait for the
+     * next call to {@link #write(ValueHandle)}.
      * </p>
      *
      * @param factHandles fact handles to save under the sequence of keys

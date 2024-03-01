@@ -244,6 +244,105 @@ class LinkedDataRWDTest {
 
     @Test
     void consume1() {
+        LinkedDataRWD<Integer> empty = new LinkedDataRWD<>();
+        LinkedDataRWD<Integer> second = new LinkedDataRWD<>();
+
+        second.add(11).add(12).add(12).add(13);
+
+        empty.consume(second);
+
+        ReIterator<Integer> iterator = empty.iterator();
+        assert empty.size() == 4;
+        assert second.size() == 0;
+
+        // Scan values 1
+        assert iterator.reset() == 4;
+        assert iterator.next() == 11;
+        assert iterator.next() == 12;
+        assert iterator.next() == 12;
+        assert iterator.next() == 13;
+        assert !iterator.hasNext();
+
+        // Scan values 2
+        assert iterator.reset() == 4;
+        assert iterator.next() == 11;
+        assert iterator.next() == 12;
+        assert iterator.next() == 12;
+        assert iterator.next() == 13;
+        assert !iterator.hasNext();
+    }
+
+    @Test
+    void consume2() {
+        LinkedDataRWD<Integer> first = new LinkedDataRWD<>();
+        LinkedDataRWD<Integer> empty = new LinkedDataRWD<>();
+
+        first.add(11).add(12).add(12).add(13);
+
+        first.consume(empty);
+
+        ReIterator<Integer> iterator = first.iterator();
+        assert first.size() == 4;
+        assert empty.size() == 0;
+
+        // Scan values 1
+        assert iterator.reset() == 4;
+        assert iterator.next() == 11;
+        assert iterator.next() == 12;
+        assert iterator.next() == 12;
+        assert iterator.next() == 13;
+        assert !iterator.hasNext();
+
+        // Scan values 2
+        assert iterator.reset() == 4;
+        assert iterator.next() == 11;
+        assert iterator.next() == 12;
+        assert iterator.next() == 12;
+        assert iterator.next() == 13;
+        assert !iterator.hasNext();
+
+    }
+
+    @Test
+    void consume3() {
+        LinkedDataRWD<Integer> first = new LinkedDataRWD<>();
+        LinkedDataRWD<Integer> second = new LinkedDataRWD<>();
+
+        first.add(1).add(2).add(3);
+        second.add(4).add(5).add(6).add(6);
+
+        first.consume(second);
+
+        ReIterator<Integer> iterator = first.iterator();
+        assert first.size() == 7;
+        assert second.size() == 0;
+
+        // Scan values 1
+        assert iterator.reset() == 7;
+        assert iterator.next() == 1;
+        assert iterator.next() == 2;
+        assert iterator.next() == 3;
+        assert iterator.next() == 4;
+        assert iterator.next() == 5;
+        assert iterator.next() == 6;
+        assert iterator.next() == 6;
+        assert !iterator.hasNext();
+
+        // Scan values 2
+        assert iterator.reset() == 7;
+        assert iterator.next() == 1;
+        assert iterator.next() == 2;
+        assert iterator.next() == 3;
+        assert iterator.next() == 4;
+        assert iterator.next() == 5;
+        assert iterator.next() == 6;
+        assert iterator.next() == 6;
+        assert !iterator.hasNext();
+
+    }
+
+    @Test
+    void consume5() {
         LinkedDataRWD<Integer> main = new LinkedDataRWD<>();
         LinkedDataRWD<Integer> delta = new LinkedDataRWD<>();
 

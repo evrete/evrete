@@ -2,10 +2,16 @@ package org.evrete.collections;
 
 import org.evrete.api.ReIterable;
 import org.evrete.api.ReIterator;
+import org.evrete.api.annotations.NonNull;
 
 import java.util.NoSuchElementException;
 import java.util.StringJoiner;
 
+/**
+ * Represents a linked list data structure that allows reading and writing operations.
+ *
+ * @param <T> the type of elements stored in the linked list
+ */
 public class LinkedDataRW<T> implements ReIterable<T> {
     private long size;
     private Node<T> first;
@@ -43,6 +49,7 @@ public class LinkedDataRW<T> implements ReIterable<T> {
         this.size = 0;
     }
 
+    @NonNull
     @Override
     public ReIterator<T> iterator() {
         return new It();

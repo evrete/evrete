@@ -2,28 +2,35 @@ package org.evrete.collections;
 
 import org.evrete.api.ReIterable;
 import org.evrete.api.ReIterator;
+import org.evrete.api.annotations.NonNull;
 
-import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.StringJoiner;
 
+/**
+ * Represents a linked list data structure that allows reading, writing, and delete operations.
+ *
+ * @param <T> the type of elements in the list
+ */
 public class LinkedDataRWD<T> implements ReIterable<T> {
     private long size;
     private Node<T> firstNode;
     private Node<T> lastNode;
 
     public LinkedDataRWD<T> add(T object) {
-        Node<T> node;
+        final Node<T> newLastNode;
         if (lastNode == null) {
             // First entry
-            node = new Node<>(object, null);
-            this.firstNode = node;
+            newLastNode = new Node<>(object, null);
+            this.firstNode = newLastNode;
         } else {
-            node = new Node<>(object, lastNode);
-            this.lastNode.next = node;
-            node.prev = this.lastNode;
+            Node<T> oldLastNode = this.lastNode;
+
+            newLastNode = new Node<>(object, oldLastNode);
+            oldLastNode.next = newLastNode;
+            newLastNode.prev = oldLastNode;
         }
-        this.lastNode = node;
+        this.lastNode = newLastNode;
         updateSize(1);
         return this;
     }
@@ -31,7 +38,6 @@ public class LinkedDataRWD<T> implements ReIterable<T> {
     private void updateSize(long delta) {
         this.size += delta;
     }
-
 
     @Override
     public String toString() {
@@ -47,15 +53,26 @@ public class LinkedDataRWD<T> implements ReIterable<T> {
      *
      * @param other target data to consume and clear
      */
-    //TODO !!!! optimize
     public void consume(LinkedDataRWD<T> other) {
-        if (other.size > 0) {
-            Iterator<T> iterator = other.iterator();
-            while (iterator.hasNext()) {
-                T t = iterator.next();
-                add(t);
-                iterator.remove();
+        if (other.lastNode != null) {
+            if (this.lastNode == null) {
+                // Copy data
+                this.lastNode = other.lastNode;
+                this.firstNode = other.firstNode;
+                this.size = other.size;
+            } else {
+                Node<T> myOldLastNode = this.lastNode;
+                // Re-assign last node
+                this.lastNode = other.lastNode;
+                // Join nodes
+                myOldLastNode.next = other.firstNode;
+                other.firstNode.prev = myOldLastNode;
+                // Update size
+                this.size += other.size;
             }
+
+            // Finally, clear the source
+            other.clear();
         }
     }
 
@@ -97,21 +114,22 @@ public class LinkedDataRWD<T> implements ReIterable<T> {
         this.size = 0;
     }
 
-    private void removeNode(Node<T> last) {
+    private void removeNode(Node<T> node) {
         updateSize(-1);
-        if (last.prev == null) {
+        if (node.prev == null) {
             // Last was the first node
-            setFirst(last.next);
-            last.clearRefs();
-        } else if (last.next == null) {
+            setFirst(node.next);
+            node.clearRefs();
+        } else if (node.next == null) {
             // Last was the last node
-            setLast(last.prev);
-            last.clearRefs();
+            setLast(node.prev);
+            node.clearRefs();
         } else {
-            last.drop();
+            node.drop();
         }
     }
 
+    @NonNull
     @Override
     public ReIterator<T> iterator() {
         return new It();

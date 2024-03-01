@@ -16,7 +16,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <junit.version>5.9.2</junit.version>
-        <jmh.version>1.34</jmh.version>
+        <jmh.version>1.37</jmh.version>
     </properties>
 
     <scm>

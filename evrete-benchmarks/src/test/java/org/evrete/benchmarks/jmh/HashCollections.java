@@ -15,7 +15,7 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-@BenchmarkMode(Mode.AverageTime)
+@BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @Fork(value = 1, warmups = 1)
 @SuppressWarnings({"unused"})
@@ -23,14 +23,15 @@ public class HashCollections {
     private static final AtomicLong counter = new AtomicLong();
 
     @Benchmark
-    public void scan(BenchState state) {
+    public void forEach(BenchState state) {
         IterableSet<TypeA> scanCollection = state.scanData.get(state.set);
         scanCollection.forEach(typeA -> counter.incrementAndGet());
     }
 
     @Benchmark
     public void iterator(BenchState state) {
-        for (TypeA a : state.scanData.get(state.set)) {
+        IterableSet<TypeA> set = state.scanData.get(state.set);
+        for (TypeA a : set) {
             Blackhole.consumeCPU(a.hashCode() % 2);
         }
     }
@@ -61,7 +62,6 @@ public class HashCollections {
     @State(Scope.Thread)
     public static class BenchState {
         private static final int objectCount = (1 << 17) + (1 << 15);
-        private static final int initialSize = objectCount >> 10;
         final EnumMap<SetImplementation, IterableSet<TypeA>> scanData = new EnumMap<>(SetImplementation.class);
         final EnumMap<SetImplementation, IterableSet<TypeA>> addData = new EnumMap<>(SetImplementation.class);
         final ArrayList<TypeA> objects = new ArrayList<>(objectCount);
@@ -70,10 +70,10 @@ public class HashCollections {
         SetImplementation set;
 
         public BenchState() {
-            scanData.put(SetImplementation.HashSet, TestUtils.setOf(new HashSet<>(initialSize)));
-            scanData.put(SetImplementation.LinearHash, TestUtils.setOf(new LinearHashSet<>(initialSize)));
-            addData.put(SetImplementation.HashSet, TestUtils.setOf(new HashSet<>(initialSize)));
-            addData.put(SetImplementation.LinearHash, TestUtils.setOf(new LinearHashSet<>(initialSize)));
+            scanData.put(SetImplementation.HashSet, TestUtils.setOf(new HashSet<>()));
+            scanData.put(SetImplementation.LinearHash, TestUtils.setOf(new LinearHashSet<>()));
+            addData.put(SetImplementation.HashSet, TestUtils.setOf(new HashSet<>()));
+            addData.put(SetImplementation.LinearHash, TestUtils.setOf(new LinearHashSet<>()));
         }
 
         @Setup(Level.Iteration)

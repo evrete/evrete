@@ -2,6 +2,7 @@ package org.evrete.helper;
 
 import org.evrete.api.ReIterator;
 import org.evrete.api.StatefulSession;
+import org.evrete.api.annotations.NonNull;
 import org.evrete.collections.CollectionReIterator;
 import org.evrete.collections.LinearHashSet;
 import org.evrete.collections.LinkedDataRWD;
@@ -64,6 +65,12 @@ public final class TestUtils {
                 return set.contains(element);
             }
 
+            @Override
+            public Object delegate() {
+                return set;
+            }
+
+            @NonNull
             @Override
             public ReIterator<Z> iterator() {
                 return new CollectionReIterator<>(set);
@@ -139,6 +146,7 @@ public final class TestUtils {
                 throw new UnsupportedOperationException();
             }
 
+            @NonNull
             @Override
             public ReIterator<Z> iterator() {
                 return new CollectionReIterator<>(list);
@@ -179,6 +187,7 @@ public final class TestUtils {
                 throw new UnsupportedOperationException();
             }
 
+            @NonNull
             @Override
             public ReIterator<Z> iterator() {
                 return list.iterator();
@@ -199,6 +208,12 @@ public final class TestUtils {
             }
 
             @Override
+            public Object delegate() {
+                return set;
+            }
+
+            @NonNull
+            @Override
             public ReIterator<Z> iterator() {
                 return set.iterator();
             }
@@ -210,7 +225,7 @@ public final class TestUtils {
 
             @Override
             public boolean add(Z element) {
-                return set.addVerbose(element);
+                return set.add(element);
             }
 
             @Override

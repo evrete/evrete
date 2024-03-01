@@ -42,6 +42,7 @@ import java.util.Map;
  * @see javax.rules.RuleRuntime
  * @since JSR-94 1.0
  */
+@SuppressWarnings("ExtractMethodRecommender")
 class RuleRuntimeTest {
     /**
      * Test the compliance for javax.rules.RuleRuntime.

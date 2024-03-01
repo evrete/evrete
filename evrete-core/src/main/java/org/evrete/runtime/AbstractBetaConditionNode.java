@@ -45,7 +45,7 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode {
         return mergeToMain;
     }
 
-    void commitDelta1() {
+    void commitDeltaMemory() {
         MemoryKeyCollection delta1 = getStore(KeyMode.NEW_NEW);
         MemoryKeyCollection delta2 = getStore(KeyMode.OLD_NEW);
         if (mergeToMain) {

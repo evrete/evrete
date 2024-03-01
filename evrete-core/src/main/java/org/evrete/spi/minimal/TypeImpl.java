@@ -209,11 +209,10 @@ class TypeImpl<T> implements Type<T> {
                 }
             }
 
-            func = getters.data.length == 1 ?
-                    new AtomicFunction(getters.data[0])
+            func = getters.length() == 1 ?
+                    new AtomicFunction(getters.get(0))
                     :
-                    new NestedFunction(getters.data);
-
+                    new NestedFunction(getters.getData());
         }
         return innerDeclare(fieldName, valueType, func);
     }

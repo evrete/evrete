@@ -1,9 +1,13 @@
 package org.evrete.api;
 
+import org.evrete.api.annotations.NonNull;
+
 import java.util.function.Function;
 
 public interface ReIterable<T> extends Iterable<T> {
 
+    @Override
+    @NonNull
     ReIterator<T> iterator();
 
     default <Z> ReIterator<Z> iterator(Function<? super T, Z> mapper) {
