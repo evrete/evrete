@@ -24,7 +24,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     private static final int MAXIMUM_CAPACITY = 1 << 30;
     private static final int MINIMUM_CAPACITY = 1 << 4;
     int size = 0;
-    //int deletes = 0;
+    int deletes = 0;
     Entry[] data;
     int upperResizeBound;
     int lowerResizeBound;
@@ -218,6 +218,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
                 existing.hash = hash;
                 existing.deleted = false;
                 size++;
+                deletes--;
                 return null;
             } else {
                 E ret = existing.cast();
@@ -258,7 +259,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
             resize();
             int hash = otherEntry.hash;
             E otherValue = otherEntry.cast();
-            int binIndex = findBinIndex(otherValue, hash, matchFunction);
+            int binIndex = findBinIndexForInsert(otherValue, hash, matchFunction);
             @Nullable E result = combineFunction.apply(get(binIndex), otherValue);
 
             if (result == null) {
@@ -285,7 +286,6 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         }
     }
 
-
     private void forEachDataEntry(ObjIntConsumer<E> consumer) {
         int idx;
         E obj;
@@ -310,12 +310,14 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
 
     private boolean deleteEntry(int pos) {
         Entry entry = data[pos];
-        if (entry == null || entry.deleted) {
-            // Nothing to delete
+        if (entry == null) {
+            return false;
+        } else if (entry.deleted) {
             return false;
         } else {
             entry.deleted = true;
             size--;
+            deletes++;
             return true;
         }
     }
@@ -339,16 +341,23 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     }
 
     public void resize() {
+        int newTableSize = -1;
+
         if (size >= upperResizeBound) {
             // Resize up
-            rebuild(data.length * 2);
+            newTableSize = data.length * 2;
         } else if (size <= lowerResizeBound) {
             // Resize down
-            int newDataSize = Math.max(data.length / 2, MINIMUM_CAPACITY);
-            if (newDataSize != this.data.length) {
-                rebuild(newDataSize);
+            int shrunkSize = Math.max(data.length / 2, MINIMUM_CAPACITY);
+            if (shrunkSize != this.data.length) {
+                newTableSize = shrunkSize;
             }
         }
+
+        if (newTableSize > 0) {
+            rebuild(newTableSize);
+        }
+
     }
 
     private void rebuild(int newArrSize) {
@@ -361,6 +370,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
             }
         }
         this.data = newData;
+        this.deletes = 0;
         this.setResizeBounds(newArrSize);
     }
 

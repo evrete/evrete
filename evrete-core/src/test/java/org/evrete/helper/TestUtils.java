@@ -65,6 +65,11 @@ public final class TestUtils {
                 return set.contains(element);
             }
 
+            @Override
+            public Object delegate() {
+                return set;
+            }
+
             @NonNull
             @Override
             public ReIterator<Z> iterator() {
@@ -200,6 +205,11 @@ public final class TestUtils {
             @Override
             public boolean contains(Z element) {
                 return set.contains(element);
+            }
+
+            @Override
+            public Object delegate() {
+                return set;
             }
 
             @NonNull
