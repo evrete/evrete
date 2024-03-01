@@ -8,6 +8,7 @@ import org.evrete.util.CollectionUtils;
 
 import java.util.Arrays;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.function.*;
 import java.util.stream.Stream;
@@ -20,31 +21,25 @@ import java.util.stream.Stream;
  * @param <E> Entry type
  */
 public abstract class AbstractLinearHash<E> implements ReIterable<E> {
-
-    private static final float loadFactor = 0.75f;
     private static final int MAXIMUM_CAPACITY = 1 << 30;
-    private static final int MINIMUM_CAPACITY = 1 << 1;
-    private static final int NULL_VALUE = -1;
-    private final int minDataSize;
+    private static final int MINIMUM_CAPACITY = 1 << 4;
     int size = 0;
-    private Object[] data;
-    private boolean[] deletedIndices;
-    private int deletes = 0;
-    private int currentInsertIndex;
-    private int[] unsignedIndices;
+    //int deletes = 0;
+    Entry[] data;
+    int upperResizeBound;
+    int lowerResizeBound;
 
-    protected AbstractLinearHash(int minCapacity) {
-        int capacity = tableSizeFor(minCapacity);
-        this.unsignedIndices = new int[capacity];
-        CollectionUtils.systemFill(this.unsignedIndices, NULL_VALUE);
-        this.currentInsertIndex = 0;
-
-        this.minDataSize = capacity;
-        this.data = new Object[capacity];
-        this.deletedIndices = new boolean[capacity];
+    protected AbstractLinearHash() {
+        this(MINIMUM_CAPACITY);
     }
 
-    private static int findEmptyBin(int hash, int mask, Object[] destination) {
+    private AbstractLinearHash(int initialCapacity) {
+        int capacity = tableSizeFor(initialCapacity);
+        this.data = new Entry[capacity];
+        this.setResizeBounds(capacity);
+    }
+
+    private static int findEmptyBin(int hash, int mask, Entry[] destination) {
         int pos = hash & mask, counter = 0;
         while (destination[pos] != null) {
             if (counter++ == destination.length) {
@@ -56,13 +51,28 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         return pos;
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> int findBinIndexRaw(T key, int hash, BiPredicate<E, T> eqTest) {
+    /**
+     * Returns a power of two size for the given target capacity.
+     */
+    private static int tableSizeFor(int dataSize) {
+        int nextPowerOfTwo = Integer.highestOneBit(dataSize);
+        final int cap;
+        if (dataSize == nextPowerOfTwo) {
+            cap = dataSize;
+        } else {
+            cap = nextPowerOfTwo << 1;
+        }
+        assert cap >= dataSize;
+        if (cap > MAXIMUM_CAPACITY) throw new OutOfMemoryError();
+        return Math.max(MINIMUM_CAPACITY, cap);
+    }
+
+    private <T> int findBinIndex(T key, int hash, BiPredicate<E, T> eqTest) {
         final int size = data.length, mask = size - 1;
         int pos = hash & mask, counter = 0;
-        Object found;
+        Entry found;
         while ((found = data[pos]) != null) {
-            if (eqTest.test((E) found, key)) {
+            if (eqTest.test(found.cast(), key)) {
                 return pos;
             } else {
                 if (counter++ == size) {
@@ -75,17 +85,22 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         return pos;
     }
 
-    /**
-     * Returns a power of two size for the given target capacity.
-     */
-    private static int tableSizeFor(int dataSize) {
-        int capacity = (int) (dataSize / loadFactor);
-        int cap = Math.max(capacity, MINIMUM_CAPACITY);
-        int n = -1 >>> Integer.numberOfLeadingZeros(cap - 1);
-        int ret = n + 1;
-        assert ret >= capacity;
-        if (ret > MAXIMUM_CAPACITY) throw new OutOfMemoryError();
-        return ret;
+    private <T> int findBinIndexForInsert(T key, int hash, BiPredicate<E, T> eqTest) {
+        final int size = data.length, mask = size - 1;
+        int pos = hash & mask, counter = 0;
+        Entry found;
+        while ((found = data[pos]) != null && !found.deleted) {
+            if (eqTest.test(found.cast(), key)) {
+                return pos;
+            } else {
+                if (counter++ == size) {
+                    throw new IllegalStateException("Low-level implementation error, please submit a bug.");
+                } else {
+                    pos = (pos + 1) & mask;
+                }
+            }
+        }
+        return pos;
     }
 
     /**
@@ -102,10 +117,10 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     public <K> boolean computeIfAbsent(K key, BiPredicate<E, K> searchFunction, Function<K, E> producer, Consumer<E> action) {
         this.resize();
         int hash = key.hashCode();
-        int binIndex = this.findBinIndexRaw(key, hash, searchFunction);
+        int binIndex = this.findBinIndexForInsert(key, hash, searchFunction);
         E existing = this.get(binIndex);
         if (existing == null) {
-            this.saveDirect(producer.apply(key), binIndex);
+            this.saveDirect(producer.apply(key), hash, binIndex);
             return true;
         } else {
             action.accept(existing);
@@ -125,11 +140,11 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     public <K> E insertIfAbsent(K key, BiPredicate<E, K> searchFunction, ObjIntFunction<K, E> producer) {
         this.resize();
         int hash = key.hashCode();
-        int binIndex = this.findBinIndexRaw(key, hash, searchFunction);
+        int binIndex = this.findBinIndexForInsert(key, hash, searchFunction);
         E existing = this.get(binIndex);
         if (existing == null) {
             E newValue = producer.apply(hash, key);
-            this.saveDirect(newValue, binIndex);
+            this.saveDirect(newValue, hash, binIndex);
             return newValue;
         } else {
             return null;
@@ -149,11 +164,11 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     public <K> E computeIfAbsent(K key, BiPredicate<E, K> searchFunction, Function<K, E> producer) {
         this.resize();
         int hash = key.hashCode();
-        int binIndex = this.findBinIndexRaw(key, hash, searchFunction);
+        int binIndex = this.findBinIndexForInsert(key, hash, searchFunction);
         E result = this.get(binIndex);
         if (result == null) {
             result = producer.apply(key);
-            this.saveDirect(result, binIndex);
+            this.saveDirect(result, hash, binIndex);
         }
         return result;
     }
@@ -161,48 +176,56 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     public <K> boolean remove(K key, BiPredicate<E, K> searchFunction) {
         this.resize();
         int hash = key.hashCode();
-        int binIndex = this.findBinIndexRaw(key, hash, searchFunction);
+        int binIndex = this.findBinIndex(key, hash, searchFunction);
         return deleteEntry(binIndex);
     }
 
     public <K> boolean contains(K key, BiPredicate<E, K> searchFunction) {
         int hash = key.hashCode();
-        int binIndex = this.findBinIndexRaw(key, hash, searchFunction);
-        return this.get(binIndex) != null;
+        int binIndex = this.findBinIndex(key, hash, searchFunction);
+        Entry entry = data[binIndex];
+        return entry != null && !entry.deleted;
     }
 
     public <K> E get(K key, BiPredicate<E, K> searchFunction) {
         int hash = key.hashCode();
-        int binIndex = this.findBinIndexRaw(key, hash, searchFunction);
+        int binIndex = this.findBinIndex(key, hash, searchFunction);
         return this.get(binIndex);
     }
 
-    @SuppressWarnings("unchecked")
     private E get(int pos) {
-        return deletedIndices[pos] ? null : (E) data[pos];
+        Entry entry = data[pos];
+        return entry == null || entry.deleted ? null : entry.cast();
     }
 
-    public final <K> E add(K key, BiPredicate<E, K> equalsTest, E element) {
+    public final <K> E add(K key, BiPredicate<E, K> equalsTest, @NonNull E element) {
         resize();
-        int pos = findBinIndexRaw(key, key.hashCode(), equalsTest);
-        return saveDirect(element, pos);
+        int hash = key.hashCode();
+        int pos = findBinIndexForInsert(key, hash, equalsTest);
+        return saveDirect(element, hash, pos);
     }
 
-    @SuppressWarnings("unchecked")
-    private E saveDirect(E element, int pos) {
-        Object old = data[pos];
-        data[pos] = element;
-        if (old == null) {
-            unsignedIndices[currentInsertIndex++] = pos;
+    private E saveDirect(@NonNull E element, int hash, int pos) {
+        Entry existing = data[pos];
+        if (existing == null) {
+            Entry newEntry = new Entry(element, false, hash);
+            data[pos] = newEntry;
             size++;
+            return null;
         } else {
-            if (deletedIndices[pos]) {
-                deletedIndices[pos] = false;
-                deletes--;
+            if (existing.deleted) {
+                existing.value = element;
+                existing.hash = hash;
+                existing.deleted = false;
                 size++;
+                return null;
+            } else {
+                E ret = existing.cast();
+                existing.value = element;
+                existing.hash = hash;
+                return ret;
             }
         }
-        return (E) old;
     }
 
 
@@ -211,15 +234,12 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     }
 
     final void deleteEntries(Predicate<E> predicate) {
-        int initialDeletes = this.deletes;
         forEachDataEntry((e, i) -> {
             if (predicate.test(e)) {
-                markDeleted(i);
+                deleteEntry(i);
             }
         });
-        if (initialDeletes != this.deletes) {
-            resize();
-        }
+        resize();
     }
 
     /**
@@ -233,50 +253,46 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
      *                        the collection) and produces an output of the same type.
      */
     public void addAll(AbstractLinearHash<E> source, BinaryOperator<E> combineFunction, BiPredicate<E, E> matchFunction) {
-        source.forEachDataEntry(externalElement -> {
+        //TODO create new table here (or continue as-is if size allows)
+        source.forEachInnerEntry(otherEntry -> {
             resize();
-            int hash = externalElement.hashCode();
-            int binIndex = findBinIndexRaw(externalElement, hash, matchFunction);
-            @Nullable E result = combineFunction.apply(get(binIndex), externalElement);
+            int hash = otherEntry.hash;
+            E otherValue = otherEntry.cast();
+            int binIndex = findBinIndex(otherValue, hash, matchFunction);
+            @Nullable E result = combineFunction.apply(get(binIndex), otherValue);
 
             if (result == null) {
                 deleteEntry(binIndex);
             } else {
-                saveDirect(result, binIndex);
+                saveDirect(result, hash, binIndex);
             }
         });
     }
 
+    void forEachInnerEntry(Consumer<Entry> consumer) {
+        for (Entry o : this.data) {
+            if (o != null && !o.deleted) {
+                consumer.accept(o);
+            }
+        }
+    }
+
     public void forEachDataEntry(Consumer<E> consumer) {
-        E obj;
-        for (int i = 0; i < currentInsertIndex; i++) {
-            if ((obj = get(unsignedIndices[i])) != null) {
-                consumer.accept(obj);
+        for (Entry o : this.data) {
+            if (o != null && !o.deleted) {
+                consumer.accept(o.cast());
             }
         }
     }
 
 
     private void forEachDataEntry(ObjIntConsumer<E> consumer) {
-        int i, idx;
+        int idx;
         E obj;
-        for (i = 0; i < currentInsertIndex; i++) {
-            idx = unsignedIndices[i];
+        for (idx = 0; idx < data.length; idx++) {
             if ((obj = get(idx)) != null) {
                 consumer.accept(obj, idx);
             }
-        }
-    }
-
-    protected boolean markDeleted(int pos) {
-        if (deletedIndices[pos]) {
-            // Already deleted
-            return false;
-        } else {
-            deletedIndices[pos] = true;
-            deletes++;
-            size--;
-            return true;
         }
     }
 
@@ -289,19 +305,18 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
 
     public void clear() {
         CollectionUtils.systemFill(this.data, null);
-        CollectionUtils.systemFill(this.deletedIndices, false);
-        CollectionUtils.systemFill(this.unsignedIndices, NULL_VALUE);
-        this.currentInsertIndex = 0;
         this.size = 0;
-        this.deletes = 0;
     }
 
     private boolean deleteEntry(int pos) {
-        if (data[pos] == null) {
+        Entry entry = data[pos];
+        if (entry == null || entry.deleted) {
             // Nothing to delete
             return false;
         } else {
-            return markDeleted(pos);
+            entry.deleted = true;
+            size--;
+            return true;
         }
     }
 
@@ -311,62 +326,74 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         return new It();
     }
 
-    @SuppressWarnings("unchecked")
     public Stream<E> stream() {
-        return Arrays.stream(unsignedIndices, 0, currentInsertIndex)
-                .filter(i -> !deletedIndices[i])
-                .mapToObj(value -> (E) data[value]);
+        return Arrays.stream(data, 0, data.length)
+                .filter(Objects::nonNull)
+                .map(Entry::cast)
+                ;
+    }
+
+    private void setResizeBounds(int tableSize) {
+        this.upperResizeBound = (int) (tableSize * 0.75f);
+        this.lowerResizeBound = (int) (tableSize * 0.25f);
     }
 
     public void resize() {
-        int upperBound = (int) (data.length * loadFactor);
-        int lowerBound = (int) (data.length * loadFactor / 4);
-        if (size > upperBound) {
+        if (size >= upperResizeBound) {
             // Resize up
             rebuild(data.length * 2);
-            return;
-        }
-
-        if (size < lowerBound) {
+        } else if (size <= lowerResizeBound) {
             // Resize down
-            int newDataSize = Math.max(minDataSize, tableSizeFor(lowerBound * 2));
-            if (newDataSize != data.length) {
+            int newDataSize = Math.max(data.length / 2, MINIMUM_CAPACITY);
+            if (newDataSize != this.data.length) {
                 rebuild(newDataSize);
-                return;
             }
-        }
-
-        if (deletes > size && size > MINIMUM_CAPACITY) {
-            // Purge deleted data and indices
-            rebuild(this.data.length);
         }
     }
 
     private void rebuild(int newArrSize) {
-        Object[] newData = new Object[newArrSize];
+        Entry[] newData = new Entry[newArrSize];
         int mask = newArrSize - 1;
-        int[] newUnsignedIndices = new int[newArrSize];
-        int newCurrentInsertIndex = 0;
-        E obj;
-        for (int i = 0; i < currentInsertIndex; i++) {
-            if ((obj = get(unsignedIndices[i])) != null) {
-                int pos = findEmptyBin(obj.hashCode(), mask, newData);
-                newData[pos] = obj;
-                newUnsignedIndices[newCurrentInsertIndex++] = pos;
+        for (Entry o : this.data) {
+            if (o != null && !o.deleted) {
+                int pos = findEmptyBin(o.hash, mask, newData);
+                newData[pos] = o;
             }
         }
         this.data = newData;
-        this.deletes = 0;
-        this.deletedIndices = new boolean[newArrSize];
-        this.currentInsertIndex = newCurrentInsertIndex;
-        this.unsignedIndices = newUnsignedIndices;
+        this.setResizeBounds(newArrSize);
     }
 
-    void assertStructure() {
-        int indices = currentInsertIndex;
-        int deletes = this.deletes;
-        assert indices == size + deletes : "indices: " + indices + " size: " + size + ", deletes: " + deletes;
-        assert this.data.length >= minDataSize;
+    static class Entry {
+        @NonNull
+        Object value;
+        boolean deleted;
+        int hash;
+
+        public Entry(@NonNull Object value, boolean deleted, int hash) {
+            this.value = value;
+            this.deleted = deleted;
+            this.hash = hash;
+        }
+
+        @SuppressWarnings("unchecked")
+        <T> T cast() {
+            return (T) value;
+        }
+
+        @Override
+        public int hashCode() {
+            return hash;
+        }
+
+        @Override
+        public String toString() {
+            return "{" +
+                    "value=" + value +
+                    ", del=" + deleted +
+                    ", hash=" + hash +
+                    '}';
+        }
     }
 
     private final class It implements ReIterator<E> {
@@ -392,19 +419,18 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         }
 
         private int computeNextIndex() {
-            while (pos < currentInsertIndex) {
-                int idx = unsignedIndices[pos];
-                if (deletedIndices[idx]) {
+            Entry entry;
+            while (pos < data.length) {
+                if ((entry = data[pos]) == null || entry.deleted) {
                     pos++;
                 } else {
-                    return idx;
+                    return pos;
                 }
             }
             return -1;
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public E next() {
             if (nextIndex < 0) {
                 throw new NoSuchElementException();
@@ -412,7 +438,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
                 pos++;
                 currentIndex = nextIndex;
                 nextIndex = computeNextIndex();
-                return (E) data[currentIndex];
+                return data[currentIndex].cast();
             }
         }
 
@@ -421,7 +447,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
             if (currentIndex < 0) {
                 throw new NoSuchElementException();
             } else {
-                markDeleted(currentIndex);
+                deleteEntry(currentIndex);
             }
         }
     }

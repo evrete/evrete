@@ -5,8 +5,8 @@ import org.evrete.api.ValueHandle;
 class KeyedFactStorageMulti extends AbstractKeyedFactStorage<MemoryKeyMulti, FactsMapMulti> {
     private final MultiState multiState;
 
-    KeyedFactStorageMulti(int initialSize, int fieldCount) {
-        super(FactsMapMulti.class, mode -> new FactsMapMulti(fieldCount, initialSize));
+    KeyedFactStorageMulti(int fieldCount) {
+        super(FactsMapMulti.class, mode -> new FactsMapMulti(fieldCount));
         this.multiState = new MultiState(fieldCount);
     }
 

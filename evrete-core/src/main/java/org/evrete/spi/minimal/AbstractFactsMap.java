@@ -17,9 +17,9 @@ abstract class AbstractFactsMap<K extends MemoryKey> {
     private final BiPredicate<FactsWithKey<K>, K> SEARCH_PREDICATE = (entry, memoryKey) -> entry.key.equals(memoryKey);
     private final Function<FactsWithKey<K>, MemoryKey> ENTRY_MAPPER = entry -> entry.key;
 
-    AbstractFactsMap(int minCapacity) {
+    AbstractFactsMap() {
         this.search = (key, memoryKey) -> sameData(key, memoryKey.values);
-        this.data = new LinearHashSet<>(minCapacity);
+        this.data = new LinearHashSet<>();
     }
 
     abstract boolean sameData(FactsWithKey<K> mapEntry, IntToValueHandle key);

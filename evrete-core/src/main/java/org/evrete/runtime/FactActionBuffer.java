@@ -14,12 +14,7 @@ import java.util.function.Consumer;
 
 public class FactActionBuffer {
     private final Map<Integer, ActionQueue> typedQueues = new ConcurrentHashMap<>();
-    private final int capacity;
     private long totalActions = 0L;
-
-    FactActionBuffer(int capacity) {
-        this.capacity = capacity;
-    }
 
     boolean hasData() {
         return totalActions > 0;
@@ -49,7 +44,7 @@ public class FactActionBuffer {
     }
 
     private ActionQueue get(int typeId) {
-        return typedQueues.computeIfAbsent(typeId, i -> new ActionQueue(capacity));
+        return typedQueues.computeIfAbsent(typeId, i -> new ActionQueue());
     }
 
     void copyToAndClear(FactActionBuffer other) {
@@ -86,8 +81,8 @@ public class FactActionBuffer {
         private static final BiPredicate<AtomicMemoryAction, FactHandle> SEARCH_FUNCTION = (existing, factHandle) -> existing.handle.equals(factHandle);
         private final LinearHashSet<AtomicMemoryAction> queue;
 
-        ActionQueue(int capacity) {
-            this.queue = new LinearHashSet<>(capacity);
+        ActionQueue() {
+            this.queue = new LinearHashSet<>();
         }
 
         AtomicMemoryAction get(FactHandle factHandle) {

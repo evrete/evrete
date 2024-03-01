@@ -13,10 +13,10 @@ import java.util.function.Function;
 
 class DefaultFactStorage<T> implements FactStorage<T> {
     private final TupleCollection<T> collection;
-    private final Function<Tuple<T>, FactStorage.Entry<T>> ITERATOR_MAPPER = t -> t;
+    private final Function<FactTuple<T>, FactStorage.Entry<T>> ITERATOR_MAPPER = t -> t;
 
-    DefaultFactStorage(Type<?> type, BiPredicate<T, T> identityFunction, int minCapacity) {
-        this.collection = new TupleCollection<>(minCapacity, type, identityFunction);
+    DefaultFactStorage(Type<?> type, BiPredicate<T, T> identityFunction) {
+        this.collection = new TupleCollection<>(type, identityFunction);
     }
 
     @Override
@@ -31,7 +31,7 @@ class DefaultFactStorage<T> implements FactStorage<T> {
 
     @Override
     public void update(FactHandle handle, T newInstance) {
-        this.collection.add(new Tuple<>((FactHandleImpl) handle, newInstance));
+        this.collection.add(new FactTuple<>((FactHandleImpl) handle, newInstance));
     }
 
     @Override
@@ -57,36 +57,36 @@ class DefaultFactStorage<T> implements FactStorage<T> {
         return collection.iterator(ITERATOR_MAPPER);
     }
 
-    static class TupleCollection<T> extends AbstractLinearHash<DefaultFactStorage.Tuple<T>> {
+    static class TupleCollection<T> extends AbstractLinearHash<FactTuple<T>> {
         private final BiPredicate<T, T> identityFunction;
-        private final BiPredicate<Tuple<T>, Tuple<T>> equalsPredicate;
-        private final BiPredicate<Tuple<T>, FactHandleImpl> searchByHandle = (tuple, o) -> tuple.handle.id == o.id;
-        private final BiPredicate<Tuple<T>, T> searchByFact = new BiPredicate<Tuple<T>, T>() {
+        private final BiPredicate<FactTuple<T>, FactTuple<T>> equalsPredicate;
+        private final BiPredicate<FactTuple<T>, FactHandleImpl> searchByHandle = (factTuple, o) -> factTuple.handle.id == o.id;
+        private final BiPredicate<FactTuple<T>, T> searchByFact = new BiPredicate<FactTuple<T>, T>() {
             @Override
-            public boolean test(Tuple<T> tuple, T o) {
-                return identityFunction.test(tuple.object, o);
+            public boolean test(FactTuple<T> factTuple, T o) {
+                return identityFunction.test(factTuple.object, o);
             }
         };
         private final Type<?> type;
         private long handleId = 0L;
 
-        TupleCollection(int minCapacity, Type<?> type, BiPredicate<T, T> identityFunction) {
-            super(minCapacity);
+        TupleCollection(Type<?> type, BiPredicate<T, T> identityFunction) {
+            super();
             this.identityFunction = identityFunction;
             this.equalsPredicate = (t1, t2) -> identityFunction.test(t1.object, t2.object);
             this.type = type;
         }
 
-        void add(Tuple<T> tuple) {
-            this.add(tuple, equalsPredicate, tuple);
+        void add(FactTuple<T> factTuple) {
+            this.add(factTuple, equalsPredicate, factTuple);
         }
 
         FactHandleImpl insert(T fact) {
-            Tuple<T> tuple = insertIfAbsent(fact, searchByFact, (hash, t) -> {
+            FactTuple<T> factTuple = insertIfAbsent(fact, searchByFact, (hash, t) -> {
                 FactHandleImpl handle = new FactHandleImpl(handleId++, hash, type.getId());
-                return new Tuple<>(handle, fact);
+                return new FactTuple<>(handle, fact);
             });
-            return tuple == null ? null : tuple.handle;
+            return factTuple == null ? null : factTuple.handle;
         }
 
         void delete(FactHandle handle) {
@@ -95,16 +95,16 @@ class DefaultFactStorage<T> implements FactStorage<T> {
         }
 
         T getFact(FactHandleImpl impl) {
-            Tuple<T> t = get(impl, searchByHandle);
+            FactTuple<T> t = get(impl, searchByHandle);
             return t == null ? null : t.object;
         }
     }
 
-    static class Tuple<Z> implements FactStorage.Entry<Z> {
+    static class FactTuple<Z> implements FactStorage.Entry<Z> {
         private final FactHandleImpl handle;
         private final Z object;
 
-        Tuple(FactHandleImpl handle, Z object) {
+        FactTuple(FactHandleImpl handle, Z object) {
             this.handle = handle;
             this.object = object;
         }

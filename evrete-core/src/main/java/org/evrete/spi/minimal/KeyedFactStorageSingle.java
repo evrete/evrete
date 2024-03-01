@@ -6,8 +6,8 @@ class KeyedFactStorageSingle extends AbstractKeyedFactStorage<MemoryKeySingle, F
 
     private final SingleState state = new SingleState();
 
-    KeyedFactStorageSingle(int initialSize) {
-        super(FactsMapSingle.class, mode -> new FactsMapSingle(initialSize));
+    KeyedFactStorageSingle() {
+        super(FactsMapSingle.class, mode -> new FactsMapSingle());
     }
 
     @Override

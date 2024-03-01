@@ -73,7 +73,7 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
     protected abstract S thisInstance();
 
     FactActionBuffer newActionBuffer() {
-        return new FactActionBuffer(getConfiguration().getAsInteger(Configuration.INSERT_BUFFER_SIZE, Configuration.INSERT_BUFFER_SIZE_DEFAULT));
+        return new FactActionBuffer();
     }
 
     boolean fireCriteriaMet() {

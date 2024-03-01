@@ -6,10 +6,6 @@ import java.util.Objects;
 
 class FactsMapSingle extends AbstractFactsMap<MemoryKeySingle> {
 
-    FactsMapSingle(int minCapacity) {
-        super(minCapacity);
-    }
-
     @Override
     MemoryKeySingle newKeyInstance(MemoryKeyHashed key) {
         return new MemoryKeySingle(key);

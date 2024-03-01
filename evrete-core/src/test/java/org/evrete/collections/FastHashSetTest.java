@@ -12,14 +12,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 class FastHashSetTest extends LinearHashTestBase {
 
-    private static final int DEFAULT_MIN_CAPACITY = 64;
-
     private static void fill(Collection<String> data, IterableSet<String> fastSet, IterableSet<String> hashSet) {
         for (String s : data) {
             boolean b1 = fastSet.add(s);
             boolean b2 = hashSet.add(s);
             assert fastSet.size() == hashSet.size() : "Fast: " + fastSet.size() + ", Hash: " + hashSet.size();
-            assert b1 == b2 : "b1=" + b1 + ", b2=" + b2;
+            assert b1 == b2 : "Actual=" + b1 + ", Valid=" + b2;
         }
     }
 
@@ -27,11 +25,11 @@ class FastHashSetTest extends LinearHashTestBase {
         for (String s : data) {
             boolean c1 = fastSet.contains(s);
             boolean c2 = hashSet.contains(s);
-            assert c1 == c2 : "Fast: " + c1 + ", Hash: " + c2;
+            assert c1 == c2 : "contains() failure: value='" + s + "', Fast=" + c1 + ", Hash=" + c2 + "\n" + fastSet + "\n" + hashSet;
 
             boolean r1 = fastSet.remove(s);
             boolean r2 = hashSet.remove(s);
-            assert r1 == r2 : "Fast: " + r1 + ", Hash: " + r2;
+            assert r1 == r2 : "remove() failure: Fast=" + r1 + ", Hash=" + r2;
             assert fastSet.size() == hashSet.size() : "Fast: " + fastSet.size() + ", Hash: " + hashSet.size();
         }
     }
@@ -39,7 +37,7 @@ class FastHashSetTest extends LinearHashTestBase {
 
     @Test
     void basic1() {
-        IterableSet<TypeA> set1 = TestUtils.setOf(new LinearHashSet<>(128));
+        IterableSet<TypeA> set1 = TestUtils.setOf(new LinearHashSet<>());
 
         TypeA a1 = new TypeA();
         TypeA a2 = new TypeA();
@@ -84,44 +82,49 @@ class FastHashSetTest extends LinearHashTestBase {
 
     @Test
     void basic2() {
-        LinearHashSet<TypeA> set1 = new LinearHashSet<>(16);
+        LinearHashSet<TypeA> set1 = new LinearHashSet<>();
 
         TypeA a1 = new TypeA("A1");
         TypeA a2 = new TypeA("A2");
         TypeA a3 = new TypeA("A3");
 
-        set1.replace(a1);
-        set1.replace(a1);
-        set1.replace(a2);
-        set1.replace(a3);
-        set1.assertStructure();
+        set1.add(a1);
+        set1.add(a1);
+        set1.add(a1);
+        set1.add(a1);
+        set1.add(a1);
+        set1.add(a2);
+        set1.add(a3);
+        set1.add(a3);
+        set1.add(a3);
+        set1.add(a3);
+
+        assert set1.size == 3 : "Invalid size: " + set1.size;
 
         for (int i = 0; i < 640; i++) {
             set1.remove(a3);
-            set1.assertStructure();
-            set1.replace(a3);
-            set1.assertStructure();
+            assert set1.size == 2 : "Invalid size: " + set1.size;
+            set1.add(a3);
         }
-
     }
 
     @Test
     void remove1() {
-        LinearHashSet<String> set = new LinearHashSet<>(DEFAULT_MIN_CAPACITY);
+        LinearHashSet<String> set = new LinearHashSet<>();
 
         assert set.add("a");
         assert set.size() == 1;
-        set.assertStructure();
         assert set.remove("a");
-        set.assertStructure();
+        assert !set.remove("a");
+        assert !set.remove("a");
+        assert !set.remove("a");
         assert !set.remove("a");
         assert set.size() == 0;
-        set.assertStructure();
     }
 
     @Test
     void remove2() {
-        LinearHashSet<String> fastSet = new LinearHashSet<>(16);
+        LinearHashSet<String> fastSet = new LinearHashSet<>();
 
         // Prepare collection
         int totalEntries = 1_000_000;
@@ -132,8 +135,7 @@ class FastHashSetTest extends LinearHashTestBase {
 
         // Fill
         for (String s : data) {
-            fastSet.replace(s);
-            fastSet.assertStructure();
+            fastSet.add(s);
         }
 
         // Validate data
@@ -156,7 +158,6 @@ class FastHashSetTest extends LinearHashTestBase {
             boolean f = fastSet.remove(s);
             boolean j = javaSet.remove(s);
             assert f == j : "Fast: " + f + ", Hash: " + j;
-            fastSet.assertStructure();
         }
 
         assert fastSet.size() == 0;
@@ -164,15 +165,36 @@ class FastHashSetTest extends LinearHashTestBase {
     }
 
     @Test
+    void basic3() {
+        List<String> data = Arrays.asList("6", "3", "9", "13", "9", "10", "10", "13", "12", "16", "15", "5", "15", "6", "6", "9", "12");
+        Set<String> hashSet = new HashSet<>();
+        LinearHashSet<String> set = new LinearHashSet<>();
+        data.forEach(s -> {
+            boolean i1 = hashSet.add(s);
+            boolean i2 = set.add(s);
+            assert i1 == i2;
+        });
+
+        for (String s : data) {
+            boolean c1 = hashSet.contains(s);
+            boolean c2 = set.contains(s);
+            assert c1 == c2;
+            boolean r1 = hashSet.remove(s);
+            boolean r2 = set.remove(s);
+            assert r1 == r2;
+        }
+    }
+
+    @Test
     void remove3() {
-        IterableSet<String> fastSet = TestUtils.setOf(new LinearHashSet<>(2));
+        IterableSet<String> fastSet = TestUtils.setOf(new LinearHashSet<>());
         IterableSet<String> hashSet = TestUtils.setOf(new HashSet<>(2));
 
         // Fill first
         int totalEntries = 4096;
         Collection<String> data = new ArrayList<>(totalEntries);
         Random r = new Random(System.nanoTime());
-        int max = 4096;
+        int max = totalEntries / 3;
         for (int i = 0; i < totalEntries; i++) {
             data.add(String.valueOf(r.nextInt(max)));
         }
@@ -190,7 +212,7 @@ class FastHashSetTest extends LinearHashTestBase {
 
     @Test
     void iterator1() {
-        LinearHashSet<String> fastSet = new LinearHashSet<>(DEFAULT_MIN_CAPACITY);
+        LinearHashSet<String> fastSet = new LinearHashSet<>();
         HashSet<String> hashSet = new HashSet<>();
 
 
@@ -204,7 +226,7 @@ class FastHashSetTest extends LinearHashTestBase {
         int max = 4096;
         for (int i = 0; i < totalEntries; i++) {
             String s = String.valueOf(r.nextInt(max));
-            fastSet.replace(s);
+            fastSet.add(s);
             hashSet.add(s);
         }
 
@@ -235,10 +257,10 @@ class FastHashSetTest extends LinearHashTestBase {
 
     @Test
     void iterator2() {
-        LinearHashSet<Integer> fastSet = new LinearHashSet<>(DEFAULT_MIN_CAPACITY);
+        LinearHashSet<Integer> fastSet = new LinearHashSet<>();
 
         for (int i = 0; i < 100; i++) {
-            fastSet.replace(i);
+            fastSet.add(i);
         }
 
         Iterator<Integer> it = fastSet.iterator();
@@ -256,7 +278,7 @@ class FastHashSetTest extends LinearHashTestBase {
 
     @Test
     void stream1() {
-        LinearHashSet<String> fastSet = new LinearHashSet<>(DEFAULT_MIN_CAPACITY);
+        LinearHashSet<String> fastSet = new LinearHashSet<>();
         HashSet<String> hashSet = new HashSet<>();
 
         // Fill first
@@ -265,7 +287,7 @@ class FastHashSetTest extends LinearHashTestBase {
         int max = 4096;
         for (int i = 0; i < totalEntries; i++) {
             String s = String.valueOf(r.nextInt(max));
-            fastSet.replace(s);
+            fastSet.add(s);
             hashSet.add(s);
         }
 

@@ -5,8 +5,7 @@ import java.util.Objects;
 class FactsMapMulti extends AbstractFactsMap<MemoryKeyMulti> {
     private final int fieldCount;
 
-    FactsMapMulti(int fieldCount, int minCapacity) {
-        super(minCapacity);
+    FactsMapMulti(int fieldCount) {
         this.fieldCount = fieldCount;
     }
 
