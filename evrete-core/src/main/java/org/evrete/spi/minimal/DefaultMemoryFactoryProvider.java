@@ -9,9 +9,8 @@ import java.util.WeakHashMap;
 public class DefaultMemoryFactoryProvider extends LeastImportantServiceProvider implements MemoryFactoryProvider {
     private final WeakHashMap<RuntimeContext<?>, DefaultMemoryFactory> instances = new WeakHashMap<>();
 
-
     @Override
     public MemoryFactory instance(RuntimeContext<?> context) {
-        return instances.computeIfAbsent(context, k -> new DefaultMemoryFactory(context));
+        return instances.computeIfAbsent(context, k -> new DefaultMemoryFactory());
     }
 }
