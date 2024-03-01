@@ -22,12 +22,26 @@ Expressions.javaNative  avgt    8  4.822 ± 0.085  ms/op
 
 ### Hash Collections Performance
 
-This benchmark measures the library's inner `LinearHashSet` implementation vs Java's `HashSet` for `insert`, `contains`,
+This benchmark measures the library's inner `LinearHashSet` implementation vs Java's `HashSet` for `add`, `contains`,
 and scan operations.
 
 ```
 cd ./evrete-benchmarks
 mvn -Dtest=org.evrete.benchmarks.HashCollectionsBenchmarks clean test
+```
+
+Sample output of average time per op (the higher, the better)
+
+```
+Benchmark                      (set)   Mode  Cnt  Score   Error   Units
+HashCollections.contains  LinearHash  thrpt   10  0.356 ± 0.024  ops/ms
+HashCollections.contains     HashSet  thrpt   10  0.441 ± 0.013  ops/ms
+HashCollections.insert    LinearHash  thrpt   10  0.061 ± 0.013  ops/ms
+HashCollections.insert       HashSet  thrpt   10  0.108 ± 0.024  ops/ms
+HashCollections.iterator  LinearHash  thrpt   10  0.390 ± 0.011  ops/ms
+HashCollections.iterator     HashSet  thrpt   10  0.164 ± 0.047  ops/ms
+HashCollections.scan      LinearHash  thrpt   10  0.710 ± 0.053  ops/ms
+HashCollections.scan         HashSet  thrpt   10  0.144 ± 0.012  ops/ms
 ```
 
 ### Linked Data Structures
