@@ -34,14 +34,14 @@ Sample output of average time per op (the higher, the better)
 
 ```
 Benchmark                      (set)   Mode  Cnt  Score   Error   Units
-HashCollections.contains  LinearHash  thrpt   10  0.356 ± 0.024  ops/ms
-HashCollections.contains     HashSet  thrpt   10  0.441 ± 0.013  ops/ms
-HashCollections.insert    LinearHash  thrpt   10  0.061 ± 0.013  ops/ms
-HashCollections.insert       HashSet  thrpt   10  0.108 ± 0.024  ops/ms
-HashCollections.iterator  LinearHash  thrpt   10  0.390 ± 0.011  ops/ms
-HashCollections.iterator     HashSet  thrpt   10  0.164 ± 0.047  ops/ms
-HashCollections.scan      LinearHash  thrpt   10  0.710 ± 0.053  ops/ms
-HashCollections.scan         HashSet  thrpt   10  0.144 ± 0.012  ops/ms
+HashCollections.contains  LinearHash  thrpt   10  0.220 ± 0.003  ops/ms
+HashCollections.contains     HashSet  thrpt   10  0.348 ± 0.013  ops/ms
+HashCollections.forEach   LinearHash  thrpt   10  0.156 ± 0.014  ops/ms
+HashCollections.forEach      HashSet  thrpt   10  0.081 ± 0.002  ops/ms
+HashCollections.insert    LinearHash  thrpt   10  0.056 ± 0.008  ops/ms
+HashCollections.insert       HashSet  thrpt   10  0.101 ± 0.005  ops/ms
+HashCollections.iterator  LinearHash  thrpt   10  0.160 ± 0.043  ops/ms
+HashCollections.iterator     HashSet  thrpt   10  0.122 ± 0.040  ops/ms
 ```
 
 ### Linked Data Structures
@@ -68,7 +68,10 @@ ListCollections.nested     LinkedDataRW  thrpt   10  3.395 ± 0.227  ops/ms
 ListCollections.nested       LinkedList  thrpt   10  2.056 ± 0.189  ops/ms
 ```
 
-### **Evrete** vs **Drools** benchmarks
+### **Evrete** vs **Drools** Benchmarks
+
+The commands below will produce CSV files suitable for building data charts similar
+to the ones shown on https://evrete.org/docs/advanced/#performance
 
 ```
 cd ./evrete-benchmarks
