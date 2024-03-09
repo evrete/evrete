@@ -40,7 +40,7 @@ public class GuessingNumbersInline {
                 .build();
 
         try (StatefulSession session = knowledge.newStatefulSession()) {
-            Player p1 = new Player("Ana");
+            Player p1 = new Player("Anna");
             Player p2 = new Player("Andrew");
 
             session.insert(p1, p2);
@@ -66,7 +66,6 @@ public class GuessingNumbersInline {
         return new Random().nextInt(RANGE);
     }
 
-    @SuppressWarnings("WeakerAccess")
     public static class Guess {
         public Player author;
         public int number;
@@ -82,7 +81,6 @@ public class GuessingNumbersInline {
         }
     }
 
-    @SuppressWarnings("WeakerAccess")
     public static class Player {
         public int secret;
         public String name;
