@@ -55,6 +55,7 @@ public interface ExpressionResolver {
      * @deprecated in favor of {@link org.evrete.api.spi.LiteralSourceCompiler}
      */
     @NonNull
+    @Deprecated
     default LiteralEvaluator buildExpression(LiteralExpression ignored) {
         throw new UnsupportedOperationException();
     }

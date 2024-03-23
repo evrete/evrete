@@ -11,6 +11,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.function.*;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 /**
@@ -21,6 +22,7 @@ import java.util.stream.Stream;
  * @param <E> Entry type
  */
 public abstract class AbstractLinearHash<E> implements ReIterable<E> {
+    private static final Logger LOGGER = Logger.getLogger(AbstractLinearHash.class.getName());
     private static final int MAXIMUM_CAPACITY = 1 << 30;
     private static final int MINIMUM_CAPACITY = 1 << 4;
     int size = 0;
@@ -67,22 +69,23 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         return Math.max(MINIMUM_CAPACITY, cap);
     }
 
-    private <T> int findBinIndex(T key, int hash, BiPredicate<E, T> eqTest) {
+    private <T> Entry findBinEntry(T key, int hash, BiPredicate<E, T> eqTest) {
         final int size = data.length, mask = size - 1;
         int pos = hash & mask, counter = 0;
         Entry found;
         while ((found = data[pos]) != null) {
             if (eqTest.test(found.cast(), key)) {
-                return pos;
+                return found;
             } else {
                 if (counter++ == size) {
-                    throw new IllegalStateException("Low-level implementation error, please submit a bug.");
+                    LOGGER.warning("Low-level implementation waring, please submit a bug.");
+                    return null;
                 } else {
                     pos = (pos + 1) & mask;
                 }
             }
         }
-        return pos;
+        return null;
     }
 
     private <T> int findBinIndexForInsert(T key, int hash, BiPredicate<E, T> eqTest) {
@@ -176,25 +179,42 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
     public <K> boolean remove(K key, BiPredicate<E, K> searchFunction) {
         this.resize();
         int hash = key.hashCode();
-        int binIndex = this.findBinIndex(key, hash, searchFunction);
-        return deleteEntry(binIndex);
+        Entry entry = this.findBinEntry(key, hash, searchFunction);
+        return deleteEntry(entry);
     }
 
     public <K> boolean contains(K key, BiPredicate<E, K> searchFunction) {
         int hash = key.hashCode();
-        int binIndex = this.findBinIndex(key, hash, searchFunction);
-        Entry entry = data[binIndex];
-        return entry != null && !entry.deleted;
+        final int size = data.length, mask = size - 1;
+        int pos = hash & mask, counter = 0;
+        Entry found;
+        while ((found = data[pos]) != null) {
+            if (searchFunction.test(found.cast(), key)) {
+                Entry entry = data[pos];
+                return !entry.deleted;
+            } else {
+                if (counter++ == size) {
+                    return false;
+                } else {
+                    pos = (pos + 1) & mask;
+                }
+            }
+        }
+        return false;
     }
 
     public <K> E get(K key, BiPredicate<E, K> searchFunction) {
         int hash = key.hashCode();
-        int binIndex = this.findBinIndex(key, hash, searchFunction);
-        return this.get(binIndex);
+        Entry entry = this.findBinEntry(key, hash, searchFunction);
+        return this.get(entry);
     }
 
     private E get(int pos) {
         Entry entry = data[pos];
+        return get(entry);
+    }
+
+    private E get(Entry entry) {
         return entry == null || entry.deleted ? null : entry.cast();
     }
 
@@ -308,8 +328,12 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
         this.size = 0;
     }
 
-    private boolean deleteEntry(int pos) {
+    private void deleteEntry(int pos) {
         Entry entry = data[pos];
+        deleteEntry(entry);
+    }
+
+    private boolean deleteEntry(Entry entry) {
         if (entry == null) {
             return false;
         } else if (entry.deleted) {
@@ -457,7 +481,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
             if (currentIndex < 0) {
                 throw new NoSuchElementException();
             } else {
-                deleteEntry(currentIndex);
+                deleteEntry(data[currentIndex]);
             }
         }
     }
