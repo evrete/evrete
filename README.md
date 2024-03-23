@@ -43,7 +43,7 @@ Maven Central Repository, core module:
 <dependency>
     <groupId>org.evrete</groupId>
     <artifactId>evrete-core</artifactId>
-    <version>3.1.01</version>
+    <version>3.1.02</version>
 </dependency>
 ```
 
@@ -54,7 +54,7 @@ Support for annotated rules (optional):
 <dependency>
     <groupId>org.evrete</groupId>
     <artifactId>evrete-dsl-java</artifactId>
-    <version>3.1.01</version>
+    <version>3.1.02</version>
 </dependency>
 ```
 
