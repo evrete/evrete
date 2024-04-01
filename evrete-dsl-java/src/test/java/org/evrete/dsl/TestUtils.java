@@ -4,11 +4,14 @@ import org.evrete.runtime.compiler.RuntimeClassloader;
 import org.evrete.runtime.compiler.SourceCompiler;
 
 import java.io.*;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
@@ -22,10 +25,23 @@ public class TestUtils {
         new File(f.toString()).exists();
     }
 
+    public static File testResourceAsFile(String path) throws IOException {
+        URL url = Thread.currentThread().getContextClassLoader().getResource(path);
 
-    static synchronized File jarFile(String root) throws Exception {
+        if(url == null) {
+            throw new IOException("Resource not found: " + path);
+        } else {
+            try {
+                return new File(url.toURI());
+            } catch (URISyntaxException e) {
+                throw new IOException(e);
+            }
+        }
+    }
 
-        Path compileRoot = new File(root).toPath();
+    static synchronized void createTempJarFile(File root, Consumer<File> jarConsumer) throws Exception {
+
+        Path compileRoot = root.toPath();
 
         SourceCompiler sourceCompiler = new SourceCompiler(new RuntimeClassloader(ClassLoader.getSystemClassLoader()));
 
@@ -33,6 +49,7 @@ public class TestUtils {
 
         Set<String> sources = javaFiles.map(path -> {
             try {
+                //noinspection ReadWriteStringCanBeUsed
                 return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
@@ -58,9 +75,11 @@ public class TestUtils {
         }
         jar.close();
 
-        return out;
-
-
+        try {
+            jarConsumer.accept(out);
+        } finally {
+            Files.deleteIfExists(out.toPath());
+        }
     }
 
     private static void copy(InputStream source, OutputStream sink) throws IOException {

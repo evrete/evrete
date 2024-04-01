@@ -1,8 +1,6 @@
 package org.evrete.runtime;
 
 import org.evrete.api.TypeField;
-import org.evrete.runtime.evaluation.MemoryAddress;
-import org.evrete.util.Mask;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,7 +14,7 @@ public class FactType {
     private final int inRuleIndex;
     private final Mask<MemoryAddress> memoryMask;
 
-    FactType(String name, MemoryAddress memoryAddress, int inRuleIndex) {
+    public FactType(String name, MemoryAddress memoryAddress, int inRuleIndex) {
         this.name = name;
         this.memoryAddress = memoryAddress;
         this.inRuleIndex = inRuleIndex;
@@ -24,7 +22,7 @@ public class FactType {
         this.memoryMask.set(memoryAddress);
     }
 
-    FactType(FactType other) {
+    public FactType(FactType other) {
         this.name = other.name;
         this.memoryAddress = other.memoryAddress;
         this.inRuleIndex = other.inRuleIndex;
@@ -41,7 +39,7 @@ public class FactType {
         return memoryMask;
     }
 
-    int findFieldPosition(TypeField field) {
+    public int findFieldPosition(TypeField field) {
         ActiveField[] arr = memoryAddress.fields().getFields();
         for (int i = 0; i < arr.length; i++) {
             ActiveField f = arr[i];

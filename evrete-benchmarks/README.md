@@ -8,8 +8,7 @@ This benchmark assesses the performance difference between Java's native code (w
 condition) and the code produced by the library after compiling literal expressions.
 
 ```
-cd ./evrete-benchmarks
-mvn -Dtest=org.evrete.benchmarks.ExpressionsBenchmarks clean test
+./gradlew :evrete-benchmarks:expressions --console=plain
 ```
 
 The results should show that the compiled code is approximately 5% slower:
@@ -26,8 +25,7 @@ This benchmark measures the library's inner `LinearHashSet` implementation vs Ja
 and scan operations.
 
 ```
-cd ./evrete-benchmarks
-mvn -Dtest=org.evrete.benchmarks.HashCollectionsBenchmarks clean test
+./gradlew :evrete-benchmarks:hashCollections --console=plain
 ```
 
 Sample output of average time per op (the higher, the better)
@@ -49,8 +47,7 @@ HashCollections.iterator     HashSet  thrpt   10  0.122 ± 0.040  ops/ms
 This benchmark measures the library's inner linked list implementation against Java's `LinkedList`.
 
 ```
-cd ./evrete-benchmarks
-mvn -Dtest=org.evrete.benchmarks.LinkedCollections clean test
+./gradlew :evrete-benchmarks:linkedCollections --console=plain
 ```
 
 Last output (the higher, the better):
@@ -71,9 +68,8 @@ ListCollections.nested       LinkedList  thrpt   10  2.056 ± 0.189  ops/ms
 ### **Evrete** vs **Drools** Benchmarks
 
 The commands below will produce CSV files suitable for building data charts similar
-to the ones shown on https://evrete.org/docs/advanced/#performance
+to the ones shown on https://evrete.org/docs#performance
 
 ```
-cd ./evrete-benchmarks
-mvn -Dtest=org.evrete.benchmarks.RuleEngines clean test
+./gradlew :evrete-benchmarks:ruleEngines --console=plain
 ```

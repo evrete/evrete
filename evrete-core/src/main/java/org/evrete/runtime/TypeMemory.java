@@ -3,8 +3,6 @@ package org.evrete.runtime;
 import org.evrete.api.*;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 import org.evrete.runtime.evaluation.EvaluatorWrapper;
-import org.evrete.runtime.evaluation.MemoryAddress;
-import org.evrete.util.Mask;
 
 import java.util.BitSet;
 import java.util.LinkedList;
@@ -100,15 +98,15 @@ public final class TypeMemory extends TypeMemoryBase {
 
         private RuntimeFact createFactRuntime(FactHandleVersioned factHandle, FactRecord factRecord, ValueResolver valueResolver) {
 
-            ValueHandle[] valueHandles = new ValueHandle[fields.length];
+            FieldValue[] fieldValues = new FieldValue[fields.length];
             BitSet alphaTests;
 
             if (hasAlphaConditions) {
-                for (int i = 0; i < valueHandles.length; i++) {
+                for (int i = 0; i < fieldValues.length; i++) {
                     TypeField f = fields[i];
                     Object fieldValue = f.readValue(factRecord.instance);
                     currentValues[i] = fieldValue;
-                    valueHandles[i] = valueResolver.getValueHandle(f.getValueType(), fieldValue);
+                    fieldValues[i] = valueResolver.getValueHandle(f.getValueType(), fieldValue);
                 }
 
                 alphaTests = new BitSet();
@@ -119,14 +117,14 @@ public final class TypeMemory extends TypeMemoryBase {
                 }
 
             } else {
-                for (int i = 0; i < valueHandles.length; i++) {
+                for (int i = 0; i < fieldValues.length; i++) {
                     TypeField f = fields[i];
-                    valueHandles[i] = valueResolver.getValueHandle(f.getValueType(), f.readValue(factRecord.instance));
+                    fieldValues[i] = valueResolver.getValueHandle(f.getValueType(), f.readValue(factRecord.instance));
                 }
                 alphaTests = Mask.EMPTY;
             }
 
-            return new RuntimeFact(factRecord, factHandle, valueHandles, alphaTests);
+            return new RuntimeFact(factRecord, factHandle, fieldValues, alphaTests);
         }
 
     }

@@ -17,7 +17,7 @@ class SharedAlphaData implements KeyedFactStorage {
     }
 
     @Override
-    public void write(ValueHandle partialKey) {
+    public void write(FieldValue partialKey) {
         // We have zero keys, this method won't be called
     }
 

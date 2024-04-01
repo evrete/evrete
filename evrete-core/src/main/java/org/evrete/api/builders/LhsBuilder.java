@@ -6,6 +6,11 @@ import org.evrete.api.annotations.NonNull;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+/**
+ * The LhsBuilder interface is used to build the left-hand side (LHS) of a rule.
+ *
+ * @param <C> the type of the {@link RuntimeContext} of the builder
+ */
 public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resolver {
     /**
      * <p>

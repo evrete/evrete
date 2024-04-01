@@ -1,5 +1,6 @@
 package org.evrete.runtime.compiler;
 
+import org.evrete.util.CompilationException;
 import org.evrete.api.JavaSourceCompiler;
 
 import javax.tools.*;

@@ -1,9 +1,9 @@
 package org.evrete;
 
 import org.evrete.api.Knowledge;
+import org.evrete.api.RuleDescriptor;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
-import org.evrete.runtime.RuleDescriptor;
 import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;

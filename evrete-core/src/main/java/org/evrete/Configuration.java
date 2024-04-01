@@ -7,6 +7,18 @@ import org.evrete.api.Imports;
 import java.util.Properties;
 import java.util.logging.Logger;
 
+/**
+ * <p>
+ * Configuration class represents a configuration object that extends the Properties class and
+ * implements the {@link Copyable} and {@link FluentImports} interfaces.
+ * </p>
+ * <p>
+ * Initial configuration is supplied to the {@link KnowledgeService} and then copied down to instances of {@link org.evrete.api.Knowledge} and {@link org.evrete.api.RuleSession}.
+ * </p>
+ * <p>
+ * This way, changes in the configuration of a {@link org.evrete.api.Knowledge} instance will be passed down to every {@link org.evrete.api.RuleSession} spawned from that instance after the change. However, changes in the configuration of a {@link org.evrete.api.RuleSession} will only be available to that session.
+ * </p>
+ */
 public class Configuration extends Properties implements Copyable<Configuration>, FluentImports<Configuration> {
     public static final String OBJECT_COMPARE_METHOD = "evrete.core.fact-identity-strategy";
     public static final String INSERT_BUFFER_SIZE = "evrete.core.insert-buffer-size";

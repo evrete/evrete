@@ -1,7 +1,6 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
-import org.evrete.runtime.FactType;
 
 import java.util.function.BiPredicate;
 
@@ -10,7 +9,7 @@ class DefaultMemoryFactory implements MemoryFactory {
 
 
     @Override
-    public MemoryKeyCollection newMemoryKeyCollection(FactType[] types) {
+    public MemoryKeyCollection newMemoryKeyCollection() {
         return new DefaultMemoryKeyCollection();
     }
 

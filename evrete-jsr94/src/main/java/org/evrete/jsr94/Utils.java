@@ -34,24 +34,14 @@ final class Utils {
         }
     }
 
-    static String getStringProperty(Map<?, ?> map, String property) {
-        if (map == null) return null;
-        Object o = map.get(property);
+    @SuppressWarnings("rawtypes")
+    static String dslName(Map map) throws RuleExecutionSetCreateException {
+        Object o = map.get(Const.DSL_NAME);
+
         if (o instanceof String) {
             return (String) o;
         } else {
-            return null;
-        }
-    }
-
-
-    @SuppressWarnings("rawtypes")
-    static String dslName(Map map) throws RuleExecutionSetCreateException {
-        String dsl = Utils.getStringProperty(map, Const.DSL_NAME);
-        if (dsl == null) {
             throw new RuleExecutionSetCreateException("Missing DSL name property '" + Const.DSL_NAME + "'");
-        } else {
-            return dsl;
         }
     }
 

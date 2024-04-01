@@ -4,6 +4,7 @@ import org.evrete.api.FactHandleVersioned;
 import org.evrete.api.MemoryKey;
 import org.evrete.api.ReIterator;
 import org.evrete.collections.LinearHashSet;
+import org.evrete.util.CollectionUtils;
 import org.evrete.util.Constants;
 
 import java.util.Collection;
@@ -11,7 +12,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 
 abstract class AbstractFactsMap<K extends MemoryKey> {
-    private static final ReIterator<FactHandleVersioned> EMPTY = ReIterator.emptyIterator();
+    private static final ReIterator<FactHandleVersioned> EMPTY = CollectionUtils.emptyReIterator();
     private final LinearHashSet<FactsWithKey<K>> data;
     private final BiPredicate<FactsWithKey<K>, MemoryKeyHashed> search;
     private final BiPredicate<FactsWithKey<K>, K> SEARCH_PREDICATE = (entry, memoryKey) -> entry.key.equals(memoryKey);

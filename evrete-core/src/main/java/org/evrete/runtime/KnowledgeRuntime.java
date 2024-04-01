@@ -2,8 +2,6 @@ package org.evrete.runtime;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
-import org.evrete.runtime.evaluation.MemoryAddress;
-import org.evrete.util.SearchList;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -13,7 +11,7 @@ import java.util.WeakHashMap;
 public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge> implements Knowledge {
     private final WeakHashMap<RuleSession<?>, Object> sessions = new WeakHashMap<>();
     private final Object VALUE = new Object();
-    private final SearchList<RuleDescriptor> ruleDescriptors = new SearchList<>();
+    private final SearchList<RuleDescriptorImpl> ruleDescriptors = new SearchList<>();
 
     public KnowledgeRuntime(KnowledgeService service) {
         super(service);
@@ -34,9 +32,9 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
     }
 
     @Override
-    void addRuleDescriptors(List<RuleDescriptor> descriptors) {
+    void addRuleDescriptors(List<RuleDescriptorImpl> descriptors) {
         if(!descriptors.isEmpty()) {
-            for(RuleDescriptor rd : descriptors) {
+            for(RuleDescriptorImpl rd : descriptors) {
                 this.ruleDescriptors.add(rd);
             }
             this.ruleDescriptors.sort(getRuleComparator());
@@ -45,6 +43,10 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
 
     @Override
     public List<RuleDescriptor> getRules() {
+        return Collections.unmodifiableList(ruleDescriptors.getList());
+    }
+
+    List<RuleDescriptorImpl> getRuleDescriptors() {
         return Collections.unmodifiableList(ruleDescriptors.getList());
     }
 
@@ -60,7 +62,7 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
     }
 
     @Override
-    public RuleDescriptor getRule(String name) {
+    public RuleDescriptorImpl getRule(String name) {
         return ruleDescriptors.get(name);
     }
 

@@ -1,7 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.FactHandleVersioned;
-import org.evrete.api.ValueHandle;
+import org.evrete.api.FieldValue;
 
 import java.util.Arrays;
 import java.util.BitSet;
@@ -22,30 +22,30 @@ public class RuntimeFact {
     public final FactHandleVersioned factHandle;
     public final FactRecord factRecord;
     final BitSet alphaTests;
-    private final ValueHandle[] valueHandles;
+    private final FieldValue[] fieldValues;
 
     private RuntimeFact() {
         this.factHandle = null;
         this.alphaTests = EMPTY;
-        this.valueHandles = new ValueHandle[0];
+        this.fieldValues = new FieldValue[0];
         this.factRecord = null;
     }
 
-    RuntimeFact(FactRecord factRecord, FactHandleVersioned factHandle, ValueHandle[] valueHandles, BitSet alphaTests) {
-        this.valueHandles = valueHandles;
+    RuntimeFact(FactRecord factRecord, FactHandleVersioned factHandle, FieldValue[] fieldValues, BitSet alphaTests) {
+        this.fieldValues = fieldValues;
         this.factHandle = factHandle;
         this.alphaTests = alphaTests;
         this.factRecord = factRecord;
     }
 
-    ValueHandle getValue(ActiveField field) {
-        return this.valueHandles[field.getValueIndex()];
+    FieldValue getValue(ActiveField field) {
+        return this.fieldValues[field.getValueIndex()];
     }
 
     boolean sameValues(RuntimeFact other) {
         if (other == null) return false;
-        for (int i = 0; i < valueHandles.length; i++) {
-            if (!Objects.equals(valueHandles[i], other.valueHandles[i])) {
+        for (int i = 0; i < fieldValues.length; i++) {
+            if (!Objects.equals(fieldValues[i], other.fieldValues[i])) {
                 return false;
             }
         }
@@ -55,7 +55,7 @@ public class RuntimeFact {
     @Override
     public String toString() {
         return "{handle=" + factHandle +
-                ", values=" + Arrays.toString(valueHandles) +
+                ", values=" + Arrays.toString(fieldValues) +
                 '}';
     }
 }

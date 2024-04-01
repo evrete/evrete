@@ -4,13 +4,12 @@ import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.api.builders.RuleSetBuilder;
-import org.evrete.runtime.compiler.CompilationException;
 
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
-public class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends RuntimeContext<C>, R extends Rule> implements RuleSetContext<C, R> {
+class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends RuntimeContext<C>, R extends Rule> implements RuleSetContext<C, R> {
     protected final D delegate;
 
     @SuppressWarnings("WeakerAccess")

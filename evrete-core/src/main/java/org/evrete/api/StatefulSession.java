@@ -7,6 +7,9 @@ import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+/**
+ * The StatefulSession interface represents a stateful rule session.
+ */
 public interface StatefulSession extends RuleSession<StatefulSession>, AutoCloseable {
 
     /**
@@ -21,6 +24,7 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
      *
      * @param handle   fact handle, previously assigned to original fact
      * @param newValue an updated version of the fact
+     * @return this instance
      */
     StatefulSession update(FactHandle handle, Object newValue);
 
@@ -30,6 +34,7 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
      * </p>
      *
      * @param handle fact handle
+     * @return this instance
      */
     StatefulSession delete(FactHandle handle);
 
@@ -95,6 +100,7 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
      * </p>
      *
      * @param consumer consumer for the facts
+     * @return this instance
      */
     StatefulSession forEachFact(BiConsumer<FactHandle, Object> consumer);
 
@@ -118,6 +124,7 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
      * @param type     expected fact type
      * @param consumer consumer for the facts
      * @param <T>      expected java type for the provided type name
+     * @return this instance
      * @throws ClassCastException       if a working memory object can not be cast to the specified type
      * @throws IllegalArgumentException if no such type exists
      * @see TypeResolver
@@ -136,6 +143,7 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
      * @param type     type name
      * @param consumer consumer for the facts
      * @param <T>      expected java type for the provided type name
+     * @return this instance
      * @throws ClassCastException       if a working memory object can not be cast to the specified type
      * @throws IllegalArgumentException if no such type exists
      * @see TypeResolver
@@ -151,6 +159,7 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
      * @param consumer consumer for the facts
      * @param <T>      expected java type for the provided type name
      * @param filter   filtering predicate
+     * @return this instance
      * @see #forEachFact(Class, Consumer)
      */
     default <T> StatefulSession forEachFact(Class<T> type, Predicate<T> filter, Consumer<T> consumer) {
@@ -170,6 +179,7 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
      * @param consumer consumer for the facts
      * @param <T>      expected java type for the provided type name
      * @param filter   filtering predicate
+     * @return new stateful session instance
      * @see #forEachFact(String, Consumer)
      */
     @SuppressWarnings("unchecked")

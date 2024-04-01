@@ -4,6 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * A class that implements a {@link Function} interface using an internal map.
+ *
+ * @param <K> the type of keys
+ * @param <V> the type of values
+ */
 public class MapFunction<K, V> implements Function<K, V> {
     private final Map<K, V> map;
 

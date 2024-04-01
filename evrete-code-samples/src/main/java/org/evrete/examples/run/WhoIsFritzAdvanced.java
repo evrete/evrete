@@ -3,6 +3,7 @@ package org.evrete.examples.run;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
+import org.evrete.util.TypeWrapper;
 
 import java.util.HashMap;
 

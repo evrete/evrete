@@ -1,5 +1,8 @@
 package org.evrete.api;
 
+/**
+ * Enumeration representing the mode in which keys are retrieved from a memory.
+ */
 public enum KeyMode {
 
     OLD_OLD(false), // Known key, known facts

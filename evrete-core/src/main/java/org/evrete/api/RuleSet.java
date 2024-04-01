@@ -35,9 +35,10 @@ public interface RuleSet<R extends Rule> {
      * @deprecated Since version 3.1.0, for performance reasons, rules are no longer compiled one by one.
      *             As such, the use of this exception handler has become obsolete.
      *             Please join our discussions on GitHub to propose a new approach.
+     * @param handler exception handler
      **/
     @Deprecated
-    default void setRuleBuilderExceptionHandler(RuleBuilderExceptionHandler ignored) {
+    default void setRuleBuilderExceptionHandler(RuleBuilderExceptionHandler handler) {
         throw new UnsupportedOperationException("Deprecated");
     }
 

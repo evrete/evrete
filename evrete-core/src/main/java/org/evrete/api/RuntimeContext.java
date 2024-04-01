@@ -3,14 +3,18 @@ package org.evrete.api;
 import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.builders.RuleSetBuilder;
-import org.evrete.runtime.compiler.CompilationException;
+import org.evrete.util.CompilationException;
+import org.evrete.util.TypeResolverWrapper;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 
 /**
- * @param <C> context type parameter
+ * The RuntimeContext interface represents the context in which the rules are executed.
+ * Both stateful and stateless sessions, as well as {@link Knowledge} instances, extend this interface.
+ *
+ * @param <C> the type of the implementing class or interface
  */
 public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, FluentImports<C>, FluentEnvironment<C>, EvaluatorsContext {
     Comparator<Rule> SALIENCE_COMPARATOR = (rule1, rule2) -> -1 * Integer.compare(rule1.getSalience(), rule2.getSalience());

@@ -76,7 +76,6 @@ public class FactActionBuffer {
         this.add(Action.RETRACT, handle, FactRecordDelta.deleteDelta(record));
     }
 
-
     private static class ActionQueue {
         private static final BiPredicate<AtomicMemoryAction, FactHandle> SEARCH_FUNCTION = (existing, factHandle) -> existing.handle.equals(factHandle);
         private final LinearHashSet<AtomicMemoryAction> queue;
@@ -85,15 +84,15 @@ public class FactActionBuffer {
             this.queue = new LinearHashSet<>();
         }
 
-        AtomicMemoryAction get(FactHandle factHandle) {
+        synchronized AtomicMemoryAction get(FactHandle factHandle) {
             return queue.get(factHandle, SEARCH_FUNCTION);
         }
 
-        void forEachDataEntry(Consumer<AtomicMemoryAction> consumer) {
+        synchronized void forEachDataEntry(Consumer<AtomicMemoryAction> consumer) {
             queue.forEachDataEntry(consumer);
         }
 
-        boolean add(Action action, FactHandle factHandle, FactRecordDelta delta) {
+        synchronized boolean add(Action action, FactHandle factHandle, FactRecordDelta delta) {
             return queue.computeIfAbsent(
                     factHandle,
                     SEARCH_FUNCTION,
@@ -102,7 +101,7 @@ public class FactActionBuffer {
             );
         }
 
-        void clear() {
+        synchronized void clear() {
             this.queue.clear();
         }
 

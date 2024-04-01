@@ -270,6 +270,7 @@ public abstract class AbstractLinearHash<E> implements ReIterable<E> {
      * The result of this function must produce a null or a value with the same hash code as the original keys. If the result is null, then the associated local value (if any) will be deleted.
      *
      * @param source          the source collection to add elements from.
+     * @param matchFunction   identity function
      * @param combineFunction a BinaryOperator function which acts on two inputs of type E (the element type in
      *                        the collection) and produces an output of the same type.
      */

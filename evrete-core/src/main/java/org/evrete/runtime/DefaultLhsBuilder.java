@@ -5,7 +5,6 @@ import org.evrete.api.annotations.NonNull;
 import org.evrete.api.builders.LhsBuilder;
 import org.evrete.runtime.evaluation.EvaluatorOfArray;
 import org.evrete.runtime.evaluation.EvaluatorOfPredicate;
-import org.evrete.util.NamedTypeImpl;
 
 import java.util.Collection;
 import java.util.Objects;

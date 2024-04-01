@@ -1,9 +1,6 @@
 package org.evrete.runtime;
 
-import org.evrete.api.Copyable;
-import org.evrete.api.RhsContext;
-import org.evrete.api.RuleSession;
-import org.evrete.api.RuntimeRule;
+import org.evrete.api.*;
 
 import java.io.PrintStream;
 import java.util.*;
@@ -13,7 +10,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class RhsAssert implements Consumer<RhsContext>, Copyable<RhsAssert> {
-    private static final Function<RuleDescriptor, Entry[]> FROM_DESCRIPTOR = rule -> {
+    private static final Function<RuleDescriptorImpl, Entry[]> FROM_DESCRIPTOR = rule -> {
         FactType[] types = rule.getFactTypes();
         Entry[] entries = new Entry[types.length];
         int i = 0;

@@ -1,7 +1,10 @@
 package org.evrete.api;
 
-import org.evrete.runtime.compiler.CompilationException;
+import org.evrete.util.CompilationException;
 
+/**
+ * The {@code RuntimeRule} is a representation of a rule that is already associated with a {@link RuleSession}.
+ */
 public interface RuntimeRule extends Rule {
 
     RuleSession<?> getRuntime();

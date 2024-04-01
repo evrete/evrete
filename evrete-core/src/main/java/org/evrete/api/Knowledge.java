@@ -1,9 +1,13 @@
 package org.evrete.api;
 
-import org.evrete.runtime.RuleDescriptor;
-
 import java.util.Collection;
 
+/**
+ * Knowledge is a preprocessed ruleset. Although the engine allows direct creation of rule sessions,
+ * having a prepared ruleset enables faster instantiation of sessions. Building knowledge instances
+ * especially makes sense if the rules use literal conditions and therefore require a very CPU-intensive
+ * compilation stage.
+ */
 public interface Knowledge extends RuleSetContext<Knowledge, RuleDescriptor> {
     Collection<RuleSession<?>> getSessions();
 
@@ -12,6 +16,7 @@ public interface Knowledge extends RuleSetContext<Knowledge, RuleDescriptor> {
      */
     StatefulSession newStatefulSession();
 
+    @SuppressWarnings("resource")
     default StatefulSession newStatefulSession(ActivationMode mode) {
         return newStatefulSession().setActivationMode(mode);
     }

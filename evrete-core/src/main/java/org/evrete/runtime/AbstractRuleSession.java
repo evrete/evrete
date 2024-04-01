@@ -3,7 +3,6 @@ package org.evrete.runtime;
 import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.runtime.async.RuleHotDeploymentTask;
-import org.evrete.runtime.evaluation.MemoryAddress;
 import org.evrete.util.SessionCollector;
 
 import java.util.*;
@@ -43,7 +42,7 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         MemoryFactory memoryFactory = getService().getMemoryFactoryProvider().instance(this);
         this.memory = new SessionMemory(this, memoryFactory);
         // Deploy existing rules
-        deployRules(knowledge.getRules(), false);
+        deployRules(knowledge.getRuleDescriptors(), false);
     }
 
     static void bufferUpdate(FactHandle handle, FactRecord previous, Object updatedFact, FactActionBuffer buffer) {
@@ -142,13 +141,13 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         return knowledge;
     }
 
-    private void deployRules(Collection<RuleDescriptor> descriptors, boolean hotDeployment) {
-        for(RuleDescriptor rd : descriptors) {
+    private void deployRules(Collection<RuleDescriptorImpl> descriptors, boolean hotDeployment) {
+        for(RuleDescriptorImpl rd : descriptors) {
             deployRule(rd, hotDeployment);
         }
     }
 
-    private synchronized void deployRule(RuleDescriptor descriptor, boolean hotDeployment) {
+    private synchronized void deployRule(RuleDescriptorImpl descriptor, boolean hotDeployment) {
         for (FactType factType : descriptor.getLhs().getFactTypes()) {
             TypeMemory tm = memory.getCreateUpdate(factType.type());
             tm.touchMemory(factType.getMemoryAddress());
@@ -166,7 +165,7 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
 
 
     @Override
-    void addRuleDescriptors(List<RuleDescriptor> descriptors) {
+    void addRuleDescriptors(List<RuleDescriptorImpl> descriptors) {
         deployRules(descriptors, true);
     }
 

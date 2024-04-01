@@ -1,7 +1,7 @@
 package org.evrete.jsr94;
 
 import org.evrete.api.Knowledge;
-import org.evrete.runtime.RuleDescriptor;
+import org.evrete.api.RuleDescriptor;
 
 import javax.rules.admin.Rule;
 import javax.rules.admin.RuleExecutionSet;
@@ -20,7 +20,7 @@ class RuleExecutionSetImpl implements RuleExecutionSet {
         this.knowledge = knowledge;
         Utils.copyConfiguration(knowledge, map);
         this.rules = new ArrayList<>(knowledge.getRules().size());
-        for (RuleDescriptor rd : knowledge.getRules()) {
+        for (RuleDescriptor  rd : knowledge.getRules()) {
             this.rules.add(new RuleImpl(rd));
         }
     }

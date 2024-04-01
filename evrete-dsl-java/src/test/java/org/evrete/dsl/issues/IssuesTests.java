@@ -3,6 +3,7 @@ package org.evrete.dsl.issues;
 import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
+import org.evrete.dsl.TestUtils;
 import org.evrete.dsl.issues.model.DayTrendFact;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -31,7 +32,8 @@ class IssuesTests {
      */
     @Test
     void issue15() throws IOException {
-        Knowledge knowledge = service.newKnowledge("JAVA-SOURCE", new File("src/test/resources/java/issues/MyRS.java").toURI().toURL());
+        File f = TestUtils.testResourceAsFile("java/issues/MyRS.java");
+        Knowledge knowledge = service.newKnowledge("JAVA-SOURCE", f.toURI().toURL());
         try (StatefulSession session = knowledge.newStatefulSession()) {
             DayTrendFact object = new DayTrendFact();
             object.value = 6;

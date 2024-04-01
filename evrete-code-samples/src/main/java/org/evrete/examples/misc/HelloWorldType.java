@@ -2,6 +2,7 @@ package org.evrete.examples.misc;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
+import org.evrete.util.TypeResolverWrapper;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class HelloWorldType {

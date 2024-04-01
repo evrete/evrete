@@ -1,8 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.runtime.evaluation.MemoryAddress;
-import org.evrete.util.Mask;
-
 public class FactRecord {
     final Object instance;
     private final Mask<MemoryAddress> bucketsMask;

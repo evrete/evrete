@@ -1,9 +1,16 @@
 package org.evrete.api;
 
 import org.evrete.api.annotations.NonNull;
+import org.evrete.util.MappingReIterator;
 
 import java.util.function.Function;
 
+/**
+ * The ReIterable interface is essentially an {@link Iterable} that returns
+ * a {@link ReIterator} instead of a {@link java.util.Iterator}.
+ *
+ * @param <T> the type of elements in the collection.
+ */
 public interface ReIterable<T> extends Iterable<T> {
 
     @Override
@@ -11,32 +18,6 @@ public interface ReIterable<T> extends Iterable<T> {
     ReIterator<T> iterator();
 
     default <Z> ReIterator<Z> iterator(Function<? super T, Z> mapper) {
-        final ReIterator<T> it = iterator();
-        return new ReIterator<Z>() {
-            @Override
-            public long reset() {
-                return it.reset();
-            }
-
-            @Override
-            public boolean hasNext() {
-                return it.hasNext();
-            }
-
-            @Override
-            public void remove() {
-                it.remove();
-            }
-
-            @Override
-            public Z next() {
-                return mapper.apply(it.next());
-            }
-
-            @Override
-            public String toString() {
-                return it.toString();
-            }
-        };
+        return new MappingReIterator<>(iterator(), mapper);
     }
 }

@@ -1,6 +1,6 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.ValueHandle;
+import org.evrete.api.FieldValue;
 
 class KeyedFactStorageMulti extends AbstractKeyedFactStorage<MemoryKeyMulti, FactsMapMulti> {
     private final MultiState multiState;
@@ -11,20 +11,20 @@ class KeyedFactStorageMulti extends AbstractKeyedFactStorage<MemoryKeyMulti, Fac
     }
 
     @Override
-    MemoryKeyHashed writeKey(ValueHandle h) {
+    MemoryKeyHashed writeKey(FieldValue h) {
         return this.multiState.update(h);
     }
 
     static class MultiState extends MemoryKeyHashed {
-        private final ValueHandle[] data;
+        private final FieldValue[] data;
         private int currentPosition = 0;
 
         MultiState(int size) {
-            this.data = new ValueHandle[size];
+            this.data = new FieldValue[size];
             super.values = i -> data[i];
         }
 
-        MultiState update(ValueHandle h) {
+        MultiState update(FieldValue h) {
             if (currentPosition == data.length) {
                 // Rotate the value position and reset the computed hash
                 currentPosition = 0;

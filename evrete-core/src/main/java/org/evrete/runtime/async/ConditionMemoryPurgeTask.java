@@ -7,9 +7,9 @@ import org.evrete.api.ReIterator;
 import org.evrete.runtime.BetaConditionNode;
 import org.evrete.runtime.FactType;
 import org.evrete.runtime.RuntimeRuleImpl;
-import org.evrete.runtime.evaluation.MemoryAddress;
+import org.evrete.runtime.MemoryAddress;
 import org.evrete.util.Constants;
-import org.evrete.util.Mask;
+import org.evrete.runtime.Mask;
 
 import java.util.Collection;
 import java.util.LinkedList;

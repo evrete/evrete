@@ -10,6 +10,9 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.net.URL;
 
+/**
+ * DSLKnowledgeProvider is an interface that provides methods to create Knowledge instances from various types of resources.
+ */
 public interface DSLKnowledgeProvider {
 
     String getName();
@@ -28,6 +31,8 @@ public interface DSLKnowledgeProvider {
      * @param resources    remote or local resources to apply
      * @param typeResolver TypeResolver to use.
      * @param service      Knowledge service.
+     * @return new Knowledge instance
+     * @throws IOException if an error occurs when reading the data sources.
      */
     @SuppressWarnings("resource")
     default Knowledge create(KnowledgeService service, TypeResolver typeResolver, URL... resources) throws IOException {
@@ -59,6 +64,8 @@ public interface DSLKnowledgeProvider {
     /**
      * @param streams remote or local resources to apply
      * @param service Knowledge service.
+     * @return new Knowledge instance
+     * @throws IOException if an error occurs when reading the data sources.
      * @see #create(KnowledgeService, URL...)
      */
     default Knowledge create(KnowledgeService service, InputStream... streams) throws IOException {
@@ -69,6 +76,8 @@ public interface DSLKnowledgeProvider {
      * @param files    file resources
      * @param service  Knowledge service.
      * @param resolver Type resolver
+     * @return new Knowledge instance
+     * @throws IOException if an error occurs when reading the data sources.
      * @see #create(KnowledgeService, URL...)
      */
     default Knowledge create(KnowledgeService service, TypeResolver resolver, File... files) throws IOException {
@@ -83,6 +92,8 @@ public interface DSLKnowledgeProvider {
     /**
      * @param files   file resources
      * @param service Knowledge service.
+     * @return new Knowledge instance
+     * @throws IOException if an error occurs when reading the data sources.
      * @see #create(KnowledgeService, URL...)
      */
     default Knowledge create(KnowledgeService service, File... files) throws IOException {
@@ -93,6 +104,8 @@ public interface DSLKnowledgeProvider {
      * @param streams      remote or local resources to apply
      * @param service      Knowledge service.
      * @param typeResolver TypeResolver to use.
+     * @return new Knowledge instance
+     * @throws IOException if an error occurs when reading the data sources.
      * @see #create(KnowledgeService, TypeResolver, URL...)
      */
     Knowledge create(KnowledgeService service, TypeResolver typeResolver, InputStream... streams) throws IOException;
@@ -100,6 +113,7 @@ public interface DSLKnowledgeProvider {
     /**
      * @param streams remote or local resources to apply
      * @param service Knowledge service.
+     * @return new Knowledge instance
      * @throws IOException                   if resources can not be read
      * @throws UnsupportedOperationException if this method is not supported by the implementation
      * @see #create(KnowledgeService, URL...)
@@ -112,6 +126,7 @@ public interface DSLKnowledgeProvider {
      * @param streams      remote or local resources to apply
      * @param service      Knowledge service.
      * @param typeResolver TypeResolver to use.
+     * @return new Knowledge instance
      * @throws IOException                   if resources can not be read
      * @throws UnsupportedOperationException if this method is not supported by the implementation
      * @see #create(KnowledgeService, URL...)

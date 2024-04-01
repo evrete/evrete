@@ -11,6 +11,7 @@ import java.io.Serializable;
  * wrapped, thus avoiding unnecessary value reads.
  * </p>
  */
+
 public final class ActiveField implements Serializable, Named {
     public static final ActiveField[] ZERO_ARRAY = new ActiveField[0];
 
@@ -19,7 +20,7 @@ public final class ActiveField implements Serializable, Named {
     private final String fieldName;
     private final int type;
 
-    ActiveField(TypeField delegate, int valueIndex) {
+    public ActiveField(TypeField delegate, int valueIndex) {
         this.valueIndex = valueIndex;
         this.type = delegate.getDeclaringType().getId();
         this.fieldName = delegate.getName();
@@ -30,14 +31,14 @@ public final class ActiveField implements Serializable, Named {
         return fieldName;
     }
 
-    int type() {
+    public int type() {
         return type;
     }
 
     /**
      * @return index under which the value of this field is stored during insert/update in an Object[] array.
      */
-    int getValueIndex() {
+    public int getValueIndex() {
         return valueIndex;
     }
 

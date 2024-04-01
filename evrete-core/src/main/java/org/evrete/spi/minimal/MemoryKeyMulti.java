@@ -1,13 +1,13 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.MemoryKey;
-import org.evrete.api.ValueHandle;
+import org.evrete.api.FieldValue;
 
 import java.util.Arrays;
 
 class MemoryKeyMulti implements MemoryKey {
-    private static final ValueHandle[] EMPTY = new ValueHandle[0];
-    private final ValueHandle[] data;
+    private static final FieldValue[] EMPTY = new FieldValue[0];
+    private final FieldValue[] data;
     private final int hash;
     private transient int transientValue;
 
@@ -17,7 +17,7 @@ class MemoryKeyMulti implements MemoryKey {
     }
 
     MemoryKeyMulti(int fieldCount, MemoryKeyHashed key) {
-        this.data = new ValueHandle[fieldCount];
+        this.data = new FieldValue[fieldCount];
         for (int i = 0; i < fieldCount; i++) {
             this.data[i] = key.values.apply(i);
         }
@@ -40,7 +40,7 @@ class MemoryKeyMulti implements MemoryKey {
     }
 
     @Override
-    public ValueHandle get(int i) {
+    public FieldValue get(int i) {
         return data[i];
     }
 

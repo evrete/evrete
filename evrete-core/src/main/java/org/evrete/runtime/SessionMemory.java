@@ -4,7 +4,6 @@ import org.evrete.api.KeyedFactStorage;
 import org.evrete.api.MemoryFactory;
 import org.evrete.api.Type;
 import org.evrete.collections.ArrayOf;
-import org.evrete.runtime.evaluation.MemoryAddress;
 
 import java.util.function.Consumer;
 

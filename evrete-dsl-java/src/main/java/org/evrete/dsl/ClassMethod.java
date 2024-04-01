@@ -70,7 +70,8 @@ class ClassMethod {
     }
 
     final <V, R> Function<V, R> asFunction() {
-        return new Function<V, R>() {
+        //noinspection Convert2Diamond
+        return new Function<V,R>() {
             @Override
             public R apply(V v) {
                 args[0] = v;

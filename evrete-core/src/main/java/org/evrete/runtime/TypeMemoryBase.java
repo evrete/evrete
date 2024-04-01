@@ -6,7 +6,6 @@ import org.evrete.api.FactHandleVersioned;
 import org.evrete.api.FactStorage;
 import org.evrete.api.Type;
 import org.evrete.collections.ArrayOf;
-import org.evrete.runtime.evaluation.MemoryAddress;
 
 import java.util.Objects;
 import java.util.function.Consumer;

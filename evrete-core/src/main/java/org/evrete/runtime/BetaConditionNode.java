@@ -232,7 +232,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
     private static class FieldNode {
         final ValueResolver valueResolver;
         Object value;
-        ValueHandle lastHandle;
+        FieldValue lastHandle;
 
         FieldNode(ValueResolver valueResolver) {
             this.valueResolver = valueResolver;
@@ -243,7 +243,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
             this.value = null;
         }
 
-        void update(ValueHandle handle) {
+        void update(FieldValue handle) {
             if (handle != lastHandle) {
                 value = valueResolver.getValue(handle);
                 lastHandle = handle;
@@ -259,7 +259,7 @@ public class BetaConditionNode extends AbstractBetaConditionNode {
             this.evaluator = evaluator;
         }
 
-        void update(ValueHandle handle) {
+        void update(FieldValue handle) {
             if (handle != lastHandle) {
                 value = valueResolver.getValue(handle);
                 lastHandle = handle;

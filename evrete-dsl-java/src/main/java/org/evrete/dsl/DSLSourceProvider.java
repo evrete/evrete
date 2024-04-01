@@ -1,10 +1,10 @@
 package org.evrete.dsl;
 
 import org.evrete.KnowledgeService;
+import org.evrete.util.CompilationException;
 import org.evrete.api.JavaSourceCompiler;
 import org.evrete.api.Knowledge;
 import org.evrete.api.TypeResolver;
-import org.evrete.runtime.compiler.CompilationException;
 
 import java.io.IOException;
 import java.io.InputStream;

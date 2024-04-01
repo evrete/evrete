@@ -1,13 +1,13 @@
 package org.evrete.util;
 
-import org.evrete.api.Knowledge;
-import org.evrete.api.RuleSession;
-import org.evrete.api.StatefulSession;
-import org.evrete.api.StatelessSession;
-import org.evrete.runtime.RuleDescriptor;
+import org.evrete.api.*;
 
 import java.util.Collection;
 
+/**
+ * KnowledgeWrapper is an abstract class that delegates the knowledge's
+ * methods to a provided delegate object.
+ */
 public abstract class KnowledgeWrapper extends RuntimeContextWrapper<Knowledge, Knowledge, RuleDescriptor> implements Knowledge {
 
     protected KnowledgeWrapper(Knowledge delegate) {

@@ -5,6 +5,7 @@ import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.annotations.Nullable;
 import org.evrete.collections.ArrayOf;
+import org.evrete.util.TypeWrapper;
 
 import java.util.Collection;
 

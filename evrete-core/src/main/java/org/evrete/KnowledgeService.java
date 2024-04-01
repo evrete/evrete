@@ -3,7 +3,7 @@ package org.evrete;
 import org.evrete.api.*;
 import org.evrete.api.spi.*;
 import org.evrete.runtime.KnowledgeRuntime;
-import org.evrete.runtime.async.ForkJoinExecutor;
+import org.evrete.util.ForkJoinExecutor;
 
 import java.io.*;
 import java.net.URL;
@@ -12,8 +12,8 @@ import java.util.*;
 /**
  * <p>
  * KnowledgeService is a root element of every Evrete-based application.
- * It holds initial {@link Configuration}, security settings, references to all
- * required SPI implementations, and an instance of Java ExecutorService.
+ * It holds the initial {@link Configuration}, security settings, references to all
+ * required SPI implementations, and an instance of the Java ExecutorService.
  * </p>
  */
 public class KnowledgeService {
@@ -86,6 +86,7 @@ public class KnowledgeService {
     }
 
     /**
+     * @param typeResolver the type resolver to use in the newly created Knowledge instance
      * @return an empty {@link Knowledge} instance
      */
     public Knowledge newKnowledge(TypeResolver typeResolver) {
@@ -152,6 +153,7 @@ public class KnowledgeService {
      * @param dsl       DSL name
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     * @throws IOException if an error occurs when reading the data sources.
      */
     public Knowledge newKnowledge(String dsl, URL... resources) throws IOException {
         return getDSL(dsl).create(this, resources);
@@ -161,6 +163,7 @@ public class KnowledgeService {
      * @param dsl       DSL class
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     * @throws IOException if an error occurs when reading the data sources.
      */
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, URL... resources) throws IOException {
         return getDSL(dsl).create(this, resources);
@@ -170,6 +173,7 @@ public class KnowledgeService {
      * @param dsl       DSL name
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     * @throws IOException if an error occurs when reading the data sources.
      */
     public Knowledge newKnowledge(String dsl, File... resources) throws IOException {
         return getDSL(dsl).create(this, resources);
@@ -179,6 +183,7 @@ public class KnowledgeService {
      * @param dsl       DSL class
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     * @throws IOException if an error occurs when reading the data sources.
      */
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, File... resources) throws IOException {
         return getDSL(dsl).create(this, resources);
@@ -189,6 +194,7 @@ public class KnowledgeService {
      * @param resolver  TypeResolver to use
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     * @throws IOException if an error occurs when reading the data sources.
      */
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, TypeResolver resolver, File... resources) throws IOException {
         return getDSL(dsl).create(this, resolver, resources);
@@ -199,6 +205,7 @@ public class KnowledgeService {
      * @param resolver  TypeResolver to use
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     * @throws IOException if an error occurs when reading the data sources.
      */
     public Knowledge newKnowledge(String dsl, TypeResolver resolver, File... resources) throws IOException {
         return getDSL(dsl).create(this, resolver, resources);
@@ -209,6 +216,7 @@ public class KnowledgeService {
      * @param typeResolver TypeResolver to use
      * @param resources    DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     * @throws IOException if an error occurs when reading the data sources.
      */
     public Knowledge newKnowledge(String dsl, TypeResolver typeResolver, URL... resources) throws IOException {
         return getDSL(dsl).create(this, typeResolver, resources);
@@ -219,6 +227,7 @@ public class KnowledgeService {
      * @param typeResolver TypeResolver to use
      * @param resources    DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     * @throws IOException if an error occurs when reading the data sources.
      */
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, TypeResolver typeResolver, URL... resources) throws IOException {
         return getDSL(dsl).create(this, typeResolver, resources);
@@ -228,6 +237,7 @@ public class KnowledgeService {
      * @param dsl       DSL name
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     * @throws IOException if an error occurs when reading the data sources.
      */
     public Knowledge newKnowledge(String dsl, Reader... resources) throws IOException {
         return getDSL(dsl).create(this, resources);
@@ -237,6 +247,7 @@ public class KnowledgeService {
      * @param dsl       DSL class
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     * @throws IOException if an error occurs when reading the data sources.
      */
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, Reader... resources) throws IOException {
         return getDSL(dsl).create(this, resources);
@@ -247,6 +258,7 @@ public class KnowledgeService {
      * @param typeResolver TypeResolver to use
      * @param resources    DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     * @throws IOException if an error occurs when reading the data sources.
      */
     public Knowledge newKnowledge(String dsl, TypeResolver typeResolver, Reader... resources) throws IOException {
         return getDSL(dsl).create(this, typeResolver, resources);
@@ -257,6 +269,7 @@ public class KnowledgeService {
      * @param typeResolver TypeResolver to use
      * @param resources    DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     * @throws IOException if an error occurs when reading the data sources.
      */
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, TypeResolver typeResolver, Reader... resources) throws IOException {
         return getDSL(dsl).create(this, typeResolver, resources);
@@ -266,6 +279,7 @@ public class KnowledgeService {
      * @param dsl       DSL name
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     * @throws IOException if an error occurs when reading the data sources.
      */
     public Knowledge newKnowledge(String dsl, InputStream... resources) throws IOException {
         return getDSL(dsl).create(this, resources);
@@ -275,6 +289,7 @@ public class KnowledgeService {
      * @param dsl       DSL class
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     * @throws IOException if an error occurs when reading the data sources.
      */
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, InputStream... resources) throws IOException {
         return getDSL(dsl).create(this, resources);
@@ -285,6 +300,7 @@ public class KnowledgeService {
      * @param typeResolver TypeResolver to use
      * @param resources    DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     * @throws IOException if an error occurs when reading the data sources.
      */
     public Knowledge newKnowledge(String dsl, TypeResolver typeResolver, InputStream... resources) throws IOException {
         return getDSL(dsl).create(this, typeResolver, resources);
@@ -295,6 +311,7 @@ public class KnowledgeService {
      * @param typeResolver TypeResolver to use
      * @param resources    DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     * @throws IOException if an error occurs when reading the data sources.
      */
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, TypeResolver typeResolver, InputStream... resources) throws IOException {
         return getDSL(dsl).create(this, typeResolver, resources);
@@ -308,6 +325,7 @@ public class KnowledgeService {
      * @param dsl       DSL name
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     * @throws IOException if an error occurs when reading the class sources.
      */
     public Knowledge newKnowledge(String dsl, Class<?>... resources) throws IOException {
         return getDSL(dsl).create(this, toReaders(resources));
@@ -357,6 +375,7 @@ public class KnowledgeService {
      * @param dsl       DSL class
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     * @throws IOException if an error occurs when reading the class sources.
      */
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, Class<?>... resources) throws IOException {
         return getDSL(dsl).create(this, toReaders(resources));
@@ -371,6 +390,7 @@ public class KnowledgeService {
      * @param typeResolver TypeResolver to use
      * @param resources    DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     * @throws IOException if an error occurs when reading the class sources.
      */
     public Knowledge newKnowledge(String dsl, TypeResolver typeResolver, Class<?>... resources) throws IOException {
         return getDSL(dsl).create(this, typeResolver, toReaders(resources));
@@ -385,6 +405,7 @@ public class KnowledgeService {
      * @param typeResolver TypeResolver to use
      * @param resources    DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
+     * @throws IOException if an error occurs when reading the sources.
      */
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, TypeResolver typeResolver, Class<?>... resources) throws IOException {
         return getDSL(dsl).create(this, typeResolver, toReaders(resources));
@@ -424,6 +445,9 @@ public class KnowledgeService {
         return getDSL(dsl).create(this, readers(resources));
     }
 
+    /**
+     * The Builder class is responsible for constructing instances of the KnowledgeService class.
+     */
     public static class Builder {
         private final Configuration conf;
         private Class<? extends MemoryFactoryProvider> memoryFactoryProvider;

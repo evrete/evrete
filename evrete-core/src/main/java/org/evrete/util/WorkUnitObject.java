@@ -6,7 +6,7 @@ import org.evrete.api.WorkUnit;
  * <p>
  *     This utility class associates an arbitrary object with a level of complexity
  * </p>
- * @param <T>
+ * @param <T> object type
  */
 public class WorkUnitObject<T> implements WorkUnit {
     private final T delegate;

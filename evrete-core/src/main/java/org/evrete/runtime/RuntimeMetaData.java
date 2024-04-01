@@ -5,7 +5,8 @@ import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.EvaluatorWrapper;
-import org.evrete.runtime.evaluation.MemoryAddress;
+import org.evrete.util.TypeResolverWrapper;
+import org.evrete.util.TypeWrapper;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

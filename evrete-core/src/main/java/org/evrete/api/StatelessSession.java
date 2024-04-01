@@ -74,6 +74,8 @@ public interface StatelessSession extends RuleSession<StatelessSession> {
      * A convenience method to retrieve facts of a specific type name.
      * </p>
      *
+     * @param <T> the generic type of the objects consumed when the session is fired
+     * @param type the literal type of the objects
      * @param consumer consumer for session memory
      */
     <T> void fire(String type, Consumer<T> consumer);
@@ -86,6 +88,8 @@ public interface StatelessSession extends RuleSession<StatelessSession> {
      *
      * @param consumer consumer for session memory
      * @param filter   filtering predicate
+     * @param type string type of the objects to consume
+     * @param <T> the generic type of the objects consumed when the session is fired
      */
     default <T> void fire(String type, Predicate<T> filter, Consumer<T> consumer) {
         fire(type, (Consumer<T>) t -> {
@@ -101,6 +105,8 @@ public interface StatelessSession extends RuleSession<StatelessSession> {
      * </p>
      *
      * @param consumer consumer for session memory
+     * @param <T> the generic type of the objects consumed when the session is fired
+     * @param type the class of the objects consumed when the session is fired
      */
     <T> void fire(Class<T> type, Consumer<T> consumer);
 
@@ -110,8 +116,10 @@ public interface StatelessSession extends RuleSession<StatelessSession> {
      * matching given predicate
      * </p>
      *
+     * @param type class of objects to retrieve upon fire
      * @param consumer consumer for session memory
      * @param filter   filtering predicate
+     * @param <T> the generic type of the objects consumed when the session is fired
      */
     default <T> void fire(Class<T> type, Predicate<T> filter, Consumer<T> consumer) {
         fire(type, t -> {

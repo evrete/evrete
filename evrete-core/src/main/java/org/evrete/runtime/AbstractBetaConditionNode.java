@@ -30,14 +30,14 @@ public abstract class AbstractBetaConditionNode implements BetaMemoryNode {
         this.rule = rule;
         this.descriptor = descriptor;
         for (KeyMode keyMode : KeyMode.values()) {
-            MemoryKeyCollection store = memoryFactory.newMemoryKeyCollection(descriptor.getTypes());
+            MemoryKeyCollection store = memoryFactory.newMemoryKeyCollection();
             stores[keyMode.ordinal()] = keyMode == KeyMode.OLD_OLD ?
                     new MemoryKeyCollectionWrapper(store, keyMode)
                     :
                     store
             ;
         }
-        this.tempCollection = memoryFactory.newMemoryKeyCollection(descriptor.getTypes());
+        this.tempCollection = memoryFactory.newMemoryKeyCollection();
     }
 
 

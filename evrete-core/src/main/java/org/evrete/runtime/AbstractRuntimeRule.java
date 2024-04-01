@@ -5,7 +5,6 @@ import org.evrete.api.LiteralExpression;
 import org.evrete.api.NamedType;
 import org.evrete.api.Type;
 import org.evrete.api.annotations.NonNull;
-import org.evrete.util.NamedTypeImpl;
 
 import java.util.Collection;
 import java.util.HashMap;

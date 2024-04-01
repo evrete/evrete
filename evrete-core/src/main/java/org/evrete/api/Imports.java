@@ -5,6 +5,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Represents a class for managing Java imports.
+ */
 public class Imports implements Copyable<Imports>, Serializable {
     private static final long serialVersionUID = -6504055142637422799L;
     private final Set<String> imports = new HashSet<>();
