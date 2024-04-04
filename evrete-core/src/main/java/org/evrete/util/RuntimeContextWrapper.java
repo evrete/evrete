@@ -8,6 +8,7 @@ import org.evrete.api.builders.RuleSetBuilder;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 
 class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends RuntimeContext<C>, R extends Rule> implements RuleSetContext<C, R> {
     protected final D delegate;
@@ -55,6 +56,12 @@ class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends RuntimeCon
     @Override
     public C set(String property, Object value) {
         delegate.set(property, value);
+        return self();
+    }
+
+    @Override
+    public C configureTypes(Consumer<TypeResolver> action) {
+        delegate.configureTypes(action);
         return self();
     }
 
@@ -112,6 +119,7 @@ class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends RuntimeCon
     }
 
     @Override
+    @Deprecated
     public void wrapTypeResolver(TypeResolverWrapper wrapper) {
         delegate.wrapTypeResolver(wrapper);
     }

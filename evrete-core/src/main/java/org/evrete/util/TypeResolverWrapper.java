@@ -5,12 +5,17 @@ import org.evrete.api.TypeResolver;
 import org.evrete.api.annotations.NonNull;
 
 import java.util.Collection;
+import java.util.function.Consumer;
 
 /**
  * TypeResolverWrapper is a wrapper class for {@link TypeResolver}. It delegates method calls to the
  * underlying TypeResolver instance.
  * Developers can utilize this class to customize or modify the behavior of the resolver.
+ *
+ * @deprecated This class is deprecated and will be removed in future releases.
+ * Use the {@link org.evrete.api.RuntimeContext#configureTypes(Consumer)} method instead to configure the context's types and their fields.
  */
+@Deprecated
 public class TypeResolverWrapper implements TypeResolver {
     private final TypeResolver delegate;
 

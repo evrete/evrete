@@ -1,6 +1,7 @@
 
 plugins {
     id("java-library")
+    application
 }
 
 repositories {
@@ -16,4 +17,10 @@ java {
 dependencies {
     implementation(project(":evrete-core"))
     implementation(project(":evrete-dsl-java"))
+}
+
+
+tasks.register<JavaExec>("howtoCsvFactsInline") {
+    mainClass = "org.evrete.examples.howto.CsvFactsInline"
+    classpath = sourceSets.main.get().runtimeClasspath
 }

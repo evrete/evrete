@@ -72,6 +72,13 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public C configureTypes(Consumer<TypeResolver> action) {
+        action.accept(getTypeResolver());
+        return (C) this;
+    }
+
+    @Override
     public final RuntimeClassloader getClassLoader() {
         return classloader;
     }

@@ -9,20 +9,24 @@ public class TypeDeclarationInline {
 
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
-        Knowledge knowledge = service.newKnowledge();
+        Knowledge knowledge = service
+                .newKnowledge()
+                .configureTypes(typeResolver -> typeResolver
+                        .getOrDeclare(Integer.class)
+                        .declareLongField(
+                                "factorial",
+                                i -> {
+                                    long f = 1L;
+                                    for (int t = 1; t <= i; t++) f *= t;
+                                    return f;
+                                }
+                        ));
 
-        // Field declaration
+        // Get the field declaration
         TypeField factorialField = knowledge
                 .getTypeResolver()
                 .getOrDeclare(Integer.class)
-                .declareLongField(
-                        "factorial",
-                        i -> {
-                            long f = 1L;
-                            for (int t = 1; t <= i; t++) f *= t;
-                            return f;
-                        }
-                );
+                .getField("factorial");
 
         // New 'factorial' field in a rule
         StatelessSession session = knowledge

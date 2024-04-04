@@ -4,7 +4,6 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatelessSession;
 import org.evrete.api.Type;
-import org.evrete.api.TypeResolver;
 
 public class CsvFactsInline {
     private static final String TYPE_PERSON = "Person Type";
@@ -12,20 +11,19 @@ public class CsvFactsInline {
 
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
-        Knowledge knowledge = service.newKnowledge();
+        Knowledge knowledge = service.newKnowledge()
+                .configureTypes(resolver -> {
+                    // Person type & fields
+                    Type<String> pt = resolver.declare(TYPE_PERSON, String.class);
+                    pt.declareField("name", String.class, s -> s.split(",")[0]);
+                    pt.declareIntField("age", s -> Integer.parseInt(s.split(",")[1]));
+                    pt.declareField("location", String.class, s -> s.split(",")[2]);
 
-        TypeResolver resolver = knowledge.getTypeResolver();
-
-        // Person type & fields
-        Type<String> pt = resolver.declare(TYPE_PERSON, String.class);
-        pt.declareField("name", String.class, s -> s.split(",")[0]);
-        pt.declareIntField("age", s -> Integer.parseInt(s.split(",")[1]));
-        pt.declareField("location", String.class, s -> s.split(",")[2]);
-
-        // Location type & fields
-        Type<String> lt = resolver.declare(TYPE_LOCATION, String.class);
-        lt.declareField("address", String.class, s -> s.split(",")[0]);
-        lt.declareIntField("zip", s -> Integer.parseInt(s.split(",")[1]));
+                    // Location type & fields
+                    Type<String> lt = resolver.declare(TYPE_LOCATION, String.class);
+                    lt.declareField("address", String.class, s -> s.split(",")[0]);
+                    lt.declareIntField("zip", s -> Integer.parseInt(s.split(",")[1]));
+                });
 
         // Build knowledge & session
         StatelessSession session = knowledge

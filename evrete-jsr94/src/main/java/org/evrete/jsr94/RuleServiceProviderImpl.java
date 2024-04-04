@@ -11,7 +11,6 @@ import javax.rules.admin.RuleAdministrator;
  * Implementation of the RuleServiceProvider interface
  */
 public class RuleServiceProviderImpl extends RuleServiceProvider {
-    static final String RULE_SERVICE_PROVIDER = "org.evrete.jsr94";
     private static final KnowledgeService service = new KnowledgeService();
     private final RuleSetRegistrations registrations = new RuleSetRegistrations();
 

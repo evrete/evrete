@@ -55,6 +55,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     }
 
     @Override
+    @Deprecated
     public final void wrapTypeResolver(TypeResolverWrapper wrapper) {
         this.typeResolver = wrapper;
     }
