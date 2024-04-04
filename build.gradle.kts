@@ -1,3 +1,5 @@
+import org.gradle.configurationcache.extensions.capitalized
+
 version = "3.2.00"
 
 
@@ -58,6 +60,16 @@ if (hasProperty("mavenCentralUserName")) {
         signing {
             sign(publishing.publications)
         }
+    }
+}
+
+// `mvn install` alias
+allprojects {
+    afterEvaluate {
+            val innerUglyMavenTaskName = "publishToMavenLocal"
+            tasks.register("mavenInstall") {
+                dependsOn(innerUglyMavenTaskName)
+            }
     }
 }
 
