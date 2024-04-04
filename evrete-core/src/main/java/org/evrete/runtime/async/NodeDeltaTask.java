@@ -1,8 +1,8 @@
 package org.evrete.runtime.async;
 
 import org.evrete.runtime.BetaConditionNode;
-import org.evrete.runtime.MemoryAddress;
 import org.evrete.runtime.Mask;
+import org.evrete.runtime.MemoryAddress;
 
 import java.util.Arrays;
 import java.util.Collection;

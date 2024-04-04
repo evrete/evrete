@@ -1,5 +1,7 @@
-package org.evrete.jsr94;
+package org.evrete.jsr94.test;
 
+import org.evrete.jsr94.Constants;
+import org.evrete.jsr94.RuleServiceProviderImpl;
 import org.evrete.jsr94.classes.Example1;
 import org.jcp.jsr94.tck.model.Customer;
 import org.jcp.jsr94.tck.model.Invoice;
@@ -13,14 +15,13 @@ import javax.rules.admin.RuleExecutionSet;
 import javax.rules.admin.RuleExecutionSetCreateException;
 import javax.rules.admin.RuleExecutionSetRegisterException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.*;
 
-import static org.evrete.jsr94.RuleServiceProviderImpl.RULE_SERVICE_PROVIDER;
 
 class Jsr94Tests {
+    static final String RULE_SERVICE_PROVIDER = "org.evrete.jsr94";
     private static RuleServiceProvider serviceProvider;
 
     @BeforeAll
@@ -37,12 +38,7 @@ class Jsr94Tests {
 
     @AfterAll
     static void shutDownClass() {
-        RuleServiceProviderManager.deregisterRuleServiceProvider(org.evrete.jsr94.RuleServiceProviderImpl.RULE_SERVICE_PROVIDER);
-    }
-
-    private static InputStream classBytesStream(Class<?> ruleClass) {
-        String url = ruleClass.getName().replaceAll("\\.", "/") + ".class";
-        return ruleClass.getClassLoader().getResourceAsStream(url);
+        RuleServiceProviderManager.deregisterRuleServiceProvider(RULE_SERVICE_PROVIDER);
     }
 
     @Test
@@ -57,9 +53,9 @@ class Jsr94Tests {
 
         // parse the ruleset from the XML document
         Map<Object, Object> ruleSetConfig = new HashMap<>();
-        ruleSetConfig.put(Const.DSL_NAME, "JAVA-CLASS");
-        ruleSetConfig.put(Const.RULE_SET_NAME, "JSR-94 Example");
-        ruleSetConfig.put(Const.RULE_SET_DESCRIPTION, "A simple rule set that removes all non-prime numbers from working memory");
+        ruleSetConfig.put(Constants.DSL_NAME, "JAVA-CLASS");
+        ruleSetConfig.put(Constants.RULE_SET_NAME, "JSR-94 Example");
+        ruleSetConfig.put(Constants.RULE_SET_DESCRIPTION, "A simple rule set that removes all non-prime numbers from working memory");
         RuleExecutionSet res1 = administrator
                 .getLocalRuleExecutionSetProvider(null)
                 .createRuleExecutionSet(inStream, ruleSetConfig);

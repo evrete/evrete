@@ -2,10 +2,10 @@ package org.evrete.spi.minimal;
 
 import org.evrete.api.Type;
 import org.evrete.api.TypeResolver;
-import org.evrete.util.TypeWrapper;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.annotations.Nullable;
 import org.evrete.collections.ArrayOf;
+import org.evrete.util.TypeWrapper;
 
 import java.util.*;
 import java.util.logging.Logger;

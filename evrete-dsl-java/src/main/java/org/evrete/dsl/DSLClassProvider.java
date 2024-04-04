@@ -10,7 +10,17 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.net.URL;
 
+/**
+ * The DSLClassProvider class provides the implementation of the DSLKnowledgeProvider
+ * interface for 'JAVA-CLASS' DSL knowledge.
+ */
 public class DSLClassProvider extends AbstractDSLProvider {
+
+    /**
+     * Default public constructor
+     */
+    public DSLClassProvider() {
+    }
 
     private static Class<?>[] loadClasses(KnowledgeService service, Reader... streams) throws IOException {
         Class<?>[] classes = new Class<?>[streams.length];

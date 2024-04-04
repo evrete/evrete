@@ -1,7 +1,7 @@
 package org.evrete.runtime.compiler;
 
-import org.evrete.util.CompilationException;
 import org.evrete.api.JavaSourceCompiler;
+import org.evrete.util.CompilationException;
 
 import javax.tools.*;
 import java.io.IOException;

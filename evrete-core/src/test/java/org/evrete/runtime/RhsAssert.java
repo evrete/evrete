@@ -1,6 +1,9 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
+import org.evrete.api.Copyable;
+import org.evrete.api.RhsContext;
+import org.evrete.api.RuleSession;
+import org.evrete.api.RuntimeRule;
 
 import java.io.PrintStream;
 import java.util.*;

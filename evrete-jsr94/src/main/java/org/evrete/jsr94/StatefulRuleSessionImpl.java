@@ -13,6 +13,9 @@ import java.util.stream.Collectors;
 
 import static javax.rules.RuleRuntime.STATEFUL_SESSION_TYPE;
 
+/**
+ * Implementation of the {@link StatefulRuleSession} interface.
+ */
 public class StatefulRuleSessionImpl extends AbstractRuleSessionBase implements StatefulRuleSession {
     private static final long serialVersionUID = 1640888587580047958L;
 
@@ -131,8 +134,12 @@ public class StatefulRuleSessionImpl extends AbstractRuleSessionBase implements 
         }
     }
 
+    /**
+     * Serialization is not supported
+     * @param stream output stream
+     * @throws IOException always throws
+     */
     private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
-        throw new UnsupportedOperationException("Serialization not supported");
+        throw new IOException("Serialization not supported");
     }
-
 }

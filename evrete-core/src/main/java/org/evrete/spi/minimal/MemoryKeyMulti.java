@@ -1,7 +1,7 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.MemoryKey;
 import org.evrete.api.FieldValue;
+import org.evrete.api.MemoryKey;
 
 import java.util.Arrays;
 

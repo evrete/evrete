@@ -22,11 +22,11 @@ class RuleExecutionSetMetadataImpl implements RuleExecutionSetMetadata {
 
     @Override
     public String getName() {
-        return delegate.get(Const.RULE_SET_NAME, this.uri);
+        return delegate.get(Constants.RULE_SET_NAME, this.uri);
     }
 
     @Override
     public String getDescription() {
-        return delegate.get(Const.RULE_SET_DESCRIPTION);
+        return delegate.get(Constants.RULE_SET_DESCRIPTION);
     }
 }

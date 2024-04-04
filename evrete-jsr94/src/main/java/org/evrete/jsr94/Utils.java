@@ -36,12 +36,12 @@ final class Utils {
 
     @SuppressWarnings("rawtypes")
     static String dslName(Map map) throws RuleExecutionSetCreateException {
-        Object o = map.get(Const.DSL_NAME);
+        Object o = map.get(Constants.DSL_NAME);
 
         if (o instanceof String) {
             return (String) o;
         } else {
-            throw new RuleExecutionSetCreateException("Missing DSL name property '" + Const.DSL_NAME + "'");
+            throw new RuleExecutionSetCreateException("Missing DSL name property '" + Constants.DSL_NAME + "'");
         }
     }
 

@@ -1,6 +1,8 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
+import org.evrete.api.FactHandle;
+import org.evrete.api.RuleSession;
+import org.evrete.api.SessionLifecycleListener;
 import org.evrete.runtime.async.*;
 import org.evrete.util.ForkJoinExecutor;
 

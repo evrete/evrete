@@ -5,6 +5,10 @@ import org.evrete.api.StatefulSession;
 import javax.rules.RuleExecutionSetMetadata;
 import javax.rules.RuleSession;
 
+/**
+ * Base class that implements the RuleSession interface. It provides common functionality and fields that can be used by subclasses
+ * to implement specific rule sessions.
+ */
 public abstract class AbstractRuleSessionBase implements RuleSession {
     final StatefulSession delegate;
     private final int type;

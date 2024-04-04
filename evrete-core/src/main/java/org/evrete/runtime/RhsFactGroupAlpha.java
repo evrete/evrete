@@ -1,9 +1,9 @@
 package org.evrete.runtime;
 
+import org.evrete.api.FieldValue;
 import org.evrete.api.KeyMode;
 import org.evrete.api.MemoryKey;
 import org.evrete.api.ReIterator;
-import org.evrete.api.FieldValue;
 import org.evrete.collections.CollectionReIterator;
 import org.evrete.util.CollectionUtils;
 

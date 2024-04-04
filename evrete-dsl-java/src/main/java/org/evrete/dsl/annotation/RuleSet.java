@@ -5,37 +5,42 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Annotation used to mark a class as a ruleset.
+ */
 @Target(value = ElementType.TYPE)
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface RuleSet {
     /**
+     * Provides optional name for the ruleset
      * @return name of the ruleset
      */
     String value() default "";
 
     /**
      * <p>
-     * Defines how rules are sorted by default.
-     * (Compiled Java classes do not keep any sorting information)
+     * Defines how rules are sorted in the event of an absence or equality of the salience parameter.
+     * As compiled Java classes do not retain any sorting information, this method determines the
+     * fallback sorting mechanism.
      * </p>
      *
-     * @return sort mode
+     * @return the mode used for sorting.
      */
     Sort defaultSort() default Sort.BY_NAME;
 
+    /**
+     * The {@code Sort} enum represents different sorting modes for rule sets.
+     */
     enum Sort {
-        BY_NAME(1),
-        BY_NAME_INVERSE(-1);
+        /**
+         * Sorts rules by name.
+         */
+        BY_NAME,
 
-        public static final Sort DEFAULT = Sort.BY_NAME;
-        final int modifier;
+        /**
+         * Sorts rules by name in reverse order.
+         */
+        BY_NAME_INVERSE
 
-        Sort(int modifier) {
-            this.modifier = modifier;
-        }
-
-        public int getModifier() {
-            return modifier;
-        }
     }
 }

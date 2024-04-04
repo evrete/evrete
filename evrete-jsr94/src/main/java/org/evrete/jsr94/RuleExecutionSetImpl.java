@@ -27,7 +27,7 @@ class RuleExecutionSetImpl implements RuleExecutionSet {
 
     @Override
     public String getName() {
-        return knowledge.get(Const.RULE_SET_NAME, "");
+        return knowledge.get(Constants.RULE_SET_NAME, "");
     }
 
     Knowledge getKnowledge() {
@@ -36,7 +36,7 @@ class RuleExecutionSetImpl implements RuleExecutionSet {
 
     @Override
     public String getDescription() {
-        return knowledge.get(Const.RULE_SET_DESCRIPTION, "");
+        return knowledge.get(Constants.RULE_SET_DESCRIPTION, "");
     }
 
     @Override

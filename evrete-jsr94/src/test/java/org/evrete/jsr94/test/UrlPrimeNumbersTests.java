@@ -1,4 +1,4 @@
-package org.evrete.jsr94;
+package org.evrete.jsr94.test;
 
 import org.junit.jupiter.api.Test;
 

@@ -1,6 +1,9 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
+import org.evrete.api.EvaluatorHandle;
+import org.evrete.api.FieldReference;
+import org.evrete.api.NamedType;
+import org.evrete.api.TypeField;
 import org.evrete.runtime.evaluation.BetaEvaluator;
 import org.evrete.runtime.evaluation.EvaluatorFactory;
 import org.evrete.util.MapFunction;

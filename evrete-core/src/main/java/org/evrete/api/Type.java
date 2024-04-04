@@ -14,6 +14,7 @@ import java.util.function.*;
  *
  * @param <T> Java type associated with this type
  */
+//TODO logical types !!!!! this is a must
 public interface Type<T> extends Named, Copyable<Type<T>> {
 
     /**

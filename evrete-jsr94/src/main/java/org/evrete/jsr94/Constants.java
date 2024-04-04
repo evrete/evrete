@@ -1,6 +1,9 @@
 package org.evrete.jsr94;
 
-interface Const {
+/**
+ * Defines constants used in the Evrete JSR94 wrapper.
+ */
+public interface Constants {
     /**
      * DSL implementation
      */

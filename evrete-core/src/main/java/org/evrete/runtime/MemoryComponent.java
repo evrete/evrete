@@ -1,7 +1,10 @@
 package org.evrete.runtime;
 
 import org.evrete.Configuration;
-import org.evrete.api.*;
+import org.evrete.api.MemoryFactory;
+import org.evrete.api.Type;
+import org.evrete.api.TypeResolver;
+import org.evrete.api.ValueResolver;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.annotations.Nullable;
 import org.evrete.collections.ArrayOf;

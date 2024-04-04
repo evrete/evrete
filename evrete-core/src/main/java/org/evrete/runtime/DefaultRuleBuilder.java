@@ -4,9 +4,9 @@ import org.evrete.AbstractRule;
 import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.builders.RuleBuilder;
-import org.evrete.util.CompilationException;
 import org.evrete.runtime.evaluation.EvaluatorOfArray;
 import org.evrete.runtime.evaluation.EvaluatorOfPredicate;
+import org.evrete.util.CompilationException;
 
 import java.util.Collection;
 import java.util.function.Predicate;

@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * Implementation of the {@link StatelessRuleSession} interface.
+ */
 public class StatelessRuleSessionImpl extends AbstractRuleSessionBase implements StatelessRuleSession {
 
     StatelessRuleSessionImpl(StatefulSession delegate, RuleExecutionSetMetadataImpl metadata) {

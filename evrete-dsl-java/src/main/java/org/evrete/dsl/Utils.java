@@ -12,7 +12,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 
-public final class Utils {
+final class Utils {
     static final Logger LOGGER = Logger.getLogger(Utils.class.getPackage().getName());
 
     static Collection<Method> allNonPublicAnnotated(Class<?> clazz) {
@@ -70,7 +70,7 @@ public final class Utils {
 
     static RuleSet.Sort deriveSort(Class<?> clazz) {
         RuleSet.Sort sort = searchSort(clazz);
-        return sort == null ? RuleSet.Sort.DEFAULT : sort;
+        return sort == null ? RuleSet.Sort.BY_NAME : sort;
     }
 
     static String ruleName(Method method) {

@@ -1,3 +1,6 @@
+/**
+ *  This module defines the core API of the Evrete Rule Engine.
+ */
 module org.evrete.core {
     requires java.logging;
     requires jdk.compiler;

@@ -1,8 +1,8 @@
 package org.evrete.spi.minimal;
 
+import org.evrete.api.FieldValue;
 import org.evrete.api.KeyMode;
 import org.evrete.api.MemoryKey;
-import org.evrete.api.FieldValue;
 
 import java.util.Objects;
 

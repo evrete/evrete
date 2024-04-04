@@ -4,12 +4,8 @@ import org.evrete.api.KeyMode;
 import org.evrete.api.MemoryKey;
 import org.evrete.api.MemoryKeyCollection;
 import org.evrete.api.ReIterator;
-import org.evrete.runtime.BetaConditionNode;
-import org.evrete.runtime.FactType;
-import org.evrete.runtime.RuntimeRuleImpl;
-import org.evrete.runtime.MemoryAddress;
+import org.evrete.runtime.*;
 import org.evrete.util.Constants;
-import org.evrete.runtime.Mask;
 
 import java.util.Collection;
 import java.util.LinkedList;

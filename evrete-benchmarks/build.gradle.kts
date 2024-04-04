@@ -4,6 +4,21 @@ val droolsVersion = "9.44.0.Final"
 val jmhVersion = "1.37"
 val slf4jVersion = "2.0.3"
 
+plugins {
+    id("java-library")
+    application
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
 dependencies {
     implementation(project(":evrete-core"))
     implementation("org.drools:drools-core:$droolsVersion")
@@ -17,9 +32,6 @@ dependencies {
     implementation("org.slf4j:slf4j-jdk14:$slf4jVersion")
 }
 
-plugins {
-    application
-}
 
 tasks.register<JavaExec>("expressions") {
     mainClass = "org.evrete.benchmarks.ExpressionsBenchmarks"
