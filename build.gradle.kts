@@ -1,5 +1,3 @@
-import org.gradle.configurationcache.extensions.capitalized
-
 version = "3.2.00"
 
 
