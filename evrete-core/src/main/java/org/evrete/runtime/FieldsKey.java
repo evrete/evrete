@@ -4,12 +4,12 @@ import org.evrete.api.Type;
 
 import java.util.Arrays;
 
-public final class FieldsKey {
+final class FieldsKey {
     private final ActiveField[] fields;
     private final Type<?> type;
     private final int id;
 
-    FieldsKey(int id, Type<?> type, ActiveField[] arr) {
+    public FieldsKey(int id, Type<?> type, ActiveField[] arr) {
         this.id = id;
         this.fields = arr;
         this.type = type;

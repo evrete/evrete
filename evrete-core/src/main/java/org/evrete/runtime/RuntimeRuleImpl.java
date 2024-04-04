@@ -11,7 +11,7 @@ import static org.evrete.util.Constants.DELETED_MEMORY_KEY_FLAG;
 
 public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implements RuntimeRule {
     private final AbstractRuleSession<?> runtime;
-    private final RuleDescriptor descriptor;
+    private final RuleDescriptorImpl descriptor;
     private final RuntimeLhs lhs;
     private final RhsGroupNode[] rhsGroupNodes;
     final private RhsFactType[] factTypeNodes;
@@ -20,7 +20,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
     private final BetaEndNode[] endNodes;
     private long rhsCallCounter = 0;
 
-    RuntimeRuleImpl(RuleDescriptor rd, AbstractRuleSession<?> runtime) {
+    RuntimeRuleImpl(RuleDescriptorImpl rd, AbstractRuleSession<?> runtime) {
         super(runtime, rd, build(runtime, rd.getLhs().getFactTypes()));
         this.descriptor = rd;
         this.runtime = runtime;
@@ -178,7 +178,7 @@ public class RuntimeRuleImpl extends AbstractRuntimeRule<RuntimeFactType> implem
         return this;
     }
 
-    public RuleDescriptor getDescriptor() {
+    public RuleDescriptorImpl getDescriptor() {
         return descriptor;
     }
 

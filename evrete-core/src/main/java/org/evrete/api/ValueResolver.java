@@ -1,8 +1,14 @@
 package org.evrete.api;
 
-public interface ValueResolver {
-    ValueHandle getValueHandle(Class<?> valueType, Object value);
+import org.evrete.api.annotations.Unstable;
 
-    Object getValue(ValueHandle handle);
+/**
+ * This interface defines methods for resolving field values and retrieving them.
+ */
+@Unstable
+public interface ValueResolver {
+    FieldValue getValueHandle(Class<?> valueType, Object value);
+
+    Object getValue(FieldValue handle);
 
 }

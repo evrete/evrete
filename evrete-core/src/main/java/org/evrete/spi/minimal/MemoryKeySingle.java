@@ -1,13 +1,13 @@
 package org.evrete.spi.minimal;
 
+import org.evrete.api.FieldValue;
 import org.evrete.api.KeyMode;
 import org.evrete.api.MemoryKey;
-import org.evrete.api.ValueHandle;
 
 import java.util.Objects;
 
 class MemoryKeySingle implements MemoryKey {
-    final ValueHandle data;
+    final FieldValue data;
     private final int hash;
     private transient int transientValue;
 
@@ -36,7 +36,7 @@ class MemoryKeySingle implements MemoryKey {
     }
 
     @Override
-    public ValueHandle get(int i) {
+    public FieldValue get(int i) {
         return data;
     }
 

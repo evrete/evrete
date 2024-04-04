@@ -4,7 +4,7 @@ import org.evrete.api.EvaluatorHandle;
 import org.evrete.api.WorkUnit;
 import org.evrete.runtime.ActiveField;
 import org.evrete.runtime.FactType;
-import org.evrete.util.Mask;
+import org.evrete.runtime.Mask;
 
 import java.util.Set;
 

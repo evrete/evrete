@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DefaultTypeResolver implements NamedType.Resolver {
+class DefaultTypeResolver implements NamedType.Resolver {
     private final Map<String, NamedType> map = new ConcurrentHashMap<>();
 
     @NonNull

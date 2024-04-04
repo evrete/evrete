@@ -3,7 +3,7 @@ package org.evrete.spi.minimal;
 import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.spi.LiteralSourceCompiler;
-import org.evrete.runtime.compiler.CompilationException;
+import org.evrete.util.CompilationException;
 
 import java.lang.invoke.MethodHandle;
 import java.util.*;

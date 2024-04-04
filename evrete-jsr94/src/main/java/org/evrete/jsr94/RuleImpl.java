@@ -18,7 +18,7 @@ class RuleImpl implements Rule {
 
     @Override
     public String getDescription() {
-        return delegate.get(Const.RULE_DESCRIPTION, "");
+        return delegate.get(Constants.RULE_DESCRIPTION, "");
     }
 
     @Override

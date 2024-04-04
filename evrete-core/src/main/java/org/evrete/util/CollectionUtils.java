@@ -1,10 +1,16 @@
 package org.evrete.util;
 
+import org.evrete.api.ReIterator;
+
 import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.Supplier;
 
+/**
+ * The {@code CollectionUtils} class provides utility methods for working with collections.
+ */
 public final class CollectionUtils {
+    private static final EmptyReIterator EMPTY_RE_ITERATOR = new EmptyReIterator();
 
     @SuppressWarnings("unchecked")
     public static <T> T[] array(Class<T> type, int size) {
@@ -13,6 +19,11 @@ public final class CollectionUtils {
 
     public static <T> T[] copyOf(T[] arr) {
         return Arrays.copyOf(arr, arr.length);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> ReIterator<T> emptyReIterator() {
+        return (ReIterator<T>) EMPTY_RE_ITERATOR;
     }
 
     public static <E> List<List<E>> permutation(List<E> l) {
@@ -42,7 +53,8 @@ public final class CollectionUtils {
      * input sources: [a1, b1 ,c1], [a1, b1, c2], [a1, b2, c1] .... [a3, b3, c2]
      *
      * @param sources input collections
-     * @param <E>     type parameter
+     * @param <E> source type parameter
+     * @param <T> collection type parameter
      * @return all possible combinations
      */
     public static <E, T extends Collection<E>> Collection<List<E>> combinations(Collection<T> sources) {
@@ -182,4 +194,21 @@ public final class CollectionUtils {
         for (int i = 0; i < toIndex; i++) a[i] = val;
     }
 
+
+    private static class EmptyReIterator implements ReIterator<Object> {
+        @Override
+        public long reset() {
+            return 0L;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return false;
+        }
+
+        @Override
+        public Object next() {
+            throw new NoSuchElementException();
+        }
+    }
 }

@@ -6,14 +6,23 @@ import java.util.Collection;
 import java.util.function.*;
 
 /**
+ * Represents an engine's internal logical type, which is assigned to every fact before
+ * it is inserted into the session's working memory. A fact's association with a logical type
+ * can be explicit, via the {@link RuleSession#insertAs(String, Object)} method, or implicit,
+ * through the fact's Java type.
  * <p>
- * An engine's internal type which is assigned to every fact before it gets
- * into the session's working memory. It allows for dynamic, real-time field declarations
- * either as functional interfaces or via the Java Reflection API.
+ * Each logical type is uniquely identified by its logical name, retrievable via the {@link Type#getName()}
+ * method, and is associated with a specific Java type, obtainable through the {@link Type#getJavaType()} method.
+ * This mechanism allows for facts of the same Java type to be differentiated based on their logical names.
+ * </p>
+ * <p>
+ * Each type inherits public fields and getters from its associated Java class, while also supporting
+ * the declaration of custom fields for use in rule conditions.
  * </p>
  *
- * @param <T> Java type associated with this type
+ * @param <T> the Java type associated with this logical type
  */
+
 public interface Type<T> extends Named, Copyable<Type<T>> {
 
     /**

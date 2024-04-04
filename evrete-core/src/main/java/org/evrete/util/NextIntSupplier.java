@@ -2,6 +2,9 @@ package org.evrete.util;
 
 import org.evrete.api.Copyable;
 
+/**
+ * Supplier of consecutive integer values.
+ */
 public class NextIntSupplier implements Copyable<NextIntSupplier> {
     private int counter;
 

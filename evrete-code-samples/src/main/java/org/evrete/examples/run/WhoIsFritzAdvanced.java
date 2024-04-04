@@ -1,19 +1,23 @@
 package org.evrete.examples.run;
 
 import org.evrete.KnowledgeService;
-import org.evrete.api.*;
+import org.evrete.api.Knowledge;
+import org.evrete.api.StatelessSession;
+import org.evrete.api.Type;
+import org.evrete.api.TypeField;
 import org.evrete.api.annotations.NonNull;
+import org.evrete.util.TypeWrapper;
 
 import java.util.HashMap;
 
 public class WhoIsFritzAdvanced {
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
-        Knowledge knowledge = service.newKnowledge();
-        TypeResolver typeResolver = knowledge.getTypeResolver();
-
-        Type<Subject> subjectType = typeResolver.declare(Subject.class);
-        typeResolver.wrapType(new SubjectType(subjectType));
+        Knowledge knowledge = service.newKnowledge()
+                .configureTypes(typeResolver -> {
+                    Type<Subject> subjectType = typeResolver.declare(Subject.class);
+                    typeResolver.wrapType(new SubjectType(subjectType));
+                });
 
         StatelessSession session = knowledge
                 .builder()

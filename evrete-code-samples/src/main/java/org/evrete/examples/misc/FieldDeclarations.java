@@ -1,7 +1,9 @@
 package org.evrete.examples.misc;
 
 import org.evrete.KnowledgeService;
-import org.evrete.api.*;
+import org.evrete.api.Knowledge;
+import org.evrete.api.StatefulSession;
+import org.evrete.api.TypeField;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 class FieldDeclarations {
@@ -9,19 +11,18 @@ class FieldDeclarations {
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
 
-        Knowledge knowledge = service.newKnowledge();
-        TypeResolver typeResolver = knowledge.getTypeResolver();
+        Knowledge knowledge = service.newKnowledge()
+                .configureTypes(typeResolver -> typeResolver
+                        .getOrDeclare(Integer.class)
+                        .declareLongField(
+                                "factorial",
+                                FieldDeclarations::computeFactorial));
 
-        Type<Integer> type = typeResolver.getOrDeclare(Integer.class);
-
-        // Despite being defined, this field will never be evaluated,
-        // because it's not a part of any condition
-        type.declareField(
-                "self",
-                Integer.class, o -> o);
-
-        TypeField factorialField = type
-                .declareLongField("factorial", FieldDeclarations::computeFactorial);
+        // Get the field reference (we'll test it in the rule actions)
+        TypeField factorialField = knowledge
+                .getTypeResolver()
+                .getOrDeclare(Integer.class)
+                .getField("factorial");
 
         StatefulSession session = knowledge
                 .builder()

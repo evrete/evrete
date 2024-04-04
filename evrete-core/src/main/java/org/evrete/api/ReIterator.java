@@ -1,34 +1,26 @@
 package org.evrete.api;
 
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
+/**
+ * The {@code ReIterator} interface represents a reusable {@link Iterator}.
+ * <p>
+ * Implementing this interface allows an {@link Iterator} to be reset to its initial position.
+ * </p>
+ *
+ * @param <T> the type of elements returned by this iterator
+ */
 public interface ReIterator<T> extends Iterator<T> {
-    static <Z> ReIterator<Z> emptyIterator() {
-        return new ReIterator<Z>() {
-            @Override
-            public long reset() {
-                return 0L;
-            }
-
-            @Override
-            public boolean hasNext() {
-                return false;
-            }
-
-            @Override
-            public Z next() {
-                throw new NoSuchElementException();
-            }
-        };
-    }
 
     /**
      * <p>
-     * Resets the iterator to its initial position and returns the size of the underlying data collection
+     * Resets the iterator to its initial position.
+     * </p>
+     * <p>
+     * Additionally, this method returns the size of the underlying data collection.
      * </p>
      *
-     * @return size of the underlying data
+     * @return The size of the underlying data collection.
      */
     long reset();
 }

@@ -103,10 +103,7 @@ class RuleExecutionSetProviderImpl implements RuleExecutionSetProvider {
 
     @Override
     public RuleExecutionSet createRuleExecutionSet(String s, Map map) throws RuleExecutionSetCreateException, IOException {
-        String dsl = Utils.getStringProperty(map, Const.DSL_NAME);
-        if (dsl == null) {
-            throw new RuleExecutionSetCreateException("Missing DSL name property '" + Const.DSL_NAME + "'");
-        }
+        String dsl = Utils.dslName(map);
 
         try {
             Knowledge knowledge = knowledgeService.newKnowledge(dsl, new StringReader(s));
@@ -118,11 +115,7 @@ class RuleExecutionSetProviderImpl implements RuleExecutionSetProvider {
     }
 
     private RuleExecutionSet createRuleExecutionSet(Map<?, ?> map, URL... urls) throws RuleExecutionSetCreateException, IOException {
-        String dsl = Utils.getStringProperty(map, Const.DSL_NAME);
-        if (dsl == null) {
-            throw new RuleExecutionSetCreateException("Missing DSL name property '" + Const.DSL_NAME + "'");
-        }
-
+        String dsl = Utils.dslName(map);
         try {
             Knowledge knowledge = knowledgeService.newKnowledge(dsl, urls);
             return new RuleExecutionSetImpl(knowledge, map);

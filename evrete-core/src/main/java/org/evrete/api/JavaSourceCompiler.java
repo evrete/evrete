@@ -1,7 +1,7 @@
 package org.evrete.api;
 
 import org.evrete.api.annotations.NonNull;
-import org.evrete.runtime.compiler.CompilationException;
+import org.evrete.util.CompilationException;
 
 import java.util.*;
 
@@ -16,6 +16,7 @@ public interface JavaSourceCompiler {
 
     /**
      * @param sources Java sources to compile
+     * @param <S> the type of class sources
      * @return compiled classes.
      * @throws CompilationException if compilation failed
      */

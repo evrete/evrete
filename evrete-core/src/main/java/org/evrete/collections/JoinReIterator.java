@@ -1,6 +1,7 @@
 package org.evrete.collections;
 
 import org.evrete.api.ReIterator;
+import org.evrete.util.CollectionUtils;
 
 import java.util.Objects;
 
@@ -18,7 +19,7 @@ public final class JoinReIterator<V> implements ReIterator<V> {
     @SafeVarargs
     public static <V, Z extends ReIterator<V>> ReIterator<V> of(Z... iterators) {
         Objects.requireNonNull(iterators);
-        return iterators.length == 0 ? ReIterator.emptyIterator() : new JoinReIterator<>(iterators);
+        return iterators.length == 0 ? CollectionUtils.emptyReIterator() : new JoinReIterator<>(iterators);
     }
 
     @Override

@@ -36,26 +36,33 @@ Evrete is Java 8+ compatible and ships with zero dependencies.
 
 ## Installation
 
-Maven Central Repository, core module:
-
+Maven:
 ```xml
-
 <dependency>
     <groupId>org.evrete</groupId>
     <artifactId>evrete-core</artifactId>
-    <version>3.1.02</version>
+    <version>3.2.00</version>
 </dependency>
 ```
+Gradle:
+```groovy
+implementation 'org.evrete:evrete-core:3.2.00'
+```
 
-Support for annotated rules (optional):
+### Support for annotated rules (optional)
 
+Maven:
 ```xml
-
 <dependency>
     <groupId>org.evrete</groupId>
     <artifactId>evrete-dsl-java</artifactId>
-    <version>3.1.02</version>
+    <version>3.2.00</version>
 </dependency>
+```
+
+Gradle:
+```groovy
+implementation 'org.evrete:evrete-dsl-java:3.2.00'
 ```
 
 ## Quick start

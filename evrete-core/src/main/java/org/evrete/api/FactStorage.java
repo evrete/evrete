@@ -1,5 +1,12 @@
 package org.evrete.api;
 
+/**
+ * Represents a storage system for facts, allowing for operations such as insertion, deletion, updating, and retrieval of facts.
+ * This storage system essentially acts as a mapping between fact handles (unique identifiers for facts) and the facts themselves.
+ * The engine creates a {@code FactStorage} instance for each declared fact of a specific {@link Type}.
+ *
+ * @param <T> the type of facts that this storage system handles
+ */
 public interface FactStorage<T> extends ReIterable<FactStorage.Entry<T>> {
 
     /**
@@ -13,14 +20,39 @@ public interface FactStorage<T> extends ReIterable<FactStorage.Entry<T>> {
      */
     FactHandle insert(T fact);
 
+    /**
+     * Deletes a fact from the storage, identified by the provided handle.
+     *
+     * @param handle the handle of the fact to be deleted
+     */
     void delete(FactHandle handle);
 
+    /**
+     * Updates an existing fact in the storage with a new instance, identified by the provided handle.
+     *
+     * @param handle      the handle of the fact to be updated
+     * @param newInstance the new instance to replace the existing fact
+     */
     void update(FactHandle handle, T newInstance);
 
+    /**
+     * Retrieves the fact associated with the provided handle.
+     *
+     * @param handle the handle whose associated fact is to be retrieved
+     * @return the fact associated with the provided handle
+     */
     T getFact(FactHandle handle);
 
+    /**
+     * Clears all facts from the storage.
+     */
     void clear();
 
+    /**
+     * Represents an entry in the storage, holding both a fact handle and the fact instance.
+     *
+     * @param <Z> the type of fact this entry holds
+     */
     interface Entry<Z> {
         FactHandle getHandle();
 

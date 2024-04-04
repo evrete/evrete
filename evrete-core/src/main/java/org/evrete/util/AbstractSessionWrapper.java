@@ -5,6 +5,12 @@ import org.evrete.api.*;
 import java.util.function.BooleanSupplier;
 import java.util.stream.Collector;
 
+/**
+ * This class provides an abstract implementation of the RuleSession interface, delegating the session's
+ * methods to a provided delegate object.
+ *
+ * @param <S> the type of the {@link RuleSession} delegate object
+ */
 public abstract class AbstractSessionWrapper<S extends RuleSession<S>> extends RuntimeContextWrapper<S, S, RuntimeRule> implements RuleSession<S> {
     protected AbstractSessionWrapper(S delegate) {
         super(delegate);

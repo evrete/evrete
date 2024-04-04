@@ -4,7 +4,7 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.JavaSourceCompiler;
 import org.evrete.api.Knowledge;
 import org.evrete.api.TypeResolver;
-import org.evrete.runtime.compiler.CompilationException;
+import org.evrete.util.CompilationException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,10 +14,20 @@ import java.util.logging.Level;
 
 import static org.evrete.dsl.Utils.LOGGER;
 
+/**
+ * The DSLClassProvider class provides the implementation of the DSLKnowledgeProvider
+ * interface for 'JAVA-SOURCE' DSL knowledge.
+ */
 public class DSLSourceProvider extends AbstractDSLProvider {
 
     private static final String CHARSET_PROPERTY = "org.evrete.source-charset";
     private static final String CHARSET_DEFAULT = "UTF-8";
+
+    /**
+     * Default public constructor
+     */
+    public DSLSourceProvider() {
+    }
 
     private static Knowledge build(Knowledge knowledge, String[] sources) {
         Knowledge current = knowledge;

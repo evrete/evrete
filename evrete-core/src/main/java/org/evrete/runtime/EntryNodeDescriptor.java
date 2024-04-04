@@ -1,6 +1,6 @@
 package org.evrete.runtime;
 
-public class EntryNodeDescriptor extends NodeDescriptor {
+class EntryNodeDescriptor extends NodeDescriptor {
     private final FactType factType;
 
     EntryNodeDescriptor(FactType factType) {

@@ -4,8 +4,7 @@ import org.evrete.api.FactHandle;
 import org.evrete.api.RuleSession;
 import org.evrete.api.SessionLifecycleListener;
 import org.evrete.runtime.async.*;
-import org.evrete.runtime.evaluation.MemoryAddress;
-import org.evrete.util.Mask;
+import org.evrete.util.ForkJoinExecutor;
 
 import java.util.*;
 
@@ -52,7 +51,6 @@ abstract class AbstractRuleSessionIO<S extends RuleSession<S>> extends AbstractR
         }
         purge(deleteMask);
     }
-
 
     private void fireContinuous(ActivationContext ctx) {
         List<RuntimeRuleImpl> agenda;

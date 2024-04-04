@@ -1,6 +1,6 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.ValueHandle;
+import org.evrete.api.FieldValue;
 
 class KeyedFactStorageSingle extends AbstractKeyedFactStorage<MemoryKeySingle, FactsMapSingle> {
 
@@ -11,7 +11,7 @@ class KeyedFactStorageSingle extends AbstractKeyedFactStorage<MemoryKeySingle, F
     }
 
     @Override
-    MemoryKeyHashed writeKey(ValueHandle h) {
+    MemoryKeyHashed writeKey(FieldValue h) {
         this.state.values = value -> h;
         this.state.hash = h.hashCode();
         return this.state;

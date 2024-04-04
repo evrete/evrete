@@ -11,6 +11,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
+/**
+ * Abstract base class that implements the {@link Rule} interface.
+ * It provides basic functionality common to all implementations of the {@link Rule} interface.
+ */
 public abstract class AbstractRule implements Rule {
     public static final int NULL_SALIENCE = Integer.MIN_VALUE;
 

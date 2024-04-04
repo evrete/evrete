@@ -1,10 +1,15 @@
 package org.evrete.api.builders;
 
 import org.evrete.api.*;
-import org.evrete.runtime.compiler.CompilationException;
+import org.evrete.util.CompilationException;
 
 import java.util.function.Predicate;
 
+/**
+ * The RuleBuilder interface represents a builder for creating rules.
+ *
+ * @param <C> the type of the {@link RuntimeContext} of the builder
+ */
 public interface RuleBuilder<C extends RuntimeContext<C>> extends Rule, LhsFactSelector<LhsBuilder<C>> {
 
     LhsBuilder<C> getLhs();

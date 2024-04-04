@@ -7,7 +7,6 @@ import org.evrete.api.TypeField;
 import org.evrete.runtime.evaluation.BetaEvaluator;
 import org.evrete.runtime.evaluation.EvaluatorFactory;
 import org.evrete.util.MapFunction;
-import org.evrete.util.MapOfSet;
 import org.evrete.util.NextIntSupplier;
 
 import java.util.*;

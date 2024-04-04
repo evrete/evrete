@@ -4,12 +4,11 @@ import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.api.builders.RuleSetBuilder;
-import org.evrete.runtime.async.ForkJoinExecutor;
-import org.evrete.runtime.compiler.CompilationException;
 import org.evrete.runtime.compiler.RuntimeClassloader;
 import org.evrete.runtime.compiler.SourceCompiler;
-import org.evrete.runtime.evaluation.MemoryAddress;
+import org.evrete.util.CompilationException;
 import org.evrete.util.DefaultActivationManager;
+import org.evrete.util.ForkJoinExecutor;
 import org.evrete.util.WorkUnitObject;
 
 import java.util.*;
@@ -61,15 +60,22 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         this.classloader = new RuntimeClassloader(parent.classloader);
     }
 
-    abstract void addRuleDescriptors(List<RuleDescriptor> descriptors);
+    abstract void addRuleDescriptors(List<RuleDescriptorImpl> descriptors);
 
     ActivationMode getAgendaMode() {
         return agendaMode;
     }
 
     void addRules(List<DefaultRuleBuilder<C>> rules) {
-        List<RuleDescriptor> descriptors = compileRuleBuilders(rules);
+        List<RuleDescriptorImpl> descriptors = compileRuleBuilders(rules);
         addRuleDescriptors(descriptors);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public C configureTypes(Consumer<TypeResolver> action) {
+        action.accept(getTypeResolver());
+        return (C) this;
     }
 
     @Override
@@ -183,7 +189,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         return this.configuration;
     }
 
-    synchronized List<RuleDescriptor> compileRuleBuilders(List<DefaultRuleBuilder<C>> rules) {
+    synchronized List<RuleDescriptorImpl> compileRuleBuilders(List<DefaultRuleBuilder<C>> rules) {
 
         // Collect sources to compile
         List<DefaultRuleLiteralData> ruleLiteralSources = rules.stream()
@@ -198,7 +204,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         }
     }
 
-    private List<RuleDescriptor> compileRuleBuilders(List<DefaultRuleBuilder<C>> rules, Collection<RuleCompiledSources<DefaultRuleLiteralData, DefaultRuleBuilder<?>>> compiled) {
+    private List<RuleDescriptorImpl> compileRuleBuilders(List<DefaultRuleBuilder<C>> rules, Collection<RuleCompiledSources<DefaultRuleLiteralData, DefaultRuleBuilder<?>>> compiled) {
         // Finally we have all we need to create descriptor for each rule: compiled classes and original data in rule builders
         int currentRuleCount = getRules().size();
 
@@ -208,7 +214,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
             mapping.put(ruleBuilder, entry);
         }
 
-        List<RuleDescriptor> descriptors = new ArrayList<>(rules.size());
+        List<RuleDescriptorImpl> descriptors = new ArrayList<>(rules.size());
         for (DefaultRuleBuilder<C> ruleBuilder : rules) {
             // 1. Check existing rules
             if (ruleExists(ruleBuilder.getName())) {
@@ -287,7 +293,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
 
 
             // Build the descriptor and append it to the result
-            RuleDescriptor descriptor = RuleDescriptor.factory(this, ruleBuilder, handles, salience);
+            RuleDescriptorImpl descriptor = RuleDescriptorImpl.factory(this, ruleBuilder, handles, salience);
             descriptors.add(descriptor);
 
             currentRuleCount++;

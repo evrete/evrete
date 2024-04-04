@@ -19,7 +19,7 @@ abstract class AbstractKeyedFactStorage<K extends MemoryKey, T extends AbstractF
         }
     }
 
-    abstract MemoryKeyHashed writeKey(ValueHandle h);
+    abstract MemoryKeyHashed writeKey(FieldValue h);
 
     @Override
     public final void commitChanges() {
@@ -52,7 +52,7 @@ abstract class AbstractKeyedFactStorage<K extends MemoryKey, T extends AbstractF
     }
 
     @Override
-    public void write(ValueHandle partialKey) {
+    public void write(FieldValue partialKey) {
         this.currentRecord = writeKey(partialKey);
     }
 

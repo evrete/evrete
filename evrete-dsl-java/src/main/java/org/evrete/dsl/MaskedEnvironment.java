@@ -22,11 +22,6 @@ class MaskedEnvironment implements Environment {
     }
 
     @Override
-    public <T> T get(String name, T defaultValue) {
-        return delegate.get(name, defaultValue);
-    }
-
-    @Override
     public Collection<String> getPropertyNames() {
         return delegate.getPropertyNames();
     }

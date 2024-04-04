@@ -29,7 +29,7 @@ public interface RuleSession<S extends RuleSession<S>> extends RuleSetContext<S,
      * A convenience method that returns an instance of {@link Collector} for inserting
      * streams of facts.
      * </p>
-     *
+     * @param <T> the type of input elements to the reduction operation
      * @return collector
      */
     <T> Collector<T, ?, S> asCollector();
@@ -114,6 +114,7 @@ public interface RuleSession<S extends RuleSession<S>> extends RuleSetContext<S,
      *
      * @param type    type name
      * @param objects objects to insert
+     * @return this instance
      * @see #insertAs(String, Object)
      */
     @SuppressWarnings("unchecked")
@@ -129,6 +130,7 @@ public interface RuleSession<S extends RuleSession<S>> extends RuleSetContext<S,
      *
      * @param type    type name
      * @param objects objects to insert
+     * @return this instance
      * @see #insertAs(String, Object)
      */
     @SuppressWarnings("unchecked")
@@ -143,6 +145,7 @@ public interface RuleSession<S extends RuleSession<S>> extends RuleSetContext<S,
      * </p>
      *
      * @param objects objects to insert
+     * @return this instance
      * @see #insert(Object)
      */
     @SuppressWarnings("unchecked")
@@ -158,6 +161,7 @@ public interface RuleSession<S extends RuleSession<S>> extends RuleSetContext<S,
      *
      * @param objects objects to insert
      * @see #insert(Object)
+     * @return this instance
      */
     @SuppressWarnings("unchecked")
     default S insert(Object... objects) {

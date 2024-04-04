@@ -2,9 +2,9 @@ package org.evrete.runtime.async;
 
 import org.evrete.api.FactHandleVersioned;
 import org.evrete.runtime.KeyMemoryBucket;
+import org.evrete.runtime.Mask;
+import org.evrete.runtime.MemoryAddress;
 import org.evrete.runtime.SessionMemory;
-import org.evrete.runtime.evaluation.MemoryAddress;
-import org.evrete.util.Mask;
 
 import java.util.Collection;
 import java.util.LinkedList;

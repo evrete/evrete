@@ -48,7 +48,7 @@ public interface ExpressionResolver {
      * <p>
      * This method parses a string argument and returns an {@link Evaluator} if possible.
      * </p>
-     *
+     * @param expression literal expression to compile
      * @return returns an {@link Evaluator} instance or throws an exception
      * @throws IllegalArgumentException if the expression can not be resolved
      * @throws IllegalStateException if the resolver is not in an appropriate state
@@ -56,7 +56,7 @@ public interface ExpressionResolver {
      */
     @NonNull
     @Deprecated
-    default LiteralEvaluator buildExpression(LiteralExpression ignored) {
+    default LiteralEvaluator buildExpression(LiteralExpression expression) {
         throw new UnsupportedOperationException();
     }
 
@@ -66,13 +66,13 @@ public interface ExpressionResolver {
      * Order is not guaranteed, use the {@link LiteralEvaluator#getSource()} method to associate
      * the resulting evaluators with the method's argument list.
      * </p>
-     *
+     * @param expressions literal expressions to compile
      * @return collection of {@link LiteralEvaluator} instances
      * @throws IllegalArgumentException if the expression can not be resolved
      * @deprecated in favor of {@link org.evrete.api.spi.LiteralSourceCompiler}
      */
     @Deprecated
-    default Collection<LiteralEvaluator> buildExpressions(Collection<LiteralExpression> ignored) {
+    default Collection<LiteralEvaluator> buildExpressions(Collection<LiteralExpression> expressions) {
         throw new UnsupportedOperationException();
     }
 }

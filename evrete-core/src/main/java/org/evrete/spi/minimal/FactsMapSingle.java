@@ -1,6 +1,6 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.ValueHandle;
+import org.evrete.api.FieldValue;
 
 import java.util.Objects;
 
@@ -13,8 +13,8 @@ class FactsMapSingle extends AbstractFactsMap<MemoryKeySingle> {
 
     @Override
     boolean sameData(FactsWithKey<MemoryKeySingle> factsWithKey, IntToValueHandle key) {
-        ValueHandle h1 = factsWithKey.key.data;
-        ValueHandle h2 = key.apply(0);
+        FieldValue h1 = factsWithKey.key.data;
+        FieldValue h2 = key.apply(0);
         return Objects.equals(h1, h2);
     }
 

@@ -2,7 +2,7 @@ package org.evrete.examples.misc;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
-import org.evrete.api.StatefulSession;
+import org.evrete.api.StatelessSession;
 import org.evrete.api.Type;
 import org.evrete.api.TypeField;
 import org.w3c.dom.Document;
@@ -26,28 +26,40 @@ public class XMLType {
 
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
-        Knowledge knowledge = service.newKnowledge();
+        Knowledge knowledge = service.newKnowledge()
+                .configureTypes(typeResolver -> {
+                    Type<Document> customerType = typeResolver
+                            .getOrDeclare(CUSTOMER_TYPE_NAME, Document.class);
 
-        Type<Document> customerType = knowledge
-                .getTypeResolver()
-                .getOrDeclare(CUSTOMER_TYPE_NAME, Document.class);
+                    // Declaring the "active" field
+                    customerType
+                            .declareBooleanField(
+                                    "active",
+                                    doc -> Boolean.parseBoolean(doc.getDocumentElement().getAttribute("active"))
+                            );
 
-        // Declaring the "active" field
-        TypeField activeField = customerType
-                .declareBooleanField(
-                        "active",
-                        doc -> Boolean.parseBoolean(doc.getDocumentElement().getAttribute("active"))
-                );
+                    // Declaring the "name" field
+                    customerType
+                            .declareField(
+                                    "name",
+                                    String.class,
+                                    doc -> doc.getDocumentElement().getAttribute("name")
+                            );
 
-        // Declaring the "name" field
-        TypeField nameField = customerType
-                .declareField(
-                        "name",
-                        String.class,
-                        doc -> doc.getDocumentElement().getAttribute("name")
-                );
+                });
 
-        StatefulSession session = knowledge
+
+        // This isn't necessary, but we'll get the field definitions
+        // to use them in the rule actions
+        TypeField activeField = knowledge.getTypeResolver()
+                .getType(CUSTOMER_TYPE_NAME)
+                .getField("active");
+        TypeField nameField = knowledge.getTypeResolver()
+                .getType(CUSTOMER_TYPE_NAME)
+                .getField("name");
+
+
+        StatelessSession session = knowledge
                 .builder()
                 .newRule("Process active XML Customers")
                 .forEach("$c", CUSTOMER_TYPE_NAME)
@@ -60,7 +72,7 @@ public class XMLType {
                         }
                 )
                 .build()
-                .newStatefulSession();
+                .newStatelessSession();
 
         Document customer1 = newCustomer("ABC Ltd", true);
         Document customer2 = newCustomer("XYZ Ltd", false);

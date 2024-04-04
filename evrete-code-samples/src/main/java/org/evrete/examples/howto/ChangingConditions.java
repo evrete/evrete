@@ -4,7 +4,7 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.api.builders.LhsBuilder;
 import org.evrete.api.builders.RuleBuilder;
-import org.evrete.runtime.compiler.CompilationException;
+import org.evrete.util.CompilationException;
 
 import static java.lang.System.out;
 

@@ -3,14 +3,19 @@ package org.evrete.api;
 import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.builders.RuleSetBuilder;
-import org.evrete.runtime.compiler.CompilationException;
+import org.evrete.util.CompilationException;
+import org.evrete.util.TypeResolverWrapper;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.function.Consumer;
 
 /**
- * @param <C> context type parameter
+ * The RuntimeContext interface represents the context in which the rules are executed.
+ * Both stateful and stateless sessions, as well as {@link Knowledge} instances, extend this interface.
+ *
+ * @param <C> the type of the implementing class or interface
  */
 public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, FluentImports<C>, FluentEnvironment<C>, EvaluatorsContext {
     Comparator<Rule> SALIENCE_COMPARATOR = (rule1, rule2) -> -1 * Integer.compare(rule1.getSalience(), rule2.getSalience());
@@ -73,8 +78,8 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
      * </code>
      * </pre>
      *
-     * @since 3.1.00
      * @return new instance of RuleSetBuilder.
+     * @since 3.1.00
      */
     RuleSetBuilder<C> builder();
 
@@ -100,11 +105,27 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
      */
     Collection<LiteralEvaluator> compile(Collection<LiteralExpression> expressions) throws CompilationException;
 
+    /**
+     * Wraps the provided TypeResolver with a TypeResolverWrapper instance.
+     *
+     * @param wrapper the TypeResolverWrapper instance used to wrap the TypeResolver
+     * @deprecated This class is deprecated and will be removed in future releases.
+     * Use the {@link RuntimeContext#configureTypes(Consumer)} method instead to configure the context's types and their fields.
+     */
+    @Deprecated
     void wrapTypeResolver(TypeResolverWrapper wrapper);
 
     C setActivationMode(ActivationMode activationMode);
 
     ExpressionResolver getExpressionResolver();
+
+    /**
+     * Configures the {@link TypeResolver} by applying the given action.
+     *
+     * @param action the action to configure the TypeResolver
+     * @return this context
+     */
+    C configureTypes(Consumer<TypeResolver> action);
 
     ClassLoader getClassLoader();
 

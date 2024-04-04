@@ -34,6 +34,9 @@ public interface NamedType {
         return getName().equals(other.getName()) && getType().getName().equals(other.getType().getName());
     }
 
+    /**
+     * The Resolver interface is used to resolve named types based on their declared name.
+     */
     interface Resolver {
         /**
          * Returns {@link NamedType} by its declared variable name

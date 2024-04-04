@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
- * @deprecated in favor of {@link org.evrete.api.builders.LhsBuilder}
+ * @deprecated Use the {@link org.evrete.api.builders.LhsBuilder} instead
  */
 @Deprecated
 public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resolver {

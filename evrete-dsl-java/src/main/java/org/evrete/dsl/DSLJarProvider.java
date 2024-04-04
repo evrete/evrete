@@ -17,6 +17,11 @@ import java.util.jar.JarInputStream;
 
 import static org.evrete.dsl.Utils.LOGGER;
 
+/**
+ * The DSLClassProvider class provides the implementation of the DSLKnowledgeProvider
+ * interface for 'JAVA-JAR' DSL knowledge.
+ */
+
 public class DSLJarProvider extends AbstractDSLProvider {
     static final String CLASSES_PROPERTY = "org.evrete.dsl.rule-classes";
     private static final String EMPTY_CLASSES = "";
@@ -27,6 +32,12 @@ public class DSLJarProvider extends AbstractDSLProvider {
             "sun.",
             "org.evrete.",
     };
+
+    /**
+     * Default public constructor
+     */
+    public DSLJarProvider() {
+    }
 
     private static Knowledge apply(Knowledge knowledge, Set<String> ruleClasses, InputStream... streams) throws IOException {
         List<Class<?>> jarClasses = fillClassLoader(knowledge, streams);

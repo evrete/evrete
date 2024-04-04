@@ -1,7 +1,6 @@
 package org.evrete.examples.howto;
 
 import org.evrete.KnowledgeService;
-import org.evrete.api.Knowledge;
 import org.evrete.api.StatelessSession;
 import org.evrete.api.Type;
 import org.w3c.dom.Document;
@@ -24,30 +23,25 @@ public class XMLFacts {
 
     public static void main(String[] args) throws Exception {
         KnowledgeService service = new KnowledgeService();
-        Knowledge knowledge = service.newKnowledge();
-
-        // Declaring a new type associated with XML documents
-        Type<Document> customerType = knowledge
-                .getTypeResolver()
-                .declare(CUSTOMER_TYPE_NAME, Document.class);
-
-        // Declaring the "active" field
-        customerType
-                .declareBooleanField(
-                        "active",
-                        doc -> Boolean.parseBoolean(doc.getDocumentElement().getAttribute("active"))
-                );
-
-        // Declaring the "name" field
-        customerType
-                .declareField(
-                        "name",
-                        String.class,
-                        doc -> doc.getDocumentElement().getAttribute("name")
-                );
-
-        // Creating knowledge and session
-        StatelessSession session = knowledge
+        StatelessSession session = service.newKnowledge()
+                .configureTypes(typeResolver -> {
+                    // Declaring a new type associated with XML documents
+                    Type<Document> customerType = typeResolver
+                            .declare(CUSTOMER_TYPE_NAME, Document.class);
+                    // Declaring the "active" field
+                    customerType
+                            .declareBooleanField(
+                                    "active",
+                                    doc -> Boolean.parseBoolean(doc.getDocumentElement().getAttribute("active"))
+                            );
+                    // Declaring the "name" field
+                    customerType
+                            .declareField(
+                                    "name",
+                                    String.class,
+                                    doc -> doc.getDocumentElement().getAttribute("name")
+                            );
+                })
                 .builder()
                 .newRule("Process active XML Customers")
                 .forEach("$c", CUSTOMER_TYPE_NAME)

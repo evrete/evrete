@@ -7,7 +7,7 @@ import org.evrete.api.TypeField;
 import org.evrete.runtime.ActiveField;
 import org.evrete.runtime.BetaFieldReference;
 import org.evrete.runtime.FactType;
-import org.evrete.util.Mask;
+import org.evrete.runtime.Mask;
 
 import java.util.Collections;
 import java.util.HashSet;

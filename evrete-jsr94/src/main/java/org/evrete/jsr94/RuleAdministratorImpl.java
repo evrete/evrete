@@ -5,6 +5,9 @@ import org.evrete.KnowledgeService;
 import javax.rules.admin.*;
 import java.util.Map;
 
+/**
+ * Implementation of the RuleAdministrator interface.
+ */
 public class RuleAdministratorImpl implements RuleAdministrator {
     private final LocalRuleExecutionSetProviderImpl localProvider;
     private final RuleExecutionSetProviderImpl provider;

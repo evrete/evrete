@@ -3,7 +3,6 @@ package org.evrete.runtime;
 import org.evrete.api.*;
 import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
-import org.evrete.runtime.evaluation.MemoryAddress;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;

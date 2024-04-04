@@ -1,7 +1,7 @@
 package org.evrete.spi.minimal;
 
+import org.evrete.api.FieldValue;
 import org.evrete.api.IntToValue;
-import org.evrete.api.ValueHandle;
 
 import java.util.function.IntFunction;
 
@@ -11,5 +11,5 @@ import java.util.function.IntFunction;
  * </p>
  */
 @FunctionalInterface
-interface IntToValueHandle extends IntFunction<ValueHandle> {
+interface IntToValueHandle extends IntFunction<FieldValue> {
 }

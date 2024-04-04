@@ -5,7 +5,7 @@ import org.evrete.api.FieldReference;
 import org.evrete.api.NamedType;
 import org.evrete.runtime.BetaFieldReference;
 import org.evrete.runtime.FactType;
-import org.evrete.util.MapOfSet;
+import org.evrete.runtime.MapOfSet;
 
 import java.util.*;
 import java.util.function.Function;

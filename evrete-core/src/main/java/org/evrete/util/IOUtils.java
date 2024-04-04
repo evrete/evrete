@@ -7,6 +7,9 @@ import java.io.UncheckedIOException;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
+/**
+ * Utility class for input/output operations.
+ */
 public final class IOUtils {
     public static byte[] toByteArray(InputStream is) {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {

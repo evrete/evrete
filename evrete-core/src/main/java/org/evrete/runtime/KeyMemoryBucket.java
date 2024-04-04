@@ -1,7 +1,6 @@
 package org.evrete.runtime;
 
 import org.evrete.api.*;
-import org.evrete.runtime.evaluation.MemoryAddress;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -71,7 +70,7 @@ public abstract class KeyMemoryBucket extends MemoryComponent {
         }
     }
 
-    ValueHandle currentFactField(ActiveField field) {
+    FieldValue currentFactField(ActiveField field) {
         return current.getValue(field);
     }
 

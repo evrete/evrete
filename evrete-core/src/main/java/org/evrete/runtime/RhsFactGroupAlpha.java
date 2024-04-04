@@ -1,12 +1,11 @@
 package org.evrete.runtime;
 
+import org.evrete.api.FieldValue;
 import org.evrete.api.KeyMode;
 import org.evrete.api.MemoryKey;
 import org.evrete.api.ReIterator;
-import org.evrete.api.ValueHandle;
 import org.evrete.collections.CollectionReIterator;
-import org.evrete.runtime.evaluation.MemoryAddress;
-import org.evrete.util.Mask;
+import org.evrete.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,7 +49,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
 
         this.keyIterators.put(KeyMode.OLD_OLD, mainKeyIterator);
         this.keyIterators.put(KeyMode.OLD_NEW, deltaKeyIterator);
-        this.keyIterators.put(KeyMode.NEW_NEW, ReIterator.emptyIterator());
+        this.keyIterators.put(KeyMode.NEW_NEW, CollectionUtils.emptyReIterator());
     }
 
     @Override
@@ -76,7 +75,7 @@ public class RhsFactGroupAlpha implements RhsFactGroup {
         }
 
         @Override
-        public ValueHandle get(int fieldIndex) {
+        public FieldValue get(int fieldIndex) {
             throw new UnsupportedOperationException();
         }
 

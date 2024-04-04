@@ -5,25 +5,24 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * This annotation can be used to define conditions for a rule method.
+ * It supports both literal conditions and method references.
+ */
 @Target(value = ElementType.METHOD)
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface Where {
     /**
-     * <p>
-     * This annotation value defines an array of literal conditions like "[$c.type == $cat.id, $c.rating &gt; 30.0]".
-     * The implementation must parse and match every condition with the method signature.
-     * So in the example above the annotated method might look like {@code void doSomething(Customer $a, Category $cat)}
-     * </p>
+     * This annotation value defines an array of literal conditions such as `["$c.type == $cat.id", "$c.rating > 30.0"]`.
      *
-     * @return array of literal conditions
+     * @return an array of literal conditions
      */
     String[] value() default {};
 
     /**
-     * @return array of MethodPredicate conditions
-     * @see MethodPredicate
+     * Defines conditions expressed as method references.
+     *
+     * @return array of {@link MethodPredicate} conditions
      */
     MethodPredicate[] methods() default {};
-
-
 }

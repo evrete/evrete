@@ -4,13 +4,13 @@ import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.api.builders.RuleSetBuilder;
-import org.evrete.runtime.compiler.CompilationException;
 
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 
-public class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends RuntimeContext<C>, R extends Rule> implements RuleSetContext<C, R> {
+class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends RuntimeContext<C>, R extends Rule> implements RuleSetContext<C, R> {
     protected final D delegate;
 
     @SuppressWarnings("WeakerAccess")
@@ -56,6 +56,12 @@ public class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends Run
     @Override
     public C set(String property, Object value) {
         delegate.set(property, value);
+        return self();
+    }
+
+    @Override
+    public C configureTypes(Consumer<TypeResolver> action) {
+        delegate.configureTypes(action);
         return self();
     }
 
@@ -113,6 +119,7 @@ public class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends Run
     }
 
     @Override
+    @Deprecated
     public void wrapTypeResolver(TypeResolverWrapper wrapper) {
         delegate.wrapTypeResolver(wrapper);
     }

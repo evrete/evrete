@@ -22,7 +22,17 @@ import java.lang.annotation.Target;
 @Target(value = ElementType.METHOD)
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface FieldDeclaration {
+    /**
+     * Identifies the name of the field being declared. If the name is omitted, the field is named after the annotated method.
+     * @return field name
+     */
     String name() default "";
 
+    /**
+     * Optional logical type on which this field is declared. If the type is omitted,
+     * the engine will derive the fact's type from the method's single argument.
+     * @see org.evrete.api.Type
+     * @return logical type
+     */
     String type() default "";
 }

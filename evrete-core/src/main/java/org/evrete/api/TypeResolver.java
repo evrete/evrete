@@ -2,13 +2,15 @@ package org.evrete.api;
 
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.annotations.Nullable;
+import org.evrete.util.TypeWrapper;
 
 import java.util.Collection;
 
 /**
  * <p>
- * TypeResolver provides dynamic mapping of Java types to engine's internal {@link Type}. It is
- * particularly useful when developers have to deal with XML or JSON objects.
+ * TypeResolver provides dynamic mapping of Java types to engine's internal {@link Type}.
+ * In the engine, all fact types are represented by a String identifier and an associated Java
+ * class. This allows instances of the same Java class to be treated as having different logical types.
  * </p>
  */
 public interface TypeResolver extends Copyable<TypeResolver> {
@@ -30,14 +32,24 @@ public interface TypeResolver extends Copyable<TypeResolver> {
     @NonNull
     <T> Type<T> getType(int typeId);
 
+    /**
+     * Returns a collection of all known types.
+     *
+     * @return a collection of Type instances representing the known types
+     */
     Collection<Type<?>> getKnownTypes();
 
+    /**
+     * Wraps a given TypeWrapper instance and delegates the calls to another Type implementation.
+     *
+     * @param typeWrapper the TypeWrapper instance to be wrapped
+     */
     void wrapType(TypeWrapper<?> typeWrapper);
 
     /**
      * <p>
      * Declares and registers new {@link Type} with the given Java class name.
-     * The name of the resulting type will be {@link Class#getName()}
+     * The logical name of the resulting type will be {@link Class#getName()}
      * </p>
      *
      * @param type Java class
@@ -54,7 +66,7 @@ public interface TypeResolver extends Copyable<TypeResolver> {
      * Declares and registers new {@link Type} with the given type name and Java class
      * </p>
      *
-     * @param typeName name of the type
+     * @param typeName logical type name
      * @param javaType Java class
      * @param <T>      java class type parameter
      * @return new internal type
@@ -65,15 +77,15 @@ public interface TypeResolver extends Copyable<TypeResolver> {
 
     /**
      * <p>
-     * Declares and registers new {@link Type} with the given type name and Java class name.
+     * Declares and registers new {@link Type} with the given logical type name and Java class name.
      * The existence of the corresponding Java class will be checked lazily, when the engine
      * requires access to the class's properties.
      * </p>
      *
-     * @param typeName name of the type
-     * @param javaType Java class
+     * @param typeName logical type name
+     * @param javaType Java class name
      * @param <T>      java class type parameter
-     * @return new internal type
+     * @return new logical type
      * @throws IllegalStateException if such type name has been already declared
      */
     @NonNull

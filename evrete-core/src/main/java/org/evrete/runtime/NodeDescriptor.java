@@ -1,8 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.runtime.evaluation.MemoryAddress;
-import org.evrete.util.Mask;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;

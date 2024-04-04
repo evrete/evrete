@@ -1,5 +1,9 @@
 package org.evrete.api;
 
+/**
+ * The OrderedServiceProvider interface represents a service provider interface (SPI)
+ * that allows multiple implementations to be ordered based on their assigned sort order.
+ */
 public interface OrderedServiceProvider extends Comparable<OrderedServiceProvider> {
 
     /**
