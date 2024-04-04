@@ -47,19 +47,17 @@ val copyTaskName = "copyLtsFiles"
 
 // 2. Create a Copy task
 tasks.register<Copy>(copyTaskName) {
-    doLast {
-        from("../${ltsProjectName}/src") {
-            exclude("**/module-info.java")
-        }
+    from("../${ltsProjectName}/src") {
+        exclude("**/module-info.java")
+    }
 
-        destinationDir = File("${project.projectDir}/src-lts")
-        // Ensure destination directory is empty before copying
-        doFirst {
-            if (destinationDir.exists()) {
-                destinationDir.deleteRecursively()
-            }
-            destinationDir.mkdirs()
+    destinationDir = File("${project.projectDir}/src-lts")
+    // Ensure destination directory is empty before copying
+    doFirst {
+        if (destinationDir.exists()) {
+            destinationDir.deleteRecursively()
         }
+        destinationDir.mkdirs()
     }
 }
 
@@ -68,7 +66,15 @@ tasks.compileJava {
     dependsOn(copyTaskName)
 }
 
+tasks.clean {
+    dependsOn(copyTaskName)
+}
+
 tasks.processResources {
+    dependsOn(copyTaskName)
+}
+
+tasks.processTestResources {
     dependsOn(copyTaskName)
 }
 
