@@ -3,11 +3,18 @@
 ![GitHub repo size](https://img.shields.io/github/repo-size/evrete/evrete)
 ![GitHub stars](https://img.shields.io/github/stars/evrete/evrete?style=social)
 
+> **Important!**
+>
+> Starting with version 3.2.00, the default build (release) version targets Java 11. Java 8 artifacts are now published
+> with the '-8' suffix.
+
+
 Evrete is a forward-chaining Java rule engine that implements the RETE algorithm and is fully compliant with the Java
 Rule Engine specification (JSR 94).
 
 Historically designed as a fast and lightweight alternative to full-scale rule management systems, the engine also
 brings its own mix of features:
+
 
 **Rule authoring**
 
@@ -37,14 +44,18 @@ Evrete is Java 8+ compatible and ships with zero dependencies.
 ## Installation
 
 Maven:
+
 ```xml
+
 <dependency>
     <groupId>org.evrete</groupId>
     <artifactId>evrete-core</artifactId>
     <version>3.2.00</version>
 </dependency>
 ```
+
 Gradle:
+
 ```groovy
 implementation 'org.evrete:evrete-core:3.2.00'
 ```
@@ -52,7 +63,9 @@ implementation 'org.evrete:evrete-core:3.2.00'
 ### Support for annotated rules (optional)
 
 Maven:
+
 ```xml
+
 <dependency>
     <groupId>org.evrete</groupId>
     <artifactId>evrete-dsl-java</artifactId>
@@ -61,6 +74,7 @@ Maven:
 ```
 
 Gradle:
+
 ```groovy
 implementation 'org.evrete:evrete-dsl-java:3.2.00'
 ```
