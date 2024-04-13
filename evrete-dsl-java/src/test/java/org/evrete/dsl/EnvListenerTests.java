@@ -27,7 +27,7 @@ class EnvListenerTests {
     @ParameterizedTest
     @EnumSource(SessionTypes.class)
     void test1(SessionTypes t) throws IOException {
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, EnvListenerRuleSet1.class);
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_CLASS, EnvListenerRuleSet1.class);
         TestUtils.EnvHelperData.reset();
         knowledge.set("property1", "1");
         knowledge.set("property2", 11);

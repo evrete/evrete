@@ -35,7 +35,7 @@ class StatelessJavaClassTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void primeTest1(ActivationMode mode) throws IOException {
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, SampleRuleSet1.class);
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_CLASS, SampleRuleSet1.class);
         StatelessSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
@@ -70,7 +70,7 @@ class StatelessJavaClassTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void primeTest3(ActivationMode mode) throws IOException {
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, SampleRuleSet3.class);
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_CLASS, SampleRuleSet3.class);
         StatelessSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
@@ -102,7 +102,7 @@ class StatelessJavaClassTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void sortInheritance2(ActivationMode mode) throws IOException {
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, SortedRuleSet2.class);
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_CLASS, SortedRuleSet2.class);
         StatelessSession session = session(knowledge, mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 5 : "Actual: " + rules.size() + ": " + rules;

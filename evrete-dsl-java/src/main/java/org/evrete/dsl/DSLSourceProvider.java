@@ -9,6 +9,7 @@ import org.evrete.util.CompilationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.lang.invoke.MethodHandles;
 import java.nio.charset.Charset;
 import java.util.logging.Level;
 
@@ -29,13 +30,13 @@ public class DSLSourceProvider extends AbstractDSLProvider {
     public DSLSourceProvider() {
     }
 
-    private static Knowledge build(Knowledge knowledge, String[] sources) {
+    private static Knowledge build(Knowledge knowledge, MethodHandles.Lookup lookup, String[] sources) {
         Knowledge current = knowledge;
         JavaSourceCompiler compiler = knowledge.getSourceCompiler();
         for (String source : sources) {
             try {
                 Class<?> ruleSet = compiler.compile(source);
-                current = processRuleSet(current, ruleSet);
+                current = processRuleSet(current, lookup, ruleSet);
             } catch (CompilationException e) {
                 LOGGER.log(Level.WARNING,  e.getMessage(), e);
                 throw new IllegalStateException(e);
@@ -46,7 +47,7 @@ public class DSLSourceProvider extends AbstractDSLProvider {
 
     @Override
     public String getName() {
-        return PROVIDER_JAVA_S;
+        return PROVIDER_JAVA_SOURCE;
     }
 
     @Override
@@ -54,13 +55,15 @@ public class DSLSourceProvider extends AbstractDSLProvider {
         if (streams == null || streams.length == 0) throw new IOException("Empty resources");
         String charSet = service.getConfiguration().getProperty(CHARSET_PROPERTY, CHARSET_DEFAULT);
         Knowledge knowledge = service.newKnowledge(typeResolver);
-        return build(knowledge, toSourceString(Charset.forName(charSet), streams));
+        MethodHandles.Lookup lookup = defaultLookup();
+        return build(knowledge, lookup, toSourceString(Charset.forName(charSet), streams));
     }
 
     @Override
     public Knowledge create(KnowledgeService service, Reader... readers) throws IOException {
         if (readers == null || readers.length == 0) throw new IOException("Empty resources");
         Knowledge knowledge = service.newKnowledge();
-        return build(knowledge, toSourceString(readers));
+        MethodHandles.Lookup lookup = defaultLookup();
+        return build(knowledge, lookup, toSourceString(readers));
     }
 }

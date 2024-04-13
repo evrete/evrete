@@ -39,7 +39,7 @@ class StatefulJavaJarTests {
 
         TestUtils.createTempJarFile(dir, jarFile -> {
             try {
-                Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_J, jarFile.toURI().toURL());
+                Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_JAR, jarFile.toURI().toURL());
                 try (StatefulSession session = session(knowledge, mode)) {
                     assert session.getRules().size() == 2;
                     for (int i = 2; i < 100; i++) {

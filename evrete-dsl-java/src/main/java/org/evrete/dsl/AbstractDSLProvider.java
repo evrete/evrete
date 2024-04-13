@@ -8,25 +8,22 @@ import org.evrete.dsl.annotation.PhaseListener;
 import org.evrete.dsl.annotation.Rule;
 
 import java.io.*;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 
 import static org.evrete.dsl.Utils.LOGGER;
 
-abstract class AbstractDSLProvider implements DSLKnowledgeProvider {
-    static final String PROVIDER_JAVA_S = "JAVA-SOURCE";
-    static final String PROVIDER_JAVA_C = "JAVA-CLASS";
-    static final String PROVIDER_JAVA_J = "JAVA-JAR";
+abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
 
-
-    static Knowledge processRuleSet(Knowledge knowledge, Class<?> javaClass) {
+    static Knowledge processRuleSet(Knowledge knowledge, MethodHandles.Lookup lookup, Class<?> javaClass) {
         // 0. locate and warn about annotated non-public methods
         for (Method m : Utils.allNonPublicAnnotated(javaClass)) {
             LOGGER.warning("Method " + m + " declared in " + m.getDeclaringClass() + " is not public and will be disregarded.");
         }
 
         // 1. Scanning all the class methods and saving those with annotations
-        RulesetMeta meta = new RulesetMeta(javaClass);
+        RulesetMeta meta = new RulesetMeta(lookup, javaClass);
         for (Method m : javaClass.getMethods()) {
             Rule ruleAnnotation = m.getAnnotation(Rule.class);
             PhaseListener phaseListener = m.getAnnotation(PhaseListener.class);
@@ -96,4 +93,10 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider {
         bos.close();
         return bos.toByteArray();
     }
+
+    protected MethodHandles.Lookup defaultLookup() {
+        return MethodHandles.publicLookup();
+    }
 }
+
+
