@@ -210,7 +210,7 @@ class DefaultTypeResolver implements TypeResolver {
         ArrayOf<Type<?>> associatedTypes = typesByJavaType.get(name);
         if (associatedTypes != null) {
             if (associatedTypes.length() > 1) {
-                LOGGER.warning("Ambiguous type declaration found, there are " + associatedTypes.length() + " types associated with '" + name + "' Java type, returning <null>.");
+                LOGGER.warning("Ambiguous type declaration found, there are " + associatedTypes.length() + " types associated with the '" + name + "' Java type, returning <null>.");
                 return null;
             } else {
                 return (Type<T>) associatedTypes.get(0);
