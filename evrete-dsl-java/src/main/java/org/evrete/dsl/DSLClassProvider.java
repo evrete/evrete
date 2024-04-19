@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.lang.invoke.MethodHandles;
 import java.net.URL;
 
 /**
@@ -39,7 +40,7 @@ public class DSLClassProvider extends AbstractDSLProvider {
 
     @Override
     public String getName() {
-        return PROVIDER_JAVA_C;
+        return PROVIDER_JAVA_CLASS;
     }
 
     @Override
@@ -73,8 +74,9 @@ public class DSLClassProvider extends AbstractDSLProvider {
         Class<?>[] classes = loadClasses(service, streams);
 
         Knowledge current = service.newKnowledge(typeResolver);
+        MethodHandles.Lookup lookup = defaultLookup();
         for (Class<?> cl : classes) {
-            current = processRuleSet(current, cl);
+            current = processRuleSet(current, lookup, cl);
         }
         return current;
     }

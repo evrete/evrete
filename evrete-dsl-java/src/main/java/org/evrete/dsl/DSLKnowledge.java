@@ -81,7 +81,7 @@ class DSLKnowledge extends KnowledgeWrapper {
                 final FieldReference[] descriptor = getExpressionResolver().resolve(lhs, args);
                 Class<?>[] signature = Utils.asMethodSignature(descriptor);
                 MethodType methodType = MethodType.methodType(boolean.class, signature);
-                ClassMethod mv = ClassMethod.lookup(meta.lookup, methodName, methodType);
+                ClassMethod mv = ClassMethod.lookup(meta.lookup, meta.javaClass, methodName, methodType);
 
                 // Creating a dummy condition and necessary information to update that condition
                 // upon session initialization

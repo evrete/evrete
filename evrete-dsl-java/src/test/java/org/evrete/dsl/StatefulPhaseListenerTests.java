@@ -33,7 +33,7 @@ class StatefulPhaseListenerTests {
     @EnumSource(ActivationMode.class)
     void test1(ActivationMode mode) throws IOException {
         TestUtils.PhaseHelperData.reset();
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, PhaseListenerRuleSet1.class);
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_CLASS, PhaseListenerRuleSet1.class);
         assert TestUtils.PhaseHelperData.total() == 1 && TestUtils.PhaseHelperData.count(Phase.BUILD) == 1;
 
         StatefulSession session = session(knowledge, mode);

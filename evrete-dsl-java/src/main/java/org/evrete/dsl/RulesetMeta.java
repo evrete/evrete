@@ -13,8 +13,8 @@ class RulesetMeta {
     final Class<?> javaClass;
     List<RuleMethod> ruleMethods = new ArrayList<>();
 
-    RulesetMeta(Class<?> javaClass) {
-        this.lookup = MethodHandles.lookup().in(javaClass);
+    RulesetMeta(MethodHandles.Lookup lookup, Class<?> javaClass) {
+        this.lookup = lookup;
         this.javaClass = javaClass;
     }
 

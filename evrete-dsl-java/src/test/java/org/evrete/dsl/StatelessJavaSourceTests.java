@@ -39,7 +39,7 @@ class StatelessJavaSourceTests {
     @EnumSource(ActivationMode.class)
     void sort1(ActivationMode mode) throws IOException {
         File f = testResourceAsFile("java/SortTest1.java");
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_S, f);
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_SOURCE, f);
         StatelessSession session = session(knowledge, mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 3;
@@ -66,7 +66,7 @@ class StatelessJavaSourceTests {
     @EnumSource(ActivationMode.class)
     void sort3(ActivationMode mode) throws IOException {
         File f = testResourceAsFile("java/SortTest3.java");
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_S, f);
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_SOURCE, f);
         StatelessSession session = session(knowledge, mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 3;
@@ -94,7 +94,7 @@ class StatelessJavaSourceTests {
     @EnumSource(ActivationMode.class)
     void primeNonStaticMethod(ActivationMode mode) throws IOException {
         File f = testResourceAsFile("java/PrimeNumbers1.java");
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_S, f);
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_SOURCE, f);
         StatelessSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
@@ -114,7 +114,7 @@ class StatelessJavaSourceTests {
     void primeStaticMethod(ActivationMode mode) throws IOException {
         File f = testResourceAsFile("java/PrimeNumbers2.java");
 
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_S, f);
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_SOURCE, f);
         StatelessSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
@@ -151,7 +151,7 @@ class StatelessJavaSourceTests {
     @EnumSource(ActivationMode.class)
     void primeNonStaticMethodStaticCondition(ActivationMode mode) throws IOException {
         File f = testResourceAsFile("java/PrimeNumbers4.java");
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_S, f);
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_SOURCE, f);
         StatelessSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
@@ -169,7 +169,7 @@ class StatelessJavaSourceTests {
     void primeStaticMethodStaticCondition(ActivationMode mode) throws IOException {
         File f = testResourceAsFile("java/PrimeNumbers5.java");
 
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_S, f);
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_SOURCE, f);
         StatelessSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;

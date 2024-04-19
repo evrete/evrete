@@ -15,7 +15,7 @@ class ClassMethod {
     ClassMethod(MethodHandles.Lookup lookup, Method method) {
         this.staticMethod = Modifier.isStatic(method.getModifiers());
         try {
-            this.handle = lookup.unreflect(method);
+            this.handle = lookup.in(method.getDeclaringClass()).unreflect(method);
             this.args = new Object[handle.type().parameterCount()];
         } catch (IllegalAccessException e) {
             throw new MalformedResourceException("Rule method access exception", e);
@@ -40,19 +40,19 @@ class ClassMethod {
         this.args = other.args.clone();
     }
 
-    static ClassMethod lookup(MethodHandles.Lookup lookup, String name, MethodType methodType) {
+    static ClassMethod lookup(MethodHandles.Lookup lookup, Class<?> declaringClass, String name, MethodType methodType) {
         MethodHandle handle;
         boolean staticMethod;
-        Class<?> javaClass = lookup.lookupClass();
+        MethodHandles.Lookup declaringClassLookup = lookup.in(declaringClass);
         try {
-            handle = lookup.findStatic(javaClass, name, methodType);
+            handle = declaringClassLookup.findStatic(declaringClass, name, methodType);
             staticMethod = true;
         } catch (NoSuchMethodException | IllegalAccessException e1) {
             try {
-                handle = lookup.findVirtual(javaClass, name, methodType);
+                handle = declaringClassLookup.findVirtual(declaringClass, name, methodType);
                 staticMethod = false;
             } catch (NoSuchMethodException | IllegalAccessException e2) {
-                throw new MalformedResourceException("Unable to find/access method '" + name + "' in " + javaClass + " of type " + methodType);
+                throw new MalformedResourceException("Unable to find/access method '" + name + "' in " + declaringClass + " of type " + methodType);
             }
         }
         return new ClassMethod(staticMethod, handle);

@@ -39,7 +39,7 @@ class FieldDeclarationsTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void test1(ActivationMode mode) throws IOException {
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, DeclarationRuleSet1.class);
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_CLASS, DeclarationRuleSet1.class);
         NextIntSupplier primeCounter;
         try (StatefulSession session = session(knowledge, mode)) {
 
@@ -58,7 +58,7 @@ class FieldDeclarationsTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void test2(ActivationMode mode) throws IOException {
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, DeclarationRuleSet2.class);
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_CLASS, DeclarationRuleSet2.class);
         NextIntSupplier primeCounter;
         try (StatefulSession session = session(knowledge, mode)) {
 
@@ -77,7 +77,7 @@ class FieldDeclarationsTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void test3(ActivationMode mode) throws IOException {
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_C, DeclarationRuleSet3.class);
+        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_CLASS, DeclarationRuleSet3.class);
         NextIntSupplier primeCounter;
         try (StatefulSession session = session(knowledge, mode)) {
             session.set("random-offset", 0);

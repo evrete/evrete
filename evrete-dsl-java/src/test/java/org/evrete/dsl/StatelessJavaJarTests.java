@@ -43,7 +43,7 @@ class StatelessJavaJarTests {
         File dir = TestUtils.testResourceAsFile("jars/jar1");
         TestUtils.createTempJarFile(dir, jarFile -> {
             try {
-                Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_J, jarFile);
+                Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_JAR, jarFile);
                 StatelessSession session = session(knowledge, mode);
                 assert session.getRules().size() == 2;
                 for (int i = 2; i < 100; i++) {

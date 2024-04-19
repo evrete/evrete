@@ -11,6 +11,7 @@ import org.evrete.dsl.annotation.RuleSet;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.invoke.MethodHandles;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
@@ -39,7 +40,7 @@ public class DSLJarProvider extends AbstractDSLProvider {
     public DSLJarProvider() {
     }
 
-    private static Knowledge apply(Knowledge knowledge, Set<String> ruleClasses, InputStream... streams) throws IOException {
+    private static Knowledge apply(Knowledge knowledge, MethodHandles.Lookup lookup, Set<String> ruleClasses, InputStream... streams) throws IOException {
         List<Class<?>> jarClasses = fillClassLoader(knowledge, streams);
         Knowledge current = knowledge;
         if (ruleClasses.isEmpty()) {
@@ -49,7 +50,7 @@ public class DSLJarProvider extends AbstractDSLProvider {
                 return knowledge;
             } else {
                 for (Class<?> cl : jarClasses) {
-                    current = processRuleSet(current, cl);
+                    current = processRuleSet(current, lookup, cl);
                 }
             }
         } else {
@@ -57,7 +58,7 @@ public class DSLJarProvider extends AbstractDSLProvider {
             for (String ruleClass : ruleClasses) {
                 try {
                     Class<?> cl = current.getClassLoader().loadClass(ruleClass);
-                    current = processRuleSet(current, cl);
+                    current = processRuleSet(current, lookup, cl);
                 } catch (ClassNotFoundException e) {
                     // No such rule class
                     LOGGER.warning("Ruleset class '" + ruleClass + "' not found");
@@ -161,12 +162,13 @@ public class DSLJarProvider extends AbstractDSLProvider {
         if (streams == null || streams.length == 0) throw new IOException("Empty streams");
         Set<String> ruleClasses = ruleClasses(service.getConfiguration());
         Knowledge knowledge = service.newKnowledge(typeResolver);
-        return apply(knowledge, ruleClasses, streams);
+        MethodHandles.Lookup lookup = defaultLookup();
+        return apply(knowledge, lookup, ruleClasses, streams);
     }
 
     @Override
     public String getName() {
-        return PROVIDER_JAVA_J;
+        return PROVIDER_JAVA_JAR;
     }
 
 }
