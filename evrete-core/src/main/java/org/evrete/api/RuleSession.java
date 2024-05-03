@@ -169,15 +169,50 @@ public interface RuleSession<S extends RuleSession<S>> extends RuleSetContext<S,
         return (S) this;
     }
 
+    /**
+     * Retrieves the activation manager associated with this session.
+     *
+     * @return the activation manager for this session
+     */
     ActivationManager getActivationManager();
 
+    /**
+     * Sets the activation manager for the session.
+     *
+     * @param activationManager the activation manager to set
+     * @return the current session instance
+     */
     S setActivationManager(ActivationManager activationManager);
 
+    /**
+     * Adds a session lifecycle listener to receive session lifecycle events.
+     *
+     * @param listener the session lifecycle listener to add
+     * @return the current instance of the session
+     */
     S addEventListener(SessionLifecycleListener listener);
 
+    /**
+     * Removes a {@link SessionLifecycleListener} from the session.
+     *
+     * @param listener the {@link SessionLifecycleListener} to be removed
+     * @return the current instance of the session
+     */
     S removeEventListener(SessionLifecycleListener listener);
 
+    /**
+     * Retrieves the parent context of this session instance.
+     *
+     * @return the parent context of this Knowledge instance
+     */
     Knowledge getParentContext();
 
+    /**
+     * <p>
+     * Fires the rule session and returns the associated object that depends on the implementation of the current session.
+     * </p>
+     *
+     * @return an object representing the result of the rule session execution.
+     */
     Object fire();
 }

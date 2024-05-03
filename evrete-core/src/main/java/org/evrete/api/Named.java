@@ -5,5 +5,10 @@ package org.evrete.api;
  */
 public interface Named {
 
+    /**
+     * Returns the name of the object.
+     *
+     * @return the name of the object as a String
+     */
     String getName();
 }

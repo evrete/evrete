@@ -44,30 +44,36 @@ java {
 // 1. Define vars
 val ltsProjectName = project.name.substringBeforeLast("-8")
 val copyTaskName = "copyLtsFiles"
+val deleteTaskName = "deleteLtsFiles"
 
-// 2. Create a Copy task
-tasks.register<Copy>(copyTaskName) {
-    from("../${ltsProjectName}/src") {
-        exclude("**/module-info.java")
-    }
+val ltsDir = File("${project.projectDir}/src-lts")
 
-    destinationDir = File("${project.projectDir}/src-lts")
-    // Ensure destination directory is empty before copying
-    doFirst {
-        if (destinationDir.exists()) {
-            destinationDir.deleteRecursively()
-        }
-        destinationDir.mkdirs()
+// 2. Create a delete task
+tasks.register<Delete>(deleteTaskName) {
+    delete(ltsDir)
+
+    doLast {
+        ltsDir.mkdirs()
     }
 }
 
-// 3. Bind the copy task
+// 3. Create a Copy task
+tasks.register<Copy>(copyTaskName) {
+    destinationDir = ltsDir
+    from("../${ltsProjectName}/src") {
+        exclude("**/module-info.java")
+    }
+}
+
+// 4. Bind the tasks
+tasks.getByName(copyTaskName).dependsOn(deleteTaskName)
+
 tasks.compileJava {
     dependsOn(copyTaskName)
 }
 
 tasks.clean {
-    dependsOn(copyTaskName)
+    dependsOn(deleteTaskName)
 }
 
 tasks.processResources {

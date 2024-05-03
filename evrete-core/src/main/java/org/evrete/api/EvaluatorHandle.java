@@ -14,6 +14,11 @@ public interface EvaluatorHandle extends WorkUnit {
      */
     FieldReference[] descriptor();
 
+    /**
+     * Returns a Set of NamedType objects representing the types involved in the descriptor of this evaluator.
+     *
+     * @return a Set of NamedType objects representing the types involved in the descriptor of this evaluator
+     */
     default Set<NamedType> namedTypes() {
         Set<NamedType> set = new HashSet<>();
         for (FieldReference r : descriptor()) {

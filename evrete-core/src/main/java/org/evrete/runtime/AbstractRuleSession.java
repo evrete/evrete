@@ -2,6 +2,7 @@ package org.evrete.runtime;
 
 import org.evrete.Configuration;
 import org.evrete.api.*;
+import org.evrete.api.annotations.Nullable;
 import org.evrete.runtime.async.RuleHotDeploymentTask;
 import org.evrete.util.SessionCollector;
 
@@ -248,6 +249,7 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
     }
 
     @Override
+    @Nullable
     public final RuntimeRule getRule(String name) {
         return ruleStorage.get(name);
     }

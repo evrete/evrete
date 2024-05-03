@@ -5,6 +5,7 @@ import org.evrete.api.FluentImports;
 import org.evrete.api.Imports;
 
 import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -32,6 +33,11 @@ public class Configuration extends Properties implements Copyable<Configuration>
     static final String SPI_SOURCE_COMPILER = "evrete.spi.source-compiler";
     static final String PARALLELISM = "evrete.core.parallelism";
     public static final String RULE_BASE_CLASS = "evrete.impl.rule-base-class";
+    public static final String SPI_LHS_STRIP_WHITESPACES = "evrete.spi.compiler.lhs-strip-whitespaces";
+
+    private static final Set<String> OBSOLETE_PROPERTIES = Set.of(
+    );
+
 
     private static final Logger LOGGER = Logger.getLogger(Configuration.class.getName());
     private static final long serialVersionUID = -9015471049604658637L;
@@ -65,6 +71,14 @@ public class Configuration extends Properties implements Copyable<Configuration>
         if (!contains(key)) {
             setProperty(key, value);
         }
+    }
+
+    @Override
+    public synchronized Object setProperty(String key, String value) {
+        if (OBSOLETE_PROPERTIES.contains(key)) {
+            LOGGER.warning("Property '" + key + "' is obsolete and will be ignored");
+        }
+        return super.setProperty(key, value);
     }
 
     public boolean getAsBoolean(String property) {

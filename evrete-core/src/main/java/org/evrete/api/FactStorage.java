@@ -54,8 +54,18 @@ public interface FactStorage<T> extends ReIterable<FactStorage.Entry<T>> {
      * @param <Z> the type of fact this entry holds
      */
     interface Entry<Z> {
+        /**
+         * Returns the FactHandle associated with this entry.
+         *
+         * @return the FactHandle associated with this entry
+         */
         FactHandle getHandle();
 
+        /**
+         * Returns the fact instance associated with this entry.
+         *
+         * @return an instance of type Z.
+         */
         Z getInstance();
     }
 }

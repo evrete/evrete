@@ -40,6 +40,11 @@ public class Imports implements Copyable<Imports>, Serializable {
     }
 
 
+    /**
+     * Appends Java import statements to a StringBuilder.
+     *
+     * @param destination the StringBuilder to append the import statements to
+     */
     public void asJavaImportStatements(StringBuilder destination) {
         String sep = System.lineSeparator();
         if (!imports.isEmpty()) {

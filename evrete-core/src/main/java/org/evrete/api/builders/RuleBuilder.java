@@ -12,12 +12,36 @@ import java.util.function.Predicate;
  */
 public interface RuleBuilder<C extends RuntimeContext<C>> extends Rule, LhsFactSelector<LhsBuilder<C>> {
 
+    /**
+     * Returns the LhsBuilder instance.
+     *
+     * @return the LhsBuilder instance
+     */
     LhsBuilder<C> getLhs();
 
+    /**
+     * Sets the salience of the rule.
+     *
+     * @param salience the salience value of the rule
+     * @return a RuleBuilder instance
+     */
     RuleBuilder<C> salience(int salience);
 
+    /**
+     * Sets a property of the RuleBuilder instance.
+     *
+     * @param <Z>      the type of the property value
+     * @param property the name of the property
+     * @param value    the value of the property
+     * @return a RuleBuilder instance
+     */
     <Z> RuleBuilder<C> property(String property, Z value);
 
+    /**
+     * Returns the runtime context of this rule builder.
+     *
+     * @return the runtime object
+     */
     C getRuntime();
 
 

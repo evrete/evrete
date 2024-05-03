@@ -42,6 +42,12 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
     RuleSetBuilder<C> execute(Consumer<RhsContext> consumer);
 
 
+    /**
+     * Adds one or more condition expressions to the current {@link LhsBuilder}.
+     *
+     * @param expressions the condition expressions to add
+     * @return the current {@link LhsBuilder}
+     */
     default LhsBuilder<C> where(String... expressions) {
         if (expressions != null) {
             for (String expression : expressions) {
@@ -91,7 +97,7 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
     }
 
     /**
-     * Adds a condition to the current {@link LhsBuilder} with the provided predicate, complexity, and references.
+     * Adds a condition to the current {@link LhsBuilder} with the provided predicate, complexity, and field references.
      *
      * @param predicate  the predicate to add as a condition
      * @param complexity the complexity of the condition
@@ -100,25 +106,96 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
      */
     LhsBuilder<C> where(@NonNull ValuesPredicate predicate, double complexity, String... references);
 
+    /**
+     * Adds a condition to the current {@link LhsBuilder} with the provided predicate and field references.
+     *
+     * @param predicate  the predicate to add as a condition
+     * @param references the references used in the condition
+     * @return the current {@link LhsBuilder}
+     */
     default LhsBuilder<C> where(@NonNull ValuesPredicate predicate, String... references) {
         return where(predicate, WorkUnit.DEFAULT_COMPLEXITY, references);
     }
 
+    /**
+     * Adds a condition to the current {@link LhsBuilder} with the provided predicate, complexity,
+     * and field references.
+     *
+     * @param predicate  the predicate to add as a condition
+     * @param complexity the complexity of the condition
+     * @param references the references used in the condition
+     * @return the current {@link LhsBuilder}
+     * @throws NullPointerException if the predicate is null
+     * @throws NullPointerException if any of the references is null
+     */
     LhsBuilder<C> where(@NonNull Predicate<Object[]> predicate, double complexity, FieldReference... references);
 
+    /**
+     * Adds a condition to the current {@link LhsBuilder} with the provided predicate, complexity, and field references.
+     *
+     * @param predicate  the predicate to add as a condition
+     * @param references the references used in the condition
+     * @return the current {@link LhsBuilder}
+     * @throws NullPointerException if the predicate is null
+     * @throws NullPointerException if any of the references is null
+     */
     default LhsBuilder<C> where(@NonNull Predicate<Object[]> predicate, FieldReference... references) {
         return where(predicate, WorkUnit.DEFAULT_COMPLEXITY, references);
     }
 
+    /**
+     * Adds a condition to the current {@link LhsBuilder} with the provided predicate,
+     * complexity, and field references.
+     *
+     * @param predicate  the predicate to add as a condition
+     * @param complexity the complexity of the condition
+     * @param references the references used in the condition
+     * @return the current {@link LhsBuilder}
+     * @throws NullPointerException if the predicate is null
+     * @throws NullPointerException if any of the references is null
+     */
     LhsBuilder<C> where(@NonNull ValuesPredicate predicate, double complexity, FieldReference... references);
 
+    /**
+     * Adds a condition to the current {@link LhsBuilder} with the provided predicate, complexity, and field references.
+     *
+     * @param predicate  the predicate to add as a condition
+     * @param references the references used in the condition
+     * @return the current {@link LhsBuilder}
+     * @throws NullPointerException if the predicate is null
+     * @throws NullPointerException if any of the references is null
+     */
     default LhsBuilder<C> where(@NonNull ValuesPredicate predicate, FieldReference... references) {
         return where(predicate, WorkUnit.DEFAULT_COMPLEXITY, references);
     }
 
+    /**
+     * Adds a fact declaration to the current LhsBuilder.
+     *
+     * @param name the name of the fact declaration
+     * @param type the type of the fact declaration
+     * @return the NamedType representing the fact declaration
+     * @throws NullPointerException if either the name or type parameter is null
+     */
     NamedType addFactDeclaration(@NonNull String name, @NonNull Type<?> type);
 
+    /**
+     * Adds a fact declaration to the current LhsBuilder.
+     *
+     * @param name the name of the fact declaration
+     * @param type the type of the fact declaration
+     * @return the NamedType representing the fact declaration
+     * @throws NullPointerException if either the name or type parameter is null
+     */
     NamedType addFactDeclaration(@NonNull String name, @NonNull String type);
 
+    /**
+     * Adds a fact declaration to the current LhsBuilder.
+     *
+     * @param name the name of the fact declaration
+     * @param type the type of the fact declaration
+     * @return the NamedType representing the fact declaration
+     * @throws NullPointerException if either the name or type parameter is null
+     */
     NamedType addFactDeclaration(@NonNull String name, @NonNull Class<?> type);
 }

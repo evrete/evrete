@@ -15,8 +15,23 @@ import java.net.URL;
  */
 public interface DSLKnowledgeProvider {
 
+    /**
+     * Returns the name of the DSL knowledge provider.
+     *
+     * @return the name of the provider
+     */
     String getName();
 
+    /**
+     * Given the sources' URLs, the DSL implementation must return a new Knowledge instance.
+     * Depending on the DSL implementation, URLs may refer to plain text resources, Java classes/archives,
+     * JDBC connection strings, files, etc.
+     *
+     * @param service      Knowledge service.
+     * @param resources    remote or local resources to apply.
+     * @return new Knowledge instance.
+     * @throws IOException if an error occurs when reading the data sources.
+     */
     default Knowledge create(KnowledgeService service, URL... resources) throws IOException {
         return create(service, service.newTypeResolver(), resources);
     }
