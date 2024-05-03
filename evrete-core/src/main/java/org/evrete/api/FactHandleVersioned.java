@@ -11,6 +11,7 @@ public final class FactHandleVersioned implements Serializable {
     private final int version;
     private final FactHandle handle;
 
+
     public FactHandleVersioned(FactHandle handle, int version) {
         this.handle = handle;
         this.version = version;

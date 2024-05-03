@@ -28,7 +28,7 @@ public class CompilationException extends Exception {
                 logger.log(level, error);
             }
 
-            logger.log(level, "\nIn source:\n" + s.getSource());
+            logger.log(level, "\n--- Java Source Start ---\n" + s.getSource() + "\n---  Java Source End  ---\n");
         }
         if (!otherErrors.isEmpty()) {
             logger.log(level, "Other errors:\n" + otherErrors);

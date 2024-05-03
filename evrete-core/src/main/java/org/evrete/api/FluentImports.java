@@ -19,6 +19,13 @@ public interface FluentImports<T> {
      */
     T addImport(String imp);
 
+    /**
+     * Adds an explicit type import.
+     *
+     * @param type the class to be imported
+     * @return an instance of the implementing class to allow for method chaining
+     * @throws IllegalArgumentException if the canonical name of the class is null
+     */
     default T addImport(Class<?> type) {
         String canonicalName = type.getCanonicalName();
         if (canonicalName == null) {
@@ -39,7 +46,9 @@ public interface FluentImports<T> {
      * Retrieves a set containing the string representations of Java import statements.
      *
      * @return a {@link Set} of strings representing the current Java import statements
+     * @deprecated Use the {@link Imports#asJavaImportStatements(StringBuilder)} method instead
      */
+    @Deprecated
     default Set<String> getJavaImports() {
         return getImports().get();
     }

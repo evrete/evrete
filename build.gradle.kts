@@ -1,4 +1,4 @@
-version = "3.2.02-SNAPSHOT"
+version = "3.2.02"
 
 
 plugins {

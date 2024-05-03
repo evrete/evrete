@@ -2,6 +2,7 @@ package org.evrete.runtime;
 
 import org.evrete.api.Named;
 import org.evrete.api.annotations.NonNull;
+import org.evrete.api.annotations.Nullable;
 
 import java.util.*;
 
@@ -28,6 +29,7 @@ public class SearchList<T extends Named> implements Iterable<T> {
         return list;
     }
 
+    @Nullable
     public T get(String name) {
         return map.get(name);
     }

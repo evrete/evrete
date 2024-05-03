@@ -20,8 +20,18 @@ import java.util.function.Consumer;
 public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, FluentImports<C>, FluentEnvironment<C>, EvaluatorsContext {
     Comparator<Rule> SALIENCE_COMPARATOR = (rule1, rule2) -> -1 * Integer.compare(rule1.getSalience(), rule2.getSalience());
 
+    /**
+     * Retrieves the comparator used for ordering rules.
+     *
+     * @return the comparator for Rule objects.
+     */
     Comparator<Rule> getRuleComparator();
 
+    /**
+     * Sets the comparator used for ordering rules.
+     *
+     * @param comparator the comparator for Rule objects.
+     */
     void setRuleComparator(Comparator<Rule> comparator);
 
     /**
@@ -115,8 +125,19 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
     @Deprecated
     void wrapTypeResolver(TypeResolverWrapper wrapper);
 
+    /**
+     * Sets the activation mode for the session.
+     *
+     * @param activationMode the activation mode to set
+     * @return the updated instance of the class
+     */
     C setActivationMode(ActivationMode activationMode);
 
+    /**
+     * Retrieves the expression resolver for parsing string expressions.
+     *
+     * @return the expression resolver
+     */
     ExpressionResolver getExpressionResolver();
 
     /**
@@ -127,6 +148,11 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
      */
     C configureTypes(Consumer<TypeResolver> action);
 
+    /**
+     * Retrieves the ClassLoader used by the current context.
+     *
+     * @return the ClassLoader used by the object.
+     */
     ClassLoader getClassLoader();
 
     /**
@@ -138,18 +164,54 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
      */
     void setClassLoader(ClassLoader classLoader);
 
+    /**
+     * Returns the {@link KnowledgeService} instance.
+     *
+     * @return the {@link KnowledgeService} instance
+     */
     KnowledgeService getService();
 
+    /**
+     * Returns the Activation Manager factory class for this RuntimeContext.
+     *
+     * @return the Activation Manager factory class
+     */
     Class<? extends ActivationManager> getActivationManagerFactory();
 
+    /**
+     * Sets the Activation Manager factory class for this RuntimeContext.
+     *
+     * @param managerClass the Activation Manager factory class
+     * @param <A>          the type of Activation Manager
+     */
     <A extends ActivationManager> void setActivationManagerFactory(Class<A> managerClass);
 
+    /**
+     * Sets the Activation Manager factory class name for this RuntimeContext.
+     *
+     * @param managerClass the Activation Manager factory class name
+     */
     void setActivationManagerFactory(String managerClass);
 
+    /**
+     * Retrieves the TypeResolver instance associated with this RuntimeContext.
+     *
+     * @return the TypeResolver instance
+     */
     TypeResolver getTypeResolver();
 
+    /**
+     * Retrieves the Configuration object associated with this RuntimeContext.
+     *
+     * @return the Configuration object
+     */
     Configuration getConfiguration();
 
+    /**
+     * Creates and returns a new instance of {@link JavaSourceCompiler}.
+     *
+     * @return A new {@link JavaSourceCompiler} instance.
+     */
     JavaSourceCompiler getSourceCompiler();
 
 }

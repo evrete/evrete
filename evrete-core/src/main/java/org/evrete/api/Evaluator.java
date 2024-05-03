@@ -4,8 +4,19 @@ package org.evrete.api;
  * An internal representation of every condition in the rule engine.
  */
 public interface Evaluator extends ValuesPredicate {
+    /**
+     * Represents a constant value indicating no relation.
+     */
     int RELATION_NONE = 0;
+
+    /**
+     * The RELATION_EQUALS variable represents a constant value indicating equality relation.
+     */
     int RELATION_EQUALS = 1;
+
+    /**
+     * The RELATION_INVERSE variable represents a constant value indicating inverse relationship.
+     */
     int RELATION_INVERSE = -1;
 
     /**
@@ -45,6 +56,12 @@ public interface Evaluator extends ValuesPredicate {
         return array;
     }
 
+    /**
+     * Checks if the descriptor of this evaluator is the same as the descriptor of another evaluator.
+     *
+     * @param other the other evaluator to compare descriptors with
+     * @return true if the descriptors of the two evaluators are the same, false otherwise
+     */
     default boolean sameDescriptor(Evaluator other) {
         return FieldReference.sameAs(descriptor(), other.descriptor());
     }

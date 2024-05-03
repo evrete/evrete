@@ -43,7 +43,7 @@ tasks.register("moduleJavadoc") {
             @Suppress("SpellCheckingInspection")
             commandLine(
                     javadocLauncher,
-                    "-Xdoclint:none", //TODO uncomment and address warnings
+                    "-Xdoclint:none", //TODO comment out and address warnings
                     "-quiet",
                     "-d",
                     docFolder,

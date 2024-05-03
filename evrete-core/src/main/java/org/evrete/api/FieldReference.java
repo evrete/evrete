@@ -44,10 +44,26 @@ public interface FieldReference {
         return true;
     }
 
+    /**
+     * Retrieves the TypeField associated with this FieldReference.
+     *
+     * @return the TypeField associated with this FieldReference
+     */
     TypeField field();
 
+    /**
+     * Returns the named type associated with this method.
+     *
+     * @return the named type associated with this method
+     */
     NamedType type();
 
+    /**
+     * Checks if the given FieldReference is the same as the current FieldReference.
+     *
+     * @param other the FieldReference to compare with
+     * @return true if the FieldReferences are the same, false otherwise
+     */
     default boolean sameAs(FieldReference other) {
         return other.field().getName().equals(field().getName()) && other.type().sameAs(type());
     }

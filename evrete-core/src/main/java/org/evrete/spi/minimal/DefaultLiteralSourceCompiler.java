@@ -12,30 +12,43 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.evrete.Configuration.RULE_BASE_CLASS;
+import static org.evrete.Configuration.SPI_LHS_STRIP_WHITESPACES;
 
 public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider implements LiteralSourceCompiler {
-    static final String SPI_LHS_STRIP_WHITESPACES = "evrete.spi.compiler.lhs-strip-whitespaces";
-
     private static final String TAB = "  ";
     private static final String RHS_CLASS_NAME = "Rhs";
     private static final String RHS_INSTANCE_VAR = "ACTION";
 
     private static final AtomicInteger classCounter = new AtomicInteger(0);
-
     static final String CLASS_PACKAGE = DefaultLiteralSourceCompiler.class.getPackage().getName() + ".compiled";
 
     @Override
     public <S extends RuleLiteralData<R>, R extends Rule> Collection<RuleCompiledSources<S, R>> compile(RuntimeContext<?> context, Collection<S> sources) throws CompilationException {
-        // Return if nothing to compile (Java compiler throws exceptions otherwise)
+        // Return if there's nothing to compile
         if (sources.isEmpty()) {
             return Collections.emptyList();
         }
 
+        String stripFlag = context.getConfiguration().getProperty(SPI_LHS_STRIP_WHITESPACES);
 
+        if (stripFlag == null) {
+            try {
+                // Try compiling with stripped whitespaces
+                return compile(context, sources, true);
+            } catch (CompilationException e) {
+                // Compile literals as-is
+                return compile(context, sources, false);
+            }
+        } else {
+            return compile(context, sources, Boolean.parseBoolean(stripFlag));
+        }
+    }
+
+    private  <S extends RuleLiteralData<R>, R extends Rule> Collection<RuleCompiledSources<S, R>> compile(RuntimeContext<?> context, Collection<S> sources, boolean stripWhitespaces) throws CompilationException {
         JavaSourceCompiler compiler = context.getSourceCompiler();
 
         Collection<RuleSource<S, R>> javaSources = sources.stream()
-                .map(o -> new RuleSource<>(o, context))
+                .map(o -> new RuleSource<>(o, context, stripWhitespaces))
                 .collect(Collectors.toList());
 
         Collection<JavaSourceCompiler.Result<RuleSource<S, R>>> result = compiler.compile(javaSources);
@@ -60,7 +73,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
         private final String javaSource;
         private final Collection<ConditionSource> conditionSources;
 
-        RuleSource(S delegate, RuntimeContext<?> context) {
+        RuleSource(S delegate, RuntimeContext<?> context, boolean stripWhitespaces) {
             this.delegate = delegate;
             this.imports = context.getImports();
             this.classSimpleName = "Rule" + classCounter.incrementAndGet();
@@ -69,7 +82,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
             AtomicInteger conditionCounter = new AtomicInteger();
             this.conditionSources = delegate.conditions()
                     .stream()
-                    .map(s -> new ConditionSource(delegate.getRule(), "condition" + conditionCounter.incrementAndGet(), this.classSimpleName, s, context))
+                    .map(s -> new ConditionSource(delegate.getRule(), "condition" + conditionCounter.incrementAndGet(), this.classSimpleName, s, context, stripWhitespaces))
                     .collect(Collectors.toList());
 
             String rhs = delegate.rhs();
@@ -173,7 +186,6 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
                 "    return %sInner(%s);\n" +
                 "  }\n";
 
-
         final String source;
         final String methodName;
         final String handleName;
@@ -183,12 +195,11 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
         private final StringJoiner argCasts;
         private final FieldReference[] descriptor;
 
-        public ConditionSource(Rule rule, String name, String className, String source, RuntimeContext<?> context) {
+        public ConditionSource(Rule rule, String name, String className, String source, RuntimeContext<?> context, boolean stripWhitespaces) {
             this.className = className;
             this.source = source;
             this.methodName = name;
             this.handleName = name.toUpperCase() + "_HANDLE";
-            boolean stripWhitespaces = context.getConfiguration().getAsBoolean(SPI_LHS_STRIP_WHITESPACES, true);
             StringLiteralEncoder encoder = StringLiteralEncoder.of(source, stripWhitespaces);
 
             ExpressionResolver resolver = context.getExpressionResolver();
@@ -211,7 +222,6 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
                 encodedExpression = before + javaArgVar + after;
                 accumulatedShift += javaArgVar.length() - original.length();
 
-
                 if (!uniqueReferences.contains(term)) {
                     //Build the reference
                     descriptorBuilder.add(term);
@@ -230,7 +240,6 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
             this.replaced = encoder.unwrapLiterals(encodedExpression);
             this.descriptor = descriptorBuilder.toArray(FieldReference.ZERO_ARRAY);
         }
-
 
         void appendDeclaration(StringBuilder target) {
             target.append(String.format(DECLARATION_TEMPLATE, handleName));
@@ -252,9 +261,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
     private static class RhsSource {
         @NonNull
         final String rhs;
-
         final Rule rule;
-
         final StringJoiner methodArgs;
         final StringJoiner args;
 
@@ -331,10 +338,9 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
                         .append("\n");
             }
 
-            // end of class
+            // end of the class
             target.append(TAB).append(TAB)
                     .append("}\n")
-
                     .append(TAB)
                     .append("}")
             ;
@@ -342,13 +348,10 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
 
     }
 
-
     private static class RuleCompiledSourcesImpl<S extends RuleLiteralData<R>, R extends Rule> implements RuleCompiledSources<S, R> {
 
         private final RuleSource<S, R> source;
-
         private final Collection<LiteralEvaluator> conditions;
-
         private final Consumer<RhsContext> rhs;
 
         public RuleCompiledSourcesImpl(Class<?> ruleClass, RuleSource<S, R> source) {
@@ -410,9 +413,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
     private static class LiteralEvaluatorImpl implements LiteralEvaluator {
         private final FieldReference[] descriptor;
         private final String source;
-
         private final MethodHandle handle;
-
         private final LiteralExpression sourceExpression;
 
         public LiteralEvaluatorImpl(Rule rule, ConditionSource compiled, Class<?> ruleClass) {
@@ -452,6 +453,5 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
                 throw new IllegalStateException("Handle not found", e);
             }
         }
-
     }
 }
