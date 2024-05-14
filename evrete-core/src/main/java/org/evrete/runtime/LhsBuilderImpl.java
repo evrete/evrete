@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 @Deprecated
-class LhsBuilderImpl<C extends RuntimeContext<C>> extends  DefaultTypeResolver implements LhsBuilder<C> {
+class LhsBuilderImpl<C extends RuntimeContext<C>> extends DefaultNamedTypeResolver implements LhsBuilder<C> {
     private final RuleBuilderImpl<C> ruleBuilder;
     private final AbstractRuntime<?, C> runtime;
     private final LhsConditions conditions = new LhsConditions();

@@ -9,4 +9,5 @@ package org.evrete.api;
  * @param <R> the type parameter representing the rule.
  */
 public interface RuleSetContext<C extends RuntimeContext<C>, R extends Rule> extends RuntimeContext<C>, RuleSet<R> {
+
 }

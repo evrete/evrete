@@ -12,7 +12,7 @@ import java.util.List;
  *
  * @param <R> rule type parameter
  */
-public interface RuleSet<R extends Rule> {
+public interface RuleSet<R extends Rule> extends Named {
     /**
      * <p>
      * Method returns a list of rules created so far.

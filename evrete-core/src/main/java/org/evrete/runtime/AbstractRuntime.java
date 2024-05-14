@@ -28,20 +28,21 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     private Class<? extends ActivationManager> activationManagerFactory;
     private ActivationMode agendaMode;
     private RuntimeClassloader classloader;
+    private final String name;
+    private final DefaultTypeResolver typeResolver;
 
-    AbstractRuntime(KnowledgeService service, TypeResolver typeResolver) {
-        super(service, typeResolver);
+    AbstractRuntime(KnowledgeService service, String name) {
+        super(service);
         this.configuration = service.getConfiguration().copyOf();
         this.classloader = new RuntimeClassloader(service.getClassLoader());
         this.service = service;
         this.activationManagerFactory = DefaultActivationManager.class;
         this.agendaMode = ActivationMode.DEFAULT;
         this.noNameRuleCounter = new AtomicInteger();
+        this.name = name;
+        this.typeResolver = new DefaultTypeResolver(service.newTypeStorage(), AbstractRuntime.this::getClassLoader);
     }
 
-    AbstractRuntime(KnowledgeService service) {
-        this(service, service.newTypeResolver());
-    }
 
     /**
      * Constructor for a Session object
@@ -58,16 +59,23 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         this.expressionResolver = null;
         this.noNameRuleCounter = parent.noNameRuleCounter;
         this.classloader = new RuntimeClassloader(parent.classloader);
+        this.name = parent.name;
+        this.typeResolver = parent.typeResolver.clone(AbstractRuntime.this::getClassLoader);
     }
 
     abstract void addRuleDescriptors(List<RuleDescriptorImpl> descriptors);
+
+    @Override
+    public TypeResolver getTypeResolver() {
+        return this.typeResolver;
+    }
 
     ActivationMode getAgendaMode() {
         return agendaMode;
     }
 
-    void addRules(List<DefaultRuleBuilder<C>> rules) {
-        List<RuleDescriptorImpl> descriptors = compileRuleBuilders(rules);
+    void addRules(DefaultRuleSetBuilder<C> ruleSetBuilder) {
+        List<RuleDescriptorImpl> descriptors = compileRuleBuilders(ruleSetBuilder);
         addRuleDescriptors(descriptors);
     }
 
@@ -79,8 +87,23 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
     }
 
     @Override
+    public String getName() {
+        return this.name;
+    }
+
+    @Override
     public final RuntimeClassloader getClassLoader() {
         return classloader;
+    }
+
+    @Override
+    public Class<?> addClass(String binaryName, byte[] classBytes) {
+        classloader.saveClass(binaryName, classBytes);
+        try {
+            return classloader.loadClass(binaryName);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException("Could not load class that has been just added: " + binaryName, e);
+        }
     }
 
     @Override
@@ -189,24 +212,30 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         return this.configuration;
     }
 
-    synchronized List<RuleDescriptorImpl> compileRuleBuilders(List<DefaultRuleBuilder<C>> rules) {
+    synchronized List<RuleDescriptorImpl> compileRuleBuilders(DefaultRuleSetBuilder<C> ruleSetBuilder) {
 
         // Collect sources to compile
-        List<DefaultRuleLiteralData> ruleLiteralSources = rules.stream()
-                .map(DefaultRuleLiteralData::new)
-                .filter(DefaultRuleLiteralData::nonEmpty)
-                .collect(Collectors.toList());
         try {
-            return compileRuleBuilders(rules, this.compileRules(ruleLiteralSources));
+            return buildRuleDescriptors(ruleSetBuilder, this.compileRuleset(ruleSetBuilder));
         } catch (CompilationException e) {
             e.log(LOGGER, Level.WARNING);
             throw new RuntimeException(e);
         }
     }
 
-    private List<RuleDescriptorImpl> compileRuleBuilders(List<DefaultRuleBuilder<C>> rules, Collection<RuleCompiledSources<DefaultRuleLiteralData, DefaultRuleBuilder<?>>> compiled) {
+    Collection<RuleCompiledSources<DefaultRuleLiteralData, DefaultRuleBuilder<?>>> compileRuleset(DefaultRuleSetBuilder<C> ruleSetBuilder) throws CompilationException {
+        List<DefaultRuleLiteralData> ruleLiteralSources = ruleSetBuilder.getRuleBuilders().stream()
+                .map(DefaultRuleLiteralData::new)
+                .filter(DefaultRuleLiteralData::nonEmpty)
+                .collect(Collectors.toList());
+        return this.compileRules(ruleLiteralSources);
+    }
+
+
+    private List<RuleDescriptorImpl> buildRuleDescriptors(DefaultRuleSetBuilder<C> ruleSetBuilder, Collection<RuleCompiledSources<DefaultRuleLiteralData, DefaultRuleBuilder<?>>> compiled) {
         // Finally we have all we need to create descriptor for each rule: compiled classes and original data in rule builders
         int currentRuleCount = getRules().size();
+        List<DefaultRuleBuilder<C>> rules = ruleSetBuilder.getRuleBuilders();
 
         Map<DefaultRuleBuilder<?>, RuleCompiledSources<?,?>> mapping = new IdentityHashMap<>();
         for (RuleCompiledSources<DefaultRuleLiteralData, ?> entry : compiled) {

@@ -47,9 +47,7 @@ abstract class AbstractDSLSession<S extends RuleSession<S>> extends AbstractSess
         if (classInstance instanceof ActivationManager) {
             setActivationManager((ActivationManager) classInstance);
         }
-
         phaseListeners.fire(Phase.CREATE, this);
-
     }
 
 

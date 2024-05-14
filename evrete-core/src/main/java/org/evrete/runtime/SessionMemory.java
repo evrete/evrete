@@ -3,7 +3,7 @@ package org.evrete.runtime;
 import org.evrete.api.KeyedFactStorage;
 import org.evrete.api.MemoryFactory;
 import org.evrete.api.Type;
-import org.evrete.collections.ArrayOf;
+import org.evrete.util.ArrayOf;
 
 import java.util.function.Consumer;
 

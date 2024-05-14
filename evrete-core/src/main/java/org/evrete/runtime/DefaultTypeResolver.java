@@ -1,40 +1,59 @@
 package org.evrete.runtime;
 
-import org.evrete.api.NamedType;
-import org.evrete.api.annotations.NonNull;
+import org.evrete.api.Type;
+import org.evrete.api.TypeResolver;
+import org.evrete.api.TypeStorage;
+import org.evrete.util.TypeWrapper;
 
 import java.util.Collection;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
-class DefaultTypeResolver implements NamedType.Resolver {
-    private final Map<String, NamedType> map = new ConcurrentHashMap<>();
+class DefaultTypeResolver implements TypeResolver {
+    private final TypeStorage typeStorage;
+    private final Supplier<ClassLoader> classLoaderSupplier;
 
-    @NonNull
-    @Override
-    public NamedType resolve(@NonNull String var) {
-        NamedType t = map.get(var);
-        if (t == null) {
-            throw new NoSuchElementException("No type registered with variable '" + var + "'");
-        } else {
-            return t;
-        }
+    DefaultTypeResolver(TypeStorage typeStorage, Supplier<ClassLoader> classLoaderSupplier) {
+        this.typeStorage = typeStorage;
+        this.classLoaderSupplier = classLoaderSupplier;
     }
 
-    void copyFrom(DefaultTypeResolver other) {
-        this.map.putAll(other.map);
-    }
-
-    public void save(NamedType value) {
-        NamedType prev = map.put(value.getName(), value);
-        if (prev != null) {
-            throw new IllegalArgumentException("Duplicate type reference '" + value.getName() + "'");
-        }
+    public DefaultTypeResolver clone(Supplier<ClassLoader> classLoaderSupplier) {
+        return new DefaultTypeResolver(typeStorage.copyOf(), classLoaderSupplier);
     }
 
     @Override
-    public final Collection<NamedType> getDeclaredFactTypes() {
-        return map.values();
+    public <T> Type<T> getType(String name) {
+        return typeStorage.getType(name);
+    }
+
+    @Override
+    public <T> Type<T> getType(int typeId) {
+        return typeStorage.getType(typeId);
+    }
+
+    @Override
+    public Collection<Type<?>> getKnownTypes() {
+        return typeStorage.getKnownTypes();
+    }
+
+    @Override
+    public void wrapType(TypeWrapper<?> typeWrapper) {
+        typeStorage.wrapType(typeWrapper);
+    }
+
+    @Override
+    public <T> Type<T> declare(String typeName, Class<T> javaType) {
+        return typeStorage.declare(typeName, javaType);
+    }
+
+    @Override
+    public <T> Type<T> declare(String typeName, String javaType) {
+        ClassLoader classLoader = classLoaderSupplier.get();
+        return typeStorage.declare(classLoader, typeName, javaType);
+    }
+
+    @Override
+    public <T> Type<T> resolve(Object o) {
+        return typeStorage.resolve(o);
     }
 }

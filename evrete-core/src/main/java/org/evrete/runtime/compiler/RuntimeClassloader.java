@@ -56,7 +56,7 @@ public class RuntimeClassloader extends ClassLoader {
         saveClass(binaryName, classBytes);
     }
 
-    void saveClass(String binaryName, byte[] classBytes) {
+    public void saveClass(String binaryName, byte[] classBytes) {
         ClassMeta meta = new ClassMeta(binaryName);
         this.classDefinitions.put(binaryName, classBytes);
         this.definedClasses.computeIfAbsent(meta.getPackageName(), k->new LinkedList<>()).add(binaryName);

@@ -4,7 +4,6 @@ import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.builders.RuleSetBuilder;
 import org.evrete.util.CompilationException;
-import org.evrete.util.TypeResolverWrapper;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -116,16 +115,6 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
     Collection<LiteralEvaluator> compile(Collection<LiteralExpression> expressions) throws CompilationException;
 
     /**
-     * Wraps the provided TypeResolver with a TypeResolverWrapper instance.
-     *
-     * @param wrapper the TypeResolverWrapper instance used to wrap the TypeResolver
-     * @deprecated This class is deprecated and will be removed in future releases.
-     * Use the {@link RuntimeContext#configureTypes(Consumer)} method instead to configure the context's types and their fields.
-     */
-    @Deprecated
-    void wrapTypeResolver(TypeResolverWrapper wrapper);
-
-    /**
      * Sets the activation mode for the session.
      *
      * @param activationMode the activation mode to set
@@ -214,4 +203,13 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
      */
     JavaSourceCompiler getSourceCompiler();
 
+    /**
+     * Adds a class with the specified binary name and class bytes to the current context's classloader.
+     * This method can be used to dynamically add classes at runtime.
+     *
+     * @param binaryName the fully qualified binary name of the class
+     * @param classBytes the class bytes of the class
+     * @return defined class
+     */
+    Class<?> addClass(String binaryName, byte[] classBytes);
 }

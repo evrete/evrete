@@ -57,7 +57,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
                     .stream()
                     .map(compiledSource -> {
                         Class<?> ruleClass = compiledSource.getCompiledClass();
-                        return new RuleCompiledSourcesImpl<>(ruleClass, compiledSource.getSource());
+                        return new RuleCompiledSourcesImpl<>(ruleClass, compiledSource.getSource(), compiledSource.getSource().javaSource);
                     })
                     .collect(Collectors.toList());
     }
@@ -157,7 +157,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
             imports.asJavaImportStatements(target);
 
             // Declare class
-            String baseClassName = delegate.getRule().get(RULE_BASE_CLASS, BaseRuleClass.class.getName());
+            String baseClassName = delegate.getRule().get(RULE_BASE_CLASS, BaseRuleClass.class.getCanonicalName());
 
             target.append("public final class ")
                     .append(classSimpleName)
@@ -348,14 +348,16 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
 
     }
 
-    private static class RuleCompiledSourcesImpl<S extends RuleLiteralData<R>, R extends Rule> implements RuleCompiledSources<S, R> {
+    public static class RuleCompiledSourcesImpl<S extends RuleLiteralData<R>, R extends Rule> implements RuleCompiledSources<S, R> {
 
         private final RuleSource<S, R> source;
         private final Collection<LiteralEvaluator> conditions;
         private final Consumer<RhsContext> rhs;
+        private final String classJavaSource;
 
-        public RuleCompiledSourcesImpl(Class<?> ruleClass, RuleSource<S, R> source) {
+        public RuleCompiledSourcesImpl(Class<?> ruleClass, RuleSource<S, R> source, String classJavaSource) {
             this.source = source;
+            this.classJavaSource = classJavaSource;
 
             Map<String, ConditionSource> compiledConditions = new IdentityHashMap<>();
             for (ConditionSource conditionSource : source.conditionSources) {
@@ -390,6 +392,10 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
             } catch (IllegalAccessException | NoSuchFieldException e) {
                 throw new IllegalStateException("RHS source provided but not compiled");
             }
+        }
+
+        public String getClassJavaSource() {
+            return classJavaSource;
         }
 
         @NonNull

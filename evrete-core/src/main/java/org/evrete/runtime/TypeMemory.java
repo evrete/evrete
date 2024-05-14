@@ -76,7 +76,7 @@ public final class TypeMemory extends TypeMemoryBase {
         final boolean hasAlphaConditions;
 
         Cache(Type<?> type, AbstractRuleSession<?> runtime) {
-            Type<?> t = runtime.getType(type.getId());
+            Type<?> t = runtime.getTypeResolver().getType(type.getId());
             TypeMemoryMetaData meta = runtime.getTypeMeta(t.getId());
 
             this.fields = new TypeField[meta.activeFields.length];

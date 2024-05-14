@@ -44,6 +44,16 @@ class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends RuntimeCon
     }
 
     @Override
+    public Class<?> addClass(String binaryName, byte[] classBytes) {
+        return delegate.addClass(binaryName, classBytes);
+    }
+
+    @Override
+    public String getName() {
+        return delegate.getName();
+    }
+
+    @Override
     public final FieldReference[] resolveFieldReferences(String[] args, NamedType.Resolver typeMapper) {
         return delegate.resolveFieldReferences(args, typeMapper);
     }
@@ -116,12 +126,6 @@ class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends RuntimeCon
     @Override
     public RuleSetBuilder<C> builder() {
         return delegate.builder();
-    }
-
-    @Override
-    @Deprecated
-    public void wrapTypeResolver(TypeResolverWrapper wrapper) {
-        delegate.wrapTypeResolver(wrapper);
     }
 
     @Override

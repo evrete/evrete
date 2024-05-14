@@ -1,4 +1,4 @@
-version = "3.2.02"
+version = "3.2.03-SNAPSHOT"
 
 
 plugins {
@@ -68,6 +68,12 @@ allprojects {
             tasks.register("mavenInstall") {
                 dependsOn(innerUglyMavenTaskName)
             }
+    }
+}
+
+subprojects {
+    tasks.withType<JavaCompile> {
+        options.compilerArgs.add("-Xlint:deprecation")
     }
 }
 

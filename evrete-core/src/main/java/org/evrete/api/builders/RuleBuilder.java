@@ -10,7 +10,7 @@ import java.util.function.Predicate;
  *
  * @param <C> the type of the {@link RuntimeContext} of the builder
  */
-public interface RuleBuilder<C extends RuntimeContext<C>> extends Rule, LhsFactSelector<LhsBuilder<C>> {
+public interface RuleBuilder<C extends RuntimeContext<C>> extends Rule, LhsFactSelector<LhsBuilder<C>>, FluentEnvironment<RuleBuilder<C>> {
 
     /**
      * Returns the LhsBuilder instance.
@@ -34,8 +34,12 @@ public interface RuleBuilder<C extends RuntimeContext<C>> extends Rule, LhsFactS
      * @param property the name of the property
      * @param value    the value of the property
      * @return a RuleBuilder instance
+     * @deprecated use {@link #set(String, Object)} instead
      */
-    <Z> RuleBuilder<C> property(String property, Z value);
+    @Deprecated
+    default <Z> RuleBuilder<C> property(String property, Z value) {
+        return set(property, value);
+    }
 
     /**
      * Returns the runtime context of this rule builder.

@@ -1,7 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.*;
-import org.evrete.collections.ArrayOf;
+import org.evrete.util.ArrayOf;
 import org.evrete.runtime.evaluation.AlphaEvaluator;
 
 import java.util.*;

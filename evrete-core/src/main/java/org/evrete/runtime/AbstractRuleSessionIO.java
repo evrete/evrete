@@ -169,6 +169,6 @@ abstract class AbstractRuleSessionIO<S extends RuleSession<S>> extends AbstractR
 
     @Override
     public FactHandle insert0(String type, Object fact, boolean resolveCollections) {
-        return bufferInsert(fact, type, resolveCollections, this.actionBuffer);
+        return bufferInsert(getTypeResolver(), fact, type, resolveCollections, this.actionBuffer);
     }
 }

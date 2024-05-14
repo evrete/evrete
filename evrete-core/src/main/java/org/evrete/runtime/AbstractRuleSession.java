@@ -4,6 +4,7 @@ import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.api.annotations.Nullable;
 import org.evrete.runtime.async.RuleHotDeploymentTask;
+import org.evrete.util.CollectionUtils;
 import org.evrete.util.SessionCollector;
 
 import java.util.*;
@@ -55,16 +56,8 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
     }
 
     private static Optional<Collection<?>> resolveCollection(Object o, boolean resolveCollection) {
-        if (!resolveCollection) {
-            return Optional.empty();
-        }
-
-        if (o.getClass().isArray()) {
-            return Optional.of(Arrays.asList((Object[]) o));
-        } else if (o instanceof Iterable) {
-            Collection<Object> ret = new LinkedList<>();
-            ((Iterable<?>) o).forEach((Consumer<Object>) ret::add);
-            return Optional.of(ret);
+        if (resolveCollection) {
+            return CollectionUtils.resolveCollection(o);
         } else {
             return Optional.empty();
         }
@@ -299,27 +292,28 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
     final FactHandle bufferInsert(Object fact, boolean resolveCollections, FactActionBuffer buffer) {
         _assertActive();
         Object arg = Objects.requireNonNull(fact, "Null facts are not supported");
+        TypeResolver typeResolver = getTypeResolver();
 
         Optional<Collection<?>> collection = resolveCollection(arg, resolveCollections);
         if (collection.isPresent()) {
             // Treat the argument as a collection
             for (Object o : collection.get()) {
-                Optional<InsertedFact> insertResult = insertAtomic(o);
+                Optional<InsertedFact> insertResult = insertAtomic(typeResolver, o);
                 insertResult.ifPresent(t -> buffer.newInsert(t.handle, t.record));
             }
             return null;
         } else {
             // Treat the argument as a single fact
-            Optional<InsertedFact> insertResult = insertAtomic(arg);
+            Optional<InsertedFact> insertResult = insertAtomic(typeResolver, arg);
             insertResult.ifPresent(t -> buffer.newInsert(t.handle, t.record));
             return insertResult.map(t -> t.handle).orElse(null);
         }
     }
 
-    final FactHandle bufferInsert(Object fact, String namedType, boolean resolveCollections, FactActionBuffer buffer) {
+    final FactHandle bufferInsert(TypeResolver typeResolver, Object fact, String namedType, boolean resolveCollections, FactActionBuffer buffer) {
         _assertActive();
         Object arg = Objects.requireNonNull(fact, "Null facts are not supported");
-        final Type<?> type = getType(namedType);
+        final Type<?> type = typeResolver.getType(namedType);
         if (type == null) {
             if (warnUnknownTypes) {
                 LOGGER.warning("Can not map type for '" + fact.getClass().getName() + "', insert operation skipped.");
@@ -342,8 +336,8 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         }
     }
 
-    private Optional<InsertedFact> insertAtomic(Object o) {
-        Type<?> type = resolve(o);
+    private Optional<InsertedFact> insertAtomic(TypeResolver typeResolver, Object o) {
+        Type<?> type = typeResolver.resolve(o);
         if (type == null) {
             if (warnUnknownTypes) {
                 LOGGER.warning("Can not map type for '" + o.getClass().getName() + "', insert operation skipped.");

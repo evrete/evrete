@@ -38,39 +38,36 @@ public class Configuration extends Properties implements Copyable<Configuration>
     private static final Set<String> OBSOLETE_PROPERTIES = Set.of(
     );
 
-
     private static final Logger LOGGER = Logger.getLogger(Configuration.class.getName());
     private static final long serialVersionUID = -9015471049604658637L;
     private final Imports imports;
 
     @SuppressWarnings("unused")
     public Configuration(Properties defaults) {
-        for (String key : defaults.stringPropertyNames()) {
-            setProperty(key, defaults.getProperty(key));
-        }
-        this.imports = new Imports();
+        this(defaults, new Imports());
     }
 
     private Configuration(Properties defaults, Imports imports) {
-        for (String key : defaults.stringPropertyNames()) {
-            setProperty(key, defaults.getProperty(key));
-        }
-        this.imports = imports.copyOf();
-    }
-
-    public Configuration() {
-        super(System.getProperties());
-
+        super(defaults);
+        this.imports = imports;
         setIfAbsent(WARN_UNKNOWN_TYPES, Boolean.TRUE.toString());
         setIfAbsent(OBJECT_COMPARE_METHOD, IDENTITY_METHOD_IDENTITY);
         setIfAbsent(INSERT_BUFFER_SIZE, String.valueOf(INSERT_BUFFER_SIZE_DEFAULT));
-        this.imports = new Imports();
+    }
+
+    public Configuration() {
+        this(System.getProperties());
     }
 
     private void setIfAbsent(String key, String value) {
         if (!contains(key)) {
             setProperty(key, value);
         }
+    }
+
+    public Configuration set(String key, String value) {
+        this.setProperty(key, value);
+        return this;
     }
 
     @Override
@@ -81,10 +78,25 @@ public class Configuration extends Properties implements Copyable<Configuration>
         return super.setProperty(key, value);
     }
 
+    /**
+     * Retrieves the value of a property as a boolean.
+     *
+     * @param property the name of the property
+     * @return the value of the property as a boolean
+     */
     public boolean getAsBoolean(String property) {
         return Boolean.parseBoolean(getProperty(property));
     }
 
+    /**
+     * Retrieves the value of a property as a boolean. If the property is not found,
+     * it returns the default value provided.
+     *
+     * @param property     the name of the property
+     * @param defaultValue the default value to be returned if the property is not found
+     * @return the value of the property as a boolean, or the default value if the property is not found
+     */
+    @SuppressWarnings("unused")
     public boolean getAsBoolean(String property, boolean defaultValue) {
         String prop = getProperty(property, Boolean.toString(defaultValue));
         return Boolean.parseBoolean(prop);

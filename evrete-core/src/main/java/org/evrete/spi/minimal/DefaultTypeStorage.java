@@ -1,31 +1,29 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.Type;
-import org.evrete.api.TypeResolver;
+import org.evrete.api.TypeStorage;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.annotations.Nullable;
-import org.evrete.collections.ArrayOf;
+import org.evrete.util.ArrayOf;
 import org.evrete.util.TypeWrapper;
 
 import java.util.*;
 import java.util.logging.Logger;
 
-class DefaultTypeResolver implements TypeResolver {
-    private static final Logger LOGGER = Logger.getLogger(DefaultTypeResolver.class.getName());
+class DefaultTypeStorage implements TypeStorage {
+    private static final Logger LOGGER = Logger.getLogger(DefaultTypeStorage.class.getName());
     private final Map<String, Type<?>> typeDeclarationMap = new HashMap<>();
     private final Map<Integer, Type<?>> typesById = new HashMap<>();
     private final Map<String, ArrayOf<Type<?>>> typesByJavaType = new HashMap<>();
 
     private final Map<String, TypeCacheEntry> typeInheritanceCache = new HashMap<>();
-    private final ClassLoader classLoader;
     private int fieldSetsCounter = 0;
 
-    DefaultTypeResolver(ClassLoader classLoader) {
-        this.classLoader = classLoader;
+    DefaultTypeStorage() {
+
     }
 
-    private DefaultTypeResolver(DefaultTypeResolver other) {
-        this.classLoader = other.classLoader;
+    private DefaultTypeStorage(DefaultTypeStorage other) {
         this.fieldSetsCounter = other.fieldSetsCounter;
         for (Map.Entry<String, Type<?>> entry : other.typeDeclarationMap.entrySet()) {
             Type<?> clonedType = entry.getValue().copyOf();
@@ -126,7 +124,7 @@ class DefaultTypeResolver implements TypeResolver {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> Class<T> classForName(String javaType) {
+    private <T> Class<T> classForName(ClassLoader classLoader, String javaType) {
         try {
             Class<?> clazz = primitiveClassForName(javaType);
             if (clazz == null) {
@@ -140,9 +138,9 @@ class DefaultTypeResolver implements TypeResolver {
 
     @NonNull
     @Override
-    public synchronized <T> Type<T> declare(@NonNull String typeName, @NonNull String javaType) {
+    public synchronized <T> Type<T> declare(ClassLoader classLoader,  @NonNull String typeName, @NonNull String javaType) {
         return saveNewType(typeName, new TypeImpl<>(typeName, javaType, newId(), () -> {
-            Class<T> resolvedJavaType = classForName(javaType);
+            Class<T> resolvedJavaType = classForName(classLoader, javaType);
             if (resolvedJavaType == null) {
                 throw new IllegalStateException("Unable to resolve Java class '" + javaType + "'");
             } else {
@@ -232,8 +230,8 @@ class DefaultTypeResolver implements TypeResolver {
     }
 
     @Override
-    public DefaultTypeResolver copyOf() {
-        return new DefaultTypeResolver(this);
+    public DefaultTypeStorage copyOf() {
+        return new DefaultTypeStorage(this);
     }
 
     private static class TypeCacheEntry {

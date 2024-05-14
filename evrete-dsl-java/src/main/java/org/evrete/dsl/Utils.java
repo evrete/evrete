@@ -1,20 +1,28 @@
 package org.evrete.dsl;
 
 import org.evrete.api.FieldReference;
+import org.evrete.api.Knowledge;
 import org.evrete.dsl.annotation.*;
+import org.evrete.util.CollectionUtils;
 
+import java.io.*;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.function.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 import java.util.logging.Logger;
+import java.util.stream.*;
 
 final class Utils {
     static final Logger LOGGER = Logger.getLogger(Utils.class.getPackage().getName());
 
+
+    //TODO remove this double scan
     static Collection<Method> allNonPublicAnnotated(Class<?> clazz) {
         Class<?> current = clazz;
         Set<Method> methods = new HashSet<>();
@@ -65,6 +73,8 @@ final class Utils {
                 m.getAnnotation(Where.class) != null
                 ||
                 m.getAnnotation(FieldDeclaration.class) != null
+                ||
+                m.getAnnotation(EnvironmentListener.class) != null
                 ;
     }
 
@@ -129,6 +139,92 @@ final class Utils {
             }
         } else {
             return type;
+        }
+    }
+
+    static Stream<JarBytesEntry> jarStream(JarInputStream stream) {
+        return StreamSupport.stream(jarIterator(stream), false)
+                .onClose(() -> {
+                    try {
+                        stream.close();
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                })
+                .filter(wrapper -> wrapper.bytesEntry != null)
+                .map(wrapper -> wrapper.bytesEntry);
+    }
+
+    private static Spliterator<JarEntryWrapper> jarIterator(JarInputStream stream) {
+        return Spliterators.spliterator(new JarIterator(stream), Long.MAX_VALUE, Spliterator.IMMUTABLE);
+    }
+
+    private static class JarIterator implements Iterator<JarEntryWrapper> {
+        private final JarInputStream stream;
+        private JarEntryWrapper entry;
+        private final byte[] buffer = new byte[4096];
+
+        JarIterator(JarInputStream stream) {
+            this.stream = stream;
+            this.advance();
+        }
+
+        private void advance() {
+            try {
+                JarEntry next = stream.getNextJarEntry();
+                if(next == null) {
+                    entry = null;
+                } else {
+                    if(next.isDirectory()) {
+                        entry = new JarEntryWrapper(next, null);
+                    } else {
+                        byte[] bytes = toBytes(stream, this.buffer);
+                        entry = new JarEntryWrapper(next, new JarBytesEntry(next.getName(), bytes));
+                    }
+                }
+            } catch (IOException e) {
+                try {
+                    stream.close();
+                    throw new UncheckedIOException(e);
+                } catch (IOException ex) {
+                    throw new UncheckedIOException(ex);
+                }
+            }
+        }
+
+        private static byte[] toBytes(JarInputStream is, byte[] buffer) throws IOException {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            int read;
+            while ((read = is.read(buffer)) != -1) {
+                bos.write(buffer, 0, read);
+            }
+            bos.flush();
+            bos.close();
+            return bos.toByteArray();
+        }
+
+
+        @Override
+        public boolean hasNext() {
+            return entry != null;
+        }
+
+        @Override
+        public JarEntryWrapper next() {
+            JarEntryWrapper result = entry;
+            advance();
+            return result;
+        }
+    }
+
+
+    private static class JarEntryWrapper {
+        final JarEntry entry;
+        final JarBytesEntry bytesEntry;
+
+        JarEntryWrapper(JarEntry entry, JarBytesEntry bytesEntry) {
+            this.entry = entry;
+            this.bytesEntry = bytesEntry;
         }
     }
 }

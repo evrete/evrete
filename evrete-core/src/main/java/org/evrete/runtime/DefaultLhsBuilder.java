@@ -11,7 +11,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-class DefaultLhsBuilder<C extends RuntimeContext<C>> extends DefaultTypeResolver implements LhsBuilder<C> {
+class DefaultLhsBuilder<C extends RuntimeContext<C>> extends DefaultNamedTypeResolver implements LhsBuilder<C> {
     private final DefaultRuleBuilder<C> ruleBuilder;
     private final AbstractRuntime<?, C> runtime;
     private final LhsConditions conditions = new LhsConditions();

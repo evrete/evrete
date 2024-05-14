@@ -2,17 +2,10 @@ package org.evrete.runtime;
 
 import org.evrete.Configuration;
 import org.evrete.api.MemoryFactory;
-import org.evrete.api.Type;
-import org.evrete.api.TypeResolver;
 import org.evrete.api.ValueResolver;
-import org.evrete.api.annotations.NonNull;
-import org.evrete.api.annotations.Nullable;
-import org.evrete.collections.ArrayOf;
-import org.evrete.util.TypeWrapper;
+import org.evrete.util.ArrayOf;
 
-import java.util.Collection;
-
-abstract class MemoryComponent implements TypeResolver {
+abstract class MemoryComponent {
     final MemoryFactory memoryFactory;
     final Configuration configuration;
     final ValueResolver valueResolver;
@@ -47,49 +40,5 @@ abstract class MemoryComponent implements TypeResolver {
     public final void clear() {
         clearLocalData();
         childComponents.forEach(MemoryComponent::clear);
-    }
-
-    @Override
-    public TypeResolver copyOf() {
-        return runtime.copyOf();
-    }
-
-    @Nullable
-    @Override
-    public <T> Type<T> getType(String name) {
-        return runtime.getType(name);
-    }
-
-    @NonNull
-    @Override
-    public <T> Type<T> getType(int typeId) {
-        return runtime.getType(typeId);
-    }
-
-    @Override
-    public Collection<Type<?>> getKnownTypes() {
-        return runtime.getKnownTypes();
-    }
-
-    @Override
-    public void wrapType(TypeWrapper<?> typeWrapper) {
-        runtime.wrapType(typeWrapper);
-    }
-
-    @Override
-    @NonNull
-    public <T> Type<T> declare(@NonNull String typeName, @NonNull Class<T> javaType) {
-        return runtime.declare(typeName, javaType);
-    }
-
-    @NonNull
-    @Override
-    public <T> Type<T> declare(@NonNull String typeName, @NonNull String javaType) {
-        return runtime.declare(typeName, javaType);
-    }
-
-    @Override
-    public <T> Type<T> resolve(Object o) {
-        return runtime.resolve(o);
     }
 }

@@ -82,19 +82,55 @@ public class KnowledgeService {
      * @return an empty {@link Knowledge} instance
      */
     public Knowledge newKnowledge() {
-        return new KnowledgeRuntime(this);
+        return newKnowledge((String) null);
+    }
+
+    /**
+     * @return an empty {@link Knowledge} instance
+     */
+    public Knowledge newKnowledge(String name) {
+        return new KnowledgeRuntime(this, name);
     }
 
     /**
      * @param typeResolver the type resolver to use in the newly created Knowledge instance
      * @return an empty {@link Knowledge} instance
+     * @deprecated use the default {@link #newKnowledge()} method
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     public Knowledge newKnowledge(TypeResolver typeResolver) {
-        return new KnowledgeRuntime(this, typeResolver);
+        return newKnowledge();
+    }
+    /**
+     * @param typeResolver the type resolver to use in the newly created Knowledge instance
+     * @return an empty {@link Knowledge} instance
+     * @deprecated use the default {@link #newKnowledge(String)} method
+     */
+    @Deprecated
+    @SuppressWarnings("unused")
+    public Knowledge newKnowledge(TypeResolver typeResolver, String name) {
+        return new KnowledgeRuntime(this, name);
     }
 
+    /**
+     * Creates a new TypeResolver instance.
+     *
+     * @return New TypeResolver instance.
+     * @deprecated This method is deprecated and will be removed in future releases.
+     */
+    @Deprecated
     public TypeResolver newTypeResolver() {
         return typeResolverProvider.instance(this.classLoader);
+    }
+
+    /**
+     * Creates a new TypeStorage instance.
+     *
+     * @return New TypeStorage instance.
+     */
+    public TypeStorage newTypeStorage() {
+        return typeResolverProvider.newStorage();
     }
 
     /**
@@ -106,29 +142,9 @@ public class KnowledgeService {
      * @return new instance of DSL provider
      * @throws IllegalStateException if no implementation found by the given name
      */
+    //TODO mark as deprecated
     public DSLKnowledgeProvider getDSL(String dsl) {
-        Objects.requireNonNull(dsl);
-        ServiceLoader<DSLKnowledgeProvider> loader = ServiceLoader.load(DSLKnowledgeProvider.class);
-
-        List<DSLKnowledgeProvider> found = new LinkedList<>();
-        StringJoiner knownProviders = new StringJoiner(",", "[", "]");
-        for (DSLKnowledgeProvider provider : loader) {
-            String name = provider.getName();
-            if (dsl.equals(name)) {
-                found.add(provider);
-            }
-            knownProviders.add("'" + name + "' = " + provider.getClass());
-        }
-
-        if (found.isEmpty()) {
-            throw new IllegalStateException("DSL provider '" + dsl + "' is not found. Make sure the corresponding implementation is available on the classpath. Available providers: " + knownProviders);
-        }
-
-        if (found.size() > 1) {
-            throw new IllegalStateException("Multiple DSL providers found implementing the '" + dsl + "' language. Known providers: " + knownProviders);
-        } else {
-            return found.iterator().next();
-        }
+        return DSLKnowledgeProvider.load(dsl);
     }
 
     /**
@@ -140,13 +156,9 @@ public class KnowledgeService {
      * @return new instance of DSL provider
      * @throws IllegalStateException if implementation could not be instantiated
      */
+    //TODO mark as deprecated
     public DSLKnowledgeProvider getDSL(Class<? extends DSLKnowledgeProvider> dsl) {
-        Objects.requireNonNull(dsl);
-        try {
-            return dsl.getConstructor().newInstance();
-        } catch (Exception e) {
-            throw new IllegalStateException("Unable to instantiate DSL class instance", e);
-        }
+        return DSLKnowledgeProvider.load(dsl);
     }
 
     /**
@@ -195,9 +207,12 @@ public class KnowledgeService {
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated use the {@link #newKnowledge(Class, File[])} method instead
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, TypeResolver resolver, File... resources) throws IOException {
-        return getDSL(dsl).create(this, resolver, resources);
+        return getDSL(dsl).create(this, resources);
     }
 
     /**
@@ -206,9 +221,12 @@ public class KnowledgeService {
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated use the {@link #newKnowledge(String, File[])} method instead
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     public Knowledge newKnowledge(String dsl, TypeResolver resolver, File... resources) throws IOException {
-        return getDSL(dsl).create(this, resolver, resources);
+        return getDSL(dsl).create(this, resources);
     }
 
     /**
@@ -217,9 +235,12 @@ public class KnowledgeService {
      * @param resources    DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated use the {@link #newKnowledge(String, URL[])} method instead
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     public Knowledge newKnowledge(String dsl, TypeResolver typeResolver, URL... resources) throws IOException {
-        return getDSL(dsl).create(this, typeResolver, resources);
+        return getDSL(dsl).create(this, resources);
     }
 
     /**
@@ -228,9 +249,12 @@ public class KnowledgeService {
      * @param resources    DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated use the {@link #newKnowledge(Class, URL[])} method instead
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, TypeResolver typeResolver, URL... resources) throws IOException {
-        return getDSL(dsl).create(this, typeResolver, resources);
+        return getDSL(dsl).create(this, resources);
     }
 
     /**
@@ -301,9 +325,12 @@ public class KnowledgeService {
      * @param resources    DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated use the {@link #newKnowledge(String, InputStream[])} method instead
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     public Knowledge newKnowledge(String dsl, TypeResolver typeResolver, InputStream... resources) throws IOException {
-        return getDSL(dsl).create(this, typeResolver, resources);
+        return getDSL(dsl).create(this, resources);
     }
 
     /**
@@ -312,9 +339,12 @@ public class KnowledgeService {
      * @param resources    DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated use the {@link #newKnowledge(String, InputStream[])} method instead
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, TypeResolver typeResolver, InputStream... resources) throws IOException {
-        return getDSL(dsl).create(this, typeResolver, resources);
+        return getDSL(dsl).create(this, resources);
     }
 
     /**

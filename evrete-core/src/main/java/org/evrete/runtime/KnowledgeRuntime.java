@@ -13,13 +13,15 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
     private final Object VALUE = new Object();
     private final SearchList<RuleDescriptorImpl> ruleDescriptors = new SearchList<>();
 
-    public KnowledgeRuntime(KnowledgeService service) {
-        super(service);
+    public KnowledgeRuntime(KnowledgeService service, String name) {
+        super(service, name);
     }
 
-    public KnowledgeRuntime(KnowledgeService service, TypeResolver typeResolver) {
-        super(service, typeResolver);
+/*
+    public KnowledgeRuntime(KnowledgeService service, String name, TypeResolver typeResolver) {
+        super(service, name, typeResolver);
     }
+*/
 
     @Override
     public void onNewActiveField(ActiveField newField) {

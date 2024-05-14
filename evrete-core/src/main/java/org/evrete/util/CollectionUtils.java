@@ -4,6 +4,7 @@ import org.evrete.api.ReIterator;
 
 import java.lang.reflect.Array;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -107,6 +108,23 @@ public final class CollectionUtils {
             }
         }
         return response;
+    }
+
+    public static Optional<Collection<?>> resolveCollection(Object o) {
+
+        if (o.getClass().isArray()) {
+            return Optional.of(Arrays.asList((Object[]) o));
+        } else if (o instanceof Iterable) {
+            Collection<Object> ret = new LinkedList<>();
+            ((Iterable<?>) o).forEach((Consumer<Object>) ret::add);
+            return Optional.of(ret);
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    public static Collection<?> toCollection(Object o) {
+        return resolveCollection(o).orElse(Collections.singleton(o));
     }
 
     public static void systemFill(int[] array, int value) {

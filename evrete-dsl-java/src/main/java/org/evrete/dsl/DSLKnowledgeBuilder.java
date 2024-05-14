@@ -16,13 +16,12 @@ import java.util.List;
 
 import static org.evrete.Configuration.RULE_BASE_CLASS;
 
-class DSLKnowledge extends KnowledgeWrapper {
+class DSLKnowledgeBuilder  {
     private final Constructor<?> constructor;
     private final RulesetMeta meta;
     private final List<DSLRule> rules = new ArrayList<>();
 
-    DSLKnowledge(Knowledge delegate, RuleSetBuilder<Knowledge> rulesetBuilder, RulesetMeta meta) {
-        super(delegate);
+    DSLKnowledgeBuilder(RuleSetBuilder<Knowledge> rulesetBuilder, RulesetMeta meta) {
         this.meta = meta;
         try {
             this.constructor = meta.javaClass.getConstructor();
@@ -30,10 +29,12 @@ class DSLKnowledge extends KnowledgeWrapper {
             throw new MalformedResourceException("Unable to locate a zero-arg public constructor in the " + meta.javaClass, e);
         }
 
+        Knowledge context = rulesetBuilder.getContext();
+
         // Field declarations must be applied before any rules. At this stage, we'll be using a dummy
         // "not supported" declaration so that rule builders would be able to resolve fields.
         FieldDeclarations fieldDeclarations = meta.fieldDeclarations;
-        fieldDeclarations.applyInitial(getTypeResolver());
+        fieldDeclarations.applyInitial(context.getTypeResolver());
 
         // Building rules
         RuleSet.Sort defaultSort = Utils.deriveSort(meta.javaClass);
@@ -68,14 +69,14 @@ class DSLKnowledge extends KnowledgeWrapper {
                 String methodName = mp.method();
 
                 String[] args = mp.args();
-                final FieldReference[] descriptor = getExpressionResolver().resolve(lhs, args);
+                final FieldReference[] descriptor = context.getExpressionResolver().resolve(lhs, args);
                 Class<?>[] signature = Utils.asMethodSignature(descriptor);
                 MethodType methodType = MethodType.methodType(boolean.class, signature);
                 ClassMethod mv = ClassMethod.lookup(meta.lookup, meta.javaClass, methodName, methodType);
 
                 // Creating a dummy condition and necessary information to update that condition
                 // upon session initialization
-                EvaluatorHandle evaluatorHandle = this.addEvaluator(new DummyEvaluator(descriptor));
+                EvaluatorHandle evaluatorHandle = context.addEvaluator(new DummyEvaluator(descriptor));
                 lhs.where(evaluatorHandle);
                 predicateMethods.add(new PredicateMethod(mv, descriptor, evaluatorHandle));
             }
@@ -88,10 +89,11 @@ class DSLKnowledge extends KnowledgeWrapper {
         }
 
         // There is one listener that should be called right now
-        meta.phaseListeners.fire(Phase.BUILD, this);
+        meta.phaseListeners.fire(Phase.BUILD, context);
     }
 
 
+    //TODO remove
     private static String canonicalName(Class<?> cl) {
         try {
             return cl.getCanonicalName();
@@ -100,6 +102,7 @@ class DSLKnowledge extends KnowledgeWrapper {
         }
     }
 
+/*
     @Override
     public StatefulSession newStatefulSession() {
         return new DSLStatefulSession(super.newStatefulSession(), meta, meta.fieldDeclarations, rules, classInstance());
@@ -116,6 +119,7 @@ class DSLKnowledge extends KnowledgeWrapper {
         meta.envListeners.fire(property, value, true);
         return this;
     }
+*/
 
     private Object classInstance() {
         try {

@@ -5,7 +5,7 @@ import org.evrete.api.FactHandle;
 import org.evrete.api.FactHandleVersioned;
 import org.evrete.api.FactStorage;
 import org.evrete.api.Type;
-import org.evrete.collections.ArrayOf;
+import org.evrete.util.ArrayOf;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -18,7 +18,7 @@ class TypeMemoryBase extends MemoryComponent {
     TypeMemoryBase(SessionMemory sessionMemory, int type) {
         super(sessionMemory);
         this.memoryBuckets = new ArrayOf<>(KeyMemoryBucket.class);
-        Type<?> t = getType(type);
+        Type<?> t = getRuntime().getTypeResolver().getType(type);
         this.type = t;
         String identityMethod = configuration.getProperty(Configuration.OBJECT_COMPARE_METHOD);
         switch (identityMethod) {

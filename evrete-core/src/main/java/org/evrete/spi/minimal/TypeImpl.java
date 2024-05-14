@@ -3,7 +3,7 @@ package org.evrete.spi.minimal;
 import org.evrete.api.Type;
 import org.evrete.api.TypeField;
 import org.evrete.api.annotations.NonNull;
-import org.evrete.collections.ArrayOf;
+import org.evrete.util.ArrayOf;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -330,5 +330,4 @@ class TypeImpl<T> implements Type<T> {
             return resolved;
         }
     }
-
 }

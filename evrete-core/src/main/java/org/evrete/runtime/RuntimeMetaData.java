@@ -2,45 +2,38 @@ package org.evrete.runtime;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
-import org.evrete.api.annotations.NonNull;
-import org.evrete.collections.ArrayOf;
 import org.evrete.runtime.evaluation.EvaluatorWrapper;
-import org.evrete.util.TypeResolverWrapper;
-import org.evrete.util.TypeWrapper;
+import org.evrete.util.AbstractEnvironment;
+import org.evrete.util.ArrayOf;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeContext<C>, MetaChangeListener, TypeResolver {
+abstract class RuntimeMetaData<C extends RuntimeContext<C>> extends AbstractEnvironment implements RuntimeContext<C>, MetaChangeListener {
     private static final Comparator<ActiveField> DEFAULT_FIELD_COMPARATOR = Comparator.comparing(ActiveField::getValueIndex);
     private final Imports imports;
-    private final Map<String, Object> properties;
     private final ArrayOf<TypeMemoryMetaData> typeMetas;
     private final ArrayOf<FieldsKey> memoryKeys;
     private final EvaluatorStorageImpl evaluators;
     private final AtomicInteger bucketIds;
-    private TypeResolver typeResolver;
-    //private ClassLoader classLoader;
 
-    RuntimeMetaData(KnowledgeService service, TypeResolver typeResolver) {
-        //this.classLoader = service.getClassLoader();
-        this.typeResolver = typeResolver;
+    RuntimeMetaData(KnowledgeService service) {
+        super(service.getConfiguration());
         this.imports = service.getConfiguration().getImports().copyOf();
         this.typeMetas = new ArrayOf<>(TypeMemoryMetaData.class);
         this.memoryKeys = new ArrayOf<>(FieldsKey.class);
-        this.properties = new ConcurrentHashMap<>();
         this.evaluators = new EvaluatorStorageImpl();
         this.bucketIds = new AtomicInteger(0);
     }
 
     RuntimeMetaData(RuntimeMetaData<?> parent) {
-        //this.classLoader = parent.classLoader;
-        this.typeResolver = parent.typeResolver.copyOf();
+        super(parent);
         this.imports = parent.imports.copyOf();
         this.evaluators = parent.evaluators.copyOf();
         this.bucketIds = new AtomicInteger(parent.bucketIds.get());
-        this.properties = new ConcurrentHashMap<>(parent.properties);
         this.memoryKeys = new ArrayOf<>(parent.memoryKeys);
         this.typeMetas = new ArrayOf<>(TypeMemoryMetaData.class);
 
@@ -54,6 +47,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
         return evaluators;
     }
 
+/*
     @Override
     @Deprecated
     public final void wrapTypeResolver(TypeResolverWrapper wrapper) {
@@ -64,6 +58,7 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     public final TypeResolver getTypeResolver() {
         return typeResolver;
     }
+*/
 
     @Override
     public EvaluatorHandle addEvaluator(Evaluator evaluator, double complexity) {
@@ -160,30 +155,13 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     @Override
     @SuppressWarnings("unchecked")
     public final C set(String property, Object value) {
-        this.properties.put(property, value);
+        super.set(property, value);
         return (C) this;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public final <T> T get(String property) {
-        return (T) properties.get(property);
-    }
-
-    @SuppressWarnings("unused")
-    @Override
-    public final Collection<String> getPropertyNames() {
-        return properties.keySet();
     }
 
     public abstract ExpressionResolver getExpressionResolver();
 
-
-    @Override
-    public TypeResolver copyOf() {
-        return typeResolver.copyOf();
-    }
-
+/*
     @Override
     public <T> Type<T> getType(String name) {
         return typeResolver.getType(name);
@@ -199,7 +177,9 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     public Collection<Type<?>> getKnownTypes() {
         return typeResolver.getKnownTypes();
     }
+*/
 
+/*
     @Override
     public void wrapType(TypeWrapper<?> typeWrapper) {
         typeResolver.wrapType(typeWrapper);
@@ -216,9 +196,12 @@ abstract class RuntimeMetaData<C extends RuntimeContext<C>> implements RuntimeCo
     public <T> Type<T> declare(@NonNull String typeName, @NonNull String javaType) {
         return typeResolver.declare(typeName, javaType);
     }
+*/
 
+/*
     @Override
     public <T> Type<T> resolve(Object o) {
         return typeResolver.resolve(o);
     }
+*/
 }

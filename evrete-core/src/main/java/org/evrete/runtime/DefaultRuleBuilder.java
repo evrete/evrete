@@ -1,6 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.AbstractRule;
 import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.builders.RuleBuilder;
@@ -17,7 +16,7 @@ class DefaultRuleBuilder<C extends RuntimeContext<C>> extends AbstractRule imple
     private final DefaultRuleSetBuilder<C> ruleSetBuilder;
 
     DefaultRuleBuilder(DefaultRuleSetBuilder<C> ruleSetBuilder, String name) {
-        super(name);
+        super(ruleSetBuilder, name);
         this.ruleSetBuilder = ruleSetBuilder;
         this.lhsBuilder = new DefaultLhsBuilder<>(this);
     }
@@ -40,6 +39,7 @@ class DefaultRuleBuilder<C extends RuntimeContext<C>> extends AbstractRule imple
         return lhsBuilder.getDeclaredFactTypes();
     }
 
+
     @Override
     public DefaultRuleBuilder<C> set(String property, Object value) {
         super.set(property, value);
@@ -56,12 +56,6 @@ class DefaultRuleBuilder<C extends RuntimeContext<C>> extends AbstractRule imple
     @NonNull
     public NamedType resolve(@NonNull String var) {
         return lhsBuilder.resolve(var);
-    }
-
-    @Override
-    public <Z> RuleBuilder<C> property(String property, Z value) {
-        this.set(property, value);
-        return this;
     }
 
     @Override

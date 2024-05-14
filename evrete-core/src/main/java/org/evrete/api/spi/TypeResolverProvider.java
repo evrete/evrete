@@ -3,6 +3,7 @@ package org.evrete.api.spi;
 import org.evrete.api.OrderedServiceProvider;
 import org.evrete.api.RuntimeContext;
 import org.evrete.api.TypeResolver;
+import org.evrete.api.TypeStorage;
 
 /**
  * The TypeResolverProvider interface represents a service provider interface (SPI)
@@ -20,8 +21,9 @@ public interface TypeResolverProvider extends OrderedServiceProvider {
      * @param context The runtime context from which the class loader will be retrieved.
      * @return An instance of TypeResolver suitable for the given context.
      */
+    @Deprecated
     default TypeResolver instance(RuntimeContext<?> context) {
-        return instance(context.getClassLoader());
+        throw new UnsupportedOperationException("Deprecated");
     }
 
     /**
@@ -29,6 +31,17 @@ public interface TypeResolverProvider extends OrderedServiceProvider {
      *
      * @param classLoader The class loader to be used for loading classes and resources.
      * @return An instance of TypeResolver configured to use the given ClassLoader.
+     * @deprecated use the {@link #instance(RuntimeContext)} method instead
      */
-    TypeResolver instance(ClassLoader classLoader);
+    @Deprecated
+    default TypeResolver instance(ClassLoader classLoader) {
+        throw new UnsupportedOperationException("Deprecated");
+    }
+
+    /**
+     * Provides an instance of TypeStorage.
+     *
+     * @return An instance of TypeResolver suitable for the given context.
+     */
+    TypeStorage newStorage();
 }

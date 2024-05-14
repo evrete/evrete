@@ -1,6 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.AbstractRule;
 import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.runtime.evaluation.EvaluatorOfArray;
@@ -19,7 +18,7 @@ class RuleBuilderImpl<C extends RuntimeContext<C>> extends AbstractRule implemen
     private final LhsBuilderImpl<C> lhsBuilder;
 
     RuleBuilderImpl(AbstractRuntime<?, C> ctx, String name) {
-        super(name);
+        super(ctx, name);
         this.runtime = ctx;
         this.lhsBuilder = new LhsBuilderImpl<>(this);
     }

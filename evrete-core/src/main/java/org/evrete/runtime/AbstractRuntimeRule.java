@@ -1,6 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.AbstractRule;
 import org.evrete.api.LiteralExpression;
 import org.evrete.api.NamedType;
 import org.evrete.api.Type;
@@ -14,7 +13,7 @@ public abstract class AbstractRuntimeRule<T extends FactType> extends AbstractRu
     final T[] factTypes;
     private final AbstractRuntime<?, ?> runtime;
     private final Map<String, T> typeMapping = new HashMap<>();
-    private final DefaultTypeResolver typeResolver = new DefaultTypeResolver();
+    private final DefaultNamedTypeResolver typeResolver = new DefaultNamedTypeResolver();
 
 
     AbstractRuntimeRule(AbstractRuntime<?, ?> runtime, AbstractRule other, T[] factTypes) {

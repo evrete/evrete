@@ -13,7 +13,7 @@ import java.util.Collection;
  * class. This allows instances of the same Java class to be treated as having different logical types.
  * </p>
  */
-public interface TypeResolver {
+public interface TypeStorage extends Copyable<TypeStorage> {
 
     /**
      * @param name type's declared name
@@ -40,28 +40,6 @@ public interface TypeResolver {
     Collection<Type<?>> getKnownTypes();
 
     /**
-     * Wraps a given TypeWrapper instance and delegates the calls to another Type implementation.
-     *
-     * @param typeWrapper the TypeWrapper instance to be wrapped
-     */
-    void wrapType(TypeWrapper<?> typeWrapper);
-
-    /**
-     * <p>
-     * Declares and registers new {@link Type} with the given Java class name.
-     * The logical name of the resulting type will be {@link Class#getName()}
-     * </p>
-     *
-     * @param type Java class
-     * @param <T>  java class type parameter
-     * @return new internal type
-     * @throws IllegalStateException if such type name has been already declared
-     */
-    default <T> Type<T> declare(@NonNull Class<T> type) {
-        return declare(type.getName(), type);
-    }
-
-    /**
      * <p>
      * Declares and registers new {@link Type} with the given type name and Java class
      * </p>
@@ -74,6 +52,8 @@ public interface TypeResolver {
      */
     @NonNull
     <T> Type<T> declare(@NonNull String typeName, @NonNull Class<T> javaType);
+
+    void wrapType(TypeWrapper<?> typeWrapper);
 
     /**
      * <p>
@@ -89,33 +69,7 @@ public interface TypeResolver {
      * @throws IllegalStateException if such type name has been already declared
      */
     @NonNull
-    <T> Type<T> declare(@NonNull String typeName, @NonNull String javaType);
-
-    @NonNull
-    default <T> Type<T> getOrDeclare(String typeName, Class<T> javaType) {
-        Type<T> t = getType(typeName);
-        if (t == null) {
-            t = declare(typeName, javaType);
-        }
-        return t;
-    }
-
-    @NonNull
-    default <T> Type<T> getOrDeclare(String typeName, String javaType) {
-        Type<T> t = getType(typeName);
-        if (t == null) {
-            t = declare(typeName, javaType);
-        }
-        return t;
-    }
-
-    default <T> Type<T> getOrDeclare(String typeName) {
-        return getOrDeclare(typeName, typeName);
-    }
-
-    default <T> Type<T> getOrDeclare(Class<T> cl) {
-        return getOrDeclare(cl.getName(), cl);
-    }
+    <T> Type<T> declare(ClassLoader classLoader, @NonNull String typeName, @NonNull String javaType);
 
 
     /**

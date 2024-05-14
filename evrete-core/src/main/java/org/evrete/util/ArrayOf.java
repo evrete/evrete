@@ -1,6 +1,4 @@
-package org.evrete.collections;
-
-import org.evrete.util.CollectionUtils;
+package org.evrete.util;
 
 import java.util.Arrays;
 import java.util.function.Consumer;

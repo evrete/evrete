@@ -1,13 +1,11 @@
-package org.evrete;
+package org.evrete.runtime;
 
 import org.evrete.api.RhsContext;
 import org.evrete.api.Rule;
 import org.evrete.api.annotations.Nullable;
+import org.evrete.util.AbstractEnvironment;
 
-import java.util.Collection;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
@@ -15,28 +13,27 @@ import java.util.logging.Logger;
  * Abstract base class that implements the {@link Rule} interface.
  * It provides basic functionality common to all implementations of the {@link Rule} interface.
  */
-public abstract class AbstractRule implements Rule {
+public abstract class AbstractRule extends AbstractEnvironment implements Rule {
     public static final int NULL_SALIENCE = Integer.MIN_VALUE;
 
     private static final Logger LOGGER = Logger.getLogger(AbstractRule.class.getName());
     private final Consumer<RhsContext> nullRhs;
-    private final Map<String, Object> properties;
     protected Consumer<RhsContext> rhs;
     private String name;
     private int salience;
     private String literalRhs;
 
-    protected AbstractRule(String name) {
+    protected AbstractRule(AbstractEnvironment environment, String name) {
+        super(environment);
         this.name = Objects.requireNonNull(name);
-        this.properties = new ConcurrentHashMap<>();
         this.salience = NULL_SALIENCE;
         this.nullRhs = arg -> LOGGER.warning("No RHS is set for rule '" + AbstractRule.this.name + '\'');
         this.rhs = nullRhs;
     }
 
     protected AbstractRule(AbstractRule other, String ruleName, int salience) {
+        super(other);
         this.name = ruleName;
-        this.properties = new ConcurrentHashMap<>(other.properties);
         this.salience = salience;
         this.nullRhs = other.nullRhs;
         this.rhs = other.rhs;
@@ -58,11 +55,8 @@ public abstract class AbstractRule implements Rule {
         this.literalRhs = literalRhs;
     }
 
-    @Override
-    public Collection<String> getPropertyNames() {
-        return properties.keySet();
-    }
 
+    @Nullable
     public String getLiteralRhs() {
         return literalRhs;
     }
@@ -79,14 +73,8 @@ public abstract class AbstractRule implements Rule {
 
     @Override
     public Rule set(String property, Object value) {
-        this.properties.put(property, value);
+        super.set(property, value);
         return this;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public final <T> T get(String property) {
-        return (T) properties.get(property);
     }
 
     @Override
