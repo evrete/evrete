@@ -75,5 +75,12 @@ subprojects {
     tasks.withType<JavaCompile> {
         options.compilerArgs.add("-Xlint:deprecation")
     }
+
+    tasks.withType<Test> {
+        testLogging.showStandardStreams = true
+        val loggingConfigFile = project.file("src/test/resources/logging.properties").absolutePath
+        jvmArgs = listOf("-Djava.util.logging.config.file=$loggingConfigFile")
+    }
 }
+
 

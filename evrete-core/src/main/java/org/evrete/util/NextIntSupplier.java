@@ -5,6 +5,7 @@ import org.evrete.api.Copyable;
 /**
  * Supplier of consecutive integer values.
  */
+//TODO remove the class
 public class NextIntSupplier implements Copyable<NextIntSupplier> {
     private int counter;
 
@@ -16,7 +17,7 @@ public class NextIntSupplier implements Copyable<NextIntSupplier> {
         this(0);
     }
 
-    public int next() {
+    public int incrementAndGet() {
         return counter++;
     }
 

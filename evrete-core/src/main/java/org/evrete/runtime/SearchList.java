@@ -5,20 +5,45 @@ import org.evrete.api.annotations.NonNull;
 import org.evrete.api.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 public class SearchList<T extends Named> implements Iterable<T> {
     private final List<T> list = new ArrayList<>();
     private final Map<String, T> map = new HashMap<>();
 
     public void add(T t) {
-        this.list.add(t);
-        this.map.put(t.getName(), t);
+        synchronized (list) {
+            this.list.add(t);
+            this.map.put(t.getName(), t);
+        }
+    }
+
+    public void addAll(Collection<T> collection) {
+        synchronized (list) {
+            for (T t : collection) {
+                this.list.add(t);
+                this.map.put(t.getName(), t);
+            }
+        }
+    }
+
+    public void addAllAndSort(Collection<T> collection, Comparator<? super T> comparator) {
+        synchronized (list) {
+            for (T t : collection) {
+                this.list.add(t);
+                this.map.put(t.getName(), t);
+            }
+            this.list.sort(comparator);
+        }
     }
 
     public void sort(Comparator<? super T> comparator) {
-        this.list.sort(comparator);
+        synchronized (list) {
+            this.list.sort(comparator);
+        }
     }
 
+    @SuppressWarnings("NullableProblems")
     @NonNull
     @Override
     public Iterator<T> iterator() {
@@ -27,6 +52,10 @@ public class SearchList<T extends Named> implements Iterable<T> {
 
     public List<T> getList() {
         return list;
+    }
+
+    public Stream<T> stream() {
+        return list.stream();
     }
 
     @Nullable

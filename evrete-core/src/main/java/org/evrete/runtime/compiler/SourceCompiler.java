@@ -9,6 +9,7 @@ import java.io.UncheckedIOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+//TODO make a SPI !!!
 public class SourceCompiler implements JavaSourceCompiler {
     private final static String COMPILER_PARAM_OPTION = "-parameters";
     private final RuntimeClassloader classLoader;
@@ -19,15 +20,13 @@ public class SourceCompiler implements JavaSourceCompiler {
         this.compiler = Objects.requireNonNull(ToolProvider.getSystemJavaCompiler(), "No Java compiler provided by this platform");
     }
 
-    @Override
-    public void defineClass(String binaryName, byte[] classBytes) {
-        this.classLoader.saveClass(binaryName, classBytes);
-    }
-
-    @Override
-    public ClassSource resolve(String classSource) {
-        return JavaSourceObject.parse(classSource);
-    }
+//    public void defineClass(String binaryName, byte[] classBytes) {
+//        this.classLoader.saveClass(binaryName, classBytes);
+//    }
+//
+//    public ClassSource resolve(String classSource) {
+//        return JavaSourceObject.parse(classSource);
+//    }
 
     @Override
     public <S extends ClassSource> Collection<Result<S>> compile(Collection<S> sources) throws CompilationException {

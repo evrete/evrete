@@ -4,12 +4,13 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.JavaSourceCompiler;
 import org.evrete.api.Knowledge;
 import org.evrete.api.RuntimeContext;
+import org.evrete.util.CommonUtils;
 import org.evrete.util.CompilationException;
-import org.evrete.util.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.io.UncheckedIOException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -62,27 +63,28 @@ public class DSLSourceProvider extends AbstractDSLProvider {
 
     @Override
     <C extends RuntimeContext<C>> Stream<Class<?>> sourceClasses(RuntimeContext<C> context, CharSequence[] strings) {
-        // Despite the fact that we need to return a stream,
-        // the resources may contain interdependent sources,
-        // so we read them all at once.
-        try {
-            JavaSourceCompiler compiler = context.getSourceCompiler();
-            List<JavaSourceCompiler.ClassSource> sources = new ArrayList<>(strings.length);
-            for (CharSequence string : strings) {
-                sources.add(compiler.resolve(string.toString()));
-            }
-            return compiler
-                    .compile(sources)
-                    .stream()
-                    .map(JavaSourceCompiler.Result::getCompiledClass);
-        } catch (CompilationException e) {
-            e.log(LOGGER, Level.SEVERE);
-            throw new IllegalArgumentException("Failed to compile Java source code", e);
-        } catch (IllegalArgumentException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new IllegalArgumentException(e);
-        }
+        throw new UnsupportedOperationException();
+//        // Despite the fact that we need to return a stream,
+//        // the resources may contain interdependent sources,
+//        // so we read them all at once.
+//        try {
+//            JavaSourceCompiler compiler = context.getSourceCompiler();
+//            List<JavaSourceCompiler.ClassSource> sources = new ArrayList<>(strings.length);
+//            for (CharSequence string : strings) {
+//                sources.add(compiler.resolve(string.toString()));
+//            }
+//            return compiler
+//                    .compile(sources)
+//                    .stream()
+//                    .map(JavaSourceCompiler.Result::getCompiledClass);
+//        } catch (CompilationException e) {
+//            e.log(LOGGER, Level.SEVERE);
+//            throw new IllegalArgumentException("Failed to compile Java source code", e);
+//        } catch (IllegalArgumentException e) {
+//            throw e;
+//        } catch (Exception e) {
+//            throw new IllegalArgumentException(e);
+//        }
     }
 
     @Override
@@ -130,15 +132,15 @@ public class DSLSourceProvider extends AbstractDSLProvider {
 
 
     private static String[] toSourceStrings(Reader[] readers) throws IOException {
-        return IOUtils.read(String.class, readers, r -> r, IOUtils::toString);
+        return CommonUtils.read(String.class, readers, r -> r, CommonUtils::toString);
     }
 
     private static String[] toSourceStrings(Charset charset, InputStream... streams) throws IOException {
-        return IOUtils.read(String.class, streams, i -> i, i -> new String(IOUtils.toByteArrayChecked(i), charset));
+        return CommonUtils.read(String.class, streams, i -> i, i -> new String(CommonUtils.toByteArrayChecked(i), charset));
     }
 
     private static String[] toSourceStrings(Charset charset, URL... urls) throws IOException {
-        return IOUtils.read(String.class, urls, URL::openStream, i -> new String(IOUtils.toByteArrayChecked(i), charset));
+        return CommonUtils.read(String.class, urls, URL::openStream, i -> new String(CommonUtils.toByteArrayChecked(i), charset));
     }
 
 }

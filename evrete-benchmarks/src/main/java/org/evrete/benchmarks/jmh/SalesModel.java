@@ -34,6 +34,7 @@ public class SalesModel extends AbstractDrlBenchmark {
     }
 
     private void benchmark(BenchmarkState state, SessionWrapper s) {
+        //TODO include session create!!!!
         for (Object o : state.sessionObjects) {
             s.insert(o);
         }
@@ -57,6 +58,7 @@ public class SalesModel extends AbstractDrlBenchmark {
                                     Invoice i = (Invoice) o3;
                                     if (i.salesUnit == u && i.customer.id == c.id) {
                                         report.add(u, i.amount);
+
                                     }
                                 }
                             }

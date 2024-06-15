@@ -5,7 +5,7 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
 import org.evrete.api.Type;
-import org.evrete.runtime.RhsAssert;
+import org.evrete.helper.RhsAssert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

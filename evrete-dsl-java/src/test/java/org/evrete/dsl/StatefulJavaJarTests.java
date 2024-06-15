@@ -48,7 +48,7 @@ class StatefulJavaJarTests {
                     session.fire();
 
                     NextIntSupplier primeCounter = new NextIntSupplier();
-                    session.forEachFact((h, o) -> primeCounter.next());
+                    session.forEachFact((h, o) -> primeCounter.incrementAndGet());
 
                     assert primeCounter.get() == 25;
                 }
@@ -74,7 +74,7 @@ class StatefulJavaJarTests {
                     session.fire();
 
                     NextIntSupplier primeCounter = new NextIntSupplier();
-                    session.forEachFact((h, o) -> primeCounter.next());
+                    session.forEachFact((h, o) -> primeCounter.incrementAndGet());
 
                     assert primeCounter.get() == 25;
                 }

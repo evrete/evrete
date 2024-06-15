@@ -37,11 +37,11 @@ public class AbstractRuntimeTest {
                 .execute(ctx -> {
                 });
 
-        Collection<RuleCompiledSources<DefaultRuleLiteralData, DefaultRuleBuilder<?>>> sources;
+        Collection<RuleCompiledSources<DefaultRuleLiteralData, DefaultRuleBuilder<?>, DefaultConditionManager.Literal>> sources;
         sources = knowledge.compileRuleset(builder);
         assert sources.size() == 2;
-        for (RuleCompiledSources<DefaultRuleLiteralData, DefaultRuleBuilder<?>> source : sources) {
-            DefaultLiteralSourceCompiler.RuleCompiledSourcesImpl<DefaultRuleLiteralData, DefaultRuleBuilder<?>> impl = (DefaultLiteralSourceCompiler.RuleCompiledSourcesImpl<DefaultRuleLiteralData, DefaultRuleBuilder<?>>) source;
+        for (RuleCompiledSources<DefaultRuleLiteralData, DefaultRuleBuilder<?>, DefaultConditionManager.Literal> source : sources) {
+            DefaultLiteralSourceCompiler.RuleCompiledSourcesImpl<DefaultRuleLiteralData, DefaultRuleBuilder<?>, DefaultConditionManager.Literal> impl = (DefaultLiteralSourceCompiler.RuleCompiledSourcesImpl<DefaultRuleLiteralData, DefaultRuleBuilder<?>, DefaultConditionManager.Literal>) source;
 
             String javaSource = impl.getClassJavaSource();
 

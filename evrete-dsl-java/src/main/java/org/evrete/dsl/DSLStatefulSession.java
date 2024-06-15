@@ -21,46 +21,14 @@ class DSLStatefulSession extends AbstractDSLSession<StatefulSession> implements 
     }
 
     @Override
-    public <T> Future<T> fireAsync(T result) {
-        return delegate.fireAsync(result);
-    }
-
-    @Override
     public void close() {
         delegate.close();
     }
 
-    @Override
-    public StatefulSession update(FactHandle handle, Object newValue) {
-        delegate.update(handle, newValue);
-        return self();
-    }
-
-    @Override
-    public StatefulSession delete(FactHandle handle) {
-        delegate.delete(handle);
-        return this;
-    }
-
-    @Override
-    public <T> T getFact(FactHandle handle) {
-        return delegate.getFact(handle);
-    }
 
     @Override
     public void clear() {
         delegate.clear();
     }
 
-    @Override
-    public StatefulSession forEachFact(BiConsumer<FactHandle, Object> consumer) {
-        delegate.forEachFact(consumer);
-        return this;
-    }
-
-    @Override
-    public <T> StatefulSession forEachFact(String type, Consumer<T> consumer) {
-        delegate.forEachFact(type, consumer);
-        return this;
-    }
 }

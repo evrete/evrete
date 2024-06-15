@@ -40,46 +40,46 @@ public class TestUtils {
     }
 
     static synchronized void createTempJarFile(File root, Consumer<File> jarConsumer) throws Exception {
-
-        Path compileRoot = root.toPath();
-
-        SourceCompiler sourceCompiler = new SourceCompiler(new RuntimeClassloader(ClassLoader.getSystemClassLoader()));
-
-        Stream<Path> javaFiles = Files.find(compileRoot, Integer.MAX_VALUE, (path, attrs) -> path.toString().endsWith(".java"));
-
-        Set<String> sources = javaFiles.map(path -> {
-            try {
-                //noinspection ReadWriteStringCanBeUsed
-                return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        }).collect(Collectors.toSet());
-
-        Collection<Class<?>> classes = sourceCompiler.compile(sources).values();
-
-        File out = File.createTempFile("speakace-test", ".jar");
-        FileOutputStream fos = new FileOutputStream(out);
-        JarOutputStream jar = new JarOutputStream(fos);
-        for(Class<?> c : classes) {
-            String binaryName = c.getName().replaceAll("\\.", "/");
-            String name = binaryName + ".class";
-            ZipEntry zipEntry = new JarEntry(name);
-            jar.putNextEntry(zipEntry);
-
-            assert c.getClassLoader() instanceof RuntimeClassloader;
-            InputStream stream = Objects.requireNonNull(c.getClassLoader().getResourceAsStream(name));
-            copy(stream, jar);
-            stream.close();
-            jar.closeEntry();
-        }
-        jar.close();
-
-        try {
-            jarConsumer.accept(out);
-        } finally {
-            Files.deleteIfExists(out.toPath());
-        }
+        throw new UnsupportedOperationException();
+//        Path compileRoot = root.toPath();
+//
+//        SourceCompiler sourceCompiler = new SourceCompiler(new RuntimeClassloader(ClassLoader.getSystemClassLoader()));
+//
+//        Stream<Path> javaFiles = Files.find(compileRoot, Integer.MAX_VALUE, (path, attrs) -> path.toString().endsWith(".java"));
+//
+//        Set<String> sources = javaFiles.map(path -> {
+//            try {
+//                //noinspection ReadWriteStringCanBeUsed
+//                return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+//            } catch (IOException e) {
+//                throw new UncheckedIOException(e);
+//            }
+//        }).collect(Collectors.toSet());
+//
+//        Collection<Class<?>> classes = sourceCompiler.compile(sources).values();
+//
+//        File out = File.createTempFile("speakace-test", ".jar");
+//        FileOutputStream fos = new FileOutputStream(out);
+//        JarOutputStream jar = new JarOutputStream(fos);
+//        for(Class<?> c : classes) {
+//            String binaryName = c.getName().replaceAll("\\.", "/");
+//            String name = binaryName + ".class";
+//            ZipEntry zipEntry = new JarEntry(name);
+//            jar.putNextEntry(zipEntry);
+//
+//            assert c.getClassLoader() instanceof RuntimeClassloader;
+//            InputStream stream = Objects.requireNonNull(c.getClassLoader().getResourceAsStream(name));
+//            copy(stream, jar);
+//            stream.close();
+//            jar.closeEntry();
+//        }
+//        jar.close();
+//
+//        try {
+//            jarConsumer.accept(out);
+//        } finally {
+//            Files.deleteIfExists(out.toPath());
+//        }
     }
 
     private static void copy(InputStream source, OutputStream sink) throws IOException {

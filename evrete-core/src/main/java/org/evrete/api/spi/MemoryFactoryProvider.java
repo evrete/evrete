@@ -1,6 +1,6 @@
 package org.evrete.api.spi;
 
-import org.evrete.api.MemoryFactory;
+import org.evrete.api.FactHandle;
 import org.evrete.api.OrderedServiceProvider;
 import org.evrete.api.RuntimeContext;
 
@@ -11,8 +11,9 @@ import org.evrete.api.RuntimeContext;
 public interface MemoryFactoryProvider extends OrderedServiceProvider {
     /**
      * @param context - the context from which a new factory is requested
+     * @param factHandleType - the type of the fact handles accepted by the factory
      * @return the instance of {@link MemoryFactory}
      */
-    MemoryFactory instance(RuntimeContext<?> context);
+    <FH extends FactHandle> MemoryFactory<FH> instance(RuntimeContext<?> context, Class<FH> factHandleType);
 
 }

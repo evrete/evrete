@@ -1,47 +1,49 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.FieldReference;
+import org.evrete.api.LhsField;
 import org.evrete.util.NextIntSupplier;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class ConditionStringTerm extends FieldReferenceImpl {
+class ConditionStringTerm  {
     private static final Pattern REFERENCE_PATTERN = Pattern.compile("\\$[a-zA-Z0-9]+(\\.[_a-zA-Z][_a-zA-Z0-9]*)*");
 
     final int start;
     final int end;
     final String varName;
+    final LhsField<String, String> ref;
 
-    ConditionStringTerm(int start, int end, FieldReference delegate, NextIntSupplier fieldCounter) {
-        super(delegate);
+    ConditionStringTerm(int start, int end, LhsField<String, String> ref, NextIntSupplier fieldCounter) {
+        //super(delegate);
         this.start = start;
         this.end = end;
-        this.varName = "var" + fieldCounter.next();
+        this.varName = "var" + fieldCounter.incrementAndGet();
+        this.ref = ref;
     }
 
     ConditionStringTerm(int start, int end, ConditionStringTerm existing) {
-        super(existing);
+        //super(existing);
         this.start = start;
         this.end = end;
         this.varName = existing.varName;
+        this.ref = existing.ref;
     }
 
-    private static ConditionStringTerm resolveTerm(int start, int actualEnd, FieldReference ref, NextIntSupplier fieldCounter, List<ConditionStringTerm> terms) {
+    private static ConditionStringTerm resolveTerm(int start, int end, LhsField<String, String> ref, NextIntSupplier fieldCounter, List<ConditionStringTerm> terms) {
         // Scanning existing terms
         for (ConditionStringTerm t : terms) {
-            if (t.type().equals(ref.type()) && t.field().equals(ref.field())) {
+            if (t.ref.equals(ref)) {
                 // Found the same reference
-                return new ConditionStringTerm(start, actualEnd, t);
+                return new ConditionStringTerm(start, end, t);
             }
         }
-        return new ConditionStringTerm(start, actualEnd, ref, fieldCounter);
+        return new ConditionStringTerm(start, end, ref, fieldCounter);
     }
 
-    static List<ConditionStringTerm> resolveTerms(StringLiteralEncoder.Encoded encoded, Function<String, FieldReference> resolver) {
+    static List<ConditionStringTerm> resolveTerms(StringLiteralEncoder.Encoded encoded) {
         final String expression = encoded.value;
 
         Matcher m = REFERENCE_PATTERN.matcher(expression);
@@ -56,13 +58,22 @@ class ConditionStringTerm extends FieldReferenceImpl {
                 actualEnd = expression.substring(start, end).lastIndexOf('.') + start;
             }
 
-            String s = expression.substring(start, actualEnd);
-            FieldReference fieldReference = resolver.apply(s);
+            String matched = expression.substring(start, actualEnd);
+            final LhsField<String, String> fieldReference = LhsField.parseDottedVariable(matched);
 
 
             ConditionStringTerm t = resolveTerm(start, actualEnd, fieldReference, fieldCounter, terms);
             terms.add(t);
         }
         return  terms;
+    }
+
+    @Override
+    public String toString() {
+        return "ConditionStringTerm{" +
+                "start=" + start +
+                ", end=" + end +
+                ", varName='" + varName + '\'' +
+                '}';
     }
 }

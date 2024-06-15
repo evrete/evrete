@@ -3,6 +3,18 @@ package org.evrete.spi.minimal;
 import java.util.HashMap;
 import java.util.Map;
 
+
+/**
+ * <p>
+ * This encoder parses String arguments and replaces each quoted string fragment with a unique character sequence.
+ * The resulting String can be modified by other tools, and if the modification doesn't affect the encoded keys,
+ * the quoted fragments can be restored.
+ * </p>
+ * <p>
+ * In fact, this class is a very basic tool for parsing Java literal sources. More advanced implementations
+ * of the library's Service Provider Interface (SPI) may use more sophisticated tools like ANTLR.
+ * </p>
+ */
 final class StringLiteralEncoder {
     private static final String PREFIX = "${const";
     private static final String SUFFIX = "}";

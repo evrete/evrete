@@ -2,14 +2,13 @@ package org.evrete.runtime;
 
 import org.evrete.api.RuleLiteralData;
 import org.evrete.api.annotations.NonNull;
-import org.evrete.util.WorkUnitObject;
 
 import java.util.Collection;
 import java.util.LinkedList;
 
-class DefaultRuleLiteralData implements RuleLiteralData<DefaultRuleBuilder<?>> {
+class DefaultRuleLiteralData implements RuleLiteralData<DefaultRuleBuilder<?>, DefaultConditionManager.Literal> {
     private final DefaultRuleBuilder<?> ruleBuilder;
-    private final Collection<String> conditions;
+    private final Collection<DefaultConditionManager.Literal> conditions;
 
     private final String rhs;
 
@@ -18,9 +17,7 @@ class DefaultRuleLiteralData implements RuleLiteralData<DefaultRuleBuilder<?>> {
         this.conditions = new LinkedList<>();
 
         // Copy literal conditions
-        for (WorkUnitObject<String> condition : ruleBuilder.getConditions().literals) {
-            this.conditions.add(condition.getDelegate());
-        }
+        this.conditions.addAll(ruleBuilder.getConditionManager().getLiterals());
 
         // Get RHS
         this.rhs = ruleBuilder.literalRhs();
@@ -38,7 +35,7 @@ class DefaultRuleLiteralData implements RuleLiteralData<DefaultRuleBuilder<?>> {
 
     @NonNull
     @Override
-    public Collection<String> conditions() {
+    public Collection<DefaultConditionManager.Literal> conditions() {
         return conditions;
     }
 

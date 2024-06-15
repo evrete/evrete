@@ -2,6 +2,7 @@ package org.evrete.runtime;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
+import org.evrete.api.events.KnowledgeCreatedEvent;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -11,32 +12,18 @@ import java.util.WeakHashMap;
 public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge> implements Knowledge {
     private final WeakHashMap<RuleSession<?>, Object> sessions = new WeakHashMap<>();
     private final Object VALUE = new Object();
-    private final SearchList<RuleDescriptorImpl> ruleDescriptors = new SearchList<>();
+    private final SearchList<KnowledgeRule> ruleDescriptors = new SearchList<>();
 
     public KnowledgeRuntime(KnowledgeService service, String name) {
         super(service, name);
-    }
-
-/*
-    public KnowledgeRuntime(KnowledgeService service, String name, TypeResolver typeResolver) {
-        super(service, name, typeResolver);
-    }
-*/
-
-    @Override
-    public void onNewActiveField(ActiveField newField) {
-        // Do nothing
+        // Publish the created event
+        broadcast(KnowledgeCreatedEvent.class, () -> KnowledgeRuntime.this);
     }
 
     @Override
-    public void onNewAlphaBucket(MemoryAddress address) {
-        // Do nothing
-    }
-
-    @Override
-    void addRuleDescriptors(List<RuleDescriptorImpl> descriptors) {
+    void addRuleDescriptors(List<KnowledgeRule> descriptors) {
         if(!descriptors.isEmpty()) {
-            for(RuleDescriptorImpl rd : descriptors) {
+            for(KnowledgeRule rd : descriptors) {
                 this.ruleDescriptors.add(rd);
             }
             this.ruleDescriptors.sort(getRuleComparator());
@@ -48,7 +35,7 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
         return Collections.unmodifiableList(ruleDescriptors.getList());
     }
 
-    List<RuleDescriptorImpl> getRuleDescriptors() {
+    List<KnowledgeRule> getRuleDescriptors() {
         return Collections.unmodifiableList(ruleDescriptors.getList());
     }
 
@@ -64,7 +51,7 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
     }
 
     @Override
-    public RuleDescriptorImpl getRule(String name) {
+    public KnowledgeRule getRule(String name) {
         return ruleDescriptors.get(name);
     }
 

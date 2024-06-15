@@ -2,7 +2,7 @@ package org.evrete.runtime.compiler;
 
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.annotations.Nullable;
-import org.evrete.util.IOUtils;
+import org.evrete.util.CommonUtils;
 
 import javax.tools.JavaFileObject;
 import java.io.IOException;
@@ -147,7 +147,7 @@ class PackageExplorer {
                         String fileName = name.replaceAll("/", ".");
                         fileName = fileName.substring(0, fileName.length() - CLASS_FILE_EXTENSION.length());
 
-                        byte[] bytes = IOUtils.bytes(jarFile, entry);
+                        byte[] bytes = CommonUtils.bytes(jarFile, entry);
                         try {
                             return new ClassPathJavaObject(Class.forName(fileName, false, classLoader), bytes);
                         } catch (ClassNotFoundException e) {
@@ -171,7 +171,7 @@ class PackageExplorer {
                         String className = packageName + "." + classEntry;
 
 
-                        byte[] bytes = IOUtils.toByteArray(zis);
+                        byte[] bytes = CommonUtils.toByteArray(zis);
                         ClassPathJavaObject compiledClass = new ClassPathJavaObject(Class.forName(className, false, classLoader), bytes);
                         result.add(compiledClass);
                     }

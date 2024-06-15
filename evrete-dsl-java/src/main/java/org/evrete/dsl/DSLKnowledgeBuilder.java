@@ -6,7 +6,7 @@ import org.evrete.api.builders.RuleBuilder;
 import org.evrete.api.builders.RuleSetBuilder;
 import org.evrete.dsl.annotation.MethodPredicate;
 import org.evrete.dsl.annotation.RuleSet;
-import org.evrete.util.KnowledgeWrapper;
+import org.evrete.util.CommonUtils;
 
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
@@ -69,7 +69,7 @@ class DSLKnowledgeBuilder  {
                 String methodName = mp.method();
 
                 String[] args = mp.args();
-                final FieldReference[] descriptor = context.getExpressionResolver().resolve(lhs, args);
+                final FieldReference[] descriptor = CommonUtils.resolveFieldReferences(ruleBuilder, args);
                 Class<?>[] signature = Utils.asMethodSignature(descriptor);
                 MethodType methodType = MethodType.methodType(boolean.class, signature);
                 ClassMethod mv = ClassMethod.lookup(meta.lookup, meta.javaClass, methodName, methodType);

@@ -27,7 +27,7 @@ public abstract class AbstractRule extends AbstractEnvironment implements Rule {
         super(environment);
         this.name = Objects.requireNonNull(name);
         this.salience = NULL_SALIENCE;
-        this.nullRhs = arg -> LOGGER.warning("No RHS is set for rule '" + AbstractRule.this.name + '\'');
+        this.nullRhs = arg -> LOGGER.warning(()->"No RHS is set for rule '" + AbstractRule.this.name + '\'');
         this.rhs = nullRhs;
     }
 
@@ -54,7 +54,6 @@ public abstract class AbstractRule extends AbstractEnvironment implements Rule {
     public void setRhs(String literalRhs) {
         this.literalRhs = literalRhs;
     }
-
 
     @Nullable
     public String getLiteralRhs() {

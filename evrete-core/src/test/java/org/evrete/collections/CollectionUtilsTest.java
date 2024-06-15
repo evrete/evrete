@@ -1,20 +1,20 @@
 package org.evrete.collections;
 
+import org.evrete.util.CommonUtils;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.evrete.util.CollectionUtils.*;
 
-
+//TODO !!!! WTF is this?
 class CollectionUtilsTest {
 
 
     @Test
     void permutation1() {
         List<String> test = Arrays.asList("A", "B", "C", "D");
-        List<List<String>> result = permutation(test);
+        List<List<String>> result = CommonUtils.permutation(test);
         assert result.size() == 24;
         List<String> l = result.get(7);
         assert l.size() == 4;
@@ -32,7 +32,7 @@ class CollectionUtilsTest {
         List<String> c = Arrays.asList("c1", "c2");
         List<List<String>> ll = Arrays.asList(a, b, c);
 
-        Collection<List<String>> combinations = combinations(ll);
+        Collection<List<String>> combinations = CommonUtils.combinations(ll);
         assert combinations.size() == a.size() * b.size() * c.size();
         assert combinations.iterator().next().size() == ll.size();
     }
@@ -42,7 +42,7 @@ class CollectionUtilsTest {
         List<String> a = Arrays.asList("a1", "a2", "a3");
         List<List<String>> ll = Collections.singletonList(a);
 
-        Collection<List<String>> combinations = combinations(ll);
+        Collection<List<String>> combinations = CommonUtils.combinations(ll);
         assert combinations.size() == a.size();
         assert combinations.iterator().next().size() == ll.size();
 
@@ -53,7 +53,7 @@ class CollectionUtilsTest {
         String[] arr = new String[10];
         Arrays.fill(arr, "a");
 
-        systemFill(arr, "b");
+        CommonUtils.systemFill(arr, "b");
         Set<String> set = Arrays.stream(arr).collect(Collectors.toSet());
         assert set.size() == 1;
         assert set.contains("b");

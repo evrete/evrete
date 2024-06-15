@@ -40,7 +40,7 @@ class ExpressionsTest {
                 .forEach("$o", Nested1.class)
                 .where("$o.parent.parent.id > 0")
                 .where("$o.id > 2")
-                .execute(ctx -> counter.next())
+                .execute(ctx -> counter.incrementAndGet())
                 .build()
                 .newStatefulSession();
 
@@ -63,7 +63,7 @@ class ExpressionsTest {
                 .forEach("$o", NestedB.class)
                 .where("$o.parent.ida > 0")
                 .where("$o.idb > 2")
-                .execute(ctx -> counter.next())
+                .execute(ctx -> counter.incrementAndGet())
                 .build()
                 .newStatefulSession();
 
@@ -88,7 +88,7 @@ class ExpressionsTest {
                         "$i2", Integer.class
                 )
                 .where("$i1 > $i2")
-                .execute(ctx -> counter.next())
+                .execute(ctx -> counter.incrementAndGet())
                 .build()
                 .newStatefulSession();
 
@@ -107,7 +107,7 @@ class ExpressionsTest {
                         "$i", Integer.class
                 )
                 .where("$i > 0 || $i < 0")
-                .execute(ctx -> counter.next())
+                .execute(ctx -> counter.incrementAndGet())
                 .build()
                 .newStatefulSession();
 

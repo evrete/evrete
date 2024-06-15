@@ -24,7 +24,6 @@ public class RuleEngines {
             throw new IllegalArgumentException("Root path expected");
         } else {
             Path rootPath = Path.of(args[0]);
-            System.out.println("!!!!!! " + rootPath);
             Path logConfig = rootPath.resolve("logging.properties");
             String[] jvmArgs = new String[] {
                     "-Xms1G",

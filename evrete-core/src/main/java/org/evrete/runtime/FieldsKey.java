@@ -1,51 +1,57 @@
 package org.evrete.runtime;
 
-import org.evrete.api.Type;
-
 import java.util.Arrays;
+import java.util.Objects;
 
-final class FieldsKey {
-    private final ActiveField[] fields;
-    private final Type<?> type;
-    private final int id;
+public final class FieldsKey {
+    private final int typeIndex;
+    private final int[] activeFieldIndices;
+    //private final int id;
 
-    public FieldsKey(int id, Type<?> type, ActiveField[] arr) {
-        this.id = id;
-        this.fields = arr;
-        this.type = type;
+    public FieldsKey(int typeIndex, int[] activeFieldIndices) {
+        //this.id = id;
+        this.typeIndex = typeIndex;
+        this.activeFieldIndices = activeFieldIndices;
     }
+
+/*
+    public FieldsKey(int typeIndex, ActiveField[] activeFields) {
+        //this.id = id;
+        this.typeIndex = typeIndex;
+        this.activeFieldIndices = new int[activeFields.length];
+        for (int i = 0; i < activeFields.length; i++) {
+            this.activeFieldIndices[i] = activeFields[i].getIndex();
+        }
+    }
+*/
 
     public int getId() {
-        return id;
+        throw new UnsupportedOperationException();
     }
 
-    public int type() {
-        return type.getId();
+    //TODO rename getter
+    public int typeIndex() {
+        return typeIndex;
     }
 
     public int size() {
-        return fields.length;
+        return activeFieldIndices.length;
     }
 
-    public ActiveField[] getFields() {
-        return fields;
+    public int[] activeFieldIndices() {
+        return activeFieldIndices;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        FieldsKey that = (FieldsKey) o;
-        return type.equals(that.type) && Arrays.equals(fields, that.fields);
+        FieldsKey fieldsKey = (FieldsKey) o;
+        return typeIndex == fieldsKey.typeIndex && Objects.deepEquals(activeFieldIndices, fieldsKey.activeFieldIndices);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(fields);
-    }
-
-    @Override
-    public String toString() {
-        return Arrays.toString(fields);
+        return Objects.hash(typeIndex, Arrays.hashCode(activeFieldIndices));
     }
 }

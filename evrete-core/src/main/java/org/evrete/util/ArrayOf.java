@@ -11,6 +11,7 @@ import java.util.function.ObjIntConsumer;
  *
  * @param <T> type parameter
  */
+//TODO remove
 public class ArrayOf<T> {
     private T[] data;
 
@@ -23,7 +24,7 @@ public class ArrayOf<T> {
     }
 
     public ArrayOf(Class<T> type) {
-        this(CollectionUtils.array(type, 0));
+        this(CommonUtils.array(type, 0));
     }
 
     public int length() {

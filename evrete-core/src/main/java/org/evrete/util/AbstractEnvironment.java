@@ -4,11 +4,11 @@ import org.evrete.Configuration;
 import org.evrete.api.Environment;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class AbstractEnvironment implements Environment {
-    private final Map<String, Object> properties = new ConcurrentHashMap<>();
+    private final Map<String, Object> properties = new HashMap<>();
 
     public AbstractEnvironment(AbstractEnvironment other) {
         this.properties.putAll(other.properties);
@@ -25,8 +25,10 @@ public class AbstractEnvironment implements Environment {
 
     @Override
     public Object set(String property, Object value) {
-        this.properties.put(property, value);
-        return this;
+        synchronized (properties) {
+            this.properties.put(property, value);
+            return this;
+        }
     }
 
     @Override

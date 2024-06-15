@@ -51,7 +51,7 @@ class StatelessJavaJarTests {
                 }
 
                 NextIntSupplier primeCounter = new NextIntSupplier();
-                session.fire((o) -> primeCounter.next());
+                session.fire((o) -> primeCounter.incrementAndGet());
 
                 assert primeCounter.get() == 25 : "Actual: " + primeCounter.get();
             } catch (IOException e){
@@ -74,7 +74,7 @@ class StatelessJavaJarTests {
                 }
 
                 NextIntSupplier primeCounter = new NextIntSupplier();
-                session.fire((o) -> primeCounter.next());
+                session.fire((o) -> primeCounter.incrementAndGet());
 
                 assert primeCounter.get() == 25;
             } catch (IOException e){

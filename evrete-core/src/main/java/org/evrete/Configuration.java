@@ -21,6 +21,7 @@ import java.util.logging.Logger;
  * </p>
  */
 public class Configuration extends Properties implements Copyable<Configuration>, FluentImports<Configuration> {
+    //TODO obsolete this config entry!!
     public static final String OBJECT_COMPARE_METHOD = "evrete.core.fact-identity-strategy";
     public static final String INSERT_BUFFER_SIZE = "evrete.core.insert-buffer-size";
     public static final String WARN_UNKNOWN_TYPES = "evrete.core.warn-unknown-types";
@@ -31,6 +32,7 @@ public class Configuration extends Properties implements Copyable<Configuration>
     static final String SPI_EXPRESSION_RESOLVER = "evrete.spi.expression-resolver";
     static final String SPI_TYPE_RESOLVER = "evrete.spi.type-resolver";
     static final String SPI_SOURCE_COMPILER = "evrete.spi.source-compiler";
+    //TODO drop the config
     static final String PARALLELISM = "evrete.core.parallelism";
     public static final String RULE_BASE_CLASS = "evrete.impl.rule-base-class";
     public static final String SPI_LHS_STRIP_WHITESPACES = "evrete.spi.compiler.lhs-strip-whitespaces";
@@ -73,7 +75,7 @@ public class Configuration extends Properties implements Copyable<Configuration>
     @Override
     public synchronized Object setProperty(String key, String value) {
         if (OBSOLETE_PROPERTIES.contains(key)) {
-            LOGGER.warning("Property '" + key + "' is obsolete and will be ignored");
+            LOGGER.warning(()->"Property '" + key + "' is obsolete and will be ignored");
         }
         return super.setProperty(key, value);
     }
@@ -108,7 +110,7 @@ public class Configuration extends Properties implements Copyable<Configuration>
         try {
             return Integer.parseInt(val.trim());
         } catch (Exception e) {
-            LOGGER.warning("Property '" + property + "' is not an integer, returning default value of " + defaultValue);
+            LOGGER.warning(()->"Property '" + property + "' is not an integer, returning default value of " + defaultValue);
             return defaultValue;
         }
     }

@@ -7,10 +7,16 @@ import org.evrete.api.annotations.NonNull;
 class NamedTypeImpl implements NamedType {
     private final Type<?> type;
     private final String name;
+    private final int index;
 
-    public NamedTypeImpl(@NonNull Type<?> type, String name) {
+    public NamedTypeImpl(int index, @NonNull Type<?> type, String name) {
+        this.index = index;
         this.type = type;
         this.name = name;
+    }
+
+    public int getIndex() {
+        return index;
     }
 
     @Override
@@ -20,7 +26,15 @@ class NamedTypeImpl implements NamedType {
     }
 
     @Override
-    public String getName() {
+    public String getVarName() {
         return name;
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "type=" + type +
+                ", name='" + name + '\'' +
+                '}';
     }
 }

@@ -119,7 +119,7 @@ public class LiteralRhsTests {
 
         @SuppressWarnings("unused")
         public static void out(Object o) {
-            counter.next();
+            counter.incrementAndGet();
             collector.add(o);
         }
 

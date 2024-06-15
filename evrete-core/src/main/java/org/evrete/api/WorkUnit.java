@@ -14,7 +14,5 @@ package org.evrete.api;
 public interface WorkUnit {
     double DEFAULT_COMPLEXITY = 1.0;
 
-    default double getComplexity() {
-        return DEFAULT_COMPLEXITY;
-    }
+    double getComplexity();
 }

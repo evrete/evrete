@@ -8,12 +8,22 @@ import java.util.Collection;
 
 /**
  * <p>
- * TypeResolver provides dynamic mapping of Java types to engine's internal {@link Type}.
+ * TypeResolver provides dynamic mapping of Java types to the engine's internal {@link Type}.
  * In the engine, all fact types are represented by a String identifier and an associated Java
  * class. This allows instances of the same Java class to be treated as having different logical types.
  * </p>
+ *
+ * <p>
+ * This interface extends {@link CopyableWith}, allowing a {@link TypeResolver} to create copies of itself,
+ * potentially modified based on a provided {@link ClassLoader} argument. The copies must inherit the original
+ * declared types but must not have a reverse effect — changes, such as new types or field declarations, in the copies
+ * must not be reflected in the original type resolver.
+ * </p>
+ *
+ * @see CopyableWith
  */
-public interface TypeResolver {
+//TODO remove the classloader in copyable
+public interface TypeResolver extends CopyableWith<TypeResolver, ClassLoader> {
 
     /**
      * @param name type's declared name
@@ -24,15 +34,6 @@ public interface TypeResolver {
     <T> Type<T> getType(String name);
 
     /**
-     * @param typeId type id
-     * @param <T>    type parameter
-     * @return existing {@link Type}
-     * @throws java.util.NoSuchElementException if not found
-     */
-    @NonNull
-    <T> Type<T> getType(int typeId);
-
-    /**
      * Returns a collection of all known types.
      *
      * @return a collection of Type instances representing the known types
@@ -40,11 +41,24 @@ public interface TypeResolver {
     Collection<Type<?>> getKnownTypes();
 
     /**
+     * Returns a collection of all known types that have the same Java type as specified by the argument.
+     *
+     * @param javaClass the class of the Java type to find known types for
+     * @return a collection of Type instances representing the known types with the specified Java type
+     */
+    Collection<Type<?>> getKnownTypes(Class<?> javaClass);
+
+    /**
      * Wraps a given TypeWrapper instance and delegates the calls to another Type implementation.
      *
      * @param typeWrapper the TypeWrapper instance to be wrapped
+     * @deprecated in 4.0.0 use the {@link org.evrete.KnowledgeService.Builder#withTypeResolverProvider}
+     * to supply an alternative type resolver
      */
-    void wrapType(TypeWrapper<?> typeWrapper);
+    @Deprecated
+    default void wrapType(TypeWrapper<?> typeWrapper) {
+        throw new UnsupportedOperationException("Deprecated in 4.0.0");
+    }
 
     /**
      * <p>
@@ -58,7 +72,7 @@ public interface TypeResolver {
      * @throws IllegalStateException if such type name has been already declared
      */
     default <T> Type<T> declare(@NonNull Class<T> type) {
-        return declare(type.getName(), type);
+        return declare(Type.logicalNameOf(type), type);
     }
 
     /**

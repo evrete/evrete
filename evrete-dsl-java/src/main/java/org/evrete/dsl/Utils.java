@@ -1,22 +1,21 @@
 package org.evrete.dsl;
 
 import org.evrete.api.FieldReference;
-import org.evrete.api.Knowledge;
+import org.evrete.api.Type;
 import org.evrete.dsl.annotation.*;
-import org.evrete.util.CollectionUtils;
 
-import java.io.*;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.*;
-import java.util.function.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.logging.Logger;
-import java.util.stream.*;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 final class Utils {
     static final Logger LOGGER = Logger.getLogger(Utils.class.getPackage().getName());
@@ -60,7 +59,9 @@ final class Utils {
     static Class<?>[] asMethodSignature(FieldReference[] references) {
         Class<?>[] signature = new Class<?>[references.length];
         for (int i = 0; i < references.length; i++) {
-            signature[i] = references[i].field().getValueType();
+            String fieldName = references[i].field();
+            Type<?> namedType = references[i].type().getType();
+            signature[i] = namedType.getField(fieldName).getValueType();
         }
         return signature;
     }

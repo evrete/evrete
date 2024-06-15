@@ -3,19 +3,15 @@ package org.evrete.runtime.compiler;
 import javax.tools.JavaFileObject;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class RuntimeClassloader extends ClassLoader {
 
     private static final Collection<JavaFileObject> EMPTY = Collections.emptyList();
-    private final Map<String, Collection<String>> definedClasses = new ConcurrentHashMap<>();
+    private final Map<String, Collection<String>> definedClasses = new HashMap<>();
 
-    private final Map<String, byte[]> classDefinitions = new ConcurrentHashMap<>();
+    private final Map<String, byte[]> classDefinitions = new HashMap<>();
 
     public RuntimeClassloader(ClassLoader parent) {
         super(parent);

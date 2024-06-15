@@ -1,7 +1,5 @@
 package org.evrete.jsr94;
 
-import org.evrete.api.RuntimeContext;
-import org.evrete.api.StatefulSession;
 
 import javax.rules.InvalidRuleSessionException;
 import javax.rules.admin.RuleExecutionSetCreateException;
@@ -16,12 +14,12 @@ final class Utils {
 
     static void setProperty(RuntimeContext<?> ctx, Object key, Object value) {
         if (key == null) {
-            LOGGER.warning("Null property keys are not supported");
+            LOGGER.warning(()->"Null property keys are not supported");
         }
         if (key instanceof String) {
             ctx.set((String) key, value);
         } else {
-            LOGGER.warning("Non-string property keys are not supported");
+            LOGGER.warning(()->"Non-string property keys are not supported");
         }
     }
 
@@ -29,7 +27,7 @@ final class Utils {
         if (key instanceof String) {
             return ctx.get((String) key);
         } else {
-            LOGGER.warning("Non-string property keys are not supported");
+            LOGGER.warning(()->"Non-string property keys are not supported");
             return null;
         }
     }

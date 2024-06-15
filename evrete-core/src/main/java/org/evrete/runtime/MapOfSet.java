@@ -2,17 +2,21 @@ package org.evrete.runtime;
 
 import org.evrete.api.Copyable;
 
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 
-public class MapOfSet<K, V> extends HashMap<K, Set<V>> implements Copyable<MapOfSet<K, V>> {
+public class MapOfSet<K, V> extends MapOfCollection<K,V,Set<V>> implements Copyable<MapOfSet<K, V>> {
     private static final long serialVersionUID = 6435509932398742276L;
-    private final Function<K, Set<V>> newSetFunction = k -> new HashSet<>();
 
-    public void add(K k, V v) {
-        computeIfAbsent(k, newSetFunction).add(v);
+    public MapOfSet() {
+        super(k -> new HashSet<>());
+    }
+
+    public <T> MapOfSet(Collection<T> collection, Function<T, K> keyFunction, Function<T, V> valueFunction) {
+        super(k -> new HashSet<>());
+        this.addAll(collection, keyFunction, valueFunction);
     }
 
     @Override

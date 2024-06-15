@@ -1,72 +1,44 @@
 package org.evrete.runtime;
 
-import org.evrete.api.TypeField;
+/**
+ * Runtime representation of an LHS fact declaration.
+ */
+public class FactType extends AbstractLhsFact {
+    public static FactType[] EMPTY_ARRAY = new FactType[0];
+    private final ActiveType activeType;
+    private final AlphaAddress alphaAddress;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
+    FactType(AbstractLhsFact other, ActiveType activeType, AlphaAddress alphaAddress) {
+        super(other);
+        this.activeType = activeType;
+        this.alphaAddress = alphaAddress;
+    }
 
-public class FactType {
-    public static final FactType[] ZERO_ARRAY = new FactType[0];
-    private static final Comparator<FactType> COMPARATOR = Comparator.comparingInt(FactType::getInRuleIndex);
-    private final String name;
-    private final MemoryAddress memoryAddress;
-    private final int inRuleIndex;
-    private final Mask<MemoryAddress> memoryMask;
+    // TODO review usage and delete
+    public ActiveType.Idx typeId() {
+        return activeType.getId();
+    }
 
-    public FactType(String name, MemoryAddress memoryAddress, int inRuleIndex) {
-        this.name = name;
-        this.memoryAddress = memoryAddress;
-        this.inRuleIndex = inRuleIndex;
-        this.memoryMask = Mask.addressMask();
-        this.memoryMask.set(memoryAddress);
+    public ActiveType type() {
+        return activeType;
     }
 
     public FactType(FactType other) {
-        this.name = other.name;
-        this.memoryAddress = other.memoryAddress;
-        this.inRuleIndex = other.inRuleIndex;
-        this.memoryMask = other.memoryMask;
+        super(other);
+        this.activeType = other.activeType;
+        this.alphaAddress = other.alphaAddress;
     }
 
-    public static FactType[] toArray(Collection<FactType> set) {
-        FactType[] arr = set.toArray(FactType.ZERO_ARRAY);
-        Arrays.sort(arr, COMPARATOR);
-        return arr;
-    }
-
-    public Mask<MemoryAddress> getMemoryMask() {
-        return memoryMask;
-    }
-
-    public int findFieldPosition(TypeField field) {
-        ActiveField[] arr = memoryAddress.fields().getFields();
-        for (int i = 0; i < arr.length; i++) {
-            ActiveField f = arr[i];
-            if (f.getName().equals(field.getName())) return i;
-        }
-        throw new IllegalStateException("Field not found: " + field);
-    }
-
-
-    public MemoryAddress getMemoryAddress() {
-        return memoryAddress;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public int type() {
-        return memoryAddress.fields().type();
-    }
-
-    public int getInRuleIndex() {
-        return inRuleIndex;
+    public AlphaAddress getAlphaAddress() {
+        return alphaAddress;
     }
 
     @Override
     public String toString() {
-        return name;
+        return "{" +
+                "var='" + getVarName() + "'" +
+                ", type=" + activeType.getId() +
+                ", address=" + alphaAddress +
+                '}';
     }
 }

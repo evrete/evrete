@@ -1,38 +1,19 @@
 package org.evrete.spi.minimal;
 
-import org.evrete.api.*;
+import org.evrete.api.FactHandle;
+import org.evrete.api.spi.DeltaGroupedFactStorage;
+import org.evrete.api.spi.FactStorage;
+import org.evrete.api.spi.MemoryFactory;
 
-import java.util.function.BiPredicate;
-
-class DefaultMemoryFactory implements MemoryFactory {
-    private final DefaultValueResolver valueResolver = new DefaultValueResolver();
-
+public class DefaultMemoryFactory<FH extends FactHandle> implements MemoryFactory<FH> {
 
     @Override
-    public MemoryKeyCollection newMemoryKeyCollection() {
-        return new DefaultMemoryKeyCollection();
+    public <V> FactStorage<FH, V> newFactStorage(Class<V> valueType) {
+        return new DefaultFactStorage<>();
     }
 
     @Override
-    public ValueResolver getValueResolver() {
-        return valueResolver;
-    }
-
-    @Override
-    public <Z> FactStorage<Z> newFactStorage(Type<?> type, Class<Z> storageClass, BiPredicate<Z, Z> identityFunction) {
-        return new DefaultFactStorage<>(type, identityFunction);
-    }
-
-    @Override
-    public KeyedFactStorage newBetaStorage(int fieldCount) {
-        if (fieldCount == 0) {
-            return new SharedAlphaData();
-        } else {
-            return fieldCount == 1 ?
-                    new KeyedFactStorageSingle()
-                    :
-                    new KeyedFactStorageMulti(fieldCount)
-                    ;
-        }
+    public <K> DeltaGroupedFactStorage<K, FH> newGroupedFactStorage(Class<K> keyType) {
+        return new DefaultDeltaGroupedFactStorage<>();
     }
 }

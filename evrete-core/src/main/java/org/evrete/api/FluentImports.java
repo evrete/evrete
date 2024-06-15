@@ -9,6 +9,7 @@ import java.util.Set;
  *
  * @param <T> the type of the implementing class to allow method chaining
  */
+// TODO review docs or usage. Imports are only applicable to literal sources
 public interface FluentImports<T> {
 
     /**

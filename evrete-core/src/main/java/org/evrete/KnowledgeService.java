@@ -1,13 +1,22 @@
 package org.evrete;
 
 import org.evrete.api.*;
-import org.evrete.api.spi.*;
+import org.evrete.api.spi.DSLKnowledgeProvider;
+import org.evrete.api.spi.LiteralSourceCompiler;
+import org.evrete.api.spi.MemoryFactoryProvider;
+import org.evrete.api.spi.TypeResolverProvider;
+import org.evrete.runtime.AbstractKnowledgeService;
 import org.evrete.runtime.KnowledgeRuntime;
-import org.evrete.util.ForkJoinExecutor;
+import org.evrete.util.DelegatingExecutorService;
 
 import java.io.*;
 import java.net.URL;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ServiceLoader;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * <p>
@@ -16,11 +25,11 @@ import java.util.*;
  * required SPI implementations, and an instance of the Java ExecutorService.
  * </p>
  */
-public class KnowledgeService {
+//TODO updatable executor
+//TODO create an abstract version in the runtime package
+public class KnowledgeService extends AbstractKnowledgeService {
     private final Configuration configuration;
-    private final ForkJoinExecutor executor;
     private final MemoryFactoryProvider collectionsServiceProvider;
-    private final ExpressionResolverProvider expressionResolverProvider;
     private final TypeResolverProvider typeResolverProvider;
     private final LiteralSourceCompiler literalSourceCompiler;
     private ClassLoader classLoader;
@@ -30,10 +39,9 @@ public class KnowledgeService {
     }
 
     private KnowledgeService(Builder builder) {
+        super(executorFactory(builder));
         this.configuration = builder.conf;
-        this.executor = new ForkJoinExecutor(builder.conf.getAsInteger(Configuration.PARALLELISM, Runtime.getRuntime().availableProcessors()));
         this.collectionsServiceProvider = builder.getMemoryFactoryProvider();
-        this.expressionResolverProvider = builder.getExpressionResolverProvider();
         this.typeResolverProvider = builder.getTypeResolverProvider();
         this.literalSourceCompiler = builder.getLiteralSourceCompiler();
         this.classLoader = Thread.currentThread().getContextClassLoader();
@@ -41,6 +49,15 @@ public class KnowledgeService {
 
     public KnowledgeService() {
         this(new Configuration());
+    }
+
+
+    private static ExecutorService executorFactory(Builder builder) {
+        if(builder.executor == null) {
+            return new DelegatingExecutorService(null);
+        } else {
+            return new DelegatingExecutorService(builder.executor);
+        }
     }
 
     private static Reader[] toReaders(Class<?>... resources) throws IOException {
@@ -102,6 +119,7 @@ public class KnowledgeService {
     public Knowledge newKnowledge(TypeResolver typeResolver) {
         return newKnowledge();
     }
+
     /**
      * @param typeResolver the type resolver to use in the newly created Knowledge instance
      * @return an empty {@link Knowledge} instance
@@ -111,26 +129,6 @@ public class KnowledgeService {
     @SuppressWarnings("unused")
     public Knowledge newKnowledge(TypeResolver typeResolver, String name) {
         return new KnowledgeRuntime(this, name);
-    }
-
-    /**
-     * Creates a new TypeResolver instance.
-     *
-     * @return New TypeResolver instance.
-     * @deprecated This method is deprecated and will be removed in future releases.
-     */
-    @Deprecated
-    public TypeResolver newTypeResolver() {
-        return typeResolverProvider.instance(this.classLoader);
-    }
-
-    /**
-     * Creates a new TypeStorage instance.
-     *
-     * @return New TypeStorage instance.
-     */
-    public TypeStorage newTypeStorage() {
-        return typeResolverProvider.newStorage();
     }
 
     /**
@@ -361,31 +359,12 @@ public class KnowledgeService {
         return getDSL(dsl).create(this, toReaders(resources));
     }
 
-
-    /**
-     * <p>
-     * Shuts down the service and releases its internal resources.
-     * Once a service is shutdown, it can not be reused in the future.
-     * </p>
-     */
-    public void shutdown() {
-        this.executor.shutdown();
-    }
-
-    public ForkJoinExecutor getExecutor() {
-        return executor;
-    }
-
     public Configuration getConfiguration() {
         return configuration;
     }
 
     public MemoryFactoryProvider getMemoryFactoryProvider() {
         return collectionsServiceProvider;
-    }
-
-    public ExpressionResolverProvider getExpressionResolverProvider() {
-        return expressionResolverProvider;
     }
 
     public LiteralSourceCompiler getLiteralSourceCompiler() {
@@ -481,9 +460,9 @@ public class KnowledgeService {
     public static class Builder {
         private final Configuration conf;
         private Class<? extends MemoryFactoryProvider> memoryFactoryProvider;
-        private Class<? extends ExpressionResolverProvider> expressionResolverProvider;
         private Class<? extends TypeResolverProvider> typeResolverProvider;
         private Class<? extends LiteralSourceCompiler> literalSourceCompiler;
+        private ExecutorService executor;
 
         private Builder(Configuration conf) {
             this.conf = conf;
@@ -491,11 +470,6 @@ public class KnowledgeService {
 
         public Builder withMemoryFactoryProvider(Class<? extends MemoryFactoryProvider> memoryFactoryProvider) {
             this.memoryFactoryProvider = memoryFactoryProvider;
-            return this;
-        }
-
-        public Builder withExpressionResolverProvider(Class<? extends ExpressionResolverProvider> expressionResolverProvider) {
-            this.expressionResolverProvider = expressionResolverProvider;
             return this;
         }
 
@@ -509,16 +483,17 @@ public class KnowledgeService {
             return this;
         }
 
+        public Builder withExecutor(ExecutorService executor) {
+            this.executor = executor;
+            return this;
+        }
+
         public KnowledgeService build() {
             return new KnowledgeService(this);
         }
 
         private MemoryFactoryProvider getMemoryFactoryProvider() {
             return loadCoreSPI(MemoryFactoryProvider.class, Configuration.SPI_MEMORY_FACTORY, memoryFactoryProvider);
-        }
-
-        private ExpressionResolverProvider getExpressionResolverProvider() {
-            return loadCoreSPI(ExpressionResolverProvider.class, Configuration.SPI_EXPRESSION_RESOLVER, expressionResolverProvider);
         }
 
         private TypeResolverProvider getTypeResolverProvider() {

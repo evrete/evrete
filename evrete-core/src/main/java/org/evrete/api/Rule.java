@@ -10,6 +10,7 @@ import java.util.function.Consumer;
  */
 public interface Rule extends Environment, Named, NamedType.Resolver {
 
+
     /**
      * Gets the RHS (Right Hand Side) logic as a Consumer.
      *

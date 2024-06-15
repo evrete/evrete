@@ -14,11 +14,10 @@ package org.evrete.dsl;
  *         {@code CREATE} event happens immediately after a new session is created off the given ruleset
  *     </li>
  *     <li>
- *         {@code FIRE} event happens before any of the {@link org.evrete.api.StatefulSession#fire()}, {@link org.evrete.api.StatefulSession#fireAsync(Object)},
- *         or {@link org.evrete.api.StatefulSession#fireAsync()} are called on a session instance.
+ *         {@code FIRE} event happens before the session is fired.
  *     </li>
  *     <li>
- *         {@code CLOSE} event happens right before the session's {@link org.evrete.api.StatefulSession#close()} method is called.
+ *         {@code CLOSE} event happens right before the session is closed.
  *     </li>
  * </ul>
  */
@@ -35,13 +34,12 @@ public enum Phase {
     CREATE,
 
     /**
-     * Fired before any of the {@link org.evrete.api.StatefulSession#fire()}, {@link org.evrete.api.StatefulSession#fireAsync(Object)},
-     * or {@link org.evrete.api.StatefulSession#fireAsync()} are called on a session instance.
+     * Fired before any the session is fired
      */
     FIRE,
 
     /**
-     * Fired right before the session's {@link org.evrete.api.StatefulSession#close()} method is called.
+     * Fired right before the session is closed.
      */
     CLOSE
 }

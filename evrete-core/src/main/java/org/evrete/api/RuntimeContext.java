@@ -3,10 +3,8 @@ package org.evrete.api;
 import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.builders.RuleSetBuilder;
-import org.evrete.util.CompilationException;
+import org.evrete.api.events.EventBus;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.function.Consumer;
 
@@ -16,7 +14,7 @@ import java.util.function.Consumer;
  *
  * @param <C> the type of the implementing class or interface
  */
-public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, FluentImports<C>, FluentEnvironment<C>, EvaluatorsContext {
+public interface RuntimeContext<C extends RuntimeContext<C>> extends FluentImports<C>, FluentEnvironment<C>, EventBus {
     Comparator<Rule> SALIENCE_COMPARATOR = (rule1, rule2) -> -1 * Integer.compare(rule1.getSalience(), rule2.getSalience());
 
     /**
@@ -33,27 +31,8 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
      */
     void setRuleComparator(Comparator<Rule> comparator);
 
-    /**
-     * Creates a new rule with the provided name.
-     *
-     * @param name rule name
-     * @return a new rule builder
-     * @deprecated this method is deprecated in favor of a more efficient way of building rules,
-     * especially for large rule sets. See the new {@link #builder()} method for details
-     */
-    @Deprecated
-    RuleBuilder<C> newRule(String name);
 
-    /**
-     * Creates a new unnamed rule.
-     *
-     * @return a new rule builder
-     * @deprecated this method is deprecated in favor of a more efficient way of building rules,
-     * especially for large rule sets. See {@link #builder()} for details
-     */
-    @Deprecated
-    RuleBuilder<C> newRule();
-
+    EvaluatorsContext getEvaluatorsContext();
 
     /**
      * <p>
@@ -92,28 +71,6 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
      */
     RuleSetBuilder<C> builder();
 
-
-    /**
-     * @param expression literal condition and its context
-     * @return new evaluator instance
-     * @throws CompilationException if the expression failed to compile
-     * @see #compile(Collection)
-     */
-    default LiteralEvaluator compile(LiteralExpression expression) throws CompilationException {
-        return compile(Collections.singletonList(expression)).iterator().next();
-    }
-
-    /**
-     * <p>
-     * A convenience method for compiling literal expressions.
-     * </p>
-     *
-     * @param expressions literal conditions and their context
-     * @return compiled literal conditions
-     * @throws CompilationException if the expression failed to compile
-     */
-    Collection<LiteralEvaluator> compile(Collection<LiteralExpression> expressions) throws CompilationException;
-
     /**
      * Sets the activation mode for the session.
      *
@@ -121,13 +78,6 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
      * @return the updated instance of the class
      */
     C setActivationMode(ActivationMode activationMode);
-
-    /**
-     * Retrieves the expression resolver for parsing string expressions.
-     *
-     * @return the expression resolver
-     */
-    ExpressionResolver getExpressionResolver();
 
     /**
      * Configures the {@link TypeResolver} by applying the given action.
@@ -187,6 +137,7 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
      *
      * @return the TypeResolver instance
      */
+    // TODO review usage/delete
     TypeResolver getTypeResolver();
 
     /**
@@ -201,6 +152,7 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
      *
      * @return A new {@link JavaSourceCompiler} instance.
      */
+    //TODO remove
     JavaSourceCompiler getSourceCompiler();
 
     /**
@@ -211,5 +163,8 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends Listeners, 
      * @param classBytes the class bytes of the class
      * @return defined class
      */
+    //TODO remove
     Class<?> addClass(String binaryName, byte[] classBytes);
+
+
 }

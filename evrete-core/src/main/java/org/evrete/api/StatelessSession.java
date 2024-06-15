@@ -14,16 +14,6 @@ import java.util.function.Predicate;
  */
 public interface StatelessSession extends RuleSession<StatelessSession> {
 
-
-    /**
-     * <p>
-     * Fires the session and calls the consumer for each memory object and its fact handle.
-     * </p>
-     *
-     * @param consumer consumer for session memory
-     */
-    void fire(BiConsumer<FactHandle, Object> consumer);
-
     /**
      * <p>
      * Fires the session and performs no memory scan. This method might be useful if developer is
@@ -36,13 +26,25 @@ public interface StatelessSession extends RuleSession<StatelessSession> {
      * Log.info(c.getSomeUpdatedProperty());
      * }</pre>
      * <p>
-     * While this method is the easiest among the other {@code fire(..)} methods, it is only
-     * applicable if the provided {@link FactStorage} SPI implementation stores facts by reference
-     * (e.g. does not serialize/deserialize objects). The default implementation does not serialize or
-     * otherwise transform fact instances
+     * This method is only applicable if the provided {@link org.evrete.api.spi.FactStorage}
+     * SPI implementation stores facts by reference (e.g. does not serialize/deserialize objects).
+     * The default implementation does.
      * </p>
      */
     Void fire();
+
+
+    /**
+     * <p>
+     * Fires the session and calls the consumer for each memory object and its fact handle.
+     * </p>
+     *
+     * @param consumer consumer for session memory
+     */
+    default void fire(BiConsumer<FactHandle, Object> consumer) {
+        streamFactEntries().forEach(entry -> consumer.accept(entry.getKey(), entry.getValue()));
+    }
+
 
     /**
      * <p>
@@ -53,11 +55,7 @@ public interface StatelessSession extends RuleSession<StatelessSession> {
      * @param filter   filtering predicate
      */
     default void fire(Predicate<Object> filter, Consumer<Object> consumer) {
-        fire(o -> {
-            if (filter.test(o)) {
-                consumer.accept(o);
-            }
-        });
+        streamFacts().filter(filter).forEach(consumer);
     }
 
     /**
@@ -67,18 +65,24 @@ public interface StatelessSession extends RuleSession<StatelessSession> {
      *
      * @param consumer consumer for session memory
      */
-    void fire(Consumer<Object> consumer);
+    default void fire(Consumer<Object> consumer) {
+        streamFacts().forEach(consumer);
+    }
+
 
     /**
      * <p>
-     * A convenience method to retrieve facts of a specific type name.
+     * A convenience method to retrieve facts of a specific logical type name.
      * </p>
      *
-     * @param <T> the generic type of the objects consumed when the session is fired
-     * @param type the literal type of the objects
+     * @param <T>      the generic type of the objects consumed when the session is fired
+     * @param type     the logical type of the objects
      * @param consumer consumer for session memory
      */
-    <T> void fire(String type, Consumer<T> consumer);
+    default <T> void fire(String type, Consumer<T> consumer) {
+        this.<T>streamFacts(type).forEach(consumer);
+    }
+
 
     /**
      * <p>
@@ -88,15 +92,11 @@ public interface StatelessSession extends RuleSession<StatelessSession> {
      *
      * @param consumer consumer for session memory
      * @param filter   filtering predicate
-     * @param type string type of the objects to consume
-     * @param <T> the generic type of the objects consumed when the session is fired
+     * @param type     string type of the objects to consume
+     * @param <T>      the generic type of the objects consumed when the session is fired
      */
     default <T> void fire(String type, Predicate<T> filter, Consumer<T> consumer) {
-        fire(type, (Consumer<T>) t -> {
-            if (filter.test(t)) {
-                consumer.accept(t);
-            }
-        });
+        this.<T>streamFacts(type).filter(filter).forEach(consumer);
     }
 
     /**
@@ -105,10 +105,12 @@ public interface StatelessSession extends RuleSession<StatelessSession> {
      * </p>
      *
      * @param consumer consumer for session memory
-     * @param <T> the generic type of the objects consumed when the session is fired
-     * @param type the class of the objects consumed when the session is fired
+     * @param <T>      the generic type of the objects consumed when the session is fired
+     * @param type     the class of the objects consumed when the session is fired
      */
-    <T> void fire(Class<T> type, Consumer<T> consumer);
+    default <T> void fire(Class<T> type, Consumer<T> consumer) {
+        this.streamFacts(type).forEach(consumer);
+    }
 
     /**
      * <p>
@@ -116,17 +118,13 @@ public interface StatelessSession extends RuleSession<StatelessSession> {
      * matching given predicate
      * </p>
      *
-     * @param type class of objects to retrieve upon fire
+     * @param type     class of objects to retrieve upon fire
      * @param consumer consumer for session memory
      * @param filter   filtering predicate
-     * @param <T> the generic type of the objects consumed when the session is fired
+     * @param <T>      the generic type of the objects consumed when the session is fired
      */
     default <T> void fire(Class<T> type, Predicate<T> filter, Consumer<T> consumer) {
-        fire(type, t -> {
-            if (filter.test(t)) {
-                consumer.accept(t);
-            }
-        });
+        this.streamFacts(type).filter(filter).forEach(consumer);
     }
 
     default void insertAndFire(Object... objects) {

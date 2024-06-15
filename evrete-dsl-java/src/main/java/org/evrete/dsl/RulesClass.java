@@ -1,16 +1,13 @@
 package org.evrete.dsl;
 
-import org.evrete.api.RuntimeContext;
 import org.evrete.api.TypeResolver;
-import org.evrete.util.ArrayOf;
 import org.evrete.dsl.annotation.*;
+import org.evrete.util.ArrayOf;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.logging.Logger;
-
-import static org.evrete.dsl.Utils.LOGGER;
 
 class RulesClass extends WrappedClass {
     private static final Logger LOGGER = Logger.getLogger(RulesClass.class.getName());
@@ -38,7 +35,7 @@ class RulesClass extends WrappedClass {
             } else if (envListener != null) {
                 String property = envListener.value();
                 if (property.isEmpty()) {
-                    LOGGER.warning("The @" + EnvironmentListener.class.getSimpleName() + " annotation on " + m + " has no property value and will be ignored");
+                    LOGGER.warning(()->"The @" + EnvironmentListener.class.getSimpleName() + " annotation on " + m + " has no property value and will be ignored");
                 } else {
                     this.envListenerMethods.add(new EnvListenerMethod(classLookup, m, envListener));
                 }

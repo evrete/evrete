@@ -3,6 +3,7 @@ package org.evrete.spi.minimal;
 import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.spi.LiteralSourceCompiler;
+import org.evrete.util.CommonUtils;
 import org.evrete.util.CompilationException;
 
 import java.lang.invoke.MethodHandle;
@@ -23,7 +24,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
     static final String CLASS_PACKAGE = DefaultLiteralSourceCompiler.class.getPackage().getName() + ".compiled";
 
     @Override
-    public <S extends RuleLiteralData<R>, R extends Rule> Collection<RuleCompiledSources<S, R>> compile(RuntimeContext<?> context, Collection<S> sources) throws CompilationException {
+    public <S extends RuleLiteralData<R, C>, R extends Rule, C extends LiteralPredicate> Collection<RuleCompiledSources<S, R, C>> compile(RuntimeContext<?> context, Collection<S> sources) throws CompilationException {
         // Return if there's nothing to compile
         if (sources.isEmpty()) {
             return Collections.emptyList();
@@ -44,25 +45,25 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
         }
     }
 
-    private  <S extends RuleLiteralData<R>, R extends Rule> Collection<RuleCompiledSources<S, R>> compile(RuntimeContext<?> context, Collection<S> sources, boolean stripWhitespaces) throws CompilationException {
+    private <S extends RuleLiteralData<R, C>, R extends Rule, C extends LiteralPredicate> Collection<RuleCompiledSources<S, R, C>> compile(RuntimeContext<?> context, Collection<S> sources, boolean stripWhitespaces) throws CompilationException {
         JavaSourceCompiler compiler = context.getSourceCompiler();
 
-        Collection<RuleSource<S, R>> javaSources = sources.stream()
+        Collection<RuleSource<S, R, C>> javaSources = sources.stream()
                 .map(o -> new RuleSource<>(o, context, stripWhitespaces))
                 .collect(Collectors.toList());
 
-        Collection<JavaSourceCompiler.Result<RuleSource<S, R>>> result = compiler.compile(javaSources);
+        Collection<JavaSourceCompiler.Result<RuleSource<S, R, C>>> result = compiler.compile(javaSources);
 
         return result
-                    .stream()
-                    .map(compiledSource -> {
-                        Class<?> ruleClass = compiledSource.getCompiledClass();
-                        return new RuleCompiledSourcesImpl<>(ruleClass, compiledSource.getSource(), compiledSource.getSource().javaSource);
-                    })
-                    .collect(Collectors.toList());
+                .stream()
+                .map(compiledSource -> {
+                    Class<?> ruleClass = compiledSource.getCompiledClass();
+                    return new RuleCompiledSourcesImpl<>(ruleClass, compiledSource.getSource(), compiledSource.getSource().javaSource);
+                })
+                .collect(Collectors.toList());
     }
 
-    static class RuleSource<S extends RuleLiteralData<R>, R extends Rule> implements JavaSourceCompiler.ClassSource {
+    public static class RuleSource<S extends RuleLiteralData<R, C>, R extends Rule, C extends LiteralPredicate> implements JavaSourceCompiler.ClassSource {
         private final String className;
         private final String classSimpleName;
 
@@ -71,7 +72,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
         private final RhsSource rhsSource;
 
         private final String javaSource;
-        private final Collection<ConditionSource> conditionSources;
+        private final Collection<ConditionSource<C>> conditionSources;
 
         RuleSource(S delegate, RuntimeContext<?> context, boolean stripWhitespaces) {
             this.delegate = delegate;
@@ -82,7 +83,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
             AtomicInteger conditionCounter = new AtomicInteger();
             this.conditionSources = delegate.conditions()
                     .stream()
-                    .map(s -> new ConditionSource(delegate.getRule(), "condition" + conditionCounter.incrementAndGet(), this.classSimpleName, s, context, stripWhitespaces))
+                    .map(s -> new ConditionSource<>(delegate.getRule(), "condition" + conditionCounter.incrementAndGet(), this.classSimpleName, s, stripWhitespaces))
                     .collect(Collectors.toList());
 
             String rhs = delegate.rhs();
@@ -101,7 +102,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
             }
 
             // Class conditions declarations
-            for (ConditionSource source : this.conditionSources) {
+            for (ConditionSource<C> source : this.conditionSources) {
                 sb.append(TAB);
                 source.appendDeclaration(sb);
             }
@@ -110,7 +111,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
             if (!this.conditionSources.isEmpty()) {
                 sb.append("\n").append(TAB).append("static {\n");
                 sb.append(TAB).append(TAB).append("try {\n");
-                for (ConditionSource source : this.conditionSources) {
+                for (ConditionSource<C> source : this.conditionSources) {
                     sb.append(TAB);
                     sb.append(TAB);
                     sb.append(TAB);
@@ -123,7 +124,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
             }
 
             // Class conditions methods
-            for (ConditionSource source : this.conditionSources) {
+            for (ConditionSource<C> source : this.conditionSources) {
                 source.appendHandleMethod(sb);
                 source.appendInnerMethod(sb);
                 sb.append("\n");
@@ -172,7 +173,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
         }
     }
 
-    private static class ConditionSource {
+    private static class ConditionSource<C extends LiteralPredicate> {
         private static final String DECLARATION_TEMPLATE =
                 "public static final java.lang.invoke.MethodHandle %s;\n";
         private static final String DEFINITION_TEMPLATE =
@@ -186,28 +187,26 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
                 "    return %sInner(%s);\n" +
                 "  }\n";
 
-        final String source;
+        final C source;
         final String methodName;
         final String handleName;
         final String className;
         private final String replaced;
         private final StringJoiner methodArgs;
         private final StringJoiner argCasts;
-        private final FieldReference[] descriptor;
+        private final LhsField.Array<String, TypeField> resolvedFields;
 
-        public ConditionSource(Rule rule, String name, String className, String source, RuntimeContext<?> context, boolean stripWhitespaces) {
+        public ConditionSource(Rule rule, String name, String className, C source, boolean stripWhitespaces) {
             this.className = className;
             this.source = source;
             this.methodName = name;
             this.handleName = name.toUpperCase() + "_HANDLE";
-            StringLiteralEncoder encoder = StringLiteralEncoder.of(source, stripWhitespaces);
+            StringLiteralEncoder encoder = StringLiteralEncoder.of(source.getSource(), stripWhitespaces);
 
-            ExpressionResolver resolver = context.getExpressionResolver();
+            final List<ConditionStringTerm> terms = ConditionStringTerm.resolveTerms(encoder.getEncoded());
 
-            final List<ConditionStringTerm> terms = ConditionStringTerm.resolveTerms(encoder.getEncoded(), s -> resolver.resolve(s, rule));
-
-            List<ConditionStringTerm> uniqueReferences = new ArrayList<>();
-            List<FieldReference> descriptorBuilder = new ArrayList<>();
+            List<LhsField<String, String>> uniqueReferences = new ArrayList<>();
+            List<LhsField<String, TypeField>> descriptorBuilder = new ArrayList<>();
 
             String encodedExpression = encoder.getEncoded().value;
             int accumulatedShift = 0;
@@ -222,23 +221,32 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
                 encodedExpression = before + javaArgVar + after;
                 accumulatedShift += javaArgVar.length() - original.length();
 
-                if (!uniqueReferences.contains(term)) {
+                LhsField<String, String> ref = term.ref;
+
+                if (!uniqueReferences.contains(ref)) {
+
+                    LhsField<String, TypeField> resolvedField = CommonUtils.toTypeField(ref, rule);
+
+                    // Get the referenced field's type
+                    String canonicalFieldType = resolvedField
+                            .field()
+                            .getValueType()
+                            .getCanonicalName();
+
                     //Build the reference
-                    descriptorBuilder.add(term);
-                    //Prepare the corresponding source code vars
-                    Class<?> fieldType = term.field().getValueType();
+                    descriptorBuilder.add(resolvedField);
 
                     //argTypes.add(term.type().getType().getName() + "/" + term.field().getName());
-                    argCasts.add("(" + fieldType.getCanonicalName() + ") values.apply(" + castVarIndex + ")");
-                    methodArgs.add(fieldType.getCanonicalName() + " " + javaArgVar);
+                    argCasts.add("(" + canonicalFieldType + ") values.apply(" + castVarIndex + ")");
+                    methodArgs.add(canonicalFieldType + " " + javaArgVar);
                     castVarIndex++;
                     // Mark as processed
-                    uniqueReferences.add(term);
+                    uniqueReferences.add(ref);
                 }
             }
 
             this.replaced = encoder.unwrapLiterals(encodedExpression);
-            this.descriptor = descriptorBuilder.toArray(FieldReference.ZERO_ARRAY);
+            this.resolvedFields = new LhsField.Array<>(descriptorBuilder);
         }
 
         void appendDeclaration(StringBuilder target) {
@@ -271,8 +279,8 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
             this.methodArgs = new StringJoiner(", ");
             this.args = new StringJoiner(", ");
             for (NamedType t : rule.getDeclaredFactTypes()) {
-                methodArgs.add(t.getType().getJavaType() + " " + t.getName());
-                args.add(t.getName());
+                methodArgs.add(t.getType().getJavaClass().getCanonicalName() + " " + t.getVarName());
+                args.add(t.getVarName());
             }
         }
 
@@ -302,11 +310,11 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
             for (NamedType t : rule.getDeclaredFactTypes()) {
                 target
                         .append(TAB).append(TAB).append(TAB)
-                        .append(t.getType().getJavaType()).append(" ")
-                        .append(t.getName())
+                        .append(t.getType().getJavaClass().getCanonicalName()).append(" ")
+                        .append(t.getVarName())
                         .append(" = ")
                         .append("get(\"")
-                        .append(t.getName())
+                        .append(t.getVarName())
                         .append("\");\n");
             }
 
@@ -345,35 +353,34 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
                     .append("}")
             ;
         }
-
     }
 
-    public static class RuleCompiledSourcesImpl<S extends RuleLiteralData<R>, R extends Rule> implements RuleCompiledSources<S, R> {
+    public static class RuleCompiledSourcesImpl<S extends RuleLiteralData<R, C>, R extends Rule, C extends LiteralPredicate> implements RuleCompiledSources<S, R, C> {
 
-        private final RuleSource<S, R> source;
-        private final Collection<LiteralEvaluator> conditions;
+        private final RuleSource<S, R, C> source;
+        private final Collection<CompiledPredicate<C>> conditions;
         private final Consumer<RhsContext> rhs;
         private final String classJavaSource;
 
-        public RuleCompiledSourcesImpl(Class<?> ruleClass, RuleSource<S, R> source, String classJavaSource) {
+        public RuleCompiledSourcesImpl(Class<?> ruleClass, RuleSource<S, R, C> source, String classJavaSource) {
             this.source = source;
             this.classJavaSource = classJavaSource;
 
-            Map<String, ConditionSource> compiledConditions = new IdentityHashMap<>();
-            for (ConditionSource conditionSource : source.conditionSources) {
+            Map<LiteralPredicate, ConditionSource<C>> compiledConditions = new IdentityHashMap<>();
+            for (ConditionSource<C> conditionSource : source.conditionSources) {
                 compiledConditions.put(conditionSource.source, conditionSource);
             }
 
-            Collection<String> originalConditions = source.delegate.conditions();
+            Collection<C> originalConditions = source.delegate.conditions();
             this.conditions = new ArrayList<>(originalConditions.size());
 
-            for (String condition : originalConditions) {
-                ConditionSource compiled = compiledConditions.get(condition);
+            for (C condition : originalConditions) {
+                ConditionSource<C> compiled = compiledConditions.get(condition);
                 if (compiled == null) {
                     throw new IllegalStateException("Condition not found or not compiled");
                 } else {
                     assert compiled.source.equals(condition);
-                    this.conditions.add(new LiteralEvaluatorImpl(getSources().getRule(), compiled, ruleClass));
+                    this.conditions.add(new CompiledPredicateImpl<>(compiled, ruleClass));
                 }
             }
 
@@ -406,7 +413,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
 
         @NonNull
         @Override
-        public Collection<LiteralEvaluator> conditions() {
+        public Collection<CompiledPredicate<C>> conditions() {
             return conditions;
         }
 
@@ -416,40 +423,35 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
         }
     }
 
-    private static class LiteralEvaluatorImpl implements LiteralEvaluator {
-        private final FieldReference[] descriptor;
-        private final String source;
-        private final MethodHandle handle;
-        private final LiteralExpression sourceExpression;
+    private static class CompiledPredicateImpl<C extends LiteralPredicate> implements CompiledPredicate<C> {
+        private final ConditionSource<C> compiled;
+        private final PredicateImpl<C> delegate;
 
-        public LiteralEvaluatorImpl(Rule rule, ConditionSource compiled, Class<?> ruleClass) {
-            this.descriptor = compiled.descriptor;
-            this.source = compiled.source;
-            this.handle = getHandle(ruleClass, compiled.handleName);
-            this.sourceExpression = LiteralExpression.of(this.source, rule);
+        public CompiledPredicateImpl(ConditionSource<C> compiled, Class<?> ruleClass) {
+            this.compiled = compiled;
+            C source = compiled.source;
+            this.delegate = new PredicateImpl<>(getHandle(ruleClass, compiled.handleName), compiled.resolvedFields, source);
+        }
+
+
+        @Override
+        public LhsField.Array<String, TypeField> resolvedFields() {
+            return compiled.resolvedFields;
         }
 
         @Override
-        public FieldReference[] descriptor() {
-            return descriptor;
+        public ValuesPredicate getPredicate() {
+            return delegate;
         }
 
         @Override
-        public LiteralExpression getSource() {
-            return sourceExpression;
+        public C getSource() {
+            return compiled.source;
         }
 
         @Override
-        public boolean test(IntToValue values) {
-            try {
-                return (boolean) handle.invoke(values);
-            } catch (Throwable t) {
-                Object[] args = new Object[descriptor.length];
-                for (int i = 0; i < args.length; i++) {
-                    args[i] = values.apply(i);
-                }
-                throw new IllegalStateException("Evaluation exception at '" + source + "', arguments: " + Arrays.toString(descriptor) + " -> " + Arrays.toString(args), t);
-            }
+        public String toString() {
+            return getSource().toString();
         }
 
         static MethodHandle getHandle(Class<?> compiledClass, String name) {
@@ -457,6 +459,81 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
                 return (MethodHandle) compiledClass.getDeclaredField(name).get(null);
             } catch (IllegalAccessException | NoSuchFieldException e) {
                 throw new IllegalStateException("Handle not found", e);
+            }
+        }
+
+        static class PredicateImpl<C extends LiteralPredicate> implements ValuesPredicate {
+            private final MethodHandle handle;
+            private final LhsField.Array<String, TypeField> resolvedFields;
+            private final C source;
+
+            PredicateImpl(MethodHandle handle, LhsField.Array<String, TypeField> resolvedFields, C source) {
+                this.handle = handle;
+                this.resolvedFields = resolvedFields;
+                this.source = source;
+            }
+
+            // Two conditions are considered equal if they have the same Java source and the same signature
+            private static boolean sameCondition(PredicateImpl<?> p1, PredicateImpl<?> p2) {
+                if(Objects.equals(p1.source.getSource(), p2.source.getSource())) {
+                    if(p1.resolvedFields.length() == p2.resolvedFields.length()) {
+                        for(int i = 0; i < p1.resolvedFields.length(); i++) {
+                            TypeField f1 = p1.resolvedFields.get(i).field();
+                            TypeField f2 = p2.resolvedFields.get(i).field();
+                            String name1 = f1.getName();
+                            String name2 = f2.getName();
+                            Class<?> valueType1 = f1.getValueType();
+                            Class<?> valueType2 = f2.getValueType();
+                            Class<?> declaringType1 = f1.getDeclaringType().getJavaClass();
+                            Class<?> declaringType2 = f2.getDeclaringType().getJavaClass();
+                            if(!Objects.equals(name1, name2)) {
+                                return false;
+                            }
+                            if(!Objects.equals(valueType1, valueType2)) {
+                                return false;
+                            }
+                            if(!Objects.equals(declaringType1, declaringType2)) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) return true;
+                if (o == null || getClass() != o.getClass()) return false;
+                PredicateImpl<?> predicate = (PredicateImpl<?>) o;
+                return sameCondition(this, predicate);
+            }
+
+            @Override
+            public int hashCode() {
+                return source.getSource().hashCode();
+            }
+
+            @Override
+            public String toString() {
+                return source.toString();
+            }
+
+            @Override
+            public boolean test(IntToValue values) {
+                try {
+                    return (boolean) handle.invokeExact(values);
+                } catch (Throwable t) {
+                    Object[] args = new Object[resolvedFields.length()];
+                    for (int i = 0; i < args.length; i++) {
+                        args[i] = values.apply(i);
+                    }
+                    throw new IllegalStateException("Evaluation exception at '" + source + "', fields: " + resolvedFields + ", post-exception values:" + Arrays.toString(args), t);
+                }
             }
         }
     }

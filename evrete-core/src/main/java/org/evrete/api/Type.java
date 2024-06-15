@@ -12,7 +12,7 @@ import java.util.function.*;
  * through the fact's Java type.
  * <p>
  * Each logical type is uniquely identified by its logical name, retrievable via the {@link Type#getName()}
- * method, and is associated with a specific Java type, obtainable through the {@link Type#getJavaType()} method.
+ * method, and is associated with a specific Java type, obtainable through the {@link Type#getJavaClass()} method.
  * This mechanism allows for facts of the same Java type to be differentiated based on their logical names.
  * </p>
  * <p>
@@ -23,19 +23,21 @@ import java.util.function.*;
  * @param <T> the Java type associated with this logical type
  */
 
-public interface Type<T> extends Named, Copyable<Type<T>> {
+public interface Type<T> extends Copyable<Type<T>> {
+
 
     /**
-     * <p>
-     * Each type is assigned a unique auto-increment int identifier which developers can use in SPI implementations,
-     * for example in sharding/partitioning data collections.
-     * </p>
-     *
-     * @return unique type identifier.
+     * Returns logical name of the type
+     * @return logical name
      */
-    int getId();
+    String getName();
 
-
+    /**
+     *
+     * @return the resolved Java Class associated with the type.
+     * @deprecated use the {@link #getJavaClass()} method instead
+     */
+    @Deprecated
     Class<T> resolveJavaType();
 
     /**
@@ -45,8 +47,21 @@ public interface Type<T> extends Named, Copyable<Type<T>> {
      * associated Java type.
      * </p>
      *
-     * @return name of the Java Class associated with the type.
+     * @return the Java Class associated with the type.
      */
+    Class<T> getJavaClass();
+
+    /**
+     * <p>
+     * There can be only one Type with the given name, but there could be
+     * many types associated with a specific Java Class. This method returns the
+     * associated Java type.
+     * </p>
+     *
+     * @return name of the Java Class associated with the type.
+     * @deprecated use the {@link #getJavaClass()} method instead
+     */
+    @Deprecated
     String getJavaType();
 
     /**
@@ -140,5 +155,9 @@ public interface Type<T> extends Named, Copyable<Type<T>> {
      */
     default TypeField declareBooleanField(final String name, final Predicate<T> function) {
         return declareField(name, boolean.class, function::test);
+    }
+
+    static String logicalNameOf(@NonNull Class<?> cl) {
+        return cl.getName();
     }
 }

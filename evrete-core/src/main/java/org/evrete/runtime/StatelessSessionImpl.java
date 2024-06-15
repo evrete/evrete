@@ -1,13 +1,13 @@
 package org.evrete.runtime;
 
 import org.evrete.api.FactHandle;
+import org.evrete.api.MapEntry;
 import org.evrete.api.StatelessSession;
-import org.evrete.api.Type;
 
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import java.util.stream.Stream;
 
-class StatelessSessionImpl extends AbstractRuleSessionIO<StatelessSession> implements StatelessSession {
+//TODO test each method!!!!!!
+class StatelessSessionImpl extends AbstractRuleSession<StatelessSession> implements StatelessSession {
 
     StatelessSessionImpl(KnowledgeRuntime knowledge) {
         super(knowledge);
@@ -16,16 +16,6 @@ class StatelessSessionImpl extends AbstractRuleSessionIO<StatelessSession> imple
     @Override
     protected StatelessSession thisInstance() {
         return this;
-    }
-
-    @Override
-    public void fire(BiConsumer<FactHandle, Object> consumer) {
-        try {
-            fireInner();
-            getMemory().forEach(tm -> tm.forEachFact(consumer));
-        } finally {
-            closeInner();
-        }
     }
 
     @Override
@@ -39,43 +29,20 @@ class StatelessSessionImpl extends AbstractRuleSessionIO<StatelessSession> imple
     }
 
     @Override
-    public void fire(Consumer<Object> consumer) {
-        try {
-            fireInner();
-            getMemory().forEach(tm -> tm.forEachFact((handle, o) -> consumer.accept(o)));
-        } finally {
-            closeInner();
-        }
-    }
-
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> void fire(String type, Consumer<T> consumer) {
-        try {
-            fireInner();
-            Type<?> t = getTypeResolver().getType(type);
-            if (t == null) {
-                throw new IllegalArgumentException("No known type named '" + type + "'");
-            }
-            getMemory().get(t).forEachFact((factHandle, o) -> consumer.accept((T) o));
-        } finally {
-            closeInner();
-        }
+    public Stream<MapEntry<FactHandle, Object>> streamFactEntries() {
+        fireInner();
+        return streamFactEntries(true);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T> void fire(Class<T> type, Consumer<T> consumer) {
-        try {
-            fireInner();
-            getMemory().forEach(tm -> {
-                if (type.getName().equals(tm.type.getJavaType())) {
-                    tm.forEachFact((factHandle, o) -> consumer.accept((T) o));
-                }
-            });
-        } finally {
-            closeInner();
-        }
+    public <T> Stream<MapEntry<FactHandle, T>> streamFactEntries(String type) {
+        fireInner();
+        return streamFactEntries(type, true);
+    }
+
+    @Override
+    public <T> Stream<MapEntry<FactHandle, T>> streamFactEntries(Class<T> type) {
+        fireInner();
+        return streamFactEntries(type, true);
     }
 }

@@ -4,17 +4,17 @@ import org.evrete.api.NamedType;
 import org.evrete.api.annotations.NonNull;
 
 import java.util.Collection;
-import java.util.Map;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.NoSuchElementException;
-import java.util.concurrent.ConcurrentHashMap;
 
-class DefaultNamedTypeResolver implements NamedType.Resolver {
-    private final Map<String, NamedType> map = new ConcurrentHashMap<>();
+class DefaultNamedTypeResolver<T extends NamedType> implements NamedType.Resolver {
+    private final LinkedHashMap<String, T> map = new LinkedHashMap<>();
 
     @NonNull
     @Override
-    public NamedType resolve(@NonNull String var) {
-        NamedType t = map.get(var);
+    public T resolve(@NonNull String var) {
+        T t = map.get(var);
         if (t == null) {
             throw new NoSuchElementException("No type registered with variable '" + var + "'");
         } else {
@@ -22,19 +22,22 @@ class DefaultNamedTypeResolver implements NamedType.Resolver {
         }
     }
 
-    void copyFrom(DefaultNamedTypeResolver other) {
-        this.map.putAll(other.map);
+    protected int size() {
+        return map.size();
     }
 
-    public void save(NamedType value) {
-        NamedType prev = map.put(value.getName(), value);
+    public void save(T value) {
+        T prev = map.put(value.getVarName(), value);
         if (prev != null) {
-            throw new IllegalArgumentException("Duplicate type reference '" + value.getName() + "'");
+            throw new IllegalArgumentException("Duplicate type reference '" + value.getVarName() + "'");
         }
     }
 
-    @Override
-    public final Collection<NamedType> getDeclaredFactTypes() {
+    Collection<T> rawValues() {
         return map.values();
+    }
+
+    public final Collection<NamedType> getDeclaredFactTypes() {
+        return Collections.unmodifiableCollection(rawValues());
     }
 }

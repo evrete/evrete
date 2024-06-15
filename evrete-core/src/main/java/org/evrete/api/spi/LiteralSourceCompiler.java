@@ -21,5 +21,5 @@ public interface LiteralSourceCompiler extends OrderedServiceProvider {
      * @return a collection of compiled rule sources
      * @throws CompilationException if any compilation error occurs
      */
-    <S extends RuleLiteralData<R>, R extends Rule> Collection<RuleCompiledSources<S, R>> compile(RuntimeContext<?> context, Collection<S> sources) throws CompilationException;
+    <S extends RuleLiteralData<R,C>, R extends Rule, C extends LiteralPredicate> Collection<RuleCompiledSources<S, R, C>> compile(RuntimeContext<?> context, Collection<S> sources) throws CompilationException;
 }

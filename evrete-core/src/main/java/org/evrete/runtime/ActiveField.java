@@ -1,65 +1,92 @@
 package org.evrete.runtime;
 
-import org.evrete.api.Named;
+import org.evrete.api.Type;
 import org.evrete.api.TypeField;
-
-import java.io.Serializable;
+import org.evrete.util.AbstractIndex;
 
 /**
  * <p>
- * A wrapper for TypeField that will actually be in use by the runtime. Declared, but unused, fields will not get
- * wrapped, thus avoiding unnecessary value reads.
+ * An indexing wrapper for TypeField that will actually be in use by the runtime.
+ * Declared, but unused, fields will not get wrapped, thus avoiding unnecessary value reads.
  * </p>
  */
-
-public final class ActiveField implements Serializable, Named {
+public final class ActiveField implements TypeField {
     public static final ActiveField[] ZERO_ARRAY = new ActiveField[0];
 
-    private static final long serialVersionUID = 1318511720324319967L;
+    private final ActiveType.Idx type;
     private final int valueIndex;
-    private final String fieldName;
-    private final int type;
+    private final TypeField delegate;
 
-    public ActiveField(TypeField delegate, int valueIndex) {
+    public ActiveField(ActiveType.Idx type, TypeField delegate, int valueIndex) {
+        this.type = type;
+        this.delegate = delegate;
         this.valueIndex = valueIndex;
-        this.type = delegate.getDeclaringType().getId();
-        this.fieldName = delegate.getName();
+    }
+
+    /**
+     * Reference to the declared type
+     * @return the index of the declaring {@link ActiveType}
+     */
+    public ActiveType.Idx type() {
+        return type;
+    }
+
+    @Override
+    public Class<?> getValueType() {
+        return delegate.getValueType();
+    }
+
+    @Override
+    public <T> T readValue(Object subject) {
+        return delegate.readValue(subject);
     }
 
     @Override
     public String getName() {
-        return fieldName;
+        return delegate.getName();
     }
 
-    public int type() {
-        return type;
+    @Override
+    public Type<?> getDeclaringType() {
+        return delegate.getDeclaringType();
     }
 
+    //TODO add link to where the method is used
     /**
-     * @return index under which the value of this field is stored during insert/update in an Object[] array.
+     * Returns auto-incremented index under which the value of this field is stored in an
+     * Object[] array during insert/update operations. The index is unique within the declared type.
+     * @return unique index inside the active {@link ActiveType}
      */
-    public int getValueIndex() {
+    public int valueIndex() {
         return valueIndex;
     }
+
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ActiveField that = (ActiveField) o;
-        return valueIndex == that.valueIndex && fieldName.equals(that.fieldName);
+        return type == that.type && valueIndex == that.valueIndex;
     }
 
     @Override
     public int hashCode() {
-        return fieldName.hashCode() * 37 + valueIndex;
+        return type.getIndex() * 37 + valueIndex;
     }
 
     @Override
     public String toString() {
         return "{" +
-                "index=" + valueIndex +
-                ", delegate='" + fieldName +
-                "'}";
+                "'" + getName() + "'/" + getValueType() +
+                ", ofType=" + type +
+                ", valueIdx=" + valueIndex +
+                '}';
+    }
+
+    static class Index extends AbstractIndex {
+        public Index(int index) {
+            super(index, index);
+        }
     }
 }

@@ -1,115 +1,79 @@
 package org.evrete.api;
 
-import java.util.Collection;
-
 /**
- * <p>
- * Rule activation context that provides access to the rule's variables and
- * working memory methods.
- * </p>
+ * Provides access to the rule's RHS (Right-Hand Side) variables and
+ * the session memory's methods.
  */
-public interface RhsContext {
-    /**
-     * @param obj fact to insert
-     * @return RHS context
-     * @see #insert(Object, boolean)
-     */
-    default RhsContext insert(Object obj) {
-        return insert(obj, true);
-    }
+public interface RhsContext extends SessionOps {
 
     /**
-     * <p>
-     * Buffers a new insert operation in rule's memory
-     * </p>
-     *
-     * @param fact               object to insert
-     * @param resolveCollections collection/array inspection flag
-     * @return RHS context
-     * @throws NullPointerException if argument is null
-     */
-    RhsContext insert(Object fact, boolean resolveCollections);
-
-
-    default RhsContext insert(Collection<?> objects) {
-        return insert(objects, true);
-    }
-
-    default RhsContext insert(Object[] objects) {
-        return insert(objects, true);
-    }
-
-    /**
-     * <p>
-     * This method lets the working memory know that one of its objects has changed.
-     * Always call this method to get conditions re-evaluated, and
-     * avoid calling it if the changes are not relevant to the conditions.
-     * </p>
+     * Notifies the working memory that one of its objects has changed. Always call this method to
+     * re-evaluate conditions, and avoid calling it if the changes are not relevant to the conditions.
      *
      * @param obj the changed object
-     * @return the context itself so the methods could be chained
+     * @return the context itself so methods can be chained
      */
     RhsContext update(Object obj);
 
     /**
-     * <p>
-     * This method removes an instance from the working memory.
-     * </p>
+     * Removes an instance from the working memory.
      *
      * @param obj the object to remove
-     * @return the context itself so the methods could be chained
+     * @return the context itself so methods can be chained
      */
     RhsContext delete(Object obj);
 
-
     /**
-     * <p>
-     * A convenience method that returns reference to the current rule and its
-     * environment.
-     * </p>
+     * Returns a reference to the current rule and its environment.
      *
-     * @return current rule
+     * @return the current rule
      */
     RuntimeRule getRule();
 
     /**
-     * <p>
-     * Provides access to the runtime context, an equivalent to
+     * Provides access to the runtime context, equivalent to
      * {@code getRule().getRuntime()}.
-     * </p>
      *
-     * @return runtime context (session)
+     * @return the runtime context (session)
      */
     default RuleSession<?> getRuntime() {
         return getRule().getRuntime();
     }
 
+    /**
+     * Deletes a fact from the working memory by its reference name.
+     *
+     * @param factRef the reference name of the fact to delete
+     * @return the context itself so methods can be chained
+     */
     default RhsContext deleteFact(String factRef) {
         return delete(getObject(factRef));
     }
 
+    /**
+     * Updates a fact in the working memory by its reference name.
+     *
+     * @param factRef the reference name of the fact to update
+     * @return the context itself so methods can be chained
+     */
     default RhsContext updateFact(String factRef) {
         return update(getObject(factRef));
     }
 
     /**
-     * <p>
-     * Returns current fact by its name
-     * </p>
+     * Returns the current fact by its name.
      *
-     * @param name the fact name
-     * @return current instance
+     * @param name the name of the fact
+     * @return the current instance
      */
     Object getObject(String name);
 
     /**
-     * <p>
      * A typed version of the {@code getObject()} method.
-     * </p>
      *
-     * @param name fact name
-     * @param <T>  cast type
-     * @return current instance
+     * @param name the name of the fact
+     * @param <T> the type to cast the fact to
+     * @return the typed instance
      */
     @SuppressWarnings("unchecked")
     default <T> T get(String name) {
@@ -117,18 +81,15 @@ public interface RhsContext {
     }
 
     /**
-     * <p>
-     * A typed version of the {@code get()} method with explicit generic cast type.
-     * </p>
+     * A typed version of the {@code get()} method with an explicit generic cast type.
      *
-     * @param name fact name
-     * @param type fact type
-     * @param <T>  cast type
-     * @return current instance
+     * @param name the name of the fact
+     * @param type the class type to cast the fact to
+     * @param <T> the type to cast the fact to
+     * @return the typed instance
      */
     @SuppressWarnings("unused")
     default <T> T get(Class<T> type, String name) {
         return get(name);
     }
-
 }

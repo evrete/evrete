@@ -4,7 +4,6 @@ import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.RuntimeContext;
-import org.evrete.api.TypeResolver;
 
 import java.io.IOException;
 import java.io.InputStream;

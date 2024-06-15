@@ -44,7 +44,7 @@ class StatelessJavaClassTests {
         }
 
         NextIntSupplier primeCounter = new NextIntSupplier();
-        session.fire((h, o) -> primeCounter.next());
+        session.fire((h, o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;
 
@@ -62,7 +62,7 @@ class StatelessJavaClassTests {
         }
 
         NextIntSupplier primeCounter = new NextIntSupplier();
-        session.fire((h, o) -> primeCounter.next());
+        session.fire((h, o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;
     }
@@ -79,7 +79,7 @@ class StatelessJavaClassTests {
         }
 
         NextIntSupplier primeCounter = new NextIntSupplier();
-        session.fire((h, o) -> primeCounter.next());
+        session.fire((h, o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;
     }

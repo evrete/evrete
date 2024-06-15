@@ -15,7 +15,6 @@ import java.util.function.Predicate;
  */
 public interface RuleSetBuilder<C extends RuntimeContext<C>> extends FluentEnvironment<RuleSetBuilder<C>> {
 
-
     /**
      * Creates a new rule with the provided name.
      *

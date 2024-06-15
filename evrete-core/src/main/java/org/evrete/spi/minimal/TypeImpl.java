@@ -12,36 +12,22 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 class TypeImpl<T> implements Type<T> {
-    private final int id;
     private final String name;
-    private final ClassResolver classResolver;
     private final Map<String, TypeFieldImpl> fieldMap = new HashMap<>();
-    private final String javaType;
-    private final Supplier<Class<T>> classSupplier;
+    private final Class<T> javaType;
 
-    TypeImpl(String name, String javaType, int id, Supplier<Class<T>> classSupplier) {
+    TypeImpl(String name, Class<T> javaType) {
         Objects.requireNonNull(name);
-        this.classSupplier = classSupplier;
-        this.classResolver = new ClassResolver(classSupplier);
         this.name = name;
         this.javaType = javaType;
-        this.id = id;
     }
 
     private TypeImpl(TypeImpl<T> other) {
         this.fieldMap.putAll(other.fieldMap);
-        this.classSupplier = other.classSupplier;
-        this.classResolver = new ClassResolver(this.classSupplier);
         this.name = other.name;
         this.javaType = other.javaType;
-        this.id = other.id;
-        for (Map.Entry<String, TypeFieldImpl> entry : other.fieldMap.entrySet()) {
-            TypeFieldImpl f = entry.getValue().copy(this);
-            save(f);
-        }
     }
 
     private static ValueReader resolve(MethodHandles.Lookup lookup, Class<?> clazz, String prop) {
@@ -93,15 +79,6 @@ class TypeImpl<T> implements Type<T> {
         return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 
-    private void save(TypeFieldImpl f) {
-        this.fieldMap.put(f.getName(), f);
-    }
-
-    @Override
-    public int getId() {
-        return this.id;
-    }
-
     @Override
     public TypeImpl<T> copyOf() {
         return new TypeImpl<>(this);
@@ -145,19 +122,26 @@ class TypeImpl<T> implements Type<T> {
     }
 
     @Override
+    public Class<T> getJavaClass() {
+        return javaType;
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <V> TypeField declareField(String name, Class<V> type, Function<T, V> function) {
         return innerDeclare(name, type, o -> function.apply((T) o));
     }
 
     @Override
+    @Deprecated
     public final String getJavaType() {
-        return javaType;
+        return javaType.getName();
     }
 
     @Override
+    @Deprecated
     public Class<T> resolveJavaType() {
-        return classResolver.get();
+        return javaType;
     }
 
     @Override
@@ -173,23 +157,17 @@ class TypeImpl<T> implements Type<T> {
 
     private synchronized TypeField innerDeclare(final String name, final Class<?> type, final Function<Object, ?> function) {
         Const.assertName(name);
-        TypeFieldImpl field = fieldMap.get(name);
-        if (field == null) {
-            field = new TypeFieldImpl(this, name, type, function);
-            this.fieldMap.put(name, field);
-        } else {
-            field.setFunction(function);
-        }
-
+        TypeFieldImpl field = new TypeFieldImpl(name, this, type, function);
+        this.fieldMap.put(name, field);
         return field;
     }
 
-    private TypeField resolveField(@NonNull String fieldName) {
+    private TypeField resolveField(String fieldName) {
         Function<Object, Object> func;
         Class<?> valueType;
-        if (fieldName.isEmpty()) {
+        if (fieldName == null ||  fieldName.isEmpty()) {
             // "this" field
-            valueType = classResolver.get();
+            valueType = javaType;
             func = o -> o;
         } else {
             String[] parts = fieldName.split("\\.");
@@ -197,7 +175,7 @@ class TypeImpl<T> implements Type<T> {
 
             MethodHandles.Lookup lookup = MethodHandles.lookup();
 
-            valueType = classResolver.get();
+            valueType = javaType;
             for (String part : parts) {
                 Const.assertName(part);
                 ValueReader reader = resolve(lookup, valueType, part);
@@ -305,29 +283,6 @@ class TypeImpl<T> implements Type<T> {
 
         Class<?> valueType() {
             return handle.type().returnType();
-        }
-    }
-
-    private class ClassResolver {
-        private final Supplier<Class<T>> resolver;
-        private volatile Class<T> resolved;
-
-        ClassResolver(Supplier<Class<T>> resolver) {
-            this.resolver = resolver;
-        }
-
-        Class<T> get() {
-            if (resolved == null) {
-                synchronized (this.resolver) {
-                    if (resolved == null) {
-                        resolved = resolver.get();
-                        if (resolved == null) {
-                            throw new IllegalStateException();
-                        }
-                    }
-                }
-            }
-            return resolved;
         }
     }
 }

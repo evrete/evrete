@@ -103,7 +103,7 @@ class StatelessJavaSourceTests {
         }
 
         NextIntSupplier primeCounter = new NextIntSupplier();
-        session.fire((o) -> primeCounter.next());
+        session.fire((o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;
 
@@ -123,7 +123,7 @@ class StatelessJavaSourceTests {
         }
 
         NextIntSupplier primeCounter = new NextIntSupplier();
-        session.fire((o) -> primeCounter.next());
+        session.fire((o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;
 
@@ -142,7 +142,7 @@ class StatelessJavaSourceTests {
         }
 
         NextIntSupplier primeCounter = new NextIntSupplier();
-        session.fire((o) -> primeCounter.next());
+        session.fire((o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25 : "Actual: " + primeCounter.get();
     }
@@ -159,7 +159,7 @@ class StatelessJavaSourceTests {
             session.insert(i);
         }
         NextIntSupplier primeCounter = new NextIntSupplier();
-        session.fire((o) -> primeCounter.next());
+        session.fire((o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;
     }
@@ -177,7 +177,7 @@ class StatelessJavaSourceTests {
             session.insert(i);
         }
         NextIntSupplier primeCounter = new NextIntSupplier();
-        session.fire((o) -> primeCounter.next());
+        session.fire((o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;
     }

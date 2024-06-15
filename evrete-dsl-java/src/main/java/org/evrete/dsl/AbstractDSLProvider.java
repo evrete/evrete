@@ -7,10 +7,11 @@ import org.evrete.api.annotations.NonNull;
 import org.evrete.api.builders.RuleSetBuilder;
 import org.evrete.api.spi.DSLKnowledgeProvider;
 import org.evrete.dsl.annotation.*;
-import org.evrete.util.IOFunction;
-import org.evrete.util.IOUtils;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.UncheckedIOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -132,7 +133,7 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
                 throw e.getCause();
             }
         } else  {
-            LOGGER.warning("No sources specified");
+            LOGGER.warning(()->"No sources specified");
         }
     }
 
@@ -180,7 +181,7 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
     static DSLKnowledgeBuilder processRuleSet(RuleSetBuilder<Knowledge> rulesetBuilder, MethodHandles.Lookup lookup, Class<?> javaClass) {
         // 0. locate and warn about annotated non-public methods
         for (Method m : Utils.allNonPublicAnnotated(javaClass)) {
-            LOGGER.warning("Method " + m + " declared in " + m.getDeclaringClass() + " is not public and will be disregarded.");
+            LOGGER.warning(()->"Method " + m + " declared in " + m.getDeclaringClass() + " is not public and will be disregarded.");
         }
 
         // 1. Scanning all the class methods and saving those with annotations
@@ -206,7 +207,7 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
             if (envListener != null) {
                 String property = envListener.value();
                 if (property.isEmpty()) {
-                    LOGGER.warning("The @" + EnvironmentListener.class.getSimpleName() + " annotation on " + m + " has no property value and will be ignored");
+                    LOGGER.warning(()->"The @" + EnvironmentListener.class.getSimpleName() + " annotation on " + m + " has no property value and will be ignored");
                 } else {
                     meta.addEnvListener(m, property);
                 }
