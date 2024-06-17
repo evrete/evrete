@@ -6,7 +6,6 @@ import org.evrete.api.RhsContext;
 import org.evrete.api.RuntimeContext;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.builders.RuleBuilder;
-import org.evrete.api.builders.RuleSetBuilder;
 
 import java.util.Collection;
 import java.util.function.Consumer;

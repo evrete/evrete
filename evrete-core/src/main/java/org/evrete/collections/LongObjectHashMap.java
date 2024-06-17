@@ -1,16 +1,21 @@
 package org.evrete.collections;
 
+import org.evrete.api.annotations.NonNull;
 import org.evrete.api.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * A simple hash map implementation using open addressing with linear probing.
+ * A simple linear hash map implementation using open addressing with linear probing.
+ * This implementation conforms to {@link Iterable} and provides streams of its values.
  *
  * <p>Main Operations:</p>
  * <ul>
- *     <li>{@code T put(long key, T value)} - Inserts a key-value pair and returns previous value.</li>
+ *     <li>{@code T put(long key, T value)} - Inserts a key-value pair and returns the previous value.</li>
  *     <li>{@code T get(long key)} - Retrieves the value for a key.</li>
  *     <li>{@code T remove(long key)} - Removes a key-value pair.</li>
  *     <li>{@code int size()} - Returns the number of key-value pairs.</li>
@@ -18,12 +23,15 @@ import java.util.stream.Stream;
  *
  * @param <T> the type of values maintained by this map
  */
-public class LongObjectHashMap<T> {
+public class LongObjectHashMap<T> implements Iterable<T> {
 
     private static final int DEFAULT_CAPACITY = 16;
     private Entry[] table;
     private int size;
-    private final int initialSize;
+    private int[] indices;
+    private int indicesWritePos;
+
+    private final int minSize;
 
     public LongObjectHashMap() {
         this(DEFAULT_CAPACITY);
@@ -31,15 +39,19 @@ public class LongObjectHashMap<T> {
 
     public LongObjectHashMap(int capacity) {
         int adjusted = nextPowerOfTwo(capacity);
-        table = new Entry[adjusted];
-        initialSize = adjusted;
-        size = 0;
+        this.table = new Entry[adjusted];
+        this.minSize = adjusted;
+        this.size = 0;
+        this.indices = new int[adjusted];
+        this.indicesWritePos = 0;
     }
 
     public LongObjectHashMap(LongObjectHashMap<T> other) {
-        table = other.table.clone();
-        size = other.size;
-        initialSize = other.initialSize;
+        this.table = other.table.clone();
+        this.size = other.size;
+        this.minSize = other.minSize;
+        this.indices = other.indices.clone();
+        this.indicesWritePos = other.indicesWritePos;
     }
 
     private int hash(long key) {
@@ -50,18 +62,30 @@ public class LongObjectHashMap<T> {
         return table.length;
     }
 
+    @Override
+    public String toString() {
+        return "{" +
+                "size=" + size +
+                ", indicesWritePos=" + indicesWritePos +
+                '}';
+    }
+
     public synchronized void clear() {
         this.size = 0;
-        if(table.length == initialSize) {
+        this.indicesWritePos = 0;
+        if (table.length == minSize) {
             Arrays.fill(table, null);
+            Arrays.fill(indices, 0);
         } else {
-            table = new Entry[initialSize];
+            table = new Entry[minSize];
+            indices = new int[minSize];
         }
     }
 
     @SuppressWarnings("unchecked")
     public Stream<T> values() {
-        return Arrays.stream(this.table)
+        return IntStream.range(0, indicesWritePos)
+                .mapToObj(value -> table[indices[value]])
                 .filter(entry -> entry != null && entry.isActive)
                 .map(entry -> (T) entry.value);
     }
@@ -73,7 +97,14 @@ public class LongObjectHashMap<T> {
     @SuppressWarnings("unchecked")
     @Nullable
     public T put(long key, T value) {
-        return (T) this.putInner(key, value);
+        Object result = this.putInner(key, value);
+        if (result == null) {
+            // Resizing only if added
+            checkResize();
+            return null;
+        } else {
+            return (T) result;
+        }
     }
 
     @Nullable
@@ -82,35 +113,32 @@ public class LongObjectHashMap<T> {
     }
 
     private synchronized Object putInner(long key, Object value) {
-        if (size >= table.length / 2) {
-            resize();
-        }
-
-        int hash = hash(key);
+        int idx = hash(key);
         Entry entry;
-        while ((entry = table[hash]) != null && entry.isActive) {
-            if (entry.key == key) {
+        while ((entry = table[idx]) != null) {
+            if (entry.isActive && entry.key == key) {
                 Object oldValue = entry.value;
                 entry.value = value;  // Update existing value
                 return oldValue;
             }
-            hash = nextHash(hash);
+            idx = nextHash(idx);
         }
-        table[hash] = new Entry(key, value);
-        size++;
+        this.table[idx] = new Entry(key, value);
+        this.indices[this.indicesWritePos++] = idx;
+        this.size++;
         return null;
     }
 
     @SuppressWarnings("unchecked")
     @Nullable
     public T get(long key) {
-        int hash = hash(key);
+        int idx = hash(key);
         Entry entry;
-        while ((entry = table[hash]) != null) {
+        while ((entry = table[idx]) != null) {
             if (entry.isActive && entry.key == key) {
                 return (T) entry.value;
             }
-            hash = nextHash(hash);
+            idx = nextHash(idx);
         }
         return null;
     }
@@ -123,7 +151,10 @@ public class LongObjectHashMap<T> {
             if (entry.isActive && entry.key == key) {
                 entry.isActive = false;
                 size--;
-                return (T) entry.value;
+                T ret = (T) entry.value;
+                // Resize only if actually deleted
+                checkResize();
+                return ret;
             }
             hash = nextHash(hash);
         }
@@ -134,10 +165,29 @@ public class LongObjectHashMap<T> {
         return size;
     }
 
-    private void resize() {
-        Entry[] oldTable = table;
-        table = new Entry[2 * oldTable.length];
-        size = 0;
+    private void checkResize() {
+        int deletes = indicesWritePos - size;
+        if (deletes > size) {
+            // Too many delete ops, resize is mandatory
+            resize(idealSize());
+        } else {
+            int idealSize = idealSize();
+            if (idealSize != this.table.length) {
+                resize(idealSize);
+            }
+        }
+    }
+
+    int idealSize() {
+        return Math.max(minSize, nextPowerOfTwo(this.size + 1) * 2);
+    }
+
+    private void resize(int newSize) {
+        Entry[] oldTable = this.table;
+        this.table = new Entry[newSize];
+        this.size = 0;
+        this.indices = new int[newSize];
+        this.indicesWritePos = 0;
 
         for (Entry entry : oldTable) {
             if (entry != null && entry.isActive) {
@@ -147,7 +197,7 @@ public class LongObjectHashMap<T> {
     }
 
     public static int nextPowerOfTwo(int number) {
-        if(number <= 0) {
+        if (number <= 0) {
             throw new IllegalArgumentException();
         }
         int highestOneBit = Integer.highestOneBit(number);
@@ -172,4 +222,49 @@ public class LongObjectHashMap<T> {
         }
     }
 
+    @Override
+    @NonNull
+    public Iterator<T> iterator() {
+        return new It();
+    }
+
+
+    private class It implements Iterator<T> {
+        private int currentIndex;
+
+        private It() {
+            this.currentIndex = 0;
+            advanceToNextNonNull();
+        }
+
+        // Advances the currentIndex to the next non-null element
+        private void advanceToNextNonNull() {
+            Entry entry;
+            while (currentIndex < indices.length && ((entry = current()) == null || !entry.isActive)) {
+                currentIndex++;
+            }
+        }
+
+        private Entry current() {
+            return table[indices[currentIndex]];
+        }
+
+        @Override
+        public boolean hasNext() {
+            return currentIndex < indices.length;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public T next() {
+            if (hasNext()) {
+                T value = (T) current().value;
+                currentIndex++;
+                advanceToNextNonNull();
+                return value;
+            } else {
+                throw new NoSuchElementException();
+            }
+        }
+    }
 }

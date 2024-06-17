@@ -313,19 +313,19 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
 
     private RoutedFactHolder generateRoutedFactHolder(FactHolder factHolder, ActiveType type) {
         // 1. Evaluate alpha conditions and filter matching sets of alpha conditions
-        Set<AlphaAddress> matching = matchingLocations(factHolder, type.getKnownAlphaLocations());
+        List<AlphaAddress> matching = matchingLocations(factHolder, type.getKnownAlphaLocations());
 
         // 3. Returning the result
         return new RoutedFactHolder(factHolder, matching);
     }
 
 
-    Set<AlphaAddress> matchingLocations(FactHolder factHolder, Set<AlphaAddress> scope) {
+    List<AlphaAddress> matchingLocations(FactHolder factHolder, Set<AlphaAddress> scope) {
         // 1. Evaluate alpha conditions
         Mask<AlphaConditionHandle> alphaConditionResults = alphaConditionStatus(factHolder);
 
         // 2. Collecting matching sets of alpha conditions (each set means a separate alpha memory)
-        Set<AlphaAddress> matching = new HashSet<>();
+        List<AlphaAddress> matching = new ArrayList<>(scope.size());
         for (AlphaAddress alphaAddress : scope) {
             if (alphaConditionResults.containsAll(alphaAddress.getMask())) {
                 matching.add(alphaAddress);

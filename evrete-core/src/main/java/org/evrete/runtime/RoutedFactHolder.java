@@ -1,6 +1,6 @@
 package org.evrete.runtime;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * A utility class that contains both the fact and the computed alpha memories it is destined for.
@@ -9,7 +9,7 @@ import java.util.Set;
 public class RoutedFactHolder {
     private final FactHolder factHolder;
     //private final Mask<AlphaAddress> destinations;
-    private final Set<AlphaAddress> destinations;
+    private final List<AlphaAddress> destinations;
 
     /**
      * Constructs an instance with the specified fact and destination.
@@ -17,7 +17,7 @@ public class RoutedFactHolder {
      * @param factHolder the fact in the engine's internal format.
      * @param destinations the mask of matching alpha addresses where the fact is routed to.
      */
-    public RoutedFactHolder(FactHolder factHolder, Set<AlphaAddress> destinations) {
+    public RoutedFactHolder(FactHolder factHolder, List<AlphaAddress> destinations) {
         this.factHolder = factHolder;
         //this.destinations = destinations;
         this.destinations = destinations;
@@ -33,7 +33,7 @@ public class RoutedFactHolder {
     }
 */
 
-    public Set<AlphaAddress> getDestinations() {
+    public List<AlphaAddress> getDestinations() {
         return destinations;
     }
 }

@@ -1,6 +1,6 @@
 package org.evrete.runtime;
 
-import java.util.Set;
+import java.util.List;
 
 public abstract class DeltaMemoryAction {
     private final DefaultFactHandle factHandle;
@@ -32,7 +32,7 @@ public abstract class DeltaMemoryAction {
     }
 
     static class Insert extends DeltaMemoryAction {
-        private final Set<AlphaAddress> destinations;
+        private final List<AlphaAddress> destinations;
         //private final Mask<AlphaAddress> destinations;
 
         Insert(ActiveType type, DefaultFactHandle factHandle, boolean appliedToFactStorage, RoutedFactHolder factHolder) {
@@ -42,7 +42,7 @@ public abstract class DeltaMemoryAction {
         }
 
 
-        public Set<AlphaAddress> getDestinations() {
+        public List<AlphaAddress> getDestinations() {
             return destinations;
         }
 

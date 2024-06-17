@@ -61,7 +61,10 @@ class ActivationContext {
         assert !this.memoryTasks.hasData();
 
         return processDeleteActions(ops.getDeletes())
-                .thenComposeAsync(unused -> processDeltaStatus(ops.getInserts()));
+                .thenComposeAsync(
+                        unused -> processDeltaStatus(ops.getInserts()),
+                        executor
+                );
     }
 
     private CompletableFuture<Void> processDeleteActions(Collection<DeltaMemoryAction.Delete> deleteOps) {

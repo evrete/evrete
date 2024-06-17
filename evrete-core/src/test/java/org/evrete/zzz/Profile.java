@@ -40,8 +40,8 @@ public class Profile {
     private static void withKnowledge(Knowledge knowledge) {
 
         int counter = 0;
-        long sumInsertTime = 0;
-        long sumFireTime = 0;
+        double sumInsertTime = 0.0;
+        double sumFireTime = 0.0;
         for (int i = 0; i < 100_000; i++) {
 
             SalesReport report = new SalesReport();
@@ -61,7 +61,8 @@ public class Profile {
             }
 
             if(counter == 100) {
-                System.out.println("Insert : " + (sumInsertTime/counter) + "\tFire: " + (sumFireTime/counter) + " : " + report);
+                System.out.printf("Insert: %.2f\tFire: %.2f\t\t%s%n", (sumInsertTime / counter), (sumFireTime / counter), report);
+
                 sumInsertTime = 0;
                 sumFireTime = 0;
                 counter = 0;

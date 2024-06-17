@@ -11,6 +11,7 @@ import org.evrete.util.DeltaGroupedFactStorageWrapper;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
@@ -186,7 +187,7 @@ public class SessionMemory implements MemoryStreaming {
         // Stream stored values, obtain their bitset of alpha conditions and save to matching alpha memories
         typeMemory.stream().parallel().forEach(entry -> {
             FactHolder factHolder = entry.getValue();
-            Set<AlphaAddress> matchingLocations = runtime.matchingLocations(factHolder, alphaLocations);
+            List<AlphaAddress> matchingLocations = runtime.matchingLocations(factHolder, alphaLocations);
             for (AlphaAddress alphaAddress : matchingLocations) {
                 resultMap.getChecked(alphaAddress).insert(factHolder.getValues(), factHolder.getHandle());
             }
@@ -194,7 +195,6 @@ public class SessionMemory implements MemoryStreaming {
 
         // Commit and return alpha memories
         return resultMap.values().peek(DeltaGroupedFactStorageWrapper::commit).collect(Collectors.toList());
-
     }
 
     TypeMemory rebuildStorage(TypeMemory source, ActiveType newType, long allocationId) {

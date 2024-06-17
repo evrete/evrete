@@ -7,7 +7,6 @@ import org.evrete.api.events.SessionFireEvent;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
 /**

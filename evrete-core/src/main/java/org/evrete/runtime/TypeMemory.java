@@ -2,7 +2,6 @@ package org.evrete.runtime;
 
 import org.evrete.api.FactHandle;
 import org.evrete.api.MapEntry;
-import org.evrete.api.Type;
 import org.evrete.api.spi.FactStorage;
 import org.evrete.util.FactStorageWrapper;
 
