@@ -51,9 +51,10 @@ public class KnowledgeService extends AbstractKnowledgeService {
     }
 
 
-    private static ExecutorService executorFactory(Builder builder) {
+    static ExecutorService executorFactory(Builder builder) {
         if(builder.executor == null) {
-            return new DelegatingExecutorService(null);
+            int parallelism = builder.conf.getAsInteger(Configuration.PARALLELISM,Runtime.getRuntime().availableProcessors());
+            return new DelegatingExecutorService(parallelism);
         } else {
             return new DelegatingExecutorService(builder.executor);
         }

@@ -9,10 +9,7 @@ import org.evrete.helper.FactEntry;
 import org.evrete.helper.RhsAssert;
 import org.evrete.helper.TestUtils;
 import org.evrete.util.NextIntSupplier;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
@@ -638,6 +635,26 @@ class SessionUpdateDeleteTests {
             assert allObjects.isEmpty();
         }
     }
+
+
+    @Test
+    void simpleDeleteTestInDefaultMode() {
+        knowledge
+                .builder()
+                .newRule()
+                .forEach("$a", TypeA.class)
+                .execute(
+                        ctx -> ctx.delete(ctx.get(TypeA.class, "$a"))
+                )
+                .build();
+
+        try(StatefulSession s = knowledge.newStatefulSession().setActivationMode(ActivationMode.DEFAULT)) {
+            s.insert(new TypeA());
+            s.fire();
+            Assertions.assertTrue(sessionFacts(s).isEmpty()); ;
+        }
+    }
+    
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)

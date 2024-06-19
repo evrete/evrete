@@ -50,9 +50,8 @@ public class TypeSystemTests {
             a1.setL(1);
             a1.setF(1f);
 
-
-            DefaultFactHandle ah1 = (DefaultFactHandle) session.insert(a1);
-            ActiveType type = session.getActiveType(ah1);
+            FutureFactHandle ah1 = (FutureFactHandle) session.insert(a1);
+            ActiveType type = session.getActiveType(ah1.get());
 
             assert type.getCountOfAlphaConditions() == 3;
 
@@ -60,16 +59,6 @@ public class TypeSystemTests {
             Set<DefaultEvaluatorHandle> alphaConditionHandles = new HashSet<>();
             type.getAlphaConditions().forEach(entry -> alphaConditionHandles.add(entry.getHandle()));
             assert alphaConditionHandles.size() == 3;
-
-
-
-/*
-            FactWrapper wrapper1 = session.getFactWrapper(ah1);
-            System.out.println(wrapper1);
-            // Three conditions must match the wrapper's alpha bits
-            assert wrapper1.getAlphaConditionTests().length() == 3 : "Actual size: " + wrapper1.getAlphaConditionTests().length();
-*/
-
         }
 
     }

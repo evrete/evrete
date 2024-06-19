@@ -4,11 +4,16 @@ import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.annotations.Nullable;
 import org.evrete.api.spi.FactStorage;
+import org.evrete.api.spi.ValueIndexer;
 import org.evrete.runtime.evaluation.AlphaConditionHandle;
 import org.evrete.util.CommonUtils;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 /**
@@ -30,12 +35,10 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
     @Override
     @SuppressWarnings("unchecked")
     public final <T> T getFact(FactHandle handle) {
-        try {
-            FactHolder factHolder = getFactWrapper((DefaultFactHandle) handle);
-            return factHolder == null ? null : (T) factHolder.getFact();
-        } catch (ClassCastException e) {
-            throw new IllegalArgumentException("Unknown fact handle", e);
-        }
+        _assertActive();
+        DefaultFactHandle h = unwrapFactHandle(handle);
+        FactHolder factHolder = getFactWrapper(h);
+        return factHolder == null ? null : (T) factHolder.getFact();
     }
 
     @Override
@@ -53,16 +56,23 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
     @Override
     public final void update(FactHandle handle, Object newValue) {
         _assertActive();
-        try {
-            DefaultFactHandle h = (DefaultFactHandle) handle;
-            bufferUpdate(true, h, newValue, this.actionBuffer);
-        } catch (ClassCastException e) {
-            throw new IllegalArgumentException("Unknown fact handle", e);
-        }
+        DefaultFactHandle h = unwrapFactHandle(handle);
+        bufferUpdate(true, h, newValue, this.actionBuffer);
     }
 
 
+    DefaultFactHandle unwrapFactHandle(FactHandle handle) {
+        if (handle instanceof DefaultFactHandle) {
+            return (DefaultFactHandle) handle;
+        } else if (handle instanceof FutureFactHandle) {
+            return ((FutureFactHandle) handle).get();
+        } else {
+            throw new IllegalArgumentException("Unknown type of fact handle: ");
+        }
+    }
+
     @Override
+    //TODO add tests
     public final boolean delete(FactHandle handle) {
         _assertActive();
         return bufferDelete(true, handle, this.actionBuffer);
@@ -109,32 +119,28 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
         } else {
             deleteSubject = existing;
         }
-        DeltaMemoryAction.Delete op = new DeltaMemoryAction.Delete(type, handle, applyToStorage, deleteSubject);
-        destination.add(op);
-        LOGGER.finer(() -> "New memory action buffered: " + op);
+        destination.addDelete(type, applyToStorage, deleteSubject);
+        LOGGER.finer(() -> "New memory delete action buffered for handle " + handle);
     }
 
     boolean bufferDelete(boolean applyToStorage, FactHandle handle, WorkMemoryActionBuffer destination) {
-        try {
-            DefaultFactHandle h = (DefaultFactHandle) handle;
-
-            ActiveType type = getActiveType(h);
-            FactHolder existing = getMemory().getTypeMemory(type.getId()).get(h);
-            if (existing == null) {
-                return false;
-            } else {
-                bufferDelete(applyToStorage, h, existing, destination);
-                return true;
-            }
-        } catch (ClassCastException e) {
-            throw new IllegalArgumentException("Unknown fact handle", e);
+        DefaultFactHandle h = unwrapFactHandle(handle);
+        ActiveType type = getActiveType(h);
+        FactHolder existing = getMemory().getTypeMemory(type.getId()).get(h);
+        if (existing == null) {
+            return false;
+        } else {
+            bufferDelete(applyToStorage, h, existing, destination);
+            return true;
         }
     }
 
     void bufferUpdate(boolean applyToStorage, DefaultFactHandle handle, Object newValue, WorkMemoryActionBuffer destination) {
         Objects.requireNonNull(newValue, "Null facts aren't supported");
         ActiveType type = getActiveType(handle);
-        FactHolder existing = getMemory().getTypeMemory(type.getId()).get(handle);
+        TypeMemory typeMemory = getMemory().getTypeMemory(type.getId());
+
+        FactHolder existing = typeMemory.get(handle);
 
         if (existing == null) {
             LOGGER.warning(() -> "Fact not found, UPDATE operation skipped for: " + newValue);
@@ -143,10 +149,14 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
             Class<?> expectedFactClass = type.getValue().getJavaClass();
             Class<?> argClass = newValue.getClass();
             if (expectedFactClass.isAssignableFrom(argClass)) {
-                // Buffer deletion
+                // Buffer deletion (must be first!!!)
                 this.bufferDelete(applyToStorage, handle, existing, destination);
                 // Buffer new insert operation
-                this.bufferInsertSingle(applyToStorage, handle, type, newValue, destination);
+                FutureFactHandle insertFuture = this.bufferInsertSingle(handle, applyToStorage, type, newValue, destination);
+                if (applyToStorage) {
+                    // Wait for the op to complete
+                    insertFuture.get();
+                }
             } else {
                 throw new IllegalArgumentException("Argument type mismatch. Actual '" + argClass + "' vs expected '" + expectedFactClass + "'");
             }
@@ -162,7 +172,7 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
      * @param destination        the buffer where the insert operations will be stored.
      * @return a newly generated fact handle, or null if more than one fact is supplied.
      */
-    DefaultFactHandle bufferInsertActions(boolean applyToStorage, Object fact, boolean resolveCollections, WorkMemoryActionBuffer destination) {
+    FutureFactHandle bufferInsertActions(boolean applyToStorage, Object fact, boolean resolveCollections, WorkMemoryActionBuffer destination) {
         Collection<?> rawFacts = factToCollection(fact, resolveCollections);
         return bufferInsertActions(applyToStorage, rawFacts, destination);
     }
@@ -176,7 +186,7 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
      * @param destination        the buffer where the insert operations will be stored.
      * @return a newly generated fact handle, or null if more than one fact is supplied.
      */
-    DefaultFactHandle bufferInsertActions(boolean applyToStorage, String type, Object fact, boolean resolveCollections, WorkMemoryActionBuffer destination) {
+    FutureFactHandle bufferInsertActions(boolean applyToStorage, String type, Object fact, boolean resolveCollections, WorkMemoryActionBuffer destination) {
         Collection<?> rawFacts = factToCollection(fact, resolveCollections);
         return bufferInsertActions(applyToStorage, rawFacts, type, destination);
     }
@@ -194,19 +204,19 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
      * @param destination    the buffer where the insert operations will be stored.
      * @return a newly generated fact handle, or null if more than one fact is supplied.
      */
-    private DefaultFactHandle bufferInsertActions(boolean applyToStorage, Collection<?> facts, String logicalType, WorkMemoryActionBuffer destination) {
+    private FutureFactHandle bufferInsertActions(boolean applyToStorage, Collection<?> facts, String logicalType, WorkMemoryActionBuffer destination) {
         TypeResolver typeResolver = getTypeResolver();
         Type<?> factType = typeResolver.getType(Objects.requireNonNull(logicalType, "Null fact type is not allowed"));
-        if (warnUnknownTypes) {
-            LOGGER.warning(() -> "Unknown type '" + logicalType + "', insert operation skipped.");
+        if (factType == null) {
+            if (warnUnknownTypes) {
+                LOGGER.warning(() -> "Unknown type '" + logicalType + "', insert operation skipped.");
+            }
             return null;
         } else {
             ActiveType type = getCreateIndexedType(factType);
-            DefaultFactHandle last = null;
+            FutureFactHandle last = null;
             for (Object fact : facts) {
-                DefaultFactHandle handle = generateFactHandle(type, fact);
-                bufferInsertSingle(applyToStorage, handle, type, fact, destination);
-                last = handle;
+                last = bufferInsertSingle(null, applyToStorage, type, fact, destination);
             }
             return facts.size() == 1 ? last : null;
         }
@@ -224,9 +234,9 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
      * @param destination    the buffer where the insert operations will be stored.
      * @return a newly generated fact handle, or null if more than one fact is supplied.
      */
-    private DefaultFactHandle bufferInsertActions(boolean applyToStorage, Collection<?> facts, WorkMemoryActionBuffer destination) {
+    private FutureFactHandle bufferInsertActions(boolean applyToStorage, Collection<?> facts, WorkMemoryActionBuffer destination) {
         TypeResolver typeResolver = getTypeResolver();
-        DefaultFactHandle last = null;
+        FutureFactHandle last = null;
         for (Object fact : facts) {
             Type<?> factType = typeResolver.resolve(fact);
             if (factType == null) {
@@ -235,9 +245,8 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
                 }
             } else {
                 ActiveType type = getCreateIndexedType(factType);
-                DefaultFactHandle handle = generateFactHandle(type, fact);
-                last = handle;
-                bufferInsertSingle(applyToStorage, handle, type, fact, destination);
+                last = bufferInsertSingle(null, applyToStorage, type, fact, destination);
+                ;
             }
         }
         return facts.size() == 1 ? last : null;
@@ -251,65 +260,78 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
      * the newly generated fact wrapper is not immediately stored in the respective {@link FactStorage}
      * but rather delayed until other RHS actions are completed.
      *
+     * @param handle         fact handle to assign to the fact or null if a new handle needs to be generated
      * @param applyToStorage indicates whether to apply the insert operation to the fact storage.
-     * @param handle         the assigned fact handle.
      * @param type           resolved active type, see {@link ActiveType}.
      * @param fact           the fact to insert.
      * @param destination    the buffer where the insert operation will be stored.
      */
-    void bufferInsertSingle(boolean applyToStorage, DefaultFactHandle handle, ActiveType type, Object fact, WorkMemoryActionBuffer destination) {
+    FutureFactHandle bufferInsertSingle(@Nullable DefaultFactHandle handle, boolean applyToStorage, ActiveType type, Object fact, WorkMemoryActionBuffer destination) {
 
-        // 1. Generate field values
-        final FactHolder factHolder = generateFactHolder(handle, type, fact);
+        TypeMemory memory = getMemory().getTypeMemory(type.getId());
+        ValueIndexer<FactFieldValues> valueIndexer = memory.getFieldValuesIndexer();
 
-        // 2. Save the fact in the type memory
-        if (applyToStorage) {
-            getMemory().getTypeMemory(type.getId()).insert(factHolder);
-        }
+        // 1. Generate fact holder
+        CompletableFuture<FactHolder> factHolder = this.generateFactHolder(handle, type, fact, valueIndexer)
+                .thenApply(new Function<FactHolder, FactHolder>() {
+                    @Override
+                    public FactHolder apply(FactHolder factHolder) {
+                        if (applyToStorage) {
+                            // 2. Save the fact in the type memory if needed
+                            memory.insert(factHolder);
+                        }
+                        return factHolder;
+                    }
+                });
+
 
         // 3. Evaluate alpha conditions and assign destination alpha memories
-        final RoutedFactHolder routedFactHolder = generateRoutedFactHolder(factHolder, type);
+        final CompletableFuture<RoutedFactHolder> routedFactHolder = factHolder.thenApply(holder -> generateRoutedFactHolder(holder, type));
 
         // 5. Submitting new action
-        DeltaMemoryAction.Insert op = new DeltaMemoryAction.Insert(type, handle, applyToStorage, routedFactHolder);
-        destination.add(op);
+        //DeltaMemoryAction.Insert op = new DeltaMemoryAction.Insert(type, handle, applyToStorage, routedFactHolder);
+        destination.addInsert(type, applyToStorage, routedFactHolder);
 
-        LOGGER.finer(() -> "New memory action buffered: " + op);
+        LOGGER.finer(() -> "New insert action buffered for fact: " + fact);
+        return new FutureFactHandle(routedFactHolder.thenApply(holder -> holder.getFactHolder().getHandle()));
     }
 
     private Mask<AlphaConditionHandle> alphaConditionStatus(FactHolder factHolder) {
         Mask<AlphaConditionHandle> alphaConditionResults = Mask.alphaConditionsMask();
 
-        //Stream<AlphaConditionHandle> alphaConditionHandleStream = alphaConditionHandles(factHolder.getHandle().getType());
-
-        forEachAlphaConditionHandle(factHolder.getHandle().getType(), new Consumer<AlphaConditionHandle>() {
-            @Override
-            public void accept(AlphaConditionHandle indexedHandle) {
-                StoredCondition evaluator = getEvaluatorsContext().get(indexedHandle.getHandle(), false);
-                // Alpha conditions have only one field
-                ActiveField activeField = evaluator.getDescriptor().get(0).field();
-                IntToValue args = index -> factHolder.getValues().valueAt(activeField.valueIndex());
-                alphaConditionResults.set(indexedHandle, evaluator.test(AbstractRuleSessionOps.this, args));
-            }
+        forEachAlphaConditionHandle(factHolder.getHandle().getType(), indexedHandle -> {
+            StoredCondition evaluator = getEvaluatorsContext().get(indexedHandle.getHandle(), false);
+            // Alpha conditions have only one field
+            ActiveField activeField = evaluator.getDescriptor().get(0).field();
+            IntToValue args = index -> factHolder.getValues().valueAt(activeField.valueIndex());
+            alphaConditionResults.set(indexedHandle, evaluator.test(AbstractRuleSessionOps.this, args));
         });
-
-//        alphaConditionHandleStream.forEach(indexedHandle -> {
-//            StoredCondition evaluator = getEvaluatorsContext().get(indexedHandle.getHandle(), false);
-//            // Alpha conditions have only one field
-//            ActiveField activeField = evaluator.getDescriptor().get(0).field();
-//            IntToValue args = index -> factHolder.getValues().valueAt(activeField.valueIndex());
-//            alphaConditionResults.set(indexedHandle, evaluator.test(AbstractRuleSessionOps.this, args));
-//        });
 
         return alphaConditionResults;
     }
 
-    FactHolder generateFactHolder(DefaultFactHandle handle, ActiveType type, Object fact) {
+    CompletableFuture<FactHolder> generateFactHolder(@Nullable DefaultFactHandle handle, ActiveType type, Object fact, ValueIndexer<FactFieldValues> valueIndexer) {
+        return CompletableFuture.supplyAsync(() -> generateFactHolderSync(handle, type, fact, valueIndexer), getService().getExecutor());
+    }
+
+    private FactHolder generateFactHolderSync(@Nullable DefaultFactHandle handle, ActiveType type, Object fact, ValueIndexer<FactFieldValues> valueIndexer) {
         // 1. Reading fact values
         FactFieldValues values = type.readFactValue(fact);
-        // 2. Returning the result
-        return new FactHolder(handle, values, fact);
+        // 2. Index the values
+        long valueId = valueIndexer.getOrCreateId(values);
+        // 3. Generate new handle if needed
+        DefaultFactHandle h = handle == null ? new DefaultFactHandle(type.getId()) : handle;
+        return new FactHolder(h, valueId, values, fact);
     }
+
+    FactHolder generateFactHolderSync(@Nullable DefaultFactHandle handle, ActiveType type, Object fact, long valueId) {
+        // 1. Reading fact values
+        FactFieldValues values = type.readFactValue(fact);
+        // 2. Generate new handle if needed
+        DefaultFactHandle h = handle == null ? new DefaultFactHandle(type.getId()) : handle;
+        return new FactHolder(h, valueId, values, fact);
+    }
+
 
     private RoutedFactHolder generateRoutedFactHolder(FactHolder factHolder, ActiveType type) {
         // 1. Evaluate alpha conditions and filter matching sets of alpha conditions
@@ -339,11 +361,11 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
         return matching;
     }
 
-    private DefaultFactHandle generateFactHandle(ActiveType type, Object fact) {
-        DefaultFactHandle handle = new DefaultFactHandle(type.getId());
-        LOGGER.finer(() -> "Fact handle created for " + fact + " -> " + handle);
-        return handle;
-    }
+//    private DefaultFactHandle generateFactHandle(ActiveType type, Object fact) {
+//        DefaultFactHandle handle = new DefaultFactHandle(type.getId());
+//        LOGGER.finer(() -> "Fact handle created for " + fact + " -> " + handle);
+//        return handle;
+//    }
 
     private static Collection<?> factToCollection(Object fact, boolean resolveCollections) {
         Object f = Objects.requireNonNull(fact, "Null facts are not allowed");

@@ -3,6 +3,7 @@ package org.evrete.util;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
+import java.util.function.IntConsumer;
 
 class CombinationIteratorTest {
 
@@ -15,7 +16,6 @@ class CombinationIteratorTest {
         Source[] sources = new Source[]{
                 new Source(List.of(13)),
         };
-
 
         Iterator<Integer[]> iterator = iterator(sources);
 

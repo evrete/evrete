@@ -34,13 +34,6 @@ public class MemoryInspectionUtils {
         return alphaMemory.stream(scope).flatMap(values -> alphaMemory.stream(scope, values).map(typeMemory::get));
     }
 
-    static WorkMemoryActionBuffer.State bufferedContent(RuleSession<?> session, FactHandle handle) {
-        DefaultFactHandle h = (DefaultFactHandle) handle;
-        AbstractRuleSession<?> s = cast(session);
-        return s.getActionBuffer().getState(h);
-    }
-
-
     static void assertNoDeltaStates(RuleSession<?> session) {
         AbstractRuleSession<?> s = cast(session);
 

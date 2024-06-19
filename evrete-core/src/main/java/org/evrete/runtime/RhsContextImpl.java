@@ -9,9 +9,10 @@ import org.evrete.util.MapFunction;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
-class RhsContextImpl extends RhsResultReducer implements RhsContext {
+class RhsContextImpl implements RhsContext {
     private static final Logger LOGGER = Logger.getLogger(RhsContextImpl.class.getName());
     /**
      * The rule's RHS action requires access to facts by name using {@link RhsContext#get(String)}
@@ -24,6 +25,8 @@ class RhsContextImpl extends RhsResultReducer implements RhsContext {
     private final MapFunction<String, KnowledgeLhs.FactPosition> factPositions;
     private final SessionFactGroup[] factGroups;
     private final SessionRule rule;
+    private final WorkMemoryActionBuffer destinationForRuleActions;
+    final AtomicLong activationCount = new AtomicLong();
 
     /**
      * Default constructor
@@ -33,12 +36,13 @@ class RhsContextImpl extends RhsResultReducer implements RhsContext {
      * @param factPositions       a helper mapping from fact names to their positions inside the current state
      * @param factGroups          the rule's LHS fact groups, having the same dimension as the current state
      */
-    public RhsContextImpl(SessionRule rule, DefaultFactHandle[][] currentGroupedFacts, MapFunction<String, KnowledgeLhs.FactPosition> factPositions, SessionFactGroup[] factGroups) {
+    public RhsContextImpl(SessionRule rule, DefaultFactHandle[][] currentGroupedFacts, MapFunction<String, KnowledgeLhs.FactPosition> factPositions, SessionFactGroup[] factGroups, WorkMemoryActionBuffer destinationForRuleActions) {
         this.cache = new CachedFactEntry[factPositions.size()];
         this.currentState = currentGroupedFacts;
         this.factPositions = factPositions;
         this.factGroups = factGroups;
         this.rule = rule;
+        this.destinationForRuleActions = destinationForRuleActions;
     }
 
     /**
@@ -90,22 +94,22 @@ class RhsContextImpl extends RhsResultReducer implements RhsContext {
 
     @Override
     public FactHandle insert0(Object fact, boolean resolveCollections) {
-        return rule.getRuntime().bufferInsertActions(false, fact, resolveCollections, this.getActionBuffer());
+        return rule.getRuntime().bufferInsertActions(false, fact, resolveCollections, this.destinationForRuleActions);
     }
 
     @Override
     public FactHandle insert0(String type, Object fact, boolean resolveCollections) {
-        return rule.getRuntime().bufferInsertActions(false, fact, resolveCollections, this.getActionBuffer());
+        return rule.getRuntime().bufferInsertActions(false, fact, resolveCollections, this.destinationForRuleActions);
     }
 
     @Override
     public boolean delete(FactHandle handle) {
-        return rule.getRuntime().bufferDelete(false, handle, this.getActionBuffer());
+        return rule.getRuntime().bufferDelete(false, handle, this.destinationForRuleActions);
     }
 
     @Override
     public void update(FactHandle handle, Object newValue) {
-        rule.getRuntime().bufferUpdate(false, (DefaultFactHandle) handle, newValue, this.getActionBuffer());
+        rule.getRuntime().bufferUpdate(false, (DefaultFactHandle) handle, newValue, this.destinationForRuleActions);
     }
 
     @Override
@@ -114,7 +118,7 @@ class RhsContextImpl extends RhsResultReducer implements RhsContext {
         if (entry == null) {
             LOGGER.warning(()->"Fact " + obj + " is not known to the context. This operation is only possible for facts previously retrieved via a get(...) method. The UPDATE operation skipped.");
         } else {
-            rule.getRuntime().bufferUpdate(false, entry.handle, obj, this.getActionBuffer());
+            rule.getRuntime().bufferUpdate(false, entry.handle, obj, this.destinationForRuleActions);
         }
         return this;
     }
@@ -136,7 +140,7 @@ class RhsContextImpl extends RhsResultReducer implements RhsContext {
         if (entry == null) {
             LOGGER.warning(()->"Fact " + obj + " is not known to the context. This operation is only possible for facts previously retrieved via a get(...) method. The DELETE operation skipped.");
         } else {
-            rule.getRuntime().bufferDelete(false, entry.handle, entry.wrapper, this.getActionBuffer());
+            rule.getRuntime().bufferDelete(false, entry.handle, entry.wrapper, this.destinationForRuleActions);
         }
     }
 

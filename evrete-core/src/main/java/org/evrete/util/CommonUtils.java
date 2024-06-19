@@ -329,6 +329,14 @@ public final class CommonUtils {
         }
     }
 
+    public static <V, T> CompletableFuture<List<V>> completeAndCollect(Iterable<T> list, Function<T, CompletableFuture<V>> mapper) {
+        List<CompletableFuture<V>> futureList = new LinkedList<>();
+        for (T obj : list) {
+            futureList.add(mapper.apply(obj));
+        }
+        return completeAndCollect(futureList);
+    }
+
     public static <T> CompletableFuture<Void> completeAll(Collection<CompletableFuture<T>> futures) {
         if(futures.isEmpty()) {
             return CompletableFuture.completedFuture(null);

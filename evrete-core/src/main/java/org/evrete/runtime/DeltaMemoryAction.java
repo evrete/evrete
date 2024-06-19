@@ -1,19 +1,19 @@
 package org.evrete.runtime;
 
+import java.util.Comparator;
 import java.util.List;
 
 public abstract class DeltaMemoryAction {
-    private final DefaultFactHandle factHandle;
     private final boolean appliedToFactStorage;
     private final FactHolder factHolder;
     private final ActiveType type;
 
-    DeltaMemoryAction(ActiveType type, DefaultFactHandle factHandle, FactHolder factHolder, boolean appliedToFactStorage) {
-        this.factHandle = factHandle;
+    DeltaMemoryAction(ActiveType type, FactHolder factHolder, boolean appliedToFactStorage) {
         this.appliedToFactStorage = appliedToFactStorage;
         this.factHolder = factHolder;
         this.type = type;
     }
+
 
     final boolean isAppliedToFactStorage() {
         return appliedToFactStorage;
@@ -28,7 +28,7 @@ public abstract class DeltaMemoryAction {
     }
 
     final DefaultFactHandle getHandle() {
-        return factHandle;
+        return factHolder.getHandle();
     }
 
     static class Insert extends DeltaMemoryAction {
@@ -36,7 +36,7 @@ public abstract class DeltaMemoryAction {
         //private final Mask<AlphaAddress> destinations;
 
         Insert(ActiveType type, DefaultFactHandle factHandle, boolean appliedToFactStorage, RoutedFactHolder factHolder) {
-            super(type, factHandle, factHolder.getFactHolder(), appliedToFactStorage);
+            super(type, factHolder.getFactHolder(), appliedToFactStorage);
             this.destinations = factHolder.getDestinations();
             //this.destinations = factHolder.getDestinations();
         }
@@ -65,8 +65,8 @@ public abstract class DeltaMemoryAction {
 
     static class Delete extends DeltaMemoryAction {
 
-        public Delete(ActiveType type, DefaultFactHandle factHandle, boolean appliedToFactStorage, FactHolder factHolder) {
-            super(type, factHandle, factHolder, appliedToFactStorage);
+        public Delete(ActiveType type, boolean appliedToFactStorage, FactHolder factHolder) {
+            super(type, factHolder, appliedToFactStorage);
         }
 
         @Override

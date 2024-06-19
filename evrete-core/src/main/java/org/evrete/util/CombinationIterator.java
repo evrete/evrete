@@ -3,6 +3,7 @@ package org.evrete.util;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
+import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
 
 /**
@@ -71,12 +72,16 @@ public class CombinationIterator<T> implements Iterator<T[]> {
         return readNextPosition != END;
     }
 
+    protected void advanceIterator(int index) {
+        combination[index] = iterators[index].next();
+    }
+
     @Override
     public T[] next() {
         if (hasNext()) {
             // Update the shared result
             for (int i = size - 1; i >= readNextPosition; i--) {
-                combination[i] = iterators[i].next();
+                advanceIterator(i);
             }
             // Compute next
             readNextPosition = computeNextPosition();
@@ -85,7 +90,6 @@ public class CombinationIterator<T> implements Iterator<T[]> {
             throw new NoSuchElementException();
         }
     }
-
 
     private int computeNextPosition() {
         int ret = END;

@@ -22,19 +22,23 @@ public class DelegatingExecutorService implements ExecutorService {
 
 
     /**
-     * Constructs a {@code DelegatingExecutorService} with the specified nullable {@link ExecutorService}.
-     * If the provided {@code ExecutorService} is {@code null}, a new instance will be created.
+     * Constructs a {@code DelegatingExecutorService} with the specified {@link ExecutorService}.
      *
-     * @param delegate the {@link ExecutorService} to delegate to, or {@code null} to create an internal instance
+     * @param delegate the {@link ExecutorService} to delegate to
      */
-    public DelegatingExecutorService(@Nullable ExecutorService delegate) {
-        if (delegate == null) {
-            this.delegate = Executors.newCachedThreadPool(new CustomThreadFactory());
-            this.externallySupplied = false;
-        } else {
-            this.delegate = delegate;
-            this.externallySupplied = true;
-        }
+    public DelegatingExecutorService(@NonNull ExecutorService delegate) {
+        this.delegate = delegate;
+        this.externallySupplied = true;
+    }
+
+    /**
+     * Constructs a {@code DelegatingExecutorService} with internal {@link ExecutorService}.
+     *
+     * @param threads  number of thread to use
+     */
+    public DelegatingExecutorService(int threads) {
+        this.delegate = Executors.newFixedThreadPool(threads, new CustomThreadFactory());
+        this.externallySupplied = false;
     }
 
     @Override
@@ -84,13 +88,13 @@ public class DelegatingExecutorService implements ExecutorService {
 
     @Override
     @NonNull
-    public <T> Future<T> submit(@NonNull  Runnable task, T result) {
+    public <T> Future<T> submit(@NonNull Runnable task, T result) {
         return delegate.submit(task, result);
     }
 
     @Override
     @NonNull
-    public Future<?> submit(@NonNull  Runnable task) {
+    public Future<?> submit(@NonNull Runnable task) {
         return delegate.submit(task);
     }
 
@@ -102,7 +106,7 @@ public class DelegatingExecutorService implements ExecutorService {
 
     @Override
     @NonNull
-    public <T> List<Future<T>> invokeAll(@NonNull Collection<? extends Callable<T>> tasks, long timeout, @NonNull  TimeUnit unit) throws InterruptedException {
+    public <T> List<Future<T>> invokeAll(@NonNull Collection<? extends Callable<T>> tasks, long timeout, @NonNull TimeUnit unit) throws InterruptedException {
         return delegate.invokeAll(tasks, timeout, unit);
     }
 
@@ -113,7 +117,7 @@ public class DelegatingExecutorService implements ExecutorService {
     }
 
     @Override
-    public <T> T invokeAny(@NonNull  Collection<? extends Callable<T>> tasks, long timeout, @NonNull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public <T> T invokeAny(@NonNull Collection<? extends Callable<T>> tasks, long timeout, @NonNull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         return delegate.invokeAny(tasks, timeout, unit);
     }
 

@@ -3,7 +3,7 @@ package org.evrete.spi.minimal;
 import org.evrete.api.FactHandle;
 import org.evrete.api.MapEntry;
 import org.evrete.api.spi.FactStorage;
-import org.evrete.collections.LongObjectHashMap;
+import org.evrete.collections.LongKeyMap;
 
 import java.util.stream.Stream;
 
@@ -37,7 +37,7 @@ public class DefaultFactStorage<FH extends FactHandle, V> implements FactStorage
 
     private static class Storage<FH extends FactHandle, V>  {
         //TODO size config option
-        private final LongObjectHashMap<MapEntry<FH, V>> storage = new LongObjectHashMap<>();
+        private final LongKeyMap<MapEntry<FH, V>> storage = new LongKeyMap<>();
 
         synchronized void insert(FH factHandle, V value) {
             storage.put(factHandle.getId(), new MapEntry<>(factHandle, value));

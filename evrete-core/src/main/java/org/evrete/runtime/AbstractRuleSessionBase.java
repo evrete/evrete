@@ -6,6 +6,7 @@ import org.evrete.api.events.SessionClosedEvent;
 import org.evrete.api.spi.DeltaGroupedFactStorage;
 import org.evrete.api.spi.FactStorage;
 import org.evrete.api.spi.MemoryFactory;
+import org.evrete.api.spi.ValueIndexer;
 import org.evrete.util.SessionCollector;
 
 import java.util.logging.Logger;
@@ -109,6 +110,10 @@ public abstract class AbstractRuleSessionBase<S extends RuleSession<S>> extends 
 
     public FactStorage<DefaultFactHandle, FactHolder> newTypeFactStorage() {
         return getMemoryFactory().newFactStorage(FactHolder.class);
+    }
+
+    public ValueIndexer<FactFieldValues> newFieldValuesIndexer() {
+        return getMemoryFactory().newValueIndexed(FactFieldValues.class);
     }
 
     public DeltaGroupedFactStorage<FactFieldValues, DefaultFactHandle> newAlphaMemoryStorage() {

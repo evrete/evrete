@@ -5,6 +5,7 @@ import org.evrete.api.MapEntry;
 import org.evrete.api.MemoryStreaming;
 import org.evrete.api.spi.DeltaGroupedFactStorage;
 import org.evrete.api.spi.FactStorage;
+import org.evrete.api.spi.ValueIndexer;
 import org.evrete.collections.ArrayMap;
 import org.evrete.util.CompletionManager;
 import org.evrete.util.DeltaGroupedFactStorageWrapper;
@@ -121,7 +122,7 @@ public class SessionMemory implements MemoryStreaming {
         final TypeMemory newTypeMemory;
         if (existing == null) {
             // Fresh allocation
-            newTypeMemory = new TypeMemory(newActiveType, runtime.newTypeFactStorage());
+            newTypeMemory = new TypeMemory(runtime, newActiveType);
             for (AlphaAddress alphaAddress : alphaAddresses) {
                 DeltaGroupedFactStorage<FactFieldValues, DefaultFactHandle> alphaStorage = runtime.newAlphaMemoryStorage();
                 this.alphaMemories.put(alphaAddress, new TypeAlphaMemory(alphaStorage, alphaAddress));
@@ -200,16 +201,20 @@ public class SessionMemory implements MemoryStreaming {
     TypeMemory rebuildStorage(TypeMemory source, ActiveType newType, long allocationId) {
         // Creating new fact storage
         FactStorage<DefaultFactHandle, FactHolder> newStorage = runtime.newTypeFactStorage();
+        ValueIndexer<FactFieldValues> newValueIndexer = runtime.newFieldValuesIndexer();
         AtomicLong factCounter = new AtomicLong();
         source.stream().parallel().forEach(entry -> {
             DefaultFactHandle handle = entry.getKey();
             FactHolder factHolder = entry.getValue();
-            FactHolder newFactHolder = runtime.generateFactHolder(handle, newType, factHolder.getFact());
+            // We need to keep the same value id because it is possibly referenced in RETE condition nodes.
+            long valueId = factHolder.getFieldValuesId();
+            FactHolder newFactHolder = runtime.generateFactHolderSync(handle, newType, factHolder.getFact(), valueId);
+            newValueIndexer.assignId(valueId, newFactHolder.getValues());
             newStorage.insert(handle, newFactHolder);
             factCounter.incrementAndGet();
         });
         LOGGER.fine(() -> "Type memory allocation [" + allocationId + "]. Storage rebuild completed for " + newType + ", total facts processed: [" + factCounter.get() + "]");
-        return new TypeMemory(newType, newStorage);
+        return new TypeMemory(runtime, newType, newStorage, newValueIndexer);
     }
 
 

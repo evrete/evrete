@@ -32,11 +32,11 @@ public class SessionRule extends AbstractActiveRule<SessionFactGroup, SessionLhs
     }
 
 
-    final RhsResultReducer callRhs() {
+    final long callRhs(WorkMemoryActionBuffer destinationForRuleActions) {
         LOGGER.fine(() -> "RHS START for rule '" + this.getName() + "'");
         // Initializing RHS vars
         final Consumer<RhsContext> ruleRhs = getRhs();
-        final RhsContextImpl rhsContext = new RhsContextImpl(this, this.currentGroupedFacts, this.factPositionMapping, getLhs().getFactGroups());
+        final RhsContextImpl rhsContext = new RhsContextImpl(this, this.currentGroupedFacts, this.factPositionMapping, getLhs().getFactGroups(), destinationForRuleActions);
 
         // Preparing the iterator
         SessionFactGroup[] groups = getLhs().getFactGroups();
@@ -48,7 +48,7 @@ public class SessionRule extends AbstractActiveRule<SessionFactGroup, SessionLhs
         });
 
         LOGGER.fine(() -> "RHS END for rule '" + this.getName() + "'");
-        return rhsContext;
+        return rhsContext.activationCount.get();
     }
 
     private void callRhs(SessionFactGroup[] groups, MemoryScope[] scopes, Consumer<RhsContext> ruleRhs, RhsContextImpl rhsContext) {

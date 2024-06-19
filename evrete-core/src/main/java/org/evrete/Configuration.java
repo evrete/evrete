@@ -32,7 +32,6 @@ public class Configuration extends Properties implements Copyable<Configuration>
     static final String SPI_EXPRESSION_RESOLVER = "evrete.spi.expression-resolver";
     static final String SPI_TYPE_RESOLVER = "evrete.spi.type-resolver";
     static final String SPI_SOURCE_COMPILER = "evrete.spi.source-compiler";
-    //TODO drop the config
     static final String PARALLELISM = "evrete.core.parallelism";
     public static final String RULE_BASE_CLASS = "evrete.impl.rule-base-class";
     public static final String SPI_LHS_STRIP_WHITESPACES = "evrete.spi.compiler.lhs-strip-whitespaces";
