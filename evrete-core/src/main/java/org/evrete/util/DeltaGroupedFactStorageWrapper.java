@@ -1,5 +1,6 @@
 package org.evrete.util;
 
+import org.evrete.api.annotations.NonNull;
 import org.evrete.api.spi.DeltaGroupedFactStorage;
 import org.evrete.api.spi.MemoryScope;
 
@@ -13,12 +14,12 @@ public class DeltaGroupedFactStorageWrapper<K, V> implements DeltaGroupedFactSto
     }
 
     @Override
-    public void insert(K key, V value) {
+    public void insert(@NonNull K key, @NonNull V value) {
         delegate.insert(key, value);
     }
 
     @Override
-    public void delete(K key, V value) {
+    public void delete(@NonNull K key, @NonNull V value) {
         delegate.delete(key, value);
     }
 
