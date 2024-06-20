@@ -27,7 +27,7 @@ class ActivationContext {
 
     CompletableFuture<Status> computeDelta(WorkMemoryActionBuffer actions) {
         int bufferedCount = actions.bufferedActionCount();
-        LOGGER.fine(()-> "Computing delta memory from " + actions + " : " + bufferedCount);
+        LOGGER.fine(()-> "Computing delta memory from [" + bufferedCount + "] actions");
         // 1. Wait for pending actions, if any
         return actions.sinkToSplitView().thenCompose(ops -> {
 
@@ -135,7 +135,7 @@ class ActivationContext {
             AlphaAddress alpha = entry.getKey();
             List<FactHolder> inserts = entry.getValue();
             TypeAlphaMemory alphaMemory = memory.getAlphaMemory(alpha);
-            LOGGER.fine(() -> "Scheduling inserts into alpha memory: " + alpha + ", fact count: " + inserts.size());
+            LOGGER.fine(() -> "Scheduling ["+ inserts.size() +"] inserts into alpha memory: " + alpha);
             // Saving the task...
             insertFutures.add(processInsertDeltaActions(alphaMemory, inserts));
             // Storing the memory for the future commit ops
@@ -223,7 +223,7 @@ class ActivationContext {
         return CompletableFuture.runAsync(
                 () -> {
                     for (FactHolder delete : deletes) {
-                        memory.delete(delete.getValues(), delete.getHandle());
+                        memory.delete(delete.getFieldValuesId(), delete.getHandle());
                     }
                 },
                 executor
@@ -234,7 +234,7 @@ class ActivationContext {
         return CompletableFuture.runAsync(
                 () -> {
                     for (FactHolder insert : inserts) {
-                        memory.insert(insert.getValues(), insert.getHandle());
+                        memory.insert(insert.getFieldValuesId(), insert.getHandle());
                     }
                 },
                 executor

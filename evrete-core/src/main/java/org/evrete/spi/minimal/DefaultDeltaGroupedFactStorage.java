@@ -7,27 +7,26 @@ import org.evrete.api.spi.MemoryScope;
 import java.util.*;
 import java.util.stream.Stream;
 
-public class DefaultDeltaGroupedFactStorage<K, V> implements DeltaGroupedFactStorage<K, V> {
-    private MemoryImpl<K, V> main = new MemoryImpl<>();
-    private MemoryImpl<K, V> delta = new MemoryImpl<>();
+public class DefaultDeltaGroupedFactStorage<V> implements DeltaGroupedFactStorage<V> {
+    private MemoryImpl<V> main = new MemoryImpl<>();
+    private MemoryImpl<V> delta = new MemoryImpl<>();
 
-    MemoryImpl<K, V> getMain() {
+    MemoryImpl<V> getMain() {
         return main;
     }
 
-    MemoryImpl<K, V> getDelta() {
+    MemoryImpl<V> getDelta() {
         return delta;
     }
 
     @Override
-    public void insert(@NonNull K key, @NonNull V value) {
-        K k = Objects.requireNonNull(key);
+    public void insert(long key, @NonNull V value) {
         V v = Objects.requireNonNull(value);
-        delta.insert(k, v);
+        delta.insert(key, v);
     }
 
     @Override
-    public void delete(@NonNull K key, @NonNull V value) {
+    public void delete(long key, @NonNull V value) {
         main.delete(key, value);
         delta.delete(key, value);
     }
@@ -52,7 +51,7 @@ public class DefaultDeltaGroupedFactStorage<K, V> implements DeltaGroupedFactSto
     }
 
     @Override
-    public Iterator<K> iterator(MemoryScope scope) {
+    public Iterator<Long> iterator(MemoryScope scope) {
         switch (scope) {
             case MAIN:
                 return main.keySet().iterator();
@@ -64,7 +63,7 @@ public class DefaultDeltaGroupedFactStorage<K, V> implements DeltaGroupedFactSto
     }
 
     @Override
-    public Iterator<V> valueIterator(MemoryScope scope, K key) {
+    public Iterator<V> valueIterator(MemoryScope scope, long key) {
         switch (scope) {
             case MAIN:
                 return main.values(key);
@@ -76,7 +75,7 @@ public class DefaultDeltaGroupedFactStorage<K, V> implements DeltaGroupedFactSto
     }
 
     @Override
-    public Stream<K> stream(MemoryScope scope) {
+    public Stream<Long> stream(MemoryScope scope) {
         switch (scope) {
             case MAIN:
                 return main.keySet().stream();
@@ -88,7 +87,7 @@ public class DefaultDeltaGroupedFactStorage<K, V> implements DeltaGroupedFactSto
     }
 
     @Override
-    public Stream<V> stream(MemoryScope scope, K key) {
+    public Stream<V> stream(MemoryScope scope, long key) {
         switch (scope) {
             case MAIN:
                 return main.stream(key);
@@ -112,23 +111,23 @@ public class DefaultDeltaGroupedFactStorage<K, V> implements DeltaGroupedFactSto
                 '}';
     }
 
-    static class MemoryImpl<K, V> extends HashMap<K, ValueCollection<V>> {
+    static class MemoryImpl<V> extends HashMap<Long, ValueCollection<V>> {
 
         MemoryImpl() {
         }
 
-        private MemoryImpl(MemoryImpl<K, V> m) {
+        private MemoryImpl(MemoryImpl<V> m) {
             super(m);
         }
 
-        synchronized void insert(K key, V value) {
+        synchronized void insert(long key, V value) {
             computeIfAbsent(
                     key,
                     k -> new ValueCollection<>()
             ).add(value);
         }
 
-        synchronized void delete(K key, V value) {
+        synchronized void delete(long key, V value) {
             ValueCollection<V> v = get(key);
             if(v != null) {
                 v.remove(value);
@@ -138,7 +137,7 @@ public class DefaultDeltaGroupedFactStorage<K, V> implements DeltaGroupedFactSto
             }
         }
 
-        synchronized MemoryImpl<K, V> copy() {
+        synchronized MemoryImpl<V> copy() {
             return new MemoryImpl<>(this);
         }
 

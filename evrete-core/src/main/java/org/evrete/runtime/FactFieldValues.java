@@ -38,9 +38,9 @@ public final class FactFieldValues extends PreHashed{
 
     public static class Scoped {
         private final MemoryScope scope;
-        private final FactFieldValues values;
+        private final long values;
 
-        public Scoped(FactFieldValues values, MemoryScope scope) {
+        public Scoped(long values, MemoryScope scope) {
             this.scope = scope;
             this.values = values;
         }
@@ -53,7 +53,7 @@ public final class FactFieldValues extends PreHashed{
             }
         }
 
-        public FactFieldValues values() {
+        public long values() {
             return values;
         }
 

@@ -47,8 +47,8 @@ class RhsContextWrapper implements RhsContext {
     }
 
     @Override
-    public boolean delete(FactHandle handle) {
-        return ctx.delete(handle);
+    public void delete(FactHandle handle) {
+        ctx.delete(handle);
     }
 
     @Override

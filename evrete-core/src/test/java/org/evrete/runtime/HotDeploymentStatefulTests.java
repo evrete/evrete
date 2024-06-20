@@ -17,6 +17,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -1186,7 +1187,8 @@ class HotDeploymentStatefulTests {
         Stream<FactHolder> d_facts_main_1 = alphaMemoryContents(session, alphaAddress_d_no_Conditions);
         AtomicInteger d_fact_count_main1 = new AtomicInteger();
         d_facts_main_1.forEach(factHolder -> {
-            Assertions.assertEquals(0, factHolder.getValues().size());
+            FactFieldValues fieldValues = MemoryInspectionUtils.fieldValues(factHolder.getHandle(), session);
+            Assertions.assertEquals(0, Objects.requireNonNull(fieldValues).size());
             TypeD fact = (TypeD) factHolder.getFact();
             d_fact_count_main1.incrementAndGet();
             assert fact.getId().equals("D1") || fact.getId().equals("D2"): "Unexpected results";
@@ -1226,7 +1228,8 @@ class HotDeploymentStatefulTests {
         AtomicInteger d_fact_count_main2 = new AtomicInteger();
         d_facts_main_2.forEach(factHolder -> {
             d_fact_count_main2.incrementAndGet();
-            Assertions.assertEquals(1, factHolder.getValues().size());
+            FactFieldValues fieldValues = MemoryInspectionUtils.fieldValues(factHolder.getHandle(), session);
+            Assertions.assertEquals(1, Objects.requireNonNull(fieldValues).size());
             TypeD fact = (TypeD) factHolder.getFact();
             assert fact.getId().equals("D1") || fact.getId().equals("D2"): "Unexpected results";
         });

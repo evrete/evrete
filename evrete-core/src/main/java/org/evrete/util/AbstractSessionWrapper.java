@@ -68,8 +68,8 @@ public abstract class AbstractSessionWrapper<S extends RuleSession<S>> extends R
     }
 
     @Override
-    public boolean delete(FactHandle handle) {
-        return delegate.delete(handle);
+    public void delete(FactHandle handle) {
+        delegate.delete(handle);
     }
 
     @Override

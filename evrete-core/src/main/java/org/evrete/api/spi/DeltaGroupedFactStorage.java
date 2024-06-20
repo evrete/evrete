@@ -11,16 +11,15 @@ import java.util.stream.StreamSupport;
 /**
  * <p>
  * A map-like storage that holds objects grouped by keys, similar to
- * <code>Map&lt;K,&nbsp;Set&lt;V&gt;&gt;</code>. Internally, the memory is split into two parts:
+ * <code>Map&lt;Long,&nbsp;Set&lt;V&gt;&gt;</code>. Internally, the memory is split into two parts:
  * a main memory and a delta memory for buffering insertions. Upon calling the {@link #commit()} method,
  * the implementation empties the delta memory by moving all the data into the main memory.
  * </p>
  *
- * @param <K> the key type
  * @param <V> the value type
  */
 //TODO rename !!!
-public interface DeltaGroupedFactStorage<K, V> extends ReteMemory<K> {
+public interface DeltaGroupedFactStorage<V> extends ReteMemory<Long> {
 
     /**
      * Buffers a new key/value combination into the delta memory.
@@ -29,7 +28,7 @@ public interface DeltaGroupedFactStorage<K, V> extends ReteMemory<K> {
      * @param value the value associated with the key
      * @throws NullPointerException if the key or value is null
      */
-    void insert(@NonNull K key, @NonNull V value);
+    void insert(long key, @NonNull V value);
 
     /**
      * Deletes the given key and value from both delta and main memories.
@@ -39,7 +38,7 @@ public interface DeltaGroupedFactStorage<K, V> extends ReteMemory<K> {
      * @param value the value associated with the key
      * @throws NullPointerException if the key or value is null
      */
-    void delete(@NonNull K key, @NonNull V value);
+    void delete(long key, @NonNull V value);
 
 
     /**
@@ -49,7 +48,7 @@ public interface DeltaGroupedFactStorage<K, V> extends ReteMemory<K> {
      * @param key   the key identifying the values to iterate over
      * @return an iterator over the values associated with the given key in the specified scope
      */
-    Iterator<V> valueIterator(MemoryScope scope, K key);
+    Iterator<V> valueIterator(MemoryScope scope, long key);
 
 
     /**
@@ -60,14 +59,14 @@ public interface DeltaGroupedFactStorage<K, V> extends ReteMemory<K> {
      * @param key   The key identifying the collection of values to stream.
      * @return A stream over elements in the storage of the provided scope.
      */
-    default Stream<V> stream(MemoryScope scope, K key) {
+    default Stream<V> stream(MemoryScope scope, long key) {
         return StreamSupport.stream(
                 Spliterators.spliteratorUnknownSize(valueIterator(scope, key), 0),
                 false
         );
     }
 
-    default Iterator<K> keyIterator(MemoryScope scope) {
+    default Iterator<Long> keyIterator(MemoryScope scope) {
         return iterator(scope);
     }
 }

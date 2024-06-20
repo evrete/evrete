@@ -10,24 +10,24 @@ import java.util.List;
 import java.util.Set;
 
 class DefaultDeltaGroupedFactStorageTest {
-    DefaultDeltaGroupedFactStorage<Integer, String> memory;
+    DefaultDeltaGroupedFactStorage<String> memory;
 
     @BeforeEach
     void beforeEach() {
         memory = new DefaultDeltaGroupedFactStorage<>();
     }
 
-    Set<Integer> keys(MemoryScope scope) {
-        Set<Integer> result = new HashSet<>();
+    Set<Long> keys(MemoryScope scope) {
+        Set<Long> result = new HashSet<>();
         memory.iterator(scope).forEachRemaining(result::add);
         return result;
     }
 
-    Set<String> stream(MemoryScope scope, Integer key, Integer... other) {
+    Set<String> stream(MemoryScope scope, Long key, Long... other) {
         Set<String> result = new HashSet<>();
         memory.valueIterator(scope, key).forEachRemaining(result::add);
         if (other != null) {
-            for (Integer k : other) {
+            for (Long k : other) {
                 memory.valueIterator(scope, k).forEachRemaining(result::add);
             }
         }
@@ -37,8 +37,8 @@ class DefaultDeltaGroupedFactStorageTest {
     @Test
     void insertToEmptyMemory() {
 
-        int KEY_1 = 1;
-        int KEY_2 = 2;
+        long KEY_1 = 1;
+        long KEY_2 = 2;
         String VALUE_1_1 = "one";
         String VALUE_2_1 = "two 1";
         String VALUE_2_2 = "two 2";
@@ -49,7 +49,7 @@ class DefaultDeltaGroupedFactStorageTest {
 
 
         // Testing keys
-        Set<Integer> keys = keys(MemoryScope.DELTA);
+        Set<Long> keys = keys(MemoryScope.DELTA);
 
         assert keys.size() == 2;
         assert keys.contains(KEY_1);
@@ -59,12 +59,12 @@ class DefaultDeltaGroupedFactStorageTest {
         assert memory.getMain().isEmpty();
 
         // Testing delta values 1
-        Set<String> deltaValues1 = stream(MemoryScope.DELTA, 1);
+        Set<String> deltaValues1 = stream(MemoryScope.DELTA, 1L);
         assert deltaValues1.contains(VALUE_1_1);
         assert deltaValues1.size() == 1;
 
         // Testing delta values 2
-        Set<String> deltaValues2 = stream(MemoryScope.DELTA, 2);
+        Set<String> deltaValues2 = stream(MemoryScope.DELTA, 2L);
         assert deltaValues2.contains(VALUE_2_1);
         assert deltaValues2.contains(VALUE_2_2);
         assert deltaValues2.size() == 2;
@@ -79,17 +79,17 @@ class DefaultDeltaGroupedFactStorageTest {
         assert memory.getDelta().isEmpty();
 
         // Testing main keys
-        Set<Integer> mainKeys = keys(MemoryScope.MAIN);
+        Set<Long> mainKeys = keys(MemoryScope.MAIN);
         assert mainKeys.size() == 2 : mainKeys.size();
         assert mainKeys.contains(KEY_1);
         assert mainKeys.contains(KEY_2);
 
         // Testing main values
-        Set<String> mainValues1 = stream(MemoryScope.MAIN, 1);
+        Set<String> mainValues1 = stream(MemoryScope.MAIN, 1L);
         assert mainValues1.contains(VALUE_1_1);
         assert mainValues1.size() == 1;
 
-        Set<String> mainValues2 = stream(MemoryScope.MAIN, 2);
+        Set<String> mainValues2 = stream(MemoryScope.MAIN, 2L);
         assert mainValues2.contains(VALUE_2_1);
         assert mainValues2.contains(VALUE_2_2);
         assert mainValues2.size() == 2;
@@ -99,15 +99,15 @@ class DefaultDeltaGroupedFactStorageTest {
 
     @Test
     void insertToExistingMemoryDifferentKeys() {
-        int PRE_KEY_1 = -1;
-        int PRE_KEY_2 = -2;
+        long PRE_KEY_1 = -1;
+        long PRE_KEY_2 = -2;
         String PRE_VALUE_1_1 = "pre one 1";
         String PRE_VALUE_1_2 = "pre one 2";
         String PRE_VALUE_2_1 = "pre two 1";
         String PRE_VALUE_2_2 = "pre two 2";
 
-        int KEY_1 = 1;
-        int KEY_2 = 2;
+        long KEY_1 = 1;
+        long KEY_2 = 2;
         String VALUE_1_1 = "post one";
         String VALUE_2_1 = "post two 1";
         String VALUE_2_2 = "post two 2";
@@ -127,7 +127,7 @@ class DefaultDeltaGroupedFactStorageTest {
         memory.insert(KEY_2, VALUE_2_2);
 
         // 1. Testing main keys after the insert
-        Set<Integer> mainKeysPre = keys(MemoryScope.MAIN);
+        Set<Long> mainKeysPre = keys(MemoryScope.MAIN);
 
         Assertions.assertEquals(mainKeysPre.size(), 2);
         assert mainKeysPre.contains(PRE_KEY_1);
@@ -176,7 +176,7 @@ class DefaultDeltaGroupedFactStorageTest {
         assert memory.getDelta().isEmpty();
 
         // Testing main keys after secondary commit
-        Set<Integer> mainKeysPost = keys(MemoryScope.MAIN);
+        Set<Long> mainKeysPost = keys(MemoryScope.MAIN);
         assert mainKeysPost.size() == 4;
         assert mainKeysPost.contains(PRE_KEY_1);
         assert mainKeysPost.contains(PRE_KEY_2);
@@ -221,7 +221,7 @@ class DefaultDeltaGroupedFactStorageTest {
         memory.insert(SAME_KEY_2, POST_VALUE_2);
 
         // Test keys
-        Set<Integer> tmp1 = keys(MemoryScope.DELTA);
+        Set<Long> tmp1 = keys(MemoryScope.DELTA);
         assert tmp1.size() == 2;
     }
 }

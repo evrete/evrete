@@ -16,16 +16,10 @@ import java.util.Set;
  * the same set of declared fact types.
  */
 public class BetaEvaluator implements WorkUnit {
-    //private final ActiveBetaEvaluatorReference[] references;
     private final LhsConditionDH<FactType, ActiveField>[] components;
     private final double complexity;
     private final Mask<FactType> typeMask;
 
-//    protected BetaEvaluator(BetaEvaluator parent) {
-//        this.references = parent.references;
-//        this.complexity = parent.complexity;
-//        this.typeMask = parent.typeMask;
-//    }
 
     @SuppressWarnings("unchecked")
     public BetaEvaluator(Mask<FactType> typeMask, Set<LhsConditionDH<FactType, ActiveField>> conditions) {
@@ -58,34 +52,6 @@ public class BetaEvaluator implements WorkUnit {
     public LhsConditionDH<FactType, ActiveField>[] getComponents() {
         return components;
     }
-
-//    public BetaEvaluator(Mask<FactType> typeMask, Collection<ActiveBetaEvaluatorReference> references) {
-//        if (references.isEmpty()) {
-//            throw new IllegalArgumentException("No references provided");
-//        }
-//
-//        List<ActiveBetaEvaluatorReference> sorted = new ArrayList<>(references);
-//        sorted.sort((r1, r2) -> DefaultEvaluatorHandle.compare(r1.getHandle(), r2.getHandle()));
-//
-//        Iterator<ActiveBetaEvaluatorReference> iterator = references.iterator();
-//        ActiveBetaEvaluatorReference first = iterator.next();
-//        this.references = new ActiveBetaEvaluatorReference[sorted.size()];
-//        this.references[0] = first;
-//        this.typeMask = typeMask;
-//
-//        // Add and validate the rest
-//        double c = first.getHandle().getComplexity();
-//        for (int i = 1; i < sorted.size(); i++) {
-//            ActiveBetaEvaluatorReference next = iterator.next();
-////            if(!next.getFactTypeMask().equals(this.typeMask)) {
-////                throw new IllegalStateException("The fact type mask does not match");
-////            }
-//
-//            this.references[i] = next;
-//            c += next.getHandle().getComplexity();
-//        }
-//        this.complexity = c;
-//    }
 
     public Mask<FactType> getTypeMask() {
         return typeMask;

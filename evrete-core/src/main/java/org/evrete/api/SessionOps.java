@@ -63,9 +63,8 @@ public interface SessionOps {
      * Deletes a fact from the working memory.
      *
      * @param handle The FactHandle associated with the fact to be deleted.
-     * @return true if the fact is successfully deleted, false otherwise.
      */
-    boolean delete(FactHandle handle);
+    void delete(FactHandle handle);
 
     /**
      * Updates a fact that already exists in the working memory

@@ -1,7 +1,6 @@
 package org.evrete.runtime;
 
-import java.util.Comparator;
-import java.util.List;
+import java.util.Collection;
 
 public abstract class DeltaMemoryAction {
     private final boolean appliedToFactStorage;
@@ -13,7 +12,6 @@ public abstract class DeltaMemoryAction {
         this.factHolder = factHolder;
         this.type = type;
     }
-
 
     final boolean isAppliedToFactStorage() {
         return appliedToFactStorage;
@@ -32,7 +30,7 @@ public abstract class DeltaMemoryAction {
     }
 
     static class Insert extends DeltaMemoryAction {
-        private final List<AlphaAddress> destinations;
+        private final Collection<AlphaAddress> destinations;
         //private final Mask<AlphaAddress> destinations;
 
         Insert(ActiveType type, DefaultFactHandle factHandle, boolean appliedToFactStorage, RoutedFactHolder factHolder) {
@@ -42,7 +40,7 @@ public abstract class DeltaMemoryAction {
         }
 
 
-        public List<AlphaAddress> getDestinations() {
+        public Collection<AlphaAddress> getDestinations() {
             return destinations;
         }
 
@@ -73,7 +71,7 @@ public abstract class DeltaMemoryAction {
         public String toString() {
             return "Delete{" +
                     "handle=" + getHandle() +
-                    ", values=" + getFactWrapper().getValues() +
+                    ", values=" + getFactWrapper().getFieldValuesId() +
                     ", applied=" + isAppliedToFactStorage() +
                     '}';
         }

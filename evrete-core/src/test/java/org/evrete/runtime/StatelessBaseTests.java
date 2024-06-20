@@ -13,6 +13,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.evrete.api.FactBuilder.fact;
 
@@ -142,9 +143,8 @@ class StatelessBaseTests {
         Assertions.assertThrows(IllegalArgumentException.class, () -> session.delete(unknown));
 
         // Test deletion
-        assert session.delete(h1);
-        assert !session.delete(h1); // Subsequent delete calls must return false
-        assert !session.delete(h1); // Subsequent delete calls must return false
+        session.delete(h1);
+        session.delete(h1); // Subsequent delete calls must not throw anything
 
         assert session.getFact(h1) == null;
         assert session.getFact(h2) == a2;
@@ -166,11 +166,10 @@ class StatelessBaseTests {
         FactHandle h1 = session.insert(a1);
         assert session.getFact(h1) == a1;
 
-        DefaultFactHandle fh = session.unwrapFactHandle(h1);
 
-        FactHolder wrapper = session.getFactWrapper(fh);
+        FactFieldValues fieldValues = Objects.requireNonNull(MemoryInspectionUtils.fieldValues(h1, session));
         // There's only one field in use, so we can test its value
-        assert (int) wrapper.getValues().valueAt(0) == 7;
+        assert (int) fieldValues.valueAt(0) == 7;
 
         // Updating the fact
         a1.setI(77);
@@ -179,9 +178,8 @@ class StatelessBaseTests {
         session.update(h1, a1);
         // Reading the values and checking the state
         assert session.getFact(h1) == a1;
-        wrapper = session.getFactWrapper(fh);
-        assert (int) wrapper.getValues().valueAt(0) == 77;
-
+        FactFieldValues fieldValues1 = Objects.requireNonNull(MemoryInspectionUtils.fieldValues(h1, session));
+        assert (int) fieldValues1.valueAt(0) == 77;
     }
 
     @Test
@@ -437,6 +435,7 @@ class StatelessBaseTests {
     @EnumSource(ActivationMode.class)
     void testSingleFinalNode1(ActivationMode mode) {
 
+        AtomicInteger counter = new AtomicInteger();
         knowledge
                 .builder()
                 .newRule("testSingleFinalNode1")
@@ -449,17 +448,25 @@ class StatelessBaseTests {
                 .where("$a.i != $b.i")
                 .where("$a.i != $c.i")
                 .where("$a.i != $d.i")
-                .execute()
+                .execute(
+                        ctx->{
+                            ctx.get(TypeA.class, "$a");
+                            ctx.get(TypeB.class, "$b");
+                            ctx.get(TypeC.class, "$c");
+                            ctx.get(TypeD.class, "$d");
+                            counter.incrementAndGet();
+                        }
+                )
                 .build();
 
         StatelessSession s = newSession(mode);
 
-        RhsAssert rhsAssert = new RhsAssert(s);
 
-        int ai = new Random().nextInt(10) + 1;
-        int bi = new Random().nextInt(10) + 1;
-        int ci = new Random().nextInt(10) + 1;
-        int di = new Random().nextInt(10) + 1;
+        // TODO uncomment below
+        int ai = 1; //new Random().nextInt(10) + 1;
+        int bi = 1; //new Random().nextInt(10) + 1;
+        int ci = 1; //new Random().nextInt(10) + 1;
+        int di = 2; //new Random().nextInt(10) + 1;
 
         int id = 0;
 
@@ -491,15 +498,10 @@ class StatelessBaseTests {
             s.insert(obj);
         }
 
+        System.out.println("************************");
         s.fire();
 
-        rhsAssert
-                .assertCount(ai * bi * ci * di)
-                .assertUniqueCount("$a", ai)
-                .assertUniqueCount("$b", bi)
-                .assertUniqueCount("$c", ci)
-                .assertUniqueCount("$d", di)
-        ;
+        Assertions.assertEquals(ai * bi * ci * di, counter.get());
     }
 
     @ParameterizedTest

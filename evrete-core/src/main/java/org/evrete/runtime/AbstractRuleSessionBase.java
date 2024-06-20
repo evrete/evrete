@@ -116,8 +116,8 @@ public abstract class AbstractRuleSessionBase<S extends RuleSession<S>> extends 
         return getMemoryFactory().newValueIndexed(FactFieldValues.class);
     }
 
-    public DeltaGroupedFactStorage<FactFieldValues, DefaultFactHandle> newAlphaMemoryStorage() {
-        return getMemoryFactory().newGroupedFactStorage(FactFieldValues.class);
+    public DeltaGroupedFactStorage<DefaultFactHandle> newAlphaMemoryStorage() {
+        return getMemoryFactory().newGroupedFactStorage(DefaultFactHandle.class);
     }
 
 }

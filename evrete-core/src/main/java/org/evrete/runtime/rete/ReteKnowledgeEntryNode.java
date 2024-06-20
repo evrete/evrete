@@ -1,16 +1,16 @@
 package org.evrete.runtime.rete;
 
-import org.evrete.runtime.GroupedFactType;
+import org.evrete.runtime.FactType;
 
 public class ReteKnowledgeEntryNode extends ReteKnowledgeNode {
-    final GroupedFactType factType;
+    final FactType factType;
 
-    public ReteKnowledgeEntryNode(GroupedFactType factType) {
+    public ReteKnowledgeEntryNode(FactType factType) {
         super(factType);
         this.factType = factType;
     }
 
-    public GroupedFactType getFactType() {
+    public FactType getFactType() {
         return factType;
     }
 

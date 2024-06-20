@@ -3,7 +3,6 @@ package org.evrete.runtime.rete;
 import org.evrete.api.IntToValue;
 import org.evrete.api.spi.MemoryScope;
 import org.evrete.runtime.*;
-import org.evrete.runtime.evaluation.DefaultEvaluatorHandle;
 import org.evrete.util.CombinationIterator;
 import org.evrete.util.CommonUtils;
 import org.evrete.util.FlatMapIterator;
@@ -12,32 +11,62 @@ import org.evrete.util.MappingIterator;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.IntFunction;
+import java.util.function.ObjIntConsumer;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class ReteSessionConditionNode extends ReteSessionNode {
     private static final Logger LOGGER = Logger.getLogger(ReteSessionConditionNode.class.getName());
     private final ConditionMemory.MemoryEntry[] currentMemoryEntries;
+    /**
+     * This is a "flattened" state of current memory entries coming from source nodes
+     */
+    private final FieldValuesMeta[] currentFieldValues;
     private final ResolvedEvaluator evaluator;
     private final ConditionMemory betaMemory;
+    private final TypeMemory[] nodeTypeMemories;
 
-    public ReteSessionConditionNode(AbstractRuleSessionBase<?> session, int totalFactTypes, ReteSessionNode[] sourceNodes, ReteKnowledgeConditionNode knowledgeConditionNode) {
-        super(session, knowledgeConditionNode, totalFactTypes, sourceNodes);
+
+    public ReteSessionConditionNode(AbstractRuleSessionBase<?> session, ReteSessionNode[] sourceNodes, ReteKnowledgeConditionNode knowledgeConditionNode) {
+        super(session, knowledgeConditionNode, sourceNodes);
         int totalSources = sourceNodes.length;
         this.currentMemoryEntries = new ConditionMemory.MemoryEntry[totalSources];
+
+
+        FactType[] nodeFactTypes = getNodeFactTypes();
+        this.currentFieldValues = new FieldValuesMeta[nodeFactTypes.length];
+
+        this.nodeTypeMemories = new TypeMemory[nodeFactTypes.length];
+        for (int i = 0; i < nodeFactTypes.length; i++) {
+            this.nodeTypeMemories[i] = session.getMemory().getTypeMemory(nodeFactTypes[i]);
+        }
+
         this.betaMemory = new ConditionMemory();
         this.evaluator = new ResolvedEvaluator(session, knowledgeConditionNode.getEvaluator());
+
     }
 
     @Override
-    public CompletableFuture<Void> computeDeltasRecursively(DeltaMemoryMode mode) {
+    String debugName() {
+        return FactType.toSimpleDebugString(this.getNodeFactTypes());
+    }
+
+    @Override
+    public CompletableFuture<Void> computeDeltaMemoryAsync(DeltaMemoryMode mode) {
+        LOGGER.fine(()->"Node " + this.debugName() + " is requesting delta memories from sources: " + debugName(sourceNodes));
+
         // To compute this node's delta memory, we need the node's source nodes
         // to compute their deltas first.
         return CommonUtils.completeAll(
                         sourceNodes,
-                        sourceNode -> sourceNode.computeDeltasRecursively(mode)
+                        sourceNode -> sourceNode.computeDeltaMemoryAsync(mode)
                 )
-                .thenRun(() -> this.computeDeltaLocally(mode));
+                .thenRunAsync(
+                        () -> this.computeDeltaLocally(mode),
+                        getExecutor()
+                );
     }
 
     public ConditionMemory getBetaMemory() {
@@ -64,6 +93,7 @@ public class ReteSessionConditionNode extends ReteSessionNode {
         } else {
             throw new IllegalStateException("Unknown memory scope mode: " + mode);
         }
+
         computeDeltaLocally(saveDestination, sourceScopes);
     }
 
@@ -74,44 +104,79 @@ public class ReteSessionConditionNode extends ReteSessionNode {
      * @param sourceScopes    an iterator over sources' scopes
      */
     void computeDeltaLocally(MemoryScope saveDestination, Iterator<MemoryScope[]> sourceScopes) {
-        // 1. Clear this node's delta
+        LOGGER.fine(()->"Node " + this.debugName() + " starting to compute local delta from sources: " + debugName(sourceNodes));
+        // 1. Clear this node's delta memory
         this.betaMemory.clearDeltaMemory();
 
         // 2. Create iterator over all possible source combinations
+
+        ReteSessionNode[] sourceNodes = sourceNodes();
         Iterator<ConditionMemory.MemoryEntry[]> sourceCombinations = new FlatMapIterator<>(
                 sourceScopes,
-                scopes -> new CombinationIterator<>(
+                scopes -> new ListeningCombinationIterator(
                         currentMemoryEntries,
-                        index -> sourceNodes()[index].iterator(scopes[index])
+                        index -> sourceNodes[index].iterator(scopes[index]),
+                        this::sourceValueChanged
                 )
         );
 
         // 3. Evaluate the node's condition and save to the destination storage
         sourceCombinations.forEachRemaining(ignored -> {
-            if (evaluator.test()) {
-                ConditionMemory.MemoryEntry entry = ConditionMemory.MemoryEntry.fromDeltaState(totalFactTypes, currentMemoryEntries, sourceNodes);
-                this.betaMemory.saveNewEntry(saveDestination, entry);
-            }
+            evaluateAndSave(saveDestination);
         });
+        LOGGER.fine(()->"Node " + this.debugName() + " has finished computing its delta memory. New delta memory size: " + this.betaMemory.size(MemoryScope.DELTA) + ", main memory size: " + this.betaMemory.size(MemoryScope.MAIN));
 
     }
 
+    private void evaluateAndSave(MemoryScope saveDestination) {
+        if (evaluator.test()) {
+            ConditionMemory.ScopedValueId[] ids = new ConditionMemory.ScopedValueId[currentFieldValues.length];
+            for (int i = 0; i < ids.length; i++) {
+                ids[i] = new ConditionMemory.ScopedValueId(currentFieldValues[i].valuesId, currentFieldValues[i].scope) ;
+            }
+
+            ConditionMemory.MemoryEntry entry = new ConditionMemory.MemoryEntry(ids);
+            this.betaMemory.saveNewEntry(saveDestination, entry);
+            LOGGER.finer(()->"Node " + this.debugName() + ", new delta entry: " + Arrays.toString(this.currentFieldValues) + ". Delta memory size: " + this.betaMemory.size(MemoryScope.DELTA));
+        }
+    }
+
+    /**
+     * To evaluate conditions, we need to turn unique <code>long</code> value indices into real objects as
+     * described in the {@link org.evrete.api.spi.ValueIndexer} docs.
+     *
+     * @param memoryEntry the next memory entry from a source node
+     * @param sourceIndex the index of the source node
+     */
+    private void sourceValueChanged(ConditionMemory.MemoryEntry memoryEntry, int sourceIndex) {
+        ConditionMemory.ScopedValueId[] valueIds = memoryEntry.getScopedValueIds();
+        for (int i = 0; i < valueIds.length; i++) {
+            int pos = location(sourceIndex, i);
+            long newValuesId = valueIds[i].getValueId();
+            MemoryScope newScope = valueIds[i].getScope();
+
+            FieldValuesMeta localVal = currentFieldValues[pos];
+            if(localVal == null || localVal.valuesId != newValuesId || localVal.scope != newScope) {
+                // We need to read or update cached values
+                FactFieldValues fieldValues = nodeTypeMemories[pos].readFieldValues(newValuesId);
+                currentFieldValues[pos] = new FieldValuesMeta(fieldValues, newValuesId, newScope);
+            }
+        }
+    }
+
+
     @Override
     Iterator<ConditionMemory.MemoryEntry> iterator(MemoryScope scope) {
-        LOGGER.finer(() -> "Requested " + scope + " key iterator for condition node " + this + ". Node memory state: " + betaMemory);
         return this.betaMemory.iterator(scope);
     }
 
     /**
      * Returns an iterator over computed memory entries.
-     * Each entry is an array of {@link FactFieldValues.Scoped} values.
-     * Array indices correspond to the indices defined by the corresponding
-     * {@link GroupedFactType#getInGroupIndex()}.
      *
      * @param scope the requested inner memory scope
      * @return an iterator over arrays of {@link FactFieldValues.Scoped} values
      */
-    public Iterator<FactFieldValues.Scoped[]> memoryIterator(MemoryScope scope) {
+    public Iterator<ConditionMemory.ScopedValueId[]> memoryIterator(MemoryScope scope) {
         return new MappingIterator<>(iterator(scope), ConditionMemory.MemoryEntry::scopedValues);
     }
 
@@ -121,41 +186,44 @@ public class ReteSessionConditionNode extends ReteSessionNode {
 
     @Override
     public String toString() {
+
         return "{" +
                 "evaluator=" + evaluator +
+                ", sourceNodes=" + Arrays.stream(sourceNodes).map(Object::toString).collect(Collectors.joining(", ")) +
                 '}';
     }
 
+    private static class ListeningCombinationIterator extends CombinationIterator<ConditionMemory.MemoryEntry> {
+        private final ObjIntConsumer<ConditionMemory.MemoryEntry> listener;
+
+        public ListeningCombinationIterator(ConditionMemory.MemoryEntry[] sharedResultArray, IntFunction<Iterator<ConditionMemory.MemoryEntry>> iteratorFunction, ObjIntConsumer<ConditionMemory.MemoryEntry> listener) {
+            super(sharedResultArray, iteratorFunction);
+            this.listener = listener;
+        }
+
+        @Override
+        protected ConditionMemory.MemoryEntry advanceIterator(int sourceIndex) {
+            ConditionMemory.MemoryEntry entry = super.advanceIterator(sourceIndex);
+            listener.accept(entry, sourceIndex);
+            return entry;
+        }
+    }
+
     private class ResolvedEvaluator {
-        private final StoredCondition[] evaluators;
-        private final IntToValue[] values;
-        private final AbstractRuleSessionBase<?> session;
+        private final ResolvedEvaluatorComponent[] components;
 
-        // TODO Split the arg into runtime and session memory. And not only here
-        ResolvedEvaluator(AbstractRuleSessionBase<?> session, ReteKnowledgeConditionNode.Evaluator evaluator) {
+        ResolvedEvaluator(AbstractRuleSessionBase<?> session, ReteKnowledgeEvaluator evaluator) {
             // Converting evaluator handles to actual evaluators
-            this.session = session;
-            LhsConditionDH<FactType, ActiveField>[] components = evaluator.getComponents();
-            this.evaluators = new StoredCondition[components.length];
-            this.values = new IntToValue[components.length];
-            for (int i = 0; i < components.length; i++) {
-                DefaultEvaluatorHandle handle = components[i].getCondition();
-                this.evaluators[i] = getActiveEvaluator(handle);
-
-                final ReteKnowledgeConditionNode.Evaluator.Coordinate[] coordinates = evaluator.coordinates[i];
-                this.values[i] = argIndex -> {
-                    ReteKnowledgeConditionNode.Evaluator.Coordinate c = coordinates[argIndex];
-                    int sourceIndex = c.sourceIdx;
-                    int arrayIndex = c.inGroupIdx;
-                    int valueIndex = c.fieldIdx;
-                    return currentMemoryEntries[sourceIndex].get(arrayIndex).values().valueAt(valueIndex);
-                };
+            ReteKnowledgeEvaluator.Component[] componentDescriptors = evaluator.getComponents();
+            this.components = new ResolvedEvaluatorComponent[componentDescriptors.length];
+            for (int i = 0; i < componentDescriptors.length; i++) {
+                this.components[i] = new ResolvedEvaluatorComponent(session, componentDescriptors[i]);
             }
         }
 
         boolean test() {
-            for (int i = 0; i < evaluators.length; i++) {
-                if (!evaluators[i].test(session, values[i])) {
+            for(ResolvedEvaluatorComponent component : components) {
+                if(!component.test()) {
                     return false;
                 }
             }
@@ -164,7 +232,57 @@ public class ReteSessionConditionNode extends ReteSessionNode {
 
         @Override
         public String toString() {
-            return Arrays.toString(evaluators);
+            return Arrays.toString(components);
+        }
+    }
+
+    class ResolvedEvaluatorComponent {
+        final IntToValue values;
+        final StoredCondition condition;
+        final AbstractRuleSessionBase<?> session;
+
+        ResolvedEvaluatorComponent(AbstractRuleSessionBase<?> session, ReteKnowledgeEvaluator.Component component) {
+            this.session = session;
+            this.condition = getActiveEvaluator(component.getDelegate().getCondition());
+
+            final ReteKnowledgeEvaluator.Coordinate[] coordinates = component.getCoordinates();
+
+            this.values = argIndex -> {
+                ReteKnowledgeEvaluator.Coordinate c = coordinates[argIndex];
+                int inNodeIdx = c.inNodeIdx;
+                int valueIndex = c.fieldIdx;
+                FactFieldValues fieldValues = currentFieldValues[inNodeIdx].values;
+                return fieldValues.valueAt(valueIndex);
+            };
+        }
+
+        boolean test() {
+            return condition.test(session, values);
+        }
+
+        @Override
+        public String toString() {
+            return condition.toString();
+        }
+    }
+
+    static class FieldValuesMeta {
+        private final FactFieldValues values;
+        private final long valuesId;
+        private final MemoryScope scope;
+
+        public FieldValuesMeta(FactFieldValues values, long valuesId, MemoryScope scope) {
+            this.values = values;
+            this.valuesId = valuesId;
+            this.scope = scope;
+        }
+
+        @Override
+        public String toString() {
+            return "{" +
+                    scope +
+                    ", " + valuesId + "=" + values +
+                    '}';
         }
     }
 }

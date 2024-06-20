@@ -90,7 +90,7 @@ public class SessionMemory implements MemoryStreaming {
         return typedMemories.getChecked(activeType);
     }
 
-    TypeMemory getTypeMemory(FactType factType) {
+    public TypeMemory getTypeMemory(FactType factType) {
         return getTypeMemory(factType.typeId());
     }
 
@@ -124,7 +124,7 @@ public class SessionMemory implements MemoryStreaming {
             // Fresh allocation
             newTypeMemory = new TypeMemory(runtime, newActiveType);
             for (AlphaAddress alphaAddress : alphaAddresses) {
-                DeltaGroupedFactStorage<FactFieldValues, DefaultFactHandle> alphaStorage = runtime.newAlphaMemoryStorage();
+                DeltaGroupedFactStorage<DefaultFactHandle> alphaStorage = runtime.newAlphaMemoryStorage();
                 this.alphaMemories.put(alphaAddress, new TypeAlphaMemory(alphaStorage, alphaAddress));
             }
             LOGGER.fine(() -> "Type memory allocation [" + allocationId + "]. Blank instances of type memory and alpha locations have been created");
@@ -178,19 +178,21 @@ public class SessionMemory implements MemoryStreaming {
     }
 
 
-    private Collection<TypeAlphaMemory> rebuildAlphas(TypeMemory typeMemory, Set<AlphaAddress> alphaLocations, long allocationId) {
+    private Collection<TypeAlphaMemory> rebuildAlphas(TypeMemory newTypeMemory, Set<AlphaAddress> alphaLocations, long allocationId) {
         ArrayMap<AlphaAddress, TypeAlphaMemory> resultMap = new ArrayMap<>(alphaLocations.size());
         for (AlphaAddress alphaAddress : alphaLocations) {
             resultMap.put(alphaAddress, new TypeAlphaMemory(runtime.newAlphaMemoryStorage(), alphaAddress));
             LOGGER.fine(() -> "Type memory allocation [" + allocationId +  "]. Created new alpha memory for location " + alphaAddress);
         }
 
+        ActiveType newType = newTypeMemory.getType();
         // Stream stored values, obtain their bitset of alpha conditions and save to matching alpha memories
-        typeMemory.stream().parallel().forEach(entry -> {
+        newTypeMemory.stream().parallel().forEach(entry -> {
             FactHolder factHolder = entry.getValue();
-            List<AlphaAddress> matchingLocations = runtime.matchingLocations(factHolder, alphaLocations);
+            FactFieldValues fieldValues = newType.readFactValue(factHolder.getFact());
+            Collection<AlphaAddress> matchingLocations = newType.matchingLocations(runtime, fieldValues, alphaLocations);
             for (AlphaAddress alphaAddress : matchingLocations) {
-                resultMap.getChecked(alphaAddress).insert(factHolder.getValues(), factHolder.getHandle());
+                resultMap.getChecked(alphaAddress).insert(factHolder.getFieldValuesId(), factHolder.getHandle());
             }
         });
 
@@ -206,10 +208,12 @@ public class SessionMemory implements MemoryStreaming {
         source.stream().parallel().forEach(entry -> {
             DefaultFactHandle handle = entry.getKey();
             FactHolder factHolder = entry.getValue();
+            Object fact = factHolder.getFact();
             // We need to keep the same value id because it is possibly referenced in RETE condition nodes.
             long valueId = factHolder.getFieldValuesId();
-            FactHolder newFactHolder = runtime.generateFactHolderSync(handle, newType, factHolder.getFact(), valueId);
-            newValueIndexer.assignId(valueId, newFactHolder.getValues());
+            FactFieldValues fieldValues = newType.readFactValue(fact);
+            FactHolder newFactHolder = new FactHolder(handle, valueId, fact);
+            newValueIndexer.assignId(valueId, fieldValues);
             newStorage.insert(handle, newFactHolder);
             factCounter.incrementAndGet();
         });
@@ -218,7 +222,7 @@ public class SessionMemory implements MemoryStreaming {
     }
 
 
-    public DeltaGroupedFactStorage<FactFieldValues, DefaultFactHandle> getAlphaMemory(FactType type) {
+    public DeltaGroupedFactStorage<DefaultFactHandle> getAlphaMemory(FactType type) {
         return this.getAlphaMemory(type.getAlphaAddress());
     }
 

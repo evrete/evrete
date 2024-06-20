@@ -1,5 +1,6 @@
 package org.evrete.runtime;
 
+import org.evrete.api.annotations.NonNull;
 import org.evrete.api.spi.MemoryScope;
 import org.evrete.runtime.rete.*;
 import org.evrete.util.CombinationIterator;
@@ -8,6 +9,7 @@ import org.evrete.util.FlatMapIterator;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -24,8 +26,8 @@ class SessionFactGroupBeta extends SessionFactGroup {
         // Transform the condition graph and allocate the nodes' memory structures.
         this.graph = factGroup.getGraph().transform(
                 ReteSessionNode.class,
-                (conditionNode, sources) -> new ReteSessionConditionNode(runtime, totalFactTypes, sources, conditionNode),
-                entryNode -> new ReteSessionEntryNode(runtime, totalFactTypes, entryNode)
+                (conditionNode, sources) -> new ReteSessionConditionNode(runtime, sources, conditionNode),
+                entryNode -> new ReteSessionEntryNode(runtime, entryNode)
         );
     }
 
@@ -62,11 +64,13 @@ class SessionFactGroupBeta extends SessionFactGroup {
     }
 
     private Collection<DeletePredicate> createDeletePredicates(Collection<FactHolder> factHolders) {
+        throw new UnsupportedOperationException();
+/*
         // Splitting actions by active fact types
-        MapOfSet<ActiveType.Idx, FactFieldValues> deletesByType = new MapOfSet<>(
+        MapOfSet<ActiveType.Idx, Long> deletesByType = new MapOfSet<>(
                 factHolders,
                 delete -> delete.getHandle().getType(),
-                FactHolder::getValues
+                FactHolder::getFieldValuesId
         );
 
         // In a fact group, several fact declarations can be of the same type
@@ -83,6 +87,7 @@ class SessionFactGroupBeta extends SessionFactGroup {
 
         // Create a combined delete predicate (logical OR)
         return deletePredicates;
+*/
     }
 
     public ReteGraph<ReteSessionNode, ReteSessionEntryNode, ReteSessionConditionNode> getGraph() {
@@ -91,8 +96,8 @@ class SessionFactGroupBeta extends SessionFactGroup {
 
     @Override
     CompletableFuture<Void> buildDeltas(DeltaMemoryMode mode) {
-        LOGGER.fine(() -> "Starting to build delta memory for group " + this + " in mode: " + mode);
-        return graph.terminalNode().computeDeltasRecursively(mode);
+        LOGGER.fine(() -> "Starting to build delta memory for group " + FactType.toSimpleDebugString(this.factTypes) + " in mode: " + mode);
+        return graph.terminalNode().computeDeltaMemoryAsync(mode);
     }
 
     @Override
@@ -120,7 +125,7 @@ class SessionFactGroupBeta extends SessionFactGroup {
 //        );
 //    }
 
-    private Iterator<DefaultFactHandle[]> combinations(FactFieldValues.Scoped[] keys) {
+    private Iterator<DefaultFactHandle[]> combinations(ConditionMemory.ScopedValueId[] keys) {
         return new CombinationIterator<>(
                 this.currentFactHandles,
                 index -> factTypes[index].factIterator(keys[index])
@@ -128,25 +133,32 @@ class SessionFactGroupBeta extends SessionFactGroup {
     }
 
     private static class DeletePredicate implements Predicate<ConditionMemory.MemoryEntry> {
-        private final int[] inGroupIndices;
-        private final Set<FactFieldValues> valuesToDelete;
+        private final int index;
+        private final Set<Long> valuesToDelete;
 
-        DeletePredicate(int[] inGroupIndices, Set<FactFieldValues> valuesToDelete) {
-            this.inGroupIndices = inGroupIndices;
+        DeletePredicate(int index, Set<Long> valuesToDelete) {
+            this.index = index;
             this.valuesToDelete = valuesToDelete;
         }
 
         @Override
         public boolean test(ConditionMemory.MemoryEntry memoryEntry) {
-            for (int inGroupIndex : inGroupIndices) {
-                FactFieldValues.Scoped v = memoryEntry.get(inGroupIndex);
-                if (v != null) {
-                    if (valuesToDelete.contains(v.values())) {
-                        return true;
-                    }
+            ConditionMemory.ScopedValueId v = memoryEntry.getScopedValueIds()[index];
+            return valuesToDelete.contains(v.getValueId());
+        }
+
+        @NonNull
+        static Predicate<ConditionMemory.MemoryEntry> ofMultipleOR(@NonNull Collection<DeletePredicate> predicates) {
+            Iterator<DeletePredicate> iterator = predicates.iterator();
+            if (iterator.hasNext()) {
+                Predicate<ConditionMemory.MemoryEntry> predicate = iterator.next();
+                while (iterator.hasNext()) {
+                    predicate = predicate.or(iterator.next());
                 }
+                return predicate;
+            } else {
+                return memoryEntry -> false;
             }
-            return false;
         }
     }
 }

@@ -13,28 +13,30 @@ public class Profile {
 
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
-        Knowledge eKnowledge = service.newKnowledge()
-                .builder()
-                .newRule("sales")
-                .forEach(
-                        "$report", SalesReport.class,
-                        "$unit", SalesUnit.class,
-                        "$i", Invoice.class,
-                        "$c", Customer.class
-                )
-                .where("$i.salesUnit == $unit")
-                .where("$i.customer.id == $c.id")
-                .where("$c.rating > 4.0")
-                .execute(ctx -> {
-                    SalesReport report = ctx.get("$report");
-                    Invoice i = ctx.get("$i");
-                    SalesUnit unit = ctx.get("$unit");
-                    report.add(unit, i.amount);
-                })
-                .build();
-        withKnowledge(eKnowledge);
-
-        service.shutdown();
+        try {
+            Knowledge eKnowledge = service.newKnowledge()
+                    .builder()
+                    .newRule("sales")
+                    .forEach(
+                            "$report", SalesReport.class,
+                            "$unit", SalesUnit.class,
+                            "$i", Invoice.class,
+                            "$c", Customer.class
+                    )
+                    .where("$i.salesUnit == $unit")
+                    .where("$i.customer.id == $c.id")
+                    .where("$c.rating > 4.0")
+                    .execute(ctx -> {
+                        SalesReport report = ctx.get("$report");
+                        Invoice i = ctx.get("$i");
+                        SalesUnit unit = ctx.get("$unit");
+                        report.add(unit, i.amount);
+                    })
+                    .build();
+            withKnowledge(eKnowledge);
+        } finally {
+            service.shutdown();
+        }
     }
 
     private static void withKnowledge(Knowledge knowledge) {

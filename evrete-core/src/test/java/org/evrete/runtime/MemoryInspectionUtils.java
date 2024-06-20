@@ -34,6 +34,19 @@ public class MemoryInspectionUtils {
         return alphaMemory.stream(scope).flatMap(values -> alphaMemory.stream(scope, values).map(typeMemory::get));
     }
 
+    static FactFieldValues fieldValues(FactHandle handle, RuleSession<?> session) {
+        AbstractRuleSession<?> s = cast(session);
+        DefaultFactHandle fh = s.unwrapFactHandle(handle);
+        TypeMemory typeMemory = s.getMemory().getTypeMemory(fh);
+        FactHolder holder = typeMemory.get(fh);
+        if(holder == null) {
+            return null;
+        } else {
+            long valuesId = holder.getFieldValuesId();
+            return typeMemory.readFieldValues(valuesId);
+        }
+    }
+
     static void assertNoDeltaStates(RuleSession<?> session) {
         AbstractRuleSession<?> s = cast(session);
 

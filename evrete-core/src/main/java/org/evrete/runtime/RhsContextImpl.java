@@ -49,7 +49,7 @@ class RhsContextImpl implements RhsContext {
      * This method is called for each new RHS fact combination i.e, the {@link #currentState} variable is updated.
      */
     RhsContext next() {
-        LOGGER.finer(() -> "Current RHS handles: " + Arrays.deepToString(currentState));
+        LOGGER.finer(() -> "Rule '" + rule.getName() +  "', current RHS handles: " + Arrays.deepToString(currentState));
 
         // Clearing the cache for each new fact combination
         Arrays.fill(cache, null);
@@ -103,8 +103,8 @@ class RhsContextImpl implements RhsContext {
     }
 
     @Override
-    public boolean delete(FactHandle handle) {
-        return rule.getRuntime().bufferDelete(false, handle, this.destinationForRuleActions);
+    public void delete(FactHandle handle) {
+        rule.getRuntime().bufferDelete(false, handle, this.destinationForRuleActions);
     }
 
     @Override
@@ -116,7 +116,7 @@ class RhsContextImpl implements RhsContext {
     public final RhsContext update(Object obj) {
         CachedFactEntry entry = findByFact(Objects.requireNonNull(obj, "Facts not allowed to be null"));
         if (entry == null) {
-            LOGGER.warning(()->"Fact " + obj + " is not known to the context. This operation is only possible for facts previously retrieved via a get(...) method. The UPDATE operation skipped.");
+            LOGGER.warning(()->"Rule '" + rule.getName() + "'. Fact " + obj + " is not known to the context. This operation is only possible for facts previously retrieved via a get(...) method. The UPDATE operation skipped.");
         } else {
             rule.getRuntime().bufferUpdate(false, entry.handle, obj, this.destinationForRuleActions);
         }
@@ -138,7 +138,7 @@ class RhsContextImpl implements RhsContext {
     private void deleteCurrentFact(Object obj) {
         CachedFactEntry entry = findByFact(obj);
         if (entry == null) {
-            LOGGER.warning(()->"Fact " + obj + " is not known to the context. This operation is only possible for facts previously retrieved via a get(...) method. The DELETE operation skipped.");
+            LOGGER.warning(()->"Rule '" + rule.getName() +  "'. Fact " + obj + " is not known to the context. This operation is only possible for facts previously retrieved via a get(...) method. The DELETE operation skipped.");
         } else {
             rule.getRuntime().bufferDelete(false, entry.handle, entry.wrapper, this.destinationForRuleActions);
         }

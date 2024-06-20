@@ -12,7 +12,7 @@ public interface MemoryFactory<FH extends FactHandle> {
 
     <V> FactStorage<FH, V> newFactStorage(Class<V> valueType);
 
-    <K> DeltaGroupedFactStorage<K, FH> newGroupedFactStorage(Class<K> keyType);
+    DeltaGroupedFactStorage<FH> newGroupedFactStorage(Class<FH> valueType);
 
     <T> ValueIndexer<T> newValueIndexed(Class<T> valueType);
 }

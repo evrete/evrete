@@ -119,10 +119,10 @@ public final class Mask<T> {
         return new Mask<>(value -> value.getId().getIndex());
     }
 
-    public static Mask<GroupedFactType> inGroupMask() {
-        return new Mask<>(GroupedFactType::getInGroupIndex);
-    }
-
+//    public static Mask<GroupedFactType> inGroupMask() {
+//        return new Mask<>(GroupedFactType::getInGroupIndex);
+//    }
+//
     public static Mask<AlphaAddress> alphaAddressMask() {
         return Mask.instance(AlphaAddress::getIndex);
     }

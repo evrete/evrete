@@ -4,6 +4,7 @@ import org.evrete.api.FactHandle;
 
 import java.util.concurrent.CompletableFuture;
 
+//TODO make serializable!!!!
 class FutureFactHandle implements FactHandle {
     private final CompletableFuture<DefaultFactHandle> future;
 

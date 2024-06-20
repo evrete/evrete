@@ -42,10 +42,16 @@ public class TypeAlphaConditions implements Indexed {
 
     @Override
     public String toString() {
-        return "{" +
-                "type=" + type +
-                ", mask=" + mask +
-                '}';
+        if(mask.cardinality() == 0) {
+            return "{" +
+                    "type=" + type.getIndex() +
+                    '}';
+        } else {
+            return "{" +
+                    "type=" + type.getIndex() +
+                    ", mask=" + mask +
+                    '}';
+        }
     }
 }
 

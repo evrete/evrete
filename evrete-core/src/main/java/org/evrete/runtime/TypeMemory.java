@@ -18,17 +18,21 @@ public final class TypeMemory extends FactStorageWrapper<DefaultFactHandle, Fact
     private final Class<?> javaType;
     private final ValueIndexer<FactFieldValues> fieldValuesIndexer;
     private final AbstractRuleSession<?> runtime;
-    //private final ActiveType type;
+    private final ActiveType type;
 
     TypeMemory(AbstractRuleSession<?> runtime, ActiveType type, FactStorage<DefaultFactHandle, FactHolder> factStorage, ValueIndexer<FactFieldValues> fieldValuesIndexer) {
         super(factStorage);
         // TODO Resolve the mess with class fields
-        //this.type = type;
+        this.type = type;
         this.runtime = runtime;
         this.fieldCount = type.getFieldCount();
         this.logicalType = type.getValue().getName();
         this.javaType = type.getValue().getJavaClass();
         this.fieldValuesIndexer = fieldValuesIndexer;
+    }
+
+    public ActiveType getType() {
+        return type;
     }
 
     TypeMemory(AbstractRuleSession<?> runtime, ActiveType type) {
@@ -37,6 +41,10 @@ public final class TypeMemory extends FactStorageWrapper<DefaultFactHandle, Fact
 
     ValueIndexer<FactFieldValues> getFieldValuesIndexer() {
         return fieldValuesIndexer;
+    }
+
+    public FactFieldValues readFieldValues(long valueId) {
+        return this.fieldValuesIndexer.get(valueId);
     }
 
 //    CompletableFuture<FactHolder> factToFactHolder(DefaultFactHandle handle, Object fact) {

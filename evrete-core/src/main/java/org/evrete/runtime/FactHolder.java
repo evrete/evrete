@@ -3,12 +3,13 @@ package org.evrete.runtime;
 
 import org.evrete.api.annotations.NonNull;
 
+import java.util.Objects;
+
 /**
  * A wrapper for a fact. The engine stores facts along with their field values and
  * the assigned {@link org.evrete.api.FactHandle}.
  */
 public class FactHolder {
-    private final FactFieldValues values;
     private final Object fact;
     private final DefaultFactHandle handle;
     private final long fieldValuesId;
@@ -18,15 +19,14 @@ public class FactHolder {
      *
      * @param handle the assigned fact handle.
      * @param fieldValuesId the unique id assigned to the combination of fact's field values.
-     * @param values the field values of the fact.
      * @param fact the original fact object.
      */
-    public FactHolder(@NonNull DefaultFactHandle handle, long fieldValuesId, @NonNull FactFieldValues values, @NonNull Object fact) {
-        this.handle = handle;
+    public FactHolder(@NonNull DefaultFactHandle handle, long fieldValuesId, @NonNull Object fact) {
+        this.handle = Objects.requireNonNull(handle);
         this.fieldValuesId = fieldValuesId;
-        this.values = values;
-        this.fact = fact;
+        this.fact = Objects.requireNonNull(fact);
     }
+
 
     public long getFieldValuesId() {
         return fieldValuesId;
@@ -40,14 +40,11 @@ public class FactHolder {
         return fact;
     }
 
-    public FactFieldValues getValues() {
-        return values;
-    }
 
     @Override
     public String toString() {
         return "{fact=" + fact +
-                ", values=" + values +
+                ", values=" + fieldValuesId +
                 '}';
     }
 }

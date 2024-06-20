@@ -1,5 +1,9 @@
 package org.evrete.runtime;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.StringJoiner;
+
 /**
  * Runtime representation of an LHS fact declaration.
  */
@@ -31,6 +35,18 @@ public class FactType extends AbstractLhsFact {
 
     public AlphaAddress getAlphaAddress() {
         return alphaAddress;
+    }
+
+    public static <T extends FactType> String toSimpleDebugString(T[] types) {
+        return toSimpleDebugString(Arrays.asList(types));
+    }
+
+    public static <T extends FactType> String toSimpleDebugString(Collection<T> types) {
+        StringJoiner joiner = new StringJoiner(", ", "[", "]");
+        for (FactType type : types) {
+            joiner.add("'" + type.getVarName() + "'");
+        }
+        return joiner.toString();
     }
 
     @Override

@@ -14,7 +14,7 @@ public class DefaultMemoryFactory<FH extends FactHandle> implements MemoryFactor
     }
 
     @Override
-    public <K> DeltaGroupedFactStorage<K, FH> newGroupedFactStorage(Class<K> keyType) {
+    public DeltaGroupedFactStorage<FH> newGroupedFactStorage(Class<FH> keyType) {
         return new DefaultDeltaGroupedFactStorage<>();
     }
 

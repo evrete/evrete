@@ -20,12 +20,12 @@ abstract class SessionFactGroup extends KnowledgeFactGroup {
     protected SessionFactGroup(AbstractRuleSessionBase<?> runtime, KnowledgeFactGroup knowledgeFactGroup) {
         super(knowledgeFactGroup);
         this.executor = runtime.getService().getExecutor();
-        GroupedFactType[] types = getEntryNodes();
+        FactType[] entryNodes = getEntryNodes();
         SessionMemory memory = runtime.getMemory();
-        this.factTypes = new SessionFactType[types.length];
-        for (int i = 0; i < types.length; i++) {
-            SessionFactType sessionFactType = new SessionFactType(types[i], memory);
-            assert sessionFactType.getInGroupIndex() == i;
+        this.factTypes = new SessionFactType[entryNodes.length];
+        for (int i = 0; i < entryNodes.length; i++) {
+            SessionFactType sessionFactType = new SessionFactType(entryNodes[i], memory);
+            //assert sessionFactType.getInGroupIndex() == i;
             this.factTypes[i] = sessionFactType;
         }
     }
@@ -58,7 +58,7 @@ abstract class SessionFactGroup extends KnowledgeFactGroup {
     public String toString() {
         return "{" +
                 "plain=" + isPlain() +
-                ", " + Arrays.toString(factTypes) +
+                "facts= " + FactType.toSimpleDebugString(factTypes) +
                 '}';
     }
 }

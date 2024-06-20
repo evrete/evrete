@@ -3,6 +3,11 @@ package org.evrete.runtime;
 import org.evrete.runtime.evaluation.AlphaConditionHandle;
 import org.evrete.util.Indexed;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
 /**
  * Represents an indexed unique combination of alpha conditions. While the alpha conditions are bound to the same
  * fact type, this class is globally indexed to be used in {@link Mask} matching.
@@ -19,7 +24,7 @@ public class AlphaAddress extends PreHashed implements Indexed {
         this.typeAlphaConditions = typeAlphaConditions;
     }
 
-    public Mask<AlphaConditionHandle> getMask() {
+    private Mask<AlphaConditionHandle> getMask() {
         return typeAlphaConditions.getMask();
     }
 
@@ -35,8 +40,8 @@ public class AlphaAddress extends PreHashed implements Indexed {
     @Override
     public String toString() {
         return "{" +
-                "index=" + index +
-                ", conditions=" + typeAlphaConditions +
+                "idx=" + index +
+                ", alpha=" + typeAlphaConditions +
                 '}';
     }
 
@@ -46,5 +51,20 @@ public class AlphaAddress extends PreHashed implements Indexed {
         if (o == null || getClass() != o.getClass()) return false;
         AlphaAddress that = (AlphaAddress) o;
         return index == that.index;
+    }
+
+    public boolean matches(Mask<AlphaConditionHandle> alphaConditionResults) {
+        return alphaConditionResults.containsAll(getMask());
+    }
+
+    public static Collection<AlphaAddress> matchingLocations(Mask<AlphaConditionHandle> alphaConditionResults, Set<AlphaAddress> scope) {
+        List<AlphaAddress> matching = new ArrayList<>(scope.size());
+        for (AlphaAddress alphaAddress : scope) {
+            if (alphaAddress.matches(alphaConditionResults)) {
+                matching.add(alphaAddress);
+            }
+        }
+        return matching;
+
     }
 }

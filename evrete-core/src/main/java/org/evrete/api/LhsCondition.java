@@ -16,7 +16,7 @@ public class LhsCondition<C, Fact, Field> {
         this.descriptor = descriptor;
     }
 
-    public LhsCondition(LhsCondition<C,?,?> other,LhsField.Array<Fact, Field> descriptor ) {
+    public LhsCondition(LhsCondition<C, ?, ?> other, LhsField.Array<Fact, Field> descriptor) {
         this(other.condition, descriptor);
     }
 

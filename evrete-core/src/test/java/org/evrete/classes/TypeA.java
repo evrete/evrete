@@ -37,12 +37,4 @@ public class TypeA extends Base {
         this.str = s;
         return this;
     }
-
-    @Override
-    public String toString() {
-        return "TypeA{" +
-                "id='" + getId() +
-                "', i=" + i +
-                '}';
-    }
 }

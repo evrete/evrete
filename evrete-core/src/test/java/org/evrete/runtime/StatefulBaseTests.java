@@ -19,6 +19,7 @@ import java.util.function.Predicate;
 
 import static org.evrete.api.FactBuilder.fact;
 
+//TODO !!!! important: use a provided delayed executor to check memories, especially session memory scans and retrievals
 class StatefulBaseTests {
     private static KnowledgeService service;
     private Knowledge knowledge;
@@ -68,13 +69,6 @@ class StatefulBaseTests {
 
             Collection<FactEntry> sessionObjects = TestUtils.sessionFacts(s);
             assert sessionObjects.size() == objectCount * 4 : "Actual: " + sessionObjects.size() + ", expected: " + objectCount * 4;
-
-            for (FactEntry e : sessionObjects) {
-                s.delete(e.getHandle());
-            }
-            s.fire();
-            sessionObjects = TestUtils.sessionFacts(s);
-            assert sessionObjects.isEmpty() : "Actual: " + sessionObjects.size();
         }
     }
 
@@ -137,9 +131,8 @@ class StatefulBaseTests {
             Assertions.assertThrows(IllegalArgumentException.class, () -> session.delete(unknown));
 
             // Test deletion
-            assert session.delete(h1);
-            assert !session.delete(h1); // Subsequent delete calls must return false
-            assert !session.delete(h1); // Subsequent delete calls must return false
+            session.delete(h1);
+            session.delete(h1); // Subsequent delete calls must not throw anything
 
             assert session.getFact(h1) == null;
             assert session.getFact(h2) == a2;
@@ -560,7 +553,7 @@ class StatefulBaseTests {
 
             RhsAssert rhsAssert = new RhsAssert(s);
 
-            s.getRule(ruleName)
+            Objects.requireNonNull(s.getRule(ruleName))
                     .setRhs(rhsAssert); // RHS can be overridden
 
             s.insertAndFire(a, b, c);

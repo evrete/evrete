@@ -72,10 +72,9 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
     }
 
     @Override
-    //TODO add tests
-    public final boolean delete(FactHandle handle) {
+    public final void delete(FactHandle handle) {
         _assertActive();
-        return bufferDelete(true, handle, this.actionBuffer);
+        bufferDelete(true, handle, this.actionBuffer);
     }
 
 
@@ -123,15 +122,12 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
         LOGGER.finer(() -> "New memory delete action buffered for handle " + handle);
     }
 
-    boolean bufferDelete(boolean applyToStorage, FactHandle handle, WorkMemoryActionBuffer destination) {
+    void bufferDelete(boolean applyToStorage, FactHandle handle, WorkMemoryActionBuffer destination) {
         DefaultFactHandle h = unwrapFactHandle(handle);
         ActiveType type = getActiveType(h);
         FactHolder existing = getMemory().getTypeMemory(type.getId()).get(h);
-        if (existing == null) {
-            return false;
-        } else {
+        if (existing != null) {
             bufferDelete(applyToStorage, h, existing, destination);
-            return true;
         }
     }
 
@@ -268,104 +264,39 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
      */
     FutureFactHandle bufferInsertSingle(@Nullable DefaultFactHandle handle, boolean applyToStorage, ActiveType type, Object fact, WorkMemoryActionBuffer destination) {
 
-        TypeMemory memory = getMemory().getTypeMemory(type.getId());
-        ValueIndexer<FactFieldValues> valueIndexer = memory.getFieldValuesIndexer();
+        AbstractRuleSession<?> session = (AbstractRuleSession<?>) this;
 
-        // 1. Generate fact holder
-        CompletableFuture<FactHolder> factHolder = this.generateFactHolder(handle, type, fact, valueIndexer)
-                .thenApply(new Function<FactHolder, FactHolder>() {
-                    @Override
-                    public FactHolder apply(FactHolder factHolder) {
-                        if (applyToStorage) {
-                            // 2. Save the fact in the type memory if needed
-                            memory.insert(factHolder);
-                        }
-                        return factHolder;
-                    }
-                });
+        CompletableFuture<RoutedFactHolder> factHolderFuture = CompletableFuture.supplyAsync(new Supplier<RoutedFactHolder>() {
+            @Override
+            public RoutedFactHolder get() {
+                TypeMemory memory = getMemory().getTypeMemory(type.getId());
+                ValueIndexer<FactFieldValues> valueIndexer = memory.getFieldValuesIndexer();
+                DefaultFactHandle factHandle = handle == null ? new DefaultFactHandle(type.getId()) : handle;
+                // 1. Read field values
+                FactFieldValues fieldValues = type.readFactValue(fact);
 
+                // 2. Index field values
+                long valuesId = valueIndexer.getOrCreateId(fieldValues);
+                FactHolder factHolder = new FactHolder(factHandle, valuesId, fact);
 
-        // 3. Evaluate alpha conditions and assign destination alpha memories
-        final CompletableFuture<RoutedFactHolder> routedFactHolder = factHolder.thenApply(holder -> generateRoutedFactHolder(holder, type));
+                // 3. Apply to memory
+                if(applyToStorage) {
+                    memory.insert(factHolder);
+                }
 
-        // 5. Submitting new action
-        //DeltaMemoryAction.Insert op = new DeltaMemoryAction.Insert(type, handle, applyToStorage, routedFactHolder);
-        destination.addInsert(type, applyToStorage, routedFactHolder);
-
-        LOGGER.finer(() -> "New insert action buffered for fact: " + fact);
-        return new FutureFactHandle(routedFactHolder.thenApply(holder -> holder.getFactHolder().getHandle()));
-    }
-
-    private Mask<AlphaConditionHandle> alphaConditionStatus(FactHolder factHolder) {
-        Mask<AlphaConditionHandle> alphaConditionResults = Mask.alphaConditionsMask();
-
-        forEachAlphaConditionHandle(factHolder.getHandle().getType(), indexedHandle -> {
-            StoredCondition evaluator = getEvaluatorsContext().get(indexedHandle.getHandle(), false);
-            // Alpha conditions have only one field
-            ActiveField activeField = evaluator.getDescriptor().get(0).field();
-            IntToValue args = index -> factHolder.getValues().valueAt(activeField.valueIndex());
-            alphaConditionResults.set(indexedHandle, evaluator.test(AbstractRuleSessionOps.this, args));
+                // 4. Read alpha locations given the type's alpha-conditions
+                Collection<AlphaAddress> matching = type.matchingLocations(session, fieldValues);
+                return new RoutedFactHolder(factHolder, matching);
+            }
         });
 
-        return alphaConditionResults;
-    }
+        destination.addInsert(type, applyToStorage, factHolderFuture);
+        LOGGER.finer(() -> "New insert action buffered for fact: " + fact);
 
-    CompletableFuture<FactHolder> generateFactHolder(@Nullable DefaultFactHandle handle, ActiveType type, Object fact, ValueIndexer<FactFieldValues> valueIndexer) {
-        return CompletableFuture.supplyAsync(() -> generateFactHolderSync(handle, type, fact, valueIndexer), getService().getExecutor());
-    }
-
-    private FactHolder generateFactHolderSync(@Nullable DefaultFactHandle handle, ActiveType type, Object fact, ValueIndexer<FactFieldValues> valueIndexer) {
-        // 1. Reading fact values
-        FactFieldValues values = type.readFactValue(fact);
-        // 2. Index the values
-        long valueId = valueIndexer.getOrCreateId(values);
-        // 3. Generate new handle if needed
-        DefaultFactHandle h = handle == null ? new DefaultFactHandle(type.getId()) : handle;
-        return new FactHolder(h, valueId, values, fact);
-    }
-
-    FactHolder generateFactHolderSync(@Nullable DefaultFactHandle handle, ActiveType type, Object fact, long valueId) {
-        // 1. Reading fact values
-        FactFieldValues values = type.readFactValue(fact);
-        // 2. Generate new handle if needed
-        DefaultFactHandle h = handle == null ? new DefaultFactHandle(type.getId()) : handle;
-        return new FactHolder(h, valueId, values, fact);
+        return new FutureFactHandle(factHolderFuture.thenApply(rfh -> rfh.getFactHolder().getHandle()));
     }
 
 
-    private RoutedFactHolder generateRoutedFactHolder(FactHolder factHolder, ActiveType type) {
-        // 1. Evaluate alpha conditions and filter matching sets of alpha conditions
-        List<AlphaAddress> matching = matchingLocations(factHolder, type.getKnownAlphaLocations());
-
-        // 3. Returning the result
-        return new RoutedFactHolder(factHolder, matching);
-    }
-
-
-    List<AlphaAddress> matchingLocations(FactHolder factHolder, Set<AlphaAddress> scope) {
-        // 1. Evaluate alpha conditions
-        Mask<AlphaConditionHandle> alphaConditionResults = alphaConditionStatus(factHolder);
-
-        // 2. Collecting matching sets of alpha conditions (each set means a separate alpha memory)
-        List<AlphaAddress> matching = new ArrayList<>(scope.size());
-        for (AlphaAddress alphaAddress : scope) {
-            if (alphaConditionResults.containsAll(alphaAddress.getMask())) {
-                matching.add(alphaAddress);
-                LOGGER.finer(() -> "Location " + alphaAddress + " is selected for " + factHolder);
-            } else {
-                LOGGER.finer(() -> "Location " + alphaAddress + " is NOT selected for " + factHolder);
-            }
-        }
-
-        // 3. Returning the result
-        return matching;
-    }
-
-//    private DefaultFactHandle generateFactHandle(ActiveType type, Object fact) {
-//        DefaultFactHandle handle = new DefaultFactHandle(type.getId());
-//        LOGGER.finer(() -> "Fact handle created for " + fact + " -> " + handle);
-//        return handle;
-//    }
 
     private static Collection<?> factToCollection(Object fact, boolean resolveCollections) {
         Object f = Objects.requireNonNull(fact, "Null facts are not allowed");

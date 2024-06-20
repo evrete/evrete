@@ -72,8 +72,8 @@ public class CombinationIterator<T> implements Iterator<T[]> {
         return readNextPosition != END;
     }
 
-    protected void advanceIterator(int index) {
-        combination[index] = iterators[index].next();
+    protected T advanceIterator(int index) {
+        return iterators[index].next();
     }
 
     @Override
@@ -81,7 +81,7 @@ public class CombinationIterator<T> implements Iterator<T[]> {
         if (hasNext()) {
             // Update the shared result
             for (int i = size - 1; i >= readNextPosition; i--) {
-                advanceIterator(i);
+                combination[i] = advanceIterator(i);
             }
             // Compute next
             readNextPosition = computeNextPosition();

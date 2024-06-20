@@ -21,7 +21,7 @@ public final class KnowledgeFactGroupBuilder {
         //    to more computationally intensive condition nodes.
         List<BetaEvaluator> betaEvaluators = new ArrayList<>(flattenedBetaConditions);
         betaEvaluators.sort(BetaEvaluator::compare);
-        LOGGER.fine(() -> "Building fact groups for fact types: " + factTypes + " and beta conditions: " + flattenedBetaConditions);
+        LOGGER.fine(() -> "Building fact groups for fact types: " + FactType.toSimpleDebugString(factTypes) + " and beta conditions: " + flattenedBetaConditions);
 
         // As every beta condition has a unique combination (unordered) of the fact types it is dealing with,
         // we'll be using a fact type mask as a means to build the groups.
@@ -106,10 +106,10 @@ public final class KnowledgeFactGroupBuilder {
                 .collect(Collectors.toList());
         int unallocatedSize = unallocatedTypes.size();
         if (unallocatedSize > 0) {
-            GroupedFactType[] groupedFactTypes = new GroupedFactType[unallocatedSize];
+            FactType[] groupedFactTypes = new FactType[unallocatedSize];
             for (int i = 0; i < unallocatedSize; i++) {
                 FactType factType = unallocatedTypes.get(i);
-                groupedFactTypes[i] = new GroupedFactType(factType, i);
+                groupedFactTypes[i] = factType;
             }
             resultList.add(KnowledgeFactGroup.fromPlainFactTypes(groupedFactTypes));
         }
@@ -131,25 +131,18 @@ public final class KnowledgeFactGroupBuilder {
         assert totalEntryNodes > 0; // A graph must have entry nodes
         entryNodes.sort(Comparator.comparingInt(FactType::getInRuleIndex));
 
-        // 2. Convert fact types to their grouped subclasses
-        GroupedFactType[] groupFactTypes = new GroupedFactType[totalEntryNodes];
-
+        // 2. Map fact types to RETE entry nodes
         MapFunction<FactType, ReteKnowledgeEntryNode> entryNodeMapping = new MapFunction<>();
         for (int i = 0; i < totalEntryNodes; i++) {
             FactType nodeFactType = entryNodes.get(i);
-            GroupedFactType groupedFactType = new GroupedFactType(nodeFactType, i);
-            groupFactTypes[i] = groupedFactType;
-
             // Create RETE entry node and save it
-            ReteKnowledgeEntryNode reteEntryNode = new ReteKnowledgeEntryNode(groupedFactType);
+            ReteKnowledgeEntryNode reteEntryNode = new ReteKnowledgeEntryNode(nodeFactType);
             entryNodeMapping.putNew(nodeFactType, reteEntryNode);
         }
 
         // 3. Build the graph
-        ReteKnowledgeConditionNode reteTerminalNode = terminalNode.toReteNode(entryNodeMapping, groupFactTypes);
-
-        return KnowledgeFactGroup.fromTerminalCondition(groupFactTypes, reteTerminalNode);
-
+        ReteKnowledgeConditionNode reteTerminalNode = terminalNode.toReteNode(entryNodeMapping);
+        return KnowledgeFactGroup.fromTerminalCondition(reteTerminalNode);
     }
 
 
@@ -233,7 +226,7 @@ public final class KnowledgeFactGroupBuilder {
             }
         }
 
-        ReteKnowledgeConditionNode toReteNode(MapFunction<FactType, ReteKnowledgeEntryNode> entryNodeMapping, GroupedFactType[] groupFactTypes) {
+        ReteKnowledgeConditionNode toReteNode(MapFunction<FactType, ReteKnowledgeEntryNode> entryNodeMapping) {
             List<ReteKnowledgeNode> sourceNodes = new ArrayList<>();
             // 1. Add fact type nodes as sources
             for (FactTypeNode factTypeNode : entryNodeSources) {
@@ -242,10 +235,10 @@ public final class KnowledgeFactGroupBuilder {
 
             // 2. Recursively add condition sources
             for (EvaluatorNode conditionNode : conditionNodeSources) {
-                sourceNodes.add(conditionNode.toReteNode(entryNodeMapping, groupFactTypes));
+                sourceNodes.add(conditionNode.toReteNode(entryNodeMapping));
             }
 
-            return new ReteKnowledgeConditionNode(this.evaluator, sourceNodes.toArray(ReteKnowledgeNode.EMPTY_ARRAY), groupFactTypes);
+            return new ReteKnowledgeConditionNode(this.evaluator, sourceNodes.toArray(ReteKnowledgeNode.EMPTY_ARRAY));
         }
 
         @Override

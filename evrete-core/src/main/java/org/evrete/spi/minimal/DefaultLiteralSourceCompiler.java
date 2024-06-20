@@ -532,7 +532,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
                     for (int i = 0; i < args.length; i++) {
                         args[i] = values.apply(i);
                     }
-                    throw new IllegalStateException("Evaluation exception at '" + source + "', fields: " + resolvedFields + ", post-exception values:" + Arrays.toString(args), t);
+                    throw new IllegalStateException("Evaluation exception at " + source + ", fields: " + resolvedFields + ", post-exception values:" + Arrays.toString(args), t);
                 }
             }
         }

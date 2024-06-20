@@ -3,9 +3,8 @@ package org.evrete.runtime.rete;
 import org.evrete.api.ReteMemory;
 import org.evrete.api.spi.MemoryScope;
 import org.evrete.runtime.FactFieldValues;
-import org.evrete.runtime.GroupedFactType;
+import org.evrete.runtime.PreHashed;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.function.Predicate;
 
@@ -24,7 +23,17 @@ public class ConditionMemory implements ReteMemory<ConditionMemory.MemoryEntry> 
         } else if (destination == MemoryScope.MAIN) {
             main.add(entry);
         } else {
-            throw new IllegalArgumentException("Unknown destination: " + destination);
+            throw new IllegalArgumentException("Unknown scope: " + destination);
+        }
+    }
+
+    public int size(MemoryScope scope) {
+        if (scope == MemoryScope.DELTA) {
+            return delta.size();
+        } else if (scope == MemoryScope.MAIN) {
+            return main.size();
+        } else {
+            throw new IllegalArgumentException("Unknown scope: " + scope);
         }
     }
 
@@ -33,7 +42,7 @@ public class ConditionMemory implements ReteMemory<ConditionMemory.MemoryEntry> 
         Iterator<MemoryEntry> iterator = delta.iterator();
         while (iterator.hasNext()) {
             MemoryEntry entry = iterator.next();
-            main.add(entry.toMainScope(MemoryScope.MAIN));
+            main.add(entry.toMainScope());
             iterator.remove();
         }
     }
@@ -69,62 +78,113 @@ public class ConditionMemory implements ReteMemory<ConditionMemory.MemoryEntry> 
 
     /**
      * A wrapper for an array of {@link FactFieldValues.Scoped} values.
-     * Array indices correspond to the values defined by the
-     * {@link GroupedFactType#getInGroupIndex()} method.
-     * <p>
-     * Array values are allowed to be null in missing positions but the terminal node
-     * should have all the components be non-null.
-     * </p>
      */
-    public static final class MemoryEntry {
-        private final FactFieldValues.Scoped[] scopedKeys;
+    public static final class MemoryEntry extends PreHashed {
+        private final ScopedValueId[] scopedValueIds;
 
-        private MemoryEntry(FactFieldValues.Scoped[] scopedKeys) {
-            this.scopedKeys = scopedKeys;
+        public MemoryEntry(ScopedValueId[] scopedValueIds) {
+            super(hashOf(scopedValueIds));
+            this.scopedValueIds = scopedValueIds;
         }
 
-        FactFieldValues.Scoped[] scopedValues() {
-            return scopedKeys;
+        private MemoryEntry(ScopedValueId single) {
+            this(new ScopedValueId[]{single});
         }
 
-        // TODO create tests and see how these scopes behave in a hashed collection
-        MemoryEntry toMainScope(MemoryScope scope) {
-            FactFieldValues.Scoped[] newKeys = new FactFieldValues.Scoped[scopedKeys.length];
-            for (int i = 0; i < scopedKeys.length; i++) {
-                FactFieldValues.Scoped currentKey = scopedKeys[i];
-                newKeys[i] = currentKey == null ? null : currentKey.toScope(scope);
+        private static int hashOf(ScopedValueId[] scopedValueIds) {
+            int hash = 0;
+            for (ScopedValueId single : scopedValueIds) {
+                hash += hash * 31 + single.hashCode();
+            }
+            return hash;
+        }
+
+        ScopedValueId[] scopedValues() {
+            return scopedValueIds;
+        }
+
+        MemoryEntry toMainScope() {
+            ScopedValueId[] newKeys = new ScopedValueId[scopedValueIds.length];
+            for (int i = 0; i < scopedValueIds.length; i++) {
+                newKeys[i] = scopedValueIds[i].toScope(MemoryScope.MAIN);
             }
             return new MemoryEntry(newKeys);
         }
 
-        static MemoryEntry fromEntryNode(FactFieldValues values, MemoryScope scope, int totalFactTypes, int inGroupIndex) {
-            FactFieldValues.Scoped[] array = new FactFieldValues.Scoped[totalFactTypes];
-            array[inGroupIndex] = new FactFieldValues.Scoped(values, scope);
-            return new MemoryEntry(array);
+        static MemoryEntry fromEntryNode(long values, MemoryScope scope) {
+            return new MemoryEntry(new ScopedValueId(values, scope));
         }
 
-        public static MemoryEntry fromDeltaState(int totalFactTypes, MemoryEntry[] state, ReteSessionNode[] sources) {
-            FactFieldValues.Scoped[] array = new FactFieldValues.Scoped[totalFactTypes];
-            ReteSessionNode source;
-            for (int i = 0; i < sources.length; i++) {
-                source = sources[i];
-                MemoryEntry entry = state[i];
-                for (int groupIndex : source.inGroupIndices) {
-                    assert array[groupIndex] == null;
-                    array[groupIndex] = entry.scopedKeys[groupIndex];
-                }
+        public ScopedValueId[] getScopedValueIds() {
+            return scopedValueIds;
+        }
+
+//        @Override
+//        public boolean equals(Object o) {
+//            if (this == o) return true;
+//            if (o == null || getClass() != o.getClass()) return false;
+//            MemoryEntry entry = (MemoryEntry) o;
+//            return Arrays.equals(scopedValueIds, entry.scopedValueIds);
+//        }
+//
+//        @Override
+//        public String toString() {
+//            return Arrays.toString(scopedValueIds);
+//        }
+    }
+
+    /**
+     * A simple and memory efficient wrapper for field values identifiers (see {@link org.evrete.api.spi.ValueIndexer})
+     */
+    public static class ScopedValueId {
+        private final long valueId;
+        private final byte scope;
+
+        public ScopedValueId(long valueId, MemoryScope scope) {
+            this(valueId, toByte(scope));
+        }
+
+        private ScopedValueId(long valueId, byte scope) {
+            this.valueId = valueId;
+            this.scope = scope;
+        }
+
+        public MemoryScope getScope() {
+            return fromByte(scope);
+        }
+
+        public ScopedValueId toScope(MemoryScope scope) {
+            byte b;
+            if (this.scope == (b = toByte(scope))) {
+                return this;
+            } else {
+                return new ScopedValueId(valueId, b);
             }
-            return new MemoryEntry(array);
         }
 
-        public FactFieldValues.Scoped get(int index) {
-            return scopedKeys[index];
+        public long getValueId() {
+            return valueId;
         }
-
 
         @Override
-        public String toString() {
-            return Arrays.toString(scopedKeys);
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ScopedValueId that = (ScopedValueId) o;
+            return valueId == that.valueId && scope == that.scope;
+        }
+
+        @Override
+        public int hashCode() {
+            return (int) valueId;
+        }
+
+        static byte toByte(MemoryScope scope) {
+            return (byte) (scope == MemoryScope.MAIN ? 0 : 1);
+        }
+
+        static MemoryScope fromByte(byte b) {
+            return b == 0 ? MemoryScope.MAIN : MemoryScope.DELTA;
         }
     }
 }

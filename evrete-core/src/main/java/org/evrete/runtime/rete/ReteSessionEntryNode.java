@@ -8,15 +8,18 @@ import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
 
 public class ReteSessionEntryNode extends ReteSessionNode {
-    private final int inGroupIndex;
     private final SessionMemory memory;
     private final AlphaAddress alphaAddress;
 
-    public ReteSessionEntryNode(AbstractRuleSessionBase<?> session, int totalFactTypes, ReteKnowledgeEntryNode knowledgeEntryNode) {
-        super(session, knowledgeEntryNode, totalFactTypes, ReteSessionNode.EMPTY_ARRAY);
+    public ReteSessionEntryNode(AbstractRuleSessionBase<?> session, ReteKnowledgeEntryNode knowledgeEntryNode) {
+        super(session, knowledgeEntryNode, ReteSessionNode.EMPTY_ARRAY);
         this.memory = session.getMemory();
         this.alphaAddress = knowledgeEntryNode.factType.getAlphaAddress();
-        this.inGroupIndex = knowledgeEntryNode.factType.getInGroupIndex();
+    }
+
+    @Override
+    String debugName() {
+        return "{fact='" + getNodeFactTypes()[0].getVarName() + "', memory=" + alphaAddress + "}";
     }
 
     /**
@@ -29,7 +32,7 @@ public class ReteSessionEntryNode extends ReteSessionNode {
     }
 
     @Override
-    public CompletableFuture<Void> computeDeltasRecursively(DeltaMemoryMode mode) {
+    public CompletableFuture<Void> computeDeltaMemoryAsync(DeltaMemoryMode mode) {
         // Entry nodes do not contain inner memories, they're attached directly to alpha memories
         // (which are computed at a different stage).
         return CompletableFuture.completedFuture(null);
@@ -41,10 +44,15 @@ public class ReteSessionEntryNode extends ReteSessionNode {
                 alphaMemory().keyIterator(scope),
                 fieldValues -> ConditionMemory.MemoryEntry.fromEntryNode(
                         fieldValues,
-                        scope,
-                        totalFactTypes,
-                        inGroupIndex
+                        scope
                 )
         );
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "factType='" + getNodeFactTypes()[0].getVarName() +
+                "'}";
     }
 }

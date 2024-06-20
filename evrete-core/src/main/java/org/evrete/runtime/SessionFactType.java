@@ -1,6 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.spi.MemoryScope;
+import org.evrete.runtime.rete.ConditionMemory;
 import org.evrete.util.FlatMapIterator;
 
 import java.util.Iterator;
@@ -10,7 +11,7 @@ import java.util.logging.Logger;
 /**
  * A session representation of a fact type declaration.
  */
-class SessionFactType extends GroupedFactType {
+class SessionFactType extends FactType {
     private static final Logger LOGGER = Logger.getLogger(SessionFactType.class.getName());
     private final SessionMemory memory;
 
@@ -20,7 +21,7 @@ class SessionFactType extends GroupedFactType {
      * @param factType the fact type this node is created from
      * @param memory   an instance of the session memory
      */
-    SessionFactType(GroupedFactType factType, SessionMemory memory) {
+    SessionFactType(FactType factType, SessionMemory memory) {
         super(factType);
         this.memory = memory;
     }
@@ -49,7 +50,7 @@ class SessionFactType extends GroupedFactType {
      * @return key iterator
      * @see org.evrete.api.spi.DeltaGroupedFactStorage
      */
-    Iterator<FactFieldValues> keyIterator(MemoryScope scope) {
+    Iterator<Long> keyIterator(MemoryScope scope) {
         LOGGER.finer(() -> "Requested " + scope + " key iterator for fact type '" + getVarName() + "', alpha address: " + getAlphaAddress() + ", has data: " + alphaMemory().keyIterator(scope).hasNext());
         return alphaMemory().keyIterator(scope);
     }
@@ -74,8 +75,8 @@ class SessionFactType extends GroupedFactType {
      * @return fact handle iterator
      * @see org.evrete.api.spi.DeltaGroupedFactStorage
      */
-    Iterator<DefaultFactHandle> factIterator(FactFieldValues.Scoped key) {
-        return alphaMemory().valueIterator(key.scope(), key.values());
+    Iterator<DefaultFactHandle> factIterator(ConditionMemory.ScopedValueId key) {
+        return alphaMemory().valueIterator(key.getScope(), key.getValueId());
     }
 
     @Override
@@ -84,7 +85,6 @@ class SessionFactType extends GroupedFactType {
                 "var='" + getVarName() + "'" +
                 ", type=" + type().getId() +
                 ", alphaAddress=" + getAlphaAddress() +
-                ", inGroupIndex=" + getInGroupIndex() +
                 '}';
     }
 }
