@@ -38,56 +38,60 @@ class SessionFactGroupBeta extends SessionFactGroup {
 
     @Override
     CompletableFuture<Void> processDeleteDeltaActions(Collection<FactHolder> factHolders) {
-        Collection<DeletePredicate> predicates = createDeletePredicates(factHolders);
-        Iterator<DeletePredicate> iterator = predicates.iterator();
-        if (iterator.hasNext()) {
-            Predicate<ConditionMemory.MemoryEntry> p = iterator.next();
-            while (iterator.hasNext()) {
-                p = p.or(iterator.next());
-            }
-            final Predicate<ConditionMemory.MemoryEntry> combinedPredicate = p;
+        Collection<ReteSessionConditionNode> conditionNodes = new LinkedList<>();
+        this.graph.forEachConditionNode(conditionNodes::add);
+        return CommonUtils.completeAll(
+                conditionNodes,
+                node -> CompletableFuture.runAsync(
+                        () -> node.deleteAll(factHolders),
+                        executor
+                )
+        );
 
-            // Perform the deletion on each condition node
-            Collection<ReteSessionConditionNode> conditionNodes = new LinkedList<>();
-            this.graph.forEachConditionNode(conditionNodes::add);
-            return CommonUtils.completeAll(
-                    conditionNodes,
-                    node -> CompletableFuture.runAsync(
-                            () -> node.deleteAll(combinedPredicate),
-                            executor
-                    )
-            );
-        } else {
-            // Nothing to delete in this group
-            return CompletableFuture.completedFuture(null);
-        }
+
+//        Collection<DeletePredicate> predicates = createDeletePredicates(factHolders);
+//        Iterator<DeletePredicate> iterator = predicates.iterator();
+//        if (iterator.hasNext()) {
+//            Predicate<ConditionMemory.MemoryEntry> p = iterator.next();
+//            while (iterator.hasNext()) {
+//                p = p.or(iterator.next());
+//            }
+//            final Predicate<ConditionMemory.MemoryEntry> combinedPredicate = p;
+//
+//            // Perform the deletion on each condition node
+//            Collection<ReteSessionConditionNode> conditionNodes = new LinkedList<>();
+//            this.graph.forEachConditionNode(conditionNodes::add);
+//            return CommonUtils.completeAll(
+//                    conditionNodes,
+//                    node -> CompletableFuture.runAsync(
+//                            () -> node.deleteAll(combinedPredicate),
+//                            executor
+//                    )
+//            );
+//        } else {
+//            // Nothing to delete in this group
+//            return CompletableFuture.completedFuture(null);
+//        }
     }
 
     private Collection<DeletePredicate> createDeletePredicates(Collection<FactHolder> factHolders) {
-        throw new UnsupportedOperationException();
-/*
-        // Splitting actions by active fact types
-        MapOfSet<ActiveType.Idx, Long> deletesByType = new MapOfSet<>(
-                factHolders,
-                delete -> delete.getHandle().getType(),
-                FactHolder::getFieldValuesId
-        );
 
-        // In a fact group, several fact declarations can be of the same type
-        // we'll create delete predicates for each type
-        Collection<DeletePredicate> deletePredicates = new LinkedList<>();
-        deletesByType.forEach(
-                (activeTypeId, factFieldValues) -> {
-                    int[] inGroupIndices = inGroupIndicesOfType(activeTypeId);
-                    if (inGroupIndices != null) {
-                        deletePredicates.add(new DeletePredicate(inGroupIndices, factFieldValues));
-                    }
-                }
-        );
+        MapOfSet<Integer, Long> mapping = new MapOfSet<>();
+        for (FactHolder factHolder : factHolders) {
+            ActiveType.Idx type = factHolder.getHandle().getType();
+            // Get local fact type indices
+            Collection<Integer> indicesForType = nodeIndices(type);
+            for (Integer index : indicesForType) {
+                mapping.add(index, factHolder.getFieldValuesId());
+            }
+        }
 
-        // Create a combined delete predicate (logical OR)
-        return deletePredicates;
-*/
+        Collection<DeletePredicate> result = new ArrayList<>(mapping.size());
+        for(Map.Entry<Integer, Set<Long>> entry : mapping.entrySet()) {
+            result.add(new DeletePredicate(entry.getKey(), entry.getValue()));
+        }
+
+        return result;
     }
 
     public ReteGraph<ReteSessionNode, ReteSessionEntryNode, ReteSessionConditionNode> getGraph() {

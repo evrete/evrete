@@ -50,8 +50,8 @@ public class TypeSystemTests {
             a1.setL(1);
             a1.setF(1f);
 
-            FutureFactHandle ah1 = (FutureFactHandle) session.insert(a1);
-            ActiveType type = session.getActiveType(ah1.get());
+            DefaultFactHandle ah1 = (DefaultFactHandle) session.insert(a1);
+            ActiveType type = session.getActiveType(ah1);
 
             assert type.getCountOfAlphaConditions() == 3;
 

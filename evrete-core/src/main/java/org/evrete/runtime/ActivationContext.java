@@ -14,10 +14,12 @@ class ActivationContext {
     private final SessionMemory memory;
     private final List<SessionRule> rules;
     private final ExecutorService executor;
+    private final AbstractRuleSession<?> session;
 
-    public ActivationContext(SessionMemory memory, ExecutorService executor, List<SessionRule> rules) {
-        this.memory = memory;
-        this.executor = executor;
+    public ActivationContext(AbstractRuleSession<?> session, List<SessionRule> rules) {
+        this.session = session;
+        this.memory = session.getMemory();
+        this.executor = session.getService().getExecutor();
         this.rules = Collections.unmodifiableList(rules);
     }
 
@@ -29,159 +31,178 @@ class ActivationContext {
         int bufferedCount = actions.bufferedActionCount();
         LOGGER.fine(()-> "Computing delta memory from [" + bufferedCount + "] actions");
         // 1. Wait for pending actions, if any
-        return actions.sinkToSplitView().thenCompose(ops -> {
+        return actions.sinkToSplitView(executor).thenCompose(typedActions -> {
 
             // Then process the two tasks in sequence:
             // 2.1. Handle delete actions
             // 2.2. Handle insert actions and collect the delta status along the way
-            return processDeleteActions(ops.getDeletes())
+            return processDeleteActions(typedActions)
                     .thenCompose(
-                            unused -> processDeltaStatus(ops.getInserts())
+                            unused -> processDeltaStatus(typedActions)
                     );
         });
     }
 
 
-    private CompletableFuture<Void> processDeleteActions(Collection<DeltaMemoryAction.Delete> deleteOps) {
-        //    There are three kinds of memories each delete op must be applied to:
-        //       a) alpha-memories
-        //       b) fact collections (per type memory) for facts which deletions wasn't yet applied
-        //       c) matching fact groups of existing rules
+    private CompletableFuture<Void> processDeleteActions(Collection<WorkMemoryActionBuffer.SplitView> typedActions) {
+        if(typedActions.isEmpty()) {
+            return CompletableFuture.completedFuture(null);
+        } else {
+            //    There are three kinds of memories each delete op must be applied to:
+            //       a) alpha-memories
+            //       b) fact collections (per type memory) for facts which deletions wasn't yet applied
+            //       c) matching fact groups of existing rules
 
-        final MapOfList<TypeAlphaMemory, FactHolder> deletesByAlphaMemory = new MapOfList<>();
-        final MapOfList<TypeMemory, DefaultFactHandle> nonAppliedDeletes = new MapOfList<>();
-        final MapOfList<SessionFactGroup, FactHolder> deletesByFactGroups = new MapOfList<>();
+            final MapOfList<TypeAlphaMemory, FactHolder> deletesByAlphaMemory = new MapOfList<>();
+            final MapOfList<TypeMemory, DefaultFactHandle> nonAppliedDeletes = new MapOfList<>();
+            final MapOfList<SessionFactGroup, FactHolder> deletesByFactGroups = new MapOfList<>();
 
-        for (final DeltaMemoryAction.Delete op : deleteOps) {
-            DefaultFactHandle handle = op.getHandle();
-            FactHolder factHolder = op.getFactWrapper();
-            ActiveType type = op.getType();
-            TypeMemory typeMemory = memory.getTypeMemory(handle);
+            for(WorkMemoryActionBuffer.SplitView view : typedActions) {
+                ActiveType type = view.getType();
+                Collection<DeltaMemoryAction.Delete> deleteOps = view.getDeletes();
+                TypeMemory typeMemory = memory.getTypeMemory(type.getId());
 
-            // a) splitting by alpha memory
-            type.forEachAlphaAddress(alphaAddress -> {
-                TypeAlphaMemory alphaMemory = memory.getAlphaMemory(alphaAddress);
-                deletesByAlphaMemory.add(alphaMemory, factHolder);
-            });
+                for (DeltaMemoryAction.Delete op : deleteOps) {
+                    DefaultFactHandle handle = op.getHandle();
+                    FactHolder factHolder = op.getFactWrapper();
 
-            // b) handling non-applied delete ops
-            if (!op.isAppliedToFactStorage()) {
-                nonAppliedDeletes.add(typeMemory, handle);
-            }
+                    // a) handling non-applied delete ops
+                    if(op.applyToMemory()) {
+                        nonAppliedDeletes.add(typeMemory, handle);
+                    }
 
-            // c) split by fact groups
-            for (SessionRule rule : rules) {
-                for (SessionFactGroup group : rule.getLhs().getFactGroups()) {
-                    if (!group.isPlain() && group.getTypeMask().getRaw(handle.getType().getIndex())) {
-                        deletesByFactGroups.add(group, factHolder);
+                    // b) splitting by alpha memory
+                    type.forEachAlphaAddress(alphaAddress -> {
+                        TypeAlphaMemory alphaMemory = memory.getAlphaMemory(alphaAddress);
+                        deletesByAlphaMemory.add(alphaMemory, factHolder);
+                    });
+
+                    // c) split by fact groups
+                    for (SessionRule rule : rules) {
+                        for (SessionFactGroup group : rule.getLhs().getFactGroups()) {
+                            if (!group.isPlain() && group.getTypeMask().get(type)) {
+                                deletesByFactGroups.add(group, factHolder);
+                            }
+                        }
                     }
                 }
             }
+
+
+            // Turn the collected data into futures
+            final Collection<CompletableFuture<Void>> deleteFutures = new ArrayList<>();
+
+            LOGGER.fine(() -> "Scheduling delete ops: alpha memories: [" + deletesByAlphaMemory.size() + "], type memories: [" + nonAppliedDeletes.size() + "],  fact groups: [" + deletesByFactGroups.size() + "]");
+            deletesByAlphaMemory.forEach(
+                    (memory, value) -> deleteFutures.add(processDeleteDeltaActions(memory, value))
+            );
+
+            nonAppliedDeletes.forEach(
+                    (memory, factWrappers) -> deleteFutures.add(handleNonAppliedDeletes(memory, factWrappers))
+            );
+
+            deletesByFactGroups.forEach(
+                    (group, ops) -> deleteFutures.add(group.processDeleteDeltaActions(ops))
+            );
+
+            return CommonUtils.completeAll(deleteFutures);
         }
-
-        // Turn the collected data into futures
-        final Collection<CompletableFuture<Void>> deleteFutures = new ArrayList<>();
-
-        LOGGER.fine(() -> "Scheduling delete ops: alpha memories: [" + deletesByAlphaMemory.size() + "], type memories: [" + nonAppliedDeletes.size() + "],  fact groups: [" + deletesByFactGroups.size() + "]");
-        deletesByAlphaMemory.forEach(
-                (memory, value) -> deleteFutures.add(processDeleteDeltaActions(memory, value))
-        );
-
-        nonAppliedDeletes.forEach(
-                (memory, factWrappers) -> deleteFutures.add(handleNonAppliedDeletes(memory, factWrappers))
-        );
-
-        deletesByFactGroups.forEach(
-                (group, ops) -> deleteFutures.add(group.processDeleteDeltaActions(ops))
-        );
-
-        return CommonUtils.completeAll(deleteFutures);
     }
 
-    private CompletableFuture<Status> processDeltaStatus(Collection<DeltaMemoryAction.Insert> insertOps) {
-        LOGGER.fine(() -> "Start processing [" + insertOps.size() + "] insert ops");
+    private CompletableFuture<Status> processDeltaStatus(Collection<WorkMemoryActionBuffer.SplitView> typedActions) {
+        if(typedActions.isEmpty()) {
+            return CompletableFuture.completedFuture(null);
+        } else {
+            Status result = new Status();
 
-        // The goal is to compute alpha buckets affected by the insert operations
-        // a) Only those rules whose fact types match those alpha buckets should
-        //    be selected for activation.
-        // b) But before the activation, the rules' beta nodes must be computed.
-        //    To do that, we need to find which fact groups of each rule is affected by the
-        //    insert operations.
-
-        Status result = new Status();
-
-        final List<CompletableFuture<Void>> insertFutures = new LinkedList<>();
+            // 1. Grouping inserts by affected alpha memories
+            MapOfList<AlphaAddress, FactHolder> insertsByAlphaLocation = new MapOfList<>();
+            MapOfList<ActiveType.Idx, FactHolder> nonAppliedByTypeMemory = new MapOfList<>();
 
 
-        // 1. Grouping inserts by affected alpha memories
-        MapOfList<AlphaAddress, FactHolder> insertsByAlphaLocation = new MapOfList<>();
-        MapOfList<ActiveType.Idx, FactHolder> nonAppliedByTypeMemory = new MapOfList<>();
+            for(WorkMemoryActionBuffer.SplitView view : typedActions) {
+                ActiveType type = view.getType();
+                Collection<DeltaMemoryAction.Insert> insertOps = view.getInserts();
+                LOGGER.fine(() -> "Start processing [" + insertOps.size() + "] insert ops of type: " + type.getId());
 
-        for (final DeltaMemoryAction.Insert insert : insertOps) {
-            FactHolder factHolder = insert.getFactWrapper();
-            // Splitting insert ops by alpha memories
-            for (AlphaAddress matchingAlpha : insert.getDestinations()) {
-                insertsByAlphaLocation.add(matchingAlpha, factHolder);
-            }
-            // We also need to insert those inserts that were buffered but not actually
-            // saved (those coming from RHS action)
-            if (!insert.isAppliedToFactStorage()) {
-                nonAppliedByTypeMemory.add(insert.getHandle().getType(), factHolder);
-            }
-        }
+                // The goal is to compute alpha buckets affected by the insert operations
+                // a) Only those rules whose fact types match those alpha buckets should
+                //    be selected for activation.
+                // b) But before the activation, the rules' beta nodes must be computed.
+                //    To do that, we need to find which fact groups of each rule is affected by the
+                //    insert operations.
 
-        // 2. Preparing insert tasks for each alpha memory
-        for (Map.Entry<AlphaAddress, List<FactHolder>> entry : insertsByAlphaLocation.entrySet()) {
-            AlphaAddress alpha = entry.getKey();
-            List<FactHolder> inserts = entry.getValue();
-            TypeAlphaMemory alphaMemory = memory.getAlphaMemory(alpha);
-            LOGGER.fine(() -> "Scheduling ["+ inserts.size() +"] inserts into alpha memory: " + alpha);
-            // Saving the task...
-            insertFutures.add(processInsertDeltaActions(alphaMemory, inserts));
-            // Storing the memory for the future commit ops
-            result.addAffectedAlphaBucket(alphaMemory);
-        }
+                for (final DeltaMemoryAction.Insert insert : insertOps) {
+                    FactHolder factHolder = insert.getFactWrapper();
 
-        // 3. Preparing tasks for non-applied inserts
-        for (Map.Entry<ActiveType.Idx, List<FactHolder>> entry : nonAppliedByTypeMemory.entrySet()) {
-            ActiveType.Idx type = entry.getKey();
-            TypeMemory typeMemory = memory.getTypeMemory(type);
-            List<FactHolder> facts = entry.getValue();
-            LOGGER.fine(() -> "Scheduling saves into fact storage: " + type + ", fact count: " + facts.size());
-            insertFutures.add(this.handleNonAppliedInserts(typeMemory, facts));
-        }
+                    // Splitting insert ops by alpha memories
+                    Collection<AlphaAddress> matchingAlphaLocations = type.matchingLocations(session, insert.getValues());
+                    for (AlphaAddress matchingAlpha : matchingAlphaLocations) {
+                        insertsByAlphaLocation.add(matchingAlpha, factHolder);
+                    }
 
-        // 4. Identifying which rules (and their condition graphs) are affected by the inserts
-        Mask<AlphaAddress> insertMask = Mask.alphaAddressMask().set(insertsByAlphaLocation.keySet());
-
-        for (SessionRule rule : rules) {
-            boolean ruleAdded = false;
-            for (SessionFactGroup group : rule.getLhs().getFactGroups()) {
-                //if (CommonUtils.intersecting(group.getAlphaAddressMask(), alphaConditionSets)) {
-                if (group.getAlphaAddressMask().intersects(insertMask)) {
-                    result.addAffectedFactGroup(group);
-                    if (!ruleAdded) {
-                        result.addAffectedRule(rule);
-                        ruleAdded = true;
+                    // We also need to insert those inserts that were buffered but not actually
+                    // saved (those coming from RHS action)
+                    if(insert.applyToMemory()) {
+                        nonAppliedByTypeMemory.add(insert.getHandle().getType(), factHolder);
                     }
                 }
             }
-        }
+            final List<CompletableFuture<Void>> insertFutures = new LinkedList<>();
 
-        // 5. As computing fact groups (Rete graphs) will eventually require data from each graph's
-        //    leaf nodes (which are alpha memories of each fact type in the group), we need to process
-        //    the alpha tasks first
-        return CommonUtils.completeAll(insertFutures)
-                .thenComposeAsync(
-                        unused -> {
-                            // 5. Now computing the condition fact groups ()
-                            return CommonUtils.completeAll(
-                                    result.affectedFactGroups,
-                                    group -> group.buildDeltas(DeltaMemoryMode.DEFAULT)
-                            ).thenApply(unused1 -> result);
-                        },
-                        executor
-                );
+            // 2. Preparing insert tasks for each alpha memory
+            for (Map.Entry<AlphaAddress, List<FactHolder>> entry : insertsByAlphaLocation.entrySet()) {
+                AlphaAddress alpha = entry.getKey();
+                List<FactHolder> inserts = entry.getValue();
+                TypeAlphaMemory alphaMemory = memory.getAlphaMemory(alpha);
+                LOGGER.fine(() -> "Scheduling ["+ inserts.size() +"] inserts into alpha memory: " + alpha);
+                // Saving the task...
+                insertFutures.add(processInsertDeltaActions(alphaMemory, inserts));
+                // Storing the memory for the future commit ops
+                result.addAffectedAlphaBucket(alphaMemory);
+            }
+
+            // 3. Preparing tasks for non-applied inserts
+            for (Map.Entry<ActiveType.Idx, List<FactHolder>> entry : nonAppliedByTypeMemory.entrySet()) {
+                ActiveType.Idx type = entry.getKey();
+                TypeMemory typeMemory = memory.getTypeMemory(type);
+                List<FactHolder> facts = entry.getValue();
+                LOGGER.fine(() -> "Scheduling saves into fact storage: " + type + ", fact count: " + facts.size());
+                insertFutures.add(this.handleNonAppliedInserts(typeMemory, facts));
+            }
+
+            // 4. Identifying which rules (and their condition graphs) are affected by the inserts
+            Mask<AlphaAddress> insertMask = Mask.alphaAddressMask().set(insertsByAlphaLocation.keySet());
+
+            for (SessionRule rule : rules) {
+                boolean ruleAdded = false;
+                for (SessionFactGroup group : rule.getLhs().getFactGroups()) {
+                    //if (CommonUtils.intersecting(group.getAlphaAddressMask(), alphaConditionSets)) {
+                    if (group.getAlphaAddressMask().intersects(insertMask)) {
+                        result.addAffectedFactGroup(group);
+                        if (!ruleAdded) {
+                            result.addAffectedRule(rule);
+                            ruleAdded = true;
+                        }
+                    }
+                }
+            }
+
+            // 5. As computing fact groups (Rete graphs) will eventually require data from each graph's
+            //    leaf nodes (which are alpha memories of each fact type in the group), we need to process
+            //    the alpha tasks first
+            return CommonUtils.completeAll(insertFutures)
+                    .thenComposeAsync(
+                            unused -> {
+                                // 5. Now computing the condition fact groups ()
+                                return CommonUtils.completeAll(
+                                        result.affectedFactGroups,
+                                        group -> group.buildDeltas(DeltaMemoryMode.DEFAULT)
+                                ).thenApply(unused1 -> result);
+                            },
+                            executor
+                    );
+        }
     }
 
 

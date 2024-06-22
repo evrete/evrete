@@ -1,12 +1,11 @@
 package org.evrete.runtime.rete;
 
 import org.evrete.api.spi.MemoryScope;
-import org.evrete.runtime.AbstractRuntime;
-import org.evrete.runtime.DeltaMemoryMode;
-import org.evrete.runtime.FactType;
-import org.evrete.runtime.StoredCondition;
+import org.evrete.runtime.*;
 import org.evrete.runtime.evaluation.DefaultEvaluatorHandle;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
@@ -17,12 +16,18 @@ public abstract class ReteSessionNode extends ReteNode<ReteSessionNode> {
     private final AbstractRuntime<?,?> runtime;
     private final FactType[] nodeFactTypes;
     private final int[][] nodeFactTypesMapping;
+    private final MapOfList<ActiveType.Idx, Integer> typeToIndices;
 
     public ReteSessionNode(AbstractRuntime<?,?> runtime, ReteKnowledgeNode parent, ReteSessionNode[] sourceNodes) {
         super(sourceNodes);
         this.runtime = runtime;
         this.nodeFactTypes = parent.getNodeFactTypes();
         this.nodeFactTypesMapping = parent.getNodeFactTypesMapping();
+        this.typeToIndices = parent.getTypeToIndices();
+    }
+
+    public Collection<Integer> nodeIndices(ActiveType.Idx type) {
+        return typeToIndices.getOrDefault(type, Collections.emptyList());
     }
 
     public FactType[] getNodeFactTypes() {

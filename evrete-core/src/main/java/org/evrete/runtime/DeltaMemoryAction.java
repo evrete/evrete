@@ -3,18 +3,18 @@ package org.evrete.runtime;
 import java.util.Collection;
 
 public abstract class DeltaMemoryAction {
-    private final boolean appliedToFactStorage;
     private final FactHolder factHolder;
     private final ActiveType type;
+    private final boolean applyToMemory;
 
-    DeltaMemoryAction(ActiveType type, FactHolder factHolder, boolean appliedToFactStorage) {
-        this.appliedToFactStorage = appliedToFactStorage;
+    DeltaMemoryAction(ActiveType type, FactHolder factHolder, boolean applyToMemory) {
         this.factHolder = factHolder;
         this.type = type;
+        this.applyToMemory = applyToMemory;
     }
 
-    final boolean isAppliedToFactStorage() {
-        return appliedToFactStorage;
+    public boolean applyToMemory() {
+        return applyToMemory;
     }
 
     final ActiveType getType() {
@@ -30,18 +30,15 @@ public abstract class DeltaMemoryAction {
     }
 
     static class Insert extends DeltaMemoryAction {
-        private final Collection<AlphaAddress> destinations;
-        //private final Mask<AlphaAddress> destinations;
+        private final FactFieldValues values;
 
-        Insert(ActiveType type, DefaultFactHandle factHandle, boolean appliedToFactStorage, RoutedFactHolder factHolder) {
-            super(type, factHolder.getFactHolder(), appliedToFactStorage);
-            this.destinations = factHolder.getDestinations();
-            //this.destinations = factHolder.getDestinations();
+        Insert(ActiveType type, FactHolder factHolder, FactFieldValues values, boolean applyToMemory) {
+            super(type, factHolder, applyToMemory);
+            this.values = values;
         }
 
-
-        public Collection<AlphaAddress> getDestinations() {
-            return destinations;
+        FactFieldValues getValues() {
+            return values;
         }
 
         @Override
@@ -49,7 +46,6 @@ public abstract class DeltaMemoryAction {
             return "Insert{" +
                     "handle=" + getHandle() +
                     ", payload=" + getFactWrapper() +
-                    ", applied=" + isAppliedToFactStorage() +
                     '}';
         }
 
@@ -63,8 +59,8 @@ public abstract class DeltaMemoryAction {
 
     static class Delete extends DeltaMemoryAction {
 
-        public Delete(ActiveType type, boolean appliedToFactStorage, FactHolder factHolder) {
-            super(type, factHolder, appliedToFactStorage);
+        public Delete(ActiveType type, FactHolder factHolder, boolean applyToMemory) {
+            super(type, factHolder, applyToMemory);
         }
 
         @Override
@@ -72,7 +68,6 @@ public abstract class DeltaMemoryAction {
             return "Delete{" +
                     "handle=" + getHandle() +
                     ", values=" + getFactWrapper().getFieldValuesId() +
-                    ", applied=" + isAppliedToFactStorage() +
                     '}';
         }
     }

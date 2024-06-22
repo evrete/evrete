@@ -23,7 +23,7 @@ public final class DefaultFactHandle extends PreHashed implements FactHandle {
         this.type = typeId;
     }
 
-    ActiveType.Idx getType() {
+    public ActiveType.Idx getType() {
         return type;
     }
 

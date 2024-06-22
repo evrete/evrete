@@ -8,8 +8,7 @@ import org.evrete.util.CommonUtils;
 import org.evrete.util.FlatMapIterator;
 import org.evrete.util.MappingIterator;
 
-import java.util.Arrays;
-import java.util.Iterator;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.IntFunction;
 import java.util.function.ObjIntConsumer;
@@ -73,9 +72,29 @@ public class ReteSessionConditionNode extends ReteSessionNode {
         return betaMemory;
     }
 
-    public void deleteAll(Predicate<ConditionMemory.MemoryEntry> predicate) {
-        betaMemory.deleteAll(predicate);
+    public void deleteAll(Collection<FactHolder> factHolders) {
+        betaMemory.deleteAll(ConditionMemory.DeletePredicate.ofMultipleOR(createDeletePredicates(factHolders)));
     }
+
+    private Collection<ConditionMemory.DeletePredicate> createDeletePredicates(Collection<FactHolder> factHolders) {
+        MapOfSet<Integer, Long> mapping = new MapOfSet<>();
+        for (FactHolder factHolder : factHolders) {
+            ActiveType.Idx type = factHolder.getHandle().getType();
+            // Get local fact type indices
+            Collection<Integer> indicesForType = nodeIndices(type);
+            for (Integer index : indicesForType) {
+                mapping.add(index, factHolder.getFieldValuesId());
+            }
+        }
+
+        Collection<ConditionMemory.DeletePredicate> result = new ArrayList<>(mapping.size());
+        for(Map.Entry<Integer, Set<Long>> entry : mapping.entrySet()) {
+            result.add(new ConditionMemory.DeletePredicate(entry.getKey(), entry.getValue()));
+        }
+
+        return result;
+    }
+
 
     void computeDeltaLocally(DeltaMemoryMode mode) {
         final MemoryScope saveDestination;

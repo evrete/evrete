@@ -52,8 +52,7 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         broadcast(SessionFireEvent.class, () -> AbstractRuleSession.this);
         ActivationMode mode = getAgendaMode();
         ActivationContext context = new ActivationContext(
-                getMemory(), // Session memory
-                getService().getExecutor(),
+                this,
                 ruleStorage.getList() // Current rules
         );
 

@@ -48,8 +48,8 @@ public class Profile {
 
             SalesReport report = new SalesReport();
             try(StatefulSession s = knowledge.newStatefulSession()) {
-                long t0 = Instant.now().toEpochMilli();
                 List<Object> objects = sessionObjects(512);
+                long t0 = Instant.now().toEpochMilli();
                 s.insert(objects);
                 s.insert(report);
                 long t1 = Instant.now().toEpochMilli();

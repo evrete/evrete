@@ -94,17 +94,17 @@ class RhsContextImpl implements RhsContext {
 
     @Override
     public FactHandle insert0(Object fact, boolean resolveCollections) {
-        return rule.getRuntime().bufferInsertActions(false, fact, resolveCollections, this.destinationForRuleActions);
+        return rule.getRuntime().bufferInsertMultiple(fact, false, resolveCollections, this.destinationForRuleActions);
     }
 
     @Override
     public FactHandle insert0(String type, Object fact, boolean resolveCollections) {
-        return rule.getRuntime().bufferInsertActions(false, fact, resolveCollections, this.destinationForRuleActions);
+        return rule.getRuntime().bufferInsertMultiple(fact, false, resolveCollections, this.destinationForRuleActions);
     }
 
     @Override
     public void delete(FactHandle handle) {
-        rule.getRuntime().bufferDelete(false, handle, this.destinationForRuleActions);
+        rule.getRuntime().bufferDelete(handle, false, this.destinationForRuleActions);
     }
 
     @Override
@@ -140,7 +140,7 @@ class RhsContextImpl implements RhsContext {
         if (entry == null) {
             LOGGER.warning(()->"Rule '" + rule.getName() +  "'. Fact " + obj + " is not known to the context. This operation is only possible for facts previously retrieved via a get(...) method. The DELETE operation skipped.");
         } else {
-            rule.getRuntime().bufferDelete(false, entry.handle, entry.wrapper, this.destinationForRuleActions);
+            rule.getRuntime().bufferDelete(entry.handle, false, entry.wrapper, this.destinationForRuleActions);
         }
     }
 

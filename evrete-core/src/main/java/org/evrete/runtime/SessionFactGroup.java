@@ -25,9 +25,9 @@ abstract class SessionFactGroup extends KnowledgeFactGroup {
         this.factTypes = new SessionFactType[entryNodes.length];
         for (int i = 0; i < entryNodes.length; i++) {
             SessionFactType sessionFactType = new SessionFactType(entryNodes[i], memory);
-            //assert sessionFactType.getInGroupIndex() == i;
             this.factTypes[i] = sessionFactType;
         }
+
     }
 
     SessionFactType[] getFactTypes() {

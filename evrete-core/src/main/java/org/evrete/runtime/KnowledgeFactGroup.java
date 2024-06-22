@@ -5,6 +5,9 @@ import org.evrete.runtime.rete.ReteKnowledgeConditionNode;
 import org.evrete.runtime.rete.ReteKnowledgeEntryNode;
 import org.evrete.runtime.rete.ReteKnowledgeNode;
 
+import java.util.Collection;
+import java.util.Collections;
+
 /**
  * <p>
  * Base class for fact groups. The engine uses this class to group mutually
@@ -34,49 +37,39 @@ public abstract class KnowledgeFactGroup {
     public static final KnowledgeFactGroup[] EMPTY_ARRAY = new KnowledgeFactGroup[0];
 
     private final FactType[] entryNodes;
-    //private final Mask<AlphaMemoryAddress> alphaMemoryMask;
     private final Mask<ActiveType> typeMask;
-    // In a fact group, several fact declarations can be of the same type
-    //private final Map<ActiveType.Idx, int[]> typeToInGroupIndices;
     // Set of alpha locations in use
     private final Mask<AlphaAddress> alphaAddressMask;
+    private final MapOfList<ActiveType.Idx, Integer> typeToIndices;
 
     public KnowledgeFactGroup(FactType[] entryNodes) {
         this.entryNodes = entryNodes;
         this.typeMask = Mask.typeMask();
         this.alphaAddressMask = Mask.alphaAddressMask();
 
-
-        //MapOfSet<ActiveType.Idx, Integer> tempMap = new MapOfSet<>();
-        for (FactType entryNode : entryNodes) {
+        this.typeToIndices = new MapOfList<>();
+        for (int i = 0; i < entryNodes.length; i++) {
+            FactType entryNode = entryNodes[i];
             ActiveType type = entryNode.type();
             this.typeMask.set(type);
             this.alphaAddressMask.set(entryNode.getAlphaAddress());
-            //tempMap.add(type.getId(), entryNode.getInGroupIndex());
+            this.typeToIndices.add(type.getId(), i);
         }
-
-//        this.typeToInGroupIndices = new HashMap<>();
-//        tempMap.forEach(
-//                (type, groupIndices) -> {
-//                    this.typeToInGroupIndices.put(type, CommonUtils.toPrimitives(groupIndices));
-//                }
-//        );
     }
 
     public Mask<AlphaAddress> getAlphaAddressMask() {
         return alphaAddressMask;
     }
 
-//    @Nullable
-//    public int[] inGroupIndicesOfType(ActiveType.Idx activeTypeId) {
-//        return typeToInGroupIndices.get(activeTypeId);
-//    }
+    public Collection<Integer> nodeIndices(ActiveType.Idx type) {
+        return typeToIndices.getOrDefault(type, Collections.emptyList());
+    }
 
     public KnowledgeFactGroup(KnowledgeFactGroup other) {
         this.entryNodes = other.getEntryNodes();
         this.typeMask = other.typeMask;
         this.alphaAddressMask = other.alphaAddressMask;
-        //this.typeToInGroupIndices = other.typeToInGroupIndices;
+        this.typeToIndices = other.typeToIndices;
     }
 
     public Mask<ActiveType> getTypeMask() {
@@ -101,8 +94,7 @@ public abstract class KnowledgeFactGroup {
      */
     public static KnowledgeFactGroup fromTerminalCondition(ReteKnowledgeConditionNode terminalNode) {
         ReteGraph<ReteKnowledgeNode, ReteKnowledgeEntryNode, ReteKnowledgeConditionNode> graph = ReteGraph.fromTerminalNode(terminalNode);
-
-        return new Beta(terminalNode.getNodeFactTypes(), graph);
+        return new Beta(graph);
     }
 
     /**
@@ -123,10 +115,9 @@ public abstract class KnowledgeFactGroup {
     static class Beta extends KnowledgeFactGroup {
         private final ReteGraph<ReteKnowledgeNode, ReteKnowledgeEntryNode, ReteKnowledgeConditionNode> graph;
 
-        Beta(FactType[] factTypes, ReteGraph<ReteKnowledgeNode, ReteKnowledgeEntryNode, ReteKnowledgeConditionNode> graph) {
-            super(factTypes);
+        Beta(ReteGraph<ReteKnowledgeNode, ReteKnowledgeEntryNode, ReteKnowledgeConditionNode> graph) {
+            super(graph.terminalNode().getNodeFactTypes());
             this.graph = graph;
-
         }
 
         public ReteGraph<ReteKnowledgeNode, ReteKnowledgeEntryNode, ReteKnowledgeConditionNode> getGraph() {

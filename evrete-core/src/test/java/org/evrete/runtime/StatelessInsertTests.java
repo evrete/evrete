@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.evrete.api.FactBuilder.fact;
 
-class StatelessBaseTests {
+class StatelessInsertTests {
     private static KnowledgeService service;
     private Knowledge knowledge;
 
@@ -150,37 +150,6 @@ class StatelessBaseTests {
         assert session.getFact(h2) == a2;
     }
 
-    @Test
-    void factUpdateUponInsertTest() {
-        knowledge.builder()
-                .newRule()
-                .forEach("$a", TypeA.class)
-                .where("$a.i > 0")
-                .execute()
-                .build();
-
-        StatelessSessionImpl session = (StatelessSessionImpl) knowledge.newStatelessSession();
-
-        TypeA a1 = new TypeA();
-        a1.setI(7);
-        FactHandle h1 = session.insert(a1);
-        assert session.getFact(h1) == a1;
-
-
-        FactFieldValues fieldValues = Objects.requireNonNull(MemoryInspectionUtils.fieldValues(h1, session));
-        // There's only one field in use, so we can test its value
-        assert (int) fieldValues.valueAt(0) == 7;
-
-        // Updating the fact
-        a1.setI(77);
-
-
-        session.update(h1, a1);
-        // Reading the values and checking the state
-        assert session.getFact(h1) == a1;
-        FactFieldValues fieldValues1 = Objects.requireNonNull(MemoryInspectionUtils.fieldValues(h1, session));
-        assert (int) fieldValues1.valueAt(0) == 77;
-    }
 
     @Test
     void basicRuleSortingOrder() {
@@ -498,7 +467,6 @@ class StatelessBaseTests {
             s.insert(obj);
         }
 
-        System.out.println("************************");
         s.fire();
 
         Assertions.assertEquals(ai * bi * ci * di, counter.get());

@@ -43,10 +43,7 @@ public class DelegatingExecutorService implements ExecutorService {
 
     @Override
     public void shutdown() {
-        if (externallySupplied) {
-            // Do not shut down externally supplied ExecutorService
-            LOGGER.info("Shutdown should be manually called on externally supplied ExecutorService.");
-        } else {
+        if (!externallySupplied) {
             // Shutdown internally created ExecutorService
             delegate.shutdown();
         }

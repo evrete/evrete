@@ -1,11 +1,14 @@
 package org.evrete.runtime.rete;
 
 import org.evrete.api.ReteMemory;
+import org.evrete.api.annotations.NonNull;
 import org.evrete.api.spi.MemoryScope;
 import org.evrete.runtime.FactFieldValues;
 import org.evrete.runtime.PreHashed;
 
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.function.Predicate;
 
 public class ConditionMemory implements ReteMemory<ConditionMemory.MemoryEntry> {
@@ -187,4 +190,35 @@ public class ConditionMemory implements ReteMemory<ConditionMemory.MemoryEntry> 
             return b == 0 ? MemoryScope.MAIN : MemoryScope.DELTA;
         }
     }
+
+    public static class DeletePredicate implements Predicate<ConditionMemory.MemoryEntry> {
+        private final int index;
+        private final Set<Long> valuesToDelete;
+
+        DeletePredicate(int index, Set<Long> valuesToDelete) {
+            this.index = index;
+            this.valuesToDelete = valuesToDelete;
+        }
+
+        @Override
+        public boolean test(ConditionMemory.MemoryEntry memoryEntry) {
+            ConditionMemory.ScopedValueId v = memoryEntry.getScopedValueIds()[index];
+            return valuesToDelete.contains(v.getValueId());
+        }
+
+        @NonNull
+        public static Predicate<ConditionMemory.MemoryEntry> ofMultipleOR(@NonNull Collection<DeletePredicate> predicates) {
+            Iterator<DeletePredicate> iterator = predicates.iterator();
+            if (iterator.hasNext()) {
+                Predicate<ConditionMemory.MemoryEntry> predicate = iterator.next();
+                while (iterator.hasNext()) {
+                    predicate = predicate.or(iterator.next());
+                }
+                return predicate;
+            } else {
+                return memoryEntry -> false;
+            }
+        }
+    }
+
 }

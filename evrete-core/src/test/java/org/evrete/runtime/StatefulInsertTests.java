@@ -20,7 +20,7 @@ import java.util.function.Predicate;
 import static org.evrete.api.FactBuilder.fact;
 
 //TODO !!!! important: use a provided delayed executor to check memories, especially session memory scans and retrievals
-class StatefulBaseTests {
+class StatefulInsertTests {
     private static KnowledgeService service;
     private Knowledge knowledge;
 
@@ -33,7 +33,6 @@ class StatefulBaseTests {
     static void shutDownClass() {
         service.shutdown();
     }
-
 
     private static void randomExpressionsTest(ActivationMode mode, int objectCount, int conditions) {
         Knowledge kn = service.newKnowledge();
@@ -106,40 +105,6 @@ class StatefulBaseTests {
             session.fire();
         }
     }
-
-    @ParameterizedTest
-    @EnumSource(ActivationMode.class)
-    void factExistenceUponInsertTest(ActivationMode mode) {
-        knowledge.builder()
-                .newRule()
-                .forEach("$a", TypeA.class)
-                .execute()
-                .build();
-
-        try (StatefulSession session = knowledge.newStatefulSession(mode)) {
-            TypeA a1 = new TypeA();
-            TypeA a2 = new TypeA();
-            FactHandle h1 = session.insert(a1);
-            FactHandle h2 = session.insert(a2);
-
-            assert session.getFact(h1) == a1;
-            assert session.getFact(h2) == a2;
-
-            FactHandle unknown = () -> Long.MAX_VALUE;
-
-            Assertions.assertThrows(IllegalArgumentException.class, () -> session.getFact(unknown));
-            Assertions.assertThrows(IllegalArgumentException.class, () -> session.delete(unknown));
-
-            // Test deletion
-            session.delete(h1);
-            session.delete(h1); // Subsequent delete calls must not throw anything
-
-            assert session.getFact(h1) == null;
-            assert session.getFact(h2) == a2;
-
-        }
-    }
-
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)

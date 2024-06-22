@@ -1,11 +1,11 @@
 package org.evrete.runtime;
 
 import org.evrete.collections.LongKeyMap;
-import org.evrete.util.CommonUtils;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 
 /**
  * Contains a buffer of memory actions per fact handle. This buffer is used in two ways:
@@ -33,60 +33,87 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 class WorkMemoryActionBuffer {
     static WorkMemoryActionBuffer EMPTY = new WorkMemoryActionBuffer();
-    private final LongKeyMap<OrderedFuture> pendingActions = new LongKeyMap<>();
-    private final AtomicLong actionOrderedCounter = new AtomicLong();
+    private final LongKeyMap<State> actionsPerFactHandle;
 
-    void addInsert(ActiveType type, boolean applyToStorage, CompletableFuture<RoutedFactHolder> factHolder) {
-        addPendingFuture(
-                factHolder
-                        .thenApply(holder -> new DeltaMemoryAction.Insert(type, holder.getFactHolder().getHandle(), applyToStorage, holder))
-        );
+    private WorkMemoryActionBuffer(LongKeyMap<State> actionsPerFactHandle) {
+        this.actionsPerFactHandle = actionsPerFactHandle;
     }
 
-    void addDelete(ActiveType type, boolean applyToStorage, FactHolder deleteSubject) {
-        addPendingFuture(CompletableFuture.completedFuture(new DeltaMemoryAction.Delete(type, applyToStorage, deleteSubject)));
+    public WorkMemoryActionBuffer() {
+        this(new LongKeyMap<>());
     }
 
-    private synchronized void addPendingFuture(CompletableFuture<DeltaMemoryAction> future) {
-        long order = actionOrderedCounter.incrementAndGet();
-        OrderedFuture previous = this.pendingActions.put(order, new OrderedFuture(future, order));
-        if (previous != null) {
-            throw new IllegalStateException("Previous future is not null. File a bug report.");
-        }
+    private WorkMemoryActionBuffer(WorkMemoryActionBuffer other) {
+        this(new LongKeyMap<>(other.actionsPerFactHandle));
     }
 
-    synchronized CompletableFuture<SplitView> sinkToSplitView() {
-        CompletableFuture<List<OrderedAction>> completedActions = CommonUtils.completeAndCollect(
-                        this.pendingActions,
-                        orderedFuture -> orderedFuture.future.thenApply(action -> new OrderedAction(action, orderedFuture))
-                )
-                .thenApply(this::clearPendingActions);
 
-        return completedActions.thenApply(this::sinkToSplitViewSync);
+    private void clear() {
+        this.actionsPerFactHandle.clear();
     }
 
-    private List<OrderedAction> clearPendingActions(List<OrderedAction> actions) {
-        for (OrderedAction orderedAction : actions) {
-            pendingActions.remove(orderedAction.source.order);
-        }
-        actionOrderedCounter.set(0);
-        //TODO test & optimize. Create some write locks or something.
-        if (pendingActions.size() > 0) {
-            throw new IllegalStateException("PendingActions not empty. File a bug report");
-        }
-        return actions;
+    void addInsert(DeltaMemoryAction.Insert insertOp) {
+        this.actionsPerFactHandle.computeIfAbsent(insertOp.getHandle().getId(), ()->new State(insertOp.getType())).applyInsert(insertOp);
     }
 
-    SplitView sinkToSplitViewSync(List<OrderedAction> actions) {
-        // Sort actions by their order of appearance
-        actions.sort(Comparator.comparingLong(o -> o.source.order));
+    void addDelete(DeltaMemoryAction.Delete deleteOp) {
+        this.actionsPerFactHandle.computeIfAbsent(deleteOp.getHandle().getId(), () -> new State(deleteOp.getType())).applyDelete(deleteOp);
+    }
 
-        // Collect actions by their fact handles
-        LongKeyMap<State> states = new LongKeyMap<>();
-        actions.forEach(action -> states.computeIfAbsent(action.action.getHandle().getId(), State::new).apply(action.action));
 
-        SplitView splitView = new SplitView();
-        states.forEach(state -> {
+
+//    synchronized CompletableFuture<SplitView> sinkToSplitView() {
+//        return completionFuture().thenApply(new Function<Void, SplitView>() {
+//            @Override
+//            public SplitView apply(Void unused) {
+//                SplitView splitView = sinkToSplitViewSync();
+//                clear();
+//                return splitView;
+//            }
+//        });
+//    }
+
+//    private List<OrderedAction> clearPendingActions(List<OrderedAction> actions) {
+//        for (OrderedAction orderedAction : actions) {
+//            pendingActions.remove(orderedAction.source.order);
+//        }
+//        actionOrderedCounter.set(0);
+//        //TODO test & optimize. Create some write locks or something.
+//        if (pendingActions.size() > 0) {
+//            throw new IllegalStateException("PendingActions not empty. File a bug report");
+//        }
+//        return actions;
+//    }
+
+    // TODO the executor isn't actually used
+    CompletableFuture<Collection<SplitView>> sinkToSplitView(ExecutorService executor) {
+        return CompletableFuture.supplyAsync(new Supplier<Collection<SplitView>>() {
+            @Override
+            public Collection<SplitView> get() {
+                return sinkToSplitViewSync();
+            }
+        }, executor);
+
+    }
+
+
+    private Collection<SplitView> sinkToSplitViewSync() {
+        Map<ActiveType, SplitView> map = new HashMap<>();
+
+
+//        // Sort actions by their order of appearance
+//        actions.sort(Comparator.comparingLong(o -> o.source.order));
+//
+//        // Collect actions by their fact handles
+//        LongKeyMap<State> states = new LongKeyMap<>();
+//        actions.forEach(action -> states.computeIfAbsent(action.action.getHandle().getId(), State::new).apply(action.action));
+
+        //SplitView splitView = new SplitView();
+        actionsPerFactHandle.forEach(state -> {
+
+            SplitView splitView = map.computeIfAbsent(state.type, SplitView::new);
+
+            // 2. Apply the computed states to the resulting view
             if (state.lastInsert != null) {
                 splitView.add(state.lastInsert);
             }
@@ -95,7 +122,8 @@ class WorkMemoryActionBuffer {
             }
         });
 
-        return splitView;
+        this.clear();
+        return map.values();
     }
 
     public boolean hasData() {
@@ -103,12 +131,21 @@ class WorkMemoryActionBuffer {
     }
 
     public int bufferedActionCount() {
-        return this.pendingActions.size();
+        return this.actionsPerFactHandle.size();
     }
 
     static class SplitView {
+        private final ActiveType type;
         private final Collection<DeltaMemoryAction.Insert> inserts = new LinkedList<>();
         private final Collection<DeltaMemoryAction.Delete> deletes = new LinkedList<>();
+
+        public SplitView(ActiveType type) {
+            this.type = type;
+        }
+
+        public ActiveType getType() {
+            return type;
+        }
 
         void add(DeltaMemoryAction.Insert action) {
             this.inserts.add(action);
@@ -138,9 +175,16 @@ class WorkMemoryActionBuffer {
          */
         DeltaMemoryAction.Delete firstDelete;
 
+        final ActiveType type;
+
+        State(ActiveType type) {
+            this.type = type;
+        }
+
         private void applyInsert(DeltaMemoryAction.Insert action) {
             this.lastInsert = Objects.requireNonNull(action);
         }
+
 
         private void applyDelete(DeltaMemoryAction.Delete action) {
             if (firstDelete == null) {
@@ -186,4 +230,17 @@ class WorkMemoryActionBuffer {
             this.source = source;
         }
     }
+
+    static class FactHandleAction {
+        static final Comparator<FactHandleAction> COMPARATOR = Comparator.comparingLong(o -> o.sequence);
+        final DeltaMemoryAction action;
+        final long sequence;
+
+        FactHandleAction(DeltaMemoryAction action, long sequence) {
+            this.action = action;
+            this.sequence = sequence;
+        }
+    }
+
+
 }

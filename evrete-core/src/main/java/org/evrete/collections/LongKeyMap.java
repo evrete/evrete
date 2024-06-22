@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -30,6 +29,7 @@ public class LongKeyMap<T> implements Iterable<T> {
     private int size;
     private int threshold;
     private int shrinkThreshold;
+    private final Object lock = new Object();
 
     @SuppressWarnings("unchecked")
     public LongKeyMap() {
@@ -38,46 +38,63 @@ public class LongKeyMap<T> implements Iterable<T> {
         shrinkThreshold = (int) (INITIAL_CAPACITY * SHRINK_FACTOR);
     }
 
+    /**
+     * A shallow copy constructor
+     * @param other the source map
+     */
+    public LongKeyMap(final LongKeyMap<T> other) {
+        synchronized (other.lock) {
+            table = other.table.clone();
+            threshold = other.threshold;
+            shrinkThreshold = other.shrinkThreshold;
+            size = other.size;
+        }
+    }
+
+
     private int hash(long key) {
         return Integer.hashCode((int)key) & (table.length - 1);
     }
 
+    public T put(long key, T value) {
+        synchronized (lock) {
+            int index = hash(key);
+            Entry<T> entry = table[index];
+            Entry<T> prev = null;
 
-    public synchronized T put(long key, T value) {
-        int index = hash(key);
-        Entry<T> entry = table[index];
-        Entry<T> prev = null;
-
-        while (entry != null) {
-            if (entry.key == key) {
-                T oldValue = entry.value;
-                entry.value = value; // Update value if key exists
-                return oldValue;
+            while (entry != null) {
+                if (entry.key == key) {
+                    T oldValue = entry.value;
+                    entry.value = value; // Update value if key exists
+                    return oldValue;
+                }
+                prev = entry;
+                entry = entry.next;
             }
-            prev = entry;
-            entry = entry.next;
-        }
 
-        if (prev == null) {
-            table[index] = new Entry<>(key, value); // Add new entry if chain is empty
-        } else {
-            prev.next = new Entry<>(key, value); // Add new entry to the chain
-        }
+            if (prev == null) {
+                table[index] = new Entry<>(key, value); // Add new entry if chain is empty
+            } else {
+                prev.next = new Entry<>(key, value); // Add new entry to the chain
+            }
 
-        if (++size > threshold) {
-            resize(table.length * 2);
-        }
+            if (++size > threshold) {
+                resize(table.length * 2);
+            }
 
-        return null;
+            return null;
+        }
     }
 
-    public synchronized void clear() {
-        @SuppressWarnings("unchecked")
-        Entry<T>[] newTable = (Entry<T>[]) new Entry[INITIAL_CAPACITY];
-        table = newTable;
-        size = 0;
-        threshold = (int) (INITIAL_CAPACITY * LOAD_FACTOR);
-        shrinkThreshold = (int) (INITIAL_CAPACITY * SHRINK_FACTOR);
+    public void clear() {
+        synchronized (lock) {
+            @SuppressWarnings("unchecked")
+            Entry<T>[] newTable = (Entry<T>[]) new Entry[INITIAL_CAPACITY];
+            table = newTable;
+            size = 0;
+            threshold = (int) (INITIAL_CAPACITY * LOAD_FACTOR);
+            shrinkThreshold = (int) (INITIAL_CAPACITY * SHRINK_FACTOR);
+        }
     }
 
     private Stream<Entry<T>> entries() {
@@ -104,7 +121,7 @@ public class LongKeyMap<T> implements Iterable<T> {
     public T computeIfAbsent(long key, Supplier<T> supplier) {
         T result = get(key);
         if(result == null) {
-            synchronized (this) {
+            synchronized (lock) {
                 result = get(key);
                 if(result == null) {
                     result = supplier.get();
@@ -130,30 +147,32 @@ public class LongKeyMap<T> implements Iterable<T> {
     }
 
     public synchronized T remove(long key) {
-        int index = hash(key);
-        Entry<T> entry = table[index];
-        Entry<T> prev = null;
+        synchronized (lock) {
+            int index = hash(key);
+            Entry<T> entry = table[index];
+            Entry<T> prev = null;
 
-        while (entry != null) {
-            if (entry.key == key) {
-                if (prev == null) {
-                    table[index] = entry.next; // Remove first entry in chain
-                } else {
-                    prev.next = entry.next; // Remove middle or last entry in chain
-                }
-                size--;
-                T ret = entry.value;
-                if (size < shrinkThreshold && table.length > INITIAL_CAPACITY) {
-                    resize(table.length / 2);
-                }
+            while (entry != null) {
+                if (entry.key == key) {
+                    if (prev == null) {
+                        table[index] = entry.next; // Remove first entry in chain
+                    } else {
+                        prev.next = entry.next; // Remove middle or last entry in chain
+                    }
+                    size--;
+                    T ret = entry.value;
+                    if (size < shrinkThreshold && table.length > INITIAL_CAPACITY) {
+                        resize(table.length / 2);
+                    }
 
-                return ret;
+                    return ret;
+                }
+                prev = entry;
+                entry = entry.next;
             }
-            prev = entry;
-            entry = entry.next;
-        }
 
-        return null; // Key not found
+            return null; // Key not found
+        }
     }
 
     @Override
