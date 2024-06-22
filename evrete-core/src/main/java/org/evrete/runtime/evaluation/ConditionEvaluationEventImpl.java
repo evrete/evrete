@@ -3,7 +3,6 @@ package org.evrete.runtime.evaluation;
 import org.evrete.api.RuleSession;
 import org.evrete.api.ValuesPredicate;
 import org.evrete.api.events.ConditionEvaluationEvent;
-import org.evrete.runtime.AbstractRuleSession;
 import org.evrete.runtime.events.AbstractTimedEvent;
 
 import java.time.Instant;
