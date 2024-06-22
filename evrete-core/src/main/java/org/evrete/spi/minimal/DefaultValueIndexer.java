@@ -7,10 +7,8 @@ import org.evrete.collections.LongKeyMap;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Logger;
 
 public class DefaultValueIndexer<T> implements ValueIndexer<T> {
-    private static final Logger LOGGER = Logger.getLogger(DefaultValueIndexer.class.getName());
     private final ConcurrentHashMap<T, Long> valueToLong = new ConcurrentHashMap<>();
     private final LongKeyMap<T> longToValue = new LongKeyMap<>();
     private final AtomicLong counter = new AtomicLong();
@@ -35,6 +33,7 @@ public class DefaultValueIndexer<T> implements ValueIndexer<T> {
 
     @Nullable
     @Override
+    //TODO review usage, it must be used
     public synchronized T delete(long id) {
         T found = longToValue.remove(id);
         if(found != null) {

@@ -7,10 +7,8 @@ import org.evrete.util.FlatMapIterator;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Logger;
 
 class SessionFactGroupPlain extends SessionFactGroup {
-    private static final Logger LOGGER = Logger.getLogger(SessionFactGroupPlain.class.getName());
     private final DefaultFactHandle[] currentFactHandles;
     private final MemoryScope[] currentScopes;
 

@@ -5,8 +5,8 @@ import org.evrete.api.events.TimedEvent;
 import java.time.Instant;
 
 public abstract class AbstractTimedEvent implements TimedEvent {
-    private Instant startTime;
-    private Instant endTime;
+    private final Instant startTime;
+    private final Instant endTime;
 
     public AbstractTimedEvent(Instant startTime, Instant endTime) {
         this.startTime = startTime;

@@ -16,16 +16,6 @@ public final class KnowledgeRule extends AbstractActiveRule<KnowledgeFactGroup, 
         super(runtime, other, salience, knowledgeLhs);
     }
 
-/*
-    // Streams all the fact types with their memory information
-    // We need this stream to initialize memory structures when this rule is deployed
-    Stream<FactTypeDescriptor> typeDescriptorStream() {
-        return Arrays
-                .stream(lhsDescriptor.getFactGroups())
-                .flatMap(group -> Arrays.stream(group.getEntryNodes()));
-    }
-*/
-
     static KnowledgeRule buildRule(AbstractRuntime<?, ?> runtime, DefaultRuleBuilder<?> rule, RuleBuilderActiveConditions lhsConditions, int salience) {
         // 1. Prepare fact declaration descriptors
         Collection<DefaultLhsBuilder.Fact> factDeclarations = rule.getLhs().rawValues();

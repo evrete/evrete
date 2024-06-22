@@ -5,8 +5,6 @@ import org.evrete.api.WorkUnit;
 import org.evrete.util.Indexed;
 
 public class DefaultEvaluatorHandle implements EvaluatorHandle, WorkUnit, Indexed {
-    static final DefaultEvaluatorHandle[] EMPTY_ARRAY = new DefaultEvaluatorHandle[0];
-
     private final int id;
     private final double complexity;
 
@@ -25,15 +23,6 @@ public class DefaultEvaluatorHandle implements EvaluatorHandle, WorkUnit, Indexe
     @Override
     public int getIndex() {
         return id;
-    }
-
-    public static int compare(DefaultEvaluatorHandle o1, DefaultEvaluatorHandle o2) {
-        int cmp1 =  Double.compare(o1.complexity, o2.complexity);
-        if (cmp1 == 0) {
-            return Integer.compare(o1.id, o2.id);
-        } else {
-            return cmp1;
-        }
     }
 
     @Override

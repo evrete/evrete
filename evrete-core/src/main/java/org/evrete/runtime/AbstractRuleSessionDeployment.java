@@ -8,7 +8,6 @@ import org.evrete.util.CommonUtils;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Logger;
 
 /**
  * <p>
@@ -18,7 +17,6 @@ import java.util.logging.Logger;
  * @param <S> session type parameter
  */
 public abstract class AbstractRuleSessionDeployment<S extends RuleSession<S>> extends AbstractRuleSessionOps<S> {
-    private static final Logger LOGGER = Logger.getLogger(AbstractRuleSessionDeployment.class.getName());
     final RuntimeRules ruleStorage;
 
     AbstractRuleSessionDeployment(KnowledgeRuntime knowledge) {

@@ -5,7 +5,6 @@ import org.evrete.collections.LongKeyMap;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Supplier;
 
 /**
  * Contains a buffer of memory actions per fact handle. This buffer is used in two ways:
@@ -43,11 +42,6 @@ class WorkMemoryActionBuffer {
         this(new LongKeyMap<>());
     }
 
-    private WorkMemoryActionBuffer(WorkMemoryActionBuffer other) {
-        this(new LongKeyMap<>(other.actionsPerFactHandle));
-    }
-
-
     private void clear() {
         this.actionsPerFactHandle.clear();
     }
@@ -60,39 +54,9 @@ class WorkMemoryActionBuffer {
         this.actionsPerFactHandle.computeIfAbsent(deleteOp.getHandle().getId(), () -> new State(deleteOp.getType())).applyDelete(deleteOp);
     }
 
-
-
-//    synchronized CompletableFuture<SplitView> sinkToSplitView() {
-//        return completionFuture().thenApply(new Function<Void, SplitView>() {
-//            @Override
-//            public SplitView apply(Void unused) {
-//                SplitView splitView = sinkToSplitViewSync();
-//                clear();
-//                return splitView;
-//            }
-//        });
-//    }
-
-//    private List<OrderedAction> clearPendingActions(List<OrderedAction> actions) {
-//        for (OrderedAction orderedAction : actions) {
-//            pendingActions.remove(orderedAction.source.order);
-//        }
-//        actionOrderedCounter.set(0);
-//        //TODO test & optimize. Create some write locks or something.
-//        if (pendingActions.size() > 0) {
-//            throw new IllegalStateException("PendingActions not empty. File a bug report");
-//        }
-//        return actions;
-//    }
-
     // TODO the executor isn't actually used
     CompletableFuture<Collection<SplitView>> sinkToSplitView(ExecutorService executor) {
-        return CompletableFuture.supplyAsync(new Supplier<Collection<SplitView>>() {
-            @Override
-            public Collection<SplitView> get() {
-                return sinkToSplitViewSync();
-            }
-        }, executor);
+        return CompletableFuture.supplyAsync(this::sinkToSplitViewSync, executor);
 
     }
 
@@ -100,15 +64,6 @@ class WorkMemoryActionBuffer {
     private Collection<SplitView> sinkToSplitViewSync() {
         Map<ActiveType, SplitView> map = new HashMap<>();
 
-
-//        // Sort actions by their order of appearance
-//        actions.sort(Comparator.comparingLong(o -> o.source.order));
-//
-//        // Collect actions by their fact handles
-//        LongKeyMap<State> states = new LongKeyMap<>();
-//        actions.forEach(action -> states.computeIfAbsent(action.action.getHandle().getId(), State::new).apply(action.action));
-
-        //SplitView splitView = new SplitView();
         actionsPerFactHandle.forEach(state -> {
 
             SplitView splitView = map.computeIfAbsent(state.type, SplitView::new);
@@ -192,16 +147,6 @@ class WorkMemoryActionBuffer {
             }
         }
 
-        void apply(DeltaMemoryAction action) {
-            if (action instanceof DeltaMemoryAction.Insert) {
-                applyInsert((DeltaMemoryAction.Insert) action);
-            } else if (action instanceof DeltaMemoryAction.Delete) {
-                applyDelete((DeltaMemoryAction.Delete) action);
-            } else {
-                throw new IllegalStateException("Unexpected action type: " + action.getClass());
-            }
-        }
-
         @Override
         public String toString() {
             return "{" +
@@ -210,37 +155,4 @@ class WorkMemoryActionBuffer {
                     '}';
         }
     }
-
-    static class OrderedFuture {
-        final CompletableFuture<DeltaMemoryAction> future;
-        final long order;
-
-        public OrderedFuture(CompletableFuture<DeltaMemoryAction> future, long order) {
-            this.future = future;
-            this.order = order;
-        }
-    }
-
-    static class OrderedAction {
-        final DeltaMemoryAction action;
-        final OrderedFuture source;
-
-        public OrderedAction(DeltaMemoryAction future, OrderedFuture source) {
-            this.action = future;
-            this.source = source;
-        }
-    }
-
-    static class FactHandleAction {
-        static final Comparator<FactHandleAction> COMPARATOR = Comparator.comparingLong(o -> o.sequence);
-        final DeltaMemoryAction action;
-        final long sequence;
-
-        FactHandleAction(DeltaMemoryAction action, long sequence) {
-            this.action = action;
-            this.sequence = sequence;
-        }
-    }
-
-
 }

@@ -20,14 +20,6 @@ public class SourceCompiler implements JavaSourceCompiler {
         this.compiler = Objects.requireNonNull(ToolProvider.getSystemJavaCompiler(), "No Java compiler provided by this platform");
     }
 
-//    public void defineClass(String binaryName, byte[] classBytes) {
-//        this.classLoader.saveClass(binaryName, classBytes);
-//    }
-//
-//    public ClassSource resolve(String classSource) {
-//        return JavaSourceObject.parse(classSource);
-//    }
-
     @Override
     public <S extends ClassSource> Collection<Result<S>> compile(Collection<S> sources) throws CompilationException {
         Map<String, S> sourcesByClassName = new HashMap<>(sources.size());

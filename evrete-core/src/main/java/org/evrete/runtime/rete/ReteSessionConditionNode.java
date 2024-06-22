@@ -12,7 +12,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.IntFunction;
 import java.util.function.ObjIntConsumer;
-import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -140,9 +139,7 @@ public class ReteSessionConditionNode extends ReteSessionNode {
         );
 
         // 3. Evaluate the node's condition and save to the destination storage
-        sourceCombinations.forEachRemaining(ignored -> {
-            evaluateAndSave(saveDestination);
-        });
+        sourceCombinations.forEachRemaining(ignored -> evaluateAndSave(saveDestination));
         LOGGER.fine(()->"Node " + this.debugName() + " has finished computing its delta memory. New delta memory size: " + this.betaMemory.size(MemoryScope.DELTA) + ", main memory size: " + this.betaMemory.size(MemoryScope.MAIN));
 
     }
@@ -193,7 +190,7 @@ public class ReteSessionConditionNode extends ReteSessionNode {
      * Returns an iterator over computed memory entries.
      *
      * @param scope the requested inner memory scope
-     * @return an iterator over arrays of {@link FactFieldValues.Scoped} values
+     * @return an iterator over arrays of {@link ConditionMemory.ScopedValueId} values
      */
     public Iterator<ConditionMemory.ScopedValueId[]> memoryIterator(MemoryScope scope) {
         return new MappingIterator<>(iterator(scope), ConditionMemory.MemoryEntry::scopedValues);

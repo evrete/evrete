@@ -57,11 +57,6 @@ public final class CommonUtils {
         return Arrays.copyOf(arr, arr.length);
     }
 
-//    @SuppressWarnings("unchecked")
-//    public static <T> ReIterator<T> emptyReIterator() {
-//        return (ReIterator<T>) EMPTY_RE_ITERATOR;
-//    }
-
     public static <E> List<List<E>> permutation(List<E> l) {
         ArrayList<E> original = new ArrayList<>(l); // ArrayList supports remove
         if (original.isEmpty()) {
@@ -375,58 +370,4 @@ public final class CommonUtils {
         TypeField typeField = type.getField(rawFieldName);
         return new LhsField<>(factName, typeField);
     }
-
-
-//    public static LhsField.Array<String, TypeField> toFields(String[] fieldNames, NamedType.Resolver namedTypeResolver) {
-//        LhsField.Array<String, String> lhsFields = LhsField.Array.fromDottedVariables(fieldNames);
-//        return lhsFields.transform(lhsField -> {
-//            String factName = lhsField.fact();
-//            Type<?> type = namedTypeResolver.resolve(factName).getType();
-//            String rawFieldName = lhsField.field();
-//            if(rawFieldName == null) {
-//                rawFieldName = "";
-//            }
-//            TypeField typeField = type.getField(rawFieldName);
-//            return new LhsField<>(factName, typeField);
-//        });
-//    }
-
-
-//    public static NamedType.Resolver typeResolver(Rule rule) {
-//        MapFunction<String, NamedType> mapFunction = new MapFunction<>();
-//        for(NamedType t : rule.getDeclaredFactTypes()) {
-//            mapFunction.putNew(t.getVarName(), t);
-//        }
-//        return mapFunction::apply;
-//    }
-
-//    public static FieldReference[] resolveFieldReferences(NamedType.Resolver resolver,  String... references) {
-//        FieldReferenceImpl[] fieldReferences = new FieldReferenceImpl[references.length];
-//        for (int i = 0; i < references.length; i++) {
-//            LhsField<String, String> plain = LhsField.parseDottedVariable(references[i]);
-//            FieldReferenceImpl impl = new FieldReferenceImpl(resolver.resolve(plain.fact()), plain.field());
-//            fieldReferences[i] = impl;
-//        }
-//        return fieldReferences;
-//    }
-
-
-//    private static class EmptyReIterator implements ReIterator<Object> {
-//        @Override
-//        public long reset() {
-//            return 0L;
-//        }
-//
-//        @Override
-//        public boolean hasNext() {
-//            return false;
-//        }
-//
-//        @Override
-//        public Object next() {
-//            throw new NoSuchElementException();
-//        }
-//    }
-
-
 }

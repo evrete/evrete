@@ -17,20 +17,6 @@ public class CompletionManager<K, T> {
     private final ConcurrentHashMap<K, CompletableFuture<T>> completions = new ConcurrentHashMap<>();
 
     /**
-     * Retrieves the existing future associated with the given key,
-     * or computes it using the provided mapping function if not already present.
-     * Once the future is completed, it is removed from the manager.
-     *
-     * @param key             the key whose associated future is to be returned or computed
-     * @param mappingFunction the function to compute a future if none is associated with the key
-     * @return the current (existing or newly computed) CompletableFuture associated with the given key
-     */
-    public CompletableFuture<T> computeIfAbsent(K key, Function<? super K, ? extends CompletableFuture<T>> mappingFunction) {
-        return completions.computeIfAbsent(key, k -> mappingFunction.apply(k)
-                .whenComplete((t, throwable) -> completions.remove(k)));
-    }
-
-    /**
      * Enqueues a new CompletableFuture for the given key. If a future is already associated with the key,
      * the new future is chained to execute after the existing one completes. Regardless of whether the future
      * was newly created or enqueued after an existing one, it is removed from the manager once completed.

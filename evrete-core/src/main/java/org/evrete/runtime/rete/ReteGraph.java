@@ -49,15 +49,6 @@ public final class ReteGraph<B extends ReteNode<B>, E extends B, C extends B> {
         });
     }
 
-    @SuppressWarnings("unchecked")
-    public void forEachEntryNode(Consumer<E> action) {
-        this.forEachNode(b -> {
-            if(!b.isConditionNode()) {
-                action.accept((E) b);
-            }
-        });
-    }
-
     public void forEachNode(Consumer<B> action) {
         this.forEachNode(this.terminalNode, action);
     }

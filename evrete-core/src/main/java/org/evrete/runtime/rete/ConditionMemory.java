@@ -3,7 +3,6 @@ package org.evrete.runtime.rete;
 import org.evrete.api.ReteMemory;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.spi.MemoryScope;
-import org.evrete.runtime.FactFieldValues;
 import org.evrete.runtime.PreHashed;
 
 import java.util.Collection;
@@ -80,7 +79,7 @@ public class ConditionMemory implements ReteMemory<ConditionMemory.MemoryEntry> 
     }
 
     /**
-     * A wrapper for an array of {@link FactFieldValues.Scoped} values.
+     * A wrapper for an array of {@link ConditionMemory.ScopedValueId} values.
      */
     public static final class MemoryEntry extends PreHashed {
         private final ScopedValueId[] scopedValueIds;
@@ -122,18 +121,6 @@ public class ConditionMemory implements ReteMemory<ConditionMemory.MemoryEntry> 
             return scopedValueIds;
         }
 
-//        @Override
-//        public boolean equals(Object o) {
-//            if (this == o) return true;
-//            if (o == null || getClass() != o.getClass()) return false;
-//            MemoryEntry entry = (MemoryEntry) o;
-//            return Arrays.equals(scopedValueIds, entry.scopedValueIds);
-//        }
-//
-//        @Override
-//        public String toString() {
-//            return Arrays.toString(scopedValueIds);
-//        }
     }
 
     /**

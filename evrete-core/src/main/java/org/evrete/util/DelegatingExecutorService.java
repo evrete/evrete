@@ -1,7 +1,6 @@
 package org.evrete.util;
 
 import org.evrete.api.annotations.NonNull;
-import org.evrete.api.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;

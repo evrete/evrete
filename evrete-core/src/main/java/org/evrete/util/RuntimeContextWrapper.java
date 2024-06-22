@@ -113,11 +113,6 @@ class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends RuntimeCon
         return delegate.getEvaluatorsContext();
     }
 
-//    @Override
-//    public ExpressionResolver getExpressionResolver() {
-//        return delegate.getExpressionResolver();
-//    }
-
     @Override
     public ClassLoader getClassLoader() {
         return delegate.getClassLoader();

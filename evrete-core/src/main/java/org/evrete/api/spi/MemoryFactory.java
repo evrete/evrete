@@ -1,7 +1,6 @@
 package org.evrete.api.spi;
 
 import org.evrete.api.FactHandle;
-import org.evrete.api.ValuesPredicate;
 
 /**
  * The MemoryFactory interface defines methods for creating different types of memories used in the engine.

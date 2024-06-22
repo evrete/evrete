@@ -2,14 +2,20 @@ package org.evrete.runtime;
 
 import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
-import org.evrete.api.*;
+import org.evrete.api.ActivationMode;
+import org.evrete.api.Knowledge;
+import org.evrete.api.RuntimeRule;
+import org.evrete.api.StatefulSession;
 import org.evrete.api.builders.RuleSetBuilder;
 import org.evrete.classes.*;
 import org.evrete.helper.FactEntry;
 import org.evrete.helper.RhsAssert;
 import org.evrete.helper.TestUtils;
 import org.evrete.util.NextIntSupplier;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 

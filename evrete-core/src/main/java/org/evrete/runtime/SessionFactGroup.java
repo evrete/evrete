@@ -2,7 +2,6 @@ package org.evrete.runtime;
 
 import org.evrete.api.spi.MemoryScope;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;

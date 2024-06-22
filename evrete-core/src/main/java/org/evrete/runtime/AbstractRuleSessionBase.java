@@ -9,7 +9,6 @@ import org.evrete.api.spi.MemoryFactory;
 import org.evrete.api.spi.ValueIndexer;
 import org.evrete.util.SessionCollector;
 
-import java.util.logging.Logger;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
@@ -21,7 +20,6 @@ import java.util.stream.Stream;
  * @param <S> session type parameter
  */
 public abstract class AbstractRuleSessionBase<S extends RuleSession<S>> extends AbstractRuntime<RuntimeRule, S> implements RuleSession<S>, MemoryStreaming {
-    private static final Logger LOGGER = Logger.getLogger(AbstractRuleSessionBase.class.getName());
     private final KnowledgeRuntime knowledge;
     ActivationManager activationManager;
     private volatile boolean active = true;

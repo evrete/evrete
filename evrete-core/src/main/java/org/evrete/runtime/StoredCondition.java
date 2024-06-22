@@ -46,7 +46,7 @@ public class StoredCondition extends LhsCondition<ValuesPredicate, String, Activ
             for (int i = 0; i < arguments.length; i++) {
                 arguments[i] = values.get(i);
             }
-            publisher.broadcast(new ConditionEvaluationEventImpl(start, end, b, getCondition(), arguments));
+            publisher.broadcast(new ConditionEvaluationEventImpl(context, start, end, b, getCondition(), arguments));
             return b;
         }
     }

@@ -12,11 +12,9 @@ import org.evrete.util.DeltaGroupedFactStorageWrapper;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -33,18 +31,9 @@ public class SessionMemory implements MemoryStreaming {
         this.runtime = runtime;
     }
 
-    public void forEach(Consumer<? super TypeMemory> consumer) {
-        typedMemories.forEach(consumer);
-    }
-
     void clear() {
         typedMemories.forEach(TypeMemory::clear);
         typedMemories.clear();
-    }
-
-    // Used in unit tests
-    ArrayMap<ActiveType.Idx, TypeMemory> getTypedMemories() {
-        return typedMemories;
     }
 
     // Used in unit tests
@@ -218,12 +207,7 @@ public class SessionMemory implements MemoryStreaming {
             factCounter.incrementAndGet();
         });
         LOGGER.fine(() -> "Type memory allocation [" + allocationId + "]. Storage rebuild completed for " + newType + ", total facts processed: [" + factCounter.get() + "]");
-        return new TypeMemory(runtime, newType, newStorage, newValueIndexer);
-    }
-
-
-    public DeltaGroupedFactStorage<DefaultFactHandle> getAlphaMemory(FactType type) {
-        return this.getAlphaMemory(type.getAlphaAddress());
+        return new TypeMemory(newType, newStorage, newValueIndexer);
     }
 
     public TypeAlphaMemory getAlphaMemory(AlphaAddress alphaAddress) {

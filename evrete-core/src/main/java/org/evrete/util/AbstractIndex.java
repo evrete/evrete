@@ -21,16 +21,4 @@ public abstract class AbstractIndex extends PreHashed implements Indexed {
                 "idx=" + index +
                 '}';
     }
-
-//    @Override
-//    public boolean equals(Object o) {
-//        if (this == o) return true;
-//        if (o == null || getClass() != o.getClass()) return false;
-//        AbstractIndex that = (AbstractIndex) o;
-//        return index == that.index;
-//    }
-
-    public static int hash(AbstractIndex index1, AbstractIndex index2) {
-        return index1.index * 31 + index2.index;
-    }
 }

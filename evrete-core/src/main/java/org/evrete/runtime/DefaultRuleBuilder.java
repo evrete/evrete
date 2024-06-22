@@ -22,10 +22,6 @@ class DefaultRuleBuilder<C extends RuntimeContext<C>> extends AbstractRule imple
         this.lhsBuilder = new DefaultLhsBuilder<>(this);
     }
 
-    DefaultRuleSetBuilder<C> getRuleSetBuilder() {
-        return ruleSetBuilder;
-    }
-
     String literalRhs() {
         return super.getLiteralRhs();
     }
@@ -95,29 +91,4 @@ class DefaultRuleBuilder<C extends RuntimeContext<C>> extends AbstractRule imple
     AbstractRuntime<?, C> runtime() {
         return ruleSetBuilder.getRuntime();
     }
-
-//    @Override
-//    public CompletableFuture<EvaluatorHandle> createCondition(String expression, double complexity) {
-//        throw new UnsupportedOperationException();
-////        LiteralCondition condition = LiteralCondition.of(expression, complexity);
-////        Evaluator evaluator = runtime()
-////                .compileConditions(this, Collections.singletonList(condition))
-////                .iterator()
-////                .next();
-////        return runtime().getEvaluatorsContext().addEvaluator(evaluator);
-//    }
-//
-//    @Override
-//    public EvaluatorHandle createCondition(ValuesPredicate predicate, double complexity, String... references) {
-//        return createCondition(predicate, complexity, resolveFieldReferences(references));
-//    }
-//
-//    @Override
-//    public EvaluatorHandle createCondition(Predicate<Object[]> predicate, double complexity, String... references) {
-//        return createCondition(predicate, complexity, resolveFieldReferences(references));
-//    }
-
-//    protected FieldReference[] resolveFieldReferences(String... references) {
-//        return CommonUtils.resolveFieldReferences(this, references);
-//    }
 }

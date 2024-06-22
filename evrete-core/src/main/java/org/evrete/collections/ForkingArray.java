@@ -30,7 +30,6 @@ public class ForkingArray<V extends Indexed> {
     private final int dataOffset;
     private int nextWriteIndex;
     private final int initialArraySize;
-    private final int lastKnownParentIndex;
 
     private ForkingArray(int initialArraySize, ForkingArray<V> parent) {
         if (initialArraySize < 1) {
@@ -42,10 +41,8 @@ public class ForkingArray<V extends Indexed> {
             this.parent = parent;
             if (parent == null) {
                 this.dataOffset = 0;
-                this.lastKnownParentIndex = 0;
             } else {
                 this.dataOffset = parent.dataOffset + parent.nextWriteIndex;
-                this.lastKnownParentIndex = parent.nextWriteIndex;
             }
         }
     }

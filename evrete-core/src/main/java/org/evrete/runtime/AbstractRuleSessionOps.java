@@ -1,15 +1,17 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
+import org.evrete.api.FactHandle;
+import org.evrete.api.RuleSession;
+import org.evrete.api.Type;
+import org.evrete.api.TypeResolver;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.annotations.Nullable;
 import org.evrete.api.spi.ValueIndexer;
 import org.evrete.util.CommonUtils;
 
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 /**
@@ -84,19 +86,6 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
     FactHolder getFactWrapper(DefaultFactHandle handle) {
         return getMemory().getTypeMemory(handle).get(handle);
     }
-
-
-//    boolean deleteAndBufferDeleteOp(DefaultFactHandle h) {
-//        // 1. Delete from the type memory immediately
-//        FactWrapper stored = getMemory().get(h).remove(h);
-//        if (stored != null) {
-//            // 2. Register
-//            this.actionBuffer.add(new DeltaMemoryAction.Delete(h, stored));
-//            return true;
-//        } else {
-//            return false;
-//        }
-//    }
 
 
     void bufferDelete(DefaultFactHandle handle, boolean applyToStorage, @NonNull FactHolder existing, WorkMemoryActionBuffer destination) {

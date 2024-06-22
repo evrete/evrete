@@ -18,15 +18,6 @@ public class SearchList<T extends Named> implements Iterable<T> {
         }
     }
 
-    public void addAll(Collection<T> collection) {
-        synchronized (list) {
-            for (T t : collection) {
-                this.list.add(t);
-                this.map.put(t.getName(), t);
-            }
-        }
-    }
-
     public void addAllAndSort(Collection<T> collection, Comparator<? super T> comparator) {
         synchronized (list) {
             for (T t : collection) {

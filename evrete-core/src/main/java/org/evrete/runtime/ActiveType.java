@@ -7,7 +7,10 @@ import org.evrete.runtime.evaluation.DefaultEvaluatorHandle;
 import org.evrete.util.AbstractIndex;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -91,19 +94,6 @@ public class ActiveType implements Copyable<ActiveType> {
         return alphaConditionIndexer.values();
     }
 
-    public void forEachValue(Consumer<AlphaConditionHandle> consumer) {
-        alphaConditionIndexer.forEachValue(consumer);
-    }
-
-    //    TypeAlphaConditions getCreateAlphaConditionsZZZ(Set<DefaultEvaluatorHandle> alphaConditions) {
-//        Set<AlphaConditionHandle> indexedAlphaConditions = new HashSet<>(alphaConditions.size());
-//        for (DefaultEvaluatorHandle alphaCondition : alphaConditions) {
-//            MapEntry<AlphaConditionHandle, AlphaConditionHandle> entry = this.alphaConditionIndexer.getOrCreateEntry(alphaCondition);
-//            indexedAlphaConditions.add(entry.getValue());
-//        }
-//        return this.alphaConditionSubsetIndexer.getOrCreateEntry(indexedAlphaConditions).getValue();
-//    }
-
     TypeAlphaConditions getCreateAlphaConditions(Set<DefaultEvaluatorHandle> alphaConditions) {
         // Index alpha conditions
         Set<AlphaConditionHandle> indexedAlphaConditions = new HashSet<>(alphaConditions.size());
@@ -121,12 +111,6 @@ public class ActiveType implements Copyable<ActiveType> {
         return new FactFieldValues(values);
     }
 
-
-    ActiveField getCreateActiveField(String fieldName) {
-        Type<?> type = getValue();
-        return getCreateActiveField(type.getField(fieldName));
-    }
-
     ActiveField getCreateActiveField(TypeField field) {
         return this.activeFields.getOrCreateEntry(field).getValue();
     }
@@ -142,10 +126,6 @@ public class ActiveType implements Copyable<ActiveType> {
     void forEachAlphaCondition(Consumer<AlphaConditionHandle> action) {
         this.alphaConditionIndexer.forEachValue(action);
     }
-
-//    void forEachAlphaConditionSet(Consumer<TypeAlphaConditions> action) {
-//        this.alphaConditionSubsetIndexer.forEachValue(action);
-//    }
 
     void forEachAlphaAddress(Consumer<AlphaAddress> action) {
         this.knownAlphaLocations.forEach(action);

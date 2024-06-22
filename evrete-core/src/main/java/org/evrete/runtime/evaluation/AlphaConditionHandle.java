@@ -11,7 +11,6 @@ import org.evrete.util.Indexed;
  * where each bit represents the success or failure of the corresponding fact predicate.
  */
 public class AlphaConditionHandle extends PreHashed implements WorkUnit, Indexed {
-    public static final AlphaConditionHandle[] EMPTY_ARRAY = new AlphaConditionHandle[0];
     private final DefaultEvaluatorHandle handle;
     private final int index;
 

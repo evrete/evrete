@@ -120,19 +120,6 @@ public class LhsField<Fact, Field> {
             return Arrays.toString(fields);
         }
 
-//        @Override
-//        public boolean equals(Object o) {
-//            if (this == o) return true;
-//            if (o == null || getClass() != o.getClass()) return false;
-//            Array<?, ?> array = (Array<?, ?>) o;
-//            return Objects.deepEquals(fields, array.fields);
-//        }
-//
-//        @Override
-//        public int hashCode() {
-//            return Arrays.hashCode(fields);
-//        }
-
         public static LhsField.Array<String, String> fromDottedVariables(String[] fieldNames) {
             List<LhsField<String, String>> list = new ArrayList<>(fieldNames.length);
             for (String fieldName : fieldNames) {

@@ -157,12 +157,6 @@ public final class KnowledgeFactGroupBuilder {
         return total;
     }
 
-//    private static Mask<FactType> conditionMask(BetaEvaluator evaluator) {
-//        // We're taking the first reference because others may have a different order,
-//        // but the same combination of fact types.
-//        return evaluator.getTypeMask();
-//    }
-
     private static Mask<FactType> maskOf(FactType factType) {
         return Mask.factTypeMask().set(factType);
     }

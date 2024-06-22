@@ -9,7 +9,6 @@ import java.util.Objects;
 import java.util.function.ToIntFunction;
 
 public final class Mask<T> {
-    public static final BitSet EMPTY = new BitSet();
     private final BitSet delegate = new BitSet();
     private final ToIntFunction<T> intMapper;
 
@@ -47,10 +46,6 @@ public final class Mask<T> {
         return this;
     }
 
-    public int[] getSetBits() {
-        return delegate.stream().toArray();
-    }
-
     public Mask<T> set(T[] arr) {
         for (T obj : arr) {
             this.set(obj);
@@ -69,10 +64,6 @@ public final class Mask<T> {
         return delegate.get(intMapper.applyAsInt(obj));
     }
 
-    public boolean getRaw(int index) {
-        return delegate.get(index);
-    }
-
     public int cardinality() {
         return delegate.cardinality();
     }
@@ -84,11 +75,6 @@ public final class Mask<T> {
     public boolean intersects(Mask<T> other) {
         return delegate.intersects(other.delegate);
     }
-
-
-//    public static Mask<ZZZMemoryAddress> addressMask() {
-//        return new Mask<>(ZZZMemoryAddress::getId);
-//    }
 
     public static <I extends IndexedValue<?>> Mask<I> ofIndexed() {
         return new Mask<>(value -> value.getIndex());
@@ -119,10 +105,6 @@ public final class Mask<T> {
         return new Mask<>(value -> value.getId().getIndex());
     }
 
-//    public static Mask<GroupedFactType> inGroupMask() {
-//        return new Mask<>(GroupedFactType::getInGroupIndex);
-//    }
-//
     public static Mask<AlphaAddress> alphaAddressMask() {
         return Mask.instance(AlphaAddress::getIndex);
     }

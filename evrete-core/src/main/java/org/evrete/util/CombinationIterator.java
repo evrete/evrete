@@ -3,7 +3,6 @@ package org.evrete.util;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
-import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
 
 /**

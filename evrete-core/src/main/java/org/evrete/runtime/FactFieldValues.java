@@ -1,7 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.api.spi.MemoryScope;
-
 import java.util.Arrays;
 
 public final class FactFieldValues extends PreHashed{
@@ -34,40 +32,6 @@ public final class FactFieldValues extends PreHashed{
     @Override
     public String toString() {
         return Arrays.toString(values);
-    }
-
-    public static class Scoped {
-        private final MemoryScope scope;
-        private final long values;
-
-        public Scoped(long values, MemoryScope scope) {
-            this.scope = scope;
-            this.values = values;
-        }
-
-        public Scoped toScope(MemoryScope scope) {
-            if(scope == this.scope) {
-                return this;
-            } else {
-                return new Scoped(values, scope);
-            }
-        }
-
-        public long values() {
-            return values;
-        }
-
-        public MemoryScope scope() {
-            return scope;
-        }
-
-        @Override
-        public String toString() {
-            return "{" +
-                    "scope=" + scope +
-                    ", values=" + values +
-                    '}';
-        }
     }
 
 }

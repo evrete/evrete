@@ -2,29 +2,22 @@ package org.evrete.runtime;
 
 import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
-import org.evrete.api.*;
-import org.evrete.api.builders.RuleSetBuilder;
-import org.evrete.classes.*;
-import org.evrete.helper.FactEntry;
-import org.evrete.helper.RhsAssert;
+import org.evrete.api.FactHandle;
+import org.evrete.api.Knowledge;
+import org.evrete.api.StatefulSession;
+import org.evrete.classes.TypeA;
 import org.evrete.helper.TestUtils;
 import org.evrete.util.DelayedExecutorService;
-import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-
-import static org.evrete.api.FactBuilder.fact;
 
 //TODO !!!! important: use a provided delayed executor to check memories, especially session memory scans and retrievals
 class SessionAsyncTests {

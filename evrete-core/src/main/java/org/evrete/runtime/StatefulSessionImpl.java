@@ -4,11 +4,9 @@ import org.evrete.api.FactHandle;
 import org.evrete.api.MapEntry;
 import org.evrete.api.StatefulSession;
 
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> implements StatefulSession {
-    private static final Logger LOGGER = Logger.getLogger(StatefulSessionImpl.class.getName());
 
     StatefulSessionImpl(KnowledgeRuntime knowledge) {
         super(knowledge);

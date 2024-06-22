@@ -4,11 +4,9 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.collections.ForkingArrayMap;
-import org.evrete.runtime.evaluation.AlphaConditionHandle;
 import org.evrete.runtime.evaluation.DefaultEvaluatorHandle;
 
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
@@ -96,15 +94,6 @@ abstract class AbstractRuntimeMeta<C extends RuntimeContext<C>> extends Abstract
     LhsField.Array<String, ActiveField> toActiveFields(LhsField.Array<String, TypeField> fields) {
         return fields.transform(f -> new LhsField<>(f, getCreateActiveField(f.field())));
     }
-
-//    Stream<AlphaConditionHandle> alphaConditionHandles(ActiveType.Idx typeId) {
-//        return getActiveType(typeId).getAlphaConditions();
-//    }
-
-    void forEachAlphaConditionHandle(ActiveType.Idx typeId, Consumer<AlphaConditionHandle> consumer) {
-        getActiveType(typeId).forEachValue(consumer);
-    }
-
 
     private static class AlphaAddressIndexer extends ForkingArrayMap<TypeAlphaConditions, TypeAlphaConditions, AlphaAddress, AlphaAddress> implements Copyable<AlphaAddressIndexer>{
 

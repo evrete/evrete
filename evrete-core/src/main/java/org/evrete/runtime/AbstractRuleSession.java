@@ -126,49 +126,4 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
             }
         }
     }
-
-
-//    private void fireDefault(ActivationContext ctx) {
-//        List<SessionRule> agenda;
-//        while (ctx.hasPendingTasks()) {
-//            // Compute rules to fire
-//            agenda = ctx.computeAgenda();
-//            WorkMemoryActionBuffer destinationForRuleActions = ctx.getMemoryTasks();
-//            if (!agenda.isEmpty()) {
-//                // Report the agenda to the activation manager
-//                activationManager.onAgenda(ctx.incrementFireCount(), Collections.unmodifiableList(agenda));
-//                for (SessionRule rule : agenda) {
-//                    if (activationManager.test(rule)) {
-//                        // The rule is allowed for activation
-//                        RhsResultReducer actionResult = rule.callRhs();
-//                        activationManager.onActivation(rule, actionResult.getActivationCount());
-//                        // Sink the RHS actions (inserts, updates, deletes called from inside the RHS)
-//                        // into pending tasks
-//                        actionResult.getActionBuffer().sinkTo(destinationForRuleActions);
-//                    }
-//                }
-//            }
-//            ctx.commitDeltaMemories();
-//        }
-//    }
-//
-//    private void fireContinuous(ActivationContext ctx) {
-//        List<SessionRule> agenda;
-//        while (ctx.hasPendingTasks()) {
-//            agenda = ctx.computeAgenda();
-//            WorkMemoryActionBuffer destinationForRuleActions = new WorkMemoryActionBuffer();
-//            if (!agenda.isEmpty()) {
-//                activationManager.onAgenda(ctx.incrementFireCount(), Collections.unmodifiableList(agenda));
-//                for (SessionRule rule : agenda) {
-//                    if (activationManager.test(rule)) {
-//                        RhsResultReducer actionResult = rule.callRhs();
-//                        activationManager.onActivation(rule, actionResult.getActivationCount());
-//                        actionResult.getActionBuffer().sinkTo(destinationForRuleActions);
-//                    }
-//                }
-//            }
-//            destinationForRuleActions.sinkTo(ctx.getMemoryTasks()); // Do we need that buff var?
-//            ctx.commitDeltaMemories();
-//        }
-//    }
 }

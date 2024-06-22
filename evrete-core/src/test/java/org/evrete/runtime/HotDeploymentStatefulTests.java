@@ -7,7 +7,6 @@ import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.classes.TypeD;
 import org.evrete.helper.RhsAssert;
-import org.evrete.helper.TestUtils;
 import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;

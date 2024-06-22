@@ -43,9 +43,7 @@ public class SessionRule extends AbstractActiveRule<SessionFactGroup, SessionLhs
         Iterator<MemoryScope[]> scopesIterator = MemoryScope.states(MemoryScope.DELTA, new MemoryScope[groups.length]);
 
         // Start the iteration
-        scopesIterator.forEachRemaining(scopes -> {
-            callRhs(groups, scopes, ruleRhs, rhsContext);
-        });
+        scopesIterator.forEachRemaining(scopes -> callRhs(groups, scopes, ruleRhs, rhsContext));
 
         LOGGER.fine(() -> "RHS END for rule '" + this.getName() + "'");
         return rhsContext.activationCount.get();

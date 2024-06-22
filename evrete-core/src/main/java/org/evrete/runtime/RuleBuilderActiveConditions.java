@@ -29,32 +29,6 @@ class RuleBuilderActiveConditions {
         }
     }
 
-//    public void add(@NonNull DefaultEvaluatorHandle handle, @NonNull ZZZActiveEvaluator evaluator) {
-//
-//        FieldReference[] descriptor = evaluator.sourceEvaluator().descriptor();
-//        if(descriptor.length == 0) {
-//            throw new IllegalStateException("Empty condition descriptor");
-//        } else if (descriptor.length == 1) {
-//            // This is an alpha condition
-//            String factVarName = descriptor[0].type().getVarName();
-//            alphaConditionsByFactName.add(factVarName, handle);
-//        } else {
-//            // This is a beta condition, storing the pair in a helper format
-//            allBetaConditions.add(new BetaEvaluatorHelper(handle, evaluator));
-//        }
-//    }
-
-    /*
-        Set<ResolvedEvaluator> getAllBetaConditions() {
-            return allBetaConditions;
-        }
-
-        Set<ActiveField> getBetaFieldsOf(IndexedType type) {
-            return betaFieldsByLogicalType.getOrDefault(type.getIndex(), Collections.emptySet());
-        }
-
-    */
-
     Set<DefaultEvaluatorHandle> getAlphaConditionsOf(String factName) {
         return alphaConditionsByFactName.getOrDefault(factName, Collections.emptySet());
     }
@@ -103,40 +77,4 @@ class RuleBuilderActiveConditions {
         }
         return result;
     }
-
-//    private static class BetaEvaluatorHelper {
-//        final DefaultEvaluatorHandle handle;
-//        final ZZZActiveEvaluator evaluator;
-//
-//        BetaEvaluatorHelper(DefaultEvaluatorHandle handle, ZZZActiveEvaluator evaluator) {
-//            this.handle = handle;
-//            this.evaluator = evaluator;
-//        }
-//    }
-
-//    /**
-//     * Key class for grouping beta conditions.
-//     */
-//    private static class BetaKey {
-//        final Mask<FactType> lhsIndexMask;
-//
-//        BetaKey(ActiveBetaEvaluatorReference ref) {
-//            this.lhsIndexMask = ref.getFactTypeMask();
-//        }
-//
-//        // Delegating equals to the bit mask
-//        @Override
-//        public boolean equals(Object o) {
-//            if (this == o) return true;
-//            if (o == null || getClass() != o.getClass()) return false;
-//            BetaKey key = (BetaKey) o;
-//            return Objects.equals(lhsIndexMask, key.lhsIndexMask);
-//        }
-//
-//        // Delegating hashCode to the bit mask
-//        @Override
-//        public int hashCode() {
-//            return lhsIndexMask.hashCode();
-//        }
-//    }
 }

@@ -10,8 +10,4 @@ public class ReteKnowledgeEntryNode extends ReteKnowledgeNode {
         this.factType = factType;
     }
 
-    public FactType getFactType() {
-        return factType;
-    }
-
 }

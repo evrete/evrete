@@ -95,14 +95,6 @@ class DefaultLhsBuilder<C extends RuntimeContext<C>> extends DefaultNamedTypeRes
         this.conditionManager.addLhsBuilderCondition(expression, complexity);
     }
 
-//    private void whereInner(ValuesPredicate predicate, double complexity, FieldReference[] references) {
-//        this.conditions.add(new EvaluatorOfPredicate(Objects.requireNonNull(predicate), complexity, references));
-//    }
-
-//    private void whereInner(Predicate<Object[]> predicate, double complexity, FieldReference[] references) {
-//        this.conditions.add(new EvaluatorOfArray(Objects.requireNonNull(predicate), complexity, references));
-//    }
-
     private void whereInner(ValuesPredicate predicate, double complexity, String[] references) {
         this.conditionManager.addLhsBuilderCondition(predicate, complexity, references);
     }

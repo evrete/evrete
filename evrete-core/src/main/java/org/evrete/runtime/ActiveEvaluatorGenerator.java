@@ -77,41 +77,9 @@ public class ActiveEvaluatorGenerator implements Copyable<ActiveEvaluatorGenerat
                 );
     }
 
-//    void replace(DefaultEvaluatorHandle handle, Evaluator evaluator) {
-//        StoredCondition existing = get(handle, false);
-//        FieldReference[] d1 = existing.sourceEvaluator().descriptor();
-//        FieldReference[] d2 = evaluator.descriptor();
-//        if (FieldReference.sameDescriptors(d1, d2)) {
-//            existing.setDelegate(evaluator);
-//        } else {
-//            throw new IllegalArgumentException("Mismatched descriptors");
-//        }
-//    }
-
     private void replace(DefaultEvaluatorHandle handle, ValuesPredicate predicate) {
         get(handle, false).setPredicate(predicate);
     }
-
-//    synchronized ActiveEvaluator addEvaluatorToCurrentMap(Evaluator evaluator, ActiveField[] activeFields) {
-//        // Look for matching evaluator
-//        Optional<Map.Entry<DefaultEvaluatorHandle, ActiveEvaluator>> found = this.allEntries()
-//                .filter(entry -> {
-//                    ActiveEvaluator existing = entry.getValue();
-//                    return existing.sourceEvaluator().equals(evaluator)
-//                            &&
-//                            Arrays.equals(activeFields, existing.activeFields())
-//                            ;
-//                })
-//                .findFirst();
-//        if (found.isPresent()) {
-//            return found.get().getValue();
-//        } else {
-//            DefaultEvaluatorHandle handle = new DefaultEvaluatorHandle(counter.incrementAndGet(), evaluator.getComplexity());
-//            ActiveEvaluator activeEvaluator = new ActiveEvaluator(handle, evaluator, activeFields);
-//            this.put(handle, activeEvaluator);
-//            return activeEvaluator;
-//        }
-//    }
 
     public StoredCondition get(DefaultEvaluatorHandle handle, boolean returnNull) {
         StoredCondition result = this.valuePredicates.get(handle.getIndex());

@@ -1,6 +1,7 @@
 package org.evrete.api.events;
 
 import org.evrete.api.IntToValue;
+import org.evrete.api.RuleSession;
 import org.evrete.api.ValuesPredicate;
 
 /**
@@ -30,4 +31,11 @@ public interface ConditionEvaluationEvent extends TimedEvent {
      * @return {@code true} if the condition is met, {@code false} otherwise
      */
     boolean isPassed();
+
+    /**
+     * Returns the {@link RuleSession} during which the condition was evaluated.
+     *
+     * @return the session context
+     */
+    RuleSession<?> getContext();
 }

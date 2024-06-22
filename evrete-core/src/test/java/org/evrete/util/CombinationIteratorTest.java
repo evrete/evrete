@@ -3,7 +3,6 @@ package org.evrete.util;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
-import java.util.function.IntConsumer;
 
 class CombinationIteratorTest {
 

@@ -1,7 +1,5 @@
 package org.evrete.runtime;
 
-import java.util.Collection;
-
 public abstract class DeltaMemoryAction {
     private final FactHolder factHolder;
     private final ActiveType type;
@@ -50,12 +48,6 @@ public abstract class DeltaMemoryAction {
         }
 
     }
-
-//    static class Update extends DeltaMemoryAction {
-//        public Update(DefaultFactHandle factHandle, boolean appliedToFactStorage) {
-//            super(factHandle, appliedToFactStorage);
-//        }
-//    }
 
     static class Delete extends DeltaMemoryAction {
 

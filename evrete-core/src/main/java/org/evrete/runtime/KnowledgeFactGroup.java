@@ -5,9 +5,6 @@ import org.evrete.runtime.rete.ReteKnowledgeConditionNode;
 import org.evrete.runtime.rete.ReteKnowledgeEntryNode;
 import org.evrete.runtime.rete.ReteKnowledgeNode;
 
-import java.util.Collection;
-import java.util.Collections;
-
 /**
  * <p>
  * Base class for fact groups. The engine uses this class to group mutually
@@ -40,20 +37,16 @@ public abstract class KnowledgeFactGroup {
     private final Mask<ActiveType> typeMask;
     // Set of alpha locations in use
     private final Mask<AlphaAddress> alphaAddressMask;
-    private final MapOfList<ActiveType.Idx, Integer> typeToIndices;
 
     public KnowledgeFactGroup(FactType[] entryNodes) {
         this.entryNodes = entryNodes;
         this.typeMask = Mask.typeMask();
         this.alphaAddressMask = Mask.alphaAddressMask();
 
-        this.typeToIndices = new MapOfList<>();
-        for (int i = 0; i < entryNodes.length; i++) {
-            FactType entryNode = entryNodes[i];
+        for (FactType entryNode : entryNodes) {
             ActiveType type = entryNode.type();
             this.typeMask.set(type);
             this.alphaAddressMask.set(entryNode.getAlphaAddress());
-            this.typeToIndices.add(type.getId(), i);
         }
     }
 
@@ -61,15 +54,10 @@ public abstract class KnowledgeFactGroup {
         return alphaAddressMask;
     }
 
-    public Collection<Integer> nodeIndices(ActiveType.Idx type) {
-        return typeToIndices.getOrDefault(type, Collections.emptyList());
-    }
-
     public KnowledgeFactGroup(KnowledgeFactGroup other) {
         this.entryNodes = other.getEntryNodes();
         this.typeMask = other.typeMask;
         this.alphaAddressMask = other.alphaAddressMask;
-        this.typeToIndices = other.typeToIndices;
     }
 
     public Mask<ActiveType> getTypeMask() {

@@ -23,14 +23,6 @@ public final class ActiveField implements TypeField {
         this.valueIndex = valueIndex;
     }
 
-    /**
-     * Reference to the declared type
-     * @return the index of the declaring {@link ActiveType}
-     */
-    public ActiveType.Idx type() {
-        return type;
-    }
-
     @Override
     public Class<?> getValueType() {
         return delegate.getValueType();

@@ -175,21 +175,6 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
         return this.configuration;
     }
 
-//    FieldReference[] resolveFieldReferences(String[] arg, NamedType.Resolver typeMapper) {
-//        _assertActive();
-//        return getExpressionResolver().resolve(typeMapper, arg);
-//    }
-
     abstract void _assertActive();
 
-//    Collection<CompiledPredicate> compileConditions(Rule rule, Collection<LiteralPredicate> expressions) throws CompilationException {
-//        if(expressions.isEmpty()) {
-//            return Collections.emptyList();
-//        } else {
-//            return compileRules(Collections.singletonList(new JustConditionsRuleData(rule, expressions)))
-//                    .iterator()
-//                    .next()
-//                    .conditions();
-//        }
-//    }
 }

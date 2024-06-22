@@ -7,7 +7,7 @@ import java.util.function.BiConsumer;
 
 /**
  * A context that maintains a collection of every condition used in the engine's runtime.
- * This interface allows developers to register an {@link Evaluator} and use its
+ * This interface allows developers to register an {@link ValuesPredicate} and use its
  * {@link EvaluatorHandle} to later update the supplied condition or subscribe to condition evaluation events.
  * <p>
  * The context adheres to the context separation principle, i.e., changes made to a

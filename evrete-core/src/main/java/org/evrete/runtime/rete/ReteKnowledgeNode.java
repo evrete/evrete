@@ -3,7 +3,6 @@ package org.evrete.runtime.rete;
 import org.evrete.runtime.ActiveType;
 import org.evrete.runtime.FactType;
 import org.evrete.runtime.MapOfList;
-import org.evrete.runtime.Mask;
 
 import java.util.ArrayList;
 import java.util.List;
