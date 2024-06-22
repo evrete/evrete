@@ -3,7 +3,7 @@
  */
 module org.evrete.core {
     requires java.logging;
-    requires jdk.compiler;
+    requires java.compiler;
     exports org.evrete;
     exports org.evrete.api;
     exports org.evrete.api.builders;

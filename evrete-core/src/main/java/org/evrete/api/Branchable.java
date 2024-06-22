@@ -12,7 +12,7 @@ package org.evrete.api;
  *
  * @param <T> the type of object to be branched
  */
-
+//TODO stick to Copyable
 public interface Branchable<T> {
 
     /**

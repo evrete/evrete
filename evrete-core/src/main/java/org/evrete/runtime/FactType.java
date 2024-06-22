@@ -8,7 +8,7 @@ import java.util.StringJoiner;
  * Runtime representation of an LHS fact declaration.
  */
 public class FactType extends AbstractLhsFact {
-    public static FactType[] EMPTY_ARRAY = new FactType[0];
+    public static final FactType[] EMPTY_ARRAY = new FactType[0];
     private final ActiveType activeType;
     private final AlphaAddress alphaAddress;
 

@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class ReteKnowledgeNode extends ReteNode<ReteKnowledgeNode> {
-    public static ReteKnowledgeNode[] EMPTY_ARRAY = new ReteKnowledgeNode[0];
+    public static final ReteKnowledgeNode[] EMPTY_ARRAY = new ReteKnowledgeNode[0];
     /**
      * This variable contains array of fact types served by this node.
      * It will define storage format for RETE condition nodes.

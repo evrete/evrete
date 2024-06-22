@@ -31,7 +31,7 @@ import java.util.concurrent.ExecutorService;
  * </p>
  */
 class WorkMemoryActionBuffer {
-    static WorkMemoryActionBuffer EMPTY = new WorkMemoryActionBuffer();
+    static final WorkMemoryActionBuffer EMPTY = new WorkMemoryActionBuffer();
     private final LongKeyMap<State> actionsPerFactHandle;
 
     private WorkMemoryActionBuffer(LongKeyMap<State> actionsPerFactHandle) {

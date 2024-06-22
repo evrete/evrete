@@ -31,7 +31,7 @@ public interface StatefulSession extends RuleSession<StatefulSession>,  AutoClos
     }
 
     /**
-     * Same as {@link #fireAsync(Object)}, with the Future's get method will returning
+     * Same as {@link #fireAsync(Object)}, but the Future's get method will return
      * the session itself.
      *
      * @return a Future representing pending completion of the {@link #fire()} command.

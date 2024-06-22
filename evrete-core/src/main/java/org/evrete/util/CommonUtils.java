@@ -296,13 +296,6 @@ public final class CommonUtils {
         }
     }
 
-    public static <T> boolean intersecting(Set<T> a, Set<T> b) {
-        Set<T> temp = new java.util.HashSet<>(a);
-        temp.retainAll(b);
-        return !temp.isEmpty();
-    }
-
-
     public static <V> CompletableFuture<List<V>> completeAndCollect(List<CompletableFuture<V>> futures) {
         if(futures.isEmpty()) {
             return CompletableFuture.completedFuture(Collections.emptyList());
@@ -338,10 +331,6 @@ public final class CommonUtils {
         } else {
             return CompletableFuture.allOf(futures.toArray(EMPTY_FUTURES));
         }
-    }
-
-    public static CompletableFuture<Void> completeAll(CompletableFuture<?>... futures) {
-        return CompletableFuture.allOf(futures);
     }
 
     public static <T, F> CompletableFuture<Void> completeAll(T[] arr, Function<T, CompletableFuture<F>> futureFunction) {

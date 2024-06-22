@@ -11,7 +11,6 @@ import org.evrete.util.AbstractIndex;
  * </p>
  */
 public final class ActiveField implements TypeField {
-    public static final ActiveField[] ZERO_ARRAY = new ActiveField[0];
 
     private final ActiveType.Idx type;
     private final int valueIndex;
