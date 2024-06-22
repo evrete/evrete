@@ -54,13 +54,13 @@ public interface DSLKnowledgeProvider {
      * @param target     The {@link RuleSetBuilder} instance to which the rule source(s) will be appended.
      * @param nameFilter A filter parameter that allows for the selection of specific ruleset name(s)
      *                   since each source may contain multiple rulesets.
-     * @param sources     The rule source to be appended to the target builder. The source can be in various
+     * @param sources    The rule source to be appended to the target builder. The source can be in various
      *                   formats, depending on the implementation (e.g., a String representing rule definitions,
      *                   a File with rule definitions, a URL, etc.).
      * @throws IOException              if an I/O error occurs while processing the source.
      * @throws IllegalArgumentException if the source format is unrecognized or cannot be processed.
      */
-    default <C extends RuntimeContext<C>, S> void appendTo(@NonNull RuleSetBuilder<C> target, @NonNull Predicate<String> nameFilter, S[] sources) throws IOException {
+    default <C extends RuntimeContext<C>> void appendTo(@NonNull RuleSetBuilder<C> target, @NonNull Predicate<String> nameFilter, Object[] sources) throws IOException {
         throw new UnsupportedOperationException("Not implemented");
     }
 

@@ -123,12 +123,7 @@ class SessionAsyncTests {
         try (DelayedExecutorService executorService = new DelayedExecutorService(delayMs, TimeUnit.MILLISECONDS)) {
             AtomicLong startTime = new AtomicLong();
 
-            Runnable r = new Runnable() {
-                @Override
-                public void run() {
-                    startTime.set(Instant.now().toEpochMilli());
-                }
-            };
+            Runnable r = () -> startTime.set(Instant.now().toEpochMilli());
             executorService.submit(r);
             long postSubmitTime = Instant.now().toEpochMilli();
 

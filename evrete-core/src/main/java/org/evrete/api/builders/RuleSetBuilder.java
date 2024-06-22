@@ -66,8 +66,7 @@ public interface RuleSetBuilder<C extends RuntimeContext<C>> extends FluentEnvir
      * @throws IllegalArgumentException If the source format is not recognized or cannot be processed.
      * @see DSLKnowledgeProvider#appendTo(RuleSetBuilder, java.util.function.Predicate, Object[]) for more details
      */
-    @SuppressWarnings("unchecked")
-    default <S> RuleSetBuilder<C> importAllRules(@NonNull DSLKnowledgeProvider provider, S... sources) throws IOException {
+    default RuleSetBuilder<C> importRulesets(@NonNull DSLKnowledgeProvider provider, Object... sources) throws IOException {
         provider.appendTo(this, name -> true, sources);
         return this;
     }
@@ -84,8 +83,7 @@ public interface RuleSetBuilder<C extends RuntimeContext<C>> extends FluentEnvir
      * @throws IllegalStateException    if no or multiple providers were found for the specified DSL identifier.
      * @see DSLKnowledgeProvider#appendTo(RuleSetBuilder, java.util.function.Predicate, Object[]) for more details
      */
-    @SuppressWarnings("unchecked")
-    default <S> RuleSetBuilder<C> importRulesets(@NonNull String dslName, @NonNull Predicate<String> nameFilter, S... sources) throws IOException {
+    default RuleSetBuilder<C> importRulesets(@NonNull String dslName, @NonNull Predicate<String> nameFilter, Object... sources) throws IOException {
         return importRulesets(DSLKnowledgeProvider.load(dslName), nameFilter, sources);
     }
 
@@ -100,9 +98,8 @@ public interface RuleSetBuilder<C extends RuntimeContext<C>> extends FluentEnvir
      * @throws IllegalStateException    if no or multiple providers were found for the specified DSL identifier.
      * @see DSLKnowledgeProvider#appendTo(RuleSetBuilder, java.util.function.Predicate, Object[]) for more details
      */
-    @SuppressWarnings("unchecked")
-    default <S> RuleSetBuilder<C> importAllRules(@NonNull String dslName, S... sources) throws IOException {
-        return importAllRules(DSLKnowledgeProvider.load(dslName), sources);
+    default RuleSetBuilder<C> importRulesets(@NonNull String dslName, Object... sources) throws IOException {
+        return importRulesets(DSLKnowledgeProvider.load(dslName), sources);
     }
 
     /**

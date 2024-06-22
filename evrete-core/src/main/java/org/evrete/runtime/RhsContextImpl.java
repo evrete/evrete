@@ -99,7 +99,7 @@ class RhsContextImpl implements RhsContext {
 
     @Override
     public FactHandle insert0(String type, Object fact, boolean resolveCollections) {
-        return rule.getRuntime().bufferInsertMultiple(fact, false, resolveCollections, this.destinationForRuleActions);
+        return rule.getRuntime().bufferInsertMultiple(type, fact, false, resolveCollections, this.destinationForRuleActions);
     }
 
     @Override
