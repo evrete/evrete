@@ -16,7 +16,17 @@ import java.util.*;
 import java.util.function.Predicate;
 
 /**
- * DSLKnowledgeProvider is an interface that provides methods to build rules from various types of resources.
+ * An interface for creating and integrating Domain-Specific Language (DSL) implementations with the rule engine.
+ * Implementations can utilize any DSL format, ranging from plain text to database storage. When an implementation
+ * is available on the classpath, developers can use it through the
+ * {@link RuleSetBuilder#importRules(String, Object)} method.
+ *
+ * <p>
+ * If an implementation requires or relies on specific configuration options, the authors of the implementation
+ * should read them via the {@link RuleSetBuilder#get(String)} method. The configuration options should be documented
+ * so that developers can set those options via the corresponding {@link RuleSetBuilder#set(String, Object)} method
+ * prior to importing the rules.
+ * </p>
  */
 public interface DSLKnowledgeProvider {
 
@@ -27,76 +37,70 @@ public interface DSLKnowledgeProvider {
      */
     String getName();
 
-    /**
-     * Returns the types that can be used as rule sources.
-     *
-     * @return An {@link Optional} containing an array of {@link Class} objects. These objects represent the valid component types
-     * for rule sources, or an empty {@link Optional} if there are no specific component types applicable.
-     */
-    default Optional<Class<?>[]> sourceTypes() {
-        return Optional.empty();
-    }
 
     /**
-     * Appends the provided rule source(s) to the specified {@link RuleSetBuilder} instance.
+     * Appends the provided rule source to the specified {@link RuleSetBuilder} instance.
+     *
      * <p>
-     * The implementation can report the valid types of arguments it accepts via
-     * the {@link #sourceTypes()} method.
+     * If the implementation requires or relies on specific configuration entries,
+     * they should be set via the {@link RuleSetBuilder#set(String, Object)} method.
      * </p>
+     *
      * <p>
-     * This method represents the preferred approach for integrating external rule sources. In contrast
-     * to the {@link #create(KnowledgeService, TypeResolver, URL...)} method and its variants,
-     * this method enables appending sources directly to both {@link Knowledge} and
+     * This method is the preferred approach for integrating external rule sources. Unlike the deprecated
+     * {@link #create(KnowledgeService, TypeResolver, URL...)} method and its variants, this method enables
+     * appending sources directly to both {@link Knowledge} and
      * {@link org.evrete.api.RuleSession} rule set instances.
      * </p>
      *
-     * @param <C>        The type of the context of the builder.
-     * @param target     The {@link RuleSetBuilder} instance to which the rule source(s) will be appended.
-     * @param nameFilter A filter parameter that allows for the selection of specific ruleset name(s)
-     *                   since each source may contain multiple rulesets.
-     * @param sources    The rule source to be appended to the target builder. The source can be in various
-     *                   formats, depending on the implementation (e.g., a String representing rule definitions,
-     *                   a File with rule definitions, a URL, etc.).
-     * @throws IOException              if an I/O error occurs while processing the source.
-     * @throws IllegalArgumentException if the source format is unrecognized or cannot be processed.
+     * @param <C>    The type of the context for the builder.
+     * @param target The {@link RuleSetBuilder} instance to which the rule source(s) will be appended.
+     * @param source The rule source to be appended to the target builder. The source can be in various
+     *               formats, depending on the implementation (e.g., a String representing rule definitions,
+     *               a File with rule definitions, a URL, etc.).
+     * @throws IOException              If an I/O error occurs while processing the source.
+     * @throws IllegalArgumentException If the source format is unrecognized or cannot be processed.
      */
-    default <C extends RuntimeContext<C>> void appendTo(@NonNull RuleSetBuilder<C> target, @NonNull Predicate<String> nameFilter, Object[] sources) throws IOException {
+    default <C extends RuntimeContext<C>> void appendTo(@NonNull RuleSetBuilder<C> target, Object source) throws IOException {
         throw new UnsupportedOperationException("Not implemented");
     }
 
     /**
-     * Creates a new Knowledge instance based on the given sources' URLs. Depending on the DSL implementation,
-     * the URLs may refer to plain text resources, Java classes/archives, JDBC connection strings, files, etc.
-     *
-     * <p>
-     * <strong>Warning:</strong> This method has not been marked as deprecated yet; however, developers are encouraged
-     * to transition to the new {@link #appendTo(RuleSetBuilder, Predicate, Object[])} method for applying external rulesets.
-     * </p>
+     * Creates a new {@link Knowledge} from the provided resources. This method has been deprecated since version 4.0.0
+     * in favor of using the new {@link #appendTo(RuleSetBuilder, Object)} method for applying external resources.
+     * To ensure backward compatibility, this method (and other similar pre-4.0.0 methods) now attempts to
+     * automatically adopt the new approach. However, depending on the implementation,
+     * compatibility might not be fully guaranteed.
      *
      * @param service   the Knowledge service.
      * @param resources the remote or local resources to apply.
      * @return a new Knowledge instance.
      * @throws IOException if an error occurs while reading the data sources.
+     * @deprecated Use the {@link #appendTo(RuleSetBuilder, Object)} method instead.
      */
-    Knowledge create(KnowledgeService service, URL... resources) throws IOException;
+    @Deprecated
+    default Knowledge create(KnowledgeService service, URL... resources) throws IOException {
+        Knowledge knowledge = service.newKnowledge();
+        RuleSetBuilder<Knowledge> ruleSetBuilder = knowledge.builder();
+        for (URL resource : resources) {
+            this.appendTo(ruleSetBuilder, resource);
+        }
+        return ruleSetBuilder.build();
+    }
 
     /**
-     * <p>
-     * Given the sources' URLs, the DSL implementation must return a new Knowledge instance.
-     * Depending on the DSL implementation, URLs may refer to plain text resources, Java classes/archives,
-     * JDBC connection strings, files, etc.
-     * </p>
-     * <p>
-     * <strong>Warning:</strong> This method has not been marked as deprecated yet; however, developers are encouraged
-     * to transition to the new {@link #appendTo(RuleSetBuilder, Predicate, Object[])} method for applying external rulesets.
-     * </p>
+     * Creates a new {@link Knowledge} from the provided resources. This method has been deprecated since version 4.0.0
+     * in favor of using the new {@link #appendTo(RuleSetBuilder, Object)} method for applying external resources.
+     * To ensure backward compatibility, this method (and other similar pre-4.0.0 methods) now attempts to
+     * automatically adopt the new approach. However, depending on the implementation,
+     * compatibility might not be fully guaranteed.
      *
      * @param resources    remote or local resources to apply
      * @param typeResolver TypeResolver to use.
      * @param service      Knowledge service.
      * @return new Knowledge instance
      * @throws IOException if an error occurs when reading the data sources.
-     * @deprecated use the {@link #create(KnowledgeService, URL...)} method instead
+     * @deprecated Use the {@link #appendTo(RuleSetBuilder, Object)} method instead.
      */
     @Deprecated
     @SuppressWarnings("unused")
@@ -105,31 +109,42 @@ public interface DSLKnowledgeProvider {
     }
 
     /**
-     * <p>
-     * <strong>Warning:</strong> This method has not been marked as deprecated yet; however, developers are encouraged
-     * to transition to the new {@link #appendTo(RuleSetBuilder, Predicate, Object[])} method for applying external rulesets.
-     * </p>
+     * Creates a new {@link Knowledge} from the provided resources. This method has been deprecated since version 4.0.0
+     * in favor of using the new {@link #appendTo(RuleSetBuilder, Object)} method for applying external resources.
+     * To ensure backward compatibility, this method (and other similar pre-4.0.0 methods) now attempts to
+     * automatically adopt the new approach. However, depending on the implementation,
+     * compatibility might not be fully guaranteed.
      *
      * @param streams remote or local resources to apply
      * @param service Knowledge service.
      * @return new Knowledge instance
      * @throws IOException if an error occurs when reading the data sources.
      * @see #create(KnowledgeService, URL...)
+     * @deprecated Use the {@link #appendTo(RuleSetBuilder, Object)} method instead.
      */
-    Knowledge create(KnowledgeService service, InputStream... streams) throws IOException;
+    @Deprecated
+    default Knowledge create(KnowledgeService service, InputStream... streams) throws IOException {
+        Knowledge knowledge = service.newKnowledge();
+        RuleSetBuilder<Knowledge> ruleSetBuilder = knowledge.builder();
+        for (InputStream stream : streams) {
+            this.appendTo(ruleSetBuilder, stream);
+        }
+        return ruleSetBuilder.build();
+    }
 
     /**
-     * <p>
-     * <strong>Warning:</strong> This method has not been marked as deprecated yet; however, developers are encouraged
-     * to transition to the new {@link #appendTo(RuleSetBuilder, Predicate, Object[])} method for applying external rulesets.
-     * </p>
+     * Creates a new {@link Knowledge} from the provided resources. This method has been deprecated since version 4.0.0
+     * in favor of using the new {@link #appendTo(RuleSetBuilder, Object)} method for applying external resources.
+     * To ensure backward compatibility, this method (and other similar pre-4.0.0 methods) now attempts to
+     * automatically adopt the new approach. However, depending on the implementation,
+     * compatibility might not be fully guaranteed.
      *
      * @param files    file resources
      * @param service  Knowledge service.
      * @param resolver Type resolver
      * @return new Knowledge instance
      * @throws IOException if an error occurs when reading the data sources.
-     * @deprecated use the {@link #create(KnowledgeService, File...)} method instead
+     * @deprecated Use the {@link #appendTo(RuleSetBuilder, Object)} method instead.
      */
     @Deprecated
     @SuppressWarnings("unused")
@@ -138,17 +153,19 @@ public interface DSLKnowledgeProvider {
     }
 
     /**
-     * <p>
-     * <strong>Warning:</strong> This method has not been marked as deprecated yet; however, developers are encouraged
-     * to transition to the new {@link #appendTo(RuleSetBuilder, Predicate, Object[])} method for applying external rulesets.
-     * </p>
+     * Creates a new {@link Knowledge} from the provided resources. This method has been deprecated since version 4.0.0
+     * in favor of using the new {@link #appendTo(RuleSetBuilder, Object)} method for applying external resources.
+     * To ensure backward compatibility, this method (and other similar pre-4.0.0 methods) now attempts to
+     * automatically adopt the new approach. However, depending on the implementation,
+     * compatibility might not be fully guaranteed.
      *
      * @param files   file resources
      * @param service Knowledge service.
      * @return new Knowledge instance
      * @throws IOException if an error occurs when reading the data sources.
-     * @see #create(KnowledgeService, URL...)
+     * @deprecated Use the {@link #appendTo(RuleSetBuilder, Object)} method instead.
      */
+    @Deprecated
     default Knowledge create(KnowledgeService service, File... files) throws IOException {
         URL[] urls = new URL[files.length];
         for (int i = 0; i < files.length; i++) {
@@ -159,17 +176,18 @@ public interface DSLKnowledgeProvider {
     }
 
     /**
-     * <p>
-     * <strong>Warning:</strong> This method has not been marked as deprecated yet; however, developers are encouraged
-     * to transition to the new {@link #appendTo(RuleSetBuilder, Predicate, Object[])} method for applying external rulesets.
-     * </p>
+     * Creates a new {@link Knowledge} from the provided resources. This method has been deprecated since version 4.0.0
+     * in favor of using the new {@link #appendTo(RuleSetBuilder, Object)} method for applying external resources.
+     * To ensure backward compatibility, this method (and other similar pre-4.0.0 methods) now attempts to
+     * automatically adopt the new approach. However, depending on the implementation,
+     * compatibility might not be fully guaranteed.
      *
      * @param streams      remote or local resources to apply
      * @param service      Knowledge service.
      * @param typeResolver TypeResolver to use.
      * @return new Knowledge instance
      * @throws IOException if an error occurs when reading the data sources.
-     * @deprecated use the {@link #create(KnowledgeService, InputStream...)} method instead
+     * @deprecated Use the {@link #appendTo(RuleSetBuilder, Object)} method instead.
      */
     @Deprecated
     @SuppressWarnings("unused")
@@ -178,10 +196,11 @@ public interface DSLKnowledgeProvider {
     }
 
     /**
-     * <p>
-     * <strong>Warning:</strong> This method has not been marked as deprecated yet; however, developers are encouraged
-     * to transition to the new {@link #appendTo(RuleSetBuilder, Predicate, Object[])} method for applying external rulesets.
-     * </p>
+     * Creates a new {@link Knowledge} from the provided resources. This method has been deprecated since version 4.0.0
+     * in favor of using the new {@link #appendTo(RuleSetBuilder, Object)} method for applying external resources.
+     * To ensure backward compatibility, this method (and other similar pre-4.0.0 methods) now attempts to
+     * automatically adopt the new approach. However, depending on the implementation,
+     * compatibility might not be fully guaranteed.
      *
      * @param streams remote or local resources to apply
      * @param service Knowledge service.
@@ -189,27 +208,37 @@ public interface DSLKnowledgeProvider {
      * @throws IOException                   if resources can not be read
      * @throws UnsupportedOperationException if this method is not supported by the implementation
      * @see #create(KnowledgeService, URL...)
+     * @deprecated Use the {@link #appendTo(RuleSetBuilder, Object)} method instead.
      */
+    @Deprecated
     default Knowledge create(KnowledgeService service, Reader... streams) throws IOException {
-        throw new UnsupportedOperationException("Method not supported by " + getClass().getName());
+        Knowledge knowledge = service.newKnowledge();
+        RuleSetBuilder<Knowledge> ruleSetBuilder = knowledge.builder();
+        for (Reader stream : streams) {
+            this.appendTo(ruleSetBuilder, stream);
+        }
+        return ruleSetBuilder.build();
     }
 
     /**
-     * <p>
-     * <strong>Warning:</strong> This method has not been marked as deprecated yet; however, developers are encouraged
-     * to transition to the new {@link #appendTo(RuleSetBuilder, Predicate, Object[])} method for applying external rulesets.
-     * </p>
+     * Creates a new {@link Knowledge} from the provided resources. This method has been deprecated since version 4.0.0
+     * in favor of using the new {@link #appendTo(RuleSetBuilder, Object)} method for applying external resources.
+     * To ensure backward compatibility, this method (and other similar pre-4.0.0 methods) now attempts to
+     * automatically adopt the new approach. However, depending on the implementation,
+     * compatibility might not be fully guaranteed.
      *
-     * @param streams      remote or local resources to apply
-     * @param service      Knowledge service.
-     * @param typeResolver TypeResolver to use.
-     * @return new Knowledge instance
-     * @throws IOException                   if resources can not be read
-     * @throws UnsupportedOperationException if this method is not supported by the implementation
-     * @see #create(KnowledgeService, URL...)
+     * @param streams      The remote or local resources to apply.
+     * @param service      The Knowledge service.
+     * @param typeResolver The TypeResolver to use.
+     * @return A new instance of Knowledge.
+     * @throws IOException                   If the resources cannot be read.
+     * @throws UnsupportedOperationException If this method is not supported by the implementation.
+     * @deprecated Use the {@link #appendTo(RuleSetBuilder, Object)} method instead.
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     default Knowledge create(KnowledgeService service, TypeResolver typeResolver, Reader... streams) throws IOException {
-        throw new UnsupportedOperationException("Method not supported by " + getClass().getName());
+        return create(service, streams);
     }
 
     /**

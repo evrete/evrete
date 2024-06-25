@@ -9,7 +9,6 @@ import org.evrete.api.Knowledge;
  */
 public interface KnowledgeCreatedEvent extends ContextEvent {
 
-
     Knowledge getKnowledge();
 
 }
