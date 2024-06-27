@@ -2,73 +2,35 @@ package org.evrete.dsl;
 
 import org.evrete.api.RhsContext;
 import org.evrete.dsl.annotation.MethodPredicate;
+import org.evrete.dsl.annotation.Rule;
 import org.evrete.dsl.annotation.Where;
 
-import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-class RuleMethod extends ClassMethod implements SessionCloneable<RuleMethod>, Consumer<RhsContext> {
-    final String[] stringPredicates;
+class RuleMethod  {
+    final Rule rule;
+    final String[] literalConditions;
     final MethodPredicate[] methodPredicates;
-    final FactDeclaration[] factDeclarations;
-    private final int contextParamId;
-    private final int salience;
+    final RhsMethod rhs;
+
     private final String ruleName;
 
-    RuleMethod(MethodHandles.Lookup lookup, Method method) {
-        super(lookup, method);
-        this.salience = Utils.salience(method);
-        this.ruleName = Utils.ruleName(method);
-        Where predicates = method.getAnnotation(Where.class);
+    RuleMethod(WrappedClass declaringClass, Method delegate, Rule ruleAnnotation) {
+        this.rhs = new RhsMethod(declaringClass, delegate);
+        this.rule = ruleAnnotation;
+        this.ruleName = Utils.ruleName(delegate);
+        Where predicates = delegate.getAnnotation(Where.class);
         if (predicates == null) {
-            this.stringPredicates = new String[0];
+            this.literalConditions = new String[0];
             this.methodPredicates = new MethodPredicate[0];
         } else {
-            this.stringPredicates = predicates.value();
+            this.literalConditions = predicates.value();
             this.methodPredicates = predicates.methods();
         }
-
-        int ctxIndex = Integer.MIN_VALUE;
-        if (!method.getReturnType().equals(void.class)) {
-            throw new MalformedResourceException("Rule methods must be void. " + method);
-        }
-        Parameter[] parameters = method.getParameters();
-        List<FactDeclaration> rhsParameterList = new ArrayList<>();
-        for (int i = 0; i < parameters.length; i++) {
-            Parameter param = parameters[i];
-            if (RhsContext.class.isAssignableFrom(param.getType())) {
-                // Context Parameter
-                if (ctxIndex < 0) {
-                    ctxIndex = i;
-                } else {
-                    throw new MalformedResourceException("Duplicate context parameter in " + method.getName());
-                }
-            } else {
-                FactDeclaration rhsParameter = new FactDeclaration(param, i);
-                rhsParameterList.add(rhsParameter);
-            }
-        }
-        this.factDeclarations = rhsParameterList.toArray(FactDeclaration.EMPTY);
-        this.contextParamId = ctxIndex;
-    }
-
-    private RuleMethod(RuleMethod other, Object instance) {
-        super(other, instance);
-        this.contextParamId = other.contextParamId;
-        this.salience = other.salience;
-        this.ruleName = other.ruleName;
-        this.stringPredicates = other.stringPredicates;
-        this.methodPredicates = other.methodPredicates;
-        this.factDeclarations = other.factDeclarations;
-    }
-
-    @Override
-    public RuleMethod copy(Object sessionInstance) {
-        return new RuleMethod(this, sessionInstance);
     }
 
     String getRuleName() {
@@ -76,18 +38,7 @@ class RuleMethod extends ClassMethod implements SessionCloneable<RuleMethod>, Co
     }
 
     int getSalience() {
-        return salience;
-    }
-
-    @Override
-    public void accept(RhsContext ctx) {
-        for (FactDeclaration p : factDeclarations) {
-            this.args[p.position] = ctx.getObject(p.name);
-        }
-        if (contextParamId >= 0) {
-            this.args[contextParamId] = ctx;
-        }
-        call();
+        return rule.salience();
     }
 
     static class FactDeclaration {
@@ -95,13 +46,67 @@ class RuleMethod extends ClassMethod implements SessionCloneable<RuleMethod>, Co
         final int position;
         final String name;
         final Class<?> javaType;
-        final String namedType;
+        final String logicalType;
 
         FactDeclaration(Parameter parameter, int position) {
             this.name = Utils.factName(parameter);
             this.position = position;
             this.javaType = parameter.getType();
-            this.namedType = Utils.factType(parameter);
+            this.logicalType = Utils.factType(parameter);
+        }
+    }
+
+    static class RhsMethod extends WrappedMethod implements Consumer<RhsContext> {
+        final FactDeclaration[] factDeclarations;
+        private final int contextParamId;
+
+        public RhsMethod(WrappedClass declaringClass, Method delegate) {
+            super(declaringClass, delegate);
+
+            int ctxIndex = Integer.MIN_VALUE;
+            if (!delegate.getReturnType().equals(void.class)) {
+                throw new MalformedResourceException("Rule methods must be void: " + delegate);
+            }
+
+            List<FactDeclaration> rhsParameterList = new ArrayList<>();
+            Parameter[] parameters = delegate.getParameters();
+            for (int i = 0; i < parameters.length; i++) {
+                Parameter param = parameters[i];
+                if (RhsContext.class.isAssignableFrom(param.getType())) {
+                    // Context Parameter
+                    if (ctxIndex < 0) {
+                        ctxIndex = i;
+                    } else {
+                        throw new MalformedResourceException("Duplicate context parameter in " + delegate.getName());
+                    }
+                } else {
+                    FactDeclaration rhsParameter = new FactDeclaration(param, i);
+                    rhsParameterList.add(rhsParameter);
+                }
+            }
+            this.factDeclarations = rhsParameterList.toArray(FactDeclaration.EMPTY);
+            this.contextParamId = ctxIndex;
+        }
+
+        public RhsMethod(RhsMethod other, Object bindInstance) {
+            super(other, bindInstance);
+            this.factDeclarations = other.factDeclarations;
+            this.contextParamId = other.contextParamId;
+        }
+
+        RhsMethod bindTo(Object classInstance) {
+            return new RhsMethod(this, classInstance);
+        }
+
+        @Override
+        public void accept(RhsContext ctx) {
+            for (FactDeclaration p : factDeclarations) {
+                this.args[p.position] = ctx.getObject(p.name);
+            }
+            if (contextParamId >= 0) {
+                this.args[contextParamId] = ctx;
+            }
+            call();
         }
     }
 }

@@ -7,7 +7,7 @@ import org.evrete.dsl.annotation.RuleSet;
 import org.evrete.dsl.annotation.Where;
 import pkg1.evrete.tests.classes.*;
 
-@RuleSet(defaultSort = RuleSet.Sort.BY_NAME)
+@RuleSet(value = "Test Ruleset", defaultSort = RuleSet.Sort.BY_NAME)
 public class RuleSet1 {
 
     @Rule

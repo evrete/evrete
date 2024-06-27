@@ -39,7 +39,12 @@ class StatefulJavaJarTests {
 
         TestUtils.createTempJarFile(dir, jarFile -> {
             try {
-                Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_JAR, jarFile.toURI().toURL());
+                Knowledge knowledge = service.newKnowledge()
+                        .builder()
+                        .set(DSLJarProvider.CLASSES_PROPERTY, "pkg1.evrete.tests.rule.RuleSet2")
+                        .importRules(Constants.PROVIDER_JAVA_JAR, jarFile.toURI().toURL())
+                        .build();
+
                 try (StatefulSession session = session(knowledge, mode)) {
                     assert session.getRules().size() == 2;
                     for (int i = 2; i < 100; i++) {
@@ -64,7 +69,11 @@ class StatefulJavaJarTests {
         File dir = TestUtils.testResourceAsFile("jars/jar2");
         TestUtils.createTempJarFile(dir, jarFile -> {
             try {
-                Knowledge knowledge = service.newKnowledge(DSLJarProvider.class, jarFile.toURI().toURL());
+                Knowledge knowledge = service.newKnowledge()
+                        .builder()
+                        .set(DSLJarProvider.RULESETS_PROPERTY, "Test Ruleset 2")
+                        .importRules(new DSLJarProvider(), jarFile.toURI().toURL())
+                        .build();
 
                 try (StatefulSession session = session(knowledge, mode)) {
                     assert session.getRules().size() == 2;

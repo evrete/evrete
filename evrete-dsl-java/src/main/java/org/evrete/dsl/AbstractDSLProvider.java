@@ -1,133 +1,74 @@
 package org.evrete.dsl;
 
 import org.evrete.Configuration;
-import org.evrete.api.Knowledge;
+import org.evrete.api.Events;
+import org.evrete.api.JavaSourceCompiler;
 import org.evrete.api.RuntimeContext;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.builders.RuleSetBuilder;
+import org.evrete.api.events.SessionCreatedEvent;
 import org.evrete.api.spi.DSLKnowledgeProvider;
-import org.evrete.dsl.annotation.*;
+import org.evrete.util.CommonUtils;
+import org.evrete.util.CompilationException;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.UncheckedIOException;
+import java.io.*;
 import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static org.evrete.dsl.Utils.LOGGER;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
-
+    private static final Logger LOGGER = Logger.getLogger(AbstractDSLProvider.class.getName());
     static final Class<?> TYPE_URL = URL.class;
     static final Class<?> TYPE_CHAR_SEQUENCE = CharSequence.class;
     static final Class<?> TYPE_READER = Reader.class;
     static final Class<?> TYPE_INPUT_STREAM = InputStream.class;
     static final Class<?> TYPE_CLASS = Class.class;
+    static final Class<?> TYPE_FILE = File.class;
 
     static final String CHARSET_PROPERTY = "org.evrete.source-charset";
     static final String CHARSET_DEFAULT = "UTF-8";
 
-/*
-    static Knowledge processRuleSet(Knowledge knowledge, MethodHandles.Lookup lookup, Class<?> javaClass) {
-        // 0. locate and warn about annotated non-public methods
-        for (Method m : Utils.allNonPublicAnnotated(javaClass)) {
-            LOGGER.warning("Method " + m + " declared in " + m.getDeclaringClass() + " is not public and will be disregarded.");
-        }
+    final MethodHandles.Lookup publicLookup;
 
-        // 1. Scanning all the class methods and saving those with annotations
-        RulesetMeta meta = new RulesetMeta(lookup, javaClass);
-        for (Method m : javaClass.getMethods()) {
-            Rule ruleAnnotation = m.getAnnotation(Rule.class);
-            PhaseListener phaseListener = m.getAnnotation(PhaseListener.class);
-            FieldDeclaration fieldDeclaration = m.getAnnotation(FieldDeclaration.class);
-            EnvironmentListener envListener = m.getAnnotation(EnvironmentListener.class);
-
-            if (ruleAnnotation != null) {
-                meta.addRuleMethod(m);
-            }
-
-            if (phaseListener != null) {
-                meta.addPhaseListener(m);
-            }
-
-            if (fieldDeclaration != null) {
-                meta.addFieldDeclaration(m, fieldDeclaration.type());
-            }
-
-            if (envListener != null) {
-                String property = envListener.value();
-                if (property.isEmpty()) {
-                    LOGGER.warning("The @" + EnvironmentListener.class.getSimpleName() + " annotation on " + m + " has no property value and will be ignored");
-                } else {
-                    meta.addEnvListener(m, property);
-                }
-            }
-        }
-
-        if (meta.ruleMethods.isEmpty()) {
-            return knowledge;
-        } else {
-            return new DSLKnowledge(knowledge, null, meta);
-        }
-    }
-*/
-
-
-    <C extends RuntimeContext<C>> Stream<Class<?>> sourceClasses(RuntimeContext<C> context, URL[] urls) throws IOException {
-        throw new IllegalArgumentException("URL sources are not supported by this provider (" + this.getClass().getName() + ")");
+    AbstractDSLProvider() {
+        this.publicLookup = MethodHandles.publicLookup();
     }
 
-    <C extends RuntimeContext<C>> Stream<Class<?>> sourceClasses(RuntimeContext<C> context, Reader[] readers) throws IOException {
-        throw new IllegalArgumentException("Reader sources are not supported by this provider (" + this.getClass().getName() + ")");
+    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, URL url) throws IOException {
+        throw new UnsupportedOperationException();
     }
 
-    <C extends RuntimeContext<C>> Stream<Class<?>> sourceClasses(RuntimeContext<C> context, CharSequence[] strings) throws IOException {
-        throw new IllegalArgumentException("CharSequence(String) sources are not supported by this provider (" + this.getClass().getName() + ")");
+    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, Reader reader) throws IOException {
+        throw new UnsupportedOperationException();
     }
 
-    <C extends RuntimeContext<C>> Stream<Class<?>> sourceClasses(RuntimeContext<C> context, InputStream[] inputStreams) throws IOException {
-        throw new IllegalArgumentException("Input stream sources are not supported by this provider (" + this.getClass().getName() + ")");
+    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, CharSequence literal) {
+        throw new UnsupportedOperationException();
     }
 
-    <C extends RuntimeContext<C>> Stream<Class<?>> sourceClasses(RuntimeContext<C> context, Class<?>[] classes) throws IOException {
-        throw new IllegalArgumentException("Java Class sources are not supported by this provider (" + this.getClass().getName() + ")");
+    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, InputStream inputStream) throws IOException {
+        throw new UnsupportedOperationException();
     }
 
-    private <C extends RuntimeContext<C>, S> Stream<Class<?>> readClassesFrom(RuntimeContext<C> context, @NonNull S[] sources) {
-
-        Class<?> componentType = sources.getClass().getComponentType();
-        try {
-            if (TYPE_URL.isAssignableFrom(componentType)) {
-                return sourceClasses(context, (URL[]) sources);
-            } else if (TYPE_READER.isAssignableFrom(componentType)) {
-                return sourceClasses(context, (Reader[]) sources);
-            } else if (TYPE_CHAR_SEQUENCE.isAssignableFrom(componentType)) {
-                return sourceClasses(context, (CharSequence[]) sources);
-            } else if (TYPE_INPUT_STREAM.isAssignableFrom(componentType)) {
-                return sourceClasses(context, (InputStream[]) sources);
-            } else if (TYPE_CLASS.isAssignableFrom(componentType)) {
-                return sourceClasses(context, (Class<?>[]) sources);
-            } else {
-                throw new IllegalArgumentException("Unsupported source type " + componentType);
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, Class<?> clazz) {
+        throw new UnsupportedOperationException();
     }
+
+    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, File file) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    protected abstract Set<Class<?>> sourceTypes();
+
 
     @Override
-    public <C extends RuntimeContext<C>, S> void appendTo(RuleSetBuilder<C> target, Predicate<String> nameFilter, S[] sources) throws IOException {
-        if (sources != null && sources.length > 0) {
+    public final <C extends RuntimeContext<C>> void appendTo(RuleSetBuilder<C> target, Object source) throws IOException {
+        if (source != null) {
             try {
-                this.appendToInner(target, nameFilter, sources);
+                this.appendToInner(target, source);
             } catch (UncheckedIOException e) {
                 // Unwrap stream exceptions
                 throw e.getCause();
@@ -137,98 +78,92 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
         }
     }
 
-    private <C extends RuntimeContext<C>, S> void appendToInner(RuleSetBuilder<C> target, Predicate<String> nameFilter, S[] sources) {
-        Optional<Class<?>[]> sourceTypes = sourceTypes();
-        if (sourceTypes.isPresent()) {
-            RuntimeContext<C> context = target.getContext();
-            List<WrappedClass> classesWithRules = readClassesFrom(context, sources)
-                    .filter(clazz -> {
-                        // Applying the ruleset name filter
-                        RuleSet annotation = clazz.getAnnotation(RuleSet.class);
-                        String ruleSetName = annotation == null ? null : annotation.value();
-                        return nameFilter.test(ruleSetName);
-                    })
-                    .filter(clazz -> {
-                        // Filter out classes without the @Rule declarations
-                        boolean hasRules = false;
-                        for (Method method : clazz.getMethods()) {
-                            if (method.getAnnotation(Rule.class) != null) {
-                                hasRules = true;
-                                break;
-                            }
-                        }
-                        return hasRules;
-                    })
-                    .map(WrappedClass::new)
-                    .collect(Collectors.toList());
-            appendTo(target, WrappedClass.excludeSubclasses(classesWithRules));
-        } else {
-            throw new IllegalArgumentException("Source types not specified, please report the bug.");
-        }
-    }
+    private <C extends RuntimeContext<C>> void appendToInner(RuleSetBuilder<C> target, @NonNull Object source) throws IOException {
+        Set<Class<?>> sourceTypes = sourceTypes();
+        Collection<?> resolvedSources = CommonUtils.toCollection(source);
+        RuntimeContext<C> context = target.getContext();
 
-    private <C extends RuntimeContext<C>> void appendTo(RuleSetBuilder<C> target, List<RulesClass> ruleClasses) {
-        // 1. Configure types
-        target.getContext().configureTypes(resolver ->{
-            for(RulesClass rulesClass : ruleClasses) {
-                for(RulesClass.FieldDeclarationMethod declarationMethod :  rulesClass.fieldDeclarationMethods.methods.getData()) {
-                    declarationMethod.selfRegister(resolver);
-                }
-            }
-        });
-    }
+        // This is a three-step approach:
+        // 1. First, we collect metadata from each source
+        List<DSLMeta<C>> metaData = new ArrayList<>(resolvedSources.size());
 
-    static DSLKnowledgeBuilder processRuleSet(RuleSetBuilder<Knowledge> rulesetBuilder, MethodHandles.Lookup lookup, Class<?> javaClass) {
-        // 0. locate and warn about annotated non-public methods
-        for (Method m : Utils.allNonPublicAnnotated(javaClass)) {
-            LOGGER.warning(()->"Method " + m + " declared in " + m.getDeclaringClass() + " is not public and will be disregarded.");
-        }
-
-        // 1. Scanning all the class methods and saving those with annotations
-        RulesetMeta meta = new RulesetMeta(lookup, javaClass);
-        for (Method m : javaClass.getMethods()) {
-            Rule ruleAnnotation = m.getAnnotation(Rule.class);
-            PhaseListener phaseListener = m.getAnnotation(PhaseListener.class);
-            FieldDeclaration fieldDeclaration = m.getAnnotation(FieldDeclaration.class);
-            EnvironmentListener envListener = m.getAnnotation(EnvironmentListener.class);
-
-            if (ruleAnnotation != null) {
-                meta.addRuleMethod(m);
-            }
-
-            if (phaseListener != null) {
-                meta.addPhaseListener(m);
-            }
-
-            if (fieldDeclaration != null) {
-                meta.addFieldDeclaration(m, fieldDeclaration.type());
-            }
-
-            if (envListener != null) {
-                String property = envListener.value();
-                if (property.isEmpty()) {
-                    LOGGER.warning(()->"The @" + EnvironmentListener.class.getSimpleName() + " annotation on " + m + " has no property value and will be ignored");
+        for (Object singleSource : resolvedSources) {
+            if(singleSource == null) {
+                LOGGER.warning(()->"Null source detected in " + source);
+            } else {
+                Class<?> sourceType = singleSource.getClass();
+                if(sourceTypes.contains(sourceType)) {
+                    if (TYPE_URL.isAssignableFrom(sourceType)) {
+                        metaData.addAll(createClassMeta(target, (URL) source));
+                        break;
+                    } else if (TYPE_READER.isAssignableFrom(sourceType)) {
+                        metaData.addAll(createClassMeta(target, (Reader) source));
+                        break;
+                    } else if (TYPE_CHAR_SEQUENCE.isAssignableFrom(sourceType)) {
+                        metaData.addAll(createClassMeta(target, (CharSequence) source));
+                        break;
+                    } else if (TYPE_INPUT_STREAM.isAssignableFrom(sourceType)) {
+                        metaData.addAll(createClassMeta(target, (InputStream) source));
+                        break;
+                    } else if (TYPE_CLASS.isAssignableFrom(sourceType)) {
+                        metaData.addAll(createClassMeta(target, (Class<?>) source));
+                        break;
+                    } else if (TYPE_FILE.isAssignableFrom(sourceType)) {
+                        metaData.addAll(createClassMeta(target, (File) source));
+                        break;
+                    } else {
+                        throw new IllegalArgumentException("Unsupported source type " + sourceType);
+                    }
                 } else {
-                    meta.addEnvListener(m, property);
+                    throw new IllegalArgumentException("Unsupported source type " + sourceType + " provided to " + this.getClass().getName());
                 }
             }
         }
 
-        if (meta.ruleMethods.isEmpty()) {
-            return null;
-        } else {
-            return new DSLKnowledgeBuilder(rulesetBuilder, meta);
+        // 2. If the collected data implies compiling Java sources, then compile and apply to the metadata.
+        Map<JavaSourceCompiler.ClassSource, DSLMeta<C>> sourceMap = new IdentityHashMap<>();
+        for (DSLMeta<C> meta : metaData) {
+            JavaSourceCompiler.ClassSource sourceToCompile = meta.sourceToCompile();
+            if (sourceToCompile != null) {
+                sourceMap.put(sourceToCompile, meta);
+            }
         }
-    }
+        if(!sourceMap.isEmpty()) {
+            JavaSourceCompiler sourceCompiler = target.getContext().getSourceCompiler();
+            try {
+                Collection<JavaSourceCompiler.Result<JavaSourceCompiler.ClassSource>> compiledSources = sourceCompiler.compile(sourceMap.keySet());
+                for(JavaSourceCompiler.Result<JavaSourceCompiler.ClassSource> result : compiledSources) {
+                    DSLMeta<C> meta = sourceMap.get(result.getSource());
+                    meta.applyCompiledSource(result.getCompiledClass());
+                }
+            } catch (CompilationException e) {
+                e.log(LOGGER, Level.SEVERE);
+                throw new IllegalStateException(e);
+            }
+        }
 
-    protected MethodHandles.Lookup defaultLookup() {
-        return MethodHandles.publicLookup();
+        // 3. Collect required data (first pass)
+        MetadataCollector initMeta = new MetadataCollector();
+        for(DSLMeta<C> meta : metaData) {
+            meta.collectMetaData(context, initMeta);
+        }
+
+        // 4. Build the rules (second pass)
+        for(DSLMeta<C> meta : metaData) {
+            meta.applyTo(target, initMeta);
+        }
+
+        // 5. Bind the collected data to session events
+        Events.Subscription subscription = context.subscribe(SessionCreatedEvent.class, event -> initMeta.applyToSession(event.getSession()));
+        context.getService().getServiceSubscriptions().add(subscription);
     }
 
     static Charset charset(Configuration configuration) {
         String charSet = configuration.getProperty(CHARSET_PROPERTY, CHARSET_DEFAULT);
         return Charset.forName(charSet);
     }
+
+
 }
 
 

@@ -4,7 +4,11 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.ActivationMode;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
-import org.evrete.dsl.rules.*;
+import org.evrete.api.TypeResolver;
+import org.evrete.dsl.rules.DeclarationRuleSet1;
+import org.evrete.dsl.rules.DeclarationRuleSet2;
+import org.evrete.dsl.rules.DeclarationRuleSet3;
+import org.evrete.dsl.rules.DeclarationRuleSet5;
 import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -12,7 +16,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 class FieldDeclarationsTests {
     private static KnowledgeService service;
@@ -28,13 +33,16 @@ class FieldDeclarationsTests {
     }
 
     private static StatefulSession session(Knowledge knowledge, ActivationMode mode) {
-        return knowledge.newStatefulSession().setActivationMode(mode);
+        return knowledge.newStatefulSession(mode);
     }
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void test1(ActivationMode mode) throws IOException {
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_CLASS, DeclarationRuleSet1.class);
+        Knowledge knowledge = service.newKnowledge()
+                .builder()
+                .importRules(Constants.PROVIDER_JAVA_CLASS, DeclarationRuleSet1.class)
+                .build();
         NextIntSupplier primeCounter;
         try (StatefulSession session = session(knowledge, mode)) {
 
@@ -53,8 +61,11 @@ class FieldDeclarationsTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void test2(ActivationMode mode) throws IOException {
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_CLASS, DeclarationRuleSet2.class);
-        NextIntSupplier primeCounter;
+        Knowledge knowledge = service.newKnowledge()
+                .builder()
+                .importRules(Constants.PROVIDER_JAVA_CLASS, DeclarationRuleSet2.class)
+                .build();
+        AtomicInteger primeCounter;
         try (StatefulSession session = session(knowledge, mode)) {
 
             for (int i = 2; i < 100; i++) {
@@ -63,7 +74,7 @@ class FieldDeclarationsTests {
 
             session.fire();
 
-            primeCounter = new NextIntSupplier();
+            primeCounter = new AtomicInteger();
             session.forEachFact((h, o) -> primeCounter.incrementAndGet());
             assert primeCounter.get() == 25;
         }
@@ -72,7 +83,12 @@ class FieldDeclarationsTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void test3(ActivationMode mode) throws IOException {
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_CLASS, DeclarationRuleSet3.class);
+        Knowledge knowledge = service.newKnowledge()
+                .builder()
+                .importRules(Constants.PROVIDER_JAVA_CLASS, DeclarationRuleSet3.class)
+                .build();
+
+
         NextIntSupplier primeCounter;
         try (StatefulSession session = session(knowledge, mode)) {
             session.set("random-offset", 0);
@@ -94,26 +110,31 @@ class FieldDeclarationsTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void test5(ActivationMode mode) throws IOException {
-        throw new UnsupportedEncodingException("TODO");
-//        TypeResolver typeResolver = service.newTypeResolver();
-//        String type = "Hello world type";
-//        typeResolver.declare(type, String.class);
-//
-//        Knowledge knowledge = service.newKnowledge(DSLClassProvider.class, typeResolver, DeclarationRuleSet5.class);
-//        try (StatefulSession session = session(knowledge, mode)) {
-//            session.set("random-offset", 0);
-//
-//            for (int i = 2; i < 100; i++) {
-//                session.insertAs(type, String.valueOf(i));
-//            }
-//
-//            session.fire();
-//
-//            NextIntSupplier primeCounter = new NextIntSupplier();
-//            session.forEachFact((h, o) -> primeCounter.next());
-//
-//            assert primeCounter.get() == 25 : "Actual: " + primeCounter.get();
-//        }
+        String logicalTypeName = "Hello world type";
+        Knowledge knowledge = service.newKnowledge()
+                .configureTypes(new Consumer<TypeResolver>() {
+                    @Override
+                    public void accept(TypeResolver typeResolver) {
+                        typeResolver.declare(logicalTypeName, String.class);
+                    }
+                })
+                .builder()
+                .importRules(Constants.PROVIDER_JAVA_CLASS, DeclarationRuleSet5.class)
+                .build();
+        try (StatefulSession session = session(knowledge, mode)) {
+            session.set("random-offset", 0);
+
+            for (int i = 2; i < 100; i++) {
+                session.insertAs(logicalTypeName, String.valueOf(i));
+            }
+
+            session.fire();
+
+            AtomicInteger primeCounter = new AtomicInteger();
+            session.forEachFact((h, o) -> primeCounter.incrementAndGet());
+
+            assert primeCounter.get() == 25 : "Actual: " + primeCounter.get();
+        }
     }
 
 }

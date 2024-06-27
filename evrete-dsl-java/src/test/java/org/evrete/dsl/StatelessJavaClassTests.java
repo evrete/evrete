@@ -34,8 +34,13 @@ class StatelessJavaClassTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void primeTest1(ActivationMode mode) throws IOException {
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_CLASS, SampleRuleSet1.class);
+    void primeTest1VirtualMethod(ActivationMode mode) throws IOException {
+        Knowledge knowledge = service.newKnowledge()
+                .builder()
+                .importRules(Constants.PROVIDER_JAVA_CLASS, SampleRuleSet1Virtual.class)
+                .build();
+
+
         StatelessSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
@@ -52,8 +57,98 @@ class StatelessJavaClassTests {
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
-    void primeTest2(ActivationMode mode) throws IOException {
-        Knowledge knowledge = service.newKnowledge(DSLClassProvider.class, SampleRuleSet2.class);
+    void primeTest1StaticMethod(ActivationMode mode) throws IOException {
+        Knowledge knowledge = service.newKnowledge()
+                .builder()
+                .importRules(Constants.PROVIDER_JAVA_CLASS, SampleRuleSet1Static.class)
+                .build();
+
+
+        StatelessSession session = session(knowledge, mode);
+
+        assert session.getRules().size() == 1;
+        for (int i = 2; i < 100; i++) {
+            session.insert(i);
+        }
+
+        NextIntSupplier primeCounter = new NextIntSupplier();
+        session.fire((h, o) -> primeCounter.incrementAndGet());
+
+        assert primeCounter.get() == 25;
+
+    }
+
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void primeTest2StaticVirtual(ActivationMode mode) throws IOException {
+        Knowledge knowledge = service.newKnowledge()
+                .builder()
+                .importRules(new DSLClassProvider(), SampleRuleSet2StaticVirtual.class)
+                .build();
+
+        StatelessSession session = session(knowledge, mode);
+
+        assert session.getRules().size() == 1;
+        for (int i = 2; i < 100; i++) {
+            session.insert(i);
+        }
+
+        NextIntSupplier primeCounter = new NextIntSupplier();
+        session.fire((h, o) -> primeCounter.incrementAndGet());
+
+        assert primeCounter.get() == 25;
+    }
+
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void primeTest2StaticStatic(ActivationMode mode) throws IOException {
+        Knowledge knowledge = service.newKnowledge()
+                .builder()
+                .importRules(new DSLClassProvider(), SampleRuleSet2StaticStatic.class)
+                .build();
+
+        StatelessSession session = session(knowledge, mode);
+
+        assert session.getRules().size() == 1;
+        for (int i = 2; i < 100; i++) {
+            session.insert(i);
+        }
+
+        NextIntSupplier primeCounter = new NextIntSupplier();
+        session.fire((h, o) -> primeCounter.incrementAndGet());
+
+        assert primeCounter.get() == 25;
+    }
+
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void primeTest2VirtualVirtual(ActivationMode mode) throws IOException {
+        Knowledge knowledge = service.newKnowledge()
+                .builder()
+                .importRules(new DSLClassProvider(), SampleRuleSet2VirtualVirtual.class)
+                .build();
+
+        StatelessSession session = session(knowledge, mode);
+
+        assert session.getRules().size() == 1;
+        for (int i = 2; i < 100; i++) {
+            session.insert(i);
+        }
+
+        NextIntSupplier primeCounter = new NextIntSupplier();
+        session.fire((h, o) -> primeCounter.incrementAndGet());
+
+        assert primeCounter.get() == 25;
+    }
+
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void primeTest2VirtualStatic(ActivationMode mode) throws IOException {
+        Knowledge knowledge = service.newKnowledge()
+                .builder()
+                .importRules(new DSLClassProvider(), SampleRuleSet2VirtualStatic.class)
+                .build();
+
         StatelessSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
@@ -70,7 +165,12 @@ class StatelessJavaClassTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void primeTest3(ActivationMode mode) throws IOException {
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_CLASS, SampleRuleSet3.class);
+
+        Knowledge knowledge = service.newKnowledge()
+                .builder()
+                .importRules(Constants.PROVIDER_JAVA_CLASS, SampleRuleSet3.class)
+                .build();
+
         StatelessSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
@@ -87,7 +187,11 @@ class StatelessJavaClassTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void sortInheritance1(ActivationMode mode) throws IOException {
-        Knowledge knowledge = service.newKnowledge(DSLClassProvider.class, SortedRuleSet1.class);
+        Knowledge knowledge = service.newKnowledge()
+                .builder()
+                .importRules(new DSLClassProvider(), SortedRuleSet1.class)
+                .build();
+
         StatelessSession session = session(knowledge, mode);
         List<RuntimeRule> rules = session.getRules();
 
@@ -102,10 +206,15 @@ class StatelessJavaClassTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void sortInheritance2(ActivationMode mode) throws IOException {
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_CLASS, SortedRuleSet2.class);
+        Knowledge knowledge = service.newKnowledge()
+                .builder()
+                .importRules(Constants.PROVIDER_JAVA_CLASS, SortedRuleSet2.class)
+                .build();
+
         StatelessSession session = session(knowledge, mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 5 : "Actual: " + rules.size() + ": " + rules;
+
         assert rules.get(0).getName().endsWith("rule2"); // Salience 100
         assert rules.get(1).getName().endsWith("rule3"); // Salience 10
         assert rules.get(2).getName().endsWith("rule1"); // Salience -1

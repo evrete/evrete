@@ -1,7 +1,12 @@
 package org.evrete.dsl;
 
+import org.evrete.api.JavaSourceCompiler;
+import org.evrete.api.events.ContextEvent;
+import org.evrete.api.events.EnvironmentChangeEvent;
+import org.evrete.api.events.SessionCreatedEvent;
 import org.evrete.runtime.compiler.RuntimeClassloader;
 import org.evrete.runtime.compiler.SourceCompiler;
+import org.evrete.util.JavaSourceUtils;
 
 import java.io.*;
 import java.net.URISyntaxException;
@@ -12,18 +17,14 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 
-@SuppressWarnings("ResultOfMethodCallIgnored")
 public class TestUtils {
-
-    public static void testFile(Object f) {
-        new File(f.toString()).exists();
-    }
 
     public static File testResourceAsFile(String path) throws IOException {
         URL url = Thread.currentThread().getContextClassLoader().getResource(path);
@@ -40,47 +41,56 @@ public class TestUtils {
     }
 
     static synchronized void createTempJarFile(File root, Consumer<File> jarConsumer) throws Exception {
-        throw new UnsupportedOperationException();
-//        Path compileRoot = root.toPath();
-//
-//        SourceCompiler sourceCompiler = new SourceCompiler(new RuntimeClassloader(ClassLoader.getSystemClassLoader()));
-//
-//        Stream<Path> javaFiles = Files.find(compileRoot, Integer.MAX_VALUE, (path, attrs) -> path.toString().endsWith(".java"));
-//
-//        Set<String> sources = javaFiles.map(path -> {
-//            try {
-//                //noinspection ReadWriteStringCanBeUsed
-//                return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
-//            } catch (IOException e) {
-//                throw new UncheckedIOException(e);
-//            }
-//        }).collect(Collectors.toSet());
-//
-//        Collection<Class<?>> classes = sourceCompiler.compile(sources).values();
-//
-//        File out = File.createTempFile("speakace-test", ".jar");
-//        FileOutputStream fos = new FileOutputStream(out);
-//        JarOutputStream jar = new JarOutputStream(fos);
-//        for(Class<?> c : classes) {
-//            String binaryName = c.getName().replaceAll("\\.", "/");
-//            String name = binaryName + ".class";
-//            ZipEntry zipEntry = new JarEntry(name);
-//            jar.putNextEntry(zipEntry);
-//
-//            assert c.getClassLoader() instanceof RuntimeClassloader;
-//            InputStream stream = Objects.requireNonNull(c.getClassLoader().getResourceAsStream(name));
-//            copy(stream, jar);
-//            stream.close();
-//            jar.closeEntry();
-//        }
-//        jar.close();
-//
-//        try {
-//            jarConsumer.accept(out);
-//        } finally {
-//            Files.deleteIfExists(out.toPath());
-//        }
+        Path compileRoot = root.toPath();
+
+        SourceCompiler sourceCompiler = new SourceCompiler(new RuntimeClassloader(ClassLoader.getSystemClassLoader()));
+
+        Stream<Path> javaFiles = Files.find(compileRoot, Integer.MAX_VALUE, (path, attrs) -> path.toString().endsWith(".java"));
+
+        Set<String> sources = javaFiles.map(path -> {
+            try {
+                //noinspection ReadWriteStringCanBeUsed
+                return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }).collect(Collectors.toSet());
+
+        Collection<Class<?>> classes = compile(sources);
+
+        File out = File.createTempFile("speakace-test", ".jar");
+        FileOutputStream fos = new FileOutputStream(out);
+        JarOutputStream  jar = new JarOutputStream(fos);
+        for(Class<?> c : classes) {
+            String binaryName = c.getName().replaceAll("\\.", "/");
+            String name = binaryName + ".class";
+            ZipEntry zipEntry = new JarEntry(name);
+            jar.putNextEntry(zipEntry);
+
+            assert c.getClassLoader() instanceof RuntimeClassloader;
+            InputStream stream = Objects.requireNonNull(c.getClassLoader().getResourceAsStream(name));
+            copy(stream, jar);
+            stream.close();
+            jar.closeEntry();
+        }
+        jar.close();
+
+        try {
+            jarConsumer.accept(out);
+        } finally {
+            Files.deleteIfExists(out.toPath());
+        }
     }
+
+
+    static Collection<Class<?>> compile(Collection<String> sources) throws Exception {
+        SourceCompiler sourceCompiler = new SourceCompiler(new RuntimeClassloader(ClassLoader.getSystemClassLoader()));
+        Collection<JavaSourceCompiler.ClassSource> resolved = sources.stream().map(JavaSourceUtils::parse).collect(Collectors.toList());
+
+        Collection<JavaSourceCompiler.Result<JavaSourceCompiler.ClassSource>> compiled =  sourceCompiler.compile(resolved);
+        return compiled.stream().map((Function<JavaSourceCompiler.Result<JavaSourceCompiler.ClassSource>, Class<?>>) JavaSourceCompiler.Result::getCompiledClass).collect(Collectors.toList());
+    }
+
 
     private static void copy(InputStream source, OutputStream sink) throws IOException {
         byte[] buf = new byte[4096];
@@ -104,6 +114,11 @@ public class TestUtils {
             count++;
         }
 
+        public static void add(EnvironmentChangeEvent e) {
+            data.computeIfAbsent(e.getProperty(), k -> new ArrayList<>()).add(e.getValue());
+            count++;
+        }
+
         static int total() {
             return count;
         }
@@ -116,25 +131,29 @@ public class TestUtils {
     }
 
     public static class PhaseHelperData {
-        static final EnumMap<Phase, AtomicInteger> EVENTS = new EnumMap<>(Phase.class);
+        static final Map<Class<?>, AtomicInteger> EVENTS = new HashMap<>();
 
         static {
             reset();
         }
 
         public static void reset() {
-            for (Phase phase : Phase.values()) {
-                EVENTS.put(phase, new AtomicInteger());
+            EVENTS.clear();
+        }
+
+        public static int count(Class<?> event) {
+            int result = 0;
+            for(Map.Entry<Class<?>, AtomicInteger> entry : EVENTS.entrySet()) {
+                if(event.isAssignableFrom(entry.getKey())) {
+                    result += entry.getValue().intValue();
+                }
             }
+            return result;
         }
 
-        public static int count(Phase phase) {
-            return EVENTS.get(phase).get();
-        }
-
-        public static void event(Phase... phases) {
-            for (Phase phase : phases) {
-                EVENTS.get(phase).incrementAndGet();
+        public static void event(ContextEvent... events) {
+            for (ContextEvent evt : events) {
+                EVENTS.computeIfAbsent(evt.getClass(), k->new AtomicInteger()).incrementAndGet();
             }
         }
 

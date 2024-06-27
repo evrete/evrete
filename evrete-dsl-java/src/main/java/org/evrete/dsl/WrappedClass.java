@@ -1,52 +1,50 @@
 package org.evrete.dsl;
 
+import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
 
 class WrappedClass {
     protected final Class<?> delegate;
     protected final Method[] publicMethods;
+    private final MethodHandles.Lookup classLookup;
 
-    WrappedClass(Class<?> delegate) {
+    WrappedClass(Class<?> delegate, MethodHandles.Lookup publicLookup) {
         this.delegate = delegate;
+        this.classLookup = publicLookup.in(delegate);
         this.publicMethods = delegate.getMethods();
     }
 
     protected WrappedClass(WrappedClass other) {
         this.delegate = other.delegate;
         this.publicMethods = other.publicMethods;
+        this.classLookup = other.classLookup;
     }
 
-    private boolean isExtendedBy(WrappedClass other) {
-        return this != other && this.delegate.isAssignableFrom(other.delegate);
+    MethodHandle getHandle(Method m) {
+        try {
+            return classLookup.unreflect(m);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException("Unable to access method " + m, e);
+        }
     }
 
-    public static List<RulesClass> excludeSubclasses(List<WrappedClass> classes) {
-        MethodHandles.Lookup publicLookup = MethodHandles.publicLookup();
-        List<RulesClass> result = new ArrayList<>(classes.size());
-        for (WrappedClass wrappedClass : classes) {
-            boolean isSubclassed = false;
-            for (WrappedClass potentialSubclass : classes) {
-                if(wrappedClass.isExtendedBy(potentialSubclass)) {
-                    isSubclassed = true;
-                    break;
-                }
-            }
-
-            if(!isSubclassed) {
-                int modifiers = wrappedClass.delegate.getModifiers();
-                // Check if the class is public and not abstract
-                boolean isPublic = Modifier.isPublic(modifiers);
-                boolean isNotAbstract = !Modifier.isAbstract(modifiers);
-                if(isPublic && isNotAbstract) {
-                    result.add(new RulesClass(wrappedClass, publicLookup));
-                }
+    WrappedMethod lookup(String name, MethodType methodType) {
+        MethodHandle handle;
+        boolean staticMethod;
+        try {
+            handle = classLookup.findStatic(delegate, name, methodType);
+            staticMethod = true;
+        } catch (NoSuchMethodException | IllegalAccessException e1) {
+            try {
+                handle = classLookup.findVirtual(delegate, name, methodType);
+                staticMethod = false;
+            } catch (NoSuchMethodException | IllegalAccessException e2) {
+                throw new MalformedResourceException("Unable to find/access method '" + name + "' in " + delegate + " of type " + methodType);
             }
         }
 
-        return result;
+        return new WrappedMethod(this, handle, staticMethod);
     }
 }

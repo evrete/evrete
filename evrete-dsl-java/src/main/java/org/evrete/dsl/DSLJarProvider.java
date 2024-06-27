@@ -1,21 +1,15 @@
 package org.evrete.dsl;
 
-import org.evrete.Configuration;
-import org.evrete.KnowledgeService;
-import org.evrete.api.Knowledge;
 import org.evrete.api.RuntimeContext;
+import org.evrete.api.builders.RuleSetBuilder;
+import org.evrete.dsl.annotation.RuleSet;
+import org.evrete.util.CommonUtils;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.jar.JarInputStream;
-import java.util.stream.Stream;
+import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * The DSLClassProvider class provides the implementation of the DSLKnowledgeProvider
@@ -23,19 +17,14 @@ import java.util.stream.Stream;
  */
 
 public class DSLJarProvider extends AbstractDSLProvider {
+    private static final Logger LOGGER = Logger.getLogger(DSLJarProvider.class.getName());
     static final String CLASSES_PROPERTY = "org.evrete.dsl.rule-classes";
-    private static final String EMPTY_CLASSES = "";
-    private static final String CLASS_ENTRY_SUFFIX = ".class";
-    private static final String[] DISALLOWED_PACKAGES = new String[]{
-            "java.",
-            "javax.",
-            "sun.",
-            "org.evrete.",
-    };
+    static final String RULESETS_PROPERTY = "org.evrete.dsl.ruleset-names";
+    private static final String EMPTY_STRING = "";
 
     private static final Class<?>[] SUPPORTED_TYPES = new Class<?>[]{
             TYPE_URL,
-            TYPE_INPUT_STREAM
+            TYPE_FILE
     };
 
     /**
@@ -45,106 +34,84 @@ public class DSLJarProvider extends AbstractDSLProvider {
     }
 
     @Override
-    public Optional<Class<?>[]> sourceTypes() {
-        return Optional.of(SUPPORTED_TYPES);
+    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, File file) throws IOException {
+        return this.createClassMeta(target, file.toURI().toURL());
     }
 
     @Override
-    <C extends RuntimeContext<C>> Stream<Class<?>> sourceClasses(RuntimeContext<C> context, InputStream[] inputStreams) throws IOException {
-        try {
-            return Arrays.stream(inputStreams)
-                    .flatMap(is -> classes(context, is));
-        } catch (UncheckedIOException e) {
-            throw e.getCause();
-        }
-    }
+    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, URL url) throws IOException {
+        RuntimeContext<C> context = target.getContext();
+        try(JarClassloader jarClassloader = new JarClassloader(url, context.getClassLoader())) {
+            String[] classes = CommonUtils.splitConfigString(target.get(CLASSES_PROPERTY, EMPTY_STRING));
+            final String[] criteria;
+            final  Collection<Class<?>> selectedRuleClasses;
+            if(classes.length == 0) {
+                String[] ruleSets = CommonUtils.splitCSV(target.get(RULESETS_PROPERTY, EMPTY_STRING));
+                if(ruleSets.length == 0) {
+                    throw new IllegalArgumentException("Neither ruleset names nor class names are specified");
+                } else {
+                    criteria = ruleSets;
+                    selectedRuleClasses = readRulesets(jarClassloader, ruleSets);
+                }
+            } else {
+                criteria = classes;
+                selectedRuleClasses = readClasses(jarClassloader, classes);
+            }
 
-    @Override
-    <C extends RuntimeContext<C>> Stream<Class<?>> sourceClasses(RuntimeContext<C> context, URL[] urls) throws IOException {
-        try {
-            return Arrays.stream(urls)
-                    .map(url -> {
-                        try {
-                            return url.openStream();
-                        } catch (IOException e) {
-                            throw new UncheckedIOException(e);
-                        }
-                    })
-                    .flatMap(is -> classes(context, is));
-        } catch (UncheckedIOException e) {
-            throw e.getCause();
-        }
-    }
-
-    private Stream<Class<?>> classes(RuntimeContext<?> context, InputStream is) {
-        try {
-            JarInputStream jarInputStream = new JarInputStream(is);
-            Set<String> ruleClasses = ruleClasses(context.getConfiguration());
-
-            return Utils.jarStream(jarInputStream)
-                    .filter(entry -> {
-                        String name = entry.name;
-                        return name.endsWith(CLASS_ENTRY_SUFFIX) && validateClass(name);
-                    })
-                    .map((Function<JarBytesEntry, Class<?>>) jarEntry -> {
-                        String className = jarEntry.name
-                                .substring(0, jarEntry.name.length() - CLASS_ENTRY_SUFFIX.length())
-                                .replaceAll("/", ".");
-                        return context.addClass(className, jarEntry.bytes);
-                    })
-                    .filter(aClass -> {
-                        // TODO remove this predicate when the old loaders are deprecated
-                        String className = aClass.getName();
-                        if (ruleClasses.isEmpty()) {
-                            return true;
-                        } else {
-                            return ruleClasses.contains(className);
-                        }
-                    });
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private static Set<String> ruleClasses(Configuration configuration) {
-        Set<String> ruleClasses = new HashSet<>();
-        String ruleSets = (String) configuration.getOrDefault(CLASSES_PROPERTY, EMPTY_CLASSES);
-        if (!ruleSets.isEmpty()) {
-            String[] classNames = ruleSets.split("[\\s,;]");
-            for (String className : classNames) {
-                if (className != null && !className.isEmpty()) {
-                    ruleClasses.add(className);
+            Collection<DSLMeta<C>> result = new ArrayList<>(selectedRuleClasses.size());
+            for(Class<?> ruleClass : selectedRuleClasses) {
+                if(Utils.isDslRuleClass(ruleClass)) {
+                    result.add(new DSLMetaClassSource<>(publicLookup, ruleClass));
                 }
             }
+
+            if(result.isEmpty()) {
+                LOGGER.warning("No rule classes selected given the provided criteria: " + Arrays.toString(criteria));
+            }
+            return result;
         }
-        return ruleClasses;
     }
 
-    private static boolean validateClass(String className) {
-        for (String pkg : DISALLOWED_PACKAGES) {
-            if (className.startsWith(pkg)) {
-                return false;
+    private Collection<Class<?>> readClasses(JarClassloader jarClassloader, String[] classNames) {
+        Collection<Class<?>> result = new ArrayList<>(classNames.length);
+        for(String className : classNames) {
+            try {
+                result.add(jarClassloader.loadClass(className));
+            } catch (ClassNotFoundException e) {
+                throw new MalformedResourceException("Unable to load class " + className, e);
             }
         }
-        return true;
+        return result;
     }
 
-    @Override
-    public Knowledge create(KnowledgeService service, URL... urls) throws IOException {
-        return service
-                .newKnowledge()
-                .builder()
-                .importAllRules(this, urls)
-                .build();
+    private Collection<Class<?>> readRulesets(JarClassloader jarClassloader, String[] rulesetNames) throws IOException {
+        Map<String, Class<?>> stringClassMap = new HashMap<>();
+        Set<String> filter = new HashSet<>(Arrays.asList(rulesetNames));
+        jarClassloader.scan(c -> {
+            RuleSet rs = c.getAnnotation(RuleSet.class);
+            if(rs != null) {
+                String ruleSetName = rs.value();
+                if(ruleSetName != null && !ruleSetName.isEmpty() && filter.contains(ruleSetName)) {
+                    stringClassMap.put(ruleSetName, c);
+                }
+            }
+        });
+
+        // We need to return results in the same order
+        Collection<Class<?>> result = new ArrayList<>(stringClassMap.size());
+        for(String ruleSetName : rulesetNames) {
+            Class<?> ruleClass = stringClassMap.get(ruleSetName);
+            if(ruleClass != null) {
+                result.add(ruleClass);
+            }
+        }
+        return result;
     }
 
+
     @Override
-    public Knowledge create(KnowledgeService service, InputStream... streams) throws IOException {
-        return service
-                .newKnowledge()
-                .builder()
-                .importAllRules(this, streams)
-                .build();
+    public Set<Class<?>> sourceTypes() {
+        return Set.of(SUPPORTED_TYPES);
     }
 
     @Override

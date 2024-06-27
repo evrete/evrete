@@ -1,6 +1,5 @@
 package org.evrete.dsl.rules;
 
-import org.evrete.dsl.TestUtils;
 import org.evrete.dsl.annotation.Fact;
 import org.evrete.dsl.annotation.MethodPredicate;
 import org.evrete.dsl.annotation.Rule;
@@ -14,7 +13,6 @@ public class SampleRuleSet4 {
     private static final String PROP = "some-unused-property";
 
     public static boolean testLong(Long l) {
-        TestUtils.testFile(l);
         return l > 0;
     }
 

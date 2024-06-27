@@ -1,37 +1,30 @@
 package org.evrete.dsl;
 
-import org.evrete.KnowledgeService;
-import org.evrete.api.JavaSourceCompiler;
-import org.evrete.api.Knowledge;
 import org.evrete.api.RuntimeContext;
+import org.evrete.api.builders.RuleSetBuilder;
 import org.evrete.util.CommonUtils;
-import org.evrete.util.CompilationException;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.io.UncheckedIOException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Stream;
+import java.util.Set;
 
 /**
  * The DSLClassProvider class provides the implementation of the DSLKnowledgeProvider
  * interface for 'JAVA-SOURCE' DSL knowledge.
  */
 public class DSLSourceProvider extends AbstractDSLProvider {
-    private static final Logger LOGGER = Logger.getLogger(DSLSourceProvider.class.getName());
-
     private static final Class<?>[] SUPPORTED_TYPES = new Class<?>[] {
             TYPE_INPUT_STREAM,
             TYPE_URL,
             TYPE_READER,
-            TYPE_CHAR_SEQUENCE
+            TYPE_CHAR_SEQUENCE,
+            TYPE_FILE
     };
     /**
      * Default public constructor
@@ -40,60 +33,8 @@ public class DSLSourceProvider extends AbstractDSLProvider {
     }
 
     @Override
-    public Optional<Class<?>[]> sourceTypes() {
-        return Optional.of(SUPPORTED_TYPES);
-    }
-
-    @Override
-    <C extends RuntimeContext<C>> Stream<Class<?>> sourceClasses(RuntimeContext<C> context, URL[] urls) throws IOException {
-        // Despite the fact that we need to return a stream,
-        // the resources may contain interdependent sources,
-        // so we read them all at once.
-        Charset charset = charset(context.getConfiguration());
-        return sourceClasses(context, toSourceStrings(charset, urls));
-    }
-
-    @Override
-    <C extends RuntimeContext<C>> Stream<Class<?>> sourceClasses(RuntimeContext<C> context, Reader[] readers) throws IOException {
-        // Despite the fact that we need to return a stream,
-        // the resources may contain interdependent sources,
-        // so we read them all at once.
-        return sourceClasses(context, toSourceStrings(readers));
-    }
-
-    @Override
-    <C extends RuntimeContext<C>> Stream<Class<?>> sourceClasses(RuntimeContext<C> context, CharSequence[] strings) {
-        throw new UnsupportedOperationException();
-//        // Despite the fact that we need to return a stream,
-//        // the resources may contain interdependent sources,
-//        // so we read them all at once.
-//        try {
-//            JavaSourceCompiler compiler = context.getSourceCompiler();
-//            List<JavaSourceCompiler.ClassSource> sources = new ArrayList<>(strings.length);
-//            for (CharSequence string : strings) {
-//                sources.add(compiler.resolve(string.toString()));
-//            }
-//            return compiler
-//                    .compile(sources)
-//                    .stream()
-//                    .map(JavaSourceCompiler.Result::getCompiledClass);
-//        } catch (CompilationException e) {
-//            e.log(LOGGER, Level.SEVERE);
-//            throw new IllegalArgumentException("Failed to compile Java source code", e);
-//        } catch (IllegalArgumentException e) {
-//            throw e;
-//        } catch (Exception e) {
-//            throw new IllegalArgumentException(e);
-//        }
-    }
-
-    @Override
-    <C extends RuntimeContext<C>> Stream<Class<?>> sourceClasses(RuntimeContext<C> context, InputStream[] inputStreams) throws IOException {
-        // Despite the fact that we need to return a stream,
-        // the resources may contain interdependent sources,
-        // so we read them all at once.
-        Charset charset = charset(context.getConfiguration());
-        return sourceClasses(context, toSourceStrings(charset, inputStreams));
+    public Set<Class<?>> sourceTypes() {
+        return Set.of(SUPPORTED_TYPES);
     }
 
 
@@ -103,44 +44,52 @@ public class DSLSourceProvider extends AbstractDSLProvider {
     }
 
     @Override
-    public Knowledge create(KnowledgeService service, InputStream... streams) throws IOException {
-        String[] sources = toSourceStrings(charset(service.getConfiguration()), streams);
-        Knowledge knowledge = service.newKnowledge();
-        return knowledge.builder()
-                .importAllRules(this, sources)
-                .build();
+    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, URL resource) throws IOException {
+        Charset charset = charset(target.getContext().getConfiguration());
+        String source = toSourceString(charset, resource);
+        return createClassMetaFromSource(source);
     }
 
     @Override
-    public Knowledge create(KnowledgeService service, URL... resources) throws IOException {
-        Knowledge knowledge = service.newKnowledge();
-        return knowledge
-                .builder()
-                .importAllRules(this, resources)
-                .build();
+    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, Reader resource) throws IOException {
+        String source = toSourceString(resource);
+        return createClassMetaFromSource(source);
     }
 
     @Override
-    public Knowledge create(KnowledgeService service, Reader... readers) throws IOException {
-        Knowledge knowledge = service.newKnowledge();
-        String[] sources = toSourceStrings(readers);
-        return knowledge
-                .builder()
-                .importAllRules(this, sources)
-                .build();
+    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, CharSequence resource) {
+        String source = resource.toString();
+        return createClassMetaFromSource(source);
     }
 
-
-    private static String[] toSourceStrings(Reader[] readers) throws IOException {
-        return CommonUtils.read(String.class, readers, r -> r, CommonUtils::toString);
+    @Override
+    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, InputStream resource) throws IOException {
+        Charset charset = charset(target.getContext().getConfiguration());
+        String source = toSourceString(charset, resource);
+        return this.createClassMetaFromSource(source);
     }
 
-    private static String[] toSourceStrings(Charset charset, InputStream... streams) throws IOException {
-        return CommonUtils.read(String.class, streams, i -> i, i -> new String(CommonUtils.toByteArrayChecked(i), charset));
+    @Override
+    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, File resource) throws IOException {
+        return createClassMeta(target, resource.toURI().toURL());
     }
 
-    private static String[] toSourceStrings(Charset charset, URL... urls) throws IOException {
-        return CommonUtils.read(String.class, urls, URL::openStream, i -> new String(CommonUtils.toByteArrayChecked(i), charset));
+    private <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMetaFromSource(String source) {
+        return List.of(new DSLMetaLiteralSource<>(publicLookup, source));
+    }
+
+    private static String toSourceString(Reader reader) throws IOException {
+        return CommonUtils.toString(reader);
+    }
+
+    private static String toSourceString(Charset charset, InputStream stream) throws IOException {
+        return new String(CommonUtils.toByteArrayChecked(stream), charset);
+    }
+
+    private static String toSourceString(Charset charset, URL url) throws IOException {
+        try(InputStream is = url.openStream()) {
+            return toSourceString(charset, is);
+        }
     }
 
 }

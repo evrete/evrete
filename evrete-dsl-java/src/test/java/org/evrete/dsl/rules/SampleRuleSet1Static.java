@@ -5,12 +5,12 @@ import org.evrete.dsl.annotation.Fact;
 import org.evrete.dsl.annotation.Rule;
 import org.evrete.dsl.annotation.Where;
 
-public class SampleRuleSet1 {
+public class SampleRuleSet1Static {
 
     @Rule("Delete non-prime integers")
     @Where(value = {"$i3 == $i1 * $i2"})
     @SuppressWarnings({"unused"})
-    public void rule(RhsContext ctx, @Fact("$i1") int $i1, @Fact("$i2") int i2, @Fact("$i3") int $i3) {
+    public static void rule(RhsContext ctx, @Fact("$i1") int $i1, @Fact("$i2") int i2, @Fact("$i3") int $i3) {
         ctx.delete($i3);
     }
 

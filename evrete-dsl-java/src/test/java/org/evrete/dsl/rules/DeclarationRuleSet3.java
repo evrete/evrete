@@ -2,7 +2,7 @@ package org.evrete.dsl.rules;
 
 import org.evrete.api.Environment;
 import org.evrete.api.RhsContext;
-import org.evrete.dsl.Phase;
+import org.evrete.api.events.SessionFireEvent;
 import org.evrete.dsl.annotation.*;
 
 public class DeclarationRuleSet3 {
@@ -16,8 +16,8 @@ public class DeclarationRuleSet3 {
         return i3 == i1 * i2;
     }
 
-    @PhaseListener(Phase.FIRE)
-    public void sessionStart(Environment environment) {
+    @EventSubscription
+    public void sessionStart(SessionFireEvent event) {
     }
 
     @Rule("Delete non-prime integers")

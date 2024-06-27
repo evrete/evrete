@@ -1,16 +1,15 @@
 package org.evrete.dsl.rules;
 
-import org.evrete.api.Environment;
 import org.evrete.api.RhsContext;
-import org.evrete.dsl.Phase;
+import org.evrete.api.events.SessionCreatedEvent;
 import org.evrete.dsl.annotation.*;
 
 public class DeclarationRuleSet4 {
     private int offset;
 
-    @PhaseListener(Phase.FIRE)
-    public void sessionStart(Environment environment) {
-        this.offset = environment.get("random-offset");
+    @EventSubscription
+    public void sessionStart(SessionCreatedEvent event) {
+        this.offset = event.getSession().get("random-offset");
     }
 
     @FieldDeclaration()

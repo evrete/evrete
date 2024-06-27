@@ -4,6 +4,11 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.ActivationMode;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
+import org.evrete.api.StatelessSession;
+import org.evrete.api.events.EnvironmentChangeEvent;
+import org.evrete.api.events.SessionClosedEvent;
+import org.evrete.api.events.SessionCreatedEvent;
+import org.evrete.api.events.SessionFireEvent;
 import org.evrete.dsl.rules.PhaseListenerRuleSet1;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -11,6 +16,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 class StatefulPhaseListenerTests {
     private static KnowledgeService service;
@@ -26,31 +32,31 @@ class StatefulPhaseListenerTests {
     }
 
     private static StatefulSession session(Knowledge knowledge, ActivationMode mode) {
-        return knowledge.newStatefulSession().setActivationMode(mode);
+        return knowledge.newStatefulSession(mode);
     }
 
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void test1(ActivationMode mode) throws IOException {
         TestUtils.PhaseHelperData.reset();
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_CLASS, PhaseListenerRuleSet1.class);
-        assert TestUtils.PhaseHelperData.total() == 1 && TestUtils.PhaseHelperData.count(Phase.BUILD) == 1;
+        Knowledge knowledge = service.newKnowledge()
+                .builder()
+                .importRules(Constants.PROVIDER_JAVA_CLASS, PhaseListenerRuleSet1.class)
+                .build();
 
-        StatefulSession session = session(knowledge, mode);
-        assert TestUtils.PhaseHelperData.count(Phase.CREATE) == 3 : "Actual: " + TestUtils.PhaseHelperData.EVENTS;
-        assert TestUtils.PhaseHelperData.total() == 6; // 4 + additional two coming from the multiple() method
-        TestUtils.PhaseHelperData.reset();
-        session.insert(1);
-        session.fire();
-        assert TestUtils.PhaseHelperData.total() == 4 : " " + TestUtils.PhaseHelperData.EVENTS;
-        session.fire();
-        assert TestUtils.PhaseHelperData.total() == 8 : " " + TestUtils.PhaseHelperData.EVENTS;
+        knowledge.set("some property", "some value 1");
+        assert TestUtils.PhaseHelperData.count(EnvironmentChangeEvent.class) == 1;
 
+        try(StatefulSession session = session(knowledge, mode)) {
+            session.set("some property", "some value 2");
+            assert TestUtils.PhaseHelperData.count(EnvironmentChangeEvent.class) == 2;
+            session.insert(1);
+            session.fire();
+            assert TestUtils.PhaseHelperData.count(SessionFireEvent.class) == 1;
+            session.fire();
+            assert TestUtils.PhaseHelperData.count(SessionFireEvent.class) == 2;
 
-        TestUtils.PhaseHelperData.reset();
-        session.close();
-        assert TestUtils.PhaseHelperData.total() == 4 : " " + TestUtils.PhaseHelperData.EVENTS;
-
-
+        }
+        assert TestUtils.PhaseHelperData.count(SessionClosedEvent.class) == 1;
     }
 }

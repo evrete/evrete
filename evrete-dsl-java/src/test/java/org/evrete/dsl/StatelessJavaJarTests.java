@@ -35,15 +35,14 @@ class StatelessJavaJarTests {
     @EnumSource(ActivationMode.class)
     void test1(ActivationMode mode) throws Exception {
 
-
-        service
-                .getConfiguration()
-                .setProperty(DSLJarProvider.CLASSES_PROPERTY, "pkg1.evrete.tests.rule.RuleSet1");
-
         File dir = TestUtils.testResourceAsFile("jars/jar1");
         TestUtils.createTempJarFile(dir, jarFile -> {
             try {
-                Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_JAR, jarFile);
+                Knowledge knowledge = service.newKnowledge()
+                        .builder()
+                        .set(DSLJarProvider.CLASSES_PROPERTY, "pkg1.evrete.tests.rule.RuleSet1")
+                        .importRules(Constants.PROVIDER_JAVA_JAR, jarFile)
+                        .build();
                 StatelessSession session = session(knowledge, mode);
                 assert session.getRules().size() == 2;
                 for (int i = 2; i < 100; i++) {
@@ -66,7 +65,12 @@ class StatelessJavaJarTests {
         File dir = TestUtils.testResourceAsFile("jars/jar1");
         TestUtils.createTempJarFile(dir, jarFile->{
             try {
-                Knowledge knowledge = service.newKnowledge(DSLJarProvider.class, jarFile);
+                Knowledge knowledge = service.newKnowledge()
+                        .builder()
+                        .set(DSLJarProvider.RULESETS_PROPERTY, "Test Ruleset")
+                        .importRules(new DSLJarProvider(), jarFile)
+                        .build();
+
                 StatelessSession session = session(knowledge, mode);
                 assert session.getRules().size() == 2;
                 for (int i = 2; i < 100; i++) {

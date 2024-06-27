@@ -6,10 +6,10 @@ import org.evrete.dsl.annotation.MethodPredicate;
 import org.evrete.dsl.annotation.Rule;
 import org.evrete.dsl.annotation.Where;
 
-public class SampleRuleSet2 {
+public class SampleRuleSet2VirtualStatic {
 
     @SuppressWarnings({"unused"})
-    public static boolean test(Integer i1, Integer i2, Integer i3) {
+    public boolean test(Integer i1, Integer i2, Integer i3) {
         return i3 == i1 * i2;
     }
 
@@ -18,7 +18,7 @@ public class SampleRuleSet2 {
     @Where(
             methods = {@MethodPredicate(method = "test", args = {"$i1", "$i2", "$i3"})}
     )
-    public void rule(RhsContext ctx, @Fact("$i1") int $i1, @Fact("$i2") int i2, @Fact("$i3") int $i3) {
+    public static void rule(RhsContext ctx, @Fact("$i1") int $i1, @Fact("$i2") int i2, @Fact("$i3") int $i3) {
         ctx.delete($i3);
     }
 
