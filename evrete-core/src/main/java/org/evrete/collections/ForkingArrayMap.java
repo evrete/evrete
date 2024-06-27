@@ -7,6 +7,7 @@ import org.evrete.util.Indexed;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 /**
@@ -69,6 +70,13 @@ public abstract class ForkingArrayMap<T, MatchKey, FastKey extends Indexed, Stor
      */
     protected abstract Stored generateValue(FastKey key, T value);
 
+    /**
+     * Updates saved values
+     * @param operator the update function
+     */
+    public void update(UnaryOperator<Stored> operator) {
+        array.update(entry -> new IndexedMapEntry<>(entry.getKey(), operator.apply(entry.getValue())));
+    }
 
     public int size() {
         return array.size();

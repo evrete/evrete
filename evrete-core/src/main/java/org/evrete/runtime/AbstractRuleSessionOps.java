@@ -115,8 +115,15 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
 
     void bufferUpdate(boolean applyToStorage, DefaultFactHandle handle, Object newValue, WorkMemoryActionBuffer destination) {
         Objects.requireNonNull(newValue, "Null facts aren't supported");
-        ActiveType type = getActiveType(handle);
-        TypeMemory typeMemory = getMemory().getTypeMemory(type.getId());
+
+        Type<?> factType = getTypeResolver().resolve(newValue);
+        if(factType == null) {
+            LOGGER.warning(() -> "Unknown fact type, UPDATE operation skipped for: " + newValue);
+            return;
+        }
+
+        ActiveType activeType = getCreateIndexedType(factType);
+        TypeMemory typeMemory = getMemory().getTypeMemory(activeType.getId());
 
         FactHolder existing = typeMemory.get(handle);
 
@@ -124,13 +131,14 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
             LOGGER.warning(() -> "Fact not found, UPDATE operation skipped for: " + newValue);
         } else {
             // Check if the fact is of the right type
-            Class<?> expectedFactClass = type.getValue().getJavaClass();
+            //TODO something is wrong here. Rewrite. The checks below will never fail
+            Class<?> expectedFactClass = activeType.getValue().getJavaClass();
             Class<?> argClass = newValue.getClass();
             if (expectedFactClass.isAssignableFrom(argClass)) {
                 // Buffer deletion (must be first!!!)
                 this.bufferDelete(handle, applyToStorage, existing, destination);
                 // Buffer new insert operation
-                this.bufferInsertSingle(handle, type, applyToStorage,newValue, destination);
+                this.bufferInsertSingle(handle, factType, activeType, applyToStorage,newValue, destination);
             } else {
                 throw new IllegalArgumentException("Argument type mismatch. Actual '" + argClass + "' vs expected '" + expectedFactClass + "'");
             }
@@ -185,7 +193,7 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
             ActiveType type = getCreateIndexedType(factType);
             DefaultFactHandle last = null;
             for (Object fact : facts) {
-                last = bufferInsertSingle(type, applyToStorage, fact, destination);
+                last = bufferInsertSingle(factType, type, applyToStorage, fact, destination);
             }
             return facts.size() == 1 ? last : null;
         }
@@ -210,7 +218,7 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
                 }
             } else {
                 ActiveType type = getCreateIndexedType(factType);
-                last = bufferInsertSingle(type, applyToStorage, fact, destination);
+                last = bufferInsertSingle(factType, type, applyToStorage, fact, destination);
             }
         }
         return facts.size() == 1 ? last : null;
@@ -220,13 +228,13 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
      * Generates a new {@link DeltaMemoryAction.Insert} operation and stores it in the provided buffer.
      *
      * @param applyToStorage indicates whether to apply the insert operations to the fact storage.
-     * @param type           resolved active type, see {@link ActiveType}.
+     * @param activeType           resolved active type, see {@link ActiveType}.
      * @param fact           the fact to insert.
      * @param destination    the buffer where the insert operation will be stored.
      */
-    DefaultFactHandle bufferInsertSingle(ActiveType type, boolean applyToStorage, Object fact, WorkMemoryActionBuffer destination) {
-        final DefaultFactHandle factHandle = new DefaultFactHandle(type.getId());
-        this.bufferInsertSingle(factHandle, type, applyToStorage, fact, destination);
+    DefaultFactHandle bufferInsertSingle(Type<?> type, ActiveType activeType, boolean applyToStorage, Object fact, WorkMemoryActionBuffer destination) {
+        final DefaultFactHandle factHandle = new DefaultFactHandle(activeType.getId());
+        this.bufferInsertSingle(factHandle, type, activeType, applyToStorage, fact, destination);
         return factHandle;
     }
 
@@ -234,16 +242,16 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
      * Generates a new {@link DeltaMemoryAction.Insert} operation and stores it in the provided buffer.
      *
      * @param applyToStorage indicates whether to apply the insert operations to the fact storage.
-     * @param type           resolved active type, see {@link ActiveType}.
+     * @param activeType           resolved active type, see {@link ActiveType}.
      * @param fact           the fact to insert.
      * @param destination    the buffer where the insert operation will be stored.
      */
-    private void bufferInsertSingle(DefaultFactHandle factHandle, ActiveType type, boolean applyToStorage, Object fact, WorkMemoryActionBuffer destination) {
+    private void bufferInsertSingle(DefaultFactHandle factHandle, Type<?> type, ActiveType activeType, boolean applyToStorage, Object fact, WorkMemoryActionBuffer destination) {
 
         // 1. Read field values
-        TypeMemory memory = getMemory().getTypeMemory(type.getId());
+        TypeMemory memory = getMemory().getTypeMemory(activeType.getId());
         ValueIndexer<FactFieldValues> valueIndexer = memory.getFieldValuesIndexer();
-        FactFieldValues fieldValues = type.readFactValue(fact);
+        FactFieldValues fieldValues = activeType.readFactValue(type, fact);
 
         // 2. Index field values
         long valuesId = valueIndexer.getOrCreateId(fieldValues);
@@ -254,7 +262,7 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
             memory.insert(factHolder);
         }
 
-        destination.addInsert(new DeltaMemoryAction.Insert(type, factHolder, fieldValues, !applyToStorage));
+        destination.addInsert(new DeltaMemoryAction.Insert(activeType, factHolder, fieldValues, !applyToStorage));
         LOGGER.finer(() -> "New insert action buffered for fact: " + fact);
     }
 

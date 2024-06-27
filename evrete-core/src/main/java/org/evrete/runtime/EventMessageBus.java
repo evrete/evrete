@@ -23,6 +23,7 @@ public class EventMessageBus implements Copyable<EventMessageBus> {
         register(SessionCreatedEvent.class, new SessionCreatedEventHandler(executor));
         register(SessionClosedEvent.class, new SessionClosedEventHandler(executor));
         register(SessionFireEvent.class, new SessionFireEventHandler(executor));
+        register(EnvironmentChangeEvent.class, new EnvironmentChangeEventHandler(executor));
     }
 
     private EventMessageBus(EventMessageBus parent) {
@@ -141,6 +142,22 @@ public class EventMessageBus implements Copyable<EventMessageBus> {
         @Override
         public Handler<SessionFireEvent> copyOf() {
             return new SessionFireEventHandler(this);
+        }
+    }
+
+    static class EnvironmentChangeEventHandler extends Handler<EnvironmentChangeEvent> {
+
+        EnvironmentChangeEventHandler(Executor executor) {
+            super(executor);
+        }
+
+        EnvironmentChangeEventHandler(EnvironmentChangeEventHandler other) {
+            super(other);
+        }
+
+        @Override
+        public Handler<EnvironmentChangeEvent> copyOf() {
+            return new EnvironmentChangeEventHandler(this);
         }
     }
 

@@ -44,7 +44,7 @@ class DefaultConditionManager extends RuntimeAware implements ConditionManager {
     @Override
     public EvaluatorHandle addCondition(ValuesPredicate predicate, double complexity, String... references) {
         // 1. Convert field references to LHS fields
-        LhsField.Array<String, TypeField> stringFields = toFields(references, namedTypeResolver);
+        LhsField.Array<String, TypeField> stringFields = LhsField.Array.toFields(references, namedTypeResolver);
         LhsField.Array<String, ActiveField> activeFields = runtime.toActiveFields(stringFields);
         // 2. Obtain the handle
         DefaultEvaluatorHandle handle = runtime.getEvaluatorsContext().addEvaluator(predicate, complexity, activeFields);
@@ -64,12 +64,6 @@ class DefaultConditionManager extends RuntimeAware implements ConditionManager {
         this.literals.add(condition);
         return condition.getHandle().thenApply(handle -> handle);
     }
-
-    private static LhsField.Array<String, TypeField> toFields(String[] fieldNames, NamedType.Resolver namedTypeResolver) {
-        LhsField.Array<String, String> lhsFields = LhsField.Array.fromDottedVariables(fieldNames);
-        return lhsFields.transform(lhsField -> CommonUtils.toTypeField(lhsField, namedTypeResolver));
-    }
-
 
     static class Literal implements LiteralPredicate {
         private final String expression;

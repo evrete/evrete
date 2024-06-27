@@ -2,11 +2,14 @@ package org.evrete.collections;
 
 import org.evrete.helper.TestUtils;
 import org.evrete.util.IndexedValue;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 class ForkingArrayTest {
     private static final ObjIntFunction<String, IndexedValue<String>> MAPPER = IndexedValue::new;
@@ -270,5 +273,30 @@ class ForkingArrayTest {
         assert data.equals(ref);
     }
 
+
+    @Test
+    void updateTest() {
+        ForkingArray<IndexedValue<String>> array = new ForkingArray<>(8);
+
+        Set<String> ref = new HashSet<>();
+        String prefix = "prefix";
+        final Random random = new Random();
+        for (int i = 0; i < 501; i++) {
+            if (random.nextBoolean()) {
+                array = array.newBranch();
+            }
+            String s = "element" + i;
+            array.append(s, MAPPER);
+            ref.add(prefix + s);
+        }
+
+        array.update(val -> new IndexedValue<>(val.getIndex(), prefix + val.getValue()));
+
+        Set<String> data = Collections.synchronizedSet(new HashSet<>());
+        array.forEach(stringIndexedValue -> data.add(stringIndexedValue.getValue()));
+
+        Assertions.assertEquals(ref, data);
+
+    }
 
 }

@@ -1,5 +1,7 @@
 package org.evrete.api;
 
+import org.evrete.util.CommonUtils;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -128,5 +130,11 @@ public class LhsField<Fact, Field> {
             }
             return new LhsField.Array<>(list);
         }
+
+        public static LhsField.Array<String, TypeField> toFields(String[] fieldNames, NamedType.Resolver namedTypeResolver) {
+            LhsField.Array<String, String> lhsFields = LhsField.Array.fromDottedVariables(fieldNames);
+            return lhsFields.transform(lhsField -> CommonUtils.toTypeField(lhsField, namedTypeResolver));
+        }
+
     }
 }

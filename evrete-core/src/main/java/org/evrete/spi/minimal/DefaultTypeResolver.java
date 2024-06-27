@@ -14,7 +14,6 @@ class DefaultTypeResolver implements TypeResolver {
     private final Map<Class<?>, Collection<Type<?>>> typesByJavaType = new HashMap<>();
 
     private final Map<String, TypeCacheEntry> typeInheritanceCache = new HashMap<>();
-    private int fieldSetsCounter = 0;
     private final ClassLoader classLoader;
 
     DefaultTypeResolver(ClassLoader classLoader) {
@@ -22,22 +21,19 @@ class DefaultTypeResolver implements TypeResolver {
     }
 
     private DefaultTypeResolver(DefaultTypeResolver other, ClassLoader newClassLoader) {
-        this.fieldSetsCounter = other.fieldSetsCounter;
         this.classLoader = newClassLoader;
+        // 1. Replace types with their cloned instances in the main mapping
         for (Map.Entry<String, Type<?>> entry : other.typeDeclarationMap.entrySet()) {
             Type<?> clonedType = entry.getValue().copyOf();
             this.typeDeclarationMap.put(entry.getKey(), clonedType);
         }
 
-        for (Type<?> t : this.typeDeclarationMap.values()) {
-            Class<?> javaType = t.getJavaClass();
+        // 2. Rebuild the inverse mapping
+        for (Type<?> clonedType : this.typeDeclarationMap.values()) {
+            Class<?> javaType = clonedType.getJavaClass();
             this.typesByJavaType
                     .computeIfAbsent(javaType, s -> new ArrayList<>())
-                    .add(t);
-        }
-
-        for (Map.Entry<Class<?>, Collection<Type<?>>> entry : other.typesByJavaType.entrySet()) {
-            this.typesByJavaType.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+                    .add(clonedType);
         }
     }
 
@@ -94,18 +90,18 @@ class DefaultTypeResolver implements TypeResolver {
         if (resolvedJavaType == null) {
             throw new IllegalStateException("Unable to resolve Java class '" + javaType + "'");
         } else {
-            return saveNewType(typeName, new TypeImpl<>(typeName, resolvedJavaType));
+            return saveNewType(new TypeImpl<>(typeName, resolvedJavaType));
         }
     }
 
     @Override
     @NonNull
     public synchronized <T> Type<T> declare(@NonNull String typeName, @NonNull Class<T> javaType) {
-        return saveNewType(typeName, new TypeImpl<>(typeName, javaType));
+        return saveNewType(new TypeImpl<>(typeName, javaType));
     }
 
-    private <T> Type<T> saveNewType(String typeName, Type<T> type) {
-        if (typeDeclarationMap.put(typeName, type) == null) {
+    private <T> Type<T> saveNewType(Type<T> type) {
+        if (typeDeclarationMap.put(type.getName(), type) == null) {
             typesByJavaType.computeIfAbsent(
                             type.getJavaClass(),
                             k -> new ArrayList<>())
@@ -113,7 +109,7 @@ class DefaultTypeResolver implements TypeResolver {
             typeInheritanceCache.clear();
             return type;
         } else {
-            throw new IllegalStateException("Type name '" + typeName + "' has been already defined");
+            throw new IllegalStateException("Type name '" + type.getName() + "' has been already defined");
         }
     }
 
@@ -147,11 +143,20 @@ class DefaultTypeResolver implements TypeResolver {
     }
 
     @Override
+    public String toString() {
+        return "DefaultTypeResolver{" +
+                "typeDeclarationMap=" + typeDeclarationMap +
+                ", typesByJavaType=" + typesByJavaType +
+                ", typeInheritanceCache=" + typeInheritanceCache +
+                '}';
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <T> Type<T> resolve(Object o) {
         Objects.requireNonNull(o);
         Class<?> javaType = o.getClass();
-        String name = javaType.getName();
+        String name = Type.logicalNameOf(javaType);
 
         Collection<Type<?>> associatedTypes = typesByJavaType.get(javaType);
         if (associatedTypes != null && !associatedTypes.isEmpty()) {

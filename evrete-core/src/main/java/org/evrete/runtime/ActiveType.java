@@ -105,9 +105,15 @@ public class ActiveType implements Copyable<ActiveType> {
         return alphaConditionSubsetIndexer.getOrCreateEntry(indexedAlphaConditions).getValue();
     }
 
-    FactFieldValues readFactValue(Object fact) {
+    FactFieldValues readFactValue(Type<?> type, Object fact) {
         final Object[] values = new Object[activeFields.size()];
-        activeFields.forEachValue(field -> values[field.valueIndex()] = field.readValue(fact));
+        activeFields.forEachValue(new Consumer<ActiveField>() {
+            @Override
+            public void accept(ActiveField activeField) {
+                TypeField field = type.getField(activeField.getName());
+                values[activeField.valueIndex()] = field.readValue(fact);;
+            }
+        });
         return new FactFieldValues(values);
     }
 

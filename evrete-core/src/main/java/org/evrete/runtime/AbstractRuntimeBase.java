@@ -3,6 +3,7 @@ package org.evrete.runtime;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.api.events.ContextEvent;
+import org.evrete.api.events.EnvironmentChangeEvent;
 import org.evrete.runtime.compiler.RuntimeClassloader;
 import org.evrete.runtime.compiler.SourceCompiler;
 import org.evrete.util.AbstractEnvironment;
@@ -63,6 +64,17 @@ abstract class AbstractRuntimeBase<C extends RuntimeContext<C>> extends Abstract
     @SuppressWarnings("unchecked")
     public final C set(String property, Object value) {
         super.set(property, value);
+        broadcast(EnvironmentChangeEvent.class, new EnvironmentChangeEvent() {
+            @Override
+            public String getProperty() {
+                return property;
+            }
+
+            @Override
+            public Object getValue() {
+                return value;
+            }
+        });
         return (C) this;
     }
 

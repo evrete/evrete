@@ -1,6 +1,7 @@
 package org.evrete.collections;
 
 import org.evrete.api.MapEntry;
+import org.evrete.api.annotations.Nullable;
 import org.evrete.util.Indexed;
 
 import java.util.Arrays;
@@ -17,9 +18,9 @@ import java.util.stream.Stream;
  * The resulting indexes are auto-incremented from <code>0</code> and can be used as arguments for the
  * {@link #get(int)} or {@link #getUnchecked(int)} methods.
  *
- * @param <T> the type of the elements being indexed
+ * @param <T>        the type of the elements being indexed
  * @param <MatchKey> the type of the computed unique key
- * @param <Stored> the resulting type that is generated from the indexed element and assigned index
+ * @param <Stored>   the resulting type that is generated from the indexed element and assigned index
  */
 //TODO tests!!!!
 public abstract class IndexingArrayMap<T, MatchKey, FastKey extends Indexed, Stored> {
@@ -52,13 +53,13 @@ public abstract class IndexingArrayMap<T, MatchKey, FastKey extends Indexed, Sto
     /**
      * Default constructor
      *
-     * @param keyFunction    the function that maps the source object to unique keys
+     * @param keyFunction the function that maps the source object to unique keys
      */
     @SuppressWarnings("unchecked")
     public IndexingArrayMap(Function<T, MatchKey> keyFunction) {
         this.keyMap = new HashMap<>();
         this.keyFunction = keyFunction;
-        this.array = (InnerMapEntry<FastKey, Stored>[]) new InnerMapEntry<?,?>[DEFAULT_INITIAL_SIZE];
+        this.array = (InnerMapEntry<FastKey, Stored>[]) new InnerMapEntry<?, ?>[DEFAULT_INITIAL_SIZE];
     }
 
     /**
@@ -134,13 +135,14 @@ public abstract class IndexingArrayMap<T, MatchKey, FastKey extends Indexed, Sto
     }
 
     private void ensureCapacity() {
-        if(nextWriteIndex >= array.length) {
+        if (nextWriteIndex >= array.length) {
             this.array = Arrays.copyOf(array, array.length * 2);
         }
     }
 
     /**
      * Gets the value by its previously assigned unique index.
+     *
      * @param index the index
      * @return previously indexed value
      * @throws NoSuchElementException if the index is out of range
@@ -156,6 +158,7 @@ public abstract class IndexingArrayMap<T, MatchKey, FastKey extends Indexed, Sto
 
     /**
      * Gets the value by its previously assigned unique index.
+     *
      * @param index the index
      * @return previously indexed value
      */

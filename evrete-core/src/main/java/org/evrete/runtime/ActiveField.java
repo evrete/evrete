@@ -4,42 +4,34 @@ import org.evrete.api.Type;
 import org.evrete.api.TypeField;
 import org.evrete.util.AbstractIndex;
 
+import java.util.Objects;
+
 /**
  * <p>
  * An indexing wrapper for TypeField that will actually be in use by the runtime.
  * Declared, but unused, fields will not get wrapped, thus avoiding unnecessary value reads.
  * </p>
  */
-public final class ActiveField implements TypeField {
+public final class ActiveField  {
 
     private final ActiveType.Idx type;
     private final int valueIndex;
-    private final TypeField delegate;
+    private final String name;
+    private final Class<?> valueType;
 
     public ActiveField(ActiveType.Idx type, TypeField delegate, int valueIndex) {
         this.type = type;
-        this.delegate = delegate;
+        this.name = delegate.getName();
         this.valueIndex = valueIndex;
+        this.valueType = delegate.getValueType();
     }
 
-    @Override
     public Class<?> getValueType() {
-        return delegate.getValueType();
+        return valueType;
     }
 
-    @Override
-    public <T> T readValue(Object subject) {
-        return delegate.readValue(subject);
-    }
-
-    @Override
     public String getName() {
-        return delegate.getName();
-    }
-
-    @Override
-    public Type<?> getDeclaringType() {
-        return delegate.getDeclaringType();
+        return name;
     }
 
     //TODO add link to where the method is used
@@ -58,7 +50,7 @@ public final class ActiveField implements TypeField {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ActiveField that = (ActiveField) o;
-        return type == that.type && valueIndex == that.valueIndex;
+        return type.getIndex() == that.type.getIndex() && Objects.equals(name, that.name);
     }
 
     @Override

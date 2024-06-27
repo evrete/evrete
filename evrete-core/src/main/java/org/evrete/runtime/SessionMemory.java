@@ -3,6 +3,7 @@ package org.evrete.runtime;
 import org.evrete.api.FactHandle;
 import org.evrete.api.MapEntry;
 import org.evrete.api.MemoryStreaming;
+import org.evrete.api.Type;
 import org.evrete.api.spi.DeltaGroupedFactStorage;
 import org.evrete.api.spi.FactStorage;
 import org.evrete.api.spi.ValueIndexer;
@@ -175,10 +176,11 @@ public class SessionMemory implements MemoryStreaming {
         }
 
         ActiveType newType = newTypeMemory.getType();
+        Type<?> type = runtime.getTypeResolver().getType(newType.getValue().getName());
         // Stream stored values, obtain their bitset of alpha conditions and save to matching alpha memories
         newTypeMemory.stream().parallel().forEach(entry -> {
             FactHolder factHolder = entry.getValue();
-            FactFieldValues fieldValues = newType.readFactValue(factHolder.getFact());
+            FactFieldValues fieldValues = newType.readFactValue(type, factHolder.getFact());
             Collection<AlphaAddress> matchingLocations = newType.matchingLocations(runtime, fieldValues, alphaLocations);
             for (AlphaAddress alphaAddress : matchingLocations) {
                 resultMap.getChecked(alphaAddress).insert(factHolder.getFieldValuesId(), factHolder.getHandle());
@@ -193,6 +195,8 @@ public class SessionMemory implements MemoryStreaming {
         // Creating new fact storage
         FactStorage<DefaultFactHandle, FactHolder> newStorage = runtime.newTypeFactStorage();
         ValueIndexer<FactFieldValues> newValueIndexer = runtime.newFieldValuesIndexer();
+        //TODO fix the mess with types
+        Type<?> type = runtime.getTypeResolver().getType(newType.getValue().getName());
         AtomicLong factCounter = new AtomicLong();
         source.stream().parallel().forEach(entry -> {
             DefaultFactHandle handle = entry.getKey();
@@ -200,7 +204,7 @@ public class SessionMemory implements MemoryStreaming {
             Object fact = factHolder.getFact();
             // We need to keep the same value id because it is possibly referenced in RETE condition nodes.
             long valueId = factHolder.getFieldValuesId();
-            FactFieldValues fieldValues = newType.readFactValue(fact);
+            FactFieldValues fieldValues = newType.readFactValue(type, fact);
             FactHolder newFactHolder = new FactHolder(handle, valueId, fact);
             newValueIndexer.assignId(valueId, fieldValues);
             newStorage.insert(handle, newFactHolder);

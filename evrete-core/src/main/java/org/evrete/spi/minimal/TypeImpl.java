@@ -129,7 +129,18 @@ class TypeImpl<T> implements Type<T> {
     @Override
     @SuppressWarnings("unchecked")
     public <V> TypeField declareField(String name, Class<V> type, Function<T, V> function) {
-        return innerDeclare(name, type, o -> function.apply((T) o));
+        //return innerDeclare(name, type, o -> function.apply((T) o));
+        return innerDeclare(name, type, new Function<Object, Object>() {
+            @Override
+            public Object apply(Object o) {
+                return function.apply((T) o);
+            }
+
+            @Override
+            public String toString() {
+                return function.toString();
+            }
+        });
     }
 
     @Override
@@ -151,7 +162,11 @@ class TypeImpl<T> implements Type<T> {
 
     @Override
     public String toString() {
-        return "{name='" + name + '\'' +
+        return "{" +
+                "name='" + name + '\'' +
+                ", fieldMap=" + fieldMap +
+                ", javaType=" + javaType +
+                ", zzz=" + System.identityHashCode(this) +
                 '}';
     }
 

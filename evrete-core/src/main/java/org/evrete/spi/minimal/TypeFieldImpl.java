@@ -43,6 +43,7 @@ class TypeFieldImpl implements TypeField {
         return "{" +
                 "name='" + name + '\'' +
                 ", valueType='" + valueType + '\'' +
+                ", function=" + function +
                 '}';
     }
 }

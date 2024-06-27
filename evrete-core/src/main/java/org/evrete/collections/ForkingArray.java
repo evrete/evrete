@@ -4,6 +4,7 @@ import org.evrete.util.Indexed;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -70,6 +71,14 @@ public class ForkingArray<V extends Indexed> {
         }
     }
 
+    public void update(UnaryOperator<V> op) {
+        int i, size = this.size();
+        for (i = 0; i < size; i++) {
+            V newVal = op.apply(this.get(i));
+            this.set(i, newVal);
+        }
+    }
+
     public int size() {
         return this.nextWriteIndex + this.dataOffset;
     }
@@ -122,6 +131,20 @@ public class ForkingArray<V extends Indexed> {
             return null;
         } else {
             return (V) array[adjustedIndex];
+        }
+    }
+
+    private void set(int index, V value) {
+        int adjustedIndex = index - this.dataOffset;
+        if (adjustedIndex < 0) {
+            // This index belongs to a parent level
+            if (parent != null) {
+                parent.set(index, value);
+            }
+        } else {
+            if (adjustedIndex < this.nextWriteIndex) {
+                array[adjustedIndex] = value;
+            }
         }
     }
 }
