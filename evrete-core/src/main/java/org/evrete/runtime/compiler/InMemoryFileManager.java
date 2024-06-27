@@ -47,7 +47,6 @@ final class InMemoryFileManager extends ForwardingJavaFileManager<JavaFileManage
     @Override
     public Iterable<JavaFileObject> list(Location location, String packageName, Set<JavaFileObject.Kind> kinds, boolean recurse) throws IOException {
 
-
         Iterable<JavaFileObject> defaultFiles = super.list(location, packageName, kinds, recurse);
         if (location != CLASS_PATH || packageName.startsWith("java.") || packageName.equals("java")) {
             return defaultFiles;

@@ -39,7 +39,6 @@ public interface EventBus {
      */
     <E extends ContextEvent> Events.Publisher<E> getPublisher(Class<E> eventClass);
 
-
     default <E extends ContextEvent> Events.Subscription subscribe(Class<E> eventClass, Consumer<E> consumer) {
         return subscribe(eventClass, false, consumer);
     }

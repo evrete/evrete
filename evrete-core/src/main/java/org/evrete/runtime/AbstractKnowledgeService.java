@@ -12,14 +12,29 @@ import java.util.concurrent.ExecutorService;
 public abstract class AbstractKnowledgeService implements EventBus {
     private final EventMessageBus messageBus;
     private final ExecutorService executor;
+    private final Events.Subscriptions serviceSubscriptions;
 
     public AbstractKnowledgeService(ExecutorService executor) {
+        this.serviceSubscriptions = new Events.Subscriptions();
         this.messageBus = new EventMessageBus(executor);
         this.executor = executor;
     }
 
     protected EventMessageBus getMessageBus() {
         return messageBus;
+    }
+
+    /**
+     * Retrieves the shared {@link Events.Subscriptions} collection at the service level.
+     * Subscriptions added to this collection will be automatically cancelled when the {@link #shutdown()}
+     * method is called. This centralized storage can be used by those who prefer not to manually manage
+     * the lifecycle of their subscriptions, ensuring that resources are freed up for garbage collection
+     * when no longer needed.
+     *
+     * @return the shared {@link Events.Subscriptions} instance at the service level.
+     */
+    public Events.Subscriptions getServiceSubscriptions() {
+        return serviceSubscriptions;
     }
 
     @Override
@@ -29,6 +44,7 @@ public abstract class AbstractKnowledgeService implements EventBus {
 
     public void shutdown() {
         this.executor.shutdown();
+        this.serviceSubscriptions.cancel();
     }
 
     public final ExecutorService getExecutor() {

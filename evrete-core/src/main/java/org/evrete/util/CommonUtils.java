@@ -4,6 +4,8 @@ import org.evrete.api.LhsField;
 import org.evrete.api.NamedType;
 import org.evrete.api.Type;
 import org.evrete.api.TypeField;
+import org.evrete.api.annotations.NonNull;
+import org.evrete.api.annotations.Nullable;
 
 import java.io.*;
 import java.lang.reflect.Array;
@@ -18,6 +20,7 @@ import java.util.zip.ZipEntry;
 
 public final class CommonUtils {
     private static final CompletableFuture<?>[] EMPTY_FUTURES = new CompletableFuture[0];
+    private static final String[] EMPTY_STRING_ARRAY = new String[0];
 
 
     @SuppressWarnings("unchecked")
@@ -42,6 +45,33 @@ public final class CommonUtils {
         }
         return result;
     }
+
+    @NonNull
+    public static String[] splitConfigString(@Nullable String arg) {
+        return splitConfigString(arg, "[\\s+,;]");
+    }
+    @NonNull
+    public static String[] splitCSV(@Nullable String arg) {
+        return splitConfigString(arg, "[,]");
+    }
+
+    @NonNull
+    private static String[] splitConfigString(@Nullable String arg, String pattern) {
+        if(arg == null || arg.isEmpty()) {
+            return EMPTY_STRING_ARRAY;
+        } else {
+            String[] parts = arg.trim().split(pattern);
+            List<String> result = new ArrayList<>(parts.length);
+            for(String part : parts) {
+                String trimmed = part.trim();
+                if(!trimmed.isEmpty()) {
+                    result.add(trimmed);
+                }
+            }
+            return result.toArray(EMPTY_STRING_ARRAY);
+        }
+    }
+
 
     public static int[] toPrimitives(Collection<Integer> collection) {
         int[] result = new int[collection.size()];

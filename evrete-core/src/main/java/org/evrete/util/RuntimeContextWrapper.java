@@ -30,11 +30,6 @@ class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends RuntimeCon
     }
 
     @Override
-    public Class<?> addClass(String binaryName, byte[] classBytes) {
-        return delegate.addClass(binaryName, classBytes);
-    }
-
-    @Override
     public String getName() {
         return delegate.getName();
     }

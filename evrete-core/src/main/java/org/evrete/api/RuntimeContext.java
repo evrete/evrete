@@ -15,7 +15,6 @@ import java.util.function.Consumer;
  * @param <C> the type of the implementing class or interface
  */
 public interface RuntimeContext<C extends RuntimeContext<C>> extends FluentImports<C>, FluentEnvironment<C>, EventBus {
-    Comparator<Rule> SALIENCE_COMPARATOR = (rule1, rule2) -> -1 * Integer.compare(rule1.getSalience(), rule2.getSalience());
 
     /**
      * Retrieves the comparator used for ordering rules.
@@ -137,7 +136,6 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends FluentImpor
      *
      * @return the TypeResolver instance
      */
-    // TODO review usage/delete
     TypeResolver getTypeResolver();
 
     /**
@@ -154,17 +152,5 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends FluentImpor
      */
     //TODO remove
     JavaSourceCompiler getSourceCompiler();
-
-    /**
-     * Adds a class with the specified binary name and class bytes to the current context's classloader.
-     * This method can be used to dynamically add classes at runtime.
-     *
-     * @param binaryName the fully qualified binary name of the class
-     * @param classBytes the class bytes of the class
-     * @return defined class
-     */
-    //TODO remove
-    Class<?> addClass(String binaryName, byte[] classBytes);
-
 
 }

@@ -18,6 +18,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C>> extends AbstractRuntimeMeta<C> implements RuleSetContext<C, R> {
+    private static final Comparator<Rule> SALIENCE_COMPARATOR = (rule1, rule2) -> -1 * Integer.compare(rule1.getSalience(), rule2.getSalience());
+
     private static final Logger LOGGER = Logger.getLogger(AbstractRuntime.class.getName());
     private final Configuration configuration;
     private final AtomicInteger noNameRuleCounter;

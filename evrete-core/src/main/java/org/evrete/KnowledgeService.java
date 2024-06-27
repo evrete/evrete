@@ -48,7 +48,6 @@ public class KnowledgeService extends AbstractKnowledgeService {
         this(new Configuration());
     }
 
-
     static ExecutorService executorFactory(Builder builder) {
         if(builder.executor == null) {
             int parallelism = builder.conf.getAsInteger(Configuration.PARALLELISM,Runtime.getRuntime().availableProcessors());
@@ -56,24 +55,6 @@ public class KnowledgeService extends AbstractKnowledgeService {
         } else {
             return new DelegatingExecutorService(builder.executor);
         }
-    }
-
-    private static Reader[] toReaders(Class<?>... resources) throws IOException {
-        if (resources == null || resources.length == 0) throw new IOException("Empty resources");
-        Reader[] urls = new Reader[resources.length];
-        for (int i = 0; i < resources.length; i++) {
-            urls[i] = new StringReader(resources[i].getName());
-        }
-        return urls;
-    }
-
-    private static Reader[] readers(String... resources) throws IOException {
-        if (resources == null || resources.length == 0) throw new IOException("Empty resources");
-        Reader[] readers = new Reader[resources.length];
-        for (int i = 0; i < resources.length; i++) {
-            readers[i] = new StringReader(resources[i]);
-        }
-        return readers;
     }
 
     public static Builder builder() {
@@ -419,8 +400,6 @@ public class KnowledgeService extends AbstractKnowledgeService {
     public TypeResolverProvider getTypeResolverProvider() {
         return typeResolverProvider;
     }
-
-
 
     private Knowledge deprecatedStub(String provider, Object[] resources) throws IOException {
         return newKnowledge().builder().importRules(provider, resources).build();

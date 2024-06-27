@@ -100,16 +100,6 @@ abstract class AbstractRuntimeBase<C extends RuntimeContext<C>> extends Abstract
     }
 
     @Override
-    public Class<?> addClass(String binaryName, byte[] classBytes) {
-        classloader.saveClass(binaryName, classBytes);
-        try {
-            return classloader.loadClass(binaryName);
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("Could not load class that has been just added: " + binaryName, e);
-        }
-    }
-
-    @Override
     public void setClassLoader(ClassLoader classLoader) {
         this.classloader = new RuntimeClassloader(classLoader);
     }
