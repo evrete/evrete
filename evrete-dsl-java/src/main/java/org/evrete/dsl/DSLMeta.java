@@ -10,6 +10,7 @@ import org.evrete.dsl.annotation.Rule;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.util.function.Consumer;
 
 //TODO duplicate rule names must throw exception!!! Both in AJR and in the Core API
 abstract class DSLMeta<C extends RuntimeContext<C>> {
@@ -36,7 +37,7 @@ abstract class DSLMeta<C extends RuntimeContext<C>> {
             // specific lifecycle events.
 
             // 1. Field declaration
-            for (RulesClass.FieldDeclarationMethod<?,?> m : prepared.fieldDeclarationMethods) {
+            for (WrappedFieldDeclarationMethod<?,?> m : prepared.fieldDeclarationMethods) {
                 if(m.isStatic) {
                     // Field declarations expressed as static methods can be applied immediately
                     context.configureTypes(m::selfRegister);
@@ -48,7 +49,7 @@ abstract class DSLMeta<C extends RuntimeContext<C>> {
             }
 
             // 2. Event subscriptions
-            for (RulesClass.EventSubscriptionMethod<?> m : prepared.subscriptionMethods) {
+            for (WrappedEventSubscriptionMethod<?> m : prepared.subscriptionMethods) {
                 if(m.isStatic) {
                     m.selfSubscribe(context);
                 } else {
@@ -97,18 +98,18 @@ abstract class DSLMeta<C extends RuntimeContext<C>> {
                 LhsField.Array<String, TypeField> descriptor = LhsField.Array.toFields(mp.args(), ruleBuilder);
                 Class<?>[] signature = Utils.asMethodSignature(descriptor);
                 MethodType methodType = MethodType.methodType(boolean.class, signature);
-
                 WrappedMethod conditionMethod = prepared.lookup(methodName, methodType);
-                RulesClass.Condition condition = new RulesClass.Condition(conditionMethod);
+                WrappedConditionMethod condition = new WrappedConditionMethod(conditionMethod);
                 if(conditionMethod.isStatic) {
                     // Static conditions can be added right away
                     ruleBuilder.getConditionManager().addCondition(condition, mp.args());
                 } else {
                     // Virtual condition methods will require a class instance. Setting a dummy condition
                     // and scheduling its update for each new session
-                    EvaluatorHandle handle = ruleBuilder.getConditionManager().addCondition((ValuesPredicate) t -> {
-                        throw new UnsupportedOperationException("LHS condition not updated. Please report it as a bug.");
-                    }, mp.args());
+
+                    // It's important to create new instance of failing conditions.
+                    // DO NOT USE functional interfaces instead, otherwise assigning condition handles WILL FAIL
+                    EvaluatorHandle handle = ruleBuilder.getConditionManager().addCondition(new FailingPredicate(), mp.args());
 
                     collector.scheduleConditionMethodUpdate(handle, condition);
                 }
@@ -121,13 +122,32 @@ abstract class DSLMeta<C extends RuntimeContext<C>> {
             } else {
                 // Virtual RHS will require a class instance. Setting a dummy action and scheduling its update
                 // for each new session
-                lhsBuilder.execute(rhsContext -> {
-                    throw new UnsupportedOperationException("RHS action not updated. Please report it as a bug.");
-                });
-
+                lhsBuilder.execute(new FailingRhs());
                 collector.scheduleRhsMethodUpdate(ruleBuilder.getName(), ruleMethod.rhs);
             }
 
+        }
+    }
+
+    private static class FailingRhs implements Consumer<RhsContext> {
+        @Override
+        public void accept(RhsContext rhsContext) {
+            throw new UnsupportedOperationException("RHS action not updated. Please report it as a bug.");
+        }
+    }
+
+    private static class FailingPredicate implements ValuesPredicate {
+
+        @Override
+        public boolean test(IntToValue t) {
+            throw new UnsupportedOperationException("LHS condition not updated. Please report it as a bug.");
+        }
+
+        @Override
+        public String toString() {
+            return "FailingPredicate{" +
+                    "hash=" + System.identityHashCode(this) +
+                    '}';
         }
     }
 }

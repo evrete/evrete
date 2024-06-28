@@ -40,8 +40,7 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
             rule.clear();
         }
         memory.clear();
-        //TODO !!!
-        //this.getActionBuffer().clear();
+        this.getActionBuffer().clear();
     }
 
     final void fireInner() {

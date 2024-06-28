@@ -62,9 +62,4 @@ public final class TypeMemory extends FactStorageWrapper<DefaultFactHandle, Fact
         insert(value.getHandle(), value);
     }
 
-    @Override
-    public void clear() {
-        super.clear();
-        this.fieldValuesIndexer.clear();
-    }
 }

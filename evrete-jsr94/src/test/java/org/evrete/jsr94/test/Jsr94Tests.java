@@ -49,7 +49,6 @@ class Jsr94Tests {
 
         // get an input stream to a test XML ruleset
         // This rule execution set is part of the TCK.
-        Reader inStream = new StringReader(Example1.class.getName());
 
         // parse the ruleset from the XML document
         Map<Object, Object> ruleSetConfig = new HashMap<>();
@@ -58,8 +57,7 @@ class Jsr94Tests {
         ruleSetConfig.put(Constants.RULE_SET_DESCRIPTION, "A simple rule set that removes all non-prime numbers from working memory");
         RuleExecutionSet res1 = administrator
                 .getLocalRuleExecutionSetProvider(null)
-                .createRuleExecutionSet(inStream, ruleSetConfig);
-        inStream.close();
+                .createRuleExecutionSet(Example1.class.getName(), ruleSetConfig);
 
         // register the RuleExecutionSet
         String uri = res1.getName();

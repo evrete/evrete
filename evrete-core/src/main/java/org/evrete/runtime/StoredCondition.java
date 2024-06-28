@@ -10,13 +10,19 @@ import org.evrete.util.Indexed;
 import java.time.Instant;
 import java.util.concurrent.Executor;
 
-public class StoredCondition extends LhsCondition<ValuesPredicate, String, ActiveField> implements Indexed {
+public class StoredCondition extends LhsCondition<ValuesPredicate, String, ActiveField> implements Indexed, Copyable<StoredCondition> {
     private final DefaultEvaluatorHandle handle;
     private BroadcastingPublisher<ConditionEvaluationEvent> publisher;
 
     public StoredCondition(int index, ValuesPredicate predicate, double complexity, LhsField.Array<String, ActiveField> fields) {
         super(predicate, fields);
         this.handle = new DefaultEvaluatorHandle(index, complexity);
+    }
+
+    public StoredCondition(StoredCondition other) {
+        super(other.getCondition(), other.getDescriptor());
+        this.handle = other.handle;
+        this.publisher = other.publisher;
     }
 
     public DefaultEvaluatorHandle getHandle() {
@@ -51,6 +57,10 @@ public class StoredCondition extends LhsCondition<ValuesPredicate, String, Activ
         }
     }
 
+    @Override
+    public StoredCondition copyOf() {
+        return new StoredCondition(this);
+    }
 
     @Override
     public int getIndex() {

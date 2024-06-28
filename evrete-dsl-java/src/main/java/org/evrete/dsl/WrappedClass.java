@@ -45,6 +45,6 @@ class WrappedClass {
             }
         }
 
-        return new WrappedMethod(this, handle, staticMethod);
+        return new WrappedMethod(this, handle, name, staticMethod);
     }
 }

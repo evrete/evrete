@@ -1,6 +1,9 @@
 package org.evrete.jsr94;
 
 
+import org.evrete.api.RuntimeContext;
+import org.evrete.api.StatefulSession;
+
 import javax.rules.InvalidRuleSessionException;
 import javax.rules.admin.RuleExecutionSetCreateException;
 import java.util.LinkedList;
@@ -46,7 +49,7 @@ final class Utils {
     static List<?> sessionObjects(StatefulSession delegate) throws InvalidRuleSessionException {
         try {
             List<Object> response = new LinkedList<>();
-            delegate.forEachFact((handle, o) -> response.add(o));
+            delegate.forEachFact(o -> response.add(o));
             return response;
         } catch (Exception e) {
             throw new InvalidRuleSessionException(e.getMessage(), e);

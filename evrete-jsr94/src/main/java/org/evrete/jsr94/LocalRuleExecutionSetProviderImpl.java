@@ -21,7 +21,7 @@ class LocalRuleExecutionSetProviderImpl implements LocalRuleExecutionSetProvider
     @Override
     public RuleExecutionSet createRuleExecutionSet(InputStream inputStream, Map map) throws RuleExecutionSetCreateException, IOException {
         try {
-            Knowledge knowledge = knowledgeService.newKnowledge(Utils.dslName(map), inputStream);
+            Knowledge knowledge = knowledgeService.newKnowledge().builder().importRules(Utils.dslName(map), inputStream).build();
             Utils.copyConfiguration(knowledge, map);
             return new RuleExecutionSetImpl(knowledge, map);
         } catch (RuntimeException e) {
@@ -32,16 +32,22 @@ class LocalRuleExecutionSetProviderImpl implements LocalRuleExecutionSetProvider
     @Override
     public RuleExecutionSet createRuleExecutionSet(Reader reader, Map map) throws RuleExecutionSetCreateException, IOException {
         try {
-            Knowledge knowledge = knowledgeService.newKnowledge(Utils.dslName(map), reader);
+            Knowledge knowledge = knowledgeService.newKnowledge().builder().importRules(Utils.dslName(map), reader).build();
             Utils.copyConfiguration(knowledge, map);
             return new RuleExecutionSetImpl(knowledge, map);
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             throw new RuleExecutionSetCreateException("Unable to create RuleExecutionSet", e);
         }
     }
 
     @Override
     public RuleExecutionSet createRuleExecutionSet(Object o, Map map) throws RuleExecutionSetCreateException {
-        throw new RuleExecutionSetCreateException("Unsupported by " + getClass().getName());
+        try {
+            Knowledge knowledge = knowledgeService.newKnowledge().builder().importRules(Utils.dslName(map), o).build();
+            Utils.copyConfiguration(knowledge, map);
+            return new RuleExecutionSetImpl(knowledge, map);
+        } catch (Exception e) {
+            throw new RuleExecutionSetCreateException("Unable to create RuleExecutionSet", e);
+        }
     }
 }

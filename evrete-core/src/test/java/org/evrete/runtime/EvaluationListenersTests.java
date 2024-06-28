@@ -8,6 +8,7 @@ import org.evrete.classes.TypeB;
 import org.evrete.helper.RhsAssert;
 import org.evrete.helper.TestUtils;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -71,8 +72,8 @@ class EvaluationListenersTests {
                 if (async) {
                     TestUtils.sleep(500);
                 }
-                assert knowledgeListenerCounter.get() == 3 : "Actual: " + knowledgeListenerCounter.get();
-                assert knowledgeListenerCounter.get() == sessionListenerCounter.get() : "Session count: " + sessionListenerCounter.get();
+                Assertions.assertEquals(3, knowledgeListenerCounter.get());
+                Assertions.assertEquals(knowledgeListenerCounter.get(), sessionListenerCounter.get());
             }
         }
 

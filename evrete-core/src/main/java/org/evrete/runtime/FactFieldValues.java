@@ -31,7 +31,12 @@ public final class FactFieldValues extends PreHashed{
 
     @Override
     public String toString() {
-        return Arrays.toString(values);
+        String[] types = new String[values.length];
+        for (int i = 0; i < values.length; i++) {
+            Object value = values[i];
+            types[i] = value == null ? null : value.getClass().getName();
+        }
+        return Arrays.toString(values) + "/" + Arrays.toString(types);
     }
 
 }

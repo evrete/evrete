@@ -14,6 +14,7 @@ import org.jcp.jsr94.tck.model.Customer;
 import org.jcp.jsr94.tck.model.Invoice;
 import org.jcp.jsr94.tck.util.TestCaseUtil;
 import org.jcp.jsr94.tck.util.TestObjectFilter;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import javax.rules.ObjectFilter;
@@ -120,99 +121,95 @@ class StatelessRuleSessionTest {
      * @see Invoice
      */
     @Test
-    void testStatelessRuleSession() {
-        try {
-            StatelessRuleSession ruleSession = TestCaseUtil.getStatelessRuleSession("stateless", "src/test/resources/TckRes1.java");
-            assert ruleSession != null;
+    void testStatelessRuleSession() throws Exception {
+        StatelessRuleSession ruleSession = TestCaseUtil.getStatelessRuleSession("stateless", "src/test/resources/TckRes1.java");
+        assert ruleSession != null;
 
-            // Create a Customer as specified by the TCK documentation.
-            Customer inputCustomer = new Customer("test");
-            inputCustomer.setCreditLimit(5000);
+        // Create a Customer as specified by the TCK documentation.
+        Customer inputCustomer = new Customer("test");
+        inputCustomer.setCreditLimit(5000);
 
-            // Create an Invoice as specified by the TCK documentation.
-            Invoice inputInvoice = new Invoice("test");
-            inputInvoice.setAmount(2000);
+        // Create an Invoice as specified by the TCK documentation.
+        Invoice inputInvoice = new Invoice("test");
+        inputInvoice.setAmount(2000);
 
-            // Create an input list.
-            List<Object> input = new ArrayList<>();
-            input.add(inputCustomer);
-            input.add(inputInvoice);
+        // Create an input list.
+        List<Object> input = new ArrayList<>();
+        input.add(inputCustomer);
+        input.add(inputInvoice);
 
-            // Execute the rules without a filter.
-            List<?> results = ruleSession.executeRules(input);
+        // Execute the rules without a filter.
+        List<?> results = ruleSession.executeRules(input);
 
-            // Check the results.
-            assert results != null;
-            assert results.size() == 2;
+        // Check the results.
+        assert results != null;
+        assert results.size() == 2;
 
-            Iterator<?> itr = results.iterator();
+        Iterator<?> itr = results.iterator();
 
-            Customer resultCustomer = null;
-            Invoice resultInvoice = null;
+        Customer resultCustomer = null;
+        Invoice resultInvoice = null;
 
-            while (itr.hasNext()) {
-                Object obj = itr.next();
-                if (obj instanceof Customer)
-                    resultCustomer = (Customer) obj;
-                if (obj instanceof Invoice)
-                    resultInvoice = (Invoice) obj;
-            }
-
-            // We should have a customer and an invoice.
-            assert resultCustomer != null;
-            assert resultInvoice != null;
-
-            // Verify the results (although technically speaking we
-            // shouldn't verify of the rule engine works).
-            assert resultCustomer.getCreditLimit() == 3000;
-            assert resultInvoice.getStatus().equals("paid");
-
-
-            // ================= With ObjectFilter for Customer =======
-            // Create a Customer as specified by the TCK documentation.
-            inputCustomer = new Customer("test");
-            inputCustomer.setCreditLimit(5000);
-
-            // Create an Invoice as specified by the TCK documentation.
-            inputInvoice = new Invoice("test");
-            inputInvoice.setAmount(2000);
-
-            // Create an input list.
-            input = new ArrayList<>();
-            input.add(inputCustomer);
-            input.add(inputInvoice);
-
-            // Create the object filter.
-            ObjectFilter customerFilter = new TestObjectFilter(TestObjectFilter.CUSTOMER_FILTER);
-            // Execute the rules without a filter.
-            results = ruleSession.executeRules(input, customerFilter);
-
-            // Check the results.
-            assert results != null;
-            // We should only have the customer.
-            assert results.size() == 1 : "Actual: " + results.size();
-
-            itr = results.iterator();
-
-            resultCustomer = null;
-            resultInvoice = null;
-
-            while (itr.hasNext()) {
-                Object obj = itr.next();
-                if (obj instanceof Customer)
-                    resultCustomer = (Customer) obj;
-                if (obj instanceof Invoice)
-                    resultInvoice = (Invoice) obj;
-            }
-
-            // We should only have a customer.
-            assert resultCustomer != null;
-            assert resultInvoice == null;
-
-            // Release the session.
-            ruleSession.release();
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
+        while (itr.hasNext()) {
+            Object obj = itr.next();
+            if (obj instanceof Customer)
+                resultCustomer = (Customer) obj;
+            if (obj instanceof Invoice)
+                resultInvoice = (Invoice) obj;
         }
+
+        // We should have a customer and an invoice.
+        assert resultCustomer != null;
+        assert resultInvoice != null;
+
+        // Verify the results (although technically speaking we
+        // shouldn't verify of the rule engine works).
+        assert resultCustomer.getCreditLimit() == 3000;
+        assert resultInvoice.getStatus().equals("paid");
+
+
+        // ================= With ObjectFilter for Customer =======
+        // Create a Customer as specified by the TCK documentation.
+        inputCustomer = new Customer("test");
+        inputCustomer.setCreditLimit(5000);
+
+        // Create an Invoice as specified by the TCK documentation.
+        inputInvoice = new Invoice("test");
+        inputInvoice.setAmount(2000);
+
+        // Create an input list.
+        input = new ArrayList<>();
+        input.add(inputCustomer);
+        input.add(inputInvoice);
+
+        // Create the object filter.
+        ObjectFilter customerFilter = new TestObjectFilter(TestObjectFilter.CUSTOMER_FILTER);
+        // Execute the rules without a filter.
+        results = ruleSession.executeRules(input, customerFilter);
+
+        // Check the results.
+        assert results != null;
+        // We should only have the customer.
+        Assertions.assertEquals(1, results.size(), "Data: " + results);
+
+        itr = results.iterator();
+
+        resultCustomer = null;
+        resultInvoice = null;
+
+        while (itr.hasNext()) {
+            Object obj = itr.next();
+            if (obj instanceof Customer)
+                resultCustomer = (Customer) obj;
+            if (obj instanceof Invoice)
+                resultInvoice = (Invoice) obj;
+        }
+
+        // We should only have a customer.
+        assert resultCustomer != null;
+        assert resultInvoice == null;
+
+        // Release the session.
+        ruleSession.release();
     }
 }

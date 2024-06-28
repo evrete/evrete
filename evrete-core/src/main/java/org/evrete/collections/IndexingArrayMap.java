@@ -74,6 +74,7 @@ public abstract class IndexingArrayMap<T, MatchKey, FastKey extends Indexed, Sto
         this.nextWriteIndex = other.nextWriteIndex;
     }
 
+
     /**
      * Deep copy-all constructor
      *
@@ -97,11 +98,11 @@ public abstract class IndexingArrayMap<T, MatchKey, FastKey extends Indexed, Sto
         return array[key.getIndex()].getValue();
     }
 
-    @SuppressWarnings("unchecked")
     public void forEach(Consumer<Stored> consumer) {
         synchronized (keyMap) {
-            for (Object o : array) {
-                consumer.accept((Stored) o);
+            for (int i = 0; i < nextWriteIndex; i++) {
+                InnerMapEntry<FastKey, Stored> entry = array[i];
+                consumer.accept(entry.getValue());
             }
         }
     }

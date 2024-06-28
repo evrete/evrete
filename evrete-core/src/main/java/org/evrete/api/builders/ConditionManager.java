@@ -107,4 +107,21 @@ public interface ConditionManager {
      */
     CompletableFuture<EvaluatorHandle> addCondition(String expression, double complexity);
 
+    /**
+     * Compiles and adds the provided literal predicate to the current {@link RuleBuilder} as a new condition.
+     * Unlike other <code>addCondition</code> methods, this method returns a {@link CompletableFuture} which
+     * will be available after the {@link RuleSetBuilder#build()} method is called. The resulting
+     * {@link EvaluatorHandle} can later be provided to the
+     * {@link EvaluatorsContext#replacePredicate(EvaluatorHandle, ValuesPredicate)} method to replace
+     * conditions on the fly or subscribe to evaluation events.
+     *
+     * @param expression the literal condition, e.g., <code>$a.value > $c.code.value</code>
+     * @return a {@link CompletableFuture} representing the {@link EvaluatorHandle} that will be available when
+     * the current ruleset is built.
+     * @see WorkUnit
+     */
+    default CompletableFuture<EvaluatorHandle> addCondition(String expression) {
+        return addCondition(expression, WorkUnit.DEFAULT_COMPLEXITY);
+    }
+
 }

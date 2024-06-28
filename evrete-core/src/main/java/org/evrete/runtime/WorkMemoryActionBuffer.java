@@ -42,7 +42,7 @@ class WorkMemoryActionBuffer {
         this(new LongKeyMap<>());
     }
 
-    private void clear() {
+    void clear() {
         this.actionsPerFactHandle.clear();
     }
 

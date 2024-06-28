@@ -34,7 +34,7 @@ public class SessionMemory implements MemoryStreaming {
 
     void clear() {
         typedMemories.forEach(TypeMemory::clear);
-        typedMemories.clear();
+        alphaMemories.forEach(TypeAlphaMemory::clear);
     }
 
     // Used in unit tests

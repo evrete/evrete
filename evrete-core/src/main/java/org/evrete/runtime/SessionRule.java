@@ -79,8 +79,7 @@ public class SessionRule extends AbstractActiveRule<SessionFactGroup, SessionLhs
     }
 
     public void clear() {
-        //TODO!!!
-        throw new UnsupportedOperationException();
+        //TODO review the usage
     }
 
     @Override

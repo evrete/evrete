@@ -10,24 +10,24 @@ class MetadataCollector {
 
     final Map<Class<?>, Collection<RhsUpdate>> rhsUpdateTasks = new HashMap<>();
     final Map<Class<?>, Collection<ConditionUpdate>> conditionUpdateTasks = new HashMap<>();
-    final Map<Class<?>, Collection<RulesClass.FieldDeclarationMethod<?,?>>> fieldDeclarationMethods = new HashMap<>();
-    final Map<Class<?>, Collection<RulesClass.EventSubscriptionMethod<?>>> eventSubscriptionMethods = new HashMap<>();
+    final Map<Class<?>, Collection<WrappedFieldDeclarationMethod<?,?>>> fieldDeclarationMethods = new HashMap<>();
+    final Map<Class<?>, Collection<WrappedEventSubscriptionMethod<?>>> eventSubscriptionMethods = new HashMap<>();
 
-    void scheduleConditionMethodUpdate(EvaluatorHandle evaluatorHandle, RulesClass.Condition condition) {
+    void scheduleConditionMethodUpdate(EvaluatorHandle evaluatorHandle, WrappedConditionMethod condition) {
         this.conditionUpdateTasks.computeIfAbsent(registerKey(condition), k->new LinkedList<>())
                 .add(new ConditionUpdate(evaluatorHandle, condition));
     }
 
-    void scheduleRhsMethodUpdate(String ruleName, RuleMethod.RhsMethod rhs) {
+    void scheduleRhsMethodUpdate(String ruleName, WrappedRhsMethod rhs) {
         this.rhsUpdateTasks.computeIfAbsent(registerKey(rhs), k -> new LinkedList<>())
                 .add(new RhsUpdate(ruleName, rhs));
     }
 
-    void addFieldDeclarationMethod(RulesClass.FieldDeclarationMethod<?,?> method) {
+    void addFieldDeclarationMethod(WrappedFieldDeclarationMethod<?,?> method) {
         this.fieldDeclarationMethods.computeIfAbsent(registerKey(method), k -> new LinkedList<>()).add(method);
     }
 
-    void addEventSubscriptionMethod(RulesClass.EventSubscriptionMethod<?> method) {
+    void addEventSubscriptionMethod(WrappedEventSubscriptionMethod<?> method) {
         this.eventSubscriptionMethods.computeIfAbsent(registerKey(method), k -> new LinkedList<>()).add(method);
     }
 
@@ -74,19 +74,19 @@ class MetadataCollector {
         }
 
         // 4. Update field declarations
-        for(Map.Entry<Class<?>, Collection<RulesClass.FieldDeclarationMethod<?, ?>>> entry : fieldDeclarationMethods.entrySet()) {
+        for(Map.Entry<Class<?>, Collection<WrappedFieldDeclarationMethod<?, ?>>> entry : fieldDeclarationMethods.entrySet()) {
             Object instance = instances.get(entry.getKey());
 
-            for(RulesClass.FieldDeclarationMethod<?, ?> fieldDeclaration : entry.getValue()) {
+            for(WrappedFieldDeclarationMethod<?, ?> fieldDeclaration : entry.getValue()) {
                 newSession.configureTypes(typeResolver -> fieldDeclaration.bindTo(instance).selfRegister(typeResolver));
             }
         }
 
         // 5. Create subscriptions
-        for(Map.Entry<Class<?>, Collection<RulesClass.EventSubscriptionMethod<?>>> entry : eventSubscriptionMethods.entrySet()) {
+        for(Map.Entry<Class<?>, Collection<WrappedEventSubscriptionMethod<?>>> entry : eventSubscriptionMethods.entrySet()) {
             Object instance = instances.get(entry.getKey());
 
-            for(RulesClass.EventSubscriptionMethod<?> fieldDeclaration : entry.getValue()) {
+            for(WrappedEventSubscriptionMethod<?> fieldDeclaration : entry.getValue()) {
                 newSession.configureTypes(typeResolver -> fieldDeclaration.bindTo(instance).selfSubscribe(newSession));
             }
         }
@@ -94,9 +94,9 @@ class MetadataCollector {
 
     static class RhsUpdate {
         final String ruleName;
-        final RuleMethod.RhsMethod rhs;
+        final WrappedRhsMethod rhs;
 
-        public RhsUpdate(String ruleName, RuleMethod.RhsMethod rhs) {
+        public RhsUpdate(String ruleName, WrappedRhsMethod rhs) {
             this.ruleName = ruleName;
             this.rhs = rhs;
         }
@@ -104,9 +104,9 @@ class MetadataCollector {
 
     static class ConditionUpdate {
         final EvaluatorHandle evaluatorHandle;
-        final RulesClass.Condition condition;
+        final WrappedConditionMethod condition;
 
-        ConditionUpdate(EvaluatorHandle evaluatorHandle, RulesClass.Condition condition) {
+        ConditionUpdate(EvaluatorHandle evaluatorHandle, WrappedConditionMethod condition) {
             this.evaluatorHandle = evaluatorHandle;
             this.condition = condition;
         }

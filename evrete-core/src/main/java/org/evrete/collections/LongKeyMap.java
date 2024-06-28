@@ -178,41 +178,7 @@ public class LongKeyMap<T> implements Iterable<T> {
     @Override
     @NonNull
     public Iterator<T> iterator() {
-        return new Iterator<>() {
-            int bucketIndex = 0;
-            Entry<T> currentEntry = null;
-
-            @Override
-            public boolean hasNext() {
-                if (currentEntry != null && currentEntry.next != null) {
-                    return true;
-                }
-                while (bucketIndex < table.length) {
-                    if (table[bucketIndex] != null) {
-                        return true;
-                    }
-                    bucketIndex++;
-                }
-                return false;
-            }
-
-            @Override
-            public T next() {
-                if (currentEntry != null && currentEntry.next != null) {
-                    currentEntry = currentEntry.next;
-                } else {
-                    while (bucketIndex < table.length && table[bucketIndex] == null) {
-                        bucketIndex++;
-                    }
-                    if (bucketIndex >= table.length) {
-                        throw new NoSuchElementException();
-                    }
-                    currentEntry = table[bucketIndex];
-                    bucketIndex++;
-                }
-                return currentEntry.value;
-            }
-        };
+        return new It();
     }
 
 
@@ -236,29 +202,40 @@ public class LongKeyMap<T> implements Iterable<T> {
         return size;
     }
 
-    public static void main(String[] args) {
-        LongKeyMap<String> map = new LongKeyMap<>();
-        System.out.println(map.put(1, "one"));   // Output: null
-        System.out.println(map.put(2, "two"));   // Output: null
-        System.out.println(map.put(3, "three")); // Output: null
-        System.out.println(map.put(1, "uno"));   // Output: one
+    private class It implements Iterator<T> {
+        int bucketIndex = 0;
+        Entry<T> currentEntry = null;
 
-        System.out.println(map.get(1)); // Output: uno
-        System.out.println(map.get(2)); // Output: two
-        System.out.println(map.get(3)); // Output: three
-
-        System.out.println(map.remove(2)); // Output: two
-        System.out.println(map.get(2));    // Output: null
-
-        // Test shrinking
-        for (int i = 4; i <= 20; i++) {
-            map.put(i, "value" + i);
+        @Override
+        public boolean hasNext() {
+            if (currentEntry != null && currentEntry.next != null) {
+                return true;
+            }
+            while (bucketIndex < table.length) {
+                if (table[bucketIndex] != null) {
+                    return true;
+                }
+                bucketIndex++;
+            }
+            return false;
         }
-        for (int i = 4; i <= 20; i++) {
-            map.remove(i);
+
+        @Override
+        public T next() {
+            if (currentEntry != null && currentEntry.next != null) {
+                currentEntry = currentEntry.next;
+            } else {
+                while (bucketIndex < table.length && table[bucketIndex] == null) {
+                    bucketIndex++;
+                }
+                if (bucketIndex >= table.length) {
+                    throw new NoSuchElementException();
+                }
+                currentEntry = table[bucketIndex];
+                bucketIndex++;
+            }
+            return currentEntry.value;
         }
-        System.out.println("Size after removals: " + map.size()); // Size should be less than the shrink threshold
-        System.out.println("Capacity after removals: " + map.table.length); // Capacity should be shrunk if below threshold
 
     }
 }

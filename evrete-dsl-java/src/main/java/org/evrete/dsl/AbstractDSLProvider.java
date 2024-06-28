@@ -1,9 +1,7 @@
 package org.evrete.dsl;
 
 import org.evrete.Configuration;
-import org.evrete.api.Events;
-import org.evrete.api.JavaSourceCompiler;
-import org.evrete.api.RuntimeContext;
+import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.builders.RuleSetBuilder;
 import org.evrete.api.events.SessionCreatedEvent;
@@ -20,7 +18,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
-    private static final Logger LOGGER = Logger.getLogger(AbstractDSLProvider.class.getName());
+    static final Logger LOGGER = Logger.getLogger(AbstractDSLProvider.class.getName());
     static final Class<?> TYPE_URL = URL.class;
     static final Class<?> TYPE_CHAR_SEQUENCE = CharSequence.class;
     static final Class<?> TYPE_READER = Reader.class;
@@ -65,7 +63,7 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
 
 
     @Override
-    public final <C extends RuntimeContext<C>> void appendTo(RuleSetBuilder<C> target, Object source) throws IOException {
+    public final <C extends RuntimeContext<C>> void appendTo(@NonNull RuleSetBuilder<C> target, Object source) throws IOException {
         if (source != null) {
             try {
                 this.appendToInner(target, source);
@@ -92,24 +90,24 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
                 LOGGER.warning(()->"Null source detected in " + source);
             } else {
                 Class<?> sourceType = singleSource.getClass();
-                if(sourceTypes.contains(sourceType)) {
+                if(matches(sourceType, sourceTypes)) {
                     if (TYPE_URL.isAssignableFrom(sourceType)) {
-                        metaData.addAll(createClassMeta(target, (URL) source));
+                        metaData.addAll(createClassMeta(target, (URL) singleSource));
                         break;
                     } else if (TYPE_READER.isAssignableFrom(sourceType)) {
-                        metaData.addAll(createClassMeta(target, (Reader) source));
+                        metaData.addAll(createClassMeta(target, (Reader) singleSource));
                         break;
                     } else if (TYPE_CHAR_SEQUENCE.isAssignableFrom(sourceType)) {
-                        metaData.addAll(createClassMeta(target, (CharSequence) source));
+                        metaData.addAll(createClassMeta(target, (CharSequence) singleSource));
                         break;
                     } else if (TYPE_INPUT_STREAM.isAssignableFrom(sourceType)) {
-                        metaData.addAll(createClassMeta(target, (InputStream) source));
+                        metaData.addAll(createClassMeta(target, (InputStream) singleSource));
                         break;
                     } else if (TYPE_CLASS.isAssignableFrom(sourceType)) {
-                        metaData.addAll(createClassMeta(target, (Class<?>) source));
+                        metaData.addAll(createClassMeta(target, (Class<?>) singleSource));
                         break;
                     } else if (TYPE_FILE.isAssignableFrom(sourceType)) {
-                        metaData.addAll(createClassMeta(target, (File) source));
+                        metaData.addAll(createClassMeta(target, (File) singleSource));
                         break;
                     } else {
                         throw new IllegalArgumentException("Unsupported source type " + sourceType);
@@ -154,8 +152,11 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
         }
 
         // 5. Bind the collected data to session events
-        Events.Subscription subscription = context.subscribe(SessionCreatedEvent.class, event -> initMeta.applyToSession(event.getSession()));
-        context.getService().getServiceSubscriptions().add(subscription);
+
+        if(!initMeta.classesToInstantiate.isEmpty()) {
+            Events.Subscription subscription = context.subscribe(SessionCreatedEvent.class, event -> initMeta.applyToSession(event.getSession()));
+            context.getService().getServiceSubscriptions().add(subscription);
+        }
     }
 
     static Charset charset(Configuration configuration) {
@@ -163,6 +164,14 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
         return Charset.forName(charSet);
     }
 
+    static boolean matches(Class<?> clazz, Set<Class<?>> set) {
+        for(Class<?> c : set) {
+            if(c.isAssignableFrom(clazz)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 }
 
