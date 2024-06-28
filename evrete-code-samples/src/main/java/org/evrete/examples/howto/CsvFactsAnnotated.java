@@ -13,7 +13,10 @@ public class CsvFactsAnnotated {
 
         // Build knowledge & session
         StatelessSession session = service
-                .newKnowledge("JAVA-CLASS", CvsTypesRuleset.class)
+                .newKnowledge()
+                .builder()
+                .importRules("JAVA-CLASS", CvsTypesRuleset.class)
+                .build()
                 .newStatelessSession();
 
         // Mike is 16 y.o., located at '5246 Elm Street'
@@ -35,38 +38,40 @@ public class CsvFactsAnnotated {
     public static class CvsTypesRuleset {
         @Rule
         @Where(methods = {
-                @MethodPredicate(method = "test1", args = {"$p.age"}),
-                @MethodPredicate(method = "test2", args = {"$p.location", "$l.address"})
+                @MethodPredicate(method = "testAge", args = {"$p.age"}),
+                @MethodPredicate(method = "testLocations", args = {"$p.location", "$l.address"})
         })
         public void rule1(@Fact(value = "$p", type = TYPE_PERSON) String p, @Fact(value = "$l", type = TYPE_LOCATION) String l) {
             System.out.println("Match: <" + p + "> at <" + l + ">");
         }
 
         @FieldDeclaration(type = TYPE_PERSON, name = "age")
-        public int field1(String s) {
+        public int ageField(String s) {
             return Integer.parseInt(s.split(",")[1]);
         }
 
         @FieldDeclaration(type = TYPE_PERSON, name = "location")
-        public String field2(String s) {
+        public String locationField(String s) {
             return s.split(",")[2];
         }
 
         @FieldDeclaration(type = TYPE_LOCATION, name = "address")
-        public String field3(String s) {
+        public String addressField(String s) {
             return s.split(",")[0];
         }
 
         @FieldDeclaration(type = TYPE_LOCATION, name = "zip")
-        public int field4(String s) {
+        public int zipField(String s) {
             return Integer.parseInt(s.split(",")[1]);
         }
 
-        public boolean test1(int age) {
+        @PredicateImplementation
+        public boolean testAge(int age) {
             return age > 18;
         }
 
-        public boolean test2(String s1, String s2) {
+        @PredicateImplementation
+        public boolean testLocations(String s1, String s2) {
             return s1.equals(s2);
         }
     }

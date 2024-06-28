@@ -6,6 +6,8 @@ import org.evrete.api.builders.LhsBuilder;
 import org.evrete.api.builders.RuleBuilder;
 import org.evrete.util.CompilationException;
 
+import java.util.concurrent.CompletableFuture;
+
 import static java.lang.System.out;
 
 public class HandlingLhsException {
@@ -20,8 +22,7 @@ public class HandlingLhsException {
         LhsBuilder<Knowledge> lhsBuilder = builder.forEach("$i", Integer.class);
 
         // Without exception handling, the condition below will throw an ArithmeticException
-        EvaluatorHandle handle = builder.createCondition("$i / 0 == 1");
-        Evaluator failingEvaluator = knowledge.getEvaluator(handle);
+        CompletableFuture<EvaluatorHandle> futureHandle = builder.getConditionManager().addCondition("$i / 0 == 1");
 
         // We want our rule to print matching numbers
         lhsBuilder
@@ -32,24 +33,21 @@ public class HandlingLhsException {
                 )
                 .build();
 
-        // Replacing the condition
-        knowledge.replaceEvaluator(handle, new Evaluator() {
-            @Override
-            public FieldReference[] descriptor() {
-                return failingEvaluator.descriptor();
-            }
+        EvaluatorHandle handle = futureHandle.join();
+        ValuesPredicate failingEvaluator = knowledge.getEvaluatorsContext().getPredicate(handle);
 
-            @Override
-            public boolean test(IntToValue t) {
-                try {
-                    return failingEvaluator.test(t);
-                } catch (IllegalStateException e) {
-                    assert e.getCause() instanceof ArithmeticException;
+        // Replacing the condition
+        knowledge.getEvaluatorsContext().replacePredicate(handle, t -> {
+            try {
+                return failingEvaluator.test(t);
+            } catch (Throwable e) {
+                if(e.getCause() instanceof ArithmeticException) {
                     return true;
+                } else {
+                    throw new IllegalStateException("Unexpected exception", e);
                 }
             }
         });
-
 
         // Testing the rule
         try (StatefulSession s = knowledge.newStatefulSession()) {

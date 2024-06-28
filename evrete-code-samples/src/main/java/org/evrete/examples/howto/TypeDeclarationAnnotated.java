@@ -9,10 +9,10 @@ public class TypeDeclarationAnnotated {
     public static void main(String[] args) throws Exception {
         KnowledgeService service = new KnowledgeService();
         StatelessSession session = service
-                .newKnowledge(
-                        "JAVA-CLASS",
-                        FactorialRuleset.class
-                )
+                .newKnowledge()
+                .builder()
+                .importRules("JAVA-CLASS", FactorialRuleset.class)
+                .build()
                 .newStatelessSession();
 
         // Testing the rule
