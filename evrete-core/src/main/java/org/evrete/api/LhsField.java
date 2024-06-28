@@ -41,10 +41,6 @@ public class LhsField<Fact, Field> {
         return field;
     }
 
-    public <Fact1, Field1> LhsField<Fact1, Field1> transform(Function<Fact, Fact1> factMapper, Function<Field, Field1> fieldMapper) {
-        return new LhsField<>(factMapper.apply(this.fact), fieldMapper.apply(this.field));
-    }
-
     public static LhsField<String, String> parseDottedVariable(String arg) {
         int dotPos = arg.indexOf('.');
         if (dotPos < 0) {
