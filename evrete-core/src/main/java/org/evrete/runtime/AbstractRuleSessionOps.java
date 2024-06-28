@@ -210,18 +210,22 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
     private DefaultFactHandle bufferInsertMultiple(Collection<?> facts, boolean applyToStorage, WorkMemoryActionBuffer destination) {
         TypeResolver typeResolver = getTypeResolver();
         DefaultFactHandle last = null;
+        int count = 0;
         for (Object fact : facts) {
-            Type<?> factType = typeResolver.resolve(fact);
-            if (factType == null) {
-                if (warnUnknownTypes) {
-                    LOGGER.warning(() -> "Can not map type for '" + fact.getClass().getName() + "', insert operation skipped.");
+            if(fact != null) {
+                Type<?> factType = typeResolver.resolve(fact);
+                if (factType == null) {
+                    if (warnUnknownTypes) {
+                        LOGGER.warning(() -> "Can not map type for '" + fact.getClass().getName() + "', insert operation skipped.");
+                    }
+                } else {
+                    ActiveType type = getCreateIndexedType(factType);
+                    last = bufferInsertSingle(factType, type, applyToStorage, fact, destination);
+                    count++;
                 }
-            } else {
-                ActiveType type = getCreateIndexedType(factType);
-                last = bufferInsertSingle(factType, type, applyToStorage, fact, destination);
             }
         }
-        return facts.size() == 1 ? last : null;
+        return count == 1 ? last : null;
     }
 
     /**

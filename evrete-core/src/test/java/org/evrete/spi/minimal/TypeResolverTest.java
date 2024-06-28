@@ -75,7 +75,6 @@ class TypeResolverTest {
                     Type<StatefulSession> sessionType = typeResolver.declare(StatefulSession.class);
                     sessionType.declareBooleanField("hasTestRule", s -> s.getRule("Test") != null);
                 })
-
                 .builder()
                 .newRule()
                 .forEach("$s", StatefulSession.class)

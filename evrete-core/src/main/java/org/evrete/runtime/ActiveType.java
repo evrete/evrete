@@ -107,12 +107,9 @@ public class ActiveType implements Copyable<ActiveType> {
 
     FactFieldValues readFactValue(Type<?> type, Object fact) {
         final Object[] values = new Object[activeFields.size()];
-        activeFields.forEachValue(new Consumer<ActiveField>() {
-            @Override
-            public void accept(ActiveField activeField) {
-                TypeField field = type.getField(activeField.getName());
-                values[activeField.valueIndex()] = field.readValue(fact);;
-            }
+        activeFields.forEachValue(activeField -> {
+            TypeField field = type.getField(activeField.getName());
+            values[activeField.valueIndex()] = field.readValue(fact);
         });
         return new FactFieldValues(values);
     }
