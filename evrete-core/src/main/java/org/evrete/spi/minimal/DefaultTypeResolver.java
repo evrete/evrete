@@ -37,6 +37,7 @@ class DefaultTypeResolver implements TypeResolver {
         }
     }
 
+    @Nullable
     private static Class<?> primitiveClassForName(String className) {
         switch (className) {
             case "boolean":
@@ -90,27 +91,37 @@ class DefaultTypeResolver implements TypeResolver {
         if (resolvedJavaType == null) {
             throw new IllegalStateException("Unable to resolve Java class '" + javaType + "'");
         } else {
-            return saveNewType(new TypeImpl<>(typeName, resolvedJavaType));
+            return registerNewType(new TypeImpl<>(typeName, resolvedJavaType));
         }
     }
 
     @Override
     @NonNull
     public synchronized <T> Type<T> declare(@NonNull String typeName, @NonNull Class<T> javaType) {
-        return saveNewType(new TypeImpl<>(typeName, javaType));
+        return registerNewType(new TypeImpl<>(typeName, javaType));
     }
 
-    private <T> Type<T> saveNewType(Type<T> type) {
-        if (typeDeclarationMap.put(type.getName(), type) == null) {
+    private <T> Type<T> registerNewType(Type<T> type) {
+        Type<?> previous = typeDeclarationMap.put(type.getName(), type);
+        if (previous != null) {
+            // Remove reverse association
             typesByJavaType.computeIfAbsent(
-                            type.getJavaClass(),
-                            k -> new ArrayList<>())
-                    .add(type);
-            typeInheritanceCache.clear();
-            return type;
-        } else {
-            throw new IllegalStateException("Type name '" + type.getName() + "' has been already defined");
+                    previous.getJavaClass(),
+                    k -> new ArrayList<>())
+                    .remove(previous);
         }
+        typesByJavaType.computeIfAbsent(
+                        type.getJavaClass(),
+                        k -> new ArrayList<>())
+                .add(type);
+        typeInheritanceCache.clear();
+        return type;
+
+    }
+
+    @Override
+    public synchronized void addType(Type<?> type) {
+        this.registerNewType(type);
     }
 
     @Override
@@ -156,17 +167,10 @@ class DefaultTypeResolver implements TypeResolver {
     public <T> Type<T> resolve(Object o) {
         Objects.requireNonNull(o);
         Class<?> javaType = o.getClass();
-        String name = Type.logicalNameOf(javaType);
 
-        Collection<Type<?>> associatedTypes = typesByJavaType.get(javaType);
-        if (associatedTypes != null && !associatedTypes.isEmpty()) {
-            if (associatedTypes.size() > 1) {
-                LOGGER.warning(()->"Ambiguous type declaration found, there are " + associatedTypes.size() + " types associated with the '" + name + "' Java type, returning <null>.");
-                return null;
-            } else {
-                return (Type<T>) associatedTypes.iterator().next();
-            }
-        } else {
+        Collection<Type<?>> associatedTypes = typesByJavaType.getOrDefault(javaType, Collections.emptySet());
+        if (associatedTypes.isEmpty()) {
+            String name = Type.logicalNameOf(javaType);
             // There is no direct match, but there might be a registered super class that can be used instead
             TypeCacheEntry cacheEntry = typeInheritanceCache.get(name);
             if (cacheEntry == null) {
@@ -179,6 +183,19 @@ class DefaultTypeResolver implements TypeResolver {
                 }
             }
             return (TypeImpl<T>) cacheEntry.type;
+
+        } else {
+            if (associatedTypes.size() > 1) {
+                LOGGER.warning(()->"Ambiguous type declaration found, there are " + associatedTypes.size() + " types associated with the '" + javaType.getName() + "' Java type, returning <null>.");
+                return null;
+            } else {
+                return (Type<T>) associatedTypes.iterator().next();
+            }
+
+
+
+
+
         }
     }
 

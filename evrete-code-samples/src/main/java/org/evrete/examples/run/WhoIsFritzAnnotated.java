@@ -11,9 +11,13 @@ public class WhoIsFritzAnnotated {
     public static void main(String[] args) throws Exception {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
-                .newKnowledge(
+                .newKnowledge()
+                .builder()
+
+                .importRules(
                         "JAVA-CLASS",
-                        WhoIsFritzAnnotated.RuleSet.class);
+                        WhoIsFritzAnnotated.RuleSet.class)
+                .build();
 
         // Init subject and its known properties
         Subject fritz = new Subject();

@@ -11,9 +11,12 @@ public class PrimeNumbersDSLSource {
     public static void main(String[] args) throws IOException {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
-                .newKnowledge(
+                .newKnowledge()
+                .builder()
+                .importRules(
                         "JAVA-SOURCE",
-                        URI.create("https://www.evrete.org/examples/PrimeNumbersSource.java").toURL());
+                        URI.create("https://www.evrete.org/examples/PrimeNumbersSource.java").toURL())
+                .build();
 
         // Stateful sessions are AutoCloseable
         try (StatefulSession session = knowledge.newStatefulSession()) {

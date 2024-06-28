@@ -16,7 +16,8 @@ public class WhoIsFritzAdvanced {
         Knowledge knowledge = service.newKnowledge()
                 .configureTypes(typeResolver -> {
                     Type<Subject> subjectType = typeResolver.declare(Subject.class);
-                    typeResolver.wrapType(new SubjectType(subjectType));
+                    // Re-declaring the type
+                    typeResolver.addType(new SubjectType(subjectType));
                 });
 
         StatelessSession session = knowledge

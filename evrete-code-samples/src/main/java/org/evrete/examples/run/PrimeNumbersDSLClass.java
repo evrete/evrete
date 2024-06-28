@@ -14,9 +14,12 @@ public class PrimeNumbersDSLClass {
     public static void main(String[] args) throws IOException {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
-                .newKnowledge(
+                .newKnowledge()
+                .builder()
+                .importRules(
                         "JAVA-CLASS",
-                        PrimeNumbersDSLClass.Ruleset.class);
+                        PrimeNumbersDSLClass.Ruleset.class)
+                .build();
 
         // Stateful sessions are AutoCloseable
         try (StatefulSession session = knowledge.newStatefulSession()) {

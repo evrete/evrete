@@ -29,5 +29,7 @@ public class PrimeNumbersDSLUrl {
             // Printout current memory state
             session.forEachFact((handle, o) -> System.out.println(o));
         }
+
+        service.shutdown();
     }
 }

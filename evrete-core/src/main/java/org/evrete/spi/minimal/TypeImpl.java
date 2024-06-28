@@ -129,7 +129,6 @@ class TypeImpl<T> implements Type<T> {
     @Override
     @SuppressWarnings("unchecked")
     public <V> TypeField declareField(String name, Class<V> type, Function<T, V> function) {
-        //return innerDeclare(name, type, o -> function.apply((T) o));
         return innerDeclare(name, type, new Function<Object, Object>() {
             @Override
             public Object apply(Object o) {
@@ -153,11 +152,6 @@ class TypeImpl<T> implements Type<T> {
     @Deprecated
     public Class<T> resolveJavaType() {
         return javaType;
-    }
-
-    @Override
-    public final Collection<TypeField> getDeclaredFields() {
-        return Collections.unmodifiableCollection(fieldMap.values());
     }
 
     @Override

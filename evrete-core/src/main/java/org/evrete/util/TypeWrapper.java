@@ -41,11 +41,6 @@ public class TypeWrapper<T> implements Type<T> {
     }
 
     @Override
-    public Collection<TypeField> getDeclaredFields() {
-        return delegate.getDeclaredFields();
-    }
-
-    @Override
     public @NonNull TypeField getField(@NonNull String name) {
         return delegate.getField(name);
     }

@@ -64,15 +64,6 @@ public interface Type<T> extends Copyable<Type<T>> {
     @Deprecated
     String getJavaType();
 
-    /**
-     * <p>
-     * Method returns ALL known fields, both explicitly declared and resolved.
-     * </p>
-     *
-     * @return Collection of declared fields
-     * @see TypeField
-     */
-    Collection<TypeField> getDeclaredFields();
 
     /**
      * <p>

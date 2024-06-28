@@ -14,10 +14,9 @@ import java.util.Collection;
  * </p>
  *
  * <p>
- * This interface extends {@link CopyableWith}, allowing a {@link TypeResolver} to create copies of itself,
- * potentially modified based on a provided {@link ClassLoader} argument. The copies must inherit the original
- * declared types but must not have a reverse effect — changes, such as new types or field declarations, in the copies
- * must not be reflected in the original type resolver.
+ * This interface extends {@link CopyableWith}, allowing a {@link TypeResolver} to create copies of itself.
+ * The copies must inherit the original declared types but must not have a reverse effect — changes,
+ * such as new types or field declarations, in the copies must not be reflected in the original type resolver.
  * </p>
  *
  * @see CopyableWith
@@ -26,12 +25,13 @@ import java.util.Collection;
 public interface TypeResolver extends CopyableWith<TypeResolver, ClassLoader> {
 
     /**
-     * @param name type's declared name
+     * @param name type's logical name
      * @param <T>  type parameter
      * @return existing {@link Type} or {@code null} if not found
      */
     @Nullable
     <T> Type<T> getType(String name);
+
 
     /**
      * Returns a collection of all known types.
@@ -52,13 +52,22 @@ public interface TypeResolver extends CopyableWith<TypeResolver, ClassLoader> {
      * Wraps a given TypeWrapper instance and delegates the calls to another Type implementation.
      *
      * @param typeWrapper the TypeWrapper instance to be wrapped
-     * @deprecated in 4.0.0 use the {@link org.evrete.KnowledgeService.Builder#withTypeResolverProvider}
+     * @deprecated in 4.0.0 use the {@link #addType(Type)} method instead
      * to supply an alternative type resolver
      */
     @Deprecated
     default void wrapType(TypeWrapper<?> typeWrapper) {
         throw new UnsupportedOperationException("Deprecated in 4.0.0");
     }
+
+    /**
+     * Adds a new type to the type resolver and overrides any previous association
+     * between the type's logical name and the type itself.
+     *
+     * @param type The type to be added to the resolver.
+     * @since 4.0.0
+     */
+    void addType(Type<?> type);
 
     /**
      * <p>

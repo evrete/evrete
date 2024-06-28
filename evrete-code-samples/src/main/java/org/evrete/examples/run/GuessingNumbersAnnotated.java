@@ -16,10 +16,13 @@ public class GuessingNumbersAnnotated {
     public static void main(String[] args) throws Exception {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
-                .newKnowledge(
+                .newKnowledge()
+                .builder()
+                .importRules(
                         "JAVA-CLASS",
                         GuessingNumbersKnowledge.class
-                );
+                )
+                .build();
 
         try (StatefulSession session = knowledge.newStatefulSession()) {
             Player p1 = new Player("Andrew");

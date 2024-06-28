@@ -37,5 +37,6 @@ public class PrimeNumbersLiteralSource {
         // Printout current memory state
         session.forEachFact((handle, o) -> System.out.print(o + " "));
         session.close();
+        service.shutdown();
     }
 }
