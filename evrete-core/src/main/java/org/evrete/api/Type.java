@@ -2,7 +2,6 @@ package org.evrete.api;
 
 import org.evrete.api.annotations.NonNull;
 
-import java.util.Collection;
 import java.util.function.*;
 
 /**

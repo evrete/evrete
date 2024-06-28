@@ -9,7 +9,10 @@ import org.evrete.runtime.AbstractKnowledgeService;
 import org.evrete.runtime.KnowledgeRuntime;
 import org.evrete.util.DelegatingExecutorService;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
 import java.net.URL;
 import java.util.Collections;
 import java.util.LinkedList;

@@ -17,7 +17,6 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 
 import static org.evrete.api.FactBuilder.fact;
 import static org.evrete.helper.TestUtils.sessionFacts;

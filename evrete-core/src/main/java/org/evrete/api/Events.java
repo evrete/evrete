@@ -5,7 +5,6 @@ import org.evrete.KnowledgeService;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.function.Consumer;
 
 import static java.util.Collections.newSetFromMap;

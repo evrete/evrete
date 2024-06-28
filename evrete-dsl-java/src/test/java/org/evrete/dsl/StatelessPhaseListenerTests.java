@@ -14,7 +14,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 class StatelessPhaseListenerTests {
     private static KnowledgeService service;

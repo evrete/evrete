@@ -1176,7 +1176,7 @@ class HotDeploymentStatefulTests {
         Assertions.assertEquals(b1_ft_rule1.getAlphaAddress(), b1_ft_rule2.getAlphaAddress());
         Assertions.assertEquals(b2_ft_rule1.getAlphaAddress(), b2_ft_rule2.getAlphaAddress());
         Assertions.assertEquals(c_ft_rule1.getAlphaAddress(), c_ft_rule2.getAlphaAddress());
-        //Assertions.assertEquals(d_ft_rule1.getAlphaAddress(), d_ft_rule2.getAlphaAddress());
+        Assertions.assertEquals(d_ft_rule1.getAlphaAddress(), d_ft_rule2.getAlphaAddress());
 
         // Inspecting alpha memory for TypeD
         Set<AlphaAddress> alphaAddressesOfTypeD1 = getAlphaConditions(session, TypeD.class);

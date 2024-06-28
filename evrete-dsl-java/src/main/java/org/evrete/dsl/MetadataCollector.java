@@ -1,6 +1,9 @@
 package org.evrete.dsl;
 
-import org.evrete.api.*;
+import org.evrete.api.EvaluatorHandle;
+import org.evrete.api.EvaluatorsContext;
+import org.evrete.api.Rule;
+import org.evrete.api.RuleSession;
 
 import java.util.*;
 

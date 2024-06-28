@@ -1,7 +1,6 @@
 package org.evrete.collections;
 
 import org.evrete.api.MapEntry;
-import org.evrete.api.annotations.Nullable;
 import org.evrete.util.Indexed;
 
 import java.util.Arrays;

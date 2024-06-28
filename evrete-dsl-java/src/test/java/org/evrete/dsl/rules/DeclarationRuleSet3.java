@@ -1,6 +1,5 @@
 package org.evrete.dsl.rules;
 
-import org.evrete.api.Environment;
 import org.evrete.api.RhsContext;
 import org.evrete.api.events.SessionFireEvent;
 import org.evrete.dsl.annotation.*;

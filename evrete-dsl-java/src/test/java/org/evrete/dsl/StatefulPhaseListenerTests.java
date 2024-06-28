@@ -4,10 +4,8 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.ActivationMode;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
-import org.evrete.api.StatelessSession;
 import org.evrete.api.events.EnvironmentChangeEvent;
 import org.evrete.api.events.SessionClosedEvent;
-import org.evrete.api.events.SessionCreatedEvent;
 import org.evrete.api.events.SessionFireEvent;
 import org.evrete.dsl.rules.PhaseListenerRuleSet1;
 import org.junit.jupiter.api.AfterAll;
@@ -16,7 +14,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 class StatefulPhaseListenerTests {
     private static KnowledgeService service;

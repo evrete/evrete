@@ -1,7 +1,9 @@
 package org.evrete.examples.howto;
 
 import org.evrete.KnowledgeService;
-import org.evrete.api.*;
+import org.evrete.api.EvaluatorHandle;
+import org.evrete.api.Knowledge;
+import org.evrete.api.StatefulSession;
 import org.evrete.api.builders.ConditionManager;
 import org.evrete.api.builders.LhsBuilder;
 import org.evrete.api.builders.RuleBuilder;

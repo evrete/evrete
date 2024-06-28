@@ -4,7 +4,6 @@ import org.evrete.api.*;
 import org.evrete.api.builders.ConditionManager;
 import org.evrete.runtime.evaluation.DefaultEvaluatorHandle;
 import org.evrete.runtime.evaluation.ValuePredicateOfArray;
-import org.evrete.util.CommonUtils;
 
 import java.util.Collection;
 import java.util.LinkedList;

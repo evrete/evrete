@@ -4,7 +4,6 @@ import org.evrete.api.Type;
 import org.evrete.api.TypeField;
 import org.evrete.api.annotations.NonNull;
 
-import java.util.Collection;
 import java.util.function.Function;
 
 /**

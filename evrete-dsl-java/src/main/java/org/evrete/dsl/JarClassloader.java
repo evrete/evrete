@@ -2,7 +2,9 @@ package org.evrete.dsl;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.*;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.net.URLConnection;
 import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;

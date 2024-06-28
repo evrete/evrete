@@ -1,7 +1,10 @@
 package org.evrete.examples.howto;
 
 import org.evrete.KnowledgeService;
-import org.evrete.api.*;
+import org.evrete.api.EvaluatorHandle;
+import org.evrete.api.Knowledge;
+import org.evrete.api.StatefulSession;
+import org.evrete.api.ValuesPredicate;
 import org.evrete.api.builders.LhsBuilder;
 import org.evrete.api.builders.RuleBuilder;
 import org.evrete.util.CompilationException;

@@ -1,7 +1,6 @@
 package org.evrete.util;
 
 import org.evrete.api.JavaSourceCompiler;
-import org.evrete.runtime.compiler.ClassMeta;
 
 import java.util.Objects;
 

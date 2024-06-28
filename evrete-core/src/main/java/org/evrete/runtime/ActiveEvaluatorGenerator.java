@@ -3,18 +3,12 @@ package org.evrete.runtime;
 import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.events.ConditionEvaluationEvent;
-import org.evrete.collections.ArrayMap;
-import org.evrete.collections.ForkingArray;
 import org.evrete.collections.IndexingArrayMap;
 import org.evrete.runtime.evaluation.DefaultEvaluatorHandle;
 
 import java.util.Objects;
 import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.UnaryOperator;
 
 /**
  * This class holds the conditions of the context and assigns them handles (see {@link EvaluatorHandle}).

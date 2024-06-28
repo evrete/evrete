@@ -13,7 +13,6 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.net.URL;
 import java.util.*;
-import java.util.function.Predicate;
 
 /**
  * An interface for creating and integrating Domain-Specific Language (DSL) implementations with the rule engine.

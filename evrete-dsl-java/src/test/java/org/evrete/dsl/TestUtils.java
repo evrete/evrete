@@ -3,7 +3,6 @@ package org.evrete.dsl;
 import org.evrete.api.JavaSourceCompiler;
 import org.evrete.api.events.ContextEvent;
 import org.evrete.api.events.EnvironmentChangeEvent;
-import org.evrete.api.events.SessionCreatedEvent;
 import org.evrete.runtime.compiler.RuntimeClassloader;
 import org.evrete.runtime.compiler.SourceCompiler;
 import org.evrete.util.JavaSourceUtils;

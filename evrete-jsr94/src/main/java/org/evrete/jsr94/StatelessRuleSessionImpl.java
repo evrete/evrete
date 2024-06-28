@@ -8,8 +8,6 @@ import javax.rules.RuleRuntime;
 import javax.rules.StatelessRuleSession;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Implementation of the {@link StatelessRuleSession} interface.

@@ -1,7 +1,9 @@
 package org.evrete.dsl;
 
 import org.evrete.Configuration;
-import org.evrete.api.*;
+import org.evrete.api.Events;
+import org.evrete.api.JavaSourceCompiler;
+import org.evrete.api.RuntimeContext;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.builders.RuleSetBuilder;
 import org.evrete.api.events.SessionCreatedEvent;

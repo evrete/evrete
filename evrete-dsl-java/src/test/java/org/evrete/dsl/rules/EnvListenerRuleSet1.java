@@ -3,7 +3,8 @@ package org.evrete.dsl.rules;
 import org.evrete.api.events.EnvironmentChangeEvent;
 import org.evrete.dsl.annotation.EventSubscription;
 import org.evrete.dsl.annotation.Rule;
-import static org.evrete.dsl.TestUtils.EnvHelperData.*;
+
+import static org.evrete.dsl.TestUtils.EnvHelperData.add;
 
 public class EnvListenerRuleSet1 {
 

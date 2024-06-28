@@ -1,6 +1,5 @@
 package org.evrete.runtime;
 
-import org.evrete.api.Type;
 import org.evrete.api.TypeField;
 import org.evrete.util.AbstractIndex;
 
