@@ -4,7 +4,6 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.ActivationMode;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
-import org.evrete.api.TypeResolver;
 import org.evrete.dsl.rules.DeclarationRuleSet1;
 import org.evrete.dsl.rules.DeclarationRuleSet2;
 import org.evrete.dsl.rules.DeclarationRuleSet3;
@@ -17,7 +16,6 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 
 class FieldDeclarationsTests {
     private static KnowledgeService service;
@@ -112,12 +110,7 @@ class FieldDeclarationsTests {
     void test5(ActivationMode mode) throws IOException {
         String logicalTypeName = "Hello world type";
         Knowledge knowledge = service.newKnowledge()
-                .configureTypes(new Consumer<TypeResolver>() {
-                    @Override
-                    public void accept(TypeResolver typeResolver) {
-                        typeResolver.declare(logicalTypeName, String.class);
-                    }
-                })
+                .configureTypes(typeResolver -> typeResolver.declare(logicalTypeName, String.class))
                 .builder()
                 .importRules(Constants.PROVIDER_JAVA_CLASS, DeclarationRuleSet5.class)
                 .build();

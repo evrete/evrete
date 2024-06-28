@@ -652,7 +652,7 @@ class SessionUpdateDeleteTests {
         try(StatefulSession s = knowledge.newStatefulSession().setActivationMode(ActivationMode.DEFAULT)) {
             s.insert(new TypeA());
             s.fire();
-            Assertions.assertTrue(sessionFacts(s).isEmpty()); ;
+            Assertions.assertTrue(sessionFacts(s).isEmpty());
         }
     }
     

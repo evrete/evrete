@@ -72,17 +72,6 @@ public final class CommonUtils {
         }
     }
 
-
-    public static int[] toPrimitives(Collection<Integer> collection) {
-        int[] result = new int[collection.size()];
-        int i = 0;
-        for (Integer integer : collection) {
-            result[i++] = integer;
-        }
-        return result;
-    }
-
-
     public static <T> T[] copyOf(T[] arr) {
         return Arrays.copyOf(arr, arr.length);
     }
@@ -187,14 +176,6 @@ public final class CommonUtils {
         return resolveCollection(o).orElse(Collections.singleton(o));
     }
 
-    public static void systemFill(int[] array, int value) {
-        systemFill(array, array.length, value);
-    }
-
-    public static void systemFill(boolean[] array, boolean value) {
-        systemFill(array, array.length, value);
-    }
-
     public static <T> void systemFill(T[] array, T value) {
         systemFill(array, array.length, value);
     }
@@ -220,54 +201,6 @@ public final class CommonUtils {
         }
     }
 
-    /**
-     * This method is an alternative to Arrays.fill() with the same
-     * method signature
-     *
-     * @param array   the array to be filled
-     * @param toIndex toIndex the index of the last element (exclusive)
-     * @param value   value to be stored
-     */
-    private static void systemFill(int[] array, int toIndex, int value) {
-        int len;
-        if ((len = toIndex) < 64) {
-            fillIntegers(array, toIndex, value);
-        } else {
-            array[0] = value;
-            for (int i = 1; i < len; i += i) {
-                System.arraycopy(array, 0, array, i, Math.min((len - i), i));
-            }
-        }
-    }
-
-    /**
-     * This method is an alternative to Arrays.fill() with the same
-     * method signature
-     *
-     * @param array   the array to be filled
-     * @param toIndex toIndex the index of the last element (exclusive)
-     * @param value   value to be stored
-     */
-    private static void systemFill(boolean[] array, int toIndex, boolean value) {
-        int len;
-        if ((len = toIndex) < 64) {
-            fillBooleans(array, toIndex, value);
-        } else {
-            array[0] = value;
-            for (int i = 1; i < len; i += i) {
-                System.arraycopy(array, 0, array, i, Math.min((len - i), i));
-            }
-        }
-    }
-
-    private static void fillBooleans(boolean[] a, int toIndex, boolean val) {
-        for (int i = 0; i < toIndex; i++) a[i] = val;
-    }
-
-    private static void fillIntegers(int[] a, int toIndex, int val) {
-        for (int i = 0; i < toIndex; i++) a[i] = val;
-    }
-
     private static <T> void fillObjects(T[] a, int toIndex, T val) {
         for (int i = 0; i < toIndex; i++) a[i] = val;
     }
@@ -279,7 +212,6 @@ public final class CommonUtils {
             throw new UncheckedIOException(e);
         }
     }
-
 
     public static String toString(Reader reader) throws IOException {
         char[] arr = new char[8192];
@@ -345,14 +277,6 @@ public final class CommonUtils {
             }
             return completeAndCollect(futureList);
         }
-    }
-
-    public static <V, T> CompletableFuture<List<V>> completeAndCollect(Iterable<T> list, Function<T, CompletableFuture<V>> mapper) {
-        List<CompletableFuture<V>> futureList = new LinkedList<>();
-        for (T obj : list) {
-            futureList.add(mapper.apply(obj));
-        }
-        return completeAndCollect(futureList);
     }
 
     public static <T> CompletableFuture<Void> completeAll(Collection<CompletableFuture<T>> futures) {

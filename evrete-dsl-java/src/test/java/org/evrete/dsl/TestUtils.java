@@ -42,8 +42,6 @@ public class TestUtils {
     static synchronized void createTempJarFile(File root, Consumer<File> jarConsumer) throws Exception {
         Path compileRoot = root.toPath();
 
-        SourceCompiler sourceCompiler = new SourceCompiler(new RuntimeClassloader(ClassLoader.getSystemClassLoader()));
-
         Stream<Path> javaFiles = Files.find(compileRoot, Integer.MAX_VALUE, (path, attrs) -> path.toString().endsWith(".java"));
 
         Set<String> sources = javaFiles.map(path -> {
@@ -154,14 +152,6 @@ public class TestUtils {
             for (ContextEvent evt : events) {
                 EVENTS.computeIfAbsent(evt.getClass(), k->new AtomicInteger()).incrementAndGet();
             }
-        }
-
-        static int total() {
-            int total = 0;
-            for (AtomicInteger i : EVENTS.values()) {
-                total += i.get();
-            }
-            return total;
         }
     }
 }
