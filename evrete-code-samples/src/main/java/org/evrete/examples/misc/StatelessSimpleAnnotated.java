@@ -17,9 +17,12 @@ public class StatelessSimpleAnnotated {
         KnowledgeService service = new KnowledgeService();
 
         Knowledge knowledge = service
-                .newKnowledge(
+                .newKnowledge()
+                .builder()
+                .importRules(
                         "JAVA-CLASS",
-                        StatelessSimpleAnnotated.class);
+                        StatelessSimpleAnnotated.class)
+                .build();
 
         StatelessSession session = knowledge.newStatelessSession();
 
