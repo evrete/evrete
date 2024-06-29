@@ -3,6 +3,7 @@ package org.evrete.dsl;
 import org.evrete.Configuration;
 import org.evrete.api.Events;
 import org.evrete.api.JavaSourceCompiler;
+import org.evrete.api.RuleSession;
 import org.evrete.api.RuntimeContext;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.builders.RuleSetBuilder;
@@ -70,7 +71,7 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
             try {
                 this.appendToInner(target, source);
             } catch (UncheckedIOException e) {
-                // Unwrap stream exceptions
+                // Unwrap IO exceptions
                 throw e.getCause();
             }
         } else  {
@@ -86,7 +87,6 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
         // This is a three-step approach:
         // 1. First, we collect metadata from each source
         List<DSLMeta<C>> metaData = new ArrayList<>(resolvedSources.size());
-
         for (Object singleSource : resolvedSources) {
             if(singleSource == null) {
                 LOGGER.warning(()->"Null source detected in " + source);
@@ -95,22 +95,16 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
                 if(matches(sourceType, sourceTypes)) {
                     if (TYPE_URL.isAssignableFrom(sourceType)) {
                         metaData.addAll(createClassMeta(target, (URL) singleSource));
-                        break;
                     } else if (TYPE_READER.isAssignableFrom(sourceType)) {
                         metaData.addAll(createClassMeta(target, (Reader) singleSource));
-                        break;
                     } else if (TYPE_CHAR_SEQUENCE.isAssignableFrom(sourceType)) {
                         metaData.addAll(createClassMeta(target, (CharSequence) singleSource));
-                        break;
                     } else if (TYPE_INPUT_STREAM.isAssignableFrom(sourceType)) {
                         metaData.addAll(createClassMeta(target, (InputStream) singleSource));
-                        break;
                     } else if (TYPE_CLASS.isAssignableFrom(sourceType)) {
                         metaData.addAll(createClassMeta(target, (Class<?>) singleSource));
-                        break;
                     } else if (TYPE_FILE.isAssignableFrom(sourceType)) {
                         metaData.addAll(createClassMeta(target, (File) singleSource));
-                        break;
                     } else {
                         throw new IllegalArgumentException("Unsupported source type " + sourceType);
                     }
@@ -122,6 +116,7 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
 
         // 2. If the collected data implies compiling Java sources, then compile and apply to the metadata.
         Map<JavaSourceCompiler.ClassSource, DSLMeta<C>> sourceMap = new IdentityHashMap<>();
+
         for (DSLMeta<C> meta : metaData) {
             JavaSourceCompiler.ClassSource sourceToCompile = meta.sourceToCompile();
             if (sourceToCompile != null) {
@@ -153,11 +148,20 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
             meta.applyTo(target, initMeta);
         }
 
-        // 5. Bind the collected data to session events
-
+        // 5. Session binding
         if(!initMeta.classesToInstantiate.isEmpty()) {
-            Events.Subscription subscription = context.subscribe(SessionCreatedEvent.class, event -> initMeta.applyToSession(event.getSession()));
-            context.getService().getServiceSubscriptions().add(subscription);
+            if(context instanceof RuleSession) {
+                // This context is a session. Create class instances and rebind method handles.
+                initMeta.applyToSession((RuleSession<?>) context);
+            } else {
+                // This context is a knowledge instance. We need to create class instances each
+                // time a new session is created.
+                Events.Subscription subscription = context.subscribe(
+                        SessionCreatedEvent.class,
+                        event -> initMeta.applyToSession(event.getSession())
+                );
+                context.getService().getServiceSubscriptions().add(subscription);
+            }
         }
     }
 

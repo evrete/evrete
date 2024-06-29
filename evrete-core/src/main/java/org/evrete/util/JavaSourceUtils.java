@@ -57,22 +57,32 @@ public final class JavaSourceUtils {
                 // The next word should be the class's simple name
                 String simpleName = words[i+1].trim();
                 String binaryName = packageName + "." + simpleName;
-                return new JavaSourceCompiler.ClassSource() {
-                    @Override
-                    public String binaryName() {
-                        return binaryName;
-                    }
-
-                    @Override
-                    public String getSource() {
-                        return source;
-                    }
-                };
+                return new SourceImpl(source, binaryName);
             }
         }
 
         throw new IllegalArgumentException("Couldn't find any of the class|interface|enum|record keywords");
 
+    }
+
+    private static class SourceImpl implements JavaSourceCompiler.ClassSource {
+        private final String source;
+        private final String binaryName;
+
+        public SourceImpl(String source, String binaryName) {
+            this.source = source;
+            this.binaryName = binaryName;
+        }
+
+        @Override
+        public String getSource() {
+            return source;
+        }
+
+        @Override
+        public String binaryName() {
+            return binaryName;
+        }
     }
 
     private static boolean isClassDef(String s) {

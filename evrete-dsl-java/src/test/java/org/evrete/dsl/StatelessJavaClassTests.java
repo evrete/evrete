@@ -1,18 +1,18 @@
 package org.evrete.dsl;
 
 import org.evrete.KnowledgeService;
-import org.evrete.api.ActivationMode;
-import org.evrete.api.Knowledge;
-import org.evrete.api.RuntimeRule;
-import org.evrete.api.StatelessSession;
+import org.evrete.api.*;
 import org.evrete.dsl.rules.*;
 import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 class StatelessJavaClassTests {
@@ -222,4 +222,19 @@ class StatelessJavaClassTests {
         assert rules.get(4).getName().endsWith("rule4");
     }
 
+    @Test
+    void multipleRulesets() throws IOException {
+        Knowledge knowledge = service.newKnowledge()
+                .builder()
+                .importRules(Constants.PROVIDER_JAVA_CLASS, Arrays.asList(SortedRuleSet1.class, SampleRuleSet3.class))
+                .build();
+        List<RuleDescriptor> knowledgeRules = knowledge.getRules();
+        Assertions.assertEquals(6, knowledgeRules.size());
+
+        StatelessSession session = session(knowledge, ActivationMode.DEFAULT);
+        List<RuntimeRule> sessionRules = session.getRules();
+        Assertions.assertEquals(6, sessionRules.size());
+
+
+    }
 }

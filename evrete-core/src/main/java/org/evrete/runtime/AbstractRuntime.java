@@ -60,6 +60,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
 
     void addRules(DefaultRuleSetBuilder<C> ruleSetBuilder) {
         List<KnowledgeRule> descriptors = compileRuleBuilders(ruleSetBuilder);
+        LOGGER.fine(()->"Adding " + descriptors.size() + " rules: " + descriptors.stream().map(r->"'" + r.getName() + "'").collect(Collectors.joining(",", "[", "]")));
         addRuleDescriptors(descriptors);
     }
 
