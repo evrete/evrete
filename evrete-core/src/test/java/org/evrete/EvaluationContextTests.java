@@ -92,11 +92,8 @@ class EvaluationContextTests {
 
             session1.insertAndFire(facts);
             Assertions.assertEquals(count - 2, counter.get());
-            //rhsAssert.assertCount(count - 2).reset(); // With zero 'i' values excluded
-            //rhsAssert.reset();
 
-            // Updating conditions for a new session
-
+            // Updating conditions for the second session
             ValuesPredicate betaPredicate = t -> {
                 int ai = t.get(0);
                 int bi = t.get(1);

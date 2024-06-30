@@ -3,6 +3,7 @@ package org.evrete.runtime.rete;
 import org.evrete.api.IntToValue;
 import org.evrete.api.spi.MemoryScope;
 import org.evrete.runtime.*;
+import org.evrete.runtime.evaluation.DefaultEvaluatorHandle;
 import org.evrete.util.CombinationIterator;
 import org.evrete.util.CommonUtils;
 import org.evrete.util.FlatMapIterator;
@@ -96,6 +97,10 @@ public class ReteSessionConditionNode extends ReteSessionNode {
 
 
     void computeDeltaLocally(DeltaMemoryMode mode) {
+        // Initial step - updating conditions (they might've been changed)
+        this.evaluator.refreshConditions();
+
+
         final MemoryScope saveDestination;
         final Iterator<MemoryScope[]> sourceScopes;
         if (mode == DeltaMemoryMode.DEFAULT) {
@@ -237,6 +242,12 @@ public class ReteSessionConditionNode extends ReteSessionNode {
             }
         }
 
+        void refreshConditions() {
+            for (ResolvedEvaluatorComponent component : components ){
+                component.refreshCondition();
+            }
+        }
+
         boolean test() {
             for(ResolvedEvaluatorComponent component : components) {
                 if(!component.test()) {
@@ -254,12 +265,14 @@ public class ReteSessionConditionNode extends ReteSessionNode {
 
     class ResolvedEvaluatorComponent {
         final IntToValue values;
-        final StoredCondition condition;
+        StoredCondition condition;
         final AbstractRuleSessionBase<?> session;
+        final DefaultEvaluatorHandle evaluatorHandle;
 
         ResolvedEvaluatorComponent(AbstractRuleSessionBase<?> session, ReteKnowledgeEvaluator.Component component) {
             this.session = session;
-            this.condition = getActiveEvaluator(component.getDelegate().getCondition());
+            this.evaluatorHandle = component.getDelegate().getCondition();
+            this.condition = refreshCondition();
 
             final ReteKnowledgeEvaluator.Coordinate[] coordinates = component.getCoordinates();
 
@@ -270,6 +283,10 @@ public class ReteSessionConditionNode extends ReteSessionNode {
                 FactFieldValues fieldValues = currentFieldValues[inNodeIdx].values;
                 return fieldValues.valueAt(valueIndex);
             };
+        }
+
+        StoredCondition refreshCondition() {
+            return this.condition = getActiveEvaluator(this.evaluatorHandle);
         }
 
         boolean test() {
