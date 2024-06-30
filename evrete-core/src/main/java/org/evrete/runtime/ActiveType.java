@@ -64,6 +64,7 @@ public class ActiveType implements Copyable<ActiveType> {
         this.knownAlphaLocations.add(alphaAddress);
     }
 
+/*
     Mask<AlphaConditionHandle> alphaConditionResults(FactFieldValues values, AbstractRuleSession<?> runtime) {
         Mask<AlphaConditionHandle> alphaConditionResults = Mask.alphaConditionsMask();
         ActiveEvaluatorGenerator context = runtime.getEvaluatorsContext();
@@ -76,7 +77,9 @@ public class ActiveType implements Copyable<ActiveType> {
 
         return alphaConditionResults;
     }
+*/
 
+/*
     Collection<AlphaAddress> matchingLocations(AbstractRuleSession<?> runtime, FactFieldValues fieldValues, Set<AlphaAddress> scope) {
         return AlphaAddress.matchingLocations(alphaConditionResults(fieldValues, runtime), scope);
     }
@@ -84,6 +87,7 @@ public class ActiveType implements Copyable<ActiveType> {
     Collection<AlphaAddress> matchingLocations(AbstractRuleSession<?> runtime, FactFieldValues fieldValues) {
         return AlphaAddress.matchingLocations(alphaConditionResults(fieldValues, runtime), this.knownAlphaLocations);
     }
+*/
 
 
     public Set<AlphaAddress> getKnownAlphaLocations() {

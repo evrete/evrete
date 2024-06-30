@@ -136,7 +136,7 @@ class ActivationContext {
                     FactHolder factHolder = insert.getFactWrapper();
 
                     // Splitting insert ops by alpha memories
-                    Collection<AlphaAddress> matchingAlphaLocations = type.matchingLocations(session, insert.getValues());
+                    Collection<AlphaAddress> matchingAlphaLocations = session.matchingAlphaLocations(insert.getHandle(), insert.getValues());// type.matchingLocations(session, insert.getValues());
                     for (AlphaAddress matchingAlpha : matchingAlphaLocations) {
                         insertsByAlphaLocation.add(matchingAlpha, factHolder);
                     }

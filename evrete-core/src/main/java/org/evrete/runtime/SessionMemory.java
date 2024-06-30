@@ -8,6 +8,7 @@ import org.evrete.api.spi.DeltaGroupedFactStorage;
 import org.evrete.api.spi.FactStorage;
 import org.evrete.api.spi.ValueIndexer;
 import org.evrete.collections.ArrayMap;
+import org.evrete.runtime.evaluation.AlphaConditionHandle;
 import org.evrete.util.CompletionManager;
 import org.evrete.util.DeltaGroupedFactStorageWrapper;
 
@@ -181,7 +182,10 @@ public class SessionMemory implements MemoryStreaming {
         newTypeMemory.stream().parallel().forEach(entry -> {
             FactHolder factHolder = entry.getValue();
             FactFieldValues fieldValues = newType.readFactValue(type, factHolder.getFact());
-            Collection<AlphaAddress> matchingLocations = newType.matchingLocations(runtime, fieldValues, alphaLocations);
+            // Evaluate alpha conditions
+            Mask<AlphaConditionHandle> alphaTests = runtime.alphaConditionResults(newType, fieldValues);
+            Collection<AlphaAddress> matchingLocations = AlphaAddress.matchingLocations(alphaTests, alphaLocations);
+            //Collection<AlphaAddress> matchingLocations = newType.matchingLocations(runtime, fieldValues, alphaLocations);
             for (AlphaAddress alphaAddress : matchingLocations) {
                 resultMap.getChecked(alphaAddress).insert(factHolder.getFieldValuesId(), factHolder.getHandle());
             }

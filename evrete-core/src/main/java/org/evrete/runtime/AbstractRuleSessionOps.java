@@ -1,12 +1,10 @@
 package org.evrete.runtime;
 
-import org.evrete.api.FactHandle;
-import org.evrete.api.RuleSession;
-import org.evrete.api.Type;
-import org.evrete.api.TypeResolver;
+import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.annotations.Nullable;
 import org.evrete.api.spi.ValueIndexer;
+import org.evrete.runtime.evaluation.AlphaConditionHandle;
 import org.evrete.util.CommonUtils;
 
 import java.util.Collection;
@@ -278,5 +276,35 @@ public abstract class AbstractRuleSessionOps<S extends RuleSession<S>> extends A
                 :
                 Collections.singleton(f);
     }
+
+    /**
+     * Determines destination alpha-memories for the provided fact values
+     * @param handle fact handle
+     * @param values the fact's field values
+     * @return collection of alpha-locations
+     */
+    Collection<AlphaAddress> matchingAlphaLocations(DefaultFactHandle handle, FactFieldValues values) {
+        // 1. Evaluate alpha conditions
+        ActiveType activeType = getActiveType(handle);
+        Mask<AlphaConditionHandle> alphaConditionResults = alphaConditionResults(activeType, values);
+
+        // 2.
+        return AlphaAddress.matchingLocations(alphaConditionResults, activeType.getKnownAlphaLocations());
+    }
+
+
+    Mask<AlphaConditionHandle> alphaConditionResults(ActiveType activeType, FactFieldValues values) {
+        Mask<AlphaConditionHandle> alphaConditionResults = Mask.alphaConditionsMask();
+        ActiveEvaluatorGenerator context = getEvaluatorsContext();
+        activeType.forEachAlphaCondition(indexedHandle -> {
+            StoredCondition evaluator = context.get(indexedHandle.getHandle(), false);
+            ActiveField activeField = evaluator.getDescriptor().get(0).field();
+            IntToValue args = index -> values.valueAt(activeField.valueIndex());
+            alphaConditionResults.set(indexedHandle, evaluator.test(this, args));
+        });
+
+        return alphaConditionResults;
+    }
+
 
 }
