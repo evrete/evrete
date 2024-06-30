@@ -20,8 +20,8 @@ class DefaultTypeResolver implements TypeResolver {
         this.classLoader = classLoader;
     }
 
-    private DefaultTypeResolver(DefaultTypeResolver other, ClassLoader newClassLoader) {
-        this.classLoader = newClassLoader;
+    private DefaultTypeResolver(DefaultTypeResolver other) {
+        this.classLoader = other.classLoader;
         // 1. Replace types with their cloned instances in the main mapping
         for (Map.Entry<String, Type<?>> entry : other.typeDeclarationMap.entrySet()) {
             Type<?> clonedType = entry.getValue().copyOf();
@@ -183,17 +183,12 @@ class DefaultTypeResolver implements TypeResolver {
             } else {
                 return (Type<T>) associatedTypes.iterator().next();
             }
-
-
-
-
-
         }
     }
 
     @Override
-    public DefaultTypeResolver copy(ClassLoader classLoader) {
-        return new DefaultTypeResolver(this, classLoader);
+    public DefaultTypeResolver copyOf() {
+        return new DefaultTypeResolver(this);
     }
 
     private static class TypeCacheEntry {

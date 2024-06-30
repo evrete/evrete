@@ -40,10 +40,8 @@ abstract class AbstractRuntimeBase<C extends RuntimeContext<C>> extends Abstract
         super(parent);
         this.imports = parent.imports.copyOf();
         this.service = parent.service;
-        // Isolate the classloader
-        RuntimeClassloader newClassloader = new RuntimeClassloader(parent.classloader);
-        this.classloader = newClassloader;
-        this.typeResolver = parent.typeResolver.copy(newClassloader);
+        this.classloader = parent.classloader;
+        this.typeResolver = parent.typeResolver.copyOf();
         this.messageBus = parent.messageBus.copyOf();
     }
 

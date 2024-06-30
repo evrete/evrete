@@ -21,8 +21,7 @@ import java.util.Collection;
  *
  * @see CopyableWith
  */
-//TODO remove the classloader in copyable
-public interface TypeResolver extends CopyableWith<TypeResolver, ClassLoader> {
+public interface TypeResolver extends Copyable<TypeResolver> {
 
     /**
      * @param name type's logical name
