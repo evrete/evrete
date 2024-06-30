@@ -2,6 +2,7 @@ package org.evrete.api;
 
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.events.ConditionEvaluationEvent;
+import org.evrete.api.events.Events;
 
 import java.util.function.BiConsumer;
 

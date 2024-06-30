@@ -150,7 +150,6 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends FluentImpor
      *
      * @return A new {@link JavaSourceCompiler} instance.
      */
-    //TODO remove
     JavaSourceCompiler getSourceCompiler();
 
 }

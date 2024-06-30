@@ -1,4 +1,4 @@
-package org.evrete.api;
+package org.evrete.api.events;
 
 import org.evrete.KnowledgeService;
 
@@ -14,7 +14,6 @@ import static java.util.Collections.synchronizedSet;
  * A simpler alternative to the {@link java.util.concurrent.Flow} class and its interfaces.
  * It uses consumers instead of subscribers and allows both synchronous and asynchronous subscriptions.
  */
-// TODO move to the events package?
 public final class Events {
 
     private Events() {}

@@ -5,6 +5,7 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.api.builders.RuleSetBuilder;
 import org.evrete.api.events.ContextEvent;
+import org.evrete.api.events.Events;
 
 import java.util.Collection;
 import java.util.Comparator;

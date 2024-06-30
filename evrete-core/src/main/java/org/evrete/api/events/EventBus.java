@@ -1,7 +1,6 @@
 package org.evrete.api.events;
 
 import org.evrete.KnowledgeService;
-import org.evrete.api.Events;
 
 import java.util.function.Consumer;
 

@@ -1,6 +1,6 @@
 package org.evrete.util;
 
-import org.evrete.api.Events;
+import org.evrete.api.events.Events;
 
 import java.util.Collection;
 import java.util.concurrent.Executor;
@@ -54,7 +54,7 @@ public class BroadcastingPublisher<E extends Events.Event> implements Events.Pub
     }
 
     /**
-     * An internal implementation of the {@link org.evrete.api.Events.Subscription} API
+     * An internal implementation of the {@link Events.Subscription} API
      * @param <P>
      */
     private static class InnerSubscription<P extends Events.Event> implements Events.Subscription {

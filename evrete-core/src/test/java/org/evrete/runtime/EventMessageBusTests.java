@@ -1,7 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.KnowledgeService;
-import org.evrete.api.Events;
+import org.evrete.api.events.Events;
 import org.evrete.api.Knowledge;
 import org.evrete.api.RuleSession;
 import org.evrete.api.events.KnowledgeCreatedEvent;

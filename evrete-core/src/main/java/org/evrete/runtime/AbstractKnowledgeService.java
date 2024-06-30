@@ -1,6 +1,6 @@
 package org.evrete.runtime;
 
-import org.evrete.api.Events;
+import org.evrete.api.events.Events;
 import org.evrete.api.events.ContextEvent;
 import org.evrete.api.events.EventBus;
 

@@ -17,6 +17,7 @@ public class RuntimeClassloader extends ClassLoader {
         super(parent);
     }
 
+/*
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
         synchronized (this) {
@@ -28,6 +29,7 @@ public class RuntimeClassloader extends ClassLoader {
             }
         }
     }
+*/
 
     @Override
     public InputStream getResourceAsStream(String name) {
@@ -54,6 +56,8 @@ public class RuntimeClassloader extends ClassLoader {
 
     public void saveClass(String binaryName, byte[] classBytes) {
         // TODO !!! Call to the super.defineClass() !!!!!
+        Class<?> definedClass =  super.defineClass(binaryName, classBytes, 0, classBytes.length);
+
         ClassMeta meta = new ClassMeta(binaryName);
         this.classDefinitions.put(binaryName, classBytes);
         this.definedClasses.computeIfAbsent(meta.getPackageName(), k->new LinkedList<>()).add(binaryName);

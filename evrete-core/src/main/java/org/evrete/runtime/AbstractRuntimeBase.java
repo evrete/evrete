@@ -4,6 +4,7 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.api.events.ContextEvent;
 import org.evrete.api.events.EnvironmentChangeEvent;
+import org.evrete.api.events.Events;
 import org.evrete.runtime.compiler.RuntimeClassloader;
 import org.evrete.runtime.compiler.SourceCompiler;
 import org.evrete.util.AbstractEnvironment;
@@ -112,6 +113,7 @@ abstract class AbstractRuntimeBase<C extends RuntimeContext<C>> extends Abstract
     }
 
     @Override
+    //TODO future. Review usage, remove
     public final JavaSourceCompiler getSourceCompiler() {
         return new SourceCompiler(classloader);
     }

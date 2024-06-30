@@ -3,6 +3,7 @@ package org.evrete.runtime;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.api.events.ConditionEvaluationEvent;
+import org.evrete.api.events.Events;
 import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.helper.RhsAssert;

@@ -2,6 +2,7 @@ package org.evrete.runtime;
 
 import org.evrete.api.*;
 import org.evrete.api.events.ConditionEvaluationEvent;
+import org.evrete.api.events.Events;
 import org.evrete.runtime.evaluation.ConditionEvaluationEventImpl;
 import org.evrete.runtime.evaluation.DefaultEvaluatorHandle;
 import org.evrete.util.BroadcastingPublisher;

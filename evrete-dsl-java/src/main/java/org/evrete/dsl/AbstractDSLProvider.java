@@ -1,7 +1,7 @@
 package org.evrete.dsl;
 
 import org.evrete.Configuration;
-import org.evrete.api.Events;
+import org.evrete.api.events.Events;
 import org.evrete.api.JavaSourceCompiler;
 import org.evrete.api.RuleSession;
 import org.evrete.api.RuntimeContext;

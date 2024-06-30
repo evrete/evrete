@@ -42,7 +42,6 @@ public interface RuleSession<S extends RuleSession<S>> extends RuleSetContext<S,
      * @return this instance
      * @see #insertAs(String, Object)
      */
-    //TODO create test
     @SuppressWarnings("unchecked")
     default S insertAs(String type, Iterable<?> objects) {
         insert0(type, objects, true);

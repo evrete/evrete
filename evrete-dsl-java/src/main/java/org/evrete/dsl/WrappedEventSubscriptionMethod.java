@@ -1,6 +1,6 @@
 package org.evrete.dsl;
 
-import org.evrete.api.Events;
+import org.evrete.api.events.Events;
 import org.evrete.api.RuntimeContext;
 import org.evrete.api.events.ContextEvent;
 

@@ -2,7 +2,6 @@ package org.evrete.api;
 
 import java.util.stream.Stream;
 
-//TODO move to SessionOps or (vice versa)
 public interface MemoryStreaming {
     Stream<MapEntry<FactHandle, Object>> streamFactEntries();
 

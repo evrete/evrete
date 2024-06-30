@@ -153,14 +153,6 @@ class DefaultTypeResolver implements TypeResolver {
         }
     }
 
-    @Override
-    public String toString() {
-        return "DefaultTypeResolver{" +
-                "typeDeclarationMap=" + typeDeclarationMap +
-                ", typesByJavaType=" + typesByJavaType +
-                ", typeInheritanceCache=" + typeInheritanceCache +
-                '}';
-    }
 
     @Override
     @SuppressWarnings("unchecked")

@@ -1,7 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.Copyable;
-import org.evrete.api.Events;
+import org.evrete.api.events.Events;
 import org.evrete.api.events.*;
 import org.evrete.util.BroadcastingPublisher;
 

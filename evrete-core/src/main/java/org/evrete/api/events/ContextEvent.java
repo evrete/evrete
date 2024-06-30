@@ -1,7 +1,5 @@
 package org.evrete.api.events;
 
-import org.evrete.api.Events;
-
 import java.util.function.Consumer;
 
 /**

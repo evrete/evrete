@@ -3,6 +3,7 @@ package org.evrete.runtime;
 import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.events.ConditionEvaluationEvent;
+import org.evrete.api.events.Events;
 import org.evrete.collections.IndexingArrayMap;
 import org.evrete.runtime.evaluation.DefaultEvaluatorHandle;
 
