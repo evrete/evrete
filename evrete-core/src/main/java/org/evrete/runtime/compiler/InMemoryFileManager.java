@@ -55,7 +55,7 @@ final class InMemoryFileManager extends ForwardingJavaFileManager<JavaFileManage
         Collection<JavaFileObject> result = new LinkedList<>();
 
         defaultFiles.iterator().forEachRemaining(result::add);
-        result.addAll(classLoader.getDefinedClasses(packageName));
+        //result.addAll(classLoader.getDefinedClasses(packageName));
         result.addAll(finder.find(packageName));
         return result;
     }

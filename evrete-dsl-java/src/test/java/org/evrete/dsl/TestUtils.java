@@ -55,6 +55,8 @@ public class TestUtils {
 
         Collection<Class<?>> classes = compile(sources);
 
+        System.out.println("!!!! " + classes);
+
         File out = File.createTempFile("speakace-test", ".jar");
         FileOutputStream fos = new FileOutputStream(out);
         JarOutputStream  jar = new JarOutputStream(fos);
@@ -64,8 +66,10 @@ public class TestUtils {
             ZipEntry zipEntry = new JarEntry(name);
             jar.putNextEntry(zipEntry);
 
-            assert c.getClassLoader() instanceof RuntimeClassloader;
-            InputStream stream = Objects.requireNonNull(c.getClassLoader().getResourceAsStream(name));
+            byte[] classBytes = getClassBytes(c);
+            //assert c.getClassLoader() instanceof RuntimeClassloader;
+            //InputStream stream = Objects.requireNonNull(c.getClassLoader().getResourceAsStream(name));
+            InputStream stream = new ByteArrayInputStream(classBytes);
             copy(stream, jar);
             stream.close();
             jar.closeEntry();
@@ -76,6 +80,24 @@ public class TestUtils {
             jarConsumer.accept(out);
         } finally {
             Files.deleteIfExists(out.toPath());
+        }
+    }
+
+    public static byte[] getClassBytes(Class<?> cls) throws IOException {
+        // Convert class reference to resource path
+        String resourcePath = cls.getName().replace('.', '/') + ".class";
+
+        // Get the class loader of the class
+        ClassLoader classLoader = cls.getClassLoader();
+
+        // Load the class file as resource stream
+        try (InputStream inputStream = classLoader.getResourceAsStream(resourcePath)) {
+            if (inputStream == null) {
+                throw new IOException("Class not found: " + cls.getName());
+            }
+
+            // Read the class bytes
+            return inputStream.readAllBytes();
         }
     }
 
