@@ -1,9 +1,9 @@
-package org.evrete.spi.minimal;
+package org.evrete.runtime.compiler;
 
 import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.spi.SourceCompiler;
-import org.evrete.api.spi.LiteralSourceCompiler;
+import org.evrete.spi.minimal.*;
 import org.evrete.util.CommonUtils;
 import org.evrete.util.CompilationException;
 
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 import static org.evrete.Configuration.RULE_BASE_CLASS;
 import static org.evrete.Configuration.SPI_LHS_STRIP_WHITESPACES;
 
-public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider implements LiteralSourceCompiler {
+public class DefaultLiteralSourceCompiler  {
     private static final String TAB = "  ";
     private static final String RHS_CLASS_NAME = "Rhs";
     private static final String RHS_INSTANCE_VAR = "ACTION";
@@ -24,7 +24,6 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
     private static final AtomicInteger classCounter = new AtomicInteger(0);
     static final String CLASS_PACKAGE = DefaultLiteralSourceCompiler.class.getPackage().getName() + ".compiled";
 
-    @Override
     public <S extends RuleLiteralData<R, C>, R extends Rule, C extends LiteralPredicate> Collection<RuleCompiledSources<S, R, C>> compile(RuntimeContext<?> context, Collection<S> sources) throws CompilationException {
         // Return if there's nothing to compile
         if (sources.isEmpty()) {

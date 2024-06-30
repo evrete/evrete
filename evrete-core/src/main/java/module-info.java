@@ -16,7 +16,7 @@ module org.evrete.core {
     provides org.evrete.api.spi.MemoryFactoryProvider with org.evrete.spi.minimal.DefaultMemoryFactoryProvider;
     uses org.evrete.api.spi.TypeResolverProvider;
     provides org.evrete.api.spi.TypeResolverProvider with org.evrete.spi.minimal.DefaultTypeResolverProvider;
-    uses org.evrete.api.spi.LiteralSourceCompiler;
-    provides org.evrete.api.spi.LiteralSourceCompiler with org.evrete.spi.minimal.DefaultLiteralSourceCompiler;
+    uses org.evrete.api.spi.SourceCompilerProvider;
+    provides org.evrete.api.spi.SourceCompilerProvider with org.evrete.spi.minimal.compiler.DefaultSourceCompilerProvider;
     uses org.evrete.api.spi.DSLKnowledgeProvider;
 }

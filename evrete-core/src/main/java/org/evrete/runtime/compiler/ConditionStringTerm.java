@@ -1,4 +1,4 @@
-package org.evrete.spi.minimal;
+package org.evrete.runtime.compiler;
 
 import org.evrete.api.LhsField;
 import org.evrete.util.NextIntSupplier;
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class ConditionStringTerm  {
+class ConditionStringTerm {
     private static final Pattern REFERENCE_PATTERN = Pattern.compile("\\$[a-zA-Z0-9]+(\\.[_a-zA-Z][_a-zA-Z0-9]*)*");
 
     final int start;
@@ -17,7 +17,6 @@ class ConditionStringTerm  {
     final LhsField<String, String> ref;
 
     ConditionStringTerm(int start, int end, LhsField<String, String> ref, NextIntSupplier fieldCounter) {
-        //super(delegate);
         this.start = start;
         this.end = end;
         this.varName = "var" + fieldCounter.incrementAndGet();
@@ -25,7 +24,6 @@ class ConditionStringTerm  {
     }
 
     ConditionStringTerm(int start, int end, ConditionStringTerm existing) {
-        //super(existing);
         this.start = start;
         this.end = end;
         this.varName = existing.varName;

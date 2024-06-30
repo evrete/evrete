@@ -1,4 +1,4 @@
-package org.evrete.spi.minimal;
+package org.evrete.runtime.compiler;
 
 import java.util.HashMap;
 import java.util.Map;

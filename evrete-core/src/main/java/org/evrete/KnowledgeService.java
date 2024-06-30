@@ -1,7 +1,10 @@
 package org.evrete;
 
 import org.evrete.api.*;
-import org.evrete.api.spi.*;
+import org.evrete.api.spi.DSLKnowledgeProvider;
+import org.evrete.api.spi.MemoryFactoryProvider;
+import org.evrete.api.spi.SourceCompilerProvider;
+import org.evrete.api.spi.TypeResolverProvider;
 import org.evrete.runtime.AbstractKnowledgeService;
 import org.evrete.runtime.KnowledgeRuntime;
 import org.evrete.util.DelegatingExecutorService;
@@ -29,7 +32,6 @@ public class KnowledgeService extends AbstractKnowledgeService {
     private final MemoryFactoryProvider collectionsServiceProvider;
     private final TypeResolverProvider typeResolverProvider;
     private final SourceCompilerProvider sourceCompilerProvider;
-    private final LiteralSourceCompiler literalSourceCompiler;
     private ClassLoader classLoader;
 
     public KnowledgeService(Configuration conf) {
@@ -41,7 +43,6 @@ public class KnowledgeService extends AbstractKnowledgeService {
         this.configuration = builder.conf;
         this.collectionsServiceProvider = builder.getMemoryFactoryProvider();
         this.typeResolverProvider = builder.getTypeResolverProvider();
-        this.literalSourceCompiler = builder.getLiteralSourceCompiler();
         this.classLoader = Thread.currentThread().getContextClassLoader();
         this.sourceCompilerProvider = builder.getSourceCompilerProvider();
     }
@@ -398,10 +399,6 @@ public class KnowledgeService extends AbstractKnowledgeService {
         return sourceCompilerProvider;
     }
 
-    public LiteralSourceCompiler getLiteralSourceCompiler() {
-        return literalSourceCompiler;
-    }
-
     @SuppressWarnings("unused")
     public TypeResolverProvider getTypeResolverProvider() {
         return typeResolverProvider;
@@ -524,7 +521,6 @@ public class KnowledgeService extends AbstractKnowledgeService {
         private final Configuration conf;
         private Class<? extends MemoryFactoryProvider> memoryFactoryProvider;
         private Class<? extends TypeResolverProvider> typeResolverProvider;
-        private Class<? extends LiteralSourceCompiler> literalSourceCompiler;
         private Class<? extends SourceCompilerProvider> sourceCompilerProvider;
         private ExecutorService executor;
 
@@ -539,11 +535,6 @@ public class KnowledgeService extends AbstractKnowledgeService {
 
         public Builder withTypeResolverProvider(Class<? extends TypeResolverProvider> typeResolverProvider) {
             this.typeResolverProvider = typeResolverProvider;
-            return this;
-        }
-
-        public Builder withLiteralSourceCompiler(Class<? extends LiteralSourceCompiler> literalSourceCompiler) {
-            this.literalSourceCompiler = literalSourceCompiler;
             return this;
         }
 
@@ -562,10 +553,6 @@ public class KnowledgeService extends AbstractKnowledgeService {
 
         private TypeResolverProvider getTypeResolverProvider() {
             return loadCoreSPI(TypeResolverProvider.class, Configuration.SPI_TYPE_RESOLVER, typeResolverProvider);
-        }
-
-        private LiteralSourceCompiler getLiteralSourceCompiler() {
-            return loadCoreSPI(LiteralSourceCompiler.class, Configuration.SPI_SOURCE_COMPILER, literalSourceCompiler);
         }
 
         private SourceCompilerProvider getSourceCompilerProvider() {

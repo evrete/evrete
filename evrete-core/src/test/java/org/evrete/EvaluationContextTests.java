@@ -6,7 +6,6 @@ import org.evrete.api.builders.LhsBuilder;
 import org.evrete.api.builders.RuleBuilder;
 import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
-import org.evrete.spi.minimal.DefaultLiteralSourceCompiler;
 import org.evrete.spi.minimal.DefaultMemoryFactoryProvider;
 import org.evrete.spi.minimal.DefaultTypeResolverProvider;
 import org.junit.jupiter.api.AfterAll;
@@ -30,7 +29,6 @@ class EvaluationContextTests {
         service = KnowledgeService.builder()
                 .withMemoryFactoryProvider(DefaultMemoryFactoryProvider.class)
                 .withTypeResolverProvider(DefaultTypeResolverProvider.class)
-                .withLiteralSourceCompiler(DefaultLiteralSourceCompiler.class)
                 .build();
     }
 

@@ -4,7 +4,7 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.RuleCompiledSources;
 import org.evrete.api.annotations.RuleElement;
-import org.evrete.spi.minimal.DefaultLiteralSourceCompiler;
+import org.evrete.runtime.compiler.DefaultLiteralSourceCompiler;
 import org.evrete.util.CompilationException;
 import org.junit.jupiter.api.Test;
 

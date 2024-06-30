@@ -4,6 +4,7 @@ import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.api.builders.RuleSetBuilder;
+import org.evrete.runtime.compiler.DefaultLiteralSourceCompiler;
 import org.evrete.util.CompilationException;
 import org.evrete.util.DefaultActivationManager;
 
@@ -132,7 +133,7 @@ public abstract class AbstractRuntime<R extends Rule, C extends RuntimeContext<C
 
     <S extends RuleLiteralData<R1, C1>, R1 extends Rule, C1 extends LiteralPredicate> Collection<RuleCompiledSources<S, R1, C1>> compileRules(Collection<S> sources) throws CompilationException {
         _assertActive();
-        return getService().getLiteralSourceCompiler().compile(this, sources);
+        return new DefaultLiteralSourceCompiler().compile(this, sources);
     }
 
 
