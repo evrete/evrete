@@ -11,7 +11,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 /**
- * A basic map data structure that can be used in implementations of the {@link Branchable} interface.
+ * A basic map data structure that can be used in implementations of the {@link org.evrete.api.Copyable} interface.
  *
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values

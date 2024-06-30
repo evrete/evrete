@@ -15,7 +15,7 @@ import java.util.stream.Stream;
  * used in traditional map-like structures. The purpose of this structure is to deliver <code>put</code> performance
  * similar to that of Java maps and <code>get</code> performance comparable to Java arrays.
  * <p>
- * The map has a "branching" constructor that can be used by {@link Branchable} implementations.
+ * The map has a "branching" constructor that can be used by {@link org.evrete.api.Copyable} implementations.
  * </p>
  *
  * @param <T>        the type for which the indexed store is created
