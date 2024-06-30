@@ -5,11 +5,11 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RuntimeClassloader extends ClassLoader {
+class ClassLoaderWrapper extends ClassLoader {
 
     private final Map<String, byte[]> classDefinitions = new HashMap<>();
 
-    public RuntimeClassloader(ClassLoader parent) {
+    ClassLoaderWrapper(ClassLoader parent) {
         super(parent);
     }
 
@@ -30,7 +30,7 @@ public class RuntimeClassloader extends ClassLoader {
         }
     }
 
-    public void defineNewClass(String binaryName, byte[] classBytes) {
+    void defineNewClass(String binaryName, byte[] classBytes) {
         super.defineClass(binaryName, classBytes, 0, classBytes.length);
         this.classDefinitions.put(binaryName, classBytes);
     }

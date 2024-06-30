@@ -1,7 +1,7 @@
 
 package org.evrete.util;
 
-import org.evrete.api.JavaSourceCompiler;
+import org.evrete.api.spi.JavaSourceCompiler;
 import org.junit.jupiter.api.Test;
 
 class JavaSourceTest {

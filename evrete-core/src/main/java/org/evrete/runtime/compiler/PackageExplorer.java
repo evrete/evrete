@@ -28,9 +28,9 @@ class PackageExplorer {
     private static final String CLASS_MODULE_INFO = "module-info.class";
     private final Map<String, Collection<JavaFileObject>> cache = new HashMap<>();
 
-    private final RuntimeClassloader classLoader;
+    private final ClassLoaderWrapper classLoader;
 
-    public PackageExplorer(RuntimeClassloader classLoader) {
+    public PackageExplorer(ClassLoaderWrapper classLoader) {
         this.classLoader = classLoader;
     }
 

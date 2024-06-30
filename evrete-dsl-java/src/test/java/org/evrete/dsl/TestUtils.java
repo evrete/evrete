@@ -1,9 +1,8 @@
 package org.evrete.dsl;
 
-import org.evrete.api.JavaSourceCompiler;
+import org.evrete.api.spi.JavaSourceCompiler;
 import org.evrete.api.events.ContextEvent;
 import org.evrete.api.events.EnvironmentChangeEvent;
-import org.evrete.runtime.compiler.RuntimeClassloader;
 import org.evrete.runtime.compiler.SourceCompiler;
 import org.evrete.util.JavaSourceUtils;
 
@@ -99,7 +98,7 @@ public class TestUtils {
 
 
     static Collection<Class<?>> compile(Collection<String> sources) throws Exception {
-        SourceCompiler sourceCompiler = new SourceCompiler(new RuntimeClassloader(ClassLoader.getSystemClassLoader()));
+        SourceCompiler sourceCompiler = new SourceCompiler(ClassLoader.getSystemClassLoader());
         Collection<JavaSourceCompiler.ClassSource> resolved = sources.stream().map(JavaSourceUtils::parse).collect(Collectors.toList());
 
         Collection<JavaSourceCompiler.Result<JavaSourceCompiler.ClassSource>> compiled =  sourceCompiler.compile(resolved);

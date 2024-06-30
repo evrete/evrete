@@ -1,6 +1,6 @@
 package org.evrete.dsl;
 
-import org.evrete.api.JavaSourceCompiler;
+import org.evrete.api.spi.JavaSourceCompiler;
 import org.evrete.api.RuntimeContext;
 
 import java.lang.invoke.MethodHandles;

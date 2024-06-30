@@ -2,7 +2,7 @@ package org.evrete.dsl;
 
 import org.evrete.Configuration;
 import org.evrete.api.events.Events;
-import org.evrete.api.JavaSourceCompiler;
+import org.evrete.api.spi.JavaSourceCompiler;
 import org.evrete.api.RuleSession;
 import org.evrete.api.RuntimeContext;
 import org.evrete.api.annotations.NonNull;

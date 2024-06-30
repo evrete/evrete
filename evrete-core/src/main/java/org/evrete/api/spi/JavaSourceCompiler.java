@@ -1,5 +1,6 @@
-package org.evrete.api;
+package org.evrete.api.spi;
 
+import org.evrete.api.RuntimeContext;
 import org.evrete.util.CompilationException;
 
 import java.util.Collection;

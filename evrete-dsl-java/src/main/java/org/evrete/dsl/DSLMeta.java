@@ -5,6 +5,7 @@ import org.evrete.api.annotations.Nullable;
 import org.evrete.api.builders.LhsBuilder;
 import org.evrete.api.builders.RuleBuilder;
 import org.evrete.api.builders.RuleSetBuilder;
+import org.evrete.api.spi.JavaSourceCompiler;
 import org.evrete.dsl.annotation.MethodPredicate;
 import org.evrete.dsl.annotation.Rule;
 

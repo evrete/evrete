@@ -4,6 +4,7 @@ import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.builders.RuleSetBuilder;
 import org.evrete.api.events.EventBus;
+import org.evrete.api.spi.JavaSourceCompiler;
 
 import java.util.Comparator;
 import java.util.function.Consumer;
@@ -93,14 +94,6 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends FluentImpor
      */
     ClassLoader getClassLoader();
 
-    /**
-     * <p>
-     * Sets new parent classloader for this context's internal classloader.
-     * </p>
-     *
-     * @param classLoader this context's new parent classloader
-     */
-    void setClassLoader(ClassLoader classLoader);
 
     /**
      * Returns the {@link KnowledgeService} instance.

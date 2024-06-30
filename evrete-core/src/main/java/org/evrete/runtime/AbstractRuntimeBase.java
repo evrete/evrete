@@ -5,7 +5,7 @@ import org.evrete.api.*;
 import org.evrete.api.events.ContextEvent;
 import org.evrete.api.events.EnvironmentChangeEvent;
 import org.evrete.api.events.Events;
-import org.evrete.runtime.compiler.RuntimeClassloader;
+import org.evrete.api.spi.JavaSourceCompiler;
 import org.evrete.runtime.compiler.SourceCompiler;
 import org.evrete.util.AbstractEnvironment;
 
@@ -20,7 +20,7 @@ import java.time.Instant;
  */
 abstract class AbstractRuntimeBase<C extends RuntimeContext<C>> extends AbstractEnvironment implements RuntimeContext<C> {
     private final Imports imports;
-    private RuntimeClassloader classloader;
+    private final ClassLoader classloader;
     private final TypeResolver typeResolver;
     private final KnowledgeService service;
     private final EventMessageBus messageBus;
@@ -30,9 +30,9 @@ abstract class AbstractRuntimeBase<C extends RuntimeContext<C>> extends Abstract
         super(service.getConfiguration());
         this.service = service;
         this.imports = service.getConfiguration().getImports().copyOf();
-        RuntimeClassloader runtimeClassloader = new RuntimeClassloader(service.getClassLoader());
-        this.classloader = runtimeClassloader;
-        this.typeResolver = service.getTypeResolverProvider().instance(runtimeClassloader);
+        ClassLoader classLoader = service.getClassLoader();
+        this.classloader = classLoader;
+        this.typeResolver = service.getTypeResolverProvider().instance(classLoader);
         this.messageBus = service.getMessageBus().copyOf(); // Service also contains
     }
 
@@ -101,13 +101,8 @@ abstract class AbstractRuntimeBase<C extends RuntimeContext<C>> extends Abstract
     }
 
     @Override
-    public final RuntimeClassloader getClassLoader() {
+    public final ClassLoader getClassLoader() {
         return classloader;
-    }
-
-    @Override
-    public void setClassLoader(ClassLoader classLoader) {
-        this.classloader = new RuntimeClassloader(classLoader);
     }
 
     @Override

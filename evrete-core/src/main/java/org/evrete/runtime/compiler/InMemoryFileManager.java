@@ -12,18 +12,18 @@ import java.util.Set;
 import static javax.tools.StandardLocation.CLASS_PATH;
 
 final class InMemoryFileManager extends ForwardingJavaFileManager<JavaFileManager> {
-    private final RuntimeClassloader classLoader;
+    private final ClassLoaderWrapper classLoader;
     private final PackageExplorer finder;
 
     private final Collection<DestinationClassObject> output = new LinkedList<>();
 
-    InMemoryFileManager(JavaFileManager fileManager, RuntimeClassloader classLoader) {
+    InMemoryFileManager(JavaFileManager fileManager, ClassLoaderWrapper classLoader) {
         super(fileManager);
         this.classLoader = classLoader;
         this.finder = new PackageExplorer(classLoader);
     }
 
-    public Collection<DestinationClassObject> getOutput() {
+    Collection<DestinationClassObject> getOutput() {
         return output;
     }
 

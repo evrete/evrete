@@ -1,6 +1,6 @@
 package org.evrete.runtime.compiler;
 
-import org.evrete.api.JavaSourceCompiler;
+import org.evrete.api.spi.JavaSourceCompiler;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

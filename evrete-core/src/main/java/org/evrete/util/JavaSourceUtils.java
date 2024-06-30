@@ -1,6 +1,6 @@
 package org.evrete.util;
 
-import org.evrete.api.JavaSourceCompiler;
+import org.evrete.api.spi.JavaSourceCompiler;
 
 import java.util.Objects;
 

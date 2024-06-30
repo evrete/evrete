@@ -1,6 +1,6 @@
 package org.evrete.runtime.compiler;
 
-public class ClassMeta {
+class ClassMeta {
     private final String simpleName;
     private final String packageName;
 
