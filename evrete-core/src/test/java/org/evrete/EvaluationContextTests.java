@@ -6,7 +6,6 @@ import org.evrete.api.builders.LhsBuilder;
 import org.evrete.api.builders.RuleBuilder;
 import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
-import org.evrete.helper.RhsAssert;
 import org.evrete.spi.minimal.DefaultLiteralSourceCompiler;
 import org.evrete.spi.minimal.DefaultMemoryFactoryProvider;
 import org.evrete.spi.minimal.DefaultTypeResolverProvider;
@@ -87,34 +86,38 @@ class EvaluationContextTests {
 
 
         try (
-                StatefulSession session1 = knowledge.newStatefulSession().setActivationMode(mode);
-                StatefulSession session2 = knowledge.newStatefulSession().setActivationMode(mode)) {
+                StatefulSession session1 = knowledge.newStatefulSession(mode);
+                StatefulSession session2 = knowledge.newStatefulSession(mode);
+                StatefulSession session3 = knowledge.newStatefulSession(mode)
+        ) {
 
             session1.insertAndFire(facts);
             Assertions.assertEquals(count - 2, counter.get());
 
             // Updating conditions for the second session
-            ValuesPredicate betaPredicate = t -> {
+            ValuesPredicate betaPredicateNew = t -> {
                 int ai = t.get(0);
                 int bi = t.get(1);
                 return ai != bi; // Inverse condition
             };
 
-            ValuesPredicate alphaPredicate = t -> t.get(0, int.class) >= 0;
-
-//            Evaluator betaNew = new EvaluatorOfPredicate(betaPredicate, 1.0, fieldReferences); // Becomes "$a.i != $b.i"
-//            Evaluator alpha1New = new EvaluatorOfPredicate(alphaPredicate, 1.0,  fieldReferences[0]); // Becomes $a.i =>=0
-//            Evaluator alpha2New = new EvaluatorOfPredicate(alphaPredicate, 1.0, fieldReferences[1]); // Becomes $b.i =>=0
+            ValuesPredicate alphaPredicate1New = t -> t.get(0, int.class) >= 0;
 
             EvaluatorsContext evaluatorsContext = session2.getEvaluatorsContext();
-            evaluatorsContext.replacePredicate(betaHandle, betaPredicate);
-            evaluatorsContext.replacePredicate(alphaHandle1, alphaPredicate);
-            evaluatorsContext.replacePredicate(alphaHandle2, alphaPredicate);
+            evaluatorsContext.replacePredicate(betaHandle, betaPredicateNew);
+            evaluatorsContext.replacePredicate(alphaHandle1, alphaPredicate1New);
+            evaluatorsContext.replacePredicate(alphaHandle2, alphaPredicate1New);
 
+            counter.set(0);
             session2.insertAndFire(facts);
-            //rhsAssert.assertCount(count * (count - 1)).reset(); // n * (n - 1)
+            // This is what we expect:
+            Assertions.assertEquals(count * (count - 1), counter.get());
+
+            // But !!!! The third session, just like the first one, is using original conditions,
+            // and the changes we made to the second session shouldn't affect the third session.
+            counter.set(0);
+            session3.insertAndFire(facts);
+            Assertions.assertEquals(count - 2, counter.get());
         }
-
-
     }
 }

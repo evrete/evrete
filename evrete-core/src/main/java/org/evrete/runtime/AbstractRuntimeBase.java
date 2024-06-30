@@ -8,6 +8,8 @@ import org.evrete.runtime.compiler.RuntimeClassloader;
 import org.evrete.runtime.compiler.SourceCompiler;
 import org.evrete.util.AbstractEnvironment;
 
+import java.time.Instant;
+
 /**
  * <p>
  * Runtime context's root class containing the very basic information about the runtime context.
@@ -21,6 +23,7 @@ abstract class AbstractRuntimeBase<C extends RuntimeContext<C>> extends Abstract
     private final TypeResolver typeResolver;
     private final KnowledgeService service;
     private final EventMessageBus messageBus;
+    private final Instant contextCreateStartTime = Instant.now();
 
     AbstractRuntimeBase(KnowledgeService service) {
         super(service.getConfiguration());
@@ -41,6 +44,10 @@ abstract class AbstractRuntimeBase<C extends RuntimeContext<C>> extends Abstract
         this.classloader = newClassloader;
         this.typeResolver = parent.typeResolver.copy(newClassloader);
         this.messageBus = parent.messageBus.copyOf();
+    }
+
+    public Instant getContextCreateStartTime() {
+        return contextCreateStartTime;
     }
 
     abstract void _assertActive();

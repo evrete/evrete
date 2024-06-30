@@ -1,5 +1,6 @@
 package org.evrete.runtime;
 
+import org.evrete.api.spi.GroupingReteMemory;
 import org.evrete.api.spi.MemoryScope;
 import org.evrete.runtime.rete.ConditionMemory;
 import org.evrete.util.FlatMapIterator;
@@ -48,7 +49,7 @@ class SessionFactType extends FactType {
      *
      * @param scope memory scope
      * @return key iterator
-     * @see org.evrete.api.spi.DeltaGroupedFactStorage
+     * @see GroupingReteMemory
      */
     Iterator<Long> keyIterator(MemoryScope scope) {
         LOGGER.finer(() -> "Requested " + scope + " key iterator for fact type '" + getVarName() + "', alpha address: " + getAlphaAddress() + ", has data: " + alphaMemory().keyIterator(scope).hasNext());
@@ -60,7 +61,7 @@ class SessionFactType extends FactType {
      *
      * @param scope memory scope
      * @return fact handle iterator
-     * @see org.evrete.api.spi.DeltaGroupedFactStorage
+     * @see GroupingReteMemory
      */
     Iterator<DefaultFactHandle> factIterator(MemoryScope scope) {
         return new FlatMapIterator<>(
@@ -73,7 +74,7 @@ class SessionFactType extends FactType {
      * Delegating method,
      *
      * @return fact handle iterator
-     * @see org.evrete.api.spi.DeltaGroupedFactStorage
+     * @see GroupingReteMemory
      */
     Iterator<DefaultFactHandle> factIterator(ConditionMemory.ScopedValueId key) {
         return alphaMemory().valueIterator(key.getScope(), key.getValueId());

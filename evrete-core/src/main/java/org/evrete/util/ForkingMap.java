@@ -1,6 +1,5 @@
 package org.evrete.util;
 
-import org.evrete.api.Branchable;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.annotations.Nullable;
 

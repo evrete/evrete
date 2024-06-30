@@ -5,6 +5,9 @@ import org.evrete.api.Events;
 
 import java.util.function.Consumer;
 
+/**
+ * Interface representing an Event Bus for subscribing to events.
+ */
 public interface EventBus {
     /**
      * Subscribes an even consumer to a specific event class type.

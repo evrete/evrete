@@ -4,6 +4,7 @@ import org.evrete.api.ActivationMode;
 import org.evrete.api.RuleSession;
 import org.evrete.api.events.SessionCreatedEvent;
 import org.evrete.api.events.SessionFireEvent;
+import org.evrete.runtime.events.SessionCreatedEventImpl;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,7 +28,7 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
         // Deploy existing rules
         deployRules(knowledge.getRuleDescriptors(), false);
         // Publish the Session Created event
-        broadcast(SessionCreatedEvent.class, () -> AbstractRuleSession.this);
+        broadcast(SessionCreatedEvent.class, new SessionCreatedEventImpl(getContextCreateStartTime(), this));
     }
 
     @Override

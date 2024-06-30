@@ -1,13 +1,13 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.annotations.NonNull;
-import org.evrete.api.spi.DeltaGroupedFactStorage;
+import org.evrete.api.spi.GroupingReteMemory;
 import org.evrete.api.spi.MemoryScope;
 
 import java.util.*;
 import java.util.stream.Stream;
 
-public class DefaultDeltaGroupedFactStorage<V> implements DeltaGroupedFactStorage<V> {
+public class DefaultGroupingReteMemory<V> implements GroupingReteMemory<V> {
     private MemoryImpl<V> main = new MemoryImpl<>();
     private MemoryImpl<V> delta = new MemoryImpl<>();
 

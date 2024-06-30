@@ -1,15 +1,15 @@
 package org.evrete.util;
 
 import org.evrete.api.annotations.NonNull;
-import org.evrete.api.spi.DeltaGroupedFactStorage;
+import org.evrete.api.spi.GroupingReteMemory;
 import org.evrete.api.spi.MemoryScope;
 
 import java.util.Iterator;
 
-public class DeltaGroupedFactStorageWrapper<V> implements DeltaGroupedFactStorage<V> {
-    private final DeltaGroupedFactStorage<V> delegate;
+public class GroupingReteMemoryWrapper<V> implements GroupingReteMemory<V> {
+    private final GroupingReteMemory<V> delegate;
 
-    public DeltaGroupedFactStorageWrapper(DeltaGroupedFactStorage<V> delegate) {
+    public GroupingReteMemoryWrapper(GroupingReteMemory<V> delegate) {
         this.delegate = delegate;
     }
 

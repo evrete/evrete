@@ -4,13 +4,13 @@ import org.evrete.api.FactHandle;
 import org.evrete.api.MapEntry;
 import org.evrete.api.MemoryStreaming;
 import org.evrete.api.Type;
-import org.evrete.api.spi.DeltaGroupedFactStorage;
 import org.evrete.api.spi.FactStorage;
+import org.evrete.api.spi.GroupingReteMemory;
 import org.evrete.api.spi.ValueIndexer;
 import org.evrete.collections.ArrayMap;
 import org.evrete.runtime.evaluation.AlphaConditionHandle;
 import org.evrete.util.CompletionManager;
-import org.evrete.util.DeltaGroupedFactStorageWrapper;
+import org.evrete.util.GroupingReteMemoryWrapper;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -115,7 +115,7 @@ public class SessionMemory implements MemoryStreaming {
             // Fresh allocation
             newTypeMemory = new TypeMemory(runtime, newActiveType);
             for (AlphaAddress alphaAddress : alphaAddresses) {
-                DeltaGroupedFactStorage<DefaultFactHandle> alphaStorage = runtime.newAlphaMemoryStorage();
+                GroupingReteMemory<DefaultFactHandle> alphaStorage = runtime.newAlphaMemoryStorage();
                 this.alphaMemories.put(alphaAddress, new TypeAlphaMemory(alphaStorage, alphaAddress));
             }
             LOGGER.fine(() -> "Type memory allocation [" + allocationId + "]. Blank instances of type memory and alpha locations have been created");
@@ -192,7 +192,7 @@ public class SessionMemory implements MemoryStreaming {
         });
 
         // Commit and return alpha memories
-        return resultMap.values().peek(DeltaGroupedFactStorageWrapper::commit).collect(Collectors.toList());
+        return resultMap.values().peek(GroupingReteMemoryWrapper::commit).collect(Collectors.toList());
     }
 
     TypeMemory rebuildStorage(TypeMemory source, ActiveType newType, long allocationId) {

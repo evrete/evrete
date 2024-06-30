@@ -11,7 +11,7 @@ public interface MemoryFactory<FH extends FactHandle> {
 
     <V> FactStorage<FH, V> newFactStorage(Class<V> valueType);
 
-    DeltaGroupedFactStorage<FH> newGroupedFactStorage(Class<FH> valueType);
+    GroupingReteMemory<FH> newGroupedFactStorage(Class<FH> valueType);
 
     <T> ValueIndexer<T> newValueIndexed(Class<T> valueType);
 }

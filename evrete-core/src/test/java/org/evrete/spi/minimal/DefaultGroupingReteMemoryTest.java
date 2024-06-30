@@ -9,12 +9,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-class DefaultDeltaGroupedFactStorageTest {
-    DefaultDeltaGroupedFactStorage<String> memory;
+class DefaultGroupingReteMemoryTest {
+    DefaultGroupingReteMemory<String> memory;
 
     @BeforeEach
     void beforeEach() {
-        memory = new DefaultDeltaGroupedFactStorage<>();
+        memory = new DefaultGroupingReteMemory<>();
     }
 
     Set<Long> keys(MemoryScope scope) {

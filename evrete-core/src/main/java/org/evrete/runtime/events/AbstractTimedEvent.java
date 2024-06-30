@@ -13,6 +13,10 @@ public abstract class AbstractTimedEvent implements TimedEvent {
         this.endTime = endTime;
     }
 
+    public AbstractTimedEvent(Instant startTime) {
+        this(startTime, Instant.now());
+    }
+
     @Override
     public Instant getStartTime() {
         return startTime;

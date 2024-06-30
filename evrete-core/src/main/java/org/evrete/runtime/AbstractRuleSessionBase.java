@@ -3,8 +3,8 @@ package org.evrete.runtime;
 import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.api.events.SessionClosedEvent;
-import org.evrete.api.spi.DeltaGroupedFactStorage;
 import org.evrete.api.spi.FactStorage;
+import org.evrete.api.spi.GroupingReteMemory;
 import org.evrete.api.spi.MemoryFactory;
 import org.evrete.api.spi.ValueIndexer;
 import org.evrete.util.SessionCollector;
@@ -114,7 +114,7 @@ public abstract class AbstractRuleSessionBase<S extends RuleSession<S>> extends 
         return getMemoryFactory().newValueIndexed(FactFieldValues.class);
     }
 
-    public DeltaGroupedFactStorage<DefaultFactHandle> newAlphaMemoryStorage() {
+    public GroupingReteMemory<DefaultFactHandle> newAlphaMemoryStorage() {
         return getMemoryFactory().newGroupedFactStorage(DefaultFactHandle.class);
     }
 

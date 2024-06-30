@@ -7,9 +7,13 @@ import org.evrete.api.RuleSession;
  *
  * @see ContextEvent
  */
-public interface SessionCreatedEvent extends ContextEvent {
+public interface SessionCreatedEvent extends TimedEvent {
 
 
+    /**
+     * Returns the created session
+     * @return the created session
+     */
     RuleSession<?> getSession();
 
 }

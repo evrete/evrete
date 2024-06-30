@@ -18,8 +18,7 @@ import java.util.stream.StreamSupport;
  *
  * @param <V> the value type
  */
-//TODO rename !!!
-public interface DeltaGroupedFactStorage<V> extends ReteMemory<Long> {
+public interface GroupingReteMemory<V> extends ReteMemory<Long> {
 
     /**
      * Buffers a new key/value combination into the delta memory.

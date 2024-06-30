@@ -3,6 +3,7 @@ package org.evrete.runtime;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.api.events.KnowledgeCreatedEvent;
+import org.evrete.runtime.events.KnowledgeCreatedEventImpl;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -17,7 +18,7 @@ public class KnowledgeRuntime extends AbstractRuntime<RuleDescriptor, Knowledge>
     public KnowledgeRuntime(KnowledgeService service, String name) {
         super(service, name);
         // Publish the created event
-        broadcast(KnowledgeCreatedEvent.class, () -> KnowledgeRuntime.this);
+        broadcast(KnowledgeCreatedEvent.class, new KnowledgeCreatedEventImpl(getContextCreateStartTime(), this));
     }
 
     @Override

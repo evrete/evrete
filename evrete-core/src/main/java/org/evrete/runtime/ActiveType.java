@@ -7,7 +7,6 @@ import org.evrete.runtime.evaluation.DefaultEvaluatorHandle;
 import org.evrete.util.AbstractIndex;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -54,7 +53,7 @@ public class ActiveType implements Copyable<ActiveType> {
     private ActiveType(ActiveType parent) {
         this.value = parent.value.copyOf();
         this.id = parent.id;
-        this.activeFields = parent.activeFields.newBranch();
+        this.activeFields = parent.activeFields.copyOf();
         this.alphaConditionIndexer = parent.alphaConditionIndexer.copyOf();
         this.alphaConditionSubsetIndexer = parent.alphaConditionSubsetIndexer.copyOf();
         this.knownAlphaLocations = new HashSet<>(parent.knownAlphaLocations);
@@ -228,7 +227,7 @@ public class ActiveType implements Copyable<ActiveType> {
         }
     }
 
-    private static class ActiveFields extends ForkingArrayMap<TypeField, String, ActiveField.Index, ActiveField> implements Branchable<ActiveFields> {
+    private static class ActiveFields extends ForkingArrayMap<TypeField, String, ActiveField.Index, ActiveField> implements Copyable<ActiveFields> {
         final Idx typeId;
 
         ActiveFields(Idx typeId) {
@@ -252,7 +251,7 @@ public class ActiveType implements Copyable<ActiveType> {
         }
 
         @Override
-        public ActiveFields newBranch() {
+        public ActiveFields copyOf() {
             return new ActiveFields(this);
         }
     }

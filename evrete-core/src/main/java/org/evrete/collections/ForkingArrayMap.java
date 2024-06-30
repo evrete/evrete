@@ -1,6 +1,5 @@
 package org.evrete.collections;
 
-import org.evrete.api.Branchable;
 import org.evrete.api.MapEntry;
 import org.evrete.util.ForkingMap;
 import org.evrete.util.Indexed;
