@@ -47,7 +47,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
     }
 
     private <S extends RuleLiteralData<R, C>, R extends Rule, C extends LiteralPredicate> Collection<RuleCompiledSources<S, R, C>> compile(RuntimeContext<?> context, Collection<S> sources, boolean stripWhitespaces) throws CompilationException {
-        SourceCompiler compiler = context.getSourceCompiler();
+        SourceCompiler compiler = context.getService().getSourceCompilerProvider().instance(context.getClassLoader());
 
         Collection<RuleSource<S, R, C>> javaSources = sources.stream()
                 .map(o -> new RuleSource<>(o, context, stripWhitespaces))

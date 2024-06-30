@@ -140,8 +140,4 @@ class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends RuntimeCon
         return delegate.getConfiguration();
     }
 
-    @Override
-    public SourceCompiler getSourceCompiler() {
-        return delegate.getSourceCompiler();
-    }
 }

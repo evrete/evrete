@@ -1,16 +1,13 @@
 package org.evrete.api.spi;
 
-import org.evrete.api.RuntimeContext;
 import org.evrete.util.CompilationException;
 
 import java.util.Collection;
 
 /**
- * <p>
- *     A plain source Java compiler for current {@link RuntimeContext}.
- *     Compiled classes are automatically added to the current context's classloader.
- * </p>
- * @see RuntimeContext#getSourceCompiler()
+ * The SourceCompiler interface is used to compile Java source files.
+ * It provides a way to submit source files for compilation and retrieve the results.
+ * The engine uses this interface as a wrapper for {@link javax.tools.JavaCompiler}.
  */
 public interface SourceCompiler {
 

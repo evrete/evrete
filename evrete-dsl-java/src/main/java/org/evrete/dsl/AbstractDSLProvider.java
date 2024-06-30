@@ -124,7 +124,8 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
             }
         }
         if(!sourceMap.isEmpty()) {
-            SourceCompiler sourceCompiler = target.getContext().getSourceCompiler();
+
+            SourceCompiler sourceCompiler = context.getService().getSourceCompilerProvider().instance(context.getClassLoader());
             try {
                 Collection<SourceCompiler.Result<SourceCompiler.ClassSource>> compiledSources = sourceCompiler.compile(sourceMap.keySet());
                 for(SourceCompiler.Result<SourceCompiler.ClassSource> result : compiledSources) {

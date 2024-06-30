@@ -138,11 +138,5 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends FluentImpor
      */
     Configuration getConfiguration();
 
-    /**
-     * Creates and returns a new instance of {@link SourceCompiler}.
-     *
-     * @return A new {@link SourceCompiler} instance.
-     */
-    SourceCompiler getSourceCompiler();
 
 }

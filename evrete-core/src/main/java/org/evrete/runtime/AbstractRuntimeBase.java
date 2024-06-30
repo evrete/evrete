@@ -105,12 +105,6 @@ abstract class AbstractRuntimeBase<C extends RuntimeContext<C>> extends Abstract
     }
 
     @Override
-    //TODO future. Review usage, remove
-    public final SourceCompiler getSourceCompiler() {
-        return getService().getSourceCompilerProvider().instance(getClassLoader());
-    }
-
-    @Override
     public KnowledgeService getService() {
         return service;
     }
