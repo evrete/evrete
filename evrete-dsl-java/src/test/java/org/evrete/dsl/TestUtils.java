@@ -55,8 +55,6 @@ public class TestUtils {
 
         Collection<Class<?>> classes = compile(sources);
 
-        System.out.println("!!!! " + classes);
-
         File out = File.createTempFile("speakace-test", ".jar");
         FileOutputStream fos = new FileOutputStream(out);
         JarOutputStream  jar = new JarOutputStream(fos);
@@ -67,8 +65,6 @@ public class TestUtils {
             jar.putNextEntry(zipEntry);
 
             byte[] classBytes = getClassBytes(c);
-            //assert c.getClassLoader() instanceof RuntimeClassloader;
-            //InputStream stream = Objects.requireNonNull(c.getClassLoader().getResourceAsStream(name));
             InputStream stream = new ByteArrayInputStream(classBytes);
             copy(stream, jar);
             stream.close();

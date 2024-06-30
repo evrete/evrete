@@ -2,14 +2,10 @@ package org.evrete.runtime.compiler;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 
 public class RuntimeClassloader extends ClassLoader {
-
-    //private final Map<String, Collection<String>> definedClasses = new HashMap<>();
 
     private final Map<String, byte[]> classDefinitions = new HashMap<>();
 
@@ -34,13 +30,7 @@ public class RuntimeClassloader extends ClassLoader {
         }
     }
 
-    void saveClass(DestinationClassObject compiled) {
-        byte[] classBytes = compiled.getBytes();
-        String binaryName = compiled.getBinaryName();
-        saveClass(binaryName, classBytes);
-    }
-
-    public void saveClass(String binaryName, byte[] classBytes) {
+    public void defineNewClass(String binaryName, byte[] classBytes) {
         super.defineClass(binaryName, classBytes, 0, classBytes.length);
         this.classDefinitions.put(binaryName, classBytes);
     }

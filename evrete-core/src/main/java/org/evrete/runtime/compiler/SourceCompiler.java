@@ -52,7 +52,7 @@ public class SourceCompiler implements JavaSourceCompiler {
                 if (success) {
                     Collection<String> binaryNames = new LinkedList<>();
                     for (DestinationClassObject compiled : fm.getOutput()) {
-                        classLoader.saveClass(compiled);
+                        classLoader.defineNewClass(compiled.getBinaryName(), compiled.getBytes());
                         binaryNames.add(compiled.getBinaryName());
                     }
 
