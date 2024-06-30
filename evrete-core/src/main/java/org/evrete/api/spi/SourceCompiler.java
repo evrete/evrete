@@ -12,7 +12,7 @@ import java.util.Collection;
  * </p>
  * @see RuntimeContext#getSourceCompiler()
  */
-public interface JavaSourceCompiler {
+public interface SourceCompiler {
 
     /**
      * @param sources Java sources to compile

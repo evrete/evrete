@@ -1,4 +1,4 @@
-package org.evrete.runtime.compiler;
+package org.evrete.spi.minimal.compiler;
 
 
 import java.io.IOException;

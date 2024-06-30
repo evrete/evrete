@@ -1,6 +1,5 @@
-package org.evrete.runtime.compiler;
+package org.evrete.spi.minimal.compiler;
 
-import org.evrete.api.spi.JavaSourceCompiler;
 import org.evrete.util.CompilationException;
 
 import javax.tools.*;
@@ -9,13 +8,12 @@ import java.io.UncheckedIOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-//TODO make a SPI !!!
-public class SourceCompiler implements JavaSourceCompiler {
+class DefaultSourceCompiler implements org.evrete.api.spi.SourceCompiler {
     private final static String COMPILER_PARAM_OPTION = "-parameters";
     private final ClassLoaderWrapper classLoader;
     private final JavaCompiler compiler;
 
-    public SourceCompiler( ClassLoader classLoader) {
+    public DefaultSourceCompiler(ClassLoader classLoader) {
         this.classLoader = new ClassLoaderWrapper(classLoader);
         this.compiler = Objects.requireNonNull(ToolProvider.getSystemJavaCompiler(), "No Java compiler provided by this platform");
     }

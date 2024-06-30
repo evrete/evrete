@@ -1,6 +1,6 @@
 package org.evrete.dsl;
 
-import org.evrete.api.spi.JavaSourceCompiler;
+import org.evrete.api.spi.SourceCompiler;
 import org.evrete.api.RuntimeContext;
 import org.evrete.util.JavaSourceUtils;
 
@@ -17,7 +17,7 @@ class DSLMetaLiteralSource<C extends RuntimeContext<C>> extends DSLMeta<C> {
     }
 
     @Override
-    JavaSourceCompiler.ClassSource sourceToCompile() {
+    SourceCompiler.ClassSource sourceToCompile() {
         return JavaSourceUtils.parse(this.source);
     }
 

@@ -1,4 +1,4 @@
-package org.evrete.runtime.compiler;
+package org.evrete.spi.minimal.compiler;
 
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.NestingKind;

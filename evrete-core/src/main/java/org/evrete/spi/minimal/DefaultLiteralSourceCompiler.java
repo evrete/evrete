@@ -2,7 +2,7 @@ package org.evrete.spi.minimal;
 
 import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
-import org.evrete.api.spi.JavaSourceCompiler;
+import org.evrete.api.spi.SourceCompiler;
 import org.evrete.api.spi.LiteralSourceCompiler;
 import org.evrete.util.CommonUtils;
 import org.evrete.util.CompilationException;
@@ -47,13 +47,13 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
     }
 
     private <S extends RuleLiteralData<R, C>, R extends Rule, C extends LiteralPredicate> Collection<RuleCompiledSources<S, R, C>> compile(RuntimeContext<?> context, Collection<S> sources, boolean stripWhitespaces) throws CompilationException {
-        JavaSourceCompiler compiler = context.getSourceCompiler();
+        SourceCompiler compiler = context.getSourceCompiler();
 
         Collection<RuleSource<S, R, C>> javaSources = sources.stream()
                 .map(o -> new RuleSource<>(o, context, stripWhitespaces))
                 .collect(Collectors.toList());
 
-        Collection<JavaSourceCompiler.Result<RuleSource<S, R, C>>> result = compiler.compile(javaSources);
+        Collection<SourceCompiler.Result<RuleSource<S, R, C>>> result = compiler.compile(javaSources);
 
         return result
                 .stream()
@@ -64,7 +64,7 @@ public class DefaultLiteralSourceCompiler extends LeastImportantServiceProvider 
                 .collect(Collectors.toList());
     }
 
-    public static class RuleSource<S extends RuleLiteralData<R, C>, R extends Rule, C extends LiteralPredicate> implements JavaSourceCompiler.ClassSource {
+    public static class RuleSource<S extends RuleLiteralData<R, C>, R extends Rule, C extends LiteralPredicate> implements SourceCompiler.ClassSource {
         private final String className;
         private final String classSimpleName;
 

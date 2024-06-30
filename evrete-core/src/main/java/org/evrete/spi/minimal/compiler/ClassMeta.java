@@ -1,4 +1,4 @@
-package org.evrete.runtime.compiler;
+package org.evrete.spi.minimal.compiler;
 
 class ClassMeta {
     private final String simpleName;

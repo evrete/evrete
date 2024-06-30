@@ -6,7 +6,7 @@ import org.evrete.api.*;
 import org.evrete.api.builders.RuleSetBuilder;
 import org.evrete.api.events.ContextEvent;
 import org.evrete.api.events.Events;
-import org.evrete.api.spi.JavaSourceCompiler;
+import org.evrete.api.spi.SourceCompiler;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -141,7 +141,7 @@ class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends RuntimeCon
     }
 
     @Override
-    public JavaSourceCompiler getSourceCompiler() {
+    public SourceCompiler getSourceCompiler() {
         return delegate.getSourceCompiler();
     }
 }

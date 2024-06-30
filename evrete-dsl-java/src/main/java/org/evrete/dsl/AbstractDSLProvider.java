@@ -2,7 +2,7 @@ package org.evrete.dsl;
 
 import org.evrete.Configuration;
 import org.evrete.api.events.Events;
-import org.evrete.api.spi.JavaSourceCompiler;
+import org.evrete.api.spi.SourceCompiler;
 import org.evrete.api.RuleSession;
 import org.evrete.api.RuntimeContext;
 import org.evrete.api.annotations.NonNull;
@@ -115,19 +115,19 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
         }
 
         // 2. If the collected data implies compiling Java sources, then compile and apply to the metadata.
-        Map<JavaSourceCompiler.ClassSource, DSLMeta<C>> sourceMap = new IdentityHashMap<>();
+        Map<SourceCompiler.ClassSource, DSLMeta<C>> sourceMap = new IdentityHashMap<>();
 
         for (DSLMeta<C> meta : metaData) {
-            JavaSourceCompiler.ClassSource sourceToCompile = meta.sourceToCompile();
+            SourceCompiler.ClassSource sourceToCompile = meta.sourceToCompile();
             if (sourceToCompile != null) {
                 sourceMap.put(sourceToCompile, meta);
             }
         }
         if(!sourceMap.isEmpty()) {
-            JavaSourceCompiler sourceCompiler = target.getContext().getSourceCompiler();
+            SourceCompiler sourceCompiler = target.getContext().getSourceCompiler();
             try {
-                Collection<JavaSourceCompiler.Result<JavaSourceCompiler.ClassSource>> compiledSources = sourceCompiler.compile(sourceMap.keySet());
-                for(JavaSourceCompiler.Result<JavaSourceCompiler.ClassSource> result : compiledSources) {
+                Collection<SourceCompiler.Result<SourceCompiler.ClassSource>> compiledSources = sourceCompiler.compile(sourceMap.keySet());
+                for(SourceCompiler.Result<SourceCompiler.ClassSource> result : compiledSources) {
                     DSLMeta<C> meta = sourceMap.get(result.getSource());
                     meta.applyCompiledSource(result.getCompiledClass());
                 }

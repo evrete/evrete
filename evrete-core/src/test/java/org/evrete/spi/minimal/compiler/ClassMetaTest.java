@@ -1,4 +1,4 @@
-package org.evrete.runtime.compiler;
+package org.evrete.spi.minimal.compiler;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

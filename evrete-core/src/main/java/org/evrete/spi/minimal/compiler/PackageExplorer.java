@@ -1,4 +1,4 @@
-package org.evrete.runtime.compiler;
+package org.evrete.spi.minimal.compiler;
 
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.annotations.Nullable;

@@ -1,6 +1,6 @@
-package org.evrete.runtime.compiler;
+package org.evrete.spi.minimal.compiler;
 
-import org.evrete.api.spi.JavaSourceCompiler;
+import org.evrete.api.spi.SourceCompiler;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -14,11 +14,11 @@ class JavaSourceObject extends AbstractJavaObject {
     private static final AtomicLong SOURCE_COUNTER = new AtomicLong();
 
     private final String simpleName;
-    private final JavaSourceCompiler.ClassSource source;
+    private final SourceCompiler.ClassSource source;
 
     private final URI uri;
 
-    JavaSourceObject(JavaSourceCompiler.ClassSource source) {
+    JavaSourceObject(SourceCompiler.ClassSource source) {
         ClassMeta meta = new ClassMeta(source.binaryName());
         this.simpleName = meta.getSimpleName();
         this.source = source;
@@ -30,7 +30,7 @@ class JavaSourceObject extends AbstractJavaObject {
         return kind == Kind.SOURCE && this.simpleName.equals(simpleName);
     }
 
-    JavaSourceCompiler.ClassSource getSource() {
+    SourceCompiler.ClassSource getSource() {
         return source;
     }
 

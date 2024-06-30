@@ -4,7 +4,7 @@ import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.builders.RuleSetBuilder;
 import org.evrete.api.events.EventBus;
-import org.evrete.api.spi.JavaSourceCompiler;
+import org.evrete.api.spi.SourceCompiler;
 
 import java.util.Comparator;
 import java.util.function.Consumer;
@@ -139,10 +139,10 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends FluentImpor
     Configuration getConfiguration();
 
     /**
-     * Creates and returns a new instance of {@link JavaSourceCompiler}.
+     * Creates and returns a new instance of {@link SourceCompiler}.
      *
-     * @return A new {@link JavaSourceCompiler} instance.
+     * @return A new {@link SourceCompiler} instance.
      */
-    JavaSourceCompiler getSourceCompiler();
+    SourceCompiler getSourceCompiler();
 
 }

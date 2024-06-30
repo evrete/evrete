@@ -1,11 +1,11 @@
 package org.evrete.util;
 
-import org.evrete.api.spi.JavaSourceCompiler;
+import org.evrete.api.spi.SourceCompiler;
 
 import java.util.Objects;
 
 public final class JavaSourceUtils {
-    public static JavaSourceCompiler.ClassSource parse(String source) {
+    public static SourceCompiler.ClassSource parse(String source) {
         // 1. Remove block comments first
         String src = removeBlockComments(Objects.requireNonNull(source));
 
@@ -65,7 +65,7 @@ public final class JavaSourceUtils {
 
     }
 
-    private static class SourceImpl implements JavaSourceCompiler.ClassSource {
+    private static class SourceImpl implements SourceCompiler.ClassSource {
         private final String source;
         private final String binaryName;
 

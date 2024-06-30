@@ -5,7 +5,7 @@ import org.evrete.api.annotations.Nullable;
 import org.evrete.api.builders.LhsBuilder;
 import org.evrete.api.builders.RuleBuilder;
 import org.evrete.api.builders.RuleSetBuilder;
-import org.evrete.api.spi.JavaSourceCompiler;
+import org.evrete.api.spi.SourceCompiler;
 import org.evrete.dsl.annotation.MethodPredicate;
 import org.evrete.dsl.annotation.Rule;
 
@@ -22,7 +22,7 @@ abstract class DSLMeta<C extends RuntimeContext<C>> {
     }
 
     @Nullable
-    abstract JavaSourceCompiler.ClassSource sourceToCompile();
+    abstract SourceCompiler.ClassSource sourceToCompile();
 
     abstract void applyCompiledSource(Class<?> compiledClass);
 

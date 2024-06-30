@@ -1,4 +1,4 @@
-package org.evrete.runtime.compiler;
+package org.evrete.spi.minimal.compiler;
 
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;

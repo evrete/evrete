@@ -1,6 +1,6 @@
 package org.evrete.util;
 
-import org.evrete.api.spi.JavaSourceCompiler;
+import org.evrete.api.spi.SourceCompiler;
 
 import java.util.Collection;
 import java.util.List;
@@ -13,16 +13,16 @@ public class CompilationException extends Exception {
     private static final long serialVersionUID = -8017644675581374126L;
 
     private final List<String> otherErrors;
-    private final Map<JavaSourceCompiler.ClassSource, List<String>> errorSources;
+    private final Map<SourceCompiler.ClassSource, List<String>> errorSources;
 
-    public CompilationException(List<String> otherErrors, Map<JavaSourceCompiler.ClassSource, List<String>> errorSources) {
+    public CompilationException(List<String> otherErrors, Map<SourceCompiler.ClassSource, List<String>> errorSources) {
         super("Source compilation error. Failed sources: " + errorSources.size() + ", other errors: " + otherErrors.size() + ", see application logs for details.");
         this.otherErrors = otherErrors;
         this.errorSources = errorSources;
     }
 
     public void log(Logger logger, Level level) {
-        for(JavaSourceCompiler.ClassSource s : getErrorSources()) {
+        for(SourceCompiler.ClassSource s : getErrorSources()) {
             List<String> sourceErrors = getErrorMessage(s);
             for (String error : sourceErrors) {
                 logger.log(level, error);
@@ -35,11 +35,11 @@ public class CompilationException extends Exception {
         }
     }
 
-    public Collection<JavaSourceCompiler.ClassSource> getErrorSources() {
+    public Collection<SourceCompiler.ClassSource> getErrorSources() {
         return errorSources.keySet();
     }
 
-    public List<String> getErrorMessage(JavaSourceCompiler.ClassSource source) {
+    public List<String> getErrorMessage(SourceCompiler.ClassSource source) {
         return errorSources.get(source);
     }
 }

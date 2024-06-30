@@ -1,7 +1,7 @@
 
 package org.evrete.util;
 
-import org.evrete.api.spi.JavaSourceCompiler;
+import org.evrete.api.spi.SourceCompiler;
 import org.junit.jupiter.api.Test;
 
 class JavaSourceTest {
@@ -13,7 +13,7 @@ class JavaSourceTest {
                 "import org.evrete.api.FactHandle;\n" +
                 "public   class   A1     { String s=FactHandle.class.getName();}";
 
-        JavaSourceCompiler.ClassSource src = JavaSourceUtils.parse(source);
+        SourceCompiler.ClassSource src = JavaSourceUtils.parse(source);
 
         assert "test.pkg1.A1".equals(src.binaryName());
     }
@@ -25,7 +25,7 @@ class JavaSourceTest {
                 "import org.evrete.api.FactHandle;\n" +
                 "public   class   A1  extends B  { String s=FactHandle.class.getName();}";
 
-        JavaSourceCompiler.ClassSource src = JavaSourceUtils.parse(source);
+        SourceCompiler.ClassSource src = JavaSourceUtils.parse(source);
 
         assert "test.pkg1.A1".equals(src.binaryName());
     }
