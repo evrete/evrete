@@ -17,7 +17,7 @@ public final class TypeMemory extends FactStorageWrapper<DefaultFactHandle, Fact
 
     TypeMemory(ActiveType type, FactStorage<DefaultFactHandle, FactHolder> factStorage, ValueIndexer<FactFieldValues> fieldValuesIndexer) {
         super(factStorage);
-        // TODO Resolve the mess with class fields
+        // TODO Fix the mess with class fields
         this.type = type;
         this.fieldCount = type.getFieldCount();
         this.logicalType = type.getValue().getName();

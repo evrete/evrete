@@ -33,7 +33,6 @@ public class BroadcastingPublisher<E extends Events.Event> implements Events.Pub
         this(new Hierarchy<>(new SplitSubscriptions<>(), other.innerSubscriptions), other.executor);
     }
 
-    //TODO rename
     public int totalLocalSubscriptions() {
         return innerSubscriptions.getValue().size();
     }

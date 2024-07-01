@@ -16,7 +16,6 @@ import java.util.stream.Stream;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  */
-//TODO is it in use?
 public class ForkingMap<K, V> {
     private final Map<K, V> map = new HashMap<>();
     private final ForkingMap<K, V> parent;

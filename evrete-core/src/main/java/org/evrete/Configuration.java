@@ -21,17 +21,10 @@ import java.util.logging.Logger;
  * </p>
  */
 public class Configuration extends Properties implements Copyable<Configuration>, FluentImports<Configuration> {
-    //TODO obsolete this config entry!!
-    public static final String OBJECT_COMPARE_METHOD = "evrete.core.fact-identity-strategy";
     public static final String INSERT_BUFFER_SIZE = "evrete.core.insert-buffer-size";
     public static final String WARN_UNKNOWN_TYPES = "evrete.core.warn-unknown-types";
     public static final int INSERT_BUFFER_SIZE_DEFAULT = 4096;
-    //TODO obsolete this config entry!!
-    public static final String IDENTITY_METHOD_EQUALS = "equals";
-    public static final String IDENTITY_METHOD_IDENTITY = "identity";
     static final String SPI_MEMORY_FACTORY = "evrete.spi.memory-factory";
-    //TODO obsolete this config entry!!
-    static final String SPI_EXPRESSION_RESOLVER = "evrete.spi.expression-resolver";
     static final String SPI_TYPE_RESOLVER = "evrete.spi.type-resolver";
     static final String SPI_SOURCE_COMPILER = "evrete.spi.source-compiler";
     static final String PARALLELISM = "evrete.core.parallelism";
@@ -54,7 +47,6 @@ public class Configuration extends Properties implements Copyable<Configuration>
         super(defaults);
         this.imports = imports;
         setIfAbsent(WARN_UNKNOWN_TYPES, Boolean.TRUE.toString());
-        setIfAbsent(OBJECT_COMPARE_METHOD, IDENTITY_METHOD_IDENTITY);
         setIfAbsent(INSERT_BUFFER_SIZE, String.valueOf(INSERT_BUFFER_SIZE_DEFAULT));
     }
 

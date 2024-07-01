@@ -159,9 +159,7 @@ class StatelessInsertTests {
         List<String> ruleActivationSequence = new ArrayList<>();
 
 
-        // TODO uncomment
-        //for (int i = 0; i < 256; i++) {
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 256; i++) {
             String ruleName = "rule" + i;
             ruleNames.add(ruleName);
             ruleSetBuilder.newRule(ruleName).forEach("$a", TypeA.class)
@@ -431,11 +429,10 @@ class StatelessInsertTests {
         StatelessSession s = newSession(mode);
 
 
-        // TODO uncomment below
-        int ai = 1; //new Random().nextInt(10) + 1;
-        int bi = 1; //new Random().nextInt(10) + 1;
-        int ci = 1; //new Random().nextInt(10) + 1;
-        int di = 2; //new Random().nextInt(10) + 1;
+        int ai = new Random().nextInt(10) + 1;
+        int bi = new Random().nextInt(10) + 1;
+        int ci = new Random().nextInt(10) + 1;
+        int di = new Random().nextInt(10) + 1;
 
         int id = 0;
 

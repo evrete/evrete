@@ -19,7 +19,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-//TODO !!!! important: use a provided delayed executor to check memories, especially session memory scans and retrievals
 class SessionAsyncTests {
     private static final long DELAY_MS = 1000L;
     private static ExecutorService delayedExecutor;

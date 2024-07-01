@@ -25,7 +25,6 @@ import java.util.function.Predicate;
 
 import static org.evrete.api.FactBuilder.fact;
 
-//TODO !!!! important: use a provided delayed executor to check memories, especially session memory scans and retrievals
 class StatefulInsertTests {
     private static KnowledgeService service;
     private Knowledge knowledge;

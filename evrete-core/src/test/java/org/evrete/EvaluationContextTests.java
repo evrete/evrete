@@ -44,6 +44,7 @@ class EvaluationContextTests {
         knowledge = service.newKnowledge();
     }
 
+
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void testAlphaBeta(ActivationMode mode) {

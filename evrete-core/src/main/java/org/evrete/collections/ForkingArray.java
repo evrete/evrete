@@ -83,11 +83,11 @@ public class ForkingArray<V extends Indexed> {
         return this.nextWriteIndex + this.dataOffset;
     }
 
-    //TODO Get rid of this
     public Stream<V> stream(boolean parallel) {
-        Stream<V> stream = IntStream.range(0, size()).mapToObj(this::get);
+        Stream<V> stream = stream();
         return parallel ? stream.parallel() : stream;
     }
+
 
     public Stream<V> stream() {
         return IntStream.range(0, size()).mapToObj(this::get);

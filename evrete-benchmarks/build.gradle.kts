@@ -1,6 +1,6 @@
 @file:Suppress("VulnerableLibrariesLocal")
 
-val droolsVersion = "9.44.0.Final"
+//val droolsVersion = "9.44.0.Final"
 val jmhVersion = "1.37"
 val slf4jVersion = "2.0.3"
 
@@ -21,9 +21,9 @@ java {
 
 dependencies {
     implementation(project(":evrete-core"))
-    implementation("org.drools:drools-core:$droolsVersion")
-    implementation("org.drools:drools-mvel:$droolsVersion")
-    implementation("org.drools:drools-compiler:$droolsVersion")
+    //implementation("org.drools:drools-core:$droolsVersion")
+    //implementation("org.drools:drools-mvel:$droolsVersion")
+    //implementation("org.drools:drools-compiler:$droolsVersion")
     implementation("org.openjdk.jmh:jmh-generator-annprocess:${jmhVersion}")
     annotationProcessor("org.openjdk.jmh:jmh-generator-annprocess:${jmhVersion}")
 

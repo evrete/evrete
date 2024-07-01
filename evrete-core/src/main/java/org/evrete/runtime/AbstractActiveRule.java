@@ -26,8 +26,6 @@ public abstract class AbstractActiveRule<FG extends KnowledgeFactGroup, LHS exte
         this.runtime = runtime;
         this.lhs = lhs;
         this.parent = other;
-        //TODO ???? compile on session start????
-        //setRhs(getLiteralRhs());
     }
 
     final LHS getLhs() {
