@@ -8,7 +8,6 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -17,15 +16,12 @@ class JarClassloaderTest {
     @Test
     void scan() throws Exception {
         File dir = TestUtils.testResourceAsFile("jars/jar2");
-        TestUtils.createTempJarFile(dir, new Consumer<File>() {
-            @Override
-            public void accept(File file) {
-                try {
-                    Collection<URL> urls = List.of(file.toURI().toURL());
-                    doTest(urls);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
+        TestUtils.createTempJarFile(dir, file -> {
+            try {
+                Collection<URL> urls = List.of(file.toURI().toURL());
+                doTest(urls);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         });
     }

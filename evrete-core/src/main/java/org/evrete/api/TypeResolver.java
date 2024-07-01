@@ -2,7 +2,6 @@ package org.evrete.api;
 
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.annotations.Nullable;
-import org.evrete.util.TypeWrapper;
 
 import java.util.Collection;
 
@@ -47,17 +46,6 @@ public interface TypeResolver extends Copyable<TypeResolver> {
      */
     Collection<Type<?>> getKnownTypes(Class<?> javaClass);
 
-    /**
-     * Wraps a given TypeWrapper instance and delegates the calls to another Type implementation.
-     *
-     * @param typeWrapper the TypeWrapper instance to be wrapped
-     * @deprecated in 4.0.0 use the {@link #addType(Type)} method instead
-     * to supply an alternative type resolver
-     */
-    @Deprecated
-    default void wrapType(TypeWrapper<?> typeWrapper) {
-        throw new UnsupportedOperationException("Deprecated in 4.0.0");
-    }
 
     /**
      * Adds a new type to the type resolver and overrides any previous association

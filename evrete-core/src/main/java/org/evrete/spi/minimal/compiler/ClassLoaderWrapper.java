@@ -35,12 +35,7 @@ class ClassLoaderWrapper extends ClassLoader {
 
     Collection<JavaFileObject> getDefinedClasses(String packageName) {
         Collection<JavaFileObject> result = new LinkedList<>();
-        walk(new Consumer<ClassLoaderWrapper>() {
-            @Override
-            public void accept(ClassLoaderWrapper classLoaderWrapper) {
-                result.addAll(classLoaderWrapper.getLocallyDefinedClasses(packageName));
-            }
-        });
+        walk(classLoaderWrapper -> result.addAll(classLoaderWrapper.getLocallyDefinedClasses(packageName)));
         return result;
     }
 

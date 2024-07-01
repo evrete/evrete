@@ -81,7 +81,6 @@ class FieldDeclarationsTests {
         Knowledge knowledge = service.newKnowledge()
                 .importRules(Constants.PROVIDER_JAVA_CLASS, DeclarationRuleSet3.class);
 
-
         NextIntSupplier primeCounter;
         try (StatefulSession session = session(knowledge, mode)) {
             session.set("random-offset", 0);
@@ -95,9 +94,7 @@ class FieldDeclarationsTests {
             primeCounter = new NextIntSupplier();
             session.forEachFact((h, o) -> primeCounter.incrementAndGet());
             assert primeCounter.get() == 25 : "Actual: " + primeCounter.get();
-
         }
-
     }
 
     @ParameterizedTest
@@ -105,7 +102,11 @@ class FieldDeclarationsTests {
     void test5(ActivationMode mode) throws IOException {
         String logicalTypeName = "Hello world type";
         Knowledge knowledge = service.newKnowledge()
-                .configureTypes(typeResolver -> typeResolver.declare(logicalTypeName, String.class))
+                .configureTypes(typeResolver -> {
+                    typeResolver.declare(logicalTypeName, String.class);
+                    assert typeResolver.getKnownTypes().size() == 1;
+                    assert typeResolver.getKnownTypes(String.class).iterator().next().getName().equals(logicalTypeName);
+                })
                 .importRules(Constants.PROVIDER_JAVA_CLASS, DeclarationRuleSet5.class);
         try (StatefulSession session = session(knowledge, mode)) {
             session.set("random-offset", 0);
@@ -113,7 +114,6 @@ class FieldDeclarationsTests {
             for (int i = 2; i < 100; i++) {
                 session.insertAs(logicalTypeName, String.valueOf(i));
             }
-
             session.fire();
 
             AtomicInteger primeCounter = new AtomicInteger();

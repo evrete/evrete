@@ -2,6 +2,8 @@ package org.evrete.runtime;
 
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
+import org.evrete.api.builders.RuleBuilder;
+import org.evrete.api.builders.RuleSetBuilder;
 import org.evrete.api.events.ConditionEvaluationEvent;
 import org.evrete.api.events.Events;
 import org.evrete.classes.TypeA;
@@ -14,6 +16,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -30,6 +35,61 @@ class EvaluationListenersTests {
     @AfterAll
     static void shutDownClass() {
         service.shutdown();
+    }
+
+    @ParameterizedTest
+    @EnumSource(ActivationMode.class)
+    void alphaConditionValues(ActivationMode mode) {
+        final Events.Subscriptions sink = new Events.Subscriptions();
+
+        for (boolean async : ASYNC_VALUES) {
+            RuleSetBuilder<Knowledge> builder = service.newKnowledge()
+                    .builder();
+            RuleBuilder<Knowledge> ruleBuilder = builder.newRule();
+
+            ruleBuilder
+                    .forEach("$n", Integer.class)
+                    .execute(ctx -> {});
+
+            ValuesPredicate alphaCondition = t -> t.get(0, int.class) > 0;
+
+            EvaluatorHandle handle = ruleBuilder.getConditionManager()
+                    .addCondition(alphaCondition, "$n.intValue");
+
+            Knowledge knowledge = builder.build();
+
+
+            Set<RuleSession<?>> contextSessions = Collections.synchronizedSet(new HashSet<>());
+
+            knowledge.getEvaluatorsContext().publisher(handle).subscribe(async, event -> {
+                assert event.getCondition() == alphaCondition;
+                Object[] args = event.getArguments();
+                assert args.length == 1;
+
+                int arg = (int) args[0];
+                if(event.isPassed()) {
+                    assert arg == 1;
+                } else {
+                    assert arg == -1;
+                }
+
+                contextSessions.add(event.getContext());
+
+            });
+
+            try (StatefulSession session = knowledge.newStatefulSession().setActivationMode(mode)) {
+                session.insertAndFire(-1, 1);
+                if (async) {
+                    TestUtils.sleep(500);
+                }
+
+
+                assert contextSessions.contains(session);
+            }
+        }
+
+
+        sink.cancel();
     }
 
     @ParameterizedTest
