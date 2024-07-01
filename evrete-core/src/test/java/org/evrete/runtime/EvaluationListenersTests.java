@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -74,6 +75,11 @@ class EvaluationListenersTests {
                 }
 
                 contextSessions.add(event.getContext());
+
+                // Test times
+                Instant start = event.getStartTime();
+                Instant end = event.getEndTime();
+                assert end.isAfter(start);
 
             });
 
