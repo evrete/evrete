@@ -12,7 +12,7 @@ import java.util.Map;
 
 class RuleExecutionSetImpl implements RuleExecutionSet {
     private static final long serialVersionUID = -3626185443249453796L;
-    private final Knowledge knowledge;
+    private final Knowledge  knowledge;
     private final List<Rule> rules;
     private String defaultObjectFilter;
 

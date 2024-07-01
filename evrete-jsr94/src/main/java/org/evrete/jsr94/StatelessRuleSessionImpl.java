@@ -44,13 +44,5 @@ public class StatelessRuleSessionImpl extends AbstractRuleSessionBase implements
             }
         }
         return result;
-
-/*
-        return executeRules(list)
-                .stream()
-                .map(objectFilter::filter)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-*/
     }
 }

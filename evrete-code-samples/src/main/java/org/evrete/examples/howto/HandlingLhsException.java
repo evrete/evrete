@@ -7,7 +7,6 @@ import org.evrete.api.StatefulSession;
 import org.evrete.api.ValuesPredicate;
 import org.evrete.api.builders.LhsBuilder;
 import org.evrete.api.builders.RuleBuilder;
-import org.evrete.util.CompilationException;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -15,7 +14,7 @@ import static java.lang.System.out;
 
 public class HandlingLhsException {
 
-    public static void main(String[] args) throws CompilationException {
+    public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service.newKnowledge();
 

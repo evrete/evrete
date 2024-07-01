@@ -13,7 +13,9 @@ import java.io.*;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Set;
 import java.util.logging.Logger;
 
 abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {

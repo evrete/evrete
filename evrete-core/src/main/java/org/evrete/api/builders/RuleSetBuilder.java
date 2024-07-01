@@ -2,10 +2,6 @@ package org.evrete.api.builders;
 
 import org.evrete.api.FluentEnvironment;
 import org.evrete.api.RuntimeContext;
-import org.evrete.api.annotations.NonNull;
-import org.evrete.api.spi.DSLKnowledgeProvider;
-
-import java.io.IOException;
 
 /**
  * `RuleSetBuilder` is an interface intended for building and appending rules to the current runtime context.
