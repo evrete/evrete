@@ -15,11 +15,9 @@ public class PrimeNumbersDSLClass {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
                 .newKnowledge()
-                .builder()
                 .importRules(
                         "JAVA-CLASS",
-                        PrimeNumbersDSLClass.Ruleset.class)
-                .build();
+                        PrimeNumbersDSLClass.Ruleset.class);
 
         // Stateful sessions are AutoCloseable
         try (StatefulSession session = knowledge.newStatefulSession()) {

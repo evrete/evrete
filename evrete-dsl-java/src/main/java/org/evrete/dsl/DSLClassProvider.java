@@ -1,10 +1,9 @@
 package org.evrete.dsl;
 
 import org.evrete.api.RuntimeContext;
-import org.evrete.api.builders.RuleSetBuilder;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -18,18 +17,26 @@ public class DSLClassProvider extends AbstractDSLProvider {
     };
 
     @Override
-    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, Class<?> clazz) {
-        return List.of(new DSLMetaClassSource<>(publicLookup, clazz));
+    <C extends RuntimeContext<C>> ResourceClasses createFromClasses(RuntimeContext<C> context, Collection<Class<?>> resources) {
+        if(resources == null || resources.isEmpty()) {
+            return null;
+        } else {
+            return new ResourceClasses(context.getClassLoader(), resources);
+        }
     }
 
     @Override
-    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, CharSequence literal) {
-        ClassLoader classLoader = target.getContext().getClassLoader();
+    <C extends RuntimeContext<C>> ResourceClasses createFromStrings(RuntimeContext<C> context, Collection<CharSequence> resources) {
+        ClassLoader classLoader = context.getClassLoader();
         try {
-            Class<?> cl = Class.forName(literal.toString(), true, classLoader);
-            return createClassMeta(target, cl);
+            Collection<Class<?>> classResources = new ArrayList<>(resources.size());
+            for (CharSequence resource : resources) {
+                Class<?> cl = Class.forName(resource.toString(), true, classLoader);
+                classResources.add(cl);
+            }
+            return createFromClasses(context, classResources);
         } catch (ClassNotFoundException e) {
-            throw new IllegalArgumentException("Could not find class " + literal, e);
+            throw new IllegalArgumentException("Could not find class " + resources, e);
         }
     }
 

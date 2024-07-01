@@ -17,10 +17,6 @@ class ClassMeta {
         return packageName + "." + simpleName;
     }
 
-    public String getPackageName() {
-        return packageName;
-    }
-
     public String getSimpleName() {
         return simpleName;
     }

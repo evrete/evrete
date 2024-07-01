@@ -129,19 +129,8 @@ class TypeImpl<T> implements Type<T> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <V> TypeField declareField(String name, Class<V> type, Function<T, V> function) {
-        return innerDeclare(name, type, new Function<Object, Object>() {
-            @Override
-            public Object apply(Object o) {
-                return function.apply((T) o);
-            }
-
-            @Override
-            public String toString() {
-                return function.toString();
-            }
-        });
+        return innerDeclare(name, type, new Func<>(function));
     }
 
     @Override
@@ -294,6 +283,25 @@ class TypeImpl<T> implements Type<T> {
 
         Class<?> valueType() {
             return handle.type().returnType();
+        }
+    }
+
+    private static class Func<T,V> implements Function<Object, Object> {
+        private final Function<T, V> delegate;
+
+        private Func(Function<T, V> function) {
+            this.delegate = function;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public Object apply(Object o) {
+            return delegate.apply((T) o);
+        }
+
+        @Override
+        public String toString() {
+            return delegate.toString();
         }
     }
 }

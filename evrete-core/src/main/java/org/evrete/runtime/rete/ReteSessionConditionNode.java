@@ -205,6 +205,10 @@ public class ReteSessionConditionNode extends ReteSessionNode {
         this.betaMemory.commit();
     }
 
+    public void clearMemories() {
+        this.betaMemory.clear();
+    }
+
     @Override
     public String toString() {
 

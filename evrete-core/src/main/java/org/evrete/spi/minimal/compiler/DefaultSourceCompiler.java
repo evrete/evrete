@@ -8,7 +8,7 @@ import java.io.UncheckedIOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-class DefaultSourceCompiler implements org.evrete.api.spi.SourceCompiler {
+public class DefaultSourceCompiler implements org.evrete.api.spi.SourceCompiler {
     private final static String COMPILER_PARAM_OPTION = "-parameters";
     private final ClassLoaderWrapper classLoader;
     private final JavaCompiler compiler;

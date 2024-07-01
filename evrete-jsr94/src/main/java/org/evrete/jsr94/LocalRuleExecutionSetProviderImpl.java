@@ -21,7 +21,7 @@ class LocalRuleExecutionSetProviderImpl implements LocalRuleExecutionSetProvider
     @Override
     public RuleExecutionSet createRuleExecutionSet(InputStream inputStream, Map map) throws RuleExecutionSetCreateException, IOException {
         try {
-            Knowledge knowledge = knowledgeService.newKnowledge().builder().importRules(Utils.dslName(map), inputStream).build();
+            Knowledge knowledge = knowledgeService.newKnowledge().importRules(Utils.dslName(map), inputStream);
             Utils.copyConfiguration(knowledge, map);
             return new RuleExecutionSetImpl(knowledge, map);
         } catch (RuntimeException e) {
@@ -32,7 +32,7 @@ class LocalRuleExecutionSetProviderImpl implements LocalRuleExecutionSetProvider
     @Override
     public RuleExecutionSet createRuleExecutionSet(Reader reader, Map map) throws RuleExecutionSetCreateException, IOException {
         try {
-            Knowledge knowledge = knowledgeService.newKnowledge().builder().importRules(Utils.dslName(map), reader).build();
+            Knowledge knowledge = knowledgeService.newKnowledge().importRules(Utils.dslName(map), reader);
             Utils.copyConfiguration(knowledge, map);
             return new RuleExecutionSetImpl(knowledge, map);
         } catch (Exception e) {
@@ -43,7 +43,7 @@ class LocalRuleExecutionSetProviderImpl implements LocalRuleExecutionSetProvider
     @Override
     public RuleExecutionSet createRuleExecutionSet(Object o, Map map) throws RuleExecutionSetCreateException {
         try {
-            Knowledge knowledge = knowledgeService.newKnowledge().builder().importRules(Utils.dslName(map), o).build();
+            Knowledge knowledge = knowledgeService.newKnowledge().importRules(Utils.dslName(map), o);
             Utils.copyConfiguration(knowledge, map);
             return new RuleExecutionSetImpl(knowledge, map);
         } catch (Exception e) {

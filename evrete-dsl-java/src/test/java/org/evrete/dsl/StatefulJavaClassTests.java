@@ -36,9 +36,7 @@ class StatefulJavaClassTests {
     @EnumSource(ActivationMode.class)
     void primeTest1(ActivationMode mode) throws IOException {
         Knowledge knowledge = service.newKnowledge()
-                .builder()
-                .importRules(new DSLClassProvider(), SampleRuleSet1Virtual.class)
-                .build();
+                .importRules(new DSLClassProvider(), SampleRuleSet1Virtual.class);
         try (StatefulSession session = session(knowledge, mode)) {
             assert session.getRules().size() == 1;
             for (int i = 2; i < 100; i++) {
@@ -58,7 +56,7 @@ class StatefulJavaClassTests {
     void primeTest1_1(ActivationMode mode) throws IOException {
         //TypeResolver typeResolver = service.newTypeResolver();
         Knowledge knowledge = service.newKnowledge();
-        knowledge = knowledge.builder().importRules(new DSLClassProvider(), SampleRuleSet1Virtual.class).build();
+        knowledge = knowledge.importRules(new DSLClassProvider(), SampleRuleSet1Virtual.class);
 
         //Knowledge knowledge = service.newKnowledge(DSLClassProvider.class, typeResolver, SampleRuleSet1.class);
         try (StatefulSession session = session(knowledge, mode)) {
@@ -79,9 +77,7 @@ class StatefulJavaClassTests {
     @EnumSource(ActivationMode.class)
     void primeTest2(ActivationMode mode) throws IOException {
         Knowledge knowledge = service.newKnowledge()
-                .builder()
-                .importRules(new DSLClassProvider(), SampleRuleSet2StaticVirtual.class)
-                .build();
+                .importRules(new DSLClassProvider(), SampleRuleSet2StaticVirtual.class);
 
         try (StatefulSession session = session(knowledge, mode)) {
             assert session.getRules().size() == 1;
@@ -101,9 +97,7 @@ class StatefulJavaClassTests {
     @EnumSource(ActivationMode.class)
     void primeTest3(ActivationMode mode) throws IOException {
         Knowledge knowledge = service.newKnowledge()
-                .builder()
-                .importRules(Constants.PROVIDER_JAVA_CLASS, SampleRuleSet3.class)
-                .build();
+                .importRules(Constants.PROVIDER_JAVA_CLASS, SampleRuleSet3.class);
 
         try (StatefulSession session = session(knowledge, mode)) {
             assert session.getRules().size() == 1;
@@ -123,9 +117,7 @@ class StatefulJavaClassTests {
     @EnumSource(ActivationMode.class)
     void sortInheritance1(ActivationMode mode) throws IOException {
         Knowledge knowledge = service.newKnowledge()
-                .builder()
-                .importRules(Constants.PROVIDER_JAVA_CLASS, SortedRuleSet1.class)
-                .build();
+                .importRules(Constants.PROVIDER_JAVA_CLASS, SortedRuleSet1.class);
 
         try (StatefulSession session = session(knowledge, mode)) {
             List<RuntimeRule> rules = session.getRules();
@@ -144,9 +136,7 @@ class StatefulJavaClassTests {
     @EnumSource(ActivationMode.class)
     void sortInheritance2(ActivationMode mode) throws IOException {
         Knowledge knowledge = service.newKnowledge()
-                .builder()
-                .importRules(Constants.PROVIDER_JAVA_CLASS, SortedRuleSet2.class)
-                .build();
+                .importRules(Constants.PROVIDER_JAVA_CLASS, SortedRuleSet2.class);
 
 
         try (StatefulSession session = session(knowledge, mode)) {

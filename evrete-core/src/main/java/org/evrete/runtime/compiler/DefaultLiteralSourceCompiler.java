@@ -3,7 +3,8 @@ package org.evrete.runtime.compiler;
 import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.spi.SourceCompiler;
-import org.evrete.spi.minimal.*;
+import org.evrete.spi.minimal.AbstractLiteralRhs;
+import org.evrete.spi.minimal.BaseRuleClass;
 import org.evrete.util.CommonUtils;
 import org.evrete.util.CompilationException;
 
@@ -24,7 +25,7 @@ public class DefaultLiteralSourceCompiler  {
     private static final AtomicInteger classCounter = new AtomicInteger(0);
     static final String CLASS_PACKAGE = DefaultLiteralSourceCompiler.class.getPackage().getName() + ".compiled";
 
-    public <S extends RuleLiteralData<R, C>, R extends Rule, C extends LiteralPredicate> Collection<RuleCompiledSources<S, R, C>> compile(RuntimeContext<?> context, Collection<S> sources) throws CompilationException {
+    public <S extends RuleLiteralData<R, C>, R extends Rule, C extends LiteralPredicate> Collection<RuleCompiledSources<S, R, C>> compile(RuntimeContext<?> context, ClassLoader classLoader, Collection<S> sources) throws CompilationException {
         // Return if there's nothing to compile
         if (sources.isEmpty()) {
             return Collections.emptyList();
@@ -35,18 +36,18 @@ public class DefaultLiteralSourceCompiler  {
         if (stripFlag == null) {
             try {
                 // Try compiling with stripped whitespaces
-                return compile(context, sources, true);
+                return compile(context, classLoader, sources, true);
             } catch (CompilationException e) {
                 // Compile literals as-is
-                return compile(context, sources, false);
+                return compile(context, classLoader, sources, false);
             }
         } else {
-            return compile(context, sources, Boolean.parseBoolean(stripFlag));
+            return compile(context, classLoader, sources, Boolean.parseBoolean(stripFlag));
         }
     }
 
-    private <S extends RuleLiteralData<R, C>, R extends Rule, C extends LiteralPredicate> Collection<RuleCompiledSources<S, R, C>> compile(RuntimeContext<?> context, Collection<S> sources, boolean stripWhitespaces) throws CompilationException {
-        SourceCompiler compiler = context.getService().getSourceCompilerProvider().instance(context.getClassLoader());
+    private <S extends RuleLiteralData<R, C>, R extends Rule, C extends LiteralPredicate> Collection<RuleCompiledSources<S, R, C>> compile(RuntimeContext<?> context, ClassLoader classLoader, Collection<S> sources, boolean stripWhitespaces) throws CompilationException {
+        SourceCompiler compiler = context.getService().getSourceCompilerProvider().instance(classLoader);
 
         Collection<RuleSource<S, R, C>> javaSources = sources.stream()
                 .map(o -> new RuleSource<>(o, context, stripWhitespaces))
@@ -267,7 +268,6 @@ public class DefaultLiteralSourceCompiler  {
     }
 
     private static class RhsSource {
-        @NonNull
         final String rhs;
         final Rule rule;
         final StringJoiner methodArgs;

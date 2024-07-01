@@ -79,7 +79,9 @@ public class SessionRule extends AbstractActiveRule<SessionFactGroup, SessionLhs
     }
 
     public void clear() {
-        //TODO review the usage
+        for(SessionFactGroup group :  getLhs().getFactGroups()) {
+            group.clearMemories();
+        }
     }
 
     @Override

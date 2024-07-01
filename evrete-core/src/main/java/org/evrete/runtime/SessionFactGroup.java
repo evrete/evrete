@@ -33,6 +33,8 @@ abstract class SessionFactGroup extends KnowledgeFactGroup {
         return factTypes;
     }
 
+    abstract void clearMemories();
+
     abstract CompletableFuture<Void> processDeleteDeltaActions(Collection<FactHolder> deletes);
 
     protected abstract boolean isPlain();

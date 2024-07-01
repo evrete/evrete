@@ -14,12 +14,12 @@ import java.util.Collection;
  * </p>
  *
  * <p>
- * This interface extends {@link CopyableWith}, allowing a {@link TypeResolver} to create copies of itself.
+ * This interface extends {@link Copyable}, allowing a {@link TypeResolver} to create copies of itself.
  * The copies must inherit the original declared types but must not have a reverse effect — changes,
  * such as new types or field declarations, in the copies must not be reflected in the original type resolver.
  * </p>
  *
- * @see CopyableWith
+ * @see Copyable
  */
 public interface TypeResolver extends Copyable<TypeResolver> {
 

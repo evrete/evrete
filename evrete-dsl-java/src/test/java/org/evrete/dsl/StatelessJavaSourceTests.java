@@ -30,7 +30,6 @@ class StatelessJavaSourceTests {
         service.shutdown();
     }
 
-
     private static StatelessSession session(Knowledge knowledge, ActivationMode mode) {
         return knowledge.newStatelessSession(mode);
     }
@@ -40,9 +39,7 @@ class StatelessJavaSourceTests {
     void sort1(ActivationMode mode) throws IOException {
         File f = testResourceAsFile("java/SortTest1.java");
         Knowledge knowledge = service.newKnowledge()
-                .builder()
-                .importRules(Constants.PROVIDER_JAVA_SOURCE, f)
-                .build();
+                .importRules(Constants.PROVIDER_JAVA_SOURCE, f);
         StatelessSession session = session(knowledge, mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 3;
@@ -57,9 +54,7 @@ class StatelessJavaSourceTests {
         File f = testResourceAsFile("java/SortTest2.java");
 
         Knowledge knowledge = service.newKnowledge()
-                .builder()
-                .importRules(new DSLSourceProvider(), f)
-                .build();
+                .importRules(new DSLSourceProvider(), f);
 
 
         StatelessSession session = session(knowledge, mode);
@@ -75,9 +70,7 @@ class StatelessJavaSourceTests {
     void sort3(ActivationMode mode) throws IOException {
         File f = testResourceAsFile("java/SortTest3.java");
         Knowledge knowledge = service.newKnowledge()
-                .builder()
-                .importRules(Constants.PROVIDER_JAVA_SOURCE, f)
-                .build();
+                .importRules(Constants.PROVIDER_JAVA_SOURCE, f);
 
 
         StatelessSession session = session(knowledge, mode);
@@ -93,9 +86,7 @@ class StatelessJavaSourceTests {
     void sort4(ActivationMode mode) throws IOException {
         File f = testResourceAsFile("java/SortTest4.java");
         Knowledge knowledge = service.newKnowledge()
-                .builder()
-                .importRules(new DSLSourceProvider(), f)
-                .build();
+                .importRules(new DSLSourceProvider(), f);
 
         StatelessSession session = session(knowledge, mode);
         List<RuntimeRule> rules = session.getRules();
@@ -112,9 +103,7 @@ class StatelessJavaSourceTests {
     void primeNonStaticMethod(ActivationMode mode) throws IOException {
         File f = testResourceAsFile("java/PrimeNumbers1.java");
         Knowledge knowledge = service.newKnowledge()
-                .builder()
-                .importRules(Constants.PROVIDER_JAVA_SOURCE, f)
-                .build();
+                .importRules(Constants.PROVIDER_JAVA_SOURCE, f);
 
         StatelessSession session = session(knowledge, mode);
 
@@ -136,9 +125,7 @@ class StatelessJavaSourceTests {
         File f = testResourceAsFile("java/PrimeNumbers2.java");
 
         Knowledge knowledge = service.newKnowledge()
-                .builder()
-                .importRules(Constants.PROVIDER_JAVA_SOURCE, f)
-                .build();
+                .importRules(Constants.PROVIDER_JAVA_SOURCE, f);
 
 
         StatelessSession session = session(knowledge, mode);
@@ -160,9 +147,7 @@ class StatelessJavaSourceTests {
     void primeNonStaticMethodNonStaticCondition(ActivationMode mode) throws IOException {
         File f = testResourceAsFile("java/PrimeNumbers3.java");
         Knowledge knowledge = service.newKnowledge()
-                .builder()
-                .importRules(new DSLSourceProvider(), f)
-                .build();
+                .importRules(new DSLSourceProvider(), f);
 
         StatelessSession session = session(knowledge, mode);
 
@@ -182,9 +167,7 @@ class StatelessJavaSourceTests {
     void primeNonStaticMethodStaticCondition(ActivationMode mode) throws IOException {
         File f = testResourceAsFile("java/PrimeNumbers4.java");
         Knowledge knowledge = service.newKnowledge()
-                .builder()
-                .importRules(Constants.PROVIDER_JAVA_SOURCE, f)
-                .build();
+                .importRules(Constants.PROVIDER_JAVA_SOURCE, f);
 
         StatelessSession session = session(knowledge, mode);
 
@@ -204,9 +187,7 @@ class StatelessJavaSourceTests {
         File f = testResourceAsFile("java/PrimeNumbers5.java");
 
         Knowledge knowledge = service.newKnowledge()
-                .builder()
-                .importRules(Constants.PROVIDER_JAVA_SOURCE, f)
-                .build();
+                .importRules(Constants.PROVIDER_JAVA_SOURCE, f);
 
 
         StatelessSession session = session(knowledge, mode);

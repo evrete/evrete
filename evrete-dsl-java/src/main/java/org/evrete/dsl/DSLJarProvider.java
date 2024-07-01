@@ -1,7 +1,6 @@
 package org.evrete.dsl;
 
 import org.evrete.api.RuntimeContext;
-import org.evrete.api.builders.RuleSetBuilder;
 import org.evrete.dsl.annotation.RuleSet;
 import org.evrete.util.CommonUtils;
 
@@ -34,47 +33,47 @@ public class DSLJarProvider extends AbstractDSLProvider {
     }
 
     @Override
-    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, File file) throws IOException {
-        return this.createClassMeta(target, file.toURI().toURL());
+    <C extends RuntimeContext<C>> ResourceClasses createFromFiles(RuntimeContext<C> context, Collection<File> resources) throws IOException {
+        return this.createFromURLs(context, toURLs(resources));
     }
 
     @Override
-    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, URL url) throws IOException {
-        RuntimeContext<C> context = target.getContext();
-        try(JarClassloader jarClassloader = new JarClassloader(url, context.getClassLoader())) {
-            String[] classes = CommonUtils.splitConfigString(target.get(CLASSES_PROPERTY, EMPTY_STRING));
-            final String[] criteria;
-            final  Collection<Class<?>> selectedRuleClasses;
-            if(classes.length == 0) {
-                String[] ruleSets = CommonUtils.splitCSV(target.get(RULESETS_PROPERTY, EMPTY_STRING));
-                if(ruleSets.length == 0) {
-                    throw new IllegalArgumentException("Neither ruleset names nor class names are specified");
-                } else {
-                    criteria = ruleSets;
-                    selectedRuleClasses = readRulesets(jarClassloader, ruleSets);
-                }
+    <C extends RuntimeContext<C>> ResourceClasses createFromURLs(RuntimeContext<C> context, Collection<URL> resources) throws IOException {
+        JarClassloader jarClassloader = new JarClassloader(resources, context.getClassLoader());
+        String[] configClasses = CommonUtils.splitConfigString(context.get(CLASSES_PROPERTY, EMPTY_STRING));
+        final String[] criteria;
+        final Collection<Class<?>> selectedRuleClasses;
+        if (configClasses.length == 0) {
+            String[] configRuleSets = CommonUtils.splitCSV(context.get(RULESETS_PROPERTY, EMPTY_STRING));
+            if (configRuleSets.length == 0) {
+                throw new IllegalArgumentException("Neither ruleset names nor class names are specified");
             } else {
-                criteria = classes;
-                selectedRuleClasses = readClasses(jarClassloader, classes);
+                criteria = configRuleSets;
+                selectedRuleClasses = readRulesets(jarClassloader, configRuleSets);
             }
+        } else {
+            criteria = configClasses;
+            selectedRuleClasses = readClasses(jarClassloader, configClasses);
+        }
 
-            Collection<DSLMeta<C>> result = new ArrayList<>(selectedRuleClasses.size());
-            for(Class<?> ruleClass : selectedRuleClasses) {
-                if(Utils.isDslRuleClass(ruleClass)) {
-                    result.add(new DSLMetaClassSource<>(publicLookup, ruleClass));
-                }
+        Collection<Class<?>> dslClasses = new ArrayList<>(selectedRuleClasses.size());
+        for (Class<?> ruleClass : selectedRuleClasses) {
+            if (Utils.isDslRuleClass(ruleClass)) {
+                dslClasses.add(ruleClass);
             }
+        }
 
-            if(result.isEmpty()) {
-                LOGGER.warning("No rule classes selected given the provided criteria: " + Arrays.toString(criteria));
-            }
-            return result;
+        if (dslClasses.isEmpty()) {
+            LOGGER.fine(()->"No rule classes selected given the provided criteria: " + Arrays.toString(criteria));
+            return null;
+        } else {
+            return new ResourceClasses(jarClassloader, dslClasses, jarClassloader);
         }
     }
 
     private Collection<Class<?>> readClasses(JarClassloader jarClassloader, String[] classNames) {
         Collection<Class<?>> result = new ArrayList<>(classNames.length);
-        for(String className : classNames) {
+        for (String className : classNames) {
             try {
                 result.add(jarClassloader.loadClass(className));
             } catch (ClassNotFoundException e) {
@@ -89,9 +88,9 @@ public class DSLJarProvider extends AbstractDSLProvider {
         Set<String> filter = new HashSet<>(Arrays.asList(rulesetNames));
         jarClassloader.scan(c -> {
             RuleSet rs = c.getAnnotation(RuleSet.class);
-            if(rs != null) {
+            if (rs != null) {
                 String ruleSetName = rs.value();
-                if(ruleSetName != null && !ruleSetName.isEmpty() && filter.contains(ruleSetName)) {
+                if (ruleSetName != null && !ruleSetName.isEmpty() && filter.contains(ruleSetName)) {
                     stringClassMap.put(ruleSetName, c);
                 }
             }
@@ -99,9 +98,9 @@ public class DSLJarProvider extends AbstractDSLProvider {
 
         // We need to return results in the same order
         Collection<Class<?>> result = new ArrayList<>(stringClassMap.size());
-        for(String ruleSetName : rulesetNames) {
+        for (String ruleSetName : rulesetNames) {
             Class<?> ruleClass = stringClassMap.get(ruleSetName);
-            if(ruleClass != null) {
+            if (ruleClass != null) {
                 result.add(ruleClass);
             }
         }

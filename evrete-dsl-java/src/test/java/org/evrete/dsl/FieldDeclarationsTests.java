@@ -38,9 +38,8 @@ class FieldDeclarationsTests {
     @EnumSource(ActivationMode.class)
     void test1(ActivationMode mode) throws IOException {
         Knowledge knowledge = service.newKnowledge()
-                .builder()
                 .importRules(Constants.PROVIDER_JAVA_CLASS, DeclarationRuleSet1.class)
-                .build();
+                ;
         NextIntSupplier primeCounter;
         try (StatefulSession session = session(knowledge, mode)) {
 
@@ -60,9 +59,7 @@ class FieldDeclarationsTests {
     @EnumSource(ActivationMode.class)
     void test2(ActivationMode mode) throws IOException {
         Knowledge knowledge = service.newKnowledge()
-                .builder()
-                .importRules(Constants.PROVIDER_JAVA_CLASS, DeclarationRuleSet2.class)
-                .build();
+                .importRules(Constants.PROVIDER_JAVA_CLASS, DeclarationRuleSet2.class);
         AtomicInteger primeCounter;
         try (StatefulSession session = session(knowledge, mode)) {
 
@@ -82,9 +79,7 @@ class FieldDeclarationsTests {
     @EnumSource(ActivationMode.class)
     void test3(ActivationMode mode) throws IOException {
         Knowledge knowledge = service.newKnowledge()
-                .builder()
-                .importRules(Constants.PROVIDER_JAVA_CLASS, DeclarationRuleSet3.class)
-                .build();
+                .importRules(Constants.PROVIDER_JAVA_CLASS, DeclarationRuleSet3.class);
 
 
         NextIntSupplier primeCounter;
@@ -111,9 +106,7 @@ class FieldDeclarationsTests {
         String logicalTypeName = "Hello world type";
         Knowledge knowledge = service.newKnowledge()
                 .configureTypes(typeResolver -> typeResolver.declare(logicalTypeName, String.class))
-                .builder()
-                .importRules(Constants.PROVIDER_JAVA_CLASS, DeclarationRuleSet5.class)
-                .build();
+                .importRules(Constants.PROVIDER_JAVA_CLASS, DeclarationRuleSet5.class);
         try (StatefulSession session = session(knowledge, mode)) {
             session.set("random-offset", 0);
 

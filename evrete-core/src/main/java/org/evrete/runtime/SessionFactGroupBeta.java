@@ -47,8 +47,11 @@ class SessionFactGroupBeta extends SessionFactGroup {
                         executor
                 )
         );
+    }
 
-
+    @Override
+    void clearMemories() {
+        graph.forEachConditionNode(ReteSessionConditionNode::clearMemories);
     }
 
     public ReteGraph<ReteSessionNode, ReteSessionEntryNode, ReteSessionConditionNode> getGraph() {

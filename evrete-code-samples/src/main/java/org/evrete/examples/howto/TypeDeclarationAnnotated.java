@@ -10,9 +10,7 @@ public class TypeDeclarationAnnotated {
         KnowledgeService service = new KnowledgeService();
         StatelessSession session = service
                 .newKnowledge()
-                .builder()
                 .importRules("JAVA-CLASS", FactorialRuleset.class)
-                .build()
                 .newStatelessSession();
 
         // Testing the rule

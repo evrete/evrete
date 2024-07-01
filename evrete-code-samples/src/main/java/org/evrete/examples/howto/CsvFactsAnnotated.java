@@ -14,9 +14,7 @@ public class CsvFactsAnnotated {
         // Build knowledge & session
         StatelessSession session = service
                 .newKnowledge()
-                .builder()
                 .importRules("JAVA-CLASS", CvsTypesRuleset.class)
-                .build()
                 .newStatelessSession();
 
         // Mike is 16 y.o., located at '5246 Elm Street'

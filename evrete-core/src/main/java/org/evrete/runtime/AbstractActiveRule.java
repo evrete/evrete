@@ -1,6 +1,7 @@
 package org.evrete.runtime;
 
 import org.evrete.api.NamedType;
+import org.evrete.api.annotations.NonNull;
 
 import java.util.Collection;
 
@@ -34,7 +35,8 @@ public abstract class AbstractActiveRule<FG extends KnowledgeFactGroup, LHS exte
     }
 
     @Override
-    public NamedType resolve(String var) {
+    @NonNull
+    public NamedType resolve(@NonNull String var) {
         return parent.resolve(var);
     }
 

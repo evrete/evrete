@@ -8,6 +8,7 @@ import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.spi.minimal.DefaultMemoryFactoryProvider;
 import org.evrete.spi.minimal.DefaultTypeResolverProvider;
+import org.evrete.spi.minimal.DefaultSourceCompilerProvider;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -29,6 +30,7 @@ class EvaluationContextTests {
         service = KnowledgeService.builder()
                 .withMemoryFactoryProvider(DefaultMemoryFactoryProvider.class)
                 .withTypeResolverProvider(DefaultTypeResolverProvider.class)
+                .withSourceCompilerProvider(DefaultSourceCompilerProvider.class)
                 .build();
     }
 

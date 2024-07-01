@@ -34,7 +34,6 @@ public class SearchList<T extends Named> implements Iterable<T> {
         }
     }
 
-    @SuppressWarnings("NullableProblems")
     @NonNull
     @Override
     public Iterator<T> iterator() {

@@ -122,7 +122,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @return new instance of DSL provider
      * @throws IllegalStateException if no implementation found by the given name
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      * {@link DSLKnowledgeProvider#load(String)} utility method instead.
      */
     @Deprecated
@@ -138,7 +138,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @param dsl DSL implementation class
      * @return new instance of DSL provider
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      * {@link DSLKnowledgeProvider#load(String)} utility method instead.
      */
     @Deprecated
@@ -152,7 +152,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
     @Deprecated
     public Knowledge newKnowledge(String dsl, URL... resources) throws IOException {
@@ -165,7 +165,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
     @Deprecated
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, URL... resources) throws IOException {
@@ -178,7 +178,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
     @Deprecated
     public Knowledge newKnowledge(String dsl, File... resources) throws IOException {
@@ -191,7 +191,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
     @Deprecated
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, File... resources) throws IOException {
@@ -205,7 +205,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
     @Deprecated
     @SuppressWarnings("unused")
@@ -220,7 +220,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
     @Deprecated
     @SuppressWarnings("unused")
@@ -235,7 +235,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
     @Deprecated
     @SuppressWarnings("unused")
@@ -250,7 +250,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
     @Deprecated
     @SuppressWarnings("unused")
@@ -264,7 +264,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
     @Deprecated
     public Knowledge newKnowledge(String dsl, Reader... resources) throws IOException {
@@ -277,7 +277,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
     @Deprecated
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, Reader... resources) throws IOException {
@@ -291,7 +291,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
     @Deprecated
     @SuppressWarnings("unused")
@@ -306,7 +306,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
     @Deprecated
     @SuppressWarnings("unused")
@@ -320,7 +320,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
     @Deprecated
     public Knowledge newKnowledge(String dsl, InputStream... resources) throws IOException {
@@ -333,7 +333,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
     @Deprecated
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, InputStream... resources) throws IOException {
@@ -347,7 +347,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
     @Deprecated
     @SuppressWarnings("unused")
@@ -362,7 +362,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
     @Deprecated
     @SuppressWarnings("unused")
@@ -380,7 +380,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the class sources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
     @Deprecated
     public Knowledge newKnowledge(String dsl, Class<?>... resources) throws IOException {
@@ -405,12 +405,16 @@ public class KnowledgeService extends AbstractKnowledgeService {
     }
 
     private Knowledge deprecatedStub(String provider, Object[] resources) throws IOException {
-        return newKnowledge().builder().importRules(provider, resources).build();
+        Knowledge knowledge = newKnowledge();
+        knowledge.importRules(provider, resources);
+        return knowledge;
     }
 
     private Knowledge deprecatedStub(Class<? extends DSLKnowledgeProvider> type, Object[] resources) throws IOException {
+        Knowledge knowledge = newKnowledge();
         DSLKnowledgeProvider provider = DSLKnowledgeProvider.load(type);
-        return newKnowledge().builder().importRules(provider, resources).build();
+        knowledge.importRules(provider, resources);
+        return knowledge;
     }
 
     /**
@@ -423,7 +427,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the class sources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
     @Deprecated
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, Class<?>... resources) throws IOException {
@@ -441,7 +445,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the class sources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
     @Deprecated
     @SuppressWarnings("unused")
@@ -460,7 +464,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the sources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
     @Deprecated
     @SuppressWarnings("unused")
@@ -497,7 +501,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
     /**
      * Creates a new {@link Knowledge} instance from provided resources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(String, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
     @Deprecated
     public Knowledge newKnowledge(String dsl, String... resources) throws IOException {
@@ -507,7 +511,7 @@ public class KnowledgeService extends AbstractKnowledgeService {
     /**
      * Creates a new {@link Knowledge} instance from provided resources.
      * @deprecated this method is deprecated and scheduled for removal.
-     * Use the new {@link org.evrete.api.builders.RuleSetBuilder#importRules(DSLKnowledgeProvider, Object)} approach or the
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(DSLKnowledgeProvider, Object)} approach or the
      */
     @Deprecated
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, String... resources) throws IOException {
@@ -535,6 +539,11 @@ public class KnowledgeService extends AbstractKnowledgeService {
 
         public Builder withTypeResolverProvider(Class<? extends TypeResolverProvider> typeResolverProvider) {
             this.typeResolverProvider = typeResolverProvider;
+            return this;
+        }
+
+        public Builder withSourceCompilerProvider(Class<? extends SourceCompilerProvider> sourceCompilerProvider) {
+            this.sourceCompilerProvider = sourceCompilerProvider;
             return this;
         }
 

@@ -37,9 +37,7 @@ class StatefulPhaseListenerTests {
     void test1(ActivationMode mode) throws IOException {
         TestUtils.PhaseHelperData.reset();
         Knowledge knowledge = service.newKnowledge()
-                .builder()
-                .importRules(Constants.PROVIDER_JAVA_CLASS, PhaseListenerRuleSet1.class)
-                .build();
+                .importRules(Constants.PROVIDER_JAVA_CLASS, PhaseListenerRuleSet1.class);
 
         knowledge.set("some property", "some value 1");
         assert TestUtils.PhaseHelperData.count(EnvironmentChangeEvent.class) == 1;

@@ -1,12 +1,11 @@
 package org.evrete.runtime;
 
 import org.evrete.KnowledgeService;
-import org.evrete.api.events.Events;
 import org.evrete.api.Knowledge;
+import org.evrete.api.RhsContext;
 import org.evrete.api.RuleSession;
-import org.evrete.api.events.KnowledgeCreatedEvent;
-import org.evrete.api.events.SessionClosedEvent;
-import org.evrete.api.events.SessionCreatedEvent;
+import org.evrete.api.StatelessSession;
+import org.evrete.api.events.*;
 import org.evrete.helper.TestUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -16,6 +15,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 class EventMessageBusTests {
@@ -272,6 +272,7 @@ class EventMessageBusTests {
         // Close the service
         service.shutdown();
     }
+
 
     static void assertMessageBusHasNoSubscriptions(EventMessageBus bus) {
         bus.getHandlers().forEach((type, handler) -> {

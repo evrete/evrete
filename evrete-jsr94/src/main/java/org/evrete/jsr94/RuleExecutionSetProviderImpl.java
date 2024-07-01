@@ -107,9 +107,7 @@ class RuleExecutionSetProviderImpl implements RuleExecutionSetProvider {
 
         try {
             Knowledge knowledge = knowledgeService.newKnowledge()
-                    .builder()
-                    .importRules(dsl, new StringReader(s))
-                    .build();
+                    .importRules(dsl, new StringReader(s));
             return new RuleExecutionSetImpl(knowledge, map);
         } catch (RuntimeException e) {
             throw new RuleExecutionSetCreateException("Unable to create RuleExecutionSet", e);
@@ -120,7 +118,7 @@ class RuleExecutionSetProviderImpl implements RuleExecutionSetProvider {
     private RuleExecutionSet createRuleExecutionSet(Map<?, ?> map, URL... urls) throws RuleExecutionSetCreateException, IOException {
         String dsl = Utils.dslName(map);
         try {
-            Knowledge knowledge = knowledgeService.newKnowledge().builder().importRules(dsl, urls).build();
+            Knowledge knowledge = knowledgeService.newKnowledge().importRules(dsl, urls);
             return new RuleExecutionSetImpl(knowledge, map);
         } catch (RuntimeException e) {
             throw new RuleExecutionSetCreateException("Unable to create RuleExecutionSet", e);

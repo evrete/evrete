@@ -1,11 +1,12 @@
 package org.evrete.runtime;
 
 import org.evrete.KnowledgeService;
-import org.evrete.api.*;
+import org.evrete.api.Imports;
+import org.evrete.api.RuntimeContext;
+import org.evrete.api.TypeResolver;
 import org.evrete.api.events.ContextEvent;
 import org.evrete.api.events.EnvironmentChangeEvent;
 import org.evrete.api.events.Events;
-import org.evrete.api.spi.SourceCompiler;
 import org.evrete.util.AbstractEnvironment;
 
 import java.time.Instant;

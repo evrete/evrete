@@ -12,12 +12,9 @@ public class WhoIsFritzAnnotated {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
                 .newKnowledge()
-                .builder()
-
                 .importRules(
                         "JAVA-CLASS",
-                        WhoIsFritzAnnotated.RuleSet.class)
-                .build();
+                        WhoIsFritzAnnotated.RuleSet.class);
 
         // Init subject and its known properties
         Subject fritz = new Subject();

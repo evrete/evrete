@@ -12,11 +12,9 @@ public class PrimeNumbersDSLSource {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
                 .newKnowledge()
-                .builder()
                 .importRules(
                         "JAVA-SOURCE",
-                        URI.create("https://www.evrete.org/examples/PrimeNumbersSource.java").toURL())
-                .build();
+                        URI.create("https://www.evrete.org/examples/PrimeNumbersSource.java").toURL());
 
         // Stateful sessions are AutoCloseable
         try (StatefulSession session = knowledge.newStatefulSession()) {

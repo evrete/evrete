@@ -5,7 +5,7 @@ import java.time.Instant;
 /**
  * The TimedEvent interface represents a {@link ContextEvent} that has a start and end time.
  */
-public interface TimedEvent extends ContextEvent {
+public interface TimedEvent {
 
     /**
      * Returns the start time of the event.

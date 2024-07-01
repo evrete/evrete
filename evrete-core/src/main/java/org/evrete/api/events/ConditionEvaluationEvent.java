@@ -9,7 +9,7 @@ import org.evrete.api.ValuesPredicate;
  *
  * @see ContextEvent
  */
-public interface ConditionEvaluationEvent extends TimedEvent {
+public interface ConditionEvaluationEvent extends Events.Event, TimedEvent {
 
     /**
      * Returns the evaluator responsible for the condition evaluation.

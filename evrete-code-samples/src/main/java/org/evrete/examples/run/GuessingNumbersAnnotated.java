@@ -17,12 +17,10 @@ public class GuessingNumbersAnnotated {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
                 .newKnowledge()
-                .builder()
                 .importRules(
                         "JAVA-CLASS",
                         GuessingNumbersKnowledge.class
-                )
-                .build();
+                );
 
         try (StatefulSession session = knowledge.newStatefulSession()) {
             Player p1 = new Player("Andrew");

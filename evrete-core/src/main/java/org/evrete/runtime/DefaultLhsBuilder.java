@@ -112,6 +112,7 @@ class DefaultLhsBuilder<C extends RuntimeContext<C>> extends DefaultNamedTypeRes
         }
 
         @Override
+        @NonNull
         public Type<?> getType() {
             return type;
         }

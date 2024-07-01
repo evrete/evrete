@@ -1,23 +1,19 @@
 package org.evrete.dsl;
 
 import org.evrete.Configuration;
-import org.evrete.api.events.Events;
-import org.evrete.api.spi.SourceCompiler;
 import org.evrete.api.RuleSession;
 import org.evrete.api.RuntimeContext;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.builders.RuleSetBuilder;
+import org.evrete.api.events.Events;
 import org.evrete.api.events.SessionCreatedEvent;
 import org.evrete.api.spi.DSLKnowledgeProvider;
-import org.evrete.util.CommonUtils;
-import org.evrete.util.CompilationException;
 
 import java.io.*;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.*;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
@@ -38,27 +34,27 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
         this.publicLookup = MethodHandles.publicLookup();
     }
 
-    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, URL url) throws IOException {
+    <C extends RuntimeContext<C>> ResourceClasses createFromURLs(RuntimeContext<C> target, Collection<URL> resources) throws IOException {
         throw new UnsupportedOperationException();
     }
 
-    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, Reader reader) throws IOException {
+    <C extends RuntimeContext<C>> ResourceClasses createFromReaders(RuntimeContext<C> target, Collection<Reader> resources) throws IOException {
         throw new UnsupportedOperationException();
     }
 
-    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, CharSequence literal) {
+    <C extends RuntimeContext<C>> ResourceClasses createFromStrings(RuntimeContext<C> target, Collection<CharSequence> resources) {
         throw new UnsupportedOperationException();
     }
 
-    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, InputStream inputStream) throws IOException {
+    <C extends RuntimeContext<C>> ResourceClasses createFromStreams(RuntimeContext<C> target, Collection<InputStream> resources) throws IOException {
         throw new UnsupportedOperationException();
     }
 
-    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, Class<?> clazz) {
+    <C extends RuntimeContext<C>> ResourceClasses createFromClasses(RuntimeContext<C> target, Collection<Class<?>> resources) {
         throw new UnsupportedOperationException();
     }
 
-    <C extends RuntimeContext<C>> Collection<DSLMeta<C>> createClassMeta(RuleSetBuilder<C> target, File file) throws IOException {
+    <C extends RuntimeContext<C>> ResourceClasses createFromFiles(RuntimeContext<C> target, Collection<File> resources) throws IOException {
         throw new UnsupportedOperationException();
     }
 
@@ -66,10 +62,10 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
 
 
     @Override
-    public final <C extends RuntimeContext<C>> void appendTo(@NonNull RuleSetBuilder<C> target, Object source) throws IOException {
+    public final <C extends RuntimeContext<C>> void appendTo(@NonNull RuntimeContext<C> context, Object source) throws IOException {
         if (source != null) {
             try {
-                this.appendToInner(target, source);
+                this.appendToInner(context, source);
             } catch (UncheckedIOException e) {
                 // Unwrap IO exceptions
                 throw e.getCause();
@@ -79,77 +75,71 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
         }
     }
 
-    private <C extends RuntimeContext<C>> void appendToInner(RuleSetBuilder<C> target, @NonNull Object source) throws IOException {
-        Set<Class<?>> sourceTypes = sourceTypes();
-        Collection<?> resolvedSources = CommonUtils.toCollection(source);
-        RuntimeContext<C> context = target.getContext();
+    private <C extends RuntimeContext<C>> void appendToInner(RuntimeContext<C> context, @NonNull Object source) throws IOException {
+        Set<Class<?>> supportedTypes = sourceTypes();
+        // Each provider supports arrays and iterables of the supported types
+        ResourceCollection resources = ResourceCollection.factory(source);
+        if(resources == null) {
+            return;
+        }
 
-        // This is a three-step approach:
-        // 1. First, we collect metadata from each source
-        List<DSLMeta<C>> metaData = new ArrayList<>(resolvedSources.size());
-        for (Object singleSource : resolvedSources) {
-            if(singleSource == null) {
-                LOGGER.warning(()->"Null source detected in " + source);
+        Class<?> componentType = resources.getComponentType();
+        if(matches(componentType, supportedTypes)) {
+            if (TYPE_URL.isAssignableFrom(componentType)) {
+                appendToInner(context, createFromURLs(context, resources.cast()));
+            } else if (TYPE_READER.isAssignableFrom(componentType)) {
+                appendToInner(context, createFromReaders(context, resources.cast()));
+            } else if (TYPE_CHAR_SEQUENCE.isAssignableFrom(componentType)) {
+                appendToInner(context, createFromStrings(context, resources.cast()));
+            } else if (TYPE_INPUT_STREAM.isAssignableFrom(componentType)) {
+                appendToInner(context, createFromStreams(context, resources.cast()));
+            } else if (TYPE_CLASS.isAssignableFrom(componentType)) {
+                appendToInner(context, createFromClasses(context, resources.cast()));
+            } else if (TYPE_FILE.isAssignableFrom(componentType)) {
+                appendToInner(context, createFromFiles(context, resources.cast()));
             } else {
-                Class<?> sourceType = singleSource.getClass();
-                if(matches(sourceType, sourceTypes)) {
-                    if (TYPE_URL.isAssignableFrom(sourceType)) {
-                        metaData.addAll(createClassMeta(target, (URL) singleSource));
-                    } else if (TYPE_READER.isAssignableFrom(sourceType)) {
-                        metaData.addAll(createClassMeta(target, (Reader) singleSource));
-                    } else if (TYPE_CHAR_SEQUENCE.isAssignableFrom(sourceType)) {
-                        metaData.addAll(createClassMeta(target, (CharSequence) singleSource));
-                    } else if (TYPE_INPUT_STREAM.isAssignableFrom(sourceType)) {
-                        metaData.addAll(createClassMeta(target, (InputStream) singleSource));
-                    } else if (TYPE_CLASS.isAssignableFrom(sourceType)) {
-                        metaData.addAll(createClassMeta(target, (Class<?>) singleSource));
-                    } else if (TYPE_FILE.isAssignableFrom(sourceType)) {
-                        metaData.addAll(createClassMeta(target, (File) singleSource));
-                    } else {
-                        throw new IllegalArgumentException("Unsupported source type " + sourceType);
-                    }
-                } else {
-                    throw new IllegalArgumentException("Unsupported source type " + sourceType + " provided to " + this.getClass().getName());
-                }
+                throw new IllegalArgumentException("Unsupported source type " + componentType);
             }
+        } else {
+            throw new IllegalArgumentException("Unsupported source type " + componentType.getName() + " provided to " + this.getClass().getName());
         }
+    }
 
-        // 2. If the collected data implies compiling Java sources, then compile and apply to the metadata.
-        Map<SourceCompiler.ClassSource, DSLMeta<C>> sourceMap = new IdentityHashMap<>();
-
-        for (DSLMeta<C> meta : metaData) {
-            SourceCompiler.ClassSource sourceToCompile = meta.sourceToCompile();
-            if (sourceToCompile != null) {
-                sourceMap.put(sourceToCompile, meta);
-            }
-        }
-        if(!sourceMap.isEmpty()) {
-
-            SourceCompiler sourceCompiler = context.getService().getSourceCompilerProvider().instance(context.getClassLoader());
+    private <C extends RuntimeContext<C>> void appendToInner(RuntimeContext<C> context, ResourceClasses resourceClasses) throws IOException {
+        if(resourceClasses != null) {
             try {
-                Collection<SourceCompiler.Result<SourceCompiler.ClassSource>> compiledSources = sourceCompiler.compile(sourceMap.keySet());
-                for(SourceCompiler.Result<SourceCompiler.ClassSource> result : compiledSources) {
-                    DSLMeta<C> meta = sourceMap.get(result.getSource());
-                    meta.applyCompiledSource(result.getCompiledClass());
+                Collection<RulesClass> rulesClasses = new ArrayList<>(resourceClasses.classes.size());
+                for (Class<?> cl : resourceClasses.classes) {
+                    WrappedClass wrappedClass = new WrappedClass(cl, publicLookup);
+                    RulesClass rulesClass = new RulesClass(wrappedClass);
+                    rulesClasses.add(rulesClass);
                 }
-            } catch (CompilationException e) {
-                e.log(LOGGER, Level.SEVERE);
-                throw new IllegalStateException(e);
+                buildAndAppendRules(context, resourceClasses.classLoader, rulesClasses);
+            } finally {
+                resourceClasses.closeResources();
             }
+        } else {
+            LOGGER.warning("No resources were selected, no rules will be applied");
         }
+    }
 
-        // 3. Collect required data (first pass)
+    private <C extends RuntimeContext<C>> void buildAndAppendRules(RuntimeContext<C> context, ClassLoader classLoader, Collection<RulesClass> rulesClasses) {
+        // 1. Collect required data (first pass)
         MetadataCollector initMeta = new MetadataCollector();
-        for(DSLMeta<C> meta : metaData) {
-            meta.collectMetaData(context, initMeta);
+        for (RulesClass rulesClass : rulesClasses) {
+            rulesClass.collectMetaData(context, initMeta);
         }
 
-        // 4. Build the rules (second pass)
-        for(DSLMeta<C> meta : metaData) {
-            meta.applyTo(target, initMeta);
-        }
+        RuleSetBuilder<C> target = context.builder(classLoader);
 
-        // 5. Session binding
+        // 2. Build the rules (second pass)
+        for(RulesClass rulesClass : rulesClasses) {
+            rulesClass.applyTo(target, initMeta);
+        }
+        target.build();
+
+
+        // 3. Session binding
         if(!initMeta.classesToInstantiate.isEmpty()) {
             if(context instanceof RuleSession) {
                 // This context is a session. Create class instances and rebind method handles.
@@ -178,6 +168,14 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
             }
         }
         return false;
+    }
+
+    static Collection<URL> toURLs(Collection<File> files) throws IOException {
+        Collection<URL> urls = new ArrayList<>();
+        for (File file : files) {
+            urls.add(file.toURI().toURL());
+        }
+        return urls;
     }
 
 }

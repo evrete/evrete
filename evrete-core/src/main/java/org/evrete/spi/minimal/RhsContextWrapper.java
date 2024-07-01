@@ -7,10 +7,6 @@ import org.evrete.api.RuntimeRule;
 class RhsContextWrapper implements RhsContext {
     private RhsContext ctx;
 
-    public RhsContext getCtx() {
-        return ctx;
-    }
-
     public void setCtx(RhsContext ctx) {
         this.ctx = ctx;
     }

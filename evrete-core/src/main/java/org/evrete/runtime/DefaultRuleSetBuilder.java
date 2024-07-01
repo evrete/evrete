@@ -13,9 +13,12 @@ class DefaultRuleSetBuilder<C extends RuntimeContext<C>> extends AbstractEnviron
     private final List<DefaultRuleBuilder<C>> ruleBuilders = new ArrayList<>();
     private boolean open = true;
 
-    DefaultRuleSetBuilder(AbstractRuntime<?, C> runtime) {
+    private final ClassLoader classLoader;
+
+    DefaultRuleSetBuilder(AbstractRuntime<?, C> runtime, ClassLoader classLoader) {
         super(runtime);
         this.runtime = runtime;
+        this.classLoader = classLoader;
     }
 
     @Override
@@ -64,5 +67,10 @@ class DefaultRuleSetBuilder<C extends RuntimeContext<C>> extends AbstractEnviron
 
     AbstractRuntime<?, C> getRuntime() {
         return runtime;
+    }
+
+    @Override
+    public ClassLoader getClassLoader() {
+        return classLoader;
     }
 }

@@ -1,8 +1,8 @@
 package org.evrete.dsl;
 
-import org.evrete.api.events.Events;
 import org.evrete.api.RuntimeContext;
 import org.evrete.api.events.ContextEvent;
+import org.evrete.api.events.Events;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;

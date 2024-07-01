@@ -13,11 +13,9 @@ public class PrimeNumbersDSLUrl {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
                 .newKnowledge()
-                .builder()
                 .importRules(
                         "JAVA-SOURCE",
-                        URI.create("https://www.evrete.org/examples/PrimeNumbersSource.java").toURL())
-                .build();
+                        URI.create("https://www.evrete.org/examples/PrimeNumbersSource.java").toURL());
 
         try (StatefulSession session = knowledge.newStatefulSession()) {
             // Inject candidates

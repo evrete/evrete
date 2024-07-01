@@ -30,6 +30,11 @@ class SessionFactGroupPlain extends SessionFactGroup {
     }
 
     @Override
+    void clearMemories() {
+        // Nothing to clear
+    }
+
+    @Override
     CompletableFuture<Void> processDeleteDeltaActions(Collection<FactHolder> deletes) {
         // Plain fact groups have no memory, skipping
         return CompletableFuture.completedFuture(null);

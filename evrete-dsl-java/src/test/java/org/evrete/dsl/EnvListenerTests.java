@@ -28,9 +28,7 @@ class EnvListenerTests {
     @EnumSource(SessionTypes.class)
     void test1(SessionTypes t) throws IOException {
         Knowledge knowledge = service.newKnowledge()
-                .builder()
-                .importRules(Constants.PROVIDER_JAVA_CLASS, EnvListenerRuleSet1.class)
-                .build();
+                .importRules(Constants.PROVIDER_JAVA_CLASS, EnvListenerRuleSet1.class);
         TestUtils.EnvHelperData.reset();
         knowledge.set("property1", "1");
         knowledge.set("property2", 11);

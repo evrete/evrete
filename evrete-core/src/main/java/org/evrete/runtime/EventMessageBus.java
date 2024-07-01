@@ -1,7 +1,6 @@
 package org.evrete.runtime;
 
 import org.evrete.api.Copyable;
-import org.evrete.api.events.Events;
 import org.evrete.api.events.*;
 import org.evrete.util.BroadcastingPublisher;
 
@@ -14,7 +13,7 @@ public class EventMessageBus implements Copyable<EventMessageBus> {
 
     private final Executor executor;
 
-    private final Map<Class<?>, Handler<?>> handlers;
+    private final Map<Class<? extends ContextEvent>, Handler<? extends ContextEvent>> handlers;
 
     public EventMessageBus(Executor executor) {
         this.executor = executor;
@@ -29,7 +28,7 @@ public class EventMessageBus implements Copyable<EventMessageBus> {
     private EventMessageBus(EventMessageBus parent) {
         this.executor = parent.executor;
 
-        Map<Class<?>, Handler<?>> copy = new HashMap<>();
+        Map<Class<? extends ContextEvent>, Handler<?>> copy = new HashMap<>();
         parent.handlers.forEach((aClass, handler) -> copy.put(aClass, handler.copyOf()));
         this.handlers = copy;
     }
@@ -39,7 +38,7 @@ public class EventMessageBus implements Copyable<EventMessageBus> {
         this.handlers.put(type, handler);
     }
 
-    Map<Class<?>, Handler<?>> getHandlers() {
+    Map<Class<? extends ContextEvent>, Handler<?>> getHandlers() {
         return handlers;
     }
 
@@ -160,5 +159,4 @@ public class EventMessageBus implements Copyable<EventMessageBus> {
             return new EnvironmentChangeEventHandler(this);
         }
     }
-
 }

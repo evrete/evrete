@@ -23,9 +23,7 @@ public class PrimeNumbersLiteralSource {
                 "}\n";
         StatefulSession session = service
                 .newKnowledge()
-                .builder()
                 .importRules("JAVA-SOURCE", source)
-                .build()
                 .newStatefulSession();
 
         // Inject candidates

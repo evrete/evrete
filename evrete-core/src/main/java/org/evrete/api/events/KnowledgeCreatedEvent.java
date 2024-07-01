@@ -7,7 +7,7 @@ import org.evrete.api.Knowledge;
  *
  * @see ContextEvent
  */
-public interface KnowledgeCreatedEvent extends TimedEvent {
+public interface KnowledgeCreatedEvent extends TimedEvent, ContextEvent {
 
 
     /**

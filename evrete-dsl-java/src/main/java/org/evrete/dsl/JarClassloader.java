@@ -5,19 +5,26 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
+import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
 class JarClassloader extends URLClassLoader {
-    private final URL url;
+    private final Collection<URL> resources;
 
-    JarClassloader(URL url, ClassLoader parent) {
-        super(new URL[]{url}, parent);
-        this.url = url;
+    JarClassloader(Collection<URL> resources, ClassLoader parent) {
+        super(resources.toArray(new URL[0]), parent);
+        this.resources = resources;
     }
 
     void scan(Consumer<Class<?>> consumer) throws IOException {
+        for (URL url : resources) {
+            scan(url, consumer);
+        }
+    }
+
+    private void scan(URL url, Consumer<Class<?>> consumer) throws IOException {
         URLConnection connection = url.openConnection();
 
         try(InputStream is = connection.getInputStream()) {

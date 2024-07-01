@@ -1,8 +1,8 @@
 package org.evrete.runtime;
 
-import org.evrete.api.events.Events;
 import org.evrete.api.events.ContextEvent;
 import org.evrete.api.events.EventBus;
+import org.evrete.api.events.Events;
 
 import java.util.concurrent.ExecutorService;
 

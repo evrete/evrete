@@ -1,7 +1,8 @@
-package org.evrete.spi.minimal.compiler;
+package org.evrete.spi.minimal;
 
 import org.evrete.api.spi.SourceCompiler;
 import org.evrete.api.spi.SourceCompilerProvider;
+import org.evrete.spi.minimal.compiler.DefaultSourceCompiler;
 
 public class DefaultSourceCompilerProvider implements SourceCompilerProvider {
 

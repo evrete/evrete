@@ -1,6 +1,5 @@
 package org.evrete.dsl;
 
-import org.evrete.api.RuntimeContext;
 import org.evrete.api.events.ContextEvent;
 import org.evrete.api.events.EnvironmentChangeEvent;
 import org.evrete.api.spi.SourceCompiler;
@@ -21,7 +20,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.zip.ZipEntry;
 
 public class TestUtils {
 
@@ -53,22 +51,15 @@ public class TestUtils {
             }
         }).collect(Collectors.toSet());
 
-        Collection<Class<?>> classes = compile(sources);
+        List<Class<?>> classes = new ArrayList<>(compile(sources));
+        classes.sort(Comparator.comparing(Class::getName));
 
         File out = File.createTempFile("evrete-test", ".jar");
         FileOutputStream fos = new FileOutputStream(out);
         JarOutputStream  jar = new JarOutputStream(fos);
+        Set<String> createdDirs = new HashSet<>();
         for(Class<?> c : classes) {
-            String binaryName = c.getName().replaceAll("\\.", "/");
-            String name = binaryName + ".class";
-            ZipEntry zipEntry = new JarEntry(name);
-            jar.putNextEntry(zipEntry);
-
-            byte[] classBytes = getClassBytes(c);
-            InputStream stream = new ByteArrayInputStream(classBytes);
-            copy(stream, jar);
-            stream.close();
-            jar.closeEntry();
+            addClassToJar(c, jar, createdDirs);
         }
         jar.close();
 
@@ -79,7 +70,47 @@ public class TestUtils {
         }
     }
 
-    public static byte[] getClassBytes(Class<?> cls) throws IOException {
+    private static void addClassToJar(Class<?> clazz, JarOutputStream jos, Set<String> createdDirs) throws IOException {
+        // Get the class bytecode
+        byte[] classBytes = readClassBytes(clazz);
+
+        // Construct the entry name
+        String className = clazz.getName().replace('.', '/') + ".class";
+
+        // Create directory entries if necessary
+        String dirName = className.substring(0, className.lastIndexOf('/') + 1);
+        createDirectoryEntries(dirName, jos, createdDirs);
+
+        // Create and add the jar entry for the class
+        JarEntry jarEntry = new JarEntry(className);
+        jos.putNextEntry(jarEntry);
+        // Write the class bytes to the JAR entry
+        jos.write(classBytes);
+
+        // Close the entry
+        jos.closeEntry();
+    }
+
+    private static void createDirectoryEntries(String dirName, JarOutputStream jos, Set<String> createdDirs) throws IOException {
+        if (dirName.isEmpty() || createdDirs.contains(dirName)) {
+            return;
+        }
+
+        // Ensure parent directories are created first
+        int lastSlashIndex = dirName.lastIndexOf('/', dirName.length() - 2);
+        if (lastSlashIndex >= 0) {
+            createDirectoryEntries(dirName.substring(0, lastSlashIndex + 1), jos, createdDirs);
+        }
+
+        // Create the current directory entry
+        JarEntry dirEntry = new JarEntry(dirName);
+        jos.putNextEntry(dirEntry);
+        jos.closeEntry();
+        createdDirs.add(dirName);
+    }
+
+
+    public static byte[] readClassBytes(Class<?> cls) throws IOException {
         // Convert class reference to resource path
         String resourcePath = cls.getName().replace('.', '/') + ".class";
 
@@ -109,14 +140,6 @@ public class TestUtils {
         return compiled.stream().map((Function<SourceCompiler.Result<SourceCompiler.ClassSource>, Class<?>>) SourceCompiler.Result::getCompiledClass).collect(Collectors.toList());
     }
 
-
-    private static void copy(InputStream source, OutputStream sink) throws IOException {
-        byte[] buf = new byte[4096];
-        int n;
-        while ((n = source.read(buf)) > 0) {
-            sink.write(buf, 0, n);
-        }
-    }
 
     public static class EnvHelperData {
         private static final Map<String, List<Object>> data = new HashMap<>();

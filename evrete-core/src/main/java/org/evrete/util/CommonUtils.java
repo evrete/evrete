@@ -32,11 +32,6 @@ public final class CommonUtils {
         return Collections.newSetFromMap(new IdentityHashMap<>());
     }
 
-    public static <T> Set<T> newIdentityHashSet(Collection<T> collection) {
-        Set<T> set = newIdentityHashSet();
-        set.addAll(collection);
-        return set;
-    }
 
     public static <K, V> V[] mapArray(Class<V> type, K[] arr, Function<K, V> mapper) {
         V[] result = array(type, arr.length);
@@ -70,10 +65,6 @@ public final class CommonUtils {
             }
             return result.toArray(EMPTY_STRING_ARRAY);
         }
-    }
-
-    public static <T> T[] copyOf(T[] arr) {
-        return Arrays.copyOf(arr, arr.length);
     }
 
     public static <E> List<List<E>> permutation(List<E> l) {
@@ -236,19 +227,6 @@ public final class CommonUtils {
             return bos.toByteArray();
         }
     }
-
-    public static <A, R, S extends Closeable> R[] read(Class<R> type, A[] args, IOFunction<A, S> reader, IOFunction<S, R> mapper) throws IOException {
-        int length = args.length;
-        R[] result = array(type, length);
-
-        for (int i = 0; i < length; i++) {
-            try (S stream = reader.apply(args[i])) {
-                result[i] = mapper.apply(stream);
-            }
-        }
-        return result;
-    }
-
 
     public static byte[] bytes(JarFile jarFile, ZipEntry entry) {
         try {

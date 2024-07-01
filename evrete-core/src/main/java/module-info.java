@@ -1,3 +1,4 @@
+
 /**
  *  This module defines the core API of the Evrete Rule Engine.
  */
@@ -17,6 +18,6 @@ module org.evrete.core {
     uses org.evrete.api.spi.TypeResolverProvider;
     provides org.evrete.api.spi.TypeResolverProvider with org.evrete.spi.minimal.DefaultTypeResolverProvider;
     uses org.evrete.api.spi.SourceCompilerProvider;
-    provides org.evrete.api.spi.SourceCompilerProvider with org.evrete.spi.minimal.compiler.DefaultSourceCompilerProvider;
+    provides org.evrete.api.spi.SourceCompilerProvider with org.evrete.spi.minimal.DefaultSourceCompilerProvider;
     uses org.evrete.api.spi.DSLKnowledgeProvider;
 }
