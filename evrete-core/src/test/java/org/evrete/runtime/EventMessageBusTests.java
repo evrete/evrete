@@ -280,13 +280,13 @@ class EventMessageBusTests {
             knowledge.subscribe(
                     EnvironmentChangeEvent.class,
                     false,
-                    event -> event.applyIf(
+                    event -> event.applyOnMatch(
                             "PROP",
-                            Integer.class, value::set
+                            value::set
                     )
             );
 
-            
+
 
             knowledge.set("PROP", 123);
 
