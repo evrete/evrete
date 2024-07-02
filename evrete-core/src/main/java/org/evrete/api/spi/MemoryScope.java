@@ -6,6 +6,11 @@ import org.evrete.util.FilteringIterator;
 import java.util.Iterator;
 import java.util.function.Predicate;
 
+/**
+ * Defines memory scopes for use with instances of {@link org.evrete.api.ReteMemory}
+ * and provides utilities for iterating over state combinations based on these scopes.
+ * @see org.evrete.api.ReteMemory
+ */
 public enum MemoryScope {
     /**
      * Identifies main memory
