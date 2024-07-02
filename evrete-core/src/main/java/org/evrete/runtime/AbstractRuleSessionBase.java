@@ -9,6 +9,7 @@ import org.evrete.api.spi.MemoryFactory;
 import org.evrete.api.spi.ValueIndexer;
 import org.evrete.util.SessionCollector;
 
+import java.util.Map;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
@@ -83,18 +84,18 @@ public abstract class AbstractRuleSessionBase<S extends RuleSession<S>> extends 
 
     private void invalidateSession() {
         this.active = false;
-        this.getMemory().clear();
+        //this.getMemory().clear();
     }
 
-    public Stream<MapEntry<FactHandle, Object>> streamFactEntries(boolean closeSession) {
+    public Stream<Map.Entry<FactHandle, Object>> streamFactEntries(boolean closeSession) {
         return streamMapper(getMemory().streamFactEntries(), closeSession);
     }
 
-    public <T> Stream<MapEntry<FactHandle, T>> streamFactEntries(String type, boolean closeSession) {
+    public <T> Stream<Map.Entry<FactHandle, T>> streamFactEntries(String type, boolean closeSession) {
         return streamMapper(getMemory().streamFactEntries(type), closeSession);
     }
 
-    public <T> Stream<MapEntry<FactHandle, T>> streamFactEntries(Class<T> type, boolean closeSession) {
+    public <T> Stream<Map.Entry<FactHandle, T>> streamFactEntries(Class<T> type, boolean closeSession) {
         return streamMapper(getMemory().streamFactEntries(type), closeSession);
     }
 

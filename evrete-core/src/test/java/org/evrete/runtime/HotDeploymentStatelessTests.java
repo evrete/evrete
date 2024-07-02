@@ -7,7 +7,6 @@ import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.classes.TypeD;
 import org.evrete.helper.RhsAssert;
-import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -16,6 +15,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
 import static org.evrete.api.FactBuilder.fact;
@@ -128,7 +128,7 @@ class HotDeploymentStatelessTests {
         int ci = new Random().nextInt(10) + 1;
         int di = new Random().nextInt(10) + 1;
 
-        NextIntSupplier id = new NextIntSupplier();
+        AtomicInteger id = new AtomicInteger();
 
         for (int i = 0; i < ai; i++) {
             int n = id.incrementAndGet();
@@ -733,7 +733,7 @@ class HotDeploymentStatelessTests {
     void testAlpha6(ActivationMode mode) {
         session.setActivationMode(mode);
 
-        NextIntSupplier ruleCounter1 = new NextIntSupplier();
+        AtomicInteger ruleCounter1 = new AtomicInteger();
 
         session
                 .builder()

@@ -7,7 +7,6 @@ import org.evrete.api.builders.RuleSetBuilder;
 import org.evrete.classes.*;
 import org.evrete.helper.RhsAssert;
 import org.evrete.helper.TestUtils;
-import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -199,7 +198,7 @@ class StatelessInsertTests {
         StatelessSession session = newSession(mode);
         // Chaining RHS
         RuntimeRule rule = session.getRules().iterator().next();
-        NextIntSupplier counter = new NextIntSupplier();
+        AtomicInteger counter = new AtomicInteger();
         rule.chainRhs(ctx -> counter.incrementAndGet());
 
         session.insertAndFire(1, 2);

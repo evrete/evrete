@@ -3,7 +3,6 @@ package org.evrete.dsl;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.dsl.rules.*;
-import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -14,6 +13,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 class StatelessJavaClassTests {
     private static KnowledgeService service;
@@ -46,7 +46,7 @@ class StatelessJavaClassTests {
             session.insert(i);
         }
 
-        NextIntSupplier primeCounter = new NextIntSupplier();
+        AtomicInteger primeCounter = new AtomicInteger();
         session.fire((h, o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;
@@ -67,7 +67,7 @@ class StatelessJavaClassTests {
             session.insert(i);
         }
 
-        NextIntSupplier primeCounter = new NextIntSupplier();
+        AtomicInteger primeCounter = new AtomicInteger();
         session.fire((h, o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;
@@ -87,7 +87,7 @@ class StatelessJavaClassTests {
             session.insert(i);
         }
 
-        NextIntSupplier primeCounter = new NextIntSupplier();
+        AtomicInteger primeCounter = new AtomicInteger();
         session.fire((h, o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;
@@ -106,7 +106,7 @@ class StatelessJavaClassTests {
             session.insert(i);
         }
 
-        NextIntSupplier primeCounter = new NextIntSupplier();
+        AtomicInteger primeCounter = new AtomicInteger();
         session.fire((h, o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;
@@ -125,7 +125,7 @@ class StatelessJavaClassTests {
             session.insert(i);
         }
 
-        NextIntSupplier primeCounter = new NextIntSupplier();
+        AtomicInteger primeCounter = new AtomicInteger();
         session.fire((h, o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;
@@ -144,7 +144,7 @@ class StatelessJavaClassTests {
             session.insert(i);
         }
 
-        NextIntSupplier primeCounter = new NextIntSupplier();
+        AtomicInteger primeCounter = new AtomicInteger();
         session.fire((h, o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;
@@ -164,7 +164,7 @@ class StatelessJavaClassTests {
             session.insert(i);
         }
 
-        NextIntSupplier primeCounter = new NextIntSupplier();
+        AtomicInteger primeCounter = new AtomicInteger();
         session.fire((h, o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;

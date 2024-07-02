@@ -286,6 +286,8 @@ class EventMessageBusTests {
                     )
             );
 
+            
+
             knowledge.set("PROP", 123);
 
             assert value.get() == 123;

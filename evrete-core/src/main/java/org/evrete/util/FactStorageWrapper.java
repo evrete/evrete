@@ -1,10 +1,10 @@
 package org.evrete.util;
 
 import org.evrete.api.FactHandle;
-import org.evrete.api.MapEntry;
 import org.evrete.api.annotations.Nullable;
 import org.evrete.api.spi.FactStorage;
 
+import java.util.Map;
 import java.util.stream.Stream;
 
 public class FactStorageWrapper<FH extends FactHandle, V> implements FactStorage<FH, V> {
@@ -31,7 +31,7 @@ public class FactStorageWrapper<FH extends FactHandle, V> implements FactStorage
     }
 
     @Override
-    public Stream<MapEntry<FH, V>> stream() {
+    public Stream<Map.Entry<FH, V>> stream() {
         return delegate.stream();
     }
 

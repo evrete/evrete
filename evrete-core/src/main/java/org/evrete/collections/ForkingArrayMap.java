@@ -1,9 +1,10 @@
 package org.evrete.collections;
 
-import org.evrete.api.MapEntry;
 import org.evrete.util.ForkingMap;
 import org.evrete.util.Indexed;
+import org.evrete.util.MapEntryImpl;
 
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -46,7 +47,7 @@ public abstract class ForkingArrayMap<T, MatchKey, FastKey extends Indexed, Stor
     }
 
     public Stream<Stored> values() {
-        return array.stream().map(MapEntry::getValue);
+        return array.stream().map(MapEntryImpl::getValue);
     }
 
     /**
@@ -81,7 +82,7 @@ public abstract class ForkingArrayMap<T, MatchKey, FastKey extends Indexed, Stor
         return array.size();
     }
 
-    public void forEach(Consumer<MapEntry<FastKey, Stored>> consumer) {
+    public void forEach(Consumer<Map.Entry<FastKey, Stored>> consumer) {
         this.array.forEach(consumer);
     }
 
@@ -95,7 +96,7 @@ public abstract class ForkingArrayMap<T, MatchKey, FastKey extends Indexed, Stor
      * @param value the value for which the entry is to be retrieved or created
      * @return an entry containing the generated key and stored value for the given value
      */
-    public synchronized MapEntry<FastKey, Stored> getOrCreateEntry(T value) {
+    public synchronized Map.Entry<FastKey, Stored> getOrCreateEntry(T value) {
         MatchKey valueKey = keyFunction.apply(value);
         IndexedMapEntry<FastKey, Stored> found = keyMap.get(valueKey);
         if (found == null) {
@@ -121,7 +122,7 @@ public abstract class ForkingArrayMap<T, MatchKey, FastKey extends Indexed, Stor
         return entry == null ? null : entry.getValue();
     }
 
-    private static class IndexedMapEntry<K extends Indexed, V> extends MapEntry<K, V> implements Indexed {
+    private static class IndexedMapEntry<K extends Indexed, V> extends MapEntryImpl<K, V> implements Indexed {
 
         public IndexedMapEntry(K key, V value) {
             super(key, value);

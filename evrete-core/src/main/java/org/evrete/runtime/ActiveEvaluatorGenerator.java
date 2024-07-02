@@ -7,6 +7,7 @@ import org.evrete.api.events.Events;
 import org.evrete.collections.IndexingArrayMap;
 import org.evrete.runtime.evaluation.DefaultEvaluatorHandle;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
@@ -59,7 +60,7 @@ public class ActiveEvaluatorGenerator extends IndexingArrayMap<ActiveEvaluatorGe
      */
     public synchronized DefaultEvaluatorHandle addEvaluator(ValuesPredicate predicate, double complexity, LhsField.Array<String, ActiveField> fields) {
         InnerKey key = new InnerKey(predicate, complexity, fields);
-        MapEntry<DefaultEvaluatorHandle, StoredCondition> entry = getOrCreateEntry(key);
+        Map.Entry<DefaultEvaluatorHandle, StoredCondition> entry = getOrCreateEntry(key);
         return entry.getKey();
     }
 

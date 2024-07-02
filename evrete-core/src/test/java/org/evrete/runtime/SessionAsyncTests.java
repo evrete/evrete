@@ -43,7 +43,6 @@ class SessionAsyncTests {
         return knowledge.newStatefulSession();
     }
 
-
     @BeforeEach
     void init() {
         knowledge = service.newKnowledge();

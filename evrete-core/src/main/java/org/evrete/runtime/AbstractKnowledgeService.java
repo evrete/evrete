@@ -42,6 +42,9 @@ public abstract class AbstractKnowledgeService implements EventBus {
         return messageBus.getPublisher(eventClass);
     }
 
+    /**
+     * Shuts down the service.
+     */
     public void shutdown() {
         this.executor.shutdown();
         this.serviceSubscriptions.cancel();

@@ -6,7 +6,6 @@ import org.evrete.api.Knowledge;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
 import org.evrete.dsl.rules.*;
-import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -14,6 +13,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 class StatefulJavaClassTests {
     private static KnowledgeService service;
@@ -44,7 +44,7 @@ class StatefulJavaClassTests {
             }
             session.fire();
 
-            NextIntSupplier primeCounter = new NextIntSupplier();
+            AtomicInteger primeCounter = new AtomicInteger();
             session.forEachFact((h, o) -> primeCounter.incrementAndGet());
 
             assert primeCounter.get() == 25;
@@ -66,7 +66,7 @@ class StatefulJavaClassTests {
             }
             session.fire();
 
-            NextIntSupplier primeCounter = new NextIntSupplier();
+            AtomicInteger primeCounter = new AtomicInteger();
             session.forEachFact((h, o) -> primeCounter.incrementAndGet());
 
             assert primeCounter.get() == 25;
@@ -86,7 +86,7 @@ class StatefulJavaClassTests {
             }
             session.fire();
 
-            NextIntSupplier primeCounter = new NextIntSupplier();
+            AtomicInteger primeCounter = new AtomicInteger();
             session.forEachFact((h, o) -> primeCounter.incrementAndGet());
 
             assert primeCounter.get() == 25;
@@ -106,7 +106,7 @@ class StatefulJavaClassTests {
             }
             session.fire();
 
-            NextIntSupplier primeCounter = new NextIntSupplier();
+            AtomicInteger primeCounter = new AtomicInteger();
             session.forEachFact((h, o) -> primeCounter.incrementAndGet());
 
             assert primeCounter.get() == 25;

@@ -1,10 +1,11 @@
 package org.evrete.api.spi;
 
 import org.evrete.api.FactHandle;
-import org.evrete.api.MapEntry;
 import org.evrete.api.annotations.Nullable;
 
+import java.util.Map;
 import java.util.stream.Stream;
+
 
 /**
  * A fact storage interface
@@ -44,7 +45,7 @@ public interface FactStorage<FH extends FactHandle, V> {
      * Returns stream of currently stored values.
      * @return stream of currently stored mappings.
      */
-    Stream<MapEntry<FH, V>> stream();
+    Stream<Map.Entry<FH, V>> stream();
 
     /**
      * Clears the memory

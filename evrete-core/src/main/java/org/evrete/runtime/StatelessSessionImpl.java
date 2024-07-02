@@ -1,12 +1,11 @@
 package org.evrete.runtime;
 
 import org.evrete.api.FactHandle;
-import org.evrete.api.MapEntry;
 import org.evrete.api.StatelessSession;
 
+import java.util.Map;
 import java.util.stream.Stream;
 
-//TODO test each method!!!!!!
 class StatelessSessionImpl extends AbstractRuleSession<StatelessSession> implements StatelessSession {
 
     StatelessSessionImpl(KnowledgeRuntime knowledge) {
@@ -29,20 +28,32 @@ class StatelessSessionImpl extends AbstractRuleSession<StatelessSession> impleme
     }
 
     @Override
-    public Stream<MapEntry<FactHandle, Object>> streamFactEntries() {
+    public Stream<Map.Entry<FactHandle, Object>> streamFactEntries() {
         fireInner();
-        return streamFactEntries(true);
+        try {
+            return streamFactEntries(true);
+        } finally {
+            closeInner();
+        }
     }
 
     @Override
-    public <T> Stream<MapEntry<FactHandle, T>> streamFactEntries(String type) {
+    public <T> Stream<Map.Entry<FactHandle, T>> streamFactEntries(String type) {
         fireInner();
-        return streamFactEntries(type, true);
+        try {
+            return streamFactEntries(type, true);
+        } finally {
+            closeInner();
+        }
     }
 
     @Override
-    public <T> Stream<MapEntry<FactHandle, T>> streamFactEntries(Class<T> type) {
+    public <T> Stream<Map.Entry<FactHandle, T>> streamFactEntries(Class<T> type) {
         fireInner();
-        return streamFactEntries(type, true);
+        try {
+            return streamFactEntries(type, true);
+        } finally {
+            closeInner();
+        }
     }
 }

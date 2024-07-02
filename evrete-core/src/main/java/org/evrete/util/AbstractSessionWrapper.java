@@ -2,6 +2,7 @@ package org.evrete.util;
 
 import org.evrete.api.*;
 
+import java.util.Map;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
@@ -48,17 +49,17 @@ public abstract class AbstractSessionWrapper<S extends RuleSession<S>> extends R
     }
 
     @Override
-    public Stream<MapEntry<FactHandle, Object>> streamFactEntries() {
+    public Stream<Map.Entry<FactHandle, Object>> streamFactEntries() {
         return delegate.streamFactEntries();
     }
 
     @Override
-    public <T> Stream<MapEntry<FactHandle, T>> streamFactEntries(String type) {
+    public <T> Stream<Map.Entry<FactHandle, T>> streamFactEntries(String type) {
         return delegate.streamFactEntries(type);
     }
 
     @Override
-    public <T> Stream<MapEntry<FactHandle, T>> streamFactEntries(Class<T> type) {
+    public <T> Stream<Map.Entry<FactHandle, T>> streamFactEntries(Class<T> type) {
         return delegate.streamFactEntries(type);
     }
 

@@ -8,7 +8,6 @@ import org.evrete.classes.TypeC;
 import org.evrete.helper.FactEntry;
 import org.evrete.helper.RhsAssert;
 import org.evrete.helper.TestUtils;
-import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -249,7 +248,7 @@ class SessionUpdateDeleteTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void updateBeta2(ActivationMode mode) {
-        NextIntSupplier counter = new NextIntSupplier();
+        AtomicInteger counter = new AtomicInteger();
 
         knowledge
                 .builder()
@@ -332,7 +331,7 @@ class SessionUpdateDeleteTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void updateBeta3(ActivationMode mode) {
-        NextIntSupplier counter = new NextIntSupplier();
+        AtomicInteger counter = new AtomicInteger();
 
         knowledge
                 .builder()
@@ -495,7 +494,7 @@ class SessionUpdateDeleteTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void retractMemoryTest(ActivationMode mode) {
-        NextIntSupplier counter = new NextIntSupplier();
+        AtomicInteger counter = new AtomicInteger();
 
         knowledge
                 .builder()
@@ -554,7 +553,7 @@ class SessionUpdateDeleteTests {
     @EnumSource(ActivationMode.class)
     void retractBeta(ActivationMode mode) {
 
-        NextIntSupplier counter = new NextIntSupplier();
+        AtomicInteger counter = new AtomicInteger();
 
         knowledge
                 .builder()
@@ -683,7 +682,7 @@ class SessionUpdateDeleteTests {
             }
             s.fire();
 
-            NextIntSupplier primeCounter = new NextIntSupplier();
+            AtomicInteger primeCounter = new AtomicInteger();
             s.forEachFact((h, o) -> primeCounter.incrementAndGet());
 
             assert primeCounter.get() == 25 : "Actual: " + primeCounter.get(); // There are 25 prime numbers in the range [2...100]
@@ -717,7 +716,7 @@ class SessionUpdateDeleteTests {
 
             s.fire();
 
-            NextIntSupplier primeCounter = new NextIntSupplier();
+            AtomicInteger primeCounter = new AtomicInteger();
             s.forEachFact((h, o) -> primeCounter.incrementAndGet());
 
             assert primeCounter.get() == 25 : "Actual: " + primeCounter.get(); // There are 25 prime numbers in the range [2...100]
@@ -727,7 +726,7 @@ class SessionUpdateDeleteTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void externalUpdate1(ActivationMode mode) {
-        NextIntSupplier counter = new NextIntSupplier();
+        AtomicInteger counter = new AtomicInteger();
         knowledge
                 .builder()
                 .newRule()
@@ -767,7 +766,7 @@ class SessionUpdateDeleteTests {
     @ParameterizedTest
     @EnumSource(ActivationMode.class)
     void externalUpdate2(ActivationMode mode) {
-        NextIntSupplier counter = new NextIntSupplier();
+        AtomicInteger counter = new AtomicInteger();
         knowledge
                 .builder()
                 .newRule()

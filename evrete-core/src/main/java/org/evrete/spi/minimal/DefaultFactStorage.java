@@ -1,10 +1,11 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.FactHandle;
-import org.evrete.api.MapEntry;
 import org.evrete.api.spi.FactStorage;
 import org.evrete.collections.LongKeyMap;
+import org.evrete.util.MapEntryImpl;
 
+import java.util.Map;
 import java.util.stream.Stream;
 
 public class DefaultFactStorage<FH extends FactHandle, V> implements FactStorage<FH, V> {
@@ -31,25 +32,25 @@ public class DefaultFactStorage<FH extends FactHandle, V> implements FactStorage
     }
 
     @Override
-    public Stream<MapEntry<FH, V>> stream() {
-        return delegate.storage.values();
+    public Stream<Map.Entry<FH, V>> stream() {
+        return delegate.storage.values().map(fhvMapEntry -> fhvMapEntry);
     }
 
     private static class Storage<FH extends FactHandle, V>  {
         //TODO size config option
-        private final LongKeyMap<MapEntry<FH, V>> storage = new LongKeyMap<>();
+        private final LongKeyMap<MapEntryImpl<FH, V>> storage = new LongKeyMap<>();
 
         synchronized void insert(FH factHandle, V value) {
-            storage.put(factHandle.getId(), new MapEntry<>(factHandle, value));
+            storage.put(factHandle.getId(), new MapEntryImpl<>(factHandle, value));
         }
 
         synchronized V remove(FH factHandle) {
-            MapEntry<FH, V> found = storage.remove(factHandle.getId());
+            MapEntryImpl<FH, V> found = storage.remove(factHandle.getId());
             return found == null ? null : found.getValue();
         }
 
         V get(FH factHandle) {
-            MapEntry<FH, V> found = storage.get(factHandle.getId());
+            MapEntryImpl<FH, V> found = storage.get(factHandle.getId());
             return found == null ? null : found.getValue();
         }
 

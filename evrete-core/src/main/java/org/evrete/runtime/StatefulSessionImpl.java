@@ -1,9 +1,9 @@
 package org.evrete.runtime;
 
 import org.evrete.api.FactHandle;
-import org.evrete.api.MapEntry;
 import org.evrete.api.StatefulSession;
 
+import java.util.Map;
 import java.util.stream.Stream;
 
 public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> implements StatefulSession {
@@ -18,17 +18,17 @@ public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> im
     }
 
     @Override
-    public Stream<MapEntry<FactHandle, Object>> streamFactEntries() {
+    public Stream<Map.Entry<FactHandle, Object>> streamFactEntries() {
         return streamFactEntries(false);
     }
 
     @Override
-    public <T> Stream<MapEntry<FactHandle, T>> streamFactEntries(Class<T> type) {
+    public <T> Stream<Map.Entry<FactHandle, T>> streamFactEntries(Class<T> type) {
         return this.streamFactEntries(type, false);
     }
 
     @Override
-    public <T> Stream<MapEntry<FactHandle, T>> streamFactEntries(String type) {
+    public <T> Stream<Map.Entry<FactHandle, T>> streamFactEntries(String type) {
         return streamFactEntries(type, false);
     }
 

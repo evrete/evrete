@@ -7,7 +7,6 @@ import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.classes.TypeD;
 import org.evrete.helper.RhsAssert;
-import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -146,7 +145,7 @@ class HotDeploymentStatefulTests {
         int ci = new Random().nextInt(10) + 1;
         int di = new Random().nextInt(10) + 1;
 
-        NextIntSupplier id = new NextIntSupplier();
+        AtomicInteger id = new AtomicInteger();
 
         for (int i = 0; i < ai; i++) {
             int n = id.incrementAndGet();
@@ -903,7 +902,7 @@ class HotDeploymentStatefulTests {
     void testAlpha6(ActivationMode mode) {
         session.setActivationMode(mode);
 
-        NextIntSupplier ruleCounter1 = new NextIntSupplier();
+        AtomicInteger ruleCounter1 = new AtomicInteger();
 
         session
                 .builder()
@@ -921,7 +920,7 @@ class HotDeploymentStatefulTests {
         assert ruleCounter1.get() == 10;
 
         // Another rule w/ alpha
-        NextIntSupplier ruleCounter2 = new NextIntSupplier();
+        AtomicInteger ruleCounter2 = new AtomicInteger();
         session
                 .builder()
                 .newRule("rule 2")

@@ -4,7 +4,6 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.ActivationMode;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatelessSession;
-import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -13,6 +12,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 class StatelessJavaJarTests {
     private KnowledgeService service;
@@ -47,7 +47,7 @@ class StatelessJavaJarTests {
                     session.insert(i);
                 }
 
-                NextIntSupplier primeCounter = new NextIntSupplier();
+                AtomicInteger primeCounter = new AtomicInteger();
                 session.fire((o) -> primeCounter.incrementAndGet());
 
                 assert primeCounter.get() == 25 : "Actual: " + primeCounter.get();
@@ -73,7 +73,7 @@ class StatelessJavaJarTests {
                     session.insert(i);
                 }
 
-                NextIntSupplier primeCounter = new NextIntSupplier();
+                AtomicInteger primeCounter = new AtomicInteger();
                 session.fire((o) -> primeCounter.incrementAndGet());
 
                 assert primeCounter.get() == 25;

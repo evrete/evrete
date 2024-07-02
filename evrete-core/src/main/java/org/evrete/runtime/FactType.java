@@ -18,7 +18,6 @@ public class FactType extends AbstractLhsFact {
         this.alphaAddress = alphaAddress;
     }
 
-    // TODO review usage and delete
     public ActiveType.Idx typeId() {
         return activeType.getId();
     }

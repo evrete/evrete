@@ -11,7 +11,6 @@ import org.evrete.classes.*;
 import org.evrete.helper.FactEntry;
 import org.evrete.helper.RhsAssert;
 import org.evrete.helper.TestUtils;
-import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -161,7 +160,7 @@ class StatefulInsertTests {
         try (StatefulSession session = newSession(mode)) {
             // Chaining RHS
             RuntimeRule rule = session.getRules().iterator().next();
-            NextIntSupplier counter = new NextIntSupplier();
+            AtomicInteger counter = new AtomicInteger();
             rule.chainRhs(ctx -> counter.incrementAndGet());
 
             session.insertAndFire(1, 2);

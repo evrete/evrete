@@ -5,7 +5,6 @@ import org.evrete.api.ActivationMode;
 import org.evrete.api.Knowledge;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatelessSession;
-import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -14,6 +13,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.evrete.dsl.TestUtils.testResourceAsFile;
 
@@ -112,7 +112,7 @@ class StatelessJavaSourceTests {
             session.insert(i);
         }
 
-        NextIntSupplier primeCounter = new NextIntSupplier();
+        AtomicInteger primeCounter = new AtomicInteger();
         session.fire((o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;
@@ -135,7 +135,7 @@ class StatelessJavaSourceTests {
             session.insert(i);
         }
 
-        NextIntSupplier primeCounter = new NextIntSupplier();
+        AtomicInteger primeCounter = new AtomicInteger();
         session.fire((o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;
@@ -156,7 +156,7 @@ class StatelessJavaSourceTests {
             session.insert(i);
         }
 
-        NextIntSupplier primeCounter = new NextIntSupplier();
+        AtomicInteger primeCounter = new AtomicInteger();
         session.fire((o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25 : "Actual: " + primeCounter.get();
@@ -175,7 +175,7 @@ class StatelessJavaSourceTests {
         for (int i = 2; i < 100; i++) {
             session.insert(i);
         }
-        NextIntSupplier primeCounter = new NextIntSupplier();
+        AtomicInteger primeCounter = new AtomicInteger();
         session.fire((o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;
@@ -196,7 +196,7 @@ class StatelessJavaSourceTests {
         for (int i = 2; i < 100; i++) {
             session.insert(i);
         }
-        NextIntSupplier primeCounter = new NextIntSupplier();
+        AtomicInteger primeCounter = new AtomicInteger();
         session.fire((o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;

@@ -45,6 +45,7 @@ public abstract class AbstractRuleSession<S extends RuleSession<S>> extends Abst
     }
 
     final void fireInner() {
+        _assertActive();
         fireInnerAsync().join();
     }
 

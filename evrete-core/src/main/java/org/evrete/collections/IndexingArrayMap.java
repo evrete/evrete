@@ -1,12 +1,9 @@
 package org.evrete.collections;
 
-import org.evrete.api.MapEntry;
 import org.evrete.util.Indexed;
+import org.evrete.util.MapEntryImpl;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.NoSuchElementException;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -107,7 +104,7 @@ public abstract class IndexingArrayMap<T, MatchKey, FastKey extends Indexed, Sto
     }
 
     public Stream<Stored> values() {
-        return Arrays.stream(this.array).filter(Objects::nonNull).map(MapEntry::getValue);
+        return Arrays.stream(this.array).filter(Objects::nonNull).map(MapEntryImpl::getValue);
     }
 
     /**
@@ -118,7 +115,7 @@ public abstract class IndexingArrayMap<T, MatchKey, FastKey extends Indexed, Sto
      * @param arg the argument used to retrieve or create the value
      * @return the value associated with the given argument
      */
-    public MapEntry<FastKey, Stored> getOrCreateEntry(T arg) {
+    public Map.Entry<FastKey, Stored> getOrCreateEntry(T arg) {
         synchronized (keyMap) {
             MatchKey key = keyFunction.apply(arg);
             Integer index = keyMap.computeIfAbsent(key, k -> {
@@ -172,7 +169,7 @@ public abstract class IndexingArrayMap<T, MatchKey, FastKey extends Indexed, Sto
         return Arrays.toString(array);
     }
 
-    static class InnerMapEntry<FastKey extends Indexed, Stored> extends MapEntry<FastKey, Stored> {
+    static class InnerMapEntry<FastKey extends Indexed, Stored> extends MapEntryImpl<FastKey, Stored> {
 
         InnerMapEntry(FastKey key, Stored value) {
             super(key, value);

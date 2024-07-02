@@ -8,7 +8,6 @@ import org.evrete.dsl.rules.DeclarationRuleSet1;
 import org.evrete.dsl.rules.DeclarationRuleSet2;
 import org.evrete.dsl.rules.DeclarationRuleSet3;
 import org.evrete.dsl.rules.DeclarationRuleSet5;
-import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -40,7 +39,7 @@ class FieldDeclarationsTests {
         Knowledge knowledge = service.newKnowledge()
                 .importRules(Constants.PROVIDER_JAVA_CLASS, DeclarationRuleSet1.class)
                 ;
-        NextIntSupplier primeCounter;
+        AtomicInteger primeCounter;
         try (StatefulSession session = session(knowledge, mode)) {
 
             for (int i = 2; i < 100; i++) {
@@ -49,7 +48,7 @@ class FieldDeclarationsTests {
 
             session.fire();
 
-            primeCounter = new NextIntSupplier();
+            primeCounter = new AtomicInteger();
             session.forEachFact((h, o) -> primeCounter.incrementAndGet());
             assert primeCounter.get() == 25;
         }
@@ -81,7 +80,7 @@ class FieldDeclarationsTests {
         Knowledge knowledge = service.newKnowledge()
                 .importRules(Constants.PROVIDER_JAVA_CLASS, DeclarationRuleSet3.class);
 
-        NextIntSupplier primeCounter;
+        AtomicInteger primeCounter;
         try (StatefulSession session = session(knowledge, mode)) {
             session.set("random-offset", 0);
 
@@ -91,7 +90,7 @@ class FieldDeclarationsTests {
 
             session.fire();
 
-            primeCounter = new NextIntSupplier();
+            primeCounter = new AtomicInteger();
             session.forEachFact((h, o) -> primeCounter.incrementAndGet());
             assert primeCounter.get() == 25 : "Actual: " + primeCounter.get();
         }

@@ -1,7 +1,6 @@
 package org.evrete.runtime;
 
 import org.evrete.api.FactHandle;
-import org.evrete.api.MapEntry;
 import org.evrete.api.MemoryStreaming;
 import org.evrete.api.Type;
 import org.evrete.api.spi.FactStorage;
@@ -14,6 +13,7 @@ import org.evrete.util.GroupingReteMemoryWrapper;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
@@ -63,17 +63,17 @@ public class SessionMemory implements MemoryStreaming {
 
 
     @Override
-    public Stream<MapEntry<FactHandle, Object>> streamFactEntries() {
+    public Stream<Map.Entry<FactHandle, Object>> streamFactEntries() {
         return memoryStream().flatMap(TypeMemory::streamFactEntries);
     }
 
     @Override
-    public <T> Stream<MapEntry<FactHandle, T>> streamFactEntries(String type) {
+    public <T> Stream<Map.Entry<FactHandle, T>> streamFactEntries(String type) {
         return memoryStream(type).flatMap(TypeMemory::streamFactEntries);
     }
 
     @Override
-    public <T> Stream<MapEntry<FactHandle, T>> streamFactEntries(Class<T> type) {
+    public <T> Stream<Map.Entry<FactHandle, T>> streamFactEntries(Class<T> type) {
         return memoryStream(type).flatMap(TypeMemory::streamFactEntries);
     }
 

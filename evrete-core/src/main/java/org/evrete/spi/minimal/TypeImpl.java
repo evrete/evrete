@@ -3,19 +3,17 @@ package org.evrete.spi.minimal;
 import org.evrete.api.Type;
 import org.evrete.api.TypeField;
 import org.evrete.api.annotations.NonNull;
-import org.evrete.util.ArrayOf;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 
 class TypeImpl<T> implements Type<T> {
+    private static final ValueReader[] EMPTY_VALUE_READERS = new ValueReader[0];
     private final String name;
     private final Map<String, TypeFieldImpl> fieldMap = new HashMap<>();
     private final Class<T> javaType;
@@ -171,7 +169,7 @@ class TypeImpl<T> implements Type<T> {
             func = o -> o;
         } else {
             String[] parts = fieldName.split("\\.");
-            ArrayOf<ValueReader> getters = new ArrayOf<>(ValueReader.class);
+            List<ValueReader> getters = new ArrayList<>();
 
             MethodHandles.Lookup lookup = MethodHandles.lookup();
 
@@ -183,14 +181,14 @@ class TypeImpl<T> implements Type<T> {
                     return null;
                 } else {
                     valueType = reader.valueType();
-                    getters.append(reader);
+                    getters.add(reader);
                 }
             }
 
-            func = getters.length() == 1 ?
+            func = getters.size() == 1 ?
                     new AtomicFunction(getters.get(0))
                     :
-                    new NestedFunction(getters.getData());
+                    new NestedFunction(getters.toArray(EMPTY_VALUE_READERS));
         }
         return innerDeclare(fieldName, valueType, func);
     }

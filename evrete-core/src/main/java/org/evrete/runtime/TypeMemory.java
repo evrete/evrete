@@ -1,11 +1,12 @@
 package org.evrete.runtime;
 
 import org.evrete.api.FactHandle;
-import org.evrete.api.MapEntry;
 import org.evrete.api.spi.FactStorage;
 import org.evrete.api.spi.ValueIndexer;
 import org.evrete.util.FactStorageWrapper;
+import org.evrete.util.MapEntryImpl;
 
+import java.util.Map;
 import java.util.stream.Stream;
 
 public final class TypeMemory extends FactStorageWrapper<DefaultFactHandle, FactHolder> {
@@ -54,8 +55,8 @@ public final class TypeMemory extends FactStorageWrapper<DefaultFactHandle, Fact
     }
 
     @SuppressWarnings("unchecked")
-    public <T> Stream<MapEntry<FactHandle, T>> streamFactEntries() {
-        return stream().map(entry -> new MapEntry<>(entry.getKey(), (T) entry.getValue().getFact()));
+    public <T> Stream<Map.Entry<FactHandle, T>> streamFactEntries() {
+        return stream().map(entry -> new MapEntryImpl<>(entry.getKey(), (T) entry.getValue().getFact()));
     }
 
     public void insert(FactHolder value) {

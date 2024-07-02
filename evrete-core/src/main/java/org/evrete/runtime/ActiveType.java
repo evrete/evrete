@@ -1,6 +1,9 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
+import org.evrete.api.Copyable;
+import org.evrete.api.Named;
+import org.evrete.api.Type;
+import org.evrete.api.TypeField;
 import org.evrete.collections.ForkingArrayMap;
 import org.evrete.runtime.evaluation.AlphaConditionHandle;
 import org.evrete.runtime.evaluation.DefaultEvaluatorHandle;
@@ -9,6 +12,7 @@ import org.evrete.util.AbstractIndex;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -76,7 +80,7 @@ public class ActiveType implements Copyable<ActiveType> {
         // Index alpha conditions
         Set<AlphaConditionHandle> indexedAlphaConditions = new HashSet<>(alphaConditions.size());
         for (DefaultEvaluatorHandle alphaCondition : alphaConditions) {
-            MapEntry<AlphaConditionHandle, AlphaConditionHandle> entry = this.alphaConditionIndexer.getOrCreateEntry(alphaCondition);
+            Map.Entry<AlphaConditionHandle, AlphaConditionHandle> entry = this.alphaConditionIndexer.getOrCreateEntry(alphaCondition);
             indexedAlphaConditions.add(entry.getValue());
         }
         // Obtain a unique identifier for the provided set of conditions

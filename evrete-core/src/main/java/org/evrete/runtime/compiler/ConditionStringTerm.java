@@ -1,10 +1,10 @@
 package org.evrete.runtime.compiler;
 
 import org.evrete.api.LhsField;
-import org.evrete.util.NextIntSupplier;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,7 +16,7 @@ class ConditionStringTerm {
     final String varName;
     final LhsField<String, String> ref;
 
-    ConditionStringTerm(int start, int end, LhsField<String, String> ref, NextIntSupplier fieldCounter) {
+    ConditionStringTerm(int start, int end, LhsField<String, String> ref, AtomicInteger fieldCounter) {
         this.start = start;
         this.end = end;
         this.varName = "var" + fieldCounter.incrementAndGet();
@@ -30,7 +30,7 @@ class ConditionStringTerm {
         this.ref = existing.ref;
     }
 
-    private static ConditionStringTerm resolveTerm(int start, int end, LhsField<String, String> ref, NextIntSupplier fieldCounter, List<ConditionStringTerm> terms) {
+    private static ConditionStringTerm resolveTerm(int start, int end, LhsField<String, String> ref, AtomicInteger fieldCounter, List<ConditionStringTerm> terms) {
         // Scanning existing terms
         for (ConditionStringTerm t : terms) {
             if (t.ref.equals(ref)) {
@@ -47,7 +47,7 @@ class ConditionStringTerm {
         Matcher m = REFERENCE_PATTERN.matcher(expression);
         List<ConditionStringTerm> terms = new ArrayList<>();
 
-        NextIntSupplier fieldCounter = new NextIntSupplier();
+        AtomicInteger fieldCounter = new AtomicInteger();
         while (m.find()) {
             int start = m.start(), end = m.end(), actualEnd = end;
             if (end < expression.length() && expression.charAt(end) == '(') {
