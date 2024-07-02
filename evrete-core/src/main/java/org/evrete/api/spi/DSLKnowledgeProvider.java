@@ -25,8 +25,8 @@ import java.util.*;
  * </p>
  * <p>
  * If an implementation requires or relies on specific configuration options, the authors of the implementation
- * should read them via the {@link RuntimeContext#get(String)} method. The configuration options should be documented
- * so that developers can set those options via the corresponding {@link RuntimeContext#set(String, Object)} method
+ * should read them via the {@link RuntimeContext#get(String) RuntimeContext.get(String)} method. The configuration options should be documented
+ * so that developers can set those options via the corresponding {@link RuntimeContext#set(String, Object) RuntimeContext.set(String, Object)} method
  * prior to importing the rules.
  * </p>
  */
