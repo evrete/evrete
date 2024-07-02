@@ -12,8 +12,8 @@ import org.evrete.api.annotations.Nullable;
  *
  * <pre><code>
  * private final AtomicLong indexer = new AtomicLong(0);
- * private final Map<Object[], Long> mapping = new ConcurrentHashMap<>();
- * private final Map<Long, Object[]> reverse = new ConcurrentHashMap<>();
+ * private final Map&lt;Object[], Long&gt; mapping = new ConcurrentHashMap&lt;&gt;();
+ * private final Map&lt;Long, Object[]&gt; reverse = new ConcurrentHashMap&lt;&gt;();
  *
  * public long getOrCreateId(Object[] fieldValues) {
  *     return mapping.computeIfAbsent(fieldValues, k -> {
