@@ -21,10 +21,16 @@ import java.util.logging.Logger;
  * </p>
  */
 public class Configuration extends Properties implements Copyable<Configuration>, FluentImports<Configuration> {
+    public static final String OBJECT_COMPARE_METHOD = "evrete.core.fact-identity-strategy";
     public static final String INSERT_BUFFER_SIZE = "evrete.core.insert-buffer-size";
     public static final String WARN_UNKNOWN_TYPES = "evrete.core.warn-unknown-types";
-    public static final int INSERT_BUFFER_SIZE_DEFAULT = 4096;
+    public static final boolean WARN_UNKNOWN_TYPES_DEFAULT = true;
+    public static final String DAEMON_INNER_THREADS = "evrete.core.daemon-threads";
+    public static final boolean DAEMON_INNER_THREADS_DEFAULT = true;
+    public static final String IDENTITY_METHOD_EQUALS = "equals";
+    public static final String IDENTITY_METHOD_IDENTITY = "identity";
     static final String SPI_MEMORY_FACTORY = "evrete.spi.memory-factory";
+    public static final String SPI_EXPRESSION_RESOLVER = "evrete.spi.expression-resolver";
     static final String SPI_TYPE_RESOLVER = "evrete.spi.type-resolver";
     static final String SPI_SOURCE_COMPILER = "evrete.spi.source-compiler";
     static final String PARALLELISM = "evrete.core.parallelism";
@@ -32,6 +38,11 @@ public class Configuration extends Properties implements Copyable<Configuration>
     public static final String SPI_LHS_STRIP_WHITESPACES = "evrete.spi.compiler.lhs-strip-whitespaces";
 
     private static final Set<String> OBSOLETE_PROPERTIES = Set.of(
+            IDENTITY_METHOD_EQUALS,
+            SPI_EXPRESSION_RESOLVER,
+            IDENTITY_METHOD_IDENTITY,
+            OBJECT_COMPARE_METHOD,
+            INSERT_BUFFER_SIZE
     );
 
     private static final Logger LOGGER = Logger.getLogger(Configuration.class.getName());
@@ -46,18 +57,10 @@ public class Configuration extends Properties implements Copyable<Configuration>
     private Configuration(Properties defaults, Imports imports) {
         super(defaults);
         this.imports = imports;
-        setIfAbsent(WARN_UNKNOWN_TYPES, Boolean.TRUE.toString());
-        setIfAbsent(INSERT_BUFFER_SIZE, String.valueOf(INSERT_BUFFER_SIZE_DEFAULT));
     }
 
     public Configuration() {
         this(System.getProperties());
-    }
-
-    private void setIfAbsent(String key, String value) {
-        if (!contains(key)) {
-            setProperty(key, value);
-        }
     }
 
     public Configuration set(String key, String value) {

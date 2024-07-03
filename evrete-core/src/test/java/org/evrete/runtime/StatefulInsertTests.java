@@ -11,10 +11,7 @@ import org.evrete.classes.*;
 import org.evrete.helper.FactEntry;
 import org.evrete.helper.RhsAssert;
 import org.evrete.helper.TestUtils;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
@@ -1353,7 +1350,8 @@ class StatefulInsertTests {
     void testAlpha3(ActivationMode mode) {
         Configuration conf = knowledge.getConfiguration();
         conf.setProperty(Configuration.WARN_UNKNOWN_TYPES, "false");
-        assert !knowledge.getConfiguration().getAsBoolean(Configuration.WARN_UNKNOWN_TYPES);
+        boolean warnUnknownTypes = knowledge.getConfiguration().getAsBoolean(Configuration.WARN_UNKNOWN_TYPES);
+        Assertions.assertFalse(warnUnknownTypes);
         RhsAssert rhsAssert1 = new RhsAssert("$a", TypeA.class);
         RhsAssert rhsAssert2 = new RhsAssert("$a", TypeA.class);
         RhsAssert rhsAssert3 = new RhsAssert("$a", TypeA.class);

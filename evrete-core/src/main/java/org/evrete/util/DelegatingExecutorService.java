@@ -35,8 +35,8 @@ public class DelegatingExecutorService implements ExecutorService {
      *
      * @param threads  number of thread to use
      */
-    public DelegatingExecutorService(int threads) {
-        this.delegate = Executors.newFixedThreadPool(threads, new CustomThreadFactory());
+    public DelegatingExecutorService(int threads, boolean daemonThreads) {
+        this.delegate = Executors.newFixedThreadPool(threads, new CustomThreadFactory(daemonThreads));
         this.externallySupplied = false;
     }
 
@@ -44,7 +44,11 @@ public class DelegatingExecutorService implements ExecutorService {
     public void shutdown() {
         if (!externallySupplied) {
             // Shutdown internally created ExecutorService
-            delegate.shutdown();
+            try {
+                delegate.shutdown();
+            } catch (Exception e) {
+                LOGGER.warning("Failed to shut down executor service: " + e.getMessage());
+            }
         }
     }
 
@@ -126,15 +130,20 @@ public class DelegatingExecutorService implements ExecutorService {
         private static final String PREFIX = "evrete-thread";
         private final AtomicInteger threadCount = new AtomicInteger(0);
         private final ThreadGroup group;
+        private final boolean daemonThreads;
 
-        CustomThreadFactory() {
-            group = new ThreadGroup(PREFIX + "-group");
+        CustomThreadFactory(boolean daemonThreads) {
+            this.group = new ThreadGroup(PREFIX + "-group");
+            this.daemonThreads = daemonThreads;
         }
 
         @Override
         public Thread newThread(@NonNull Runnable r) {
             String threadName = String.format("%s-%d", PREFIX, threadCount.getAndIncrement());
-            return new Thread(group, r, threadName, 0);
+            Thread thread = new Thread(group, r, threadName, 0);
+            thread.setDaemon(daemonThreads);
+            thread.setPriority(Thread.NORM_PRIORITY);
+            return thread;
         }
     }
 

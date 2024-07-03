@@ -1171,7 +1171,8 @@ class StatelessInsertTests {
     void testAlpha3(ActivationMode mode) {
         Configuration conf = knowledge.getConfiguration();
         conf.setProperty(Configuration.WARN_UNKNOWN_TYPES, "false");
-        assert !knowledge.getConfiguration().getAsBoolean(Configuration.WARN_UNKNOWN_TYPES);
+        boolean warnUnknownTypes = knowledge.getConfiguration().getAsBoolean(Configuration.WARN_UNKNOWN_TYPES);
+        Assertions.assertFalse(warnUnknownTypes);
         RhsAssert rhsAssert1 = new RhsAssert("$a", TypeA.class);
         RhsAssert rhsAssert2 = new RhsAssert("$a", TypeA.class);
         RhsAssert rhsAssert3 = new RhsAssert("$a", TypeA.class);

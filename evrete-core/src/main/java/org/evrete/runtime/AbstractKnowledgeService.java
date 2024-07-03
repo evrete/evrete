@@ -26,7 +26,7 @@ public abstract class AbstractKnowledgeService implements EventBus {
 
     /**
      * Retrieves the shared {@link Events.Subscriptions} collection at the service level.
-     * Subscriptions added to this collection will be automatically cancelled when the {@link #shutdown()}
+     * Subscriptions added to this collection will be automatically cancelled when the {@link org.evrete.KnowledgeService#shutdown()}
      * method is called. This centralized storage can be used by those who prefer not to manually manage
      * the lifecycle of their subscriptions, ensuring that resources are freed up for garbage collection
      * when no longer needed.
@@ -45,7 +45,7 @@ public abstract class AbstractKnowledgeService implements EventBus {
     /**
      * Shuts down the service.
      */
-    public void shutdown() {
+    protected void shutdownInner() {
         this.executor.shutdown();
         this.serviceSubscriptions.cancel();
     }

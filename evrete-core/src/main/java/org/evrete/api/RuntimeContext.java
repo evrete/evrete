@@ -34,6 +34,10 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends FluentImpor
     void setRuleComparator(Comparator<Rule> comparator);
 
 
+    /**
+     * Return the condition manager associated with this context.
+     * @return the evaluator context
+     */
     EvaluatorsContext getEvaluatorsContext();
 
     /**
@@ -209,6 +213,4 @@ public interface RuntimeContext<C extends RuntimeContext<C>> extends FluentImpor
     default C importRules(@NonNull String dslName, Object source) throws IOException {
         return importRules(DSLKnowledgeProvider.load(dslName), source);
     }
-
-
 }

@@ -32,7 +32,7 @@ public abstract class AbstractRuleSessionBase<S extends RuleSession<S>> extends 
         this.memoryFactory = getService().getMemoryFactoryProvider().instance(this, DefaultFactHandle.class);
         this.knowledge = knowledge;
         this.activationManager = newActivationManager();
-        this.warnUnknownTypes = getConfiguration().getAsBoolean(Configuration.WARN_UNKNOWN_TYPES);
+        this.warnUnknownTypes = getConfiguration().getAsBoolean(Configuration.WARN_UNKNOWN_TYPES, Configuration.WARN_UNKNOWN_TYPES_DEFAULT);
     }
 
     protected abstract S thisInstance();

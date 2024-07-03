@@ -54,7 +54,8 @@ public class KnowledgeService extends AbstractKnowledgeService {
     static ExecutorService executorFactory(Builder builder) {
         if(builder.executor == null) {
             int parallelism = builder.conf.getAsInteger(Configuration.PARALLELISM,Runtime.getRuntime().availableProcessors());
-            return new DelegatingExecutorService(parallelism);
+            boolean daemonThreads = builder.conf.getAsBoolean(Configuration.DAEMON_INNER_THREADS, Configuration.DAEMON_INNER_THREADS_DEFAULT);
+            return new DelegatingExecutorService(parallelism, daemonThreads);
         } else {
             return new DelegatingExecutorService(builder.executor);
         }
@@ -70,6 +71,13 @@ public class KnowledgeService extends AbstractKnowledgeService {
 
     public ClassLoader getClassLoader() {
         return classLoader;
+    }
+
+    /**
+     * Shuts down the service.
+     */
+    public void shutdown() {
+        super.shutdownInner();
     }
 
     @SuppressWarnings("unused")
@@ -528,30 +536,65 @@ public class KnowledgeService extends AbstractKnowledgeService {
         private Class<? extends SourceCompilerProvider> sourceCompilerProvider;
         private ExecutorService executor;
 
+        /**
+         * Constructs a new Builder with the provided Configuration.
+         *
+         * @param conf The Configuration to be used by the Builder.
+         */
         private Builder(Configuration conf) {
             this.conf = conf;
         }
 
+        /**
+         * Sets the MemoryFactoryProvider class for this builder.
+         *
+         * @param memoryFactoryProvider The MemoryFactoryProvider class to set.
+         * @return The current Builder instance for method chaining.
+         */
         public Builder withMemoryFactoryProvider(Class<? extends MemoryFactoryProvider> memoryFactoryProvider) {
             this.memoryFactoryProvider = memoryFactoryProvider;
             return this;
         }
 
+        /**
+         * Sets the TypeResolverProvider class for this builder.
+         *
+         * @param typeResolverProvider The TypeResolverProvider class to set.
+         * @return The current Builder instance for method chaining.
+         */
         public Builder withTypeResolverProvider(Class<? extends TypeResolverProvider> typeResolverProvider) {
             this.typeResolverProvider = typeResolverProvider;
             return this;
         }
 
+        /**
+         * Sets the SourceCompilerProvider class for this builder.
+         *
+         * @param sourceCompilerProvider The SourceCompilerProvider class to set.
+         * @return The current Builder instance for method chaining.
+         */
         public Builder withSourceCompilerProvider(Class<? extends SourceCompilerProvider> sourceCompilerProvider) {
             this.sourceCompilerProvider = sourceCompilerProvider;
             return this;
         }
 
+        /**
+         * Sets the external {@link ExecutorService} for this builder. Please note that externally supplied executors
+         * won't be automatically shut down when the {@link ExecutorService#shutdown()} method is invoked
+         *
+         * @param executor The ExecutorService to set.
+         * @return The current Builder instance for method chaining.
+         */
         public Builder withExecutor(ExecutorService executor) {
             this.executor = executor;
             return this;
         }
 
+        /**
+         * Constructs a new instance of the {@link KnowledgeService} with the current configuration of the builder.
+         *
+         * @return A new instance of the KnowledgeService.
+         */
         public KnowledgeService build() {
             return new KnowledgeService(this);
         }
