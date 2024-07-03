@@ -2,8 +2,9 @@ package org.evrete.util;
 
 import org.evrete.api.*;
 
-import java.util.function.BooleanSupplier;
+import java.util.Map;
 import java.util.stream.Collector;
+import java.util.stream.Stream;
 
 /**
  * This class provides an abstract implementation of the RuleSession interface, delegating the session's
@@ -33,25 +34,6 @@ public abstract class AbstractSessionWrapper<S extends RuleSession<S>> extends R
     }
 
     @Override
-    public S setExecutionPredicate(BooleanSupplier criteria) {
-        delegate.setExecutionPredicate(criteria);
-        return self();
-    }
-
-    @Override
-    public S addEventListener(SessionLifecycleListener listener) {
-        delegate.addEventListener(listener);
-        return self();
-    }
-
-
-    @Override
-    public S removeEventListener(SessionLifecycleListener listener) {
-        delegate.removeEventListener(listener);
-        return self();
-    }
-
-    @Override
     public Knowledge getParentContext() {
         return delegate.getParentContext();
     }
@@ -64,5 +46,35 @@ public abstract class AbstractSessionWrapper<S extends RuleSession<S>> extends R
     @Override
     public FactHandle insert0(String type, Object fact, boolean resolveCollections) {
         return delegate.insert0(type, fact, resolveCollections);
+    }
+
+    @Override
+    public Stream<Map.Entry<FactHandle, Object>> streamFactEntries() {
+        return delegate.streamFactEntries();
+    }
+
+    @Override
+    public <T> Stream<Map.Entry<FactHandle, T>> streamFactEntries(String type) {
+        return delegate.streamFactEntries(type);
+    }
+
+    @Override
+    public <T> Stream<Map.Entry<FactHandle, T>> streamFactEntries(Class<T> type) {
+        return delegate.streamFactEntries(type);
+    }
+
+    @Override
+    public <T> T getFact(FactHandle handle) {
+        return delegate.getFact(handle);
+    }
+
+    @Override
+    public void delete(FactHandle handle) {
+        delegate.delete(handle);
+    }
+
+    @Override
+    public void update(FactHandle handle, Object newValue) {
+        delegate.update(handle, newValue);
     }
 }

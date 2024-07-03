@@ -13,6 +13,7 @@ import java.lang.annotation.Target;
 @Target(value = ElementType.METHOD)
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface Rule {
+    int DEFAULT_SALIENCE = Integer.MIN_VALUE;
     /**
      * Optional identifier or name for the rule. Useful for rule management and referencing.
      * @return the declared name of the rule
@@ -23,5 +24,5 @@ public @interface Rule {
      * Determines the priority of the rule relative to others.
      * @return the salience of the rule
      */
-    int salience() default Integer.MIN_VALUE;
+    int salience() default DEFAULT_SALIENCE;
 }

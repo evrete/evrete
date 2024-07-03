@@ -14,7 +14,8 @@ public class SelfMutationAnnotated {
     public static void main(String[] args) throws Exception {
         KnowledgeService service = new KnowledgeService();
         StatefulSession session = service
-                .newKnowledge("JAVA-CLASS", MutatingRuleset.class)
+                .newKnowledge()
+                .importRules("JAVA-CLASS", MutatingRuleset.class)
                 .newStatefulSession();
 
         // 1. Inserting session into self

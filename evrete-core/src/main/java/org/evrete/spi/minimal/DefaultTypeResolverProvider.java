@@ -5,6 +5,7 @@ import org.evrete.api.spi.TypeResolverProvider;
 
 public class DefaultTypeResolverProvider extends LeastImportantServiceProvider implements TypeResolverProvider {
 
+
     @Override
     public TypeResolver instance(ClassLoader classLoader) {
         return new DefaultTypeResolver(classLoader);

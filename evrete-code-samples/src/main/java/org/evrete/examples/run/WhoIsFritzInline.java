@@ -11,7 +11,8 @@ public class WhoIsFritzInline {
                 .builder()
                 .newRule()
                 .forEach("$s", Subject.class)
-                .where("$s.isFrog").where("!$s.green")
+                .where("$s.isFrog")
+                .where("!$s.green")
                 .execute(ctx -> {
                     Subject $s = ctx.get("$s");
                     $s.green = true;
@@ -19,7 +20,9 @@ public class WhoIsFritzInline {
                 })
                 .newRule()
                 .forEach("$s", Subject.class)
-                .where("$s.croaks").where("$s.eatsFlies").where("!$s.isFrog")
+                .where("$s.croaks")
+                .where("$s.eatsFlies")
+                .where("!$s.isFrog")
                 .execute(ctx -> {
                     Subject $s = ctx.get("$s");
                     $s.isFrog = true;

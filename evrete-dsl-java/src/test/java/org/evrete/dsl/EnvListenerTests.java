@@ -27,19 +27,20 @@ class EnvListenerTests {
     @ParameterizedTest
     @EnumSource(SessionTypes.class)
     void test1(SessionTypes t) throws IOException {
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_CLASS, EnvListenerRuleSet1.class);
+        Knowledge knowledge = service.newKnowledge()
+                .importRules(Constants.PROVIDER_JAVA_CLASS, EnvListenerRuleSet1.class);
         TestUtils.EnvHelperData.reset();
         knowledge.set("property1", "1");
         knowledge.set("property2", 11);
 
-        assert TestUtils.EnvHelperData.total() == 1;
+        assert TestUtils.EnvHelperData.total() == 2;
         assert TestUtils.EnvHelperData.total("property1") == 1;
 
         RuleSession<?> s = t.session(knowledge);
         s.set("property1", "2");
         s.set("property2", 22);
-        assert TestUtils.EnvHelperData.total() == 3;
-        assert TestUtils.EnvHelperData.total("property1") == 2;
-        assert TestUtils.EnvHelperData.total("property2") == 1;
+        assert TestUtils.EnvHelperData.total() == 6;
+        assert TestUtils.EnvHelperData.total("property1") == 3;
+        assert TestUtils.EnvHelperData.total("property2") == 3;
     }
 }

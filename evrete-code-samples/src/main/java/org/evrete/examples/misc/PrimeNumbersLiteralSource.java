@@ -22,7 +22,8 @@ public class PrimeNumbersLiteralSource {
                 "    }\n" +
                 "}\n";
         StatefulSession session = service
-                .newKnowledge("JAVA-SOURCE", source)
+                .newKnowledge()
+                .importRules("JAVA-SOURCE", source)
                 .newStatefulSession();
 
         // Inject candidates
@@ -34,5 +35,6 @@ public class PrimeNumbersLiteralSource {
         // Printout current memory state
         session.forEachFact((handle, o) -> System.out.print(o + " "));
         session.close();
+        service.shutdown();
     }
 }

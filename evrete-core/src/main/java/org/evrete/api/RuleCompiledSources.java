@@ -11,7 +11,7 @@ import java.util.function.Consumer;
  *     This class represents a compiled version of {@link RuleLiteralData}
  * </p>
  */
-public interface RuleCompiledSources<S extends RuleLiteralData<R>, R extends Rule> {
+public interface RuleCompiledSources<S extends RuleLiteralData<R, C>, R extends Rule, C extends LiteralPredicate> {
     /**
      * Returns the sources for this compilation.
      *
@@ -24,7 +24,7 @@ public interface RuleCompiledSources<S extends RuleLiteralData<R>, R extends Rul
      * @return compiled conditions
      */
     @NonNull
-    Collection<LiteralEvaluator> conditions();
+    Collection<CompiledPredicate<C>> conditions();
 
     /**
      * This method returns the sources' compiled RHS.

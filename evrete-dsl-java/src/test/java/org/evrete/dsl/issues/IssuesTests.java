@@ -33,7 +33,8 @@ class IssuesTests {
     @Test
     void issue15() throws IOException {
         File f = TestUtils.testResourceAsFile("java/issues/MyRS.java");
-        Knowledge knowledge = service.newKnowledge("JAVA-SOURCE", f.toURI().toURL());
+        Knowledge knowledge = service.newKnowledge()
+                .importRules("JAVA-SOURCE", f.toURI().toURL());
         try (StatefulSession session = knowledge.newStatefulSession()) {
             DayTrendFact object = new DayTrendFact();
             object.value = 6;

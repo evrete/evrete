@@ -6,9 +6,8 @@ import javax.rules.InvalidRuleSessionException;
 import javax.rules.ObjectFilter;
 import javax.rules.RuleRuntime;
 import javax.rules.StatelessRuleSession;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Implementation of the {@link StatelessRuleSession} interface.
@@ -22,7 +21,9 @@ public class StatelessRuleSessionImpl extends AbstractRuleSessionBase implements
     @Override
     public List<?> executeRules(List list) throws InvalidRuleSessionException {
         try {
-            delegate.insert(list);
+            for (Object o : list) {
+                delegate.insert0(o, false);
+            }
             delegate.fire();
             List<?> objects = Utils.sessionObjects(delegate);
             delegate.clear();
@@ -34,10 +35,14 @@ public class StatelessRuleSessionImpl extends AbstractRuleSessionBase implements
 
     @Override
     public List<?> executeRules(List list, ObjectFilter objectFilter) throws InvalidRuleSessionException {
-        return executeRules(list)
-                .stream()
-                .map(objectFilter::filter)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        List<?> collected = executeRules(list);
+        List<Object> result = new ArrayList<>(collected.size());
+        for(Object o : collected) {
+            Object filtered = objectFilter.filter(o);
+            if(filtered != null) {
+                result.add(filtered);
+            }
+        }
+        return result;
     }
 }

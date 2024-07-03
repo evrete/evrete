@@ -1,7 +1,10 @@
 package org.evrete.dsl;
 
-import org.evrete.runtime.compiler.RuntimeClassloader;
-import org.evrete.runtime.compiler.SourceCompiler;
+import org.evrete.api.events.ContextEvent;
+import org.evrete.api.events.EnvironmentChangeEvent;
+import org.evrete.api.spi.SourceCompiler;
+import org.evrete.api.spi.SourceCompilerProvider;
+import org.evrete.util.JavaSourceUtils;
 
 import java.io.*;
 import java.net.URISyntaxException;
@@ -12,18 +15,13 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.zip.ZipEntry;
 
-@SuppressWarnings("ResultOfMethodCallIgnored")
 public class TestUtils {
-
-    public static void testFile(Object f) {
-        new File(f.toString()).exists();
-    }
 
     public static File testResourceAsFile(String path) throws IOException {
         URL url = Thread.currentThread().getContextClassLoader().getResource(path);
@@ -40,10 +38,7 @@ public class TestUtils {
     }
 
     static synchronized void createTempJarFile(File root, Consumer<File> jarConsumer) throws Exception {
-
         Path compileRoot = root.toPath();
-
-        SourceCompiler sourceCompiler = new SourceCompiler(new RuntimeClassloader(ClassLoader.getSystemClassLoader()));
 
         Stream<Path> javaFiles = Files.find(compileRoot, Integer.MAX_VALUE, (path, attrs) -> path.toString().endsWith(".java"));
 
@@ -56,22 +51,15 @@ public class TestUtils {
             }
         }).collect(Collectors.toSet());
 
-        Collection<Class<?>> classes = sourceCompiler.compile(sources).values();
+        List<Class<?>> classes = new ArrayList<>(compile(sources));
+        classes.sort(Comparator.comparing(Class::getName));
 
-        File out = File.createTempFile("speakace-test", ".jar");
+        File out = File.createTempFile("evrete-test", ".jar");
         FileOutputStream fos = new FileOutputStream(out);
-        JarOutputStream jar = new JarOutputStream(fos);
+        JarOutputStream  jar = new JarOutputStream(fos);
+        Set<String> createdDirs = new HashSet<>();
         for(Class<?> c : classes) {
-            String binaryName = c.getName().replaceAll("\\.", "/");
-            String name = binaryName + ".class";
-            ZipEntry zipEntry = new JarEntry(name);
-            jar.putNextEntry(zipEntry);
-
-            assert c.getClassLoader() instanceof RuntimeClassloader;
-            InputStream stream = Objects.requireNonNull(c.getClassLoader().getResourceAsStream(name));
-            copy(stream, jar);
-            stream.close();
-            jar.closeEntry();
+            addClassToJar(c, jar, createdDirs);
         }
         jar.close();
 
@@ -82,13 +70,76 @@ public class TestUtils {
         }
     }
 
-    private static void copy(InputStream source, OutputStream sink) throws IOException {
-        byte[] buf = new byte[4096];
-        int n;
-        while ((n = source.read(buf)) > 0) {
-            sink.write(buf, 0, n);
+    private static void addClassToJar(Class<?> clazz, JarOutputStream jos, Set<String> createdDirs) throws IOException {
+        // Get the class bytecode
+        byte[] classBytes = readClassBytes(clazz);
+
+        // Construct the entry name
+        String className = clazz.getName().replace('.', '/') + ".class";
+
+        // Create directory entries if necessary
+        String dirName = className.substring(0, className.lastIndexOf('/') + 1);
+        createDirectoryEntries(dirName, jos, createdDirs);
+
+        // Create and add the jar entry for the class
+        JarEntry jarEntry = new JarEntry(className);
+        jos.putNextEntry(jarEntry);
+        // Write the class bytes to the JAR entry
+        jos.write(classBytes);
+
+        // Close the entry
+        jos.closeEntry();
+    }
+
+    private static void createDirectoryEntries(String dirName, JarOutputStream jos, Set<String> createdDirs) throws IOException {
+        if (dirName.isEmpty() || createdDirs.contains(dirName)) {
+            return;
+        }
+
+        // Ensure parent directories are created first
+        int lastSlashIndex = dirName.lastIndexOf('/', dirName.length() - 2);
+        if (lastSlashIndex >= 0) {
+            createDirectoryEntries(dirName.substring(0, lastSlashIndex + 1), jos, createdDirs);
+        }
+
+        // Create the current directory entry
+        JarEntry dirEntry = new JarEntry(dirName);
+        jos.putNextEntry(dirEntry);
+        jos.closeEntry();
+        createdDirs.add(dirName);
+    }
+
+
+    public static byte[] readClassBytes(Class<?> cls) throws IOException {
+        // Convert class reference to resource path
+        String resourcePath = cls.getName().replace('.', '/') + ".class";
+
+        // Get the class loader of the class
+        ClassLoader classLoader = cls.getClassLoader();
+
+        // Load the class file as resource stream
+        try (InputStream inputStream = classLoader.getResourceAsStream(resourcePath)) {
+            if (inputStream == null) {
+                throw new IOException("Class not found: " + cls.getName());
+            }
+
+            // Read the class bytes
+            return inputStream.readAllBytes();
         }
     }
+
+    private static SourceCompiler createSourceCompiler() {
+        return ServiceLoader.load(SourceCompilerProvider.class).iterator().next().instance(Thread.currentThread().getContextClassLoader());
+    }
+
+    static Collection<Class<?>> compile(Collection<String> sources) throws Exception {
+        SourceCompiler sourceCompiler = createSourceCompiler();
+        Collection<SourceCompiler.ClassSource> resolved = sources.stream().map(JavaSourceUtils::parse).collect(Collectors.toList());
+
+        Collection<SourceCompiler.Result<SourceCompiler.ClassSource>> compiled =  sourceCompiler.compile(resolved);
+        return compiled.stream().map((Function<SourceCompiler.Result<SourceCompiler.ClassSource>, Class<?>>) SourceCompiler.Result::getCompiledClass).collect(Collectors.toList());
+    }
+
 
     public static class EnvHelperData {
         private static final Map<String, List<Object>> data = new HashMap<>();
@@ -104,6 +155,11 @@ public class TestUtils {
             count++;
         }
 
+        public static void add(EnvironmentChangeEvent e) {
+            data.computeIfAbsent(e.getProperty(), k -> new ArrayList<>()).add(e.getValue());
+            count++;
+        }
+
         static int total() {
             return count;
         }
@@ -116,34 +172,30 @@ public class TestUtils {
     }
 
     public static class PhaseHelperData {
-        static final EnumMap<Phase, AtomicInteger> EVENTS = new EnumMap<>(Phase.class);
+        static final Map<Class<?>, AtomicInteger> EVENTS = new HashMap<>();
 
         static {
             reset();
         }
 
         public static void reset() {
-            for (Phase phase : Phase.values()) {
-                EVENTS.put(phase, new AtomicInteger());
-            }
+            EVENTS.clear();
         }
 
-        public static int count(Phase phase) {
-            return EVENTS.get(phase).get();
+        public static int count(Class<?> event) {
+            int result = 0;
+            for(Map.Entry<Class<?>, AtomicInteger> entry : EVENTS.entrySet()) {
+                if(event.isAssignableFrom(entry.getKey())) {
+                    result += entry.getValue().intValue();
+                }
+            }
+            return result;
         }
 
-        public static void event(Phase... phases) {
-            for (Phase phase : phases) {
-                EVENTS.get(phase).incrementAndGet();
+        public static void event(ContextEvent... events) {
+            for (ContextEvent evt : events) {
+                EVENTS.computeIfAbsent(evt.getClass(), k->new AtomicInteger()).incrementAndGet();
             }
-        }
-
-        static int total() {
-            int total = 0;
-            for (AtomicInteger i : EVENTS.values()) {
-                total += i.get();
-            }
-            return total;
         }
     }
 }

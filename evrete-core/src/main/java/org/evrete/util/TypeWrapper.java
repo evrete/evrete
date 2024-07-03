@@ -4,7 +4,6 @@ import org.evrete.api.Type;
 import org.evrete.api.TypeField;
 import org.evrete.api.annotations.NonNull;
 
-import java.util.Collection;
 import java.util.function.Function;
 
 /**
@@ -24,18 +23,15 @@ public class TypeWrapper<T> implements Type<T> {
     }
 
     @Override
-    public final int getId() {
-        return this.delegate.getId();
-    }
-
-    @Override
+    @Deprecated
     public final String getJavaType() {
         return delegate.getJavaType();
     }
 
     @Override
+    @Deprecated
     public Class<T> resolveJavaType() {
-        return delegate.resolveJavaType();
+        return delegate.getJavaClass();
     }
 
     @Override
@@ -44,13 +40,13 @@ public class TypeWrapper<T> implements Type<T> {
     }
 
     @Override
-    public Collection<TypeField> getDeclaredFields() {
-        return delegate.getDeclaredFields();
+    public @NonNull TypeField getField(@NonNull String name) {
+        return delegate.getField(name);
     }
 
     @Override
-    public @NonNull TypeField getField(@NonNull String name) {
-        return delegate.getField(name);
+    public Class<T> getJavaClass() {
+        return delegate.getJavaClass();
     }
 
     @Override

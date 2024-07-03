@@ -19,7 +19,9 @@ public interface TypeResolverProvider extends OrderedServiceProvider {
      *
      * @param context The runtime context from which the class loader will be retrieved.
      * @return An instance of TypeResolver suitable for the given context.
+     * @deprecated use the {@link #instance(ClassLoader)} method instead
      */
+    @Deprecated
     default TypeResolver instance(RuntimeContext<?> context) {
         return instance(context.getClassLoader());
     }
@@ -31,4 +33,5 @@ public interface TypeResolverProvider extends OrderedServiceProvider {
      * @return An instance of TypeResolver configured to use the given ClassLoader.
      */
     TypeResolver instance(ClassLoader classLoader);
+
 }

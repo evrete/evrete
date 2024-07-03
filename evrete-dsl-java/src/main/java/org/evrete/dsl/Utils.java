@@ -1,34 +1,24 @@
 package org.evrete.dsl;
 
-import org.evrete.api.FieldReference;
-import org.evrete.dsl.annotation.*;
+import org.evrete.api.LhsField;
+import org.evrete.api.TypeField;
+import org.evrete.dsl.annotation.Fact;
+import org.evrete.dsl.annotation.Rule;
+import org.evrete.dsl.annotation.RuleSet;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
-import java.util.logging.Logger;
 
 final class Utils {
-    static final Logger LOGGER = Logger.getLogger(Utils.class.getPackage().getName());
 
-    static Collection<Method> allNonPublicAnnotated(Class<?> clazz) {
-        Class<?> current = clazz;
-        Set<Method> methods = new HashSet<>();
-        if (clazz.equals(Object.class)) return methods;
+    static boolean isDslRuleClass(Class<?> clazz) {
+        if(clazz.getAnnotation(RuleSet.class) != null) return true;
 
-        while (!current.equals(Object.class)) {
-            for (Method m : current.getDeclaredMethods()) {
-                if (hasDslAnnotation(m) && !Modifier.isPublic(m.getModifiers())) {
-                    methods.add(m);
-                }
-            }
-            current = current.getSuperclass();
+        for(Method m : clazz.getMethods()) {
+            if(m.getAnnotation(Rule.class) != null) return true;
         }
-        return methods;
+        return false;
     }
 
     static String factName(Parameter parameter) {
@@ -49,23 +39,14 @@ final class Utils {
         }
     }
 
-    static Class<?>[] asMethodSignature(FieldReference[] references) {
-        Class<?>[] signature = new Class<?>[references.length];
-        for (int i = 0; i < references.length; i++) {
-            signature[i] = references[i].field().getValueType();
+    static Class<?>[] asMethodSignature(LhsField.Array<String, TypeField> references) {
+
+        Class<?>[] signature = new Class<?>[references.length()];
+        for (int i = 0; i < signature.length; i++) {
+            TypeField field = references.get(i).field();
+            signature[i] = field.getValueType();
         }
         return signature;
-    }
-
-    private static boolean hasDslAnnotation(Method m) {
-        return m.getAnnotation(Rule.class) != null
-                ||
-                m.getAnnotation(PhaseListener.class) != null
-                ||
-                m.getAnnotation(Where.class) != null
-                ||
-                m.getAnnotation(FieldDeclaration.class) != null
-                ;
     }
 
     static RuleSet.Sort deriveSort(Class<?> clazz) {
@@ -81,10 +62,6 @@ final class Utils {
         } else {
             return name;
         }
-    }
-
-    static int salience(Method method) {
-        return Objects.requireNonNull(method.getAnnotation(Rule.class)).salience();
     }
 
     private static RuleSet.Sort searchSort(Class<?> clazz) {

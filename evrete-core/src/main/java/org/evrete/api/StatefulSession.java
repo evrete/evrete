@@ -1,7 +1,6 @@
 package org.evrete.api;
 
 import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
@@ -10,72 +9,37 @@ import java.util.function.Predicate;
 /**
  * The StatefulSession interface represents a stateful rule session.
  */
-public interface StatefulSession extends RuleSession<StatefulSession>, AutoCloseable {
+public interface StatefulSession extends RuleSession<StatefulSession>,  AutoCloseable {
 
     /**
      * Fire all rules.
      */
     StatefulSession fire();
 
-    /**
-     * <p>
-     * Updates a fact that already exists in the working memory
-     * </p>
-     *
-     * @param handle   fact handle, previously assigned to original fact
-     * @param newValue an updated version of the fact
-     * @return this instance
-     */
-    StatefulSession update(FactHandle handle, Object newValue);
 
     /**
-     * <p>
-     * Deletes a fact from working memory.
-     * </p>
-     *
-     * @param handle fact handle
-     * @return this instance
-     */
-    StatefulSession delete(FactHandle handle);
-
-    /**
-     * <p>
-     * Returns fact by its handle.
-     * </p>
-     *
-     * @param handle fact handle
-     * @param <T>    type of the fact (use {@code Object}  or wildcard if type is unknown)
-     * @return fact or {@code null} if fact is not found
-     */
-    <T> T getFact(FactHandle handle);
-
-    /**
-     * <p>
-     * Fires session asynchronously and returns a Future representing the session execution
-     * status.
-     * </p>
+     * Fires the session asynchronously and returns a Future representing the session's execution status.
      *
      * @param result the result to return by the Future
-     * @param <T>    result type parameter
-     * @return a Future representing pending completion of the {@link #fire()} command
-     * @throws RejectedExecutionException if the task cannot be
-     *                                    scheduled for execution
+     * @param <T> the result type parameter
+     * @return a Future representing the pending completion of the {@link #fire()} command
+     * @deprecated Use external tools like {@link java.util.concurrent.ExecutorService#submit(Runnable, Object)}.
      */
-    <T> Future<T> fireAsync(T result);
+    @Deprecated
+    default <T> Future<T> fireAsync(T result) {
+        throw new UnsupportedOperationException("Deprecated");
+    }
 
     /**
-     * <p>
-     * Same as {@link #fireAsync(Object)}, with the Future's get method will returning
+     * Same as {@link #fireAsync(Object)}, but the Future's get method will return
      * the session itself.
-     * </p>
      *
      * @return a Future representing pending completion of the {@link #fire()} command.
-     * @throws RejectedExecutionException if the task cannot be
-     *                                    scheduled for execution
-     * @see #fireAsync(Object)
+     * @deprecated Use external tools like {@link java.util.concurrent.ExecutorService#submit(Runnable, Object)}.
      */
+    @Deprecated
     default Future<StatefulSession> fireAsync() {
-        return fireAsync(this);
+        throw new UnsupportedOperationException("Deprecated");
     }
 
     /**
@@ -102,7 +66,10 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
      * @param consumer consumer for the facts
      * @return this instance
      */
-    StatefulSession forEachFact(BiConsumer<FactHandle, Object> consumer);
+    default StatefulSession forEachFact(BiConsumer<FactHandle, Object> consumer){
+        streamFactEntries().forEach(entry -> consumer.accept(entry.getKey(), entry.getValue()));
+        return this;
+    }
 
     default StatefulSession forEachFact(BiPredicate<FactHandle, Object> filter, BiConsumer<FactHandle, Object> consumer) {
         return forEachFact((factHandle, o) -> {
@@ -130,14 +97,15 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
      * @see TypeResolver
      */
     default <T> StatefulSession forEachFact(Class<T> type, Consumer<T> consumer) {
-        return forEachFact(type.getName(), consumer);
+        streamFacts(type).forEach(consumer);
+        return this;
     }
 
     /**
      * <p>
      * A memory inspection method that accepts fact type as an argument. Type name can be either
      * a class name or a name of explicitly declared type. In the latter case, the generic type
-     * parameter {@code T} must match the declared type's Java type (see {@link Type#getJavaType()})
+     * parameter {@code T} must match the declared type's Java type (see {@link Type#getJavaClass()} )
      * </p>
      *
      * @param type     type name
@@ -148,7 +116,10 @@ public interface StatefulSession extends RuleSession<StatefulSession>, AutoClose
      * @throws IllegalArgumentException if no such type exists
      * @see TypeResolver
      */
-    <T> StatefulSession forEachFact(String type, Consumer<T> consumer);
+    default <T> StatefulSession forEachFact(String type, Consumer<T> consumer) {
+        this.<T>streamFacts(type).forEach(consumer);
+        return this;
+    }
 
     /**
      * <p>

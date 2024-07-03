@@ -4,6 +4,9 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.ActivationMode;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatelessSession;
+import org.evrete.api.events.EnvironmentChangeEvent;
+import org.evrete.api.events.SessionCreatedEvent;
+import org.evrete.api.events.SessionFireEvent;
 import org.evrete.dsl.rules.PhaseListenerRuleSet1;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -33,15 +36,16 @@ class StatelessPhaseListenerTests {
     @EnumSource(ActivationMode.class)
     void test1(ActivationMode mode) throws IOException {
         TestUtils.PhaseHelperData.reset();
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_CLASS, PhaseListenerRuleSet1.class);
-        assert TestUtils.PhaseHelperData.total() == 1 && TestUtils.PhaseHelperData.count(Phase.BUILD) == 1;
+        Knowledge knowledge = service.newKnowledge()
+                .importRules(Constants.PROVIDER_JAVA_CLASS, PhaseListenerRuleSet1.class);
+        knowledge.set("some property", "some value");
+        assert TestUtils.PhaseHelperData.count(EnvironmentChangeEvent.class) == 1;
 
         StatelessSession session = session(knowledge, mode);
-        assert TestUtils.PhaseHelperData.count(Phase.CREATE) == 3 : "Actual: " + TestUtils.PhaseHelperData.EVENTS;
-        assert TestUtils.PhaseHelperData.total() == 6; // 4 + additional two coming from the multiple() method
+        assert TestUtils.PhaseHelperData.count(SessionCreatedEvent.class) == 1;
         TestUtils.PhaseHelperData.reset();
         session.insert(1);
         session.fire();
-        assert TestUtils.PhaseHelperData.total() == 8 : " " + TestUtils.PhaseHelperData.EVENTS;
+        assert TestUtils.PhaseHelperData.count(SessionFireEvent.class) == 1;
     }
 }

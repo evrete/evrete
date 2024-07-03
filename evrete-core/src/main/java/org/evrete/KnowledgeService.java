@@ -1,28 +1,37 @@
 package org.evrete;
 
 import org.evrete.api.*;
-import org.evrete.api.spi.*;
+import org.evrete.api.spi.DSLKnowledgeProvider;
+import org.evrete.api.spi.MemoryFactoryProvider;
+import org.evrete.api.spi.SourceCompilerProvider;
+import org.evrete.api.spi.TypeResolverProvider;
+import org.evrete.runtime.AbstractKnowledgeService;
 import org.evrete.runtime.KnowledgeRuntime;
-import org.evrete.util.ForkJoinExecutor;
+import org.evrete.util.DelegatingExecutorService;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
 import java.net.URL;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ServiceLoader;
+import java.util.concurrent.ExecutorService;
 
 /**
  * <p>
  * KnowledgeService is a root element of every Evrete-based application.
- * It holds the initial {@link Configuration}, security settings, references to all
+ * It holds the initial {@link Configuration}, references to all
  * required SPI implementations, and an instance of the Java ExecutorService.
  * </p>
  */
-public class KnowledgeService {
+public class KnowledgeService extends AbstractKnowledgeService {
     private final Configuration configuration;
-    private final ForkJoinExecutor executor;
     private final MemoryFactoryProvider collectionsServiceProvider;
-    private final ExpressionResolverProvider expressionResolverProvider;
     private final TypeResolverProvider typeResolverProvider;
-    private final LiteralSourceCompiler literalSourceCompiler;
+    private final SourceCompilerProvider sourceCompilerProvider;
     private ClassLoader classLoader;
 
     public KnowledgeService(Configuration conf) {
@@ -30,35 +39,26 @@ public class KnowledgeService {
     }
 
     private KnowledgeService(Builder builder) {
+        super(executorFactory(builder));
         this.configuration = builder.conf;
-        this.executor = new ForkJoinExecutor(builder.conf.getAsInteger(Configuration.PARALLELISM, Runtime.getRuntime().availableProcessors()));
         this.collectionsServiceProvider = builder.getMemoryFactoryProvider();
-        this.expressionResolverProvider = builder.getExpressionResolverProvider();
         this.typeResolverProvider = builder.getTypeResolverProvider();
-        this.literalSourceCompiler = builder.getLiteralSourceCompiler();
         this.classLoader = Thread.currentThread().getContextClassLoader();
+        this.sourceCompilerProvider = builder.getSourceCompilerProvider();
     }
 
     public KnowledgeService() {
         this(new Configuration());
     }
 
-    private static Reader[] toReaders(Class<?>... resources) throws IOException {
-        if (resources == null || resources.length == 0) throw new IOException("Empty resources");
-        Reader[] urls = new Reader[resources.length];
-        for (int i = 0; i < resources.length; i++) {
-            urls[i] = new StringReader(resources[i].getName());
+    static ExecutorService executorFactory(Builder builder) {
+        if(builder.executor == null) {
+            int parallelism = builder.conf.getAsInteger(Configuration.PARALLELISM,Runtime.getRuntime().availableProcessors());
+            boolean daemonThreads = builder.conf.getAsBoolean(Configuration.DAEMON_INNER_THREADS, Configuration.DAEMON_INNER_THREADS_DEFAULT);
+            return new DelegatingExecutorService(parallelism, daemonThreads);
+        } else {
+            return new DelegatingExecutorService(builder.executor);
         }
-        return urls;
-    }
-
-    private static Reader[] readers(String... resources) throws IOException {
-        if (resources == null || resources.length == 0) throw new IOException("Empty resources");
-        Reader[] readers = new Reader[resources.length];
-        for (int i = 0; i < resources.length; i++) {
-            readers[i] = new StringReader(resources[i]);
-        }
-        return readers;
     }
 
     public static Builder builder() {
@@ -73,6 +73,13 @@ public class KnowledgeService {
         return classLoader;
     }
 
+    /**
+     * Shuts down the service.
+     */
+    public void shutdown() {
+        super.shutdownInner();
+    }
+
     @SuppressWarnings("unused")
     public void setClassLoader(ClassLoader classLoader) {
         this.classLoader = classLoader;
@@ -82,19 +89,36 @@ public class KnowledgeService {
      * @return an empty {@link Knowledge} instance
      */
     public Knowledge newKnowledge() {
-        return new KnowledgeRuntime(this);
+        return newKnowledge((String) null);
+    }
+
+    /**
+     * @return an empty {@link Knowledge} instance
+     */
+    public Knowledge newKnowledge(String name) {
+        return new KnowledgeRuntime(this, name);
     }
 
     /**
      * @param typeResolver the type resolver to use in the newly created Knowledge instance
      * @return an empty {@link Knowledge} instance
+     * @deprecated use the default {@link #newKnowledge()} method
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     public Knowledge newKnowledge(TypeResolver typeResolver) {
-        return new KnowledgeRuntime(this, typeResolver);
+        return newKnowledge();
     }
 
-    public TypeResolver newTypeResolver() {
-        return typeResolverProvider.instance(this.classLoader);
+    /**
+     * @param typeResolver the type resolver to use in the newly created Knowledge instance
+     * @return an empty {@link Knowledge} instance
+     * @deprecated use the default {@link #newKnowledge(String)} method
+     */
+    @Deprecated
+    @SuppressWarnings("unused")
+    public Knowledge newKnowledge(TypeResolver typeResolver, String name) {
+        return new KnowledgeRuntime(this, name);
     }
 
     /**
@@ -105,30 +129,13 @@ public class KnowledgeService {
      * @param dsl DSL name
      * @return new instance of DSL provider
      * @throws IllegalStateException if no implementation found by the given name
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
+     * {@link DSLKnowledgeProvider#load(String)} utility method instead.
      */
+    @Deprecated
     public DSLKnowledgeProvider getDSL(String dsl) {
-        Objects.requireNonNull(dsl);
-        ServiceLoader<DSLKnowledgeProvider> loader = ServiceLoader.load(DSLKnowledgeProvider.class);
-
-        List<DSLKnowledgeProvider> found = new LinkedList<>();
-        StringJoiner knownProviders = new StringJoiner(",", "[", "]");
-        for (DSLKnowledgeProvider provider : loader) {
-            String name = provider.getName();
-            if (dsl.equals(name)) {
-                found.add(provider);
-            }
-            knownProviders.add("'" + name + "' = " + provider.getClass());
-        }
-
-        if (found.isEmpty()) {
-            throw new IllegalStateException("DSL provider '" + dsl + "' is not found. Make sure the corresponding implementation is available on the classpath. Available providers: " + knownProviders);
-        }
-
-        if (found.size() > 1) {
-            throw new IllegalStateException("Multiple DSL providers found implementing the '" + dsl + "' language. Known providers: " + knownProviders);
-        } else {
-            return found.iterator().next();
-        }
+        return DSLKnowledgeProvider.load(dsl);
     }
 
     /**
@@ -138,15 +145,13 @@ public class KnowledgeService {
      *
      * @param dsl DSL implementation class
      * @return new instance of DSL provider
-     * @throws IllegalStateException if implementation could not be instantiated
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
+     * {@link DSLKnowledgeProvider#load(String)} utility method instead.
      */
+    @Deprecated
     public DSLKnowledgeProvider getDSL(Class<? extends DSLKnowledgeProvider> dsl) {
-        Objects.requireNonNull(dsl);
-        try {
-            return dsl.getConstructor().newInstance();
-        } catch (Exception e) {
-            throw new IllegalStateException("Unable to instantiate DSL class instance", e);
-        }
+        return DSLKnowledgeProvider.load(dsl);
     }
 
     /**
@@ -154,9 +159,12 @@ public class KnowledgeService {
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
+    @Deprecated
     public Knowledge newKnowledge(String dsl, URL... resources) throws IOException {
-        return getDSL(dsl).create(this, resources);
+        return deprecatedStub(dsl, resources);
     }
 
     /**
@@ -164,9 +172,12 @@ public class KnowledgeService {
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
+    @Deprecated
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, URL... resources) throws IOException {
-        return getDSL(dsl).create(this, resources);
+        return deprecatedStub(dsl, resources);
     }
 
     /**
@@ -174,9 +185,12 @@ public class KnowledgeService {
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
+    @Deprecated
     public Knowledge newKnowledge(String dsl, File... resources) throws IOException {
-        return getDSL(dsl).create(this, resources);
+        return deprecatedStub(dsl, resources);
     }
 
     /**
@@ -184,9 +198,12 @@ public class KnowledgeService {
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
+    @Deprecated
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, File... resources) throws IOException {
-        return getDSL(dsl).create(this, resources);
+        return deprecatedStub(dsl, resources);
     }
 
     /**
@@ -195,9 +212,13 @@ public class KnowledgeService {
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, TypeResolver resolver, File... resources) throws IOException {
-        return getDSL(dsl).create(this, resolver, resources);
+        return deprecatedStub(dsl, resources);
     }
 
     /**
@@ -206,9 +227,13 @@ public class KnowledgeService {
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     public Knowledge newKnowledge(String dsl, TypeResolver resolver, File... resources) throws IOException {
-        return getDSL(dsl).create(this, resolver, resources);
+        return deprecatedStub(dsl, resources);
     }
 
     /**
@@ -217,9 +242,13 @@ public class KnowledgeService {
      * @param resources    DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     public Knowledge newKnowledge(String dsl, TypeResolver typeResolver, URL... resources) throws IOException {
-        return getDSL(dsl).create(this, typeResolver, resources);
+        return deprecatedStub(dsl, resources);
     }
 
     /**
@@ -228,9 +257,13 @@ public class KnowledgeService {
      * @param resources    DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, TypeResolver typeResolver, URL... resources) throws IOException {
-        return getDSL(dsl).create(this, typeResolver, resources);
+        return deprecatedStub(dsl, resources);
     }
 
     /**
@@ -238,9 +271,12 @@ public class KnowledgeService {
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
+    @Deprecated
     public Knowledge newKnowledge(String dsl, Reader... resources) throws IOException {
-        return getDSL(dsl).create(this, resources);
+        return deprecatedStub(dsl, resources);
     }
 
     /**
@@ -248,9 +284,12 @@ public class KnowledgeService {
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
+    @Deprecated
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, Reader... resources) throws IOException {
-        return getDSL(dsl).create(this, resources);
+        return deprecatedStub(dsl, resources);
     }
 
     /**
@@ -259,9 +298,13 @@ public class KnowledgeService {
      * @param resources    DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     public Knowledge newKnowledge(String dsl, TypeResolver typeResolver, Reader... resources) throws IOException {
-        return getDSL(dsl).create(this, typeResolver, resources);
+        return deprecatedStub(dsl, resources);
     }
 
     /**
@@ -270,9 +313,13 @@ public class KnowledgeService {
      * @param resources    DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, TypeResolver typeResolver, Reader... resources) throws IOException {
-        return getDSL(dsl).create(this, typeResolver, resources);
+        return deprecatedStub(dsl, resources);
     }
 
     /**
@@ -280,9 +327,12 @@ public class KnowledgeService {
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
+    @Deprecated
     public Knowledge newKnowledge(String dsl, InputStream... resources) throws IOException {
-        return getDSL(dsl).create(this, resources);
+        return deprecatedStub(dsl, resources);
     }
 
     /**
@@ -290,9 +340,12 @@ public class KnowledgeService {
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
+    @Deprecated
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, InputStream... resources) throws IOException {
-        return getDSL(dsl).create(this, resources);
+        return deprecatedStub(dsl, resources);
     }
 
     /**
@@ -301,9 +354,13 @@ public class KnowledgeService {
      * @param resources    DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     public Knowledge newKnowledge(String dsl, TypeResolver typeResolver, InputStream... resources) throws IOException {
-        return getDSL(dsl).create(this, typeResolver, resources);
+        return deprecatedStub(dsl, resources);
     }
 
     /**
@@ -312,9 +369,13 @@ public class KnowledgeService {
      * @param resources    DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the data sources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, TypeResolver typeResolver, InputStream... resources) throws IOException {
-        return getDSL(dsl).create(this, typeResolver, resources);
+        return deprecatedStub(dsl, resources);
     }
 
     /**
@@ -326,24 +387,12 @@ public class KnowledgeService {
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the class sources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
+    @Deprecated
     public Knowledge newKnowledge(String dsl, Class<?>... resources) throws IOException {
-        return getDSL(dsl).create(this, toReaders(resources));
-    }
-
-
-    /**
-     * <p>
-     * Shuts down the service and releases its internal resources.
-     * Once a service is shutdown, it can not be reused in the future.
-     * </p>
-     */
-    public void shutdown() {
-        this.executor.shutdown();
-    }
-
-    public ForkJoinExecutor getExecutor() {
-        return executor;
+        return deprecatedStub(dsl, resources);
     }
 
     public Configuration getConfiguration() {
@@ -354,17 +403,26 @@ public class KnowledgeService {
         return collectionsServiceProvider;
     }
 
-    public ExpressionResolverProvider getExpressionResolverProvider() {
-        return expressionResolverProvider;
-    }
-
-    public LiteralSourceCompiler getLiteralSourceCompiler() {
-        return literalSourceCompiler;
+    public SourceCompilerProvider getSourceCompilerProvider() {
+        return sourceCompilerProvider;
     }
 
     @SuppressWarnings("unused")
     public TypeResolverProvider getTypeResolverProvider() {
         return typeResolverProvider;
+    }
+
+    private Knowledge deprecatedStub(String provider, Object[] resources) throws IOException {
+        Knowledge knowledge = newKnowledge();
+        knowledge.importRules(provider, resources);
+        return knowledge;
+    }
+
+    private Knowledge deprecatedStub(Class<? extends DSLKnowledgeProvider> type, Object[] resources) throws IOException {
+        Knowledge knowledge = newKnowledge();
+        DSLKnowledgeProvider provider = DSLKnowledgeProvider.load(type);
+        knowledge.importRules(provider, resources);
+        return knowledge;
     }
 
     /**
@@ -376,9 +434,12 @@ public class KnowledgeService {
      * @param resources DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the class sources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
+    @Deprecated
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, Class<?>... resources) throws IOException {
-        return getDSL(dsl).create(this, toReaders(resources));
+        return deprecatedStub(dsl, resources);
     }
 
     /**
@@ -391,9 +452,13 @@ public class KnowledgeService {
      * @param resources    DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the class sources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     public Knowledge newKnowledge(String dsl, TypeResolver typeResolver, Class<?>... resources) throws IOException {
-        return getDSL(dsl).create(this, typeResolver, toReaders(resources));
+        return deprecatedStub(dsl, resources);
     }
 
     /**
@@ -406,9 +471,13 @@ public class KnowledgeService {
      * @param resources    DSL resources
      * @return a {@link Knowledge} instance built by DSL provider from given resources.
      * @throws IOException if an error occurs when reading the sources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
      */
+    @Deprecated
+    @SuppressWarnings("unused")
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, TypeResolver typeResolver, Class<?>... resources) throws IOException {
-        return getDSL(dsl).create(this, typeResolver, toReaders(resources));
+        return deprecatedStub(dsl, resources);
     }
 
     /**
@@ -437,12 +506,24 @@ public class KnowledgeService {
         return newKnowledge().newStatelessSession();
     }
 
+    /**
+     * Creates a new {@link Knowledge} instance from provided resources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(String, Object)} approach or the
+     */
+    @Deprecated
     public Knowledge newKnowledge(String dsl, String... resources) throws IOException {
-        return getDSL(dsl).create(this, readers(resources));
+        return deprecatedStub(dsl, resources);
     }
 
+    /**
+     * Creates a new {@link Knowledge} instance from provided resources.
+     * @deprecated this method is deprecated and scheduled for removal.
+     * Use the new {@link org.evrete.api.RuleSetContext#importRules(DSLKnowledgeProvider, Object)} approach or the
+     */
+    @Deprecated
     public Knowledge newKnowledge(Class<? extends DSLKnowledgeProvider> dsl, String... resources) throws IOException {
-        return getDSL(dsl).create(this, readers(resources));
+        return deprecatedStub(dsl, resources);
     }
 
     /**
@@ -451,34 +532,69 @@ public class KnowledgeService {
     public static class Builder {
         private final Configuration conf;
         private Class<? extends MemoryFactoryProvider> memoryFactoryProvider;
-        private Class<? extends ExpressionResolverProvider> expressionResolverProvider;
         private Class<? extends TypeResolverProvider> typeResolverProvider;
-        private Class<? extends LiteralSourceCompiler> literalSourceCompiler;
+        private Class<? extends SourceCompilerProvider> sourceCompilerProvider;
+        private ExecutorService executor;
 
+        /**
+         * Constructs a new Builder with the provided Configuration.
+         *
+         * @param conf The Configuration to be used by the Builder.
+         */
         private Builder(Configuration conf) {
             this.conf = conf;
         }
 
+        /**
+         * Sets the MemoryFactoryProvider class for this builder.
+         *
+         * @param memoryFactoryProvider The MemoryFactoryProvider class to set.
+         * @return The current Builder instance for method chaining.
+         */
         public Builder withMemoryFactoryProvider(Class<? extends MemoryFactoryProvider> memoryFactoryProvider) {
             this.memoryFactoryProvider = memoryFactoryProvider;
             return this;
         }
 
-        public Builder withExpressionResolverProvider(Class<? extends ExpressionResolverProvider> expressionResolverProvider) {
-            this.expressionResolverProvider = expressionResolverProvider;
-            return this;
-        }
-
+        /**
+         * Sets the TypeResolverProvider class for this builder.
+         *
+         * @param typeResolverProvider The TypeResolverProvider class to set.
+         * @return The current Builder instance for method chaining.
+         */
         public Builder withTypeResolverProvider(Class<? extends TypeResolverProvider> typeResolverProvider) {
             this.typeResolverProvider = typeResolverProvider;
             return this;
         }
 
-        public Builder withLiteralSourceCompiler(Class<? extends LiteralSourceCompiler> literalSourceCompiler) {
-            this.literalSourceCompiler = literalSourceCompiler;
+        /**
+         * Sets the SourceCompilerProvider class for this builder.
+         *
+         * @param sourceCompilerProvider The SourceCompilerProvider class to set.
+         * @return The current Builder instance for method chaining.
+         */
+        public Builder withSourceCompilerProvider(Class<? extends SourceCompilerProvider> sourceCompilerProvider) {
+            this.sourceCompilerProvider = sourceCompilerProvider;
             return this;
         }
 
+        /**
+         * Sets the external {@link ExecutorService} for this builder. Please note that externally supplied executors
+         * won't be automatically shut down when the {@link ExecutorService#shutdown()} method is invoked
+         *
+         * @param executor The ExecutorService to set.
+         * @return The current Builder instance for method chaining.
+         */
+        public Builder withExecutor(ExecutorService executor) {
+            this.executor = executor;
+            return this;
+        }
+
+        /**
+         * Constructs a new instance of the {@link KnowledgeService} with the current configuration of the builder.
+         *
+         * @return A new instance of the KnowledgeService.
+         */
         public KnowledgeService build() {
             return new KnowledgeService(this);
         }
@@ -487,16 +603,12 @@ public class KnowledgeService {
             return loadCoreSPI(MemoryFactoryProvider.class, Configuration.SPI_MEMORY_FACTORY, memoryFactoryProvider);
         }
 
-        private ExpressionResolverProvider getExpressionResolverProvider() {
-            return loadCoreSPI(ExpressionResolverProvider.class, Configuration.SPI_EXPRESSION_RESOLVER, expressionResolverProvider);
-        }
-
         private TypeResolverProvider getTypeResolverProvider() {
             return loadCoreSPI(TypeResolverProvider.class, Configuration.SPI_TYPE_RESOLVER, typeResolverProvider);
         }
 
-        private LiteralSourceCompiler getLiteralSourceCompiler() {
-            return loadCoreSPI(LiteralSourceCompiler.class, Configuration.SPI_SOURCE_COMPILER, literalSourceCompiler);
+        private SourceCompilerProvider getSourceCompilerProvider() {
+            return loadCoreSPI(SourceCompilerProvider.class, Configuration.SPI_SOURCE_COMPILER, sourceCompilerProvider);
         }
 
         @SuppressWarnings("unchecked")

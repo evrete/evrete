@@ -2,20 +2,17 @@ package org.evrete.benchmarks.jmh;
 
 import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
-import org.evrete.api.Evaluator;
-import org.evrete.api.IntToValue;
-import org.evrete.api.Knowledge;
-import org.evrete.api.LiteralExpression;
+import org.evrete.api.*;
 import org.evrete.api.builders.RuleBuilder;
 import org.evrete.benchmarks.models.misc.TypeA;
 import org.evrete.benchmarks.models.misc.TypeB;
 import org.evrete.benchmarks.models.misc.TypeC;
 import org.evrete.runtime.KnowledgeRuntime;
-import org.evrete.util.CompilationException;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -48,7 +45,7 @@ public class Expressions {
     @State(Scope.Thread)
     public static class BenchState {
         static final AtomicLong counter = new AtomicLong();
-        Evaluator evaluator;
+        ValuesPredicate evaluator;
         IntToValue func;
         private KnowledgeService service;
 
@@ -62,14 +59,18 @@ public class Expressions {
 
 
         @Setup(Level.Trial)
-        public void initAll() throws CompilationException {
+        public void initAll() {
             service = new KnowledgeService(new Configuration());
             KnowledgeRuntime knowledge = (KnowledgeRuntime) service.newKnowledge();
             RuleBuilder<Knowledge> rule = knowledge.builder().newRule();
             rule.forEach().addFactDeclaration("$a", TypeA.class);
             rule.forEach().addFactDeclaration("$b", TypeB.class.getName());
             rule.forEach().addFactDeclaration("$c", TypeC.class.getName());
-            evaluator = knowledge.compile(LiteralExpression.of("$a.i + $b.i + $c.i > 10_000", rule));
+            CompletableFuture<EvaluatorHandle> handleFuture = rule.getConditionManager().addCondition("$a.i + $b.i + $c.i > 10_000", WorkUnit.DEFAULT_COMPLEXITY);
+            rule.execute().build();
+
+            this.evaluator = knowledge.getEvaluatorsContext().getPredicate(handleFuture.join());
+
 
             Random random = new Random();
             Object[] vars = new Object[8192 * 256];

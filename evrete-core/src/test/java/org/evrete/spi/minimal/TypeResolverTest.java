@@ -5,8 +5,7 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
 import org.evrete.api.Type;
-import org.evrete.api.TypeResolver;
-import org.evrete.runtime.RhsAssert;
+import org.evrete.helper.RhsAssert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -47,12 +46,14 @@ class TypeResolverTest {
     @Test
     void testInheritance2() {
         RhsAssert rhsAssert = new RhsAssert("$s", StatefulSession.class);
-        TypeResolver typeResolver = service.newTypeResolver();
-        Type<StatefulSession> sessionType = typeResolver.declare(StatefulSession.class);
-        sessionType.declareBooleanField("hasTestRule", s -> s.getRule("Test") != null);
 
         Knowledge knowledge = service
-                .newKnowledge(typeResolver)
+
+                .newKnowledge()
+                .configureTypes(typeResolver -> {
+                    Type<StatefulSession> sessionType = typeResolver.declare(StatefulSession.class);
+                    sessionType.declareBooleanField("hasTestRule", s -> s.getRule("Test") != null);
+                })
                 .builder()
                 .newRule("Test")
                 .forEach("$s", StatefulSession.class)
@@ -67,13 +68,13 @@ class TypeResolverTest {
 
     @Test
     void testInheritance3() {
-        TypeResolver typeResolver = service.newTypeResolver();
-        Type<StatefulSession> sessionType = typeResolver.declare(StatefulSession.class);
-        sessionType.declareBooleanField("hasTestRule", s -> s.getRule("Test") != null);
-
         Set<Integer> assertSet = new HashSet<>();
         Knowledge knowledge = service
-                .newKnowledge(typeResolver)
+                .newKnowledge()
+                .configureTypes(typeResolver -> {
+                    Type<StatefulSession> sessionType = typeResolver.declare(StatefulSession.class);
+                    sessionType.declareBooleanField("hasTestRule", s -> s.getRule("Test") != null);
+                })
                 .builder()
                 .newRule()
                 .forEach("$s", StatefulSession.class)

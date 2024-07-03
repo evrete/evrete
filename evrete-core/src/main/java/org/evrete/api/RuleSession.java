@@ -1,6 +1,6 @@
 package org.evrete.api;
 
-import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import java.util.stream.Collector;
 
 /**
@@ -8,104 +8,29 @@ import java.util.stream.Collector;
  * Base interface for both stateful and stateless sessions
  * </p>
  */
-public interface RuleSession<S extends RuleSession<S>> extends RuleSetContext<S, RuntimeRule> {
+public interface RuleSession<S extends RuleSession<S>> extends RuleSetContext<S, RuntimeRule>, SessionOps, MemoryStreaming {
+
+
+
     /**
-     * <p>
-     * Inserts a fact in working memory and returns a serializable fact handle.
-     * </p>
+     * Returns fact by its handle.
      *
-     * @param fact object to insert
-     * @return fact handle assigned to the fact
-     * @throws NullPointerException if argument is null
-     * @see FactHandle
+     * @param handle fact handle
+     * @param <T>    type of the fact (use {@code Object}  or wildcard if type is unknown)
+     * @return fact or {@code null} if fact is not found
      */
-    default FactHandle insert(Object fact) {
-        return insert0(fact, true);
-    }
-
+    <T> T getFact(FactHandle handle);
 
     /**
-     * <p>
      * A convenience method that returns an instance of {@link Collector} for inserting
      * streams of facts.
-     * </p>
+     *
      * @param <T> the type of input elements to the reduction operation
      * @return collector
      */
     <T> Collector<T, ?, S> asCollector();
 
 
-    /**
-     * <p>
-     * Session call's the supplier's {@link BooleanSupplier#getAsBoolean()} method prior to each
-     * activation cycle. If the provided value is {@code false} then the cycle gets interrupted
-     * and session exits its fire(...) method.
-     * </p>
-     * <p>
-     * Along with the {@link ActivationManager}, this method can be used to debug rules, to avoid infinite
-     * activation loops, or to prevent excessive consumption of computer resources.
-     * </p>
-     *
-     * @param criteria - boolean value supplier
-     * @return this session
-     */
-    S setExecutionPredicate(BooleanSupplier criteria);
-
-
-    /**
-     * <p>
-     * Inserts a fact in working memory and returns a serializable fact handle.
-     * When {@code resolveCollections} is set to true, and the fact is an {@link Iterable}
-     * or an Array, the engine will instead insert its components and return a null {@link FactHandle}.
-     * </p>
-     * <p>
-     * Together with the {@link #insert0(String, Object, boolean)} method, this operation constitutes
-     * the core insert operations that are actually implemented by the engine. The other insert
-     * methods are just convenience wrappers of the two.
-     * </p>
-     *
-     * @param fact               object to insert
-     * @param resolveCollections collection/array inspection flag
-     * @return fact handle assigned to the fact, or {@code null} if multiple facts were inserted
-     * @throws NullPointerException if argument is null
-     * @see FactHandle
-     */
-    FactHandle insert0(Object fact, boolean resolveCollections);
-
-    /**
-     * <p>
-     * Inserts a fact and explicitly specifies its {@link Type} name.
-     * When {@code resolveCollections} is set to true, and the fact is an {@link Iterable}
-     * or an Array, the engine will instead insert its components, and return a null {@link FactHandle}.
-     * </p>
-     * <p>
-     * Together with the {@link #insert0(Object, boolean)} method, this operation constitutes
-     * the core insert operations that are actually implemented by the engine. The other insert
-     * methods are just convenience wrappers of the two.
-     * </p>
-     *
-     * @param fact               object to insert
-     * @param resolveCollections collection/array inspection flag
-     * @param type               type name
-     * @return fact handle assigned to the fact, or {@code null} if multiple facts were inserted
-     * @throws NullPointerException if argument is null
-     * @see FactHandle
-     */
-    FactHandle insert0(String type, Object fact, boolean resolveCollections);
-
-    /**
-     * <p>
-     * Inserts a fact and explicitly specifies its {@link Type} name.
-     * </p>
-     *
-     * @param type type name
-     * @param fact fact to insert
-     * @return fact handle assigned to the fact
-     * @throws NullPointerException if argument is null
-     */
-    default FactHandle insertAs(String type, Object fact) {
-        return insert0(type, fact, false);
-    }
 
     /**
      * <p>
@@ -160,8 +85,8 @@ public interface RuleSession<S extends RuleSession<S>> extends RuleSetContext<S,
      * </p>
      *
      * @param objects objects to insert
-     * @see #insert(Object)
      * @return this instance
+     * @see #insert(Object)
      */
     @SuppressWarnings("unchecked")
     default S insert(Object... objects) {
@@ -189,16 +114,26 @@ public interface RuleSession<S extends RuleSession<S>> extends RuleSetContext<S,
      *
      * @param listener the session lifecycle listener to add
      * @return the current instance of the session
+     * @deprecated since 4.0.0. The library has moved from an Observer to a PubSub pattern.
+     * See the {@link RuntimeContext#subscribe(Class, boolean, Consumer)} method for alternatives to adding listeners.
      */
-    S addEventListener(SessionLifecycleListener listener);
+    @Deprecated
+    default S addEventListener(SessionLifecycleListener listener) {
+        throw new UnsupportedOperationException("The library has moved from an Observer to a PubSub pattern. See the migration guides.");
+    }
 
     /**
      * Removes a {@link SessionLifecycleListener} from the session.
      *
      * @param listener the {@link SessionLifecycleListener} to be removed
      * @return the current instance of the session
+     * @deprecated since 4.0.0. The library has moved from an Observer to a PubSub pattern.
+     * See the {@link RuntimeContext#subscribe(Class, boolean, Consumer)} method for alternatives to adding listeners.
      */
-    S removeEventListener(SessionLifecycleListener listener);
+    @Deprecated
+    default S removeEventListener(SessionLifecycleListener listener) {
+        throw new UnsupportedOperationException("The library has moved from an Observer to a PubSub pattern. See the migration guides.");
+    }
 
     /**
      * Retrieves the parent context of this session instance.

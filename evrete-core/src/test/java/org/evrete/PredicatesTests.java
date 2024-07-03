@@ -8,7 +8,7 @@ import org.evrete.classes.TypeA;
 import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.classes.TypeD;
-import org.evrete.runtime.RhsAssert;
+import org.evrete.helper.RhsAssert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -121,8 +121,8 @@ class PredicatesTests {
     void testCircularMultiFinal() {
 
         ValuesPredicate p1 = values -> {
-            int ai = (int) values.apply(0);
-            int bi = (int) values.apply(1);
+            int ai = values.get(0);
+            int bi = values.get(1);
             return ai == bi;
         };
 
@@ -133,8 +133,8 @@ class PredicatesTests {
         };
 
         ValuesPredicate p3 = values -> {
-            int ci = (int) values.apply(0);
-            long al = (long) values.apply(1);
+            int ci = values.get(0);
+            long al = values.get(1);
             return ci == al;
         };
 
@@ -272,10 +272,10 @@ class PredicatesTests {
 
         // "$a.i * $b.l * $b.s == $a.l"
         ValuesPredicate predicate = v -> {
-            int ai = (int) v.apply(0);
-            long bl = (long) v.apply(1);
-            short bs = (short) v.apply(2);
-            long al = (long) v.apply(3);
+            int ai = v.get(0);
+            long bl = v.get(1);
+            short bs = v.get(2);
+            long al = v.get(3);
             return ai * bl * bs == al;
         };
 
@@ -333,34 +333,34 @@ class PredicatesTests {
         );
 
 
-        ValuesPredicate rule1_1 = v -> {
-            int ai = (int) v.apply(0);
-            int bi = (int) v.apply(1);
+        ValuesPredicate rule1_1 =  v -> {
+            int ai = v.get(0);
+            int bi = v.get(1);
             return ai != bi;
         };
-        ValuesPredicate rule1_2 = v -> {
-            double ad = (double) v.apply(0);
+        ValuesPredicate rule1_2 =  v -> {
+            double ad = v.get(0);
             return ad > 1;
         };
-        ValuesPredicate rule1_3 = v -> {
-            int bi = (int) v.apply(0);
+        ValuesPredicate rule1_3 =  v -> {
+            int bi = v.get(0);
             return bi > 10;
         };
 
 
-        ValuesPredicate rule2_1 = v -> {
-            int ai = (int) v.apply(0);
-            int bi = (int) v.apply(1);
+        ValuesPredicate rule2_1 =  v -> {
+            int ai = v.get(0);
+            int bi = v.get(1);
             return ai != bi;
         };
 
-        ValuesPredicate rule2_2 = v -> {
-            int ai = (int) v.apply(0);
+        ValuesPredicate rule2_2 =  v -> {
+            int ai = v.get(0);
             return ai < 3;
         };
 
-        ValuesPredicate rule2_3 = v -> {
-            float bf = (float) v.apply(0);
+        ValuesPredicate rule2_3 =  v -> {
+            float bf = v.get(0);
             return bf < 10;
         };
 
@@ -429,10 +429,10 @@ class PredicatesTests {
     void testUniType2() {
         Set<String> collectedJoinedIds = new HashSet<>();
 
-        ValuesPredicate predicate = v -> {
-            int i1 = (int) v.apply(0);
-            int i2 = (int) v.apply(1);
-            int i3 = (int) v.apply(2);
+        ValuesPredicate predicate =  v -> {
+            int i1 = v.get(0);
+            int i2 = v.get(1);
+            int i3 = v.get(2);
 
             return i1 * i2 == i3;
         };
@@ -512,13 +512,13 @@ class PredicatesTests {
                 "$c", TypeC.class
         );
 
-        ValuesPredicate p1 = v -> {
-            int i1 = (int) v.apply(0);
+        ValuesPredicate p1 =  v -> {
+            int i1 = v.get(0);
             return i1 > 4;
         };
 
-        ValuesPredicate p2 = v -> {
-            int i1 = (int) v.apply(0);
+        ValuesPredicate p2 =  v -> {
+            int i1 = v.get(0);
             return i1 > 3;
         };
 
@@ -574,18 +574,18 @@ class PredicatesTests {
                 "$c", TypeC.class
         );
 
-        ValuesPredicate p1 = v -> {
-            int i1 = (int) v.apply(0);
+        ValuesPredicate p1 =  v -> {
+            int i1 = v.get(0);
             return i1 > 4;
         };
 
-        ValuesPredicate p2 = v -> {
-            int i1 = (int) v.apply(0);
+        ValuesPredicate p2 =  v -> {
+            int i1 = v.get(0);
             return i1 > 3;
         };
 
-        ValuesPredicate p3 = v -> {
-            int i1 = (int) v.apply(0);
+        ValuesPredicate p3 =  v -> {
+            int i1 = v.get(0);
             return i1 > 6;
         };
 

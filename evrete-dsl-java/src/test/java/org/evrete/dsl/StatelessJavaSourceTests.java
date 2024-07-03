@@ -5,7 +5,6 @@ import org.evrete.api.ActivationMode;
 import org.evrete.api.Knowledge;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatelessSession;
-import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -14,6 +13,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.evrete.dsl.TestUtils.testResourceAsFile;
 
@@ -30,7 +30,6 @@ class StatelessJavaSourceTests {
         service.shutdown();
     }
 
-
     private static StatelessSession session(Knowledge knowledge, ActivationMode mode) {
         return knowledge.newStatelessSession(mode);
     }
@@ -39,7 +38,8 @@ class StatelessJavaSourceTests {
     @EnumSource(ActivationMode.class)
     void sort1(ActivationMode mode) throws IOException {
         File f = testResourceAsFile("java/SortTest1.java");
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_SOURCE, f);
+        Knowledge knowledge = service.newKnowledge()
+                .importRules(Constants.PROVIDER_JAVA_SOURCE, f);
         StatelessSession session = session(knowledge, mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 3;
@@ -53,7 +53,10 @@ class StatelessJavaSourceTests {
     void sort2(ActivationMode mode) throws IOException {
         File f = testResourceAsFile("java/SortTest2.java");
 
-        Knowledge knowledge = service.newKnowledge(DSLSourceProvider.class, f);
+        Knowledge knowledge = service.newKnowledge()
+                .importRules(new DSLSourceProvider(), f);
+
+
         StatelessSession session = session(knowledge, mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 3;
@@ -66,7 +69,10 @@ class StatelessJavaSourceTests {
     @EnumSource(ActivationMode.class)
     void sort3(ActivationMode mode) throws IOException {
         File f = testResourceAsFile("java/SortTest3.java");
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_SOURCE, f);
+        Knowledge knowledge = service.newKnowledge()
+                .importRules(Constants.PROVIDER_JAVA_SOURCE, f);
+
+
         StatelessSession session = session(knowledge, mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 3;
@@ -79,7 +85,9 @@ class StatelessJavaSourceTests {
     @EnumSource(ActivationMode.class)
     void sort4(ActivationMode mode) throws IOException {
         File f = testResourceAsFile("java/SortTest4.java");
-        Knowledge knowledge = service.newKnowledge(DSLSourceProvider.class, f);
+        Knowledge knowledge = service.newKnowledge()
+                .importRules(new DSLSourceProvider(), f);
+
         StatelessSession session = session(knowledge, mode);
         List<RuntimeRule> rules = session.getRules();
         assert rules.size() == 5;
@@ -94,7 +102,9 @@ class StatelessJavaSourceTests {
     @EnumSource(ActivationMode.class)
     void primeNonStaticMethod(ActivationMode mode) throws IOException {
         File f = testResourceAsFile("java/PrimeNumbers1.java");
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_SOURCE, f);
+        Knowledge knowledge = service.newKnowledge()
+                .importRules(Constants.PROVIDER_JAVA_SOURCE, f);
+
         StatelessSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
@@ -102,8 +112,8 @@ class StatelessJavaSourceTests {
             session.insert(i);
         }
 
-        NextIntSupplier primeCounter = new NextIntSupplier();
-        session.fire((o) -> primeCounter.next());
+        AtomicInteger primeCounter = new AtomicInteger();
+        session.fire((o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;
 
@@ -114,7 +124,10 @@ class StatelessJavaSourceTests {
     void primeStaticMethod(ActivationMode mode) throws IOException {
         File f = testResourceAsFile("java/PrimeNumbers2.java");
 
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_SOURCE, f);
+        Knowledge knowledge = service.newKnowledge()
+                .importRules(Constants.PROVIDER_JAVA_SOURCE, f);
+
+
         StatelessSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
@@ -122,8 +135,8 @@ class StatelessJavaSourceTests {
             session.insert(i);
         }
 
-        NextIntSupplier primeCounter = new NextIntSupplier();
-        session.fire((o) -> primeCounter.next());
+        AtomicInteger primeCounter = new AtomicInteger();
+        session.fire((o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;
 
@@ -133,7 +146,9 @@ class StatelessJavaSourceTests {
     @EnumSource(ActivationMode.class)
     void primeNonStaticMethodNonStaticCondition(ActivationMode mode) throws IOException {
         File f = testResourceAsFile("java/PrimeNumbers3.java");
-        Knowledge knowledge = service.newKnowledge(DSLSourceProvider.class, f);
+        Knowledge knowledge = service.newKnowledge()
+                .importRules(new DSLSourceProvider(), f);
+
         StatelessSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
@@ -141,8 +156,8 @@ class StatelessJavaSourceTests {
             session.insert(i);
         }
 
-        NextIntSupplier primeCounter = new NextIntSupplier();
-        session.fire((o) -> primeCounter.next());
+        AtomicInteger primeCounter = new AtomicInteger();
+        session.fire((o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25 : "Actual: " + primeCounter.get();
     }
@@ -151,15 +166,17 @@ class StatelessJavaSourceTests {
     @EnumSource(ActivationMode.class)
     void primeNonStaticMethodStaticCondition(ActivationMode mode) throws IOException {
         File f = testResourceAsFile("java/PrimeNumbers4.java");
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_SOURCE, f);
+        Knowledge knowledge = service.newKnowledge()
+                .importRules(Constants.PROVIDER_JAVA_SOURCE, f);
+
         StatelessSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
         for (int i = 2; i < 100; i++) {
             session.insert(i);
         }
-        NextIntSupplier primeCounter = new NextIntSupplier();
-        session.fire((o) -> primeCounter.next());
+        AtomicInteger primeCounter = new AtomicInteger();
+        session.fire((o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;
     }
@@ -169,15 +186,18 @@ class StatelessJavaSourceTests {
     void primeStaticMethodStaticCondition(ActivationMode mode) throws IOException {
         File f = testResourceAsFile("java/PrimeNumbers5.java");
 
-        Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_SOURCE, f);
+        Knowledge knowledge = service.newKnowledge()
+                .importRules(Constants.PROVIDER_JAVA_SOURCE, f);
+
+
         StatelessSession session = session(knowledge, mode);
 
         assert session.getRules().size() == 1;
         for (int i = 2; i < 100; i++) {
             session.insert(i);
         }
-        NextIntSupplier primeCounter = new NextIntSupplier();
-        session.fire((o) -> primeCounter.next());
+        AtomicInteger primeCounter = new AtomicInteger();
+        session.fire((o) -> primeCounter.incrementAndGet());
 
         assert primeCounter.get() == 25;
     }

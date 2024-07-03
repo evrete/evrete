@@ -4,7 +4,6 @@ import org.evrete.api.Knowledge;
 import org.evrete.api.RuleDescriptor;
 import org.evrete.api.RuntimeRule;
 import org.evrete.api.StatefulSession;
-import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("WeakerAccess")
 public class LiteralRhsTests {
@@ -114,12 +114,12 @@ public class LiteralRhsTests {
 
     @SuppressWarnings("unused")
     public static class SystemOut {
-        private static final NextIntSupplier counter = new NextIntSupplier();
+        private static final AtomicInteger counter = new AtomicInteger();
         private static final Collection<Object> collector = new LinkedList<>();
 
         @SuppressWarnings("unused")
         public static void out(Object o) {
-            counter.next();
+            counter.incrementAndGet();
             collector.add(o);
         }
 

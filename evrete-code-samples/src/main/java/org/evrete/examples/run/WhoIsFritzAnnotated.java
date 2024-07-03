@@ -11,7 +11,8 @@ public class WhoIsFritzAnnotated {
     public static void main(String[] args) throws Exception {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
-                .newKnowledge(
+                .newKnowledge()
+                .importRules(
                         "JAVA-CLASS",
                         WhoIsFritzAnnotated.RuleSet.class);
 

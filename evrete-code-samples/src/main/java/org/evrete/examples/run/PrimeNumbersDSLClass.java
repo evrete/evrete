@@ -14,7 +14,8 @@ public class PrimeNumbersDSLClass {
     public static void main(String[] args) throws IOException {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
-                .newKnowledge(
+                .newKnowledge()
+                .importRules(
                         "JAVA-CLASS",
                         PrimeNumbersDSLClass.Ruleset.class);
 

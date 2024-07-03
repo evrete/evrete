@@ -1,158 +1,66 @@
 package org.evrete.runtime;
 
-import org.evrete.api.*;
-import org.evrete.runtime.evaluation.AlphaEvaluator;
-import org.evrete.runtime.evaluation.EvaluatorWrapper;
+import org.evrete.api.FactHandle;
+import org.evrete.api.spi.FactStorage;
+import org.evrete.api.spi.ValueIndexer;
+import org.evrete.util.FactStorageWrapper;
+import org.evrete.util.MapEntryImpl;
 
-import java.util.BitSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.logging.Logger;
+import java.util.Map;
+import java.util.stream.Stream;
 
-public final class TypeMemory extends TypeMemoryBase {
-    private static final Logger LOGGER = Logger.getLogger(TypeMemory.class.getName());
-    private Cache cache;
+public final class TypeMemory extends FactStorageWrapper<DefaultFactHandle, FactHolder> {
+    private final int fieldCount;
+    private final String logicalType;
+    private final Class<?> javaType;
+    private final ValueIndexer<FactFieldValues> fieldValuesIndexer;
+    private final ActiveType type;
 
-    TypeMemory(SessionMemory sessionMemory, int type) {
-        super(sessionMemory, type);
-        updateCachedData();
+    TypeMemory(ActiveType type, FactStorage<DefaultFactHandle, FactHolder> factStorage, ValueIndexer<FactFieldValues> fieldValuesIndexer) {
+        super(factStorage);
+        // TODO Fix the mess with class fields
+        this.type = type;
+        this.fieldCount = type.getFieldCount();
+        this.logicalType = type.getValue().getName();
+        this.javaType = type.getValue().getJavaClass();
+        this.fieldValuesIndexer = fieldValuesIndexer;
     }
 
-    void updateCachedData() {
-        this.cache = new Cache(this.type, getRuntime());
+    public ActiveType getType() {
+        return type;
     }
 
-    FactRecord getFactRecord(FactHandle handle) {
-        return getStoredRecord(handle);
+    TypeMemory(AbstractRuleSession<?> runtime, ActiveType type) {
+        this(type, runtime.newTypeFactStorage(), runtime.newFieldValuesIndexer());
     }
 
-    void forEachFact(BiConsumer<FactHandle, Object> consumer) {
-        factStorage.iterator().forEachRemaining(record -> {
-            FactHandle handle = record.getHandle();
-            Object fact = record.getInstance().instance;
-            consumer.accept(handle, fact);
-        });
+    ValueIndexer<FactFieldValues> getFieldValuesIndexer() {
+        return fieldValuesIndexer;
     }
 
-    Optional<InsertedFact> registerInsertedFact(Object fact) {
-        FactRecord record = new FactRecord(fact);
-        FactHandle handle = factStorage.insert(record);
-        if (handle == null) {
-            LOGGER.warning("Fact " + fact + " has been already inserted");
-            return Optional.empty();
-        } else {
-            return Optional.of(new InsertedFact(handle, record));
-        }
+    public FactFieldValues readFieldValues(long valueId) {
+        return this.fieldValuesIndexer.get(valueId);
     }
 
-
-    public RuntimeFact createFactRuntime(FactHandle handle, FactRecord factRecord) {
-        FactHandleVersioned factHandle = new FactHandleVersioned(handle, factRecord.getVersion());
-        return cache.createFactRuntime(factHandle, factRecord, valueResolver);
+    public String getLogicalType() {
+        return logicalType;
     }
 
-    void onNewAlphaBucket(MemoryAddress address) {
-        KeyMemoryBucket bucket = touchMemory(address);
-        ReIterator<FactStorage.Entry<FactRecord>> allFacts = factStorage.iterator();
-        List<RuntimeFact> runtimeFacts = new LinkedList<>();
-        while (allFacts.hasNext()) {
-            FactStorage.Entry<FactRecord> rec = allFacts.next();
-            runtimeFacts.add(createFactRuntime(rec.getHandle(), rec.getInstance()));
-        }
-
-        bucket.insert(runtimeFacts);
-        bucket.commitBuffer();
+    public Class<?> getJavaType() {
+        return javaType;
     }
 
-    /**
-     * A state class to be used in memory initialization and hot deployment updates
-     */
-    static class Cache {
-        final TypeField[] fields;
-        final AlphaPredicate[] alphaEvaluators;
-        final Object[] currentValues;
-        final boolean hasAlphaConditions;
-
-        Cache(Type<?> type, AbstractRuleSession<?> runtime) {
-            Type<?> t = runtime.getType(type.getId());
-            TypeMemoryMetaData meta = runtime.getTypeMeta(t.getId());
-
-            this.fields = new TypeField[meta.activeFields.length];
-            for (int i = 0; i < meta.activeFields.length; i++) {
-
-                String fieldName = meta.activeFields[i].getName();
-                TypeField tf = type.getField(fieldName);
-                this.fields[i] = tf;
-            }
-            this.currentValues = new Object[this.fields.length];
-            this.hasAlphaConditions = meta.alphaEvaluators.length > 0;
-            this.alphaEvaluators = new AlphaPredicate[meta.alphaEvaluators.length];
-            if (hasAlphaConditions) {
-                for (int i = 0; i < alphaEvaluators.length; i++) {
-                    this.alphaEvaluators[i] = new AlphaPredicate(meta.alphaEvaluators[i], runtime.getEvaluators(), currentValues);
-                }
-            }
-        }
-
-        private RuntimeFact createFactRuntime(FactHandleVersioned factHandle, FactRecord factRecord, ValueResolver valueResolver) {
-
-            FieldValue[] fieldValues = new FieldValue[fields.length];
-            BitSet alphaTests;
-
-            if (hasAlphaConditions) {
-                for (int i = 0; i < fieldValues.length; i++) {
-                    TypeField f = fields[i];
-                    Object fieldValue = f.readValue(factRecord.instance);
-                    currentValues[i] = fieldValue;
-                    fieldValues[i] = valueResolver.getValueHandle(f.getValueType(), fieldValue);
-                }
-
-                alphaTests = new BitSet();
-                for (AlphaPredicate alphaEvaluator : alphaEvaluators) {
-                    if (alphaEvaluator.test()) {
-                        alphaTests.set(alphaEvaluator.getIndex());
-                    }
-                }
-
-            } else {
-                for (int i = 0; i < fieldValues.length; i++) {
-                    TypeField f = fields[i];
-                    fieldValues[i] = valueResolver.getValueHandle(f.getValueType(), f.readValue(factRecord.instance));
-                }
-                alphaTests = Mask.EMPTY;
-            }
-
-            return new RuntimeFact(factRecord, factHandle, fieldValues, alphaTests);
-        }
-
+    public int getFieldCount() {
+        return fieldCount;
     }
 
-    static class AlphaPredicate {
-        private final EvaluatorWrapper delegate;
-        private final int index;
-        private final IntToValue func;
-
-        AlphaPredicate(AlphaEvaluator alphaEvaluator, EvaluatorStorageImpl evaluators, Object[] values) {
-            this.delegate = evaluators.get(alphaEvaluator.getDelegate(), false);
-            ActiveField[] activeDescriptor = alphaEvaluator.getDescriptor();
-            this.index = alphaEvaluator.getIndex();
-
-            int[] valueIndices = new int[activeDescriptor.length];
-            for (int i = 0; i < valueIndices.length; i++) {
-                valueIndices[i] = activeDescriptor[i].getValueIndex();
-            }
-            this.func = i -> values[valueIndices[i]];
-        }
-
-        int getIndex() {
-            return index;
-        }
-
-        boolean test() {
-            return delegate.test(func);
-        }
-
+    @SuppressWarnings("unchecked")
+    public <T> Stream<Map.Entry<FactHandle, T>> streamFactEntries() {
+        return stream().map(entry -> new MapEntryImpl<>(entry.getKey(), (T) entry.getValue().getFact()));
     }
+
+    public void insert(FactHolder value) {
+        insert(value.getHandle(), value);
+    }
+
 }

@@ -17,7 +17,8 @@ public class StatelessSimpleAnnotated {
         KnowledgeService service = new KnowledgeService();
 
         Knowledge knowledge = service
-                .newKnowledge(
+                .newKnowledge()
+                .importRules(
                         "JAVA-CLASS",
                         StatelessSimpleAnnotated.class);
 

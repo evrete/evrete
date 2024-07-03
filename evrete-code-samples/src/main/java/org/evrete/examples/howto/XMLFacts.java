@@ -64,6 +64,7 @@ public class XMLFacts {
 
         session.fire();
         // Only one XML document will pass the 'active == true' filter
+        service.shutdown();
     }
 
     private static Document newCustomer(String name, boolean active) throws Exception {

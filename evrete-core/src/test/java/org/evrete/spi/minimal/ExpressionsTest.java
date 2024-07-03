@@ -4,11 +4,12 @@ import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.StatefulSession;
 import org.evrete.runtime.KnowledgeRuntime;
-import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("ALL")
 class ExpressionsTest {
@@ -34,13 +35,13 @@ class ExpressionsTest {
 
     @Test
     void testNestedFields1() {
-        NextIntSupplier counter = new NextIntSupplier();
+        AtomicInteger counter = new AtomicInteger();
         StatefulSession session = knowledge.builder()
                 .newRule()
                 .forEach("$o", Nested1.class)
                 .where("$o.parent.parent.id > 0")
                 .where("$o.id > 2")
-                .execute(ctx -> counter.next())
+                .execute(ctx -> counter.incrementAndGet())
                 .build()
                 .newStatefulSession();
 
@@ -57,13 +58,13 @@ class ExpressionsTest {
 
     @Test
     void testNestedFields2() {
-        NextIntSupplier counter = new NextIntSupplier();
+        AtomicInteger counter = new AtomicInteger();
         StatefulSession session = knowledge.builder()
                 .newRule()
                 .forEach("$o", NestedB.class)
                 .where("$o.parent.ida > 0")
                 .where("$o.idb > 2")
-                .execute(ctx -> counter.next())
+                .execute(ctx -> counter.incrementAndGet())
                 .build()
                 .newStatefulSession();
 
@@ -79,7 +80,7 @@ class ExpressionsTest {
 
     @Test
     void testThisFields2() {
-        NextIntSupplier counter = new NextIntSupplier();
+        AtomicInteger counter = new AtomicInteger();
         StatefulSession session = knowledge
                 .builder()
                 .newRule()
@@ -88,7 +89,7 @@ class ExpressionsTest {
                         "$i2", Integer.class
                 )
                 .where("$i1 > $i2")
-                .execute(ctx -> counter.next())
+                .execute(ctx -> counter.incrementAndGet())
                 .build()
                 .newStatefulSession();
 
@@ -100,14 +101,14 @@ class ExpressionsTest {
 
     @Test
     void testRepeatedReference() {
-        NextIntSupplier counter = new NextIntSupplier();
+        AtomicInteger counter = new AtomicInteger();
         StatefulSession session = knowledge.builder()
                 .newRule()
                 .forEach(
                         "$i", Integer.class
                 )
                 .where("$i > 0 || $i < 0")
-                .execute(ctx -> counter.next())
+                .execute(ctx -> counter.incrementAndGet())
                 .build()
                 .newStatefulSession();
 

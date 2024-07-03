@@ -11,7 +11,7 @@ import java.util.function.Predicate;
  *
  * @param <C> the type of the {@link RuntimeContext} of the builder
  */
-public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resolver {
+public interface LhsBuilder<C extends RuntimeContext<C>> {
     /**
      * <p>
      * Terminates current rule builder with the provided RHS action
@@ -58,18 +58,10 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
     }
 
     /**
-     * Adds one or more condition expressions to the current {@link LhsBuilder}.
-     *
-     * @param expressions the condition expressions to add
-     * @return the current {@link LhsBuilder}
-     */
-    LhsBuilder<C> where(EvaluatorHandle... expressions);
-
-    /**
      * Adds a condition expression to the current LhsBuilder.
      *
-     * @param expression  the condition expression to add
-     * @param complexity  the complexity of the condition expression
+     * @param expression the condition expression to add
+     * @param complexity the complexity of the condition expression
      * @return the current {@link LhsBuilder}
      */
     LhsBuilder<C> where(@NonNull String expression, double complexity);
@@ -79,7 +71,8 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
      *
      * @param predicate  the predicate to add as a condition
      * @param complexity the complexity of the condition
-     * @param references the references used in the condition
+     * @param references the field references, e.g., <code>["$a.id", "$b.code.value", "$c"]</code>,
+     *                   in the same order and of the same types as required by the predicate
      * @return the current {@link LhsBuilder}
      */
     LhsBuilder<C> where(@NonNull Predicate<Object[]> predicate, double complexity, String... references);
@@ -89,7 +82,8 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
      * default complexity, and references.
      *
      * @param predicate  the predicate to add as a condition
-     * @param references the references used in the condition
+     * @param references the field references, e.g., <code>["$a.id", "$b.code.value", "$c"]</code>,
+     *                   in the same order and of the same types as required by the predicate
      * @return the current {@link LhsBuilder}
      */
     default LhsBuilder<C> where(@NonNull Predicate<Object[]> predicate, String... references) {
@@ -101,7 +95,8 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
      *
      * @param predicate  the predicate to add as a condition
      * @param complexity the complexity of the condition
-     * @param references the references used in the condition
+     * @param references the field references, e.g., <code>["$a.id", "$b.code.value", "$c"]</code>,
+     *                   in the same order and of the same types as required by the predicate
      * @return the current {@link LhsBuilder}
      */
     LhsBuilder<C> where(@NonNull ValuesPredicate predicate, double complexity, String... references);
@@ -110,7 +105,8 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
      * Adds a condition to the current {@link LhsBuilder} with the provided predicate and field references.
      *
      * @param predicate  the predicate to add as a condition
-     * @param references the references used in the condition
+     * @param references the field references, e.g., <code>["$a.id", "$b.code.value", "$c"]</code>,
+     *                   in the same order and of the same types as required by the predicate
      * @return the current {@link LhsBuilder}
      */
     default LhsBuilder<C> where(@NonNull ValuesPredicate predicate, String... references) {
@@ -118,61 +114,42 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
     }
 
     /**
-     * Adds a condition to the current {@link LhsBuilder} with the provided predicate, complexity,
-     * and field references.
+     * A shorthand and fluent version of the {@link #addFactDeclaration(String, String)} method.
      *
-     * @param predicate  the predicate to add as a condition
-     * @param complexity the complexity of the condition
-     * @param references the references used in the condition
-     * @return the current {@link LhsBuilder}
-     * @throws NullPointerException if the predicate is null
-     * @throws NullPointerException if any of the references is null
+     * @param name the name of the fact declaration, e.g. "$customer"
+     * @param type the logical type of the fact, see the {@link Type} documentation on the logical types
+     * @return this builder
      */
-    LhsBuilder<C> where(@NonNull Predicate<Object[]> predicate, double complexity, FieldReference... references);
-
-    /**
-     * Adds a condition to the current {@link LhsBuilder} with the provided predicate, complexity, and field references.
-     *
-     * @param predicate  the predicate to add as a condition
-     * @param references the references used in the condition
-     * @return the current {@link LhsBuilder}
-     * @throws NullPointerException if the predicate is null
-     * @throws NullPointerException if any of the references is null
-     */
-    default LhsBuilder<C> where(@NonNull Predicate<Object[]> predicate, FieldReference... references) {
-        return where(predicate, WorkUnit.DEFAULT_COMPLEXITY, references);
-    }
-
-    /**
-     * Adds a condition to the current {@link LhsBuilder} with the provided predicate,
-     * complexity, and field references.
-     *
-     * @param predicate  the predicate to add as a condition
-     * @param complexity the complexity of the condition
-     * @param references the references used in the condition
-     * @return the current {@link LhsBuilder}
-     * @throws NullPointerException if the predicate is null
-     * @throws NullPointerException if any of the references is null
-     */
-    LhsBuilder<C> where(@NonNull ValuesPredicate predicate, double complexity, FieldReference... references);
-
-    /**
-     * Adds a condition to the current {@link LhsBuilder} with the provided predicate, complexity, and field references.
-     *
-     * @param predicate  the predicate to add as a condition
-     * @param references the references used in the condition
-     * @return the current {@link LhsBuilder}
-     * @throws NullPointerException if the predicate is null
-     * @throws NullPointerException if any of the references is null
-     */
-    default LhsBuilder<C> where(@NonNull ValuesPredicate predicate, FieldReference... references) {
-        return where(predicate, WorkUnit.DEFAULT_COMPLEXITY, references);
+    default LhsBuilder<C> addFact(@NonNull String name, @NonNull String type) {
+        addFactDeclaration(name, type);
+        return this;
     }
 
     /**
      * Adds a fact declaration to the current LhsBuilder.
      *
-     * @param name the name of the fact declaration
+     * @param name the name of the fact declaration, e.g. "$customer"
+     * @param type the logical type of the fact, see the {@link Type} documentation on the logical types
+     * @return the {@link NamedType} representing the fact declaration
+     */
+    NamedType addFactDeclaration(@NonNull String name, @NonNull String type);
+
+    /**
+     * A shorthand and fluent version of the {@link #addFactDeclaration(String, Type)} method.
+     *
+     * @param name the name of the fact declaration, e.g. "$customer"
+     * @param type the type of the fact declaration
+     * @return this builder
+     */
+    default LhsBuilder<C> addFact(@NonNull String name, @NonNull Type<?> type) {
+        addFactDeclaration(name, type);
+        return this;
+    }
+
+    /**
+     * Adds a fact declaration to the current LhsBuilder.
+     *
+     * @param name the name of the fact declaration, e.g. "$customer"
      * @param type the type of the fact declaration
      * @return the NamedType representing the fact declaration
      * @throws NullPointerException if either the name or type parameter is null
@@ -180,22 +157,23 @@ public interface LhsBuilder<C extends RuntimeContext<C>> extends NamedType.Resol
     NamedType addFactDeclaration(@NonNull String name, @NonNull Type<?> type);
 
     /**
-     * Adds a fact declaration to the current LhsBuilder.
+     * A shorthand and fluent version of the {@link #addFactDeclaration(String, Class)} method.
      *
-     * @param name the name of the fact declaration
+     * @param name the name of the fact declaration, e.g. "$customer"
      * @param type the type of the fact declaration
-     * @return the NamedType representing the fact declaration
-     * @throws NullPointerException if either the name or type parameter is null
+     * @return this builder
      */
-    NamedType addFactDeclaration(@NonNull String name, @NonNull String type);
+    default LhsBuilder<C> addFact(@NonNull String name, @NonNull Class<?> type) {
+        addFactDeclaration(name, type);
+        return this;
+    }
 
     /**
      * Adds a fact declaration to the current LhsBuilder.
      *
-     * @param name the name of the fact declaration
+     * @param name the name of the fact declaration, e.g. "$customer"
      * @param type the type of the fact declaration
-     * @return the NamedType representing the fact declaration
-     * @throws NullPointerException if either the name or type parameter is null
+     * @return the {@link NamedType} representing the fact declaration
      */
     NamedType addFactDeclaration(@NonNull String name, @NonNull Class<?> type);
 }

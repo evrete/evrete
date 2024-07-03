@@ -1,29 +1,12 @@
 package org.evrete.api;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.io.Serializable;
 
 /**
- * Evaluator handles essentially act as references to LHS (Left Hand Side) conditions, much like how each fact in working memory is associated with a fact handle.
- * While evaluator handles are mostly used under the hood, advanced users may utilize these handles to replace conditions on the fly.
+ * Evaluator handles essentially act as references to LHS (Left Hand Side) conditions, much like how each fact
+ * in working memory is associated with a fact handle. While evaluator handles are mostly used under the hood,
+ * advanced users may use these handles to replace conditions on the fly.
  */
-public interface EvaluatorHandle extends WorkUnit {
+public interface EvaluatorHandle extends Serializable {
 
-    /**
-     * @return an array of {@link FieldReference} objects representing the descriptor of this evaluator.
-     */
-    FieldReference[] descriptor();
-
-    /**
-     * Returns a Set of NamedType objects representing the types involved in the descriptor of this evaluator.
-     *
-     * @return a Set of NamedType objects representing the types involved in the descriptor of this evaluator
-     */
-    default Set<NamedType> namedTypes() {
-        Set<NamedType> set = new HashSet<>();
-        for (FieldReference r : descriptor()) {
-            set.add(r.type());
-        }
-        return set;
-    }
 }

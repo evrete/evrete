@@ -1,27 +1,21 @@
 package org.evrete.api;
 
+import org.evrete.api.annotations.NonNull;
+import org.evrete.api.events.ConditionEvaluationEvent;
+import org.evrete.api.events.Events;
+
+import java.util.function.BiConsumer;
+
 /**
+ * A context that maintains a collection of every condition used in the engine's runtime.
+ * This interface allows developers to register an {@link ValuesPredicate} and use its
+ * {@link EvaluatorHandle} to later update the supplied condition or subscribe to condition evaluation events.
  * <p>
- * A collection of every condition tha was ever used in the engine's runtime. It allows developers
- * to register an {@link Evaluator} and use its {@link EvaluatorHandle} to later update the supplied
- * condition.
+ * The context adheres to the context separation principle, i.e., changes made to a
+ * {@link Knowledge}-level context are propagated down to each spawned {@link RuleSession}, but not vice versa.
  * </p>
  */
 public interface EvaluatorsContext {
-
-    /**
-     * <p>
-     * Registers new condition evaluator and returns its handle. If an existing {@link Evaluator}
-     * matches the argument ({@link Evaluator#compare(Evaluator)} returns {@link Evaluator#RELATION_EQUALS}),
-     * the existing evaluator handle will be returned instead and no changes will be made in the
-     * context.
-     * </p>
-     *
-     * @param evaluator  condition to add
-     * @param complexity condition's relative complexity
-     * @return new {@link EvaluatorHandle} or the one of an existing condition.
-     */
-    EvaluatorHandle addEvaluator(Evaluator evaluator, double complexity);
 
     /**
      * <p>
@@ -29,41 +23,35 @@ public interface EvaluatorsContext {
      * </p>
      *
      * @param handle evaluator handle
-     * @return existing condition evaluator or null if such condition does not exist
+     * @return existing condition predicate or null if such condition does not exist
      */
-    Evaluator getEvaluator(EvaluatorHandle handle);
+    ValuesPredicate getPredicate(EvaluatorHandle handle);
+
 
     /**
-     * @param evaluator condition to add
-     * @return new {@link EvaluatorHandle} or the one of an existing condition.
-     * @see #addEvaluator(Evaluator, double)
-     */
-    default EvaluatorHandle addEvaluator(Evaluator evaluator) {
-        return addEvaluator(evaluator, WorkUnit.DEFAULT_COMPLEXITY);
-    }
-
-    /**
-     * <p>
-     * Replaces existing condition with a new one. New condition must have
-     * the same {@link Evaluator#descriptor()}, otherwise {@link IllegalArgumentException}
-     * will be thrown.
-     * </p>
+     * Creates or returns an existing publisher for a condition with the provided handle.
      *
-     * @param handle       handle of an existing condition
-     * @param newEvaluator new condition
-     * @throws IllegalArgumentException if no condition can be found by the given handle or
-     *                                  if the existing condition's descriptor does not match the new one.
+     * @param handle the evaluator handle
+     * @return a publisher of evaluation results
      */
-    void replaceEvaluator(EvaluatorHandle handle, Evaluator newEvaluator);
+    @NonNull
+    Events.Publisher<ConditionEvaluationEvent> publisher(EvaluatorHandle handle);
 
     /**
-     * <p>
-     * Replaces existing condition with a new one.
-     * </p>
+     * Executes the specified action for each Evaluator with its corresponding handle.
      *
-     * @param handle    handle of an existing condition
-     * @param predicate new condition in a form if {@link ValuesPredicate}
+     * @param listener The action to be performed.
      */
-    void replaceEvaluator(EvaluatorHandle handle, ValuesPredicate predicate);
+    void forEach(BiConsumer<EvaluatorHandle, ValuesPredicate> listener);
+
+
+    /**
+     * Replaces an existing condition with a new one. This method does not check the signature which
+     * may result in unpredictable results when applied incorrectly.
+     *
+     * @param handle       the handle of an existing condition
+     * @param newPredicate the new condition in the form of a {@link ValuesPredicate}
+     */
+    void replacePredicate(EvaluatorHandle handle, ValuesPredicate newPredicate);
 
 }

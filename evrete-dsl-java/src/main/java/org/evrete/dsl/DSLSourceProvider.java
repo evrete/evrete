@@ -1,49 +1,45 @@
 package org.evrete.dsl;
 
-import org.evrete.KnowledgeService;
-import org.evrete.api.JavaSourceCompiler;
-import org.evrete.api.Knowledge;
-import org.evrete.api.TypeResolver;
+import org.evrete.api.RuntimeContext;
+import org.evrete.api.spi.SourceCompiler;
+import org.evrete.util.CommonUtils;
 import org.evrete.util.CompilationException;
+import org.evrete.util.JavaSourceUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.lang.invoke.MethodHandles;
+import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.*;
 import java.util.logging.Level;
-
-import static org.evrete.dsl.Utils.LOGGER;
+import java.util.logging.Logger;
 
 /**
  * The DSLClassProvider class provides the implementation of the DSLKnowledgeProvider
  * interface for 'JAVA-SOURCE' DSL knowledge.
  */
 public class DSLSourceProvider extends AbstractDSLProvider {
-
-    private static final String CHARSET_PROPERTY = "org.evrete.source-charset";
-    private static final String CHARSET_DEFAULT = "UTF-8";
-
+    private static final Logger LOGGER = Logger.getLogger(DSLSourceProvider.class.getName());
+    private static final Class<?>[] SUPPORTED_TYPES = new Class<?>[] {
+            TYPE_INPUT_STREAM,
+            TYPE_URL,
+            TYPE_READER,
+            TYPE_CHAR_SEQUENCE,
+            TYPE_FILE
+    };
     /**
      * Default public constructor
      */
     public DSLSourceProvider() {
     }
 
-    private static Knowledge build(Knowledge knowledge, MethodHandles.Lookup lookup, String[] sources) {
-        Knowledge current = knowledge;
-        JavaSourceCompiler compiler = knowledge.getSourceCompiler();
-        for (String source : sources) {
-            try {
-                Class<?> ruleSet = compiler.compile(source);
-                current = processRuleSet(current, lookup, ruleSet);
-            } catch (CompilationException e) {
-                LOGGER.log(Level.WARNING,  e.getMessage(), e);
-                throw new IllegalStateException(e);
-            }
-        }
-        return current;
+    @Override
+    public Set<Class<?>> sourceTypes() {
+        return Set.of(SUPPORTED_TYPES);
     }
+
 
     @Override
     public String getName() {
@@ -51,19 +47,97 @@ public class DSLSourceProvider extends AbstractDSLProvider {
     }
 
     @Override
-    public Knowledge create(KnowledgeService service, TypeResolver typeResolver, InputStream... streams) throws IOException {
-        if (streams == null || streams.length == 0) throw new IOException("Empty resources");
-        String charSet = service.getConfiguration().getProperty(CHARSET_PROPERTY, CHARSET_DEFAULT);
-        Knowledge knowledge = service.newKnowledge(typeResolver);
-        MethodHandles.Lookup lookup = defaultLookup();
-        return build(knowledge, lookup, toSourceString(Charset.forName(charSet), streams));
+    <C extends RuntimeContext<C>> ResourceClasses createFromURLs(RuntimeContext<C> context, Collection<URL> resources) throws IOException {
+        Charset charset = charset(context.getConfiguration());
+        Collection<String> sources = new ArrayList<>(resources.size());
+        for (URL resource : resources) {
+            sources.add(toSourceString(charset, resource));
+        }
+        return createClassMetaFromSource(context, sources);
     }
 
     @Override
-    public Knowledge create(KnowledgeService service, Reader... readers) throws IOException {
-        if (readers == null || readers.length == 0) throw new IOException("Empty resources");
-        Knowledge knowledge = service.newKnowledge();
-        MethodHandles.Lookup lookup = defaultLookup();
-        return build(knowledge, lookup, toSourceString(readers));
+    <C extends RuntimeContext<C>> ResourceClasses createFromReaders(RuntimeContext<C> context, Collection<Reader> resources) throws IOException {
+        Collection<String> sources = new ArrayList<>(resources.size());
+        for (Reader reader : resources) {
+            sources.add(toSourceString(reader));
+        }
+        return createClassMetaFromSource(context, sources);
+    }
+
+    @Override
+    <C extends RuntimeContext<C>> ResourceClasses createFromStrings(RuntimeContext<C> context, Collection<CharSequence> resources) {
+        Collection<String> sources = new ArrayList<>(resources.size());
+        for(CharSequence resource : resources) {
+            sources.add(resource.toString());
+        }
+        return createClassMetaFromSource(context, sources);
+    }
+
+    @Override
+    <C extends RuntimeContext<C>> ResourceClasses createFromStreams(RuntimeContext<C> context, Collection<InputStream> resources) throws IOException {
+        Charset charset = charset(context.getConfiguration());
+        Collection<String> sources = new ArrayList<>(resources.size());
+        for (InputStream stream : resources) {
+            sources.add(toSourceString(charset, stream));
+        }
+        return this.createClassMetaFromSource(context, sources);
+    }
+
+    @Override
+    <C extends RuntimeContext<C>> ResourceClasses createFromFiles(RuntimeContext<C> context, Collection<File> resources) throws IOException {
+        return createFromURLs(context, toURLs(resources));
+    }
+
+    private <C extends RuntimeContext<C>> ResourceClasses createClassMetaFromSource(RuntimeContext<C> context, Collection<String> sources) {
+        // Sources need to be compiled first
+        SourceCompiler sourceCompiler = context.getService().getSourceCompilerProvider().instance(context.getClassLoader());
+        List<SourceCompiler.ClassSource> compilationUnits = new ArrayList<>(sources.size());
+        Map<SourceCompiler.ClassSource, Class<?>> map = new IdentityHashMap<>();
+        for (String source : sources) {
+            SourceCompiler.ClassSource classSource = JavaSourceUtils.parse(source);
+            compilationUnits.add(classSource);
+        }
+        assert compilationUnits.size() == sources.size();
+
+        try {
+            Collection<SourceCompiler.Result<SourceCompiler.ClassSource>> compiled = sourceCompiler.compile(compilationUnits);
+            for(SourceCompiler.Result<SourceCompiler.ClassSource> result : compiled) {
+                // We're saving the result in the map to maintain the initial order (see the code below)
+                map.put(result.getSource(), result.getCompiledClass());
+            }
+
+            List<Class<?>> compiledClasses = new ArrayList<>(compiled.size());
+            for(SourceCompiler.ClassSource classSource : compilationUnits) {
+                Class<?> clazz = map.get(classSource);
+                LOGGER.fine(()->"New class has been compiled and selected '" + clazz.getName() + "'");
+                compiledClasses.add(clazz);
+            }
+
+            if(compiledClasses.isEmpty()) {
+                LOGGER.warning("No classes were compiled");
+                return null;
+            } else {
+                ClassLoader classLoader = compiledClasses.iterator().next().getClassLoader();
+                return new ResourceClasses(classLoader, compiledClasses);
+            }
+        } catch (CompilationException e) {
+            e.log(LOGGER, Level.SEVERE);
+            throw new MalformedResourceException("Unable to compile source(s)", e);
+        }
+    }
+
+    private static String toSourceString(Reader reader) throws IOException {
+        return CommonUtils.toString(reader);
+    }
+
+    private static String toSourceString(Charset charset, InputStream stream) throws IOException {
+        return new String(CommonUtils.toByteArrayChecked(stream), charset);
+    }
+
+    private static String toSourceString(Charset charset, URL url) throws IOException {
+        try(InputStream is = url.openStream()) {
+            return toSourceString(charset, is);
+        }
     }
 }

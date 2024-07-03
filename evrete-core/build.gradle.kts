@@ -15,6 +15,9 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+//    testLogging.showStandardStreams = true
+//    val loggingConfigFile = project.file("src/test/resources/logging.properties1").absolutePath
+//    jvmArgs = listOf("-Djava.util.logging.config.file=$loggingConfigFile")
 }
 
 java {
@@ -26,6 +29,7 @@ java {
 
 
 tasks.register("moduleJavadoc") {
+    //inputs.files(project.java.sourceSets.main.get().java.srcDirs)
     doLast {
         val coreModuleName = "org.evrete.core"
         val ajrModuleName = "org.evrete.dsl.java"
@@ -71,13 +75,18 @@ tasks.register<Jar>("moduleJavadocJar") {
     destinationDirectory.set(file(jarFolder))
 }
 
+//TODO !!!
+/*
 tasks.named("moduleJavadoc") {
     finalizedBy("moduleJavadocJar")
 }
+*/
 
+/*
 tasks.named("compileJava") {
     finalizedBy("moduleJavadoc")
 }
+*/
 
 
 tasks.withType<GenerateModuleMetadata> {

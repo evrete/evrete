@@ -3,11 +3,10 @@ package org.evrete.runtime;
 import org.evrete.api.FactHandle;
 import org.evrete.api.StatefulSession;
 
-import java.util.concurrent.Future;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import java.util.Map;
+import java.util.stream.Stream;
 
-public class StatefulSessionImpl extends AbstractRuleSessionIO<StatefulSession> implements StatefulSession {
+public class StatefulSessionImpl extends AbstractRuleSession<StatefulSession> implements StatefulSession {
 
     StatefulSessionImpl(KnowledgeRuntime knowledge) {
         super(knowledge);
@@ -18,16 +17,21 @@ public class StatefulSessionImpl extends AbstractRuleSessionIO<StatefulSession> 
         return this;
     }
 
-    public <T> StatefulSession forEachFact(String type, Consumer<T> consumer) {
-        forEachFactFull(type, consumer);
-        return this;
+    @Override
+    public Stream<Map.Entry<FactHandle, Object>> streamFactEntries() {
+        return streamFactEntries(false);
     }
 
     @Override
-    public StatefulSession forEachFact(BiConsumer<FactHandle, Object> consumer) {
-        forEachFactFull(consumer);
-        return this;
+    public <T> Stream<Map.Entry<FactHandle, T>> streamFactEntries(Class<T> type) {
+        return this.streamFactEntries(type, false);
     }
+
+    @Override
+    public <T> Stream<Map.Entry<FactHandle, T>> streamFactEntries(String type) {
+        return streamFactEntries(type, false);
+    }
+
 
     @Override
     public void close() {
@@ -44,28 +48,5 @@ public class StatefulSessionImpl extends AbstractRuleSessionIO<StatefulSession> 
     public void clear() {
         clearInner();
     }
-
-    @Override
-    public final StatefulSession update(FactHandle handle, Object newValue) {
-        FactRecord record = getFactRecord(handle);
-        if (record == null) {
-            throw new IllegalArgumentException("Fact not found, handle: " + handle);
-        } else {
-            bufferUpdate(handle, record, newValue);
-            return this;
-        }
-    }
-
-    @Override
-    public final StatefulSession delete(FactHandle handle) {
-        bufferDelete(handle);
-        return this;
-    }
-
-    @Override
-    public <T> Future<T> fireAsync(final T result) {
-        return getExecutor().submit(this::fire, result);
-    }
-
 
 }

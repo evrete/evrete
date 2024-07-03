@@ -4,7 +4,6 @@ import org.evrete.KnowledgeService;
 import org.evrete.api.ActivationMode;
 import org.evrete.api.Knowledge;
 import org.evrete.api.StatefulSession;
-import org.evrete.util.NextIntSupplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -13,6 +12,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 class StatefulJavaJarTests {
     private static KnowledgeService service;
@@ -39,7 +39,10 @@ class StatefulJavaJarTests {
 
         TestUtils.createTempJarFile(dir, jarFile -> {
             try {
-                Knowledge knowledge = service.newKnowledge(AbstractDSLProvider.PROVIDER_JAVA_JAR, jarFile.toURI().toURL());
+                Knowledge knowledge = service.newKnowledge()
+                        .set(DSLJarProvider.CLASSES_PROPERTY, "pkg1.evrete.tests.rule.RuleSet2")
+                        .importRules(Constants.PROVIDER_JAVA_JAR, jarFile.toURI().toURL());
+
                 try (StatefulSession session = session(knowledge, mode)) {
                     assert session.getRules().size() == 2;
                     for (int i = 2; i < 100; i++) {
@@ -47,8 +50,8 @@ class StatefulJavaJarTests {
                     }
                     session.fire();
 
-                    NextIntSupplier primeCounter = new NextIntSupplier();
-                    session.forEachFact((h, o) -> primeCounter.next());
+                    AtomicInteger primeCounter = new AtomicInteger();
+                    session.forEachFact((h, o) -> primeCounter.incrementAndGet());
 
                     assert primeCounter.get() == 25;
                 }
@@ -64,7 +67,9 @@ class StatefulJavaJarTests {
         File dir = TestUtils.testResourceAsFile("jars/jar2");
         TestUtils.createTempJarFile(dir, jarFile -> {
             try {
-                Knowledge knowledge = service.newKnowledge(DSLJarProvider.class, jarFile.toURI().toURL());
+                Knowledge knowledge = service.newKnowledge()
+                        .set(DSLJarProvider.RULESETS_PROPERTY, "Test Ruleset 2")
+                        .importRules(new DSLJarProvider(), jarFile.toURI().toURL());
 
                 try (StatefulSession session = session(knowledge, mode)) {
                     assert session.getRules().size() == 2;
@@ -73,8 +78,8 @@ class StatefulJavaJarTests {
                     }
                     session.fire();
 
-                    NextIntSupplier primeCounter = new NextIntSupplier();
-                    session.forEachFact((h, o) -> primeCounter.next());
+                    AtomicInteger primeCounter = new AtomicInteger();
+                    session.forEachFact((h, o) -> primeCounter.incrementAndGet());
 
                     assert primeCounter.get() == 25;
                 }

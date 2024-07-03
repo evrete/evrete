@@ -2,35 +2,34 @@ package org.evrete.api;
 
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.annotations.Nullable;
-import org.evrete.util.TypeWrapper;
 
 import java.util.Collection;
 
 /**
  * <p>
- * TypeResolver provides dynamic mapping of Java types to engine's internal {@link Type}.
+ * TypeResolver provides dynamic mapping of Java types to the engine's internal {@link Type}.
  * In the engine, all fact types are represented by a String identifier and an associated Java
  * class. This allows instances of the same Java class to be treated as having different logical types.
  * </p>
+ *
+ * <p>
+ * This interface extends {@link Copyable}, allowing a {@link TypeResolver} to create copies of itself.
+ * The copies must inherit the original declared types but must not have a reverse effect — changes,
+ * such as new types or field declarations, in the copies must not be reflected in the original type resolver.
+ * </p>
+ *
+ * @see Copyable
  */
 public interface TypeResolver extends Copyable<TypeResolver> {
 
     /**
-     * @param name type's declared name
+     * @param name type's logical name
      * @param <T>  type parameter
      * @return existing {@link Type} or {@code null} if not found
      */
     @Nullable
     <T> Type<T> getType(String name);
 
-    /**
-     * @param typeId type id
-     * @param <T>    type parameter
-     * @return existing {@link Type}
-     * @throws java.util.NoSuchElementException if not found
-     */
-    @NonNull
-    <T> Type<T> getType(int typeId);
 
     /**
      * Returns a collection of all known types.
@@ -40,11 +39,22 @@ public interface TypeResolver extends Copyable<TypeResolver> {
     Collection<Type<?>> getKnownTypes();
 
     /**
-     * Wraps a given TypeWrapper instance and delegates the calls to another Type implementation.
+     * Returns a collection of all known types that have the same Java type as specified by the argument.
      *
-     * @param typeWrapper the TypeWrapper instance to be wrapped
+     * @param javaClass the class of the Java type to find known types for
+     * @return a collection of Type instances representing the known types with the specified Java type
      */
-    void wrapType(TypeWrapper<?> typeWrapper);
+    Collection<Type<?>> getKnownTypes(Class<?> javaClass);
+
+
+    /**
+     * Adds a new type to the type resolver and overrides any previous association
+     * between the type's logical name and the type itself.
+     *
+     * @param type The type to be added to the resolver.
+     * @since 4.0.0
+     */
+    void addType(Type<?> type);
 
     /**
      * <p>
@@ -58,7 +68,7 @@ public interface TypeResolver extends Copyable<TypeResolver> {
      * @throws IllegalStateException if such type name has been already declared
      */
     default <T> Type<T> declare(@NonNull Class<T> type) {
-        return declare(type.getName(), type);
+        return declare(Type.logicalNameOf(type), type);
     }
 
     /**

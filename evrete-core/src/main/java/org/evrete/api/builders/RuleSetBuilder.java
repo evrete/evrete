@@ -1,5 +1,6 @@
 package org.evrete.api.builders;
 
+import org.evrete.api.FluentEnvironment;
 import org.evrete.api.RuntimeContext;
 
 /**
@@ -7,8 +8,7 @@ import org.evrete.api.RuntimeContext;
  *
  * @param <C> Represents the type of the RuntimeContext.
  */
-public interface RuleSetBuilder<C extends RuntimeContext<C>> {
-
+public interface RuleSetBuilder<C extends RuntimeContext<C>> extends FluentEnvironment<RuleSetBuilder<C>> {
 
     /**
      * Creates a new rule with the provided name.
@@ -28,9 +28,28 @@ public interface RuleSetBuilder<C extends RuntimeContext<C>> {
 
     /**
      * <p>
-     *     Builds and appends previously created rules to the current context.
+     * Builds and appends previously created rules to the current context.
      * </p>
+     *
      * @return the current context after appending new rules
      */
     C build();
+
+
+    /**
+     * <p>
+     * Returns the builder's context.
+     * </p>
+     *
+     * @return the current context
+     */
+    C getContext();
+
+    /**
+     * Returns the current {@code ClassLoader} associated with this builder.
+     * By default, each builder inherits the class loader from the {@link #getContext()} instance.
+     *
+     * @return The current {@code ClassLoader}.
+     */
+    ClassLoader getClassLoader();
 }

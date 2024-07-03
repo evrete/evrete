@@ -1,22 +1,14 @@
 package org.evrete.dsl;
 
-import org.evrete.Configuration;
-import org.evrete.KnowledgeService;
-import org.evrete.api.JavaSourceCompiler;
-import org.evrete.api.Knowledge;
 import org.evrete.api.RuntimeContext;
-import org.evrete.api.TypeResolver;
 import org.evrete.dsl.annotation.RuleSet;
+import org.evrete.util.CommonUtils;
 
-import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.lang.invoke.MethodHandles;
+import java.net.URL;
 import java.util.*;
-import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
-
-import static org.evrete.dsl.Utils.LOGGER;
+import java.util.logging.Logger;
 
 /**
  * The DSLClassProvider class provides the implementation of the DSLKnowledgeProvider
@@ -24,14 +16,14 @@ import static org.evrete.dsl.Utils.LOGGER;
  */
 
 public class DSLJarProvider extends AbstractDSLProvider {
+    private static final Logger LOGGER = Logger.getLogger(DSLJarProvider.class.getName());
     static final String CLASSES_PROPERTY = "org.evrete.dsl.rule-classes";
-    private static final String EMPTY_CLASSES = "";
-    private static final String CLASS_ENTRY_SUFFIX = ".class";
-    private static final String[] DISALLOWED_PACKAGES = new String[]{
-            "java.",
-            "javax.",
-            "sun.",
-            "org.evrete.",
+    static final String RULESETS_PROPERTY = "org.evrete.dsl.ruleset-names";
+    private static final String EMPTY_STRING = "";
+
+    private static final Class<?>[] SUPPORTED_TYPES = new Class<?>[]{
+            TYPE_URL,
+            TYPE_FILE
     };
 
     /**
@@ -40,130 +32,85 @@ public class DSLJarProvider extends AbstractDSLProvider {
     public DSLJarProvider() {
     }
 
-    private static Knowledge apply(Knowledge knowledge, MethodHandles.Lookup lookup, Set<String> ruleClasses, InputStream... streams) throws IOException {
-        List<Class<?>> jarClasses = fillClassLoader(knowledge, streams);
-        Knowledge current = knowledge;
-        if (ruleClasses.isEmpty()) {
-            // Implicit declaration via @RuleSet
-            if (jarClasses.isEmpty()) {
-                LOGGER.warning("Classes annotated with @" + RuleSet.class.getSimpleName() + " not found");
-                return knowledge;
-            } else {
-                for (Class<?> cl : jarClasses) {
-                    current = processRuleSet(current, lookup, cl);
-                }
-            }
-        } else {
-            // Classes specified explicitly
-            for (String ruleClass : ruleClasses) {
-                try {
-                    Class<?> cl = current.getClassLoader().loadClass(ruleClass);
-                    current = processRuleSet(current, lookup, cl);
-                } catch (ClassNotFoundException e) {
-                    // No such rule class
-                    LOGGER.warning("Ruleset class '" + ruleClass + "' not found");
-                }
-            }
-        }
-
-        return current;
-    }
-
-    private static Set<String> ruleClasses(Configuration configuration) {
-        Set<String> ruleClasses = new HashSet<>();
-        String ruleSets = (String) configuration.getOrDefault(CLASSES_PROPERTY, EMPTY_CLASSES);
-        if (!ruleSets.isEmpty()) {
-            String[] classNames = ruleSets.split("[\\s,;]");
-            for (String className : classNames) {
-                if (className != null && !className.isEmpty()) {
-                    ruleClasses.add(className);
-                }
-            }
-        }
-        return ruleClasses;
-    }
-
-    private static List<Class<?>> fillClassLoader(RuntimeContext<?> ctx, InputStream... resources) throws IOException {
-        JarInputStream[] streams = new JarInputStream[resources.length];
-        for (int i = 0; i < resources.length; i++) {
-            streams[i] = new JarInputStream(resources[i]);
-        }
-
-        List<Class<?>> ruleSets = new LinkedList<>();
-
-        for (JarInputStream resource : streams) {
-            try (JarInputStream is = resource) {
-                List<Class<?>> jarRuleSets = applyJar(ctx, is);
-                ruleSets.addAll(jarRuleSets);
-            }
-        }
-        return ruleSets;
-    }
-
-    private static List<Class<?>> applyJar(RuntimeContext<?> ctx, JarInputStream is) throws IOException {
-        JavaSourceCompiler compiler = ctx.getSourceCompiler();
-        JarEntry entry;
-        byte[] buffer = new byte[1024];
-        //Map<String, byte[]> resources = new HashMap<>();
-        Map<String, byte[]> classes = new HashMap<>();
-        while ((entry = is.getNextJarEntry()) != null) {
-            if (!entry.isDirectory()) {
-                byte[] bytes = toBytes(is, buffer);
-                String name = entry.getName();
-                if (name.endsWith(CLASS_ENTRY_SUFFIX)) {
-                    String className = name
-                            .substring(0, name.length() - CLASS_ENTRY_SUFFIX.length())
-                            .replaceAll("/", ".");
-                    validateClassName(className);
-                    classes.put(className, bytes);
-                }
-            }
-        }
-
-        // Building classes and resources
-        for (Map.Entry<String, byte[]> e : classes.entrySet()) {
-            String className = e.getKey();
-            byte[] bytes = e.getValue();
-            compiler.defineClass(className, bytes);
-        }
-
-        List<Class<?>> allClasses = new LinkedList<>();
-        for(String classNme : classes.keySet()) {
-            try {
-                allClasses.add(ctx.getClassLoader().loadClass(classNme));
-            } catch (ClassNotFoundException e) {
-                throw new IllegalStateException("Class '" + classNme + "' couldn't be loaded", e);
-            }
-        }
-        return allClasses;
-    }
-
-    private static void validateClassName(String className) {
-        for (String pkg : DISALLOWED_PACKAGES) {
-            if (className.startsWith(pkg)) {
-                throw new IllegalArgumentException("Package name not allowed '" + className + "'");
-            }
-        }
-    }
-
-    private static byte[] toBytes(JarInputStream is, byte[] buffer) throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        int read;
-        while ((read = is.read(buffer)) != -1) {
-            bos.write(buffer, 0, read);
-        }
-        bos.flush();
-        bos.close();
-        return bos.toByteArray();
+    @Override
+    <C extends RuntimeContext<C>> ResourceClasses createFromFiles(RuntimeContext<C> context, Collection<File> resources) throws IOException {
+        return this.createFromURLs(context, toURLs(resources));
     }
 
     @Override
-    public Knowledge create(KnowledgeService service, TypeResolver typeResolver, InputStream... streams) throws IOException {
-        if (streams == null || streams.length == 0) throw new IOException("Empty streams");
-        Set<String> ruleClasses = ruleClasses(service.getConfiguration());
-        Knowledge knowledge = service.newKnowledge(typeResolver);
-        MethodHandles.Lookup lookup = defaultLookup();
-        return apply(knowledge, lookup, ruleClasses, streams);
+    <C extends RuntimeContext<C>> ResourceClasses createFromURLs(RuntimeContext<C> context, Collection<URL> resources) throws IOException {
+        JarClassloader jarClassloader = new JarClassloader(resources, context.getClassLoader());
+        String[] configClasses = CommonUtils.splitConfigString(context.get(CLASSES_PROPERTY, EMPTY_STRING));
+        final String[] criteria;
+        final Collection<Class<?>> selectedRuleClasses;
+        if (configClasses.length == 0) {
+            String[] configRuleSets = CommonUtils.splitCSV(context.get(RULESETS_PROPERTY, EMPTY_STRING));
+            if (configRuleSets.length == 0) {
+                throw new IllegalArgumentException("Neither ruleset names nor class names are specified");
+            } else {
+                criteria = configRuleSets;
+                selectedRuleClasses = readRulesets(jarClassloader, configRuleSets);
+            }
+        } else {
+            criteria = configClasses;
+            selectedRuleClasses = readClasses(jarClassloader, configClasses);
+        }
+
+        Collection<Class<?>> dslClasses = new ArrayList<>(selectedRuleClasses.size());
+        for (Class<?> ruleClass : selectedRuleClasses) {
+            if (Utils.isDslRuleClass(ruleClass)) {
+                dslClasses.add(ruleClass);
+            }
+        }
+
+        if (dslClasses.isEmpty()) {
+            LOGGER.fine(()->"No rule classes selected given the provided criteria: " + Arrays.toString(criteria));
+            return null;
+        } else {
+            return new ResourceClasses(jarClassloader, dslClasses, jarClassloader);
+        }
+    }
+
+    private Collection<Class<?>> readClasses(JarClassloader jarClassloader, String[] classNames) {
+        Collection<Class<?>> result = new ArrayList<>(classNames.length);
+        for (String className : classNames) {
+            try {
+                result.add(jarClassloader.loadClass(className));
+            } catch (ClassNotFoundException e) {
+                throw new MalformedResourceException("Unable to load class " + className, e);
+            }
+        }
+        return result;
+    }
+
+    private Collection<Class<?>> readRulesets(JarClassloader jarClassloader, String[] rulesetNames) throws IOException {
+        Map<String, Class<?>> stringClassMap = new HashMap<>();
+        Set<String> filter = new HashSet<>(Arrays.asList(rulesetNames));
+        jarClassloader.scan(c -> {
+            RuleSet rs = c.getAnnotation(RuleSet.class);
+            if (rs != null) {
+                String ruleSetName = rs.value();
+                if (ruleSetName != null && !ruleSetName.isEmpty() && filter.contains(ruleSetName)) {
+                    stringClassMap.put(ruleSetName, c);
+                }
+            }
+        });
+
+        // We need to return results in the same order
+        Collection<Class<?>> result = new ArrayList<>(stringClassMap.size());
+        for (String ruleSetName : rulesetNames) {
+            Class<?> ruleClass = stringClassMap.get(ruleSetName);
+            if (ruleClass != null) {
+                result.add(ruleClass);
+            }
+        }
+        return result;
+    }
+
+
+    @Override
+    public Set<Class<?>> sourceTypes() {
+        return Set.of(SUPPORTED_TYPES);
     }
 
     @Override

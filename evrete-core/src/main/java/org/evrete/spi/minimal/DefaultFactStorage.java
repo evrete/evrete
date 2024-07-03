@@ -1,134 +1,61 @@
 package org.evrete.spi.minimal;
 
 import org.evrete.api.FactHandle;
-import org.evrete.api.FactStorage;
-import org.evrete.api.ReIterator;
-import org.evrete.api.Type;
-import org.evrete.api.annotations.NonNull;
-import org.evrete.collections.AbstractLinearHash;
+import org.evrete.api.spi.FactStorage;
+import org.evrete.collections.LongKeyMap;
+import org.evrete.util.MapEntryImpl;
 
-import java.util.StringJoiner;
-import java.util.function.BiPredicate;
-import java.util.function.Function;
+import java.util.Map;
+import java.util.stream.Stream;
 
-class DefaultFactStorage<T> implements FactStorage<T> {
-    private final TupleCollection<T> collection;
-    private final Function<FactTuple<T>, FactStorage.Entry<T>> ITERATOR_MAPPER = t -> t;
+public class DefaultFactStorage<FH extends FactHandle, V> implements FactStorage<FH, V> {
+    private final Storage<FH, V> delegate = new Storage<>();
 
-    DefaultFactStorage(Type<?> type, BiPredicate<T, T> identityFunction) {
-        this.collection = new TupleCollection<>(type, identityFunction);
+    @Override
+    public void insert(FH factHandle, V value) {
+        delegate.insert(factHandle, value);
     }
 
     @Override
-    public FactHandle insert(T fact) {
-        return collection.insert(fact);
+    public V remove(FH factHandle) {
+        return delegate.remove(factHandle);
     }
 
     @Override
-    public void delete(FactHandle handle) {
-        this.collection.delete(handle);
-    }
-
-    @Override
-    public void update(FactHandle handle, T newInstance) {
-        this.collection.add(new FactTuple<>((FactHandleImpl) handle, newInstance));
-    }
-
-    @Override
-    public T getFact(FactHandle handle) {
-        return this.collection.getFact((FactHandleImpl) handle);
+    public V get(FH factHandle) {
+        return delegate.get(factHandle);
     }
 
     @Override
     public void clear() {
-        this.collection.clear();
+        this.delegate.clear();
     }
 
     @Override
-    public String toString() {
-        StringJoiner sj = new StringJoiner("\n");
-        collection.forEachDataEntry(t -> sj.add(t.toString()));
-        return sj.toString();
+    public Stream<Map.Entry<FH, V>> stream() {
+        return delegate.storage.values().map(fhvMapEntry -> fhvMapEntry);
     }
 
-    @NonNull
-    @Override
-    public ReIterator<Entry<T>> iterator() {
-        return collection.iterator(ITERATOR_MAPPER);
-    }
+    private static class Storage<FH extends FactHandle, V>  {
+        //TODO size config option
+        private final LongKeyMap<MapEntryImpl<FH, V>> storage = new LongKeyMap<>();
 
-    static class TupleCollection<T> extends AbstractLinearHash<FactTuple<T>> {
-        private final BiPredicate<T, T> identityFunction;
-        private final BiPredicate<FactTuple<T>, FactTuple<T>> equalsPredicate;
-        private final BiPredicate<FactTuple<T>, FactHandleImpl> searchByHandle = (factTuple, o) -> factTuple.handle.id == o.id;
-        private final BiPredicate<FactTuple<T>, T> searchByFact = new BiPredicate<FactTuple<T>, T>() {
-            @Override
-            public boolean test(FactTuple<T> factTuple, T o) {
-                return identityFunction.test(factTuple.object, o);
-            }
-        };
-        private final Type<?> type;
-        private long handleId = 0L;
-
-        TupleCollection(Type<?> type, BiPredicate<T, T> identityFunction) {
-            super();
-            this.identityFunction = identityFunction;
-            this.equalsPredicate = (t1, t2) -> identityFunction.test(t1.object, t2.object);
-            this.type = type;
+        synchronized void insert(FH factHandle, V value) {
+            storage.put(factHandle.getId(), new MapEntryImpl<>(factHandle, value));
         }
 
-        void add(FactTuple<T> factTuple) {
-            this.add(factTuple, equalsPredicate, factTuple);
+        synchronized V remove(FH factHandle) {
+            MapEntryImpl<FH, V> found = storage.remove(factHandle.getId());
+            return found == null ? null : found.getValue();
         }
 
-        FactHandleImpl insert(T fact) {
-            FactTuple<T> factTuple = insertIfAbsent(fact, searchByFact, (hash, t) -> {
-                FactHandleImpl handle = new FactHandleImpl(handleId++, hash, type.getId());
-                return new FactTuple<>(handle, fact);
-            });
-            return factTuple == null ? null : factTuple.handle;
+        V get(FH factHandle) {
+            MapEntryImpl<FH, V> found = storage.get(factHandle.getId());
+            return found == null ? null : found.getValue();
         }
 
-        void delete(FactHandle handle) {
-            FactHandleImpl impl = (FactHandleImpl) handle;
-            remove(impl, searchByHandle);
-        }
-
-        T getFact(FactHandleImpl impl) {
-            FactTuple<T> t = get(impl, searchByHandle);
-            return t == null ? null : t.object;
+        synchronized void clear() {
+            this.storage.clear();
         }
     }
-
-    static class FactTuple<Z> implements FactStorage.Entry<Z> {
-        private final FactHandleImpl handle;
-        private final Z object;
-
-        FactTuple(FactHandleImpl handle, Z object) {
-            this.handle = handle;
-            this.object = object;
-        }
-
-        @Override
-        public FactHandle getHandle() {
-            return handle;
-        }
-
-        @Override
-        public Z getInstance() {
-            return object;
-        }
-
-        @Override
-        public int hashCode() {
-            return handle.hash;
-        }
-
-        @Override
-        public String toString() {
-            return handle + " -> " + object;
-        }
-
-    }
-
 }

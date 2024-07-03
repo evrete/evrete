@@ -81,7 +81,7 @@ public class XMLType {
 
         System.out.println("Firing rules...");
         session.fire();
-
+        service.shutdown();
     }
 
     private static Document newCustomer(String name, boolean active) {

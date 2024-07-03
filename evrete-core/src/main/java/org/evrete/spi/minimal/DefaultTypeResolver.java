@@ -4,8 +4,6 @@ import org.evrete.api.Type;
 import org.evrete.api.TypeResolver;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.annotations.Nullable;
-import org.evrete.collections.ArrayOf;
-import org.evrete.util.TypeWrapper;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -13,12 +11,10 @@ import java.util.logging.Logger;
 class DefaultTypeResolver implements TypeResolver {
     private static final Logger LOGGER = Logger.getLogger(DefaultTypeResolver.class.getName());
     private final Map<String, Type<?>> typeDeclarationMap = new HashMap<>();
-    private final Map<Integer, Type<?>> typesById = new HashMap<>();
-    private final Map<String, ArrayOf<Type<?>>> typesByJavaType = new HashMap<>();
+    private final Map<Class<?>, Collection<Type<?>>> typesByJavaType = new HashMap<>();
 
     private final Map<String, TypeCacheEntry> typeInheritanceCache = new HashMap<>();
     private final ClassLoader classLoader;
-    private int fieldSetsCounter = 0;
 
     DefaultTypeResolver(ClassLoader classLoader) {
         this.classLoader = classLoader;
@@ -26,25 +22,22 @@ class DefaultTypeResolver implements TypeResolver {
 
     private DefaultTypeResolver(DefaultTypeResolver other) {
         this.classLoader = other.classLoader;
-        this.fieldSetsCounter = other.fieldSetsCounter;
+        // 1. Replace types with their cloned instances in the main mapping
         for (Map.Entry<String, Type<?>> entry : other.typeDeclarationMap.entrySet()) {
             Type<?> clonedType = entry.getValue().copyOf();
             this.typeDeclarationMap.put(entry.getKey(), clonedType);
-            this.typesById.put(clonedType.getId(), clonedType);
         }
 
-        for (Type<?> t : this.typeDeclarationMap.values()) {
-            String javaType = t.getJavaType();
+        // 2. Rebuild the inverse mapping
+        for (Type<?> clonedType : this.typeDeclarationMap.values()) {
+            Class<?> javaType = clonedType.getJavaClass();
             this.typesByJavaType
-                    .computeIfAbsent(javaType, s -> new ArrayOf<>(new Type<?>[0]))
-                    .append(t);
-        }
-
-        for (Map.Entry<String, ArrayOf<Type<?>>> entry : other.typesByJavaType.entrySet()) {
-            this.typesByJavaType.put(entry.getKey(), new ArrayOf<>(entry.getValue()));
+                    .computeIfAbsent(javaType, s -> new ArrayList<>())
+                    .add(clonedType);
         }
     }
 
+    @Nullable
     private static Class<?> primitiveClassForName(String className) {
         switch (className) {
             case "boolean":
@@ -70,18 +63,6 @@ class DefaultTypeResolver implements TypeResolver {
         }
     }
 
-    @NonNull
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> Type<T> getType(int typeId) {
-        Type<?> t = typesById.get(typeId);
-        if (t == null) {
-            throw new NoSuchElementException("No type found with id=" + typeId);
-        } else {
-            return (Type<T>) t;
-        }
-    }
-
     @Nullable
     @Override
     @SuppressWarnings("unchecked")
@@ -90,43 +71,8 @@ class DefaultTypeResolver implements TypeResolver {
     }
 
 
-    @Override
-    public synchronized void wrapType(TypeWrapper<?> typeWrapper) {
-        Type<?> delegate = typeWrapper.getDelegate();
-        String typeName = typeWrapper.getName();
-        int typeId = typeWrapper.getId();
-        Type<?> prev = this.typeDeclarationMap.put(typeName, typeWrapper);
-        if (prev != delegate) {
-            throw new IllegalStateException(typeWrapper + " wraps an unknown type");
-        }
-
-        prev = this.typesById.put(typeId, typeWrapper);
-        if (prev != delegate) {
-            throw new IllegalStateException(typeWrapper + " wraps an unknown type");
-        }
-
-
-        ArrayOf<Type<?>> byJavaTypes = typesByJavaType.get(typeWrapper.getJavaType());
-        if (byJavaTypes == null) {
-            throw new IllegalStateException();
-        }
-
-        boolean changed = false;
-        for (int i = 0; i < byJavaTypes.length(); i++) {
-            if (byJavaTypes.get(i) == delegate) {
-                byJavaTypes.set(i, typeWrapper); // Replacing the type
-                changed = true;
-                break;
-            }
-        }
-
-        if (!changed) {
-            throw new IllegalStateException();
-        }
-    }
-
     @SuppressWarnings("unchecked")
-    private <T> Class<T> classForName(String javaType) {
+    private <T> Class<T> classForName(ClassLoader classLoader, String javaType) {
         try {
             Class<?> clazz = primitiveClassForName(javaType);
             if (clazz == null) {
@@ -141,38 +87,41 @@ class DefaultTypeResolver implements TypeResolver {
     @NonNull
     @Override
     public synchronized <T> Type<T> declare(@NonNull String typeName, @NonNull String javaType) {
-        return saveNewType(typeName, new TypeImpl<>(typeName, javaType, newId(), () -> {
-            Class<T> resolvedJavaType = classForName(javaType);
-            if (resolvedJavaType == null) {
-                throw new IllegalStateException("Unable to resolve Java class '" + javaType + "'");
-            } else {
-                return resolvedJavaType;
-            }
-        }));
+        Class<T> resolvedJavaType = classForName(classLoader, javaType);
+        if (resolvedJavaType == null) {
+            throw new IllegalStateException("Unable to resolve Java class '" + javaType + "'");
+        } else {
+            return registerNewType(new TypeImpl<>(typeName, resolvedJavaType));
+        }
     }
 
     @Override
     @NonNull
     public synchronized <T> Type<T> declare(@NonNull String typeName, @NonNull Class<T> javaType) {
-        return saveNewType(typeName, new TypeImpl<>(typeName, javaType.getName(), newId(), () -> javaType));
+        return registerNewType(new TypeImpl<>(typeName, javaType));
     }
 
-    private int newId() {
-        return typeDeclarationMap.size();
-    }
-
-    private <T> Type<T> saveNewType(String typeName, Type<T> type) {
-        if (typeDeclarationMap.put(typeName, type) == null) {
-            typesById.put(type.getId(), type);
+    private <T> Type<T> registerNewType(Type<T> type) {
+        Type<?> previous = typeDeclarationMap.put(type.getName(), type);
+        if (previous != null) {
+            // Remove reverse association
             typesByJavaType.computeIfAbsent(
-                            type.getJavaType(),
-                            k -> new ArrayOf<Type<?>>(new Type[]{}))
-                    .append(type);
-            typeInheritanceCache.clear();
-            return type;
-        } else {
-            throw new IllegalStateException("Type name '" + typeName + "' has been already defined");
+                    previous.getJavaClass(),
+                    k -> new ArrayList<>())
+                    .remove(previous);
         }
+        typesByJavaType.computeIfAbsent(
+                        type.getJavaClass(),
+                        k -> new ArrayList<>())
+                .add(type);
+        typeInheritanceCache.clear();
+        return type;
+
+    }
+
+    @Override
+    public synchronized void addType(Type<?> type) {
+        this.registerNewType(type);
     }
 
     @Override
@@ -180,11 +129,15 @@ class DefaultTypeResolver implements TypeResolver {
         return Collections.unmodifiableCollection(typeDeclarationMap.values());
     }
 
+    @Override
+    public Collection<Type<?>> getKnownTypes(Class<?> javaClass) {
+        return  Collections.unmodifiableCollection(this.typesByJavaType.getOrDefault(javaClass, Collections.emptySet()));
+    }
 
     private Type<?> findInSuperClasses(Class<?> type) {
         List<Type<?>> matched = new ArrayList<>(typeDeclarationMap.size());
         for (Type<?> t : typeDeclarationMap.values()) {
-            if (t.resolveJavaType().isAssignableFrom(type)) {
+            if (t.getJavaClass().isAssignableFrom(type)) {
                 matched.add(t);
             }
         }
@@ -195,27 +148,21 @@ class DefaultTypeResolver implements TypeResolver {
             case 1:
                 return matched.iterator().next();
             default:
-                LOGGER.warning("Unable to resolve type '" + type + "' due to ambiguity.");
+                LOGGER.warning(()->"Unable to resolve type '" + type + "' due to ambiguity.");
                 return null;
         }
     }
+
 
     @Override
     @SuppressWarnings("unchecked")
     public <T> Type<T> resolve(Object o) {
         Objects.requireNonNull(o);
         Class<?> javaType = o.getClass();
-        String name = javaType.getName();
 
-        ArrayOf<Type<?>> associatedTypes = typesByJavaType.get(name);
-        if (associatedTypes != null) {
-            if (associatedTypes.length() > 1) {
-                LOGGER.warning("Ambiguous type declaration found, there are " + associatedTypes.length() + " types associated with the '" + name + "' Java type, returning <null>.");
-                return null;
-            } else {
-                return (Type<T>) associatedTypes.get(0);
-            }
-        } else {
+        Collection<Type<?>> associatedTypes = typesByJavaType.getOrDefault(javaType, Collections.emptySet());
+        if (associatedTypes.isEmpty()) {
+            String name = Type.logicalNameOf(javaType);
             // There is no direct match, but there might be a registered super class that can be used instead
             TypeCacheEntry cacheEntry = typeInheritanceCache.get(name);
             if (cacheEntry == null) {
@@ -228,6 +175,14 @@ class DefaultTypeResolver implements TypeResolver {
                 }
             }
             return (TypeImpl<T>) cacheEntry.type;
+
+        } else {
+            if (associatedTypes.size() > 1) {
+                LOGGER.warning(()->"Ambiguous type declaration found, there are " + associatedTypes.size() + " types associated with the '" + javaType.getName() + "' Java type, returning <null>.");
+                return null;
+            } else {
+                return (Type<T>) associatedTypes.iterator().next();
+            }
         }
     }
 

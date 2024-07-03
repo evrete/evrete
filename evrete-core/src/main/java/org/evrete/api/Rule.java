@@ -8,7 +8,8 @@ import java.util.function.Consumer;
  * Base interface for each rule in the engine.
  * Provides mechanisms for getting and setting rule characteristics and behavior.
  */
-public interface Rule extends FluentEnvironment<Rule>, Named, NamedType.Resolver {
+public interface Rule extends Environment, Named, NamedType.Resolver {
+
 
     /**
      * Gets the RHS (Right Hand Side) logic as a Consumer.

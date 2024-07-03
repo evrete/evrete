@@ -1,10 +1,14 @@
 package org.evrete.runtime;
 
+import org.evrete.runtime.evaluation.AlphaConditionHandle;
+import org.evrete.util.IndexedValue;
+
 import java.util.BitSet;
+import java.util.Collection;
+import java.util.Objects;
 import java.util.function.ToIntFunction;
 
 public final class Mask<T> {
-    public static final BitSet EMPTY = new BitSet();
     private final BitSet delegate = new BitSet();
     private final ToIntFunction<T> intMapper;
 
@@ -12,20 +16,48 @@ public final class Mask<T> {
         this.intMapper = intMapper;
     }
 
-    public static Mask<MemoryAddress> addressMask() {
-        return new Mask<>(MemoryAddress::getId);
-    }
-
-    public static Mask<FactType> factTypeMask() {
-        return new Mask<>(FactType::getInRuleIndex);
+    BitSet getDelegate() {
+        return delegate;
     }
 
     public void or(Mask<T> other) {
         delegate.or(other.delegate);
     }
 
-    public void set(T obj) {
+
+    public boolean containsAll(Mask<T> value) {
+        BitSet other = value.delegate;
+        if(other.isEmpty() && delegate.isEmpty()) {
+            return true;
+        } else {
+            BitSet otherCloned = (BitSet) other.clone();
+            otherCloned.and(delegate);
+            return otherCloned.equals(other);
+        }
+    }
+
+    public Mask<T> set(T obj) {
         delegate.set(intMapper.applyAsInt(obj));
+        return this;
+    }
+
+    public Mask<T> set(T obj, boolean flag) {
+        delegate.set(intMapper.applyAsInt(obj), flag);
+        return this;
+    }
+
+    public Mask<T> set(T[] arr) {
+        for (T obj : arr) {
+            this.set(obj);
+        }
+        return this;
+    }
+
+    public Mask<T> set(Collection<? extends T> arr) {
+        for (T obj : arr) {
+            this.set(obj);
+        }
+        return this;
     }
 
     public boolean get(T obj) {
@@ -36,12 +68,62 @@ public final class Mask<T> {
         return delegate.cardinality();
     }
 
+    public int length() {
+        return delegate.length();
+    }
+
     public boolean intersects(Mask<T> other) {
         return delegate.intersects(other.delegate);
+    }
+
+    public static <I extends IndexedValue<?>> Mask<I> ofIndexed() {
+        return new Mask<>(value -> value.getIndex());
+    }
+
+    public static <I> Mask<I> instance(ToIntFunction<I> intMapper) {
+        return new Mask<>(intMapper);
+    }
+
+
+    public static <I extends IndexedValue<?>> Mask<I> or(Collection<Mask<I>> collection) {
+        Mask<I> result = ofIndexed();
+        for (Mask<I> mask : collection) {
+            result.or(mask);
+        }
+        return result;
+    }
+
+    public static Mask<FactType> factTypeMask() {
+        return new Mask<>(FactType::getInRuleIndex);
+    }
+
+    public static Mask<AlphaConditionHandle> alphaConditionsMask() {
+        return Mask.instance(AlphaConditionHandle::getIndex);
+    }
+
+    public static Mask<ActiveType> typeMask() {
+        return new Mask<>(value -> value.getId().getIndex());
+    }
+
+    public static Mask<AlphaAddress> alphaAddressMask() {
+        return Mask.instance(AlphaAddress::getIndex);
     }
 
     @Override
     public String toString() {
         return delegate.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Mask<?> mask = (Mask<?>) o;
+        return Objects.equals(delegate, mask.delegate);
+    }
+
+    @Override
+    public int hashCode() {
+        return delegate.hashCode();
     }
 }

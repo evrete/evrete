@@ -12,10 +12,10 @@ public class PrimeNumbersDSLUrl {
     public static void main(String[] args) throws IOException {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
-                .newKnowledge(
+                .newKnowledge()
+                .importRules(
                         "JAVA-SOURCE",
-                        URI.create("https://www.evrete.org/examples/PrimeNumbersSource.java").toURL()
-                );
+                        URI.create("https://www.evrete.org/examples/PrimeNumbersSource.java").toURL());
 
         try (StatefulSession session = knowledge.newStatefulSession()) {
             // Inject candidates
@@ -27,5 +27,7 @@ public class PrimeNumbersDSLUrl {
             // Printout current memory state
             session.forEachFact((handle, o) -> System.out.println(o));
         }
+
+        service.shutdown();
     }
 }

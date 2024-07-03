@@ -4,6 +4,8 @@ import org.evrete.Configuration;
 import org.evrete.KnowledgeService;
 import org.evrete.api.*;
 import org.evrete.api.builders.RuleSetBuilder;
+import org.evrete.api.events.ContextEvent;
+import org.evrete.api.events.Events;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -29,23 +31,8 @@ class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends RuntimeCon
     }
 
     @Override
-    public void addListener(EvaluationListener listener) {
-        delegate.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(EvaluationListener listener) {
-        delegate.removeListener(listener);
-    }
-
-    @Override
-    public Collection<LiteralEvaluator> compile(Collection<LiteralExpression> expressions) throws CompilationException {
-        return delegate.compile(expressions);
-    }
-
-    @Override
-    public final FieldReference[] resolveFieldReferences(String[] args, NamedType.Resolver typeMapper) {
-        return delegate.resolveFieldReferences(args, typeMapper);
+    public String getName() {
+        return delegate.getName();
     }
 
     @Override
@@ -60,14 +47,14 @@ class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends RuntimeCon
     }
 
     @Override
-    public C configureTypes(Consumer<TypeResolver> action) {
-        delegate.configureTypes(action);
-        return self();
+    public <E extends ContextEvent> Events.Publisher<E> getPublisher(Class<E> eventClass) {
+        return delegate.getPublisher(eventClass);
     }
 
     @Override
-    public void setClassLoader(ClassLoader classLoader) {
-        delegate.setClassLoader(classLoader);
+    public C configureTypes(Consumer<TypeResolver> action) {
+        delegate.configureTypes(action);
+        return self();
     }
 
     @SuppressWarnings("unchecked")
@@ -102,26 +89,8 @@ class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends RuntimeCon
     }
 
     @Override
-    @Deprecated
-    public RuleBuilder<C> newRule(String name) {
-        return delegate.newRule(name);
-    }
-
-    @Override
-    @Deprecated
-    public RuleBuilder<C> newRule() {
-        return delegate.newRule();
-    }
-
-    @Override
-    public RuleSetBuilder<C> builder() {
-        return delegate.builder();
-    }
-
-    @Override
-    @Deprecated
-    public void wrapTypeResolver(TypeResolverWrapper wrapper) {
-        delegate.wrapTypeResolver(wrapper);
+    public RuleSetBuilder<C> builder(ClassLoader classLoader) {
+        return delegate.builder(classLoader);
     }
 
     @Override
@@ -131,28 +100,8 @@ class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends RuntimeCon
     }
 
     @Override
-    public EvaluatorHandle addEvaluator(Evaluator evaluator, double complexity) {
-        return delegate.addEvaluator(evaluator, complexity);
-    }
-
-    @Override
-    public void replaceEvaluator(EvaluatorHandle handle, Evaluator newEvaluator) {
-        delegate.replaceEvaluator(handle, newEvaluator);
-    }
-
-    @Override
-    public Evaluator getEvaluator(EvaluatorHandle handle) {
-        return delegate.getEvaluator(handle);
-    }
-
-    @Override
-    public void replaceEvaluator(EvaluatorHandle handle, ValuesPredicate predicate) {
-        delegate.replaceEvaluator(handle, predicate);
-    }
-
-    @Override
-    public ExpressionResolver getExpressionResolver() {
-        return delegate.getExpressionResolver();
+    public EvaluatorsContext getEvaluatorsContext() {
+        return delegate.getEvaluatorsContext();
     }
 
     @Override
@@ -190,8 +139,4 @@ class RuntimeContextWrapper<D extends RuleSetContext<C, R>, C extends RuntimeCon
         return delegate.getConfiguration();
     }
 
-    @Override
-    public JavaSourceCompiler getSourceCompiler() {
-        return delegate.getSourceCompiler();
-    }
 }

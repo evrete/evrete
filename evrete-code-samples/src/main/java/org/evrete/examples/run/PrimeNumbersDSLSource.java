@@ -11,7 +11,8 @@ public class PrimeNumbersDSLSource {
     public static void main(String[] args) throws IOException {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
-                .newKnowledge(
+                .newKnowledge()
+                .importRules(
                         "JAVA-SOURCE",
                         URI.create("https://www.evrete.org/examples/PrimeNumbersSource.java").toURL());
 

@@ -24,11 +24,13 @@ public class Configuration extends Properties implements Copyable<Configuration>
     public static final String OBJECT_COMPARE_METHOD = "evrete.core.fact-identity-strategy";
     public static final String INSERT_BUFFER_SIZE = "evrete.core.insert-buffer-size";
     public static final String WARN_UNKNOWN_TYPES = "evrete.core.warn-unknown-types";
-    public static final int INSERT_BUFFER_SIZE_DEFAULT = 4096;
+    public static final boolean WARN_UNKNOWN_TYPES_DEFAULT = true;
+    public static final String DAEMON_INNER_THREADS = "evrete.core.daemon-threads";
+    public static final boolean DAEMON_INNER_THREADS_DEFAULT = true;
     public static final String IDENTITY_METHOD_EQUALS = "equals";
     public static final String IDENTITY_METHOD_IDENTITY = "identity";
     static final String SPI_MEMORY_FACTORY = "evrete.spi.memory-factory";
-    static final String SPI_EXPRESSION_RESOLVER = "evrete.spi.expression-resolver";
+    public static final String SPI_EXPRESSION_RESOLVER = "evrete.spi.expression-resolver";
     static final String SPI_TYPE_RESOLVER = "evrete.spi.type-resolver";
     static final String SPI_SOURCE_COMPILER = "evrete.spi.source-compiler";
     static final String PARALLELISM = "evrete.core.parallelism";
@@ -36,8 +38,12 @@ public class Configuration extends Properties implements Copyable<Configuration>
     public static final String SPI_LHS_STRIP_WHITESPACES = "evrete.spi.compiler.lhs-strip-whitespaces";
 
     private static final Set<String> OBSOLETE_PROPERTIES = Set.of(
+            IDENTITY_METHOD_EQUALS,
+            SPI_EXPRESSION_RESOLVER,
+            IDENTITY_METHOD_IDENTITY,
+            OBJECT_COMPARE_METHOD,
+            INSERT_BUFFER_SIZE
     );
-
 
     private static final Logger LOGGER = Logger.getLogger(Configuration.class.getName());
     private static final long serialVersionUID = -9015471049604658637L;
@@ -45,46 +51,50 @@ public class Configuration extends Properties implements Copyable<Configuration>
 
     @SuppressWarnings("unused")
     public Configuration(Properties defaults) {
-        for (String key : defaults.stringPropertyNames()) {
-            setProperty(key, defaults.getProperty(key));
-        }
-        this.imports = new Imports();
+        this(defaults, new Imports());
     }
 
     private Configuration(Properties defaults, Imports imports) {
-        for (String key : defaults.stringPropertyNames()) {
-            setProperty(key, defaults.getProperty(key));
-        }
-        this.imports = imports.copyOf();
+        super(defaults);
+        this.imports = imports;
     }
 
     public Configuration() {
-        super(System.getProperties());
-
-        setIfAbsent(WARN_UNKNOWN_TYPES, Boolean.TRUE.toString());
-        setIfAbsent(OBJECT_COMPARE_METHOD, IDENTITY_METHOD_IDENTITY);
-        setIfAbsent(INSERT_BUFFER_SIZE, String.valueOf(INSERT_BUFFER_SIZE_DEFAULT));
-        this.imports = new Imports();
+        this(System.getProperties());
     }
 
-    private void setIfAbsent(String key, String value) {
-        if (!contains(key)) {
-            setProperty(key, value);
-        }
+    public Configuration set(String key, String value) {
+        this.setProperty(key, value);
+        return this;
     }
 
     @Override
     public synchronized Object setProperty(String key, String value) {
         if (OBSOLETE_PROPERTIES.contains(key)) {
-            LOGGER.warning("Property '" + key + "' is obsolete and will be ignored");
+            LOGGER.warning(()->"Property '" + key + "' is obsolete and will be ignored");
         }
         return super.setProperty(key, value);
     }
 
+    /**
+     * Retrieves the value of a property as a boolean.
+     *
+     * @param property the name of the property
+     * @return the value of the property as a boolean
+     */
     public boolean getAsBoolean(String property) {
         return Boolean.parseBoolean(getProperty(property));
     }
 
+    /**
+     * Retrieves the value of a property as a boolean. If the property is not found,
+     * it returns the default value provided.
+     *
+     * @param property     the name of the property
+     * @param defaultValue the default value to be returned if the property is not found
+     * @return the value of the property as a boolean, or the default value if the property is not found
+     */
+    @SuppressWarnings("unused")
     public boolean getAsBoolean(String property, boolean defaultValue) {
         String prop = getProperty(property, Boolean.toString(defaultValue));
         return Boolean.parseBoolean(prop);
@@ -96,7 +106,7 @@ public class Configuration extends Properties implements Copyable<Configuration>
         try {
             return Integer.parseInt(val.trim());
         } catch (Exception e) {
-            LOGGER.warning("Property '" + property + "' is not an integer, returning default value of " + defaultValue);
+            LOGGER.warning(()->"Property '" + property + "' is not an integer, returning default value of " + defaultValue);
             return defaultValue;
         }
     }

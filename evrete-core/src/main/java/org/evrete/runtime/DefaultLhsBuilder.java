@@ -3,52 +3,31 @@ package org.evrete.runtime;
 import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.builders.LhsBuilder;
-import org.evrete.runtime.evaluation.EvaluatorOfArray;
-import org.evrete.runtime.evaluation.EvaluatorOfPredicate;
 
 import java.util.Collection;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-class DefaultLhsBuilder<C extends RuntimeContext<C>> extends DefaultTypeResolver implements LhsBuilder<C> {
+class DefaultLhsBuilder<C extends RuntimeContext<C>> extends DefaultNamedTypeResolver<DefaultLhsBuilder.Fact> implements LhsBuilder<C> {
     private final DefaultRuleBuilder<C> ruleBuilder;
     private final AbstractRuntime<?, C> runtime;
-    private final LhsConditions conditions = new LhsConditions();
+    private final DefaultConditionManager conditionManager;
 
     DefaultLhsBuilder(DefaultRuleBuilder<C> ruleBuilder) {
         this.ruleBuilder = ruleBuilder;
         this.runtime = ruleBuilder.runtime();
+        this.conditionManager = new DefaultConditionManager(ruleBuilder.runtime(), this);
+    }
+
+    DefaultConditionManager getConditionManager() {
+        return conditionManager;
     }
 
     @Override
-    public synchronized NamedTypeImpl addFactDeclaration(@NonNull String name, @NonNull Type<?> type) {
-        // Resetting type resolver
-        NamedTypeImpl factType = new NamedTypeImpl(type, name);
-        this.save(factType);
-        return factType;
-    }
-
-    LhsConditions getConditions() {
-        return conditions;
-    }
-
-    @Deprecated
-    void copyFrom(LhsBuilderImpl<C> old) {
-        super.copyFrom(old);
-        this.conditions.copyFrom(old.getConditions());
-    }
-
-    @Override
-    public DefaultRuleSetBuilder<C> execute(Consumer<RhsContext> consumer) {
-        ruleBuilder.setRhs(consumer);
-        return ruleBuilder.getRuleSetBuilder();
-    }
-
-    @Override
-    public DefaultRuleSetBuilder<C> execute(String literalRhs) {
-        ruleBuilder.setRhs(literalRhs);
-        return ruleBuilder.getRuleSetBuilder();
+    public synchronized Fact addFactDeclaration(@NonNull String name, @NonNull Type<?> type) {
+        Fact newFact = new Fact(super.size(), name, type);
+        super.save(newFact);
+        return newFact;
     }
 
     @Override
@@ -63,15 +42,6 @@ class DefaultLhsBuilder<C extends RuntimeContext<C>> extends DefaultTypeResolver
     }
 
     @Override
-    public DefaultLhsBuilder<C> where(EvaluatorHandle... expressions) {
-        if (expressions == null) return this;
-        for (EvaluatorHandle expression : expressions) {
-            this.conditions.add(Objects.requireNonNull(expression));
-        }
-        return this;
-    }
-
-    @Override
     public DefaultLhsBuilder<C> where(@NonNull String expression, double complexity) {
         whereInner(expression, complexity);
         return this;
@@ -83,11 +53,6 @@ class DefaultLhsBuilder<C extends RuntimeContext<C>> extends DefaultTypeResolver
         return this;
     }
 
-    @Override
-    public DefaultLhsBuilder<C> where(@NonNull Predicate<Object[]> predicate, double complexity, FieldReference... references) {
-        whereInner(predicate, complexity, references);
-        return this;
-    }
 
     @Override
     public DefaultLhsBuilder<C> where(@NonNull Predicate<Object[]> predicate, double complexity, String... references) {
@@ -96,15 +61,20 @@ class DefaultLhsBuilder<C extends RuntimeContext<C>> extends DefaultTypeResolver
     }
 
     @Override
-    public DefaultLhsBuilder<C> where(@NonNull ValuesPredicate predicate, double complexity, FieldReference... references) {
-        whereInner(predicate, complexity, references);
-        return this;
+    public DefaultRuleSetBuilder<C> execute() {
+        return ruleBuilder.execute();
     }
 
     @Override
-    public DefaultRuleSetBuilder<C> execute() {
-        return ruleBuilder.getRuleSetBuilder();
+    public DefaultRuleSetBuilder<C> execute(Consumer<RhsContext> consumer) {
+        return ruleBuilder.execute(consumer);
     }
+
+    @Override
+    public DefaultRuleSetBuilder<C> execute(String literalRhs) {
+        return ruleBuilder.execute(literalRhs);
+    }
+
 
     DefaultLhsBuilder<C> buildLhs(Collection<FactBuilder> facts) {
         if (facts == null || facts.isEmpty()) return this;
@@ -122,30 +92,29 @@ class DefaultLhsBuilder<C extends RuntimeContext<C>> extends DefaultTypeResolver
     }
 
     private void whereInner(String expression, double complexity) {
-        this.conditions.add(expression, complexity);
-    }
-
-    private void whereInner(ValuesPredicate predicate, double complexity, FieldReference[] references) {
-        this.conditions.add(new EvaluatorOfPredicate(Objects.requireNonNull(predicate), references), complexity);
-    }
-
-    private void whereInner(Predicate<Object[]> predicate, double complexity, FieldReference[] references) {
-        this.conditions.add(new EvaluatorOfArray(Objects.requireNonNull(predicate), references), complexity);
+        this.conditionManager.addLhsBuilderCondition(expression, complexity);
     }
 
     private void whereInner(ValuesPredicate predicate, double complexity, String[] references) {
-        FieldReference[] descriptor = resolveFieldReferences(references);
-        EvaluatorOfPredicate evaluator = new EvaluatorOfPredicate(Objects.requireNonNull(predicate), descriptor);
-        this.conditions.add(evaluator, complexity);
+        this.conditionManager.addLhsBuilderCondition(predicate, complexity, references);
     }
 
     private void whereInner(Predicate<Object[]> predicate, double complexity, String[] references) {
-        FieldReference[] descriptor = resolveFieldReferences(references);
-        EvaluatorOfArray evaluator = new EvaluatorOfArray(Objects.requireNonNull(predicate), descriptor);
-        this.conditions.add(evaluator, complexity);
+        this.conditionManager.addLhsBuilderCondition(predicate, complexity, references);
     }
 
-    private FieldReference[] resolveFieldReferences(String[] references) {
-        return runtime.resolveFieldReferences(references, DefaultLhsBuilder.this);
+    static class Fact extends AbstractLhsFact implements NamedType {
+        final Type<?> type;
+
+        public Fact(int inRuleIndex, String varName, Type<?> type) {
+            super(inRuleIndex, varName);
+            this.type = type;
+        }
+
+        @Override
+        @NonNull
+        public Type<?> getType() {
+            return type;
+        }
     }
 }

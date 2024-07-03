@@ -1,102 +1,185 @@
 package org.evrete.dsl;
 
-import org.evrete.api.Knowledge;
+import org.evrete.Configuration;
+import org.evrete.api.RuleSession;
+import org.evrete.api.RuntimeContext;
+import org.evrete.api.annotations.NonNull;
+import org.evrete.api.builders.RuleSetBuilder;
+import org.evrete.api.events.Events;
+import org.evrete.api.events.SessionCreatedEvent;
 import org.evrete.api.spi.DSLKnowledgeProvider;
-import org.evrete.dsl.annotation.EnvironmentListener;
-import org.evrete.dsl.annotation.FieldDeclaration;
-import org.evrete.dsl.annotation.PhaseListener;
-import org.evrete.dsl.annotation.Rule;
 
 import java.io.*;
 import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Method;
+import java.net.URL;
 import java.nio.charset.Charset;
-
-import static org.evrete.dsl.Utils.LOGGER;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Set;
+import java.util.logging.Logger;
 
 abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
+    static final Logger LOGGER = Logger.getLogger(AbstractDSLProvider.class.getName());
+    static final Class<?> TYPE_URL = URL.class;
+    static final Class<?> TYPE_CHAR_SEQUENCE = CharSequence.class;
+    static final Class<?> TYPE_READER = Reader.class;
+    static final Class<?> TYPE_INPUT_STREAM = InputStream.class;
+    static final Class<?> TYPE_CLASS = Class.class;
+    static final Class<?> TYPE_FILE = File.class;
 
-    static Knowledge processRuleSet(Knowledge knowledge, MethodHandles.Lookup lookup, Class<?> javaClass) {
-        // 0. locate and warn about annotated non-public methods
-        for (Method m : Utils.allNonPublicAnnotated(javaClass)) {
-            LOGGER.warning("Method " + m + " declared in " + m.getDeclaringClass() + " is not public and will be disregarded.");
+    static final String CHARSET_PROPERTY = "org.evrete.source-charset";
+    static final String CHARSET_DEFAULT = "UTF-8";
+
+    final MethodHandles.Lookup publicLookup;
+
+    AbstractDSLProvider() {
+        this.publicLookup = MethodHandles.publicLookup();
+    }
+
+    <C extends RuntimeContext<C>> ResourceClasses createFromURLs(RuntimeContext<C> target, Collection<URL> resources) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    <C extends RuntimeContext<C>> ResourceClasses createFromReaders(RuntimeContext<C> target, Collection<Reader> resources) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    <C extends RuntimeContext<C>> ResourceClasses createFromStrings(RuntimeContext<C> target, Collection<CharSequence> resources) {
+        throw new UnsupportedOperationException();
+    }
+
+    <C extends RuntimeContext<C>> ResourceClasses createFromStreams(RuntimeContext<C> target, Collection<InputStream> resources) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    <C extends RuntimeContext<C>> ResourceClasses createFromClasses(RuntimeContext<C> target, Collection<Class<?>> resources) {
+        throw new UnsupportedOperationException();
+    }
+
+    <C extends RuntimeContext<C>> ResourceClasses createFromFiles(RuntimeContext<C> target, Collection<File> resources) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    protected abstract Set<Class<?>> sourceTypes();
+
+
+    @Override
+    public final <C extends RuntimeContext<C>> void appendTo(@NonNull RuntimeContext<C> context, Object source) throws IOException {
+        if (source != null) {
+            try {
+                this.appendToInner(context, source);
+            } catch (UncheckedIOException e) {
+                // Unwrap IO exceptions
+                throw e.getCause();
+            }
+        } else  {
+            LOGGER.warning(()->"No sources specified");
+        }
+    }
+
+    private <C extends RuntimeContext<C>> void appendToInner(RuntimeContext<C> context, @NonNull Object source) throws IOException {
+        Set<Class<?>> supportedTypes = sourceTypes();
+        // Each provider supports arrays and iterables of the supported types
+        ResourceCollection resources = ResourceCollection.factory(source);
+        if(resources == null) {
+            return;
         }
 
-        // 1. Scanning all the class methods and saving those with annotations
-        RulesetMeta meta = new RulesetMeta(lookup, javaClass);
-        for (Method m : javaClass.getMethods()) {
-            Rule ruleAnnotation = m.getAnnotation(Rule.class);
-            PhaseListener phaseListener = m.getAnnotation(PhaseListener.class);
-            FieldDeclaration fieldDeclaration = m.getAnnotation(FieldDeclaration.class);
-            EnvironmentListener envListener = m.getAnnotation(EnvironmentListener.class);
-
-            if (ruleAnnotation != null) {
-                meta.addRuleMethod(m);
+        Class<?> componentType = resources.getComponentType();
+        if(matches(componentType, supportedTypes)) {
+            if (TYPE_URL.isAssignableFrom(componentType)) {
+                appendToInner(context, createFromURLs(context, resources.cast()));
+            } else if (TYPE_READER.isAssignableFrom(componentType)) {
+                appendToInner(context, createFromReaders(context, resources.cast()));
+            } else if (TYPE_CHAR_SEQUENCE.isAssignableFrom(componentType)) {
+                appendToInner(context, createFromStrings(context, resources.cast()));
+            } else if (TYPE_INPUT_STREAM.isAssignableFrom(componentType)) {
+                appendToInner(context, createFromStreams(context, resources.cast()));
+            } else if (TYPE_CLASS.isAssignableFrom(componentType)) {
+                appendToInner(context, createFromClasses(context, resources.cast()));
+            } else if (TYPE_FILE.isAssignableFrom(componentType)) {
+                appendToInner(context, createFromFiles(context, resources.cast()));
+            } else {
+                throw new IllegalArgumentException("Unsupported source type " + componentType);
             }
-
-            if (phaseListener != null) {
-                meta.addPhaseListener(m);
-            }
-
-            if (fieldDeclaration != null) {
-                meta.addFieldDeclaration(m, fieldDeclaration.type());
-            }
-
-            if (envListener != null) {
-                String property = envListener.value();
-                if (property.isEmpty()) {
-                    LOGGER.warning("The @" + EnvironmentListener.class.getSimpleName() + " annotation on " + m + " has no property value and will be ignored");
-                } else {
-                    meta.addEnvListener(m, property);
-                }
-            }
-        }
-
-        if (meta.ruleMethods.isEmpty()) {
-            return knowledge;
         } else {
-            return new DSLKnowledge(knowledge, meta);
+            throw new IllegalArgumentException("Unsupported source type " + componentType.getName() + " provided to " + this.getClass().getName());
         }
     }
 
-    static String[] toSourceString(Reader[] readers) throws IOException {
-        String[] sources = new String[readers.length];
-        for (int i = 0; i < readers.length; i++) {
-            Reader reader = readers[i];
-            BufferedReader bufferedReader = new BufferedReader(reader);
-            String line;
-            StringBuilder source = new StringBuilder(4096);
-            while ((line = bufferedReader.readLine()) != null) {
-                source.append(line).append("\n");
+    private <C extends RuntimeContext<C>> void appendToInner(RuntimeContext<C> context, ResourceClasses resourceClasses) throws IOException {
+        if(resourceClasses != null) {
+            try {
+                Collection<RulesClass> rulesClasses = new ArrayList<>(resourceClasses.classes.size());
+                for (Class<?> cl : resourceClasses.classes) {
+                    WrappedClass wrappedClass = new WrappedClass(cl, publicLookup);
+                    RulesClass rulesClass = new RulesClass(wrappedClass);
+                    rulesClasses.add(rulesClass);
+                }
+                buildAndAppendRules(context, resourceClasses.classLoader, rulesClasses);
+            } finally {
+                resourceClasses.closeResources();
             }
-            bufferedReader.close();
-            sources[i] = source.toString();
+        } else {
+            LOGGER.warning("No resources were selected, no rules will be applied");
         }
-        return sources;
     }
 
-    static String[] toSourceString(Charset charset, InputStream... streams) throws IOException {
-        String[] sources = new String[streams.length];
-        for (int i = 0; i < sources.length; i++) {
-            sources[i] = new String(toByteArray(streams[i]), charset);
+    private <C extends RuntimeContext<C>> void buildAndAppendRules(RuntimeContext<C> context, ClassLoader classLoader, Collection<RulesClass> rulesClasses) {
+        // 1. Collect required data (first pass)
+        MetadataCollector initMeta = new MetadataCollector();
+        for (RulesClass rulesClass : rulesClasses) {
+            rulesClass.collectMetaData(context, initMeta);
         }
-        return sources;
+
+        RuleSetBuilder<C> target = context.builder(classLoader);
+
+        // 2. Build the rules (second pass)
+        for(RulesClass rulesClass : rulesClasses) {
+            rulesClass.applyTo(target, initMeta);
+        }
+        target.build();
+
+
+        // 3. Session binding
+        if(!initMeta.classesToInstantiate.isEmpty()) {
+            if(context instanceof RuleSession) {
+                // This context is a session. Create class instances and rebind method handles.
+                initMeta.applyToSession((RuleSession<?>) context);
+            } else {
+                // This context is a knowledge instance. We need to create class instances each
+                // time a new session is created.
+                Events.Subscription subscription = context.subscribe(
+                        SessionCreatedEvent.class,
+                        event -> initMeta.applyToSession(event.getSession())
+                );
+                context.getService().getServiceSubscriptions().add(subscription);
+            }
+        }
     }
 
-    static byte[] toByteArray(InputStream is) throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        int length;
-        while ((length = is.read(buffer)) != -1) {
-            bos.write(buffer, 0, length);
-        }
-        bos.close();
-        return bos.toByteArray();
+    static Charset charset(Configuration configuration) {
+        String charSet = configuration.getProperty(CHARSET_PROPERTY, CHARSET_DEFAULT);
+        return Charset.forName(charSet);
     }
 
-    protected MethodHandles.Lookup defaultLookup() {
-        return MethodHandles.publicLookup();
+    static boolean matches(Class<?> clazz, Set<Class<?>> set) {
+        for(Class<?> c : set) {
+            if(c.isAssignableFrom(clazz)) {
+                return true;
+            }
+        }
+        return false;
     }
+
+    static Collection<URL> toURLs(Collection<File> files) throws IOException {
+        Collection<URL> urls = new ArrayList<>();
+        for (File file : files) {
+            urls.add(file.toURI().toURL());
+        }
+        return urls;
+    }
+
 }
 
 

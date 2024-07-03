@@ -50,14 +50,14 @@ Maven:
 <dependency>
     <groupId>org.evrete</groupId>
     <artifactId>evrete-core</artifactId>
-    <version>3.2.02</version>
+    <version>4.0.0</version>
 </dependency>
 ```
 
 Gradle:
 
 ```groovy
-implementation 'org.evrete:evrete-core:3.2.02'
+implementation 'org.evrete:evrete-core:4.0.0'
 ```
 
 ### Support for annotated rules (optional)
@@ -69,14 +69,14 @@ Maven:
 <dependency>
     <groupId>org.evrete</groupId>
     <artifactId>evrete-dsl-java</artifactId>
-    <version>3.2.02</version>
+    <version>4.0.0</version>
 </dependency>
 ```
 
 Gradle:
 
 ```groovy
-implementation 'org.evrete:evrete-dsl-java:3.2.02'
+implementation 'org.evrete:evrete-dsl-java:4.0.0'
 ```
 
 ## Quick start
@@ -126,10 +126,10 @@ public class PrimeNumbersDSLUrl {
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
-                .newKnowledge(
+                .newKnowledge()
+                .importRules(
                         "JAVA-SOURCE",
-                        new URL("https://www.evrete.org/examples/PrimeNumbersSource.java")
-                );
+                        URI.create("https://www.evrete.org/examples/PrimeNumbersSource.java").toURL());
 
         try (StatefulSession session = knowledge.newStatefulSession()) {
             // Inject candidates

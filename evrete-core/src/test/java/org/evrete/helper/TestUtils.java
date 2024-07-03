@@ -1,18 +1,20 @@
 package org.evrete.helper;
 
-import org.evrete.api.ReIterator;
+import org.evrete.api.RuntimeContext;
 import org.evrete.api.StatefulSession;
-import org.evrete.api.annotations.NonNull;
-import org.evrete.collections.CollectionReIterator;
-import org.evrete.collections.LinearHashSet;
-import org.evrete.collections.LinkedDataRWD;
+import org.evrete.api.builders.LhsBuilder;
+import org.evrete.api.builders.RuleBuilder;
+import org.evrete.api.builders.RuleSetBuilder;
+import org.evrete.classes.TypeA;
+import org.evrete.classes.TypeB;
+import org.evrete.classes.TypeC;
+import org.evrete.classes.TypeD;
 
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.Set;
-import java.util.function.Consumer;
+import java.util.Random;
+import java.util.StringJoiner;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
 public final class TestUtils {
@@ -58,205 +60,89 @@ public final class TestUtils {
         return collection;
     }
 
-    public static <Z> IterableSet<Z> setOf(Set<Z> set) {
-        return new IterableSet<Z>() {
-            @Override
-            public boolean contains(Z element) {
-                return set.contains(element);
-            }
+    public static <C extends RuntimeContext<C>> RuleSetBuilder<C> applyRandomConditions(RuleSetBuilder<C> ruleSetBuilder, String ruleName, int conditions) {
+        String[] fields = new String[]{"i", "l", "d", "f"};
+        Class<?>[] allClasses = new Class<?>[]{TypeA.class, TypeB.class, TypeC.class, TypeD.class};
+        FieldReference1[][] references = new FieldReference1[allClasses.length][fields.length];
 
-            @Override
-            public Object delegate() {
-                return set;
-            }
+        RuleBuilder<C> builder = ruleSetBuilder.newRule(ruleName);
 
-            @NonNull
-            @Override
-            public ReIterator<Z> iterator() {
-                return new CollectionReIterator<>(set);
-            }
+        LhsBuilder<C> rootGroup = builder.getLhs();
 
-            @Override
-            public boolean remove(Z element) {
-                return set.remove(element);
+        for (int t = 0; t < allClasses.length; t++) {
+            Class<?> cl = allClasses[t];
+            String factName = cl.getSimpleName();
+            rootGroup.addFactDeclaration("$" + factName, cl);
+            for (int f = 0; f < fields.length; f++) {
+                String fieldName = fields[f];
+                references[t][f] = new FieldReference1("$" + factName, factName, fieldName);
             }
+        }
 
-            @Override
-            public boolean add(Z element) {
-                return set.add(element);
-            }
+        for (int c = 0; c < conditions; c++) {
+            String randomCondition = randomCondition(references);
+            rootGroup.where(randomCondition);
+        }
 
-            @Override
-            public long size() {
-                return set.size();
-            }
-
-            @Override
-            public Stream<Z> stream() {
-                return set.stream();
-            }
-
-            @Override
-            public void delete(Predicate<Z> predicate) {
-                deleteFrom(set, predicate);
-            }
-
-            @Override
-            public void clear() {
-                set.clear();
-            }
-
-            @Override
-            public void forEach(Consumer<? super Z> consumer) {
-                set.forEach(consumer);
-            }
-
-            @Override
-            public String toString() {
-                return set.toString();
-            }
-        };
+        return rootGroup.execute();
     }
 
-    public static <Z> IterableCollection<Z> collectionOf(final LinkedList<Z> list) {
-        return new IterableCollection<Z>() {
-            @Override
-            public boolean add(Z element) {
-                list.add(element);
-                return true;
-            }
+    private static String randomCondition(FieldReference1[][] references) {
+        Random random = new Random(System.nanoTime());
 
-            @Override
-            public long size() {
-                return list.size();
-            }
+        int varCount = 0;
 
-            @Override
-            public void delete(Predicate<Z> predicate) {
-                throw new UnsupportedOperationException();
-            }
+        while (varCount > references.length || varCount < 2) {
+            varCount = 1 + random.nextInt(references.length);
+        }
+        FieldReference1[] descriptor = new FieldReference1[varCount];
+        for (int i = 0; i < varCount; i++) {
+            boolean exists;
+            FieldReference1 ref;
+            do {
+                exists = false;
+                int type = random.nextInt(2048) % references.length;
+                int field = random.nextInt(2048) % references[type].length;
+                ref = references[type][field];
+                for (int k = 0; k < i; k++) {
+                    FieldReference1 test = descriptor[k];
+                    if (test.factType.equals(ref.factType)) {
+                        exists = true;
+                        break;
+                    }
+                }
+            } while (exists);
+            descriptor[i] = ref;
+        }
 
-            @Override
-            public void clear() {
-                list.clear();
-            }
+        StringJoiner joiner = new StringJoiner(" + ", "", " >= 0");
 
-            @Override
-            public Stream<Z> stream() {
-                throw new UnsupportedOperationException();
-            }
+        for (FieldReference1 ref : descriptor) {
 
-            @NonNull
-            @Override
-            public ReIterator<Z> iterator() {
-                return new CollectionReIterator<>(list);
-            }
-
-            @Override
-            public void forEach(Consumer<? super Z> consumer) {
-                list.iterator().forEachRemaining(consumer);
-            }
-        };
+            String s = ref.varName + "." + ref.fieldName;
+            joiner.add(s);
+        }
+        return joiner.toString();
     }
 
-    public static <Z> IterableCollection<Z> collectionOf(final LinkedDataRWD<Z> list) {
-        return new IterableCollection<Z>() {
-            @Override
-            public boolean add(Z element) {
-                list.add(element);
-                return true;
-            }
 
-            @Override
-            public long size() {
-                return list.size();
-            }
+    static class FieldReference1 {
+        private final String varName;
+        private final String factType;
+        private final String fieldName;
 
-            @Override
-            public void delete(Predicate<Z> predicate) {
-                throw new UnsupportedOperationException();
-            }
+        FieldReference1(String varName, String factType, String fieldName) {
+            this.varName = varName;
+            this.factType = factType;
+            this.fieldName = fieldName;
+        }
 
-            @Override
-            public void clear() {
-                list.clear();
-            }
+        @Override
+        public String toString() {
+            return fieldName + " : " + varName;
+        }
 
-            @Override
-            public Stream<Z> stream() {
-                throw new UnsupportedOperationException();
-            }
-
-            @NonNull
-            @Override
-            public ReIterator<Z> iterator() {
-                return list.iterator();
-            }
-
-            @Override
-            public void forEach(Consumer<? super Z> consumer) {
-                list.iterator().forEachRemaining(consumer);
-            }
-        };
     }
 
-    public static <Z> IterableSet<Z> setOf(LinearHashSet<Z> set) {
-        return new IterableSet<Z>() {
-            @Override
-            public boolean contains(Z element) {
-                return set.contains(element);
-            }
 
-            @Override
-            public Object delegate() {
-                return set;
-            }
-
-            @NonNull
-            @Override
-            public ReIterator<Z> iterator() {
-                return set.iterator();
-            }
-
-            @Override
-            public boolean remove(Z element) {
-                return set.remove(element);
-            }
-
-            @Override
-            public boolean add(Z element) {
-                return set.add(element);
-            }
-
-            @Override
-            public long size() {
-                return set.size();
-            }
-
-            @Override
-            public Stream<Z> stream() {
-                return set.stream();
-            }
-
-            @Override
-            public void delete(Predicate<Z> predicate) {
-                set.delete(predicate);
-            }
-
-            @Override
-            public void clear() {
-                set.clear();
-            }
-
-            @Override
-            public void forEach(Consumer<? super Z> consumer) {
-                set.forEach(consumer);
-            }
-
-            @Override
-            public String toString() {
-                return set.toString();
-            }
-        };
-    }
 }

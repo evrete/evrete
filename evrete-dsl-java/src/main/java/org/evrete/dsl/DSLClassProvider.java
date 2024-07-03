@@ -1,41 +1,48 @@
 package org.evrete.dsl;
 
-import org.evrete.KnowledgeService;
-import org.evrete.api.Knowledge;
-import org.evrete.api.TypeResolver;
+import org.evrete.api.RuntimeContext;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.lang.invoke.MethodHandles;
-import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * The DSLClassProvider class provides the implementation of the DSLKnowledgeProvider
  * interface for 'JAVA-CLASS' DSL knowledge.
  */
 public class DSLClassProvider extends AbstractDSLProvider {
+    private static final Class<?>[] SUPPORTED_TYPES = new Class<?>[] {
+            TYPE_CLASS,
+            TYPE_CHAR_SEQUENCE
+    };
 
-    /**
-     * Default public constructor
-     */
-    public DSLClassProvider() {
+    @Override
+    <C extends RuntimeContext<C>> ResourceClasses createFromClasses(RuntimeContext<C> context, Collection<Class<?>> resources) {
+        if(resources == null || resources.isEmpty()) {
+            return null;
+        } else {
+            return new ResourceClasses(context.getClassLoader(), resources);
+        }
     }
 
-    private static Class<?>[] loadClasses(KnowledgeService service, Reader... streams) throws IOException {
-        Class<?>[] classes = new Class<?>[streams.length];
-        for (int i = 0; i < streams.length; i++) {
-
-            BufferedReader br = new BufferedReader(streams[i]);
-            String className = br.readLine();
-            try {
-                classes[i] = service.getClassLoader().loadClass(className);
-            } catch (ClassNotFoundException e) {
-                throw new IllegalArgumentException("Unable to load class '" + className + "'", e);
+    @Override
+    <C extends RuntimeContext<C>> ResourceClasses createFromStrings(RuntimeContext<C> context, Collection<CharSequence> resources) {
+        ClassLoader classLoader = context.getClassLoader();
+        try {
+            Collection<Class<?>> classResources = new ArrayList<>(resources.size());
+            for (CharSequence resource : resources) {
+                Class<?> cl = Class.forName(resource.toString(), true, classLoader);
+                classResources.add(cl);
             }
+            return createFromClasses(context, classResources);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalArgumentException("Could not find class " + resources, e);
         }
-        return classes;
+    }
+
+    @Override
+    protected Set<Class<?>> sourceTypes() {
+        return Set.of(SUPPORTED_TYPES);
     }
 
     @Override
@@ -43,41 +50,4 @@ public class DSLClassProvider extends AbstractDSLProvider {
         return PROVIDER_JAVA_CLASS;
     }
 
-    @Override
-    public Knowledge create(KnowledgeService service, TypeResolver typeResolver, InputStream... streams) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Knowledge create(KnowledgeService service, URL... resources) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Knowledge create(KnowledgeService service, TypeResolver typeResolver, URL... resources) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Knowledge create(KnowledgeService service, InputStream... streams) throws IOException {
-        return super.create(service, streams);
-    }
-
-    @Override
-    public Knowledge create(KnowledgeService service, Reader... streams) throws IOException {
-        return super.create(service, streams);
-    }
-
-    @Override
-    public Knowledge create(KnowledgeService service, TypeResolver typeResolver, Reader... streams) throws IOException {
-
-        Class<?>[] classes = loadClasses(service, streams);
-
-        Knowledge current = service.newKnowledge(typeResolver);
-        MethodHandles.Lookup lookup = defaultLookup();
-        for (Class<?> cl : classes) {
-            current = processRuleSet(current, lookup, cl);
-        }
-        return current;
-    }
 }

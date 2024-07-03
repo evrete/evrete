@@ -3,6 +3,7 @@ package org.evrete.api;
 import org.evrete.api.annotations.NonNull;
 
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * <p>
@@ -28,10 +29,14 @@ public interface NamedType {
      *
      * @return name of a fact declaration
      */
-    String getName();
+    String getVarName();
 
     default boolean sameAs(NamedType other) {
-        return getName().equals(other.getName()) && getType().getName().equals(other.getType().getName());
+        String varName1 = this.getVarName();
+        String varName2 = other.getVarName();
+        String typeName1 = this.getType().getName();
+        String typeName2 = other.getType().getName();
+        return Objects.equals(varName1, varName2) && Objects.equals(typeName1, typeName2);
     }
 
     /**

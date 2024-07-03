@@ -4,7 +4,7 @@ import org.evrete.api.RhsContext;
 import org.evrete.dsl.annotation.*;
 import pkg1.evrete.tests.classes.*;
 
-@RuleSet(defaultSort = RuleSet.Sort.BY_NAME)
+@RuleSet(value = "Test Ruleset 2", defaultSort = RuleSet.Sort.BY_NAME)
 public class RuleSet2 {
 
     public static boolean test(int i1, IntValue i2, int i3) {

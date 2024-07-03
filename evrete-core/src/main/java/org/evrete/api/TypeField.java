@@ -1,17 +1,9 @@
 package org.evrete.api;
 
 /**
- * A representation of a Type field. Implementations are expected
- * to implement equals() and hashCode() methods.
+ * A representation of a Type field.
  */
 public interface TypeField extends Named {
-
-    /**
-     * Returns the type on which this TypeField is declared.
-     *
-     * @return the declaring type of the TypeField
-     */
-    Type<?> getDeclaringType();
 
     /**
      * Returns the value type of the TypeField.
@@ -19,6 +11,13 @@ public interface TypeField extends Named {
      * @return the class representing the value type of the TypeField
      */
     Class<?> getValueType();
+
+
+    /**
+     * Returns the declaring {@link Type}
+     * @return the declaring {@link Type}
+     */
+    Type<?> getDeclaringType();
 
     /**
      * Reads the value of a field from the given subject object.
