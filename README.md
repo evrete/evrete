@@ -5,8 +5,9 @@
 
 > **Important!**
 >
-> Starting with version 3.2.00, the default build (release) version targets Java 11. Java 8 artifacts are now published
-> with the '-8' suffix.
+> Check out what's new in version 4.0.0 and read the migration 
+> guides at https://www.evrete.org/docs#migration-guide 
+> 
 
 
 Evrete is a forward-chaining Java rule engine that implements the RETE algorithm and is fully compliant with the Java
