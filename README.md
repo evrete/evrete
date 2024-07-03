@@ -126,10 +126,10 @@ public class PrimeNumbersDSLUrl {
     public static void main(String[] args) {
         KnowledgeService service = new KnowledgeService();
         Knowledge knowledge = service
-                .newKnowledge(
+                .newKnowledge()
+                .importRules(
                         "JAVA-SOURCE",
-                        new URL("https://www.evrete.org/examples/PrimeNumbersSource.java")
-                );
+                        URI.create("https://www.evrete.org/examples/PrimeNumbersSource.java").toURL());
 
         try (StatefulSession session = knowledge.newStatefulSession()) {
             // Inject candidates
