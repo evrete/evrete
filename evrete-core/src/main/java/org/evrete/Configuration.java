@@ -4,8 +4,7 @@ import org.evrete.api.Copyable;
 import org.evrete.api.FluentImports;
 import org.evrete.api.Imports;
 
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -37,13 +36,15 @@ public class Configuration extends Properties implements Copyable<Configuration>
     public static final String RULE_BASE_CLASS = "evrete.impl.rule-base-class";
     public static final String SPI_LHS_STRIP_WHITESPACES = "evrete.spi.compiler.lhs-strip-whitespaces";
 
-    private static final Set<String> OBSOLETE_PROPERTIES = Set.of(
+
+    private static final Set<String> OBSOLETE_PROPERTIES = new HashSet<>(Arrays.asList(
             IDENTITY_METHOD_EQUALS,
             SPI_EXPRESSION_RESOLVER,
             IDENTITY_METHOD_IDENTITY,
             OBJECT_COMPARE_METHOD,
             INSERT_BUFFER_SIZE
-    );
+    ));
+
 
     private static final Logger LOGGER = Logger.getLogger(Configuration.class.getName());
     private static final long serialVersionUID = -9015471049604658637L;
