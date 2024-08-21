@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.*;
 
-public class DelayedExecutorService implements ExecutorService {
+public class DelayedExecutorService implements ExecutorService, AutoCloseable {
     private final ScheduledExecutorService scheduler;
     private final long delay;
     private final TimeUnit unit;
@@ -95,6 +95,29 @@ public class DelayedExecutorService implements ExecutorService {
     @Override
     public <T> T invokeAny(@NonNull Collection<? extends Callable<T>> tasks, long timeout, @NonNull TimeUnit unit) {
         throw new UnsupportedOperationException("invokeAny with timeout not supported in DelayedExecutorService.");
+    }
+
+    @Override
+    // Java 8 compatibility
+    public void close() {
+        boolean terminated = isTerminated();
+        if (!terminated) {
+            shutdown();
+            boolean interrupted = false;
+            while (!terminated) {
+                try {
+                    terminated = awaitTermination(1L, TimeUnit.DAYS);
+                } catch (InterruptedException e) {
+                    if (!interrupted) {
+                        shutdownNow();
+                        interrupted = true;
+                    }
+                }
+            }
+            if (interrupted) {
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 
     private static class FutureWrapper<T> implements Future<T> {

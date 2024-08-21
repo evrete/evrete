@@ -52,7 +52,10 @@ class EvaluationListenersTests {
                     .forEach("$n", Integer.class)
                     .execute(ctx -> {});
 
-            ValuesPredicate alphaCondition = t -> t.get(0, int.class) > 0;
+            ValuesPredicate alphaCondition = t -> {
+                TestUtils.sleep(100);
+                return t.get(0, int.class) > 0;
+            };
 
             EvaluatorHandle handle = ruleBuilder.getConditionManager()
                     .addCondition(alphaCondition, "$n.intValue");
@@ -79,7 +82,7 @@ class EvaluationListenersTests {
                 // Test times
                 Instant start = event.getStartTime();
                 Instant end = event.getEndTime();
-                assert end.isAfter(start);
+                assert end.isAfter(start) : "Start: " + start + " End: " + end + ", Async: " + async;
 
             });
 

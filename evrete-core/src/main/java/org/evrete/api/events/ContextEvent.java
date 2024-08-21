@@ -12,7 +12,7 @@ import java.util.function.Consumer;
  * {@link org.evrete.api.EvaluatorsContext#publisher(EvaluatorHandle)} method.
  * </p>
  *
- * <p>Currently supported event types:
+ * <p>Currently supported event types:</p>
  * <ul>
  *     <li>{@link SessionCreatedEvent}</li>
  *     <li>{@link SessionFireEvent}</li>
@@ -20,7 +20,6 @@ import java.util.function.Consumer;
  *     <li>{@link KnowledgeCreatedEvent}</li>
  *     <li>{@link EnvironmentChangeEvent}</li>
  * </ul>
- * </p>
  *
  * @see Events.Subscription
  * @see org.evrete.api.RuntimeContext#subscribe(Class, boolean, Consumer)

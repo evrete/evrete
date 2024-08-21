@@ -7,6 +7,8 @@ import org.evrete.runtime.rete.*;
 import org.evrete.util.MapFunction;
 
 import java.util.HashSet;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -72,10 +74,15 @@ public class MemoryInspectionUtils {
 
     static Set<AlphaAddress> getAlphaConditions(RuleSession<?> session, Class<?> javaType) {
         AbstractRuleSession<?> s = cast(session);
-        ActiveType activeType = s.activeTypes()
+        Optional<ActiveType> optional = s.activeTypes()
                 .filter(type -> type.getValue().getJavaClass().equals(javaType))
-                .findFirst().orElseThrow();
-        return new HashSet<>(activeType.getKnownAlphaLocations());
+                .findFirst();
+        if (optional.isPresent()) {
+            ActiveType activeType = optional.get();
+            return new HashSet<>(activeType.getKnownAlphaLocations());
+        } else {
+            throw new NoSuchElementException("No value present");
+        }
     }
 
     private static void forEachConditionNode(SessionRule rule, Consumer<ReteSessionConditionNode> consumer) {

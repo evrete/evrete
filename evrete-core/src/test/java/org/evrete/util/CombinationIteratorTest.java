@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
+import static java.util.Arrays.asList;
+import static org.evrete.helper.TestUtils.listOf;
+
 class CombinationIteratorTest {
 
     static Iterator<Integer[]> iterator(Source[] sources) {
@@ -13,7 +16,7 @@ class CombinationIteratorTest {
     @Test
     void test0() {
         Source[] sources = new Source[]{
-                new Source(List.of(13)),
+                new Source(13),
         };
 
         Iterator<Integer[]> iterator = iterator(sources);
@@ -21,20 +24,20 @@ class CombinationIteratorTest {
         Set<List<Integer>> combinations = new HashSet<>();
         iterator.forEachRemaining(combination -> {
             // Save to a set
-            combinations.add(List.of(combination));
+            combinations.add(listOf(combination));
         });
 
         assert combinations.size() == 1;
-        assert combinations.contains(List.of(13));
+        assert combinations.contains(listOf(13));
     }
 
 
     @Test
     void test1() {
         Source[] sources = new Source[]{
-                new Source(List.of(1)),
-                new Source(List.of(3, 4)),
-                new Source(List.of(100))
+                new Source(1),
+                new Source(3, 4),
+                new Source(100)
         };
 
 
@@ -43,22 +46,22 @@ class CombinationIteratorTest {
         Set<List<Integer>> combinations = new HashSet<>();
         iterator.forEachRemaining(combination -> {
             // Save to a set
-            combinations.add(List.of(combination));
+            combinations.add(asList(combination.clone()));
         });
 
         assert combinations.size() == 2;
-        assert combinations.contains(List.of(1, 3, 100));
-        assert combinations.contains(List.of(1, 4, 100));
+        assert combinations.contains(listOf(1, 3, 100));
+        assert combinations.contains(listOf(1, 4, 100));
 
     }
 
     @Test
     void test2() {
         Source[] sources = new Source[]{
-                new Source(List.of(1, 2)),
-                new Source(List.of(10)),
-                new Source(List.of(100)),
-                new Source(List.of(1000, 2000))
+                new Source(1, 2),
+                new Source(10),
+                new Source(100),
+                new Source(1000, 2000)
         };
 
         Iterator<Integer[]> iterator = iterator(sources);
@@ -66,22 +69,22 @@ class CombinationIteratorTest {
         Set<List<Integer>> combinations = new HashSet<>();
         iterator.forEachRemaining(combination -> {
             // Save to a set
-            combinations.add(List.of(combination));
+            combinations.add(listOf(combination.clone()));
         });
         assert combinations.size() == 4;
-        assert combinations.contains(List.of(1, 10, 100, 1000));
-        assert combinations.contains(List.of(1, 10, 100, 2000));
-        assert combinations.contains(List.of(2, 10, 100, 1000));
-        assert combinations.contains(List.of(2, 10, 100, 2000));
+        assert combinations.contains(listOf(1, 10, 100, 1000));
+        assert combinations.contains(listOf(1, 10, 100, 2000));
+        assert combinations.contains(listOf(2, 10, 100, 1000));
+        assert combinations.contains(listOf(2, 10, 100, 2000));
     }
 
     @Test
     void test3() {
         Source[] sources = new Source[]{
-                new Source(List.of(1)),
-                new Source(List.of(10)),
-                new Source(List.of(100)),
-                new Source(List.of(1000))
+                new Source(1),
+                new Source(10),
+                new Source(100),
+                new Source(1000)
         };
 
         Iterator<Integer[]> iterator = iterator(sources);
@@ -89,19 +92,19 @@ class CombinationIteratorTest {
         Set<List<Integer>> combinations = new HashSet<>();
         iterator.forEachRemaining(combination -> {
             // Save to a set
-            combinations.add(List.of(combination));
+            combinations.add(listOf(combination));
         });
         assert combinations.size() == 1;
-        assert combinations.contains(List.of(1, 10, 100, 1000));
+        assert combinations.contains(listOf(1, 10, 100, 1000));
     }
 
     @Test
     void test4() {
         Source[] sources = new Source[]{
-                new Source(List.of(1)),
-                new Source(List.of(10, 20)),
-                new Source(List.of(100)),
-                new Source(List.of(1000))
+                new Source(1),
+                new Source(10, 20),
+                new Source(100),
+                new Source(1000)
         };
 
         Iterator<Integer[]> iterator = iterator(sources);
@@ -109,21 +112,21 @@ class CombinationIteratorTest {
         Set<List<Integer>> combinations = new HashSet<>();
         iterator.forEachRemaining(combination -> {
             // Save to a set
-            combinations.add(List.of(combination));
+            combinations.add(asList(combination.clone()));
         });
         assert combinations.size() == 2;
-        assert combinations.contains(List.of(1, 10, 100, 1000));
-        assert combinations.contains(List.of(1, 20, 100, 1000));
+        assert combinations.contains(listOf(1, 10, 100, 1000));
+        assert combinations.contains(listOf(1, 20, 100, 1000));
     }
 
 
     @Test
     void test5() {
         Source[] sources = new Source[]{
-                new Source(List.of(1)),
-                new Source(List.of(10)),
-                new Source(List.of(100, 200)),
-                new Source(List.of(1000))
+                new Source(1),
+                new Source(10),
+                new Source(100, 200),
+                new Source(1000)
         };
 
         Iterator<Integer[]> iterator = iterator(sources);
@@ -131,21 +134,21 @@ class CombinationIteratorTest {
         Set<List<Integer>> combinations = new HashSet<>();
         iterator.forEachRemaining(combination -> {
             // Save to a set
-            combinations.add(List.of(combination));
+            combinations.add(listOf(combination.clone()));
         });
         assert combinations.size() == 2;
-        assert combinations.contains(List.of(1, 10, 100, 1000));
-        assert combinations.contains(List.of(1, 10, 200, 1000));
+        assert combinations.contains(listOf(1, 10, 100, 1000));
+        assert combinations.contains(listOf(1, 10, 200, 1000));
     }
 
 
     @Test
     void test6() {
         Source[] sources = new Source[]{
-                new Source(List.of(1)),
-                new Source(List.of(10)),
-                new Source(List.of(100)),
-                new Source(List.of(1000, 2000))
+                new Source(1),
+                new Source(10),
+                new Source(100),
+                new Source(1000, 2000)
         };
 
         Iterator<Integer[]> iterator = iterator(sources);
@@ -153,20 +156,20 @@ class CombinationIteratorTest {
         Set<List<Integer>> combinations = new HashSet<>();
         iterator.forEachRemaining(combination -> {
             // Save to a set
-            combinations.add(List.of(combination));
+            combinations.add(listOf(combination.clone()));
         });
         assert combinations.size() == 2;
-        assert combinations.contains(List.of(1, 10, 100, 1000));
-        assert combinations.contains(List.of(1, 10, 100, 2000));
+        assert combinations.contains(listOf(1, 10, 100, 1000));
+        assert combinations.contains(listOf(1, 10, 100, 2000));
     }
 
     @Test
     void test7() {
         Source[] sources = new Source[]{
-                new Source(List.of(1, 2)),
-                new Source(List.of(10)),
-                new Source(List.of(100)),
-                new Source(List.of(1000, 2000))
+                new Source(1, 2),
+                new Source(10),
+                new Source(100),
+                new Source(1000, 2000)
         };
 
         Iterator<Integer[]> iterator = iterator(sources);
@@ -174,20 +177,20 @@ class CombinationIteratorTest {
         Set<List<Integer>> combinations = new HashSet<>();
         iterator.forEachRemaining(combination -> {
             // Save to a set
-            combinations.add(List.of(combination));
+            combinations.add(listOf(combination.clone()));
         });
         assert combinations.size() == 4;
-        assert combinations.contains(List.of(1, 10, 100, 1000));
-        assert combinations.contains(List.of(1, 10, 100, 2000));
-        assert combinations.contains(List.of(2, 10, 100, 1000));
-        assert combinations.contains(List.of(2, 10, 100, 2000));
+        assert combinations.contains(listOf(1, 10, 100, 1000));
+        assert combinations.contains(listOf(1, 10, 100, 2000));
+        assert combinations.contains(listOf(2, 10, 100, 1000));
+        assert combinations.contains(listOf(2, 10, 100, 2000));
     }
 
 
     @Test
     void test8() {
         Source[] sources = new Source[]{
-                new Source(List.of(1, 2))
+                new Source(1, 2)
         };
 
         Iterator<Integer[]> iterator = iterator(sources);
@@ -195,18 +198,18 @@ class CombinationIteratorTest {
         Set<List<Integer>> combinations = new HashSet<>();
         iterator.forEachRemaining(combination -> {
             // Save to a set
-            combinations.add(List.of(combination));
+            combinations.add(listOf(combination.clone()));
         });
         assert combinations.size() == 2;
-        assert combinations.contains(List.of(1));
-        assert combinations.contains(List.of(2));
+        assert combinations.contains(listOf(1));
+        assert combinations.contains(listOf(2));
     }
 
 
     @Test
     void test9() {
         Source[] sources = new Source[]{
-                new Source(List.of(7))
+                new Source(7)
         };
 
         Iterator<Integer[]> iterator = iterator(sources);
@@ -214,20 +217,20 @@ class CombinationIteratorTest {
         Set<List<Integer>> combinations = new HashSet<>();
         iterator.forEachRemaining(combination -> {
             // Save to a set
-            combinations.add(List.of(combination));
+            combinations.add(listOf(combination));
         });
         assert combinations.size() == 1;
-        assert combinations.contains(List.of(7));
+        assert combinations.contains(listOf(7));
     }
 
 
     @Test
     void test10() {
         Source[] sources = new Source[]{
-                new Source(List.of(1, 2)),
-                new Source(List.of(10)),
-                new Source(List.of(100, 200)),
-                new Source(List.of(1000))
+                new Source(1, 2),
+                new Source(10),
+                new Source(100, 200),
+                new Source(1000)
         };
 
         Iterator<Integer[]> iterator = iterator(sources);
@@ -235,22 +238,22 @@ class CombinationIteratorTest {
         Set<List<Integer>> combinations = new HashSet<>();
         iterator.forEachRemaining(combination -> {
             // Save to a set
-            combinations.add(List.of(combination));
+            combinations.add(listOf(combination.clone()));
         });
         assert combinations.size() == 4;
-        assert combinations.contains(List.of(1, 10, 100, 1000));
-        assert combinations.contains(List.of(1, 10, 200, 1000));
-        assert combinations.contains(List.of(2, 10, 100, 1000));
-        assert combinations.contains(List.of(2, 10, 200, 1000));
+        assert combinations.contains(listOf(1, 10, 100, 1000));
+        assert combinations.contains(listOf(1, 10, 200, 1000));
+        assert combinations.contains(listOf(2, 10, 100, 1000));
+        assert combinations.contains(listOf(2, 10, 200, 1000));
     }
 
     @Test
     void test11() {
         Source[] sources = new Source[]{
-                new Source(List.of(1)),
-                new Source(List.of(10, 20)),
-                new Source(List.of(100, 200)),
-                new Source(List.of(1000))
+                new Source(1),
+                new Source(10, 20),
+                new Source(100, 200),
+                new Source(1000)
         };
 
         Iterator<Integer[]> iterator = iterator(sources);
@@ -258,13 +261,13 @@ class CombinationIteratorTest {
         Set<List<Integer>> combinations = new HashSet<>();
         iterator.forEachRemaining(combination -> {
             // Save to a set
-            combinations.add(List.of(combination));
+            combinations.add(listOf(combination.clone()));
         });
         assert combinations.size() == 4;
-        assert combinations.contains(List.of(1, 10, 100, 1000));
-        assert combinations.contains(List.of(1, 10, 200, 1000));
-        assert combinations.contains(List.of(1, 20, 100, 1000));
-        assert combinations.contains(List.of(1, 20, 200, 1000));
+        assert combinations.contains(listOf(1, 10, 100, 1000));
+        assert combinations.contains(listOf(1, 10, 200, 1000));
+        assert combinations.contains(listOf(1, 20, 100, 1000));
+        assert combinations.contains(listOf(1, 20, 200, 1000));
     }
 
     private static List<Integer> randomSource(int size) {
@@ -308,7 +311,7 @@ class CombinationIteratorTest {
         List<List<Integer>> combinations = new LinkedList<>();
         iterator.forEachRemaining(combination -> {
             // Save to a set
-            combinations.add(List.of(combination));
+            combinations.add(listOf(combination.clone()));
         });
         //System.out.println("Passed !!");
         assert combinations.size() == expectedSize: expectedSize + " vs " + combinations.size() + "\n\n " + Arrays.toString(sources) + "\n\n" + combinations;
@@ -319,7 +322,7 @@ class CombinationIteratorTest {
                 for(Integer i2: l2) {
                     for(Integer i3: l3) {
                         for(Integer i4: l4) {
-                            List<Integer> entry = List.of(i1, i2, i3, i4);
+                            List<Integer> entry = listOf(i1, i2, i3, i4);
                             assert combinations.contains(entry);
                             count++;
                         }
@@ -335,10 +338,10 @@ class CombinationIteratorTest {
     @Test
     void testEmpty1() {
         Source[] sources = new Source[]{
-                new Source(List.of()),
-                new Source(List.of(10)),
-                new Source(List.of(100)),
-                new Source(List.of(1000, 2000))
+                new Source(listOf()),
+                new Source(listOf(10)),
+                new Source(listOf(100)),
+                new Source(listOf(1000, 2000))
         };
 
         Iterator<Integer[]> iterator = iterator(sources);
@@ -346,7 +349,7 @@ class CombinationIteratorTest {
         Set<List<Integer>> combinations = new HashSet<>();
         iterator.forEachRemaining(combination -> {
             // Save to a set
-            combinations.add(List.of(combination));
+            combinations.add(listOf(combination));
         });
         assert combinations.isEmpty();
     }
@@ -354,10 +357,10 @@ class CombinationIteratorTest {
     @Test
     void testEmpty2() {
         Source[] sources = new Source[]{
-                new Source(List.of(1)),
-                new Source(List.of()),
-                new Source(List.of(100)),
-                new Source(List.of(1000, 2000))
+                new Source(listOf(1)),
+                new Source(listOf()),
+                new Source(listOf(100)),
+                new Source(listOf(1000, 2000))
         };
 
         Iterator<Integer[]> iterator = iterator(sources);
@@ -365,7 +368,7 @@ class CombinationIteratorTest {
         Set<List<Integer>> combinations = new HashSet<>();
         iterator.forEachRemaining(combination -> {
             // Save to a set
-            combinations.add(List.of(combination));
+            combinations.add(listOf(combination));
         });
         assert combinations.isEmpty();
     }
@@ -373,17 +376,17 @@ class CombinationIteratorTest {
     @Test
     void testEmpty3() {
         Source[] sources = new Source[]{
-                new Source(List.of(1)),
-                new Source(List.of(10)),
-                new Source(List.of(100)),
-                new Source(List.of())
+                new Source(listOf(1)),
+                new Source(listOf(10)),
+                new Source(listOf(100)),
+                new Source(listOf())
         };
 
         Iterator<Integer[]> iterator = iterator(sources);
         Set<List<Integer>> combinations = new HashSet<>();
         iterator.forEachRemaining(combination -> {
             // Save to a set
-            combinations.add(List.of(combination));
+            combinations.add(listOf(combination));
         });
         assert combinations.isEmpty();
     }
@@ -391,6 +394,10 @@ class CombinationIteratorTest {
 
     static class Source {
         private final List<Integer> list;
+
+        public Source(Integer... list) {
+            this.list = asList(list);
+        }
 
         public Source(List<Integer> list) {
             this.list = list;

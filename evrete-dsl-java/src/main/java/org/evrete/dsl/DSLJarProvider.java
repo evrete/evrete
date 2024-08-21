@@ -17,8 +17,6 @@ import java.util.logging.Logger;
 
 public class DSLJarProvider extends AbstractDSLProvider {
     private static final Logger LOGGER = Logger.getLogger(DSLJarProvider.class.getName());
-    static final String CLASSES_PROPERTY = "org.evrete.dsl.rule-classes";
-    static final String RULESETS_PROPERTY = "org.evrete.dsl.ruleset-names";
     private static final String EMPTY_STRING = "";
 
     private static final Class<?>[] SUPPORTED_TYPES = new Class<?>[]{
@@ -40,11 +38,11 @@ public class DSLJarProvider extends AbstractDSLProvider {
     @Override
     <C extends RuntimeContext<C>> ResourceClasses createFromURLs(RuntimeContext<C> context, Collection<URL> resources) throws IOException {
         JarClassloader jarClassloader = new JarClassloader(resources, context.getClassLoader());
-        String[] configClasses = CommonUtils.splitConfigString(context.get(CLASSES_PROPERTY, EMPTY_STRING));
+        String[] configClasses = CommonUtils.splitConfigString(context.get(PROP_RULE_CLASSES, EMPTY_STRING));
         final String[] criteria;
         final Collection<Class<?>> selectedRuleClasses;
         if (configClasses.length == 0) {
-            String[] configRuleSets = CommonUtils.splitCSV(context.get(RULESETS_PROPERTY, EMPTY_STRING));
+            String[] configRuleSets = CommonUtils.splitCSV(context.get(PROP_RULESETS, EMPTY_STRING));
             if (configRuleSets.length == 0) {
                 throw new IllegalArgumentException("Neither ruleset names nor class names are specified");
             } else {
@@ -110,7 +108,7 @@ public class DSLJarProvider extends AbstractDSLProvider {
 
     @Override
     public Set<Class<?>> sourceTypes() {
-        return Set.of(SUPPORTED_TYPES);
+        return new HashSet<>(Arrays.asList(SUPPORTED_TYPES));
     }
 
     @Override

@@ -16,6 +16,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static org.evrete.dsl.AbstractDSLProvider.PROP_EXTEND_RULE_CLASSES;
+
 class RulesClass extends WrappedClass {
 
     final List<RuleMethod> ruleMethods = new LinkedList<>();
@@ -71,12 +73,17 @@ class RulesClass extends WrappedClass {
     }
 
     void applyTo(RuleSetBuilder<?> target, MetadataCollector collector) {
+
+        boolean extendClassFlag = Boolean.parseBoolean(target.get(PROP_EXTEND_RULE_CLASSES, "true"));
+
         // Read and define each rule
         for(RuleMethod ruleMethod : ruleMethods) {
             // 2.1 Rule name & salience
             RuleBuilder<?> ruleBuilder = target.newRule(ruleMethod.getRuleName());
 
-            ruleBuilder.set(Configuration.RULE_BASE_CLASS, delegate.getCanonicalName());
+            if(extendClassFlag) {
+                ruleBuilder.set(Configuration.RULE_BASE_CLASS, delegate.getCanonicalName());
+            }
 
             int salience = ruleMethod.getSalience();
             if(salience != Rule.DEFAULT_SALIENCE) {

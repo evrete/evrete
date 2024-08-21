@@ -22,6 +22,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class TestUtils {
+    @SafeVarargs
+    public static <T> List<T> listOf(T... elements) {
+        return Arrays.asList(elements);
+    }
+
 
     public static File testResourceAsFile(String path) throws IOException {
         URL url = Thread.currentThread().getContextClassLoader().getResource(path);
@@ -124,8 +129,19 @@ public class TestUtils {
             }
 
             // Read the class bytes
-            return inputStream.readAllBytes();
+            return  readAllBytes(inputStream);
         }
+    }
+
+    private static byte[] readAllBytes(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        byte[] tempBuffer = new byte[1024];
+        int bytesRead;
+
+        while ((bytesRead = inputStream.read(tempBuffer)) != -1) {
+            buffer.write(tempBuffer, 0, bytesRead);
+        }
+        return buffer.toByteArray();
     }
 
     private static SourceCompiler createSourceCompiler() {

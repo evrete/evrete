@@ -27,8 +27,6 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
     static final Class<?> TYPE_CLASS = Class.class;
     static final Class<?> TYPE_FILE = File.class;
 
-    static final String CHARSET_PROPERTY = "org.evrete.source-charset";
-    static final String CHARSET_DEFAULT = "UTF-8";
 
     final MethodHandles.Lookup publicLookup;
 
@@ -159,7 +157,7 @@ abstract class AbstractDSLProvider implements DSLKnowledgeProvider, Constants {
     }
 
     static Charset charset(Configuration configuration) {
-        String charSet = configuration.getProperty(CHARSET_PROPERTY, CHARSET_DEFAULT);
+        String charSet = configuration.getProperty(PROP_SOURCES_CHARSET, PROP_SOURCES_CHARSET_DEFAULT);
         return Charset.forName(charSet);
     }
 

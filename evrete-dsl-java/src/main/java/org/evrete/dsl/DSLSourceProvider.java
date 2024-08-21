@@ -29,6 +29,7 @@ public class DSLSourceProvider extends AbstractDSLProvider {
             TYPE_CHAR_SEQUENCE,
             TYPE_FILE
     };
+
     /**
      * Default public constructor
      */
@@ -37,7 +38,7 @@ public class DSLSourceProvider extends AbstractDSLProvider {
 
     @Override
     public Set<Class<?>> sourceTypes() {
-        return Set.of(SUPPORTED_TYPES);
+        return new HashSet<>(Arrays.asList(SUPPORTED_TYPES));
     }
 
 

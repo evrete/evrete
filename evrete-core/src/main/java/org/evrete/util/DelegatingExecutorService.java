@@ -3,6 +3,7 @@ package org.evrete.util;
 import org.evrete.api.annotations.NonNull;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -58,7 +59,7 @@ public class DelegatingExecutorService implements ExecutorService {
         if (externallySupplied) {
             // Should not shut down externally supplied ExecutorService
             LOGGER.info("ShutdownNow should be manually called on externally supplied ExecutorService.");
-            return List.of();
+            return Collections.emptyList();
         } else {
             // Shut down internally created ExecutorService
             return delegate.shutdownNow();

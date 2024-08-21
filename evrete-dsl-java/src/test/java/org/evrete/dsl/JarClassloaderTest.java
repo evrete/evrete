@@ -9,6 +9,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.evrete.dsl.TestUtils.listOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class JarClassloaderTest {
@@ -18,7 +19,7 @@ class JarClassloaderTest {
         File dir = TestUtils.testResourceAsFile("jars/jar2");
         TestUtils.createTempJarFile(dir, file -> {
             try {
-                Collection<URL> urls = List.of(file.toURI().toURL());
+                Collection<URL> urls = listOf(file.toURI().toURL());
                 doTest(urls);
             } catch (Exception e) {
                 throw new RuntimeException(e);

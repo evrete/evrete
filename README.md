@@ -51,14 +51,14 @@ Maven:
 <dependency>
     <groupId>org.evrete</groupId>
     <artifactId>evrete-core</artifactId>
-    <version>4.0.1</version>
+    <version>4.0.2</version>
 </dependency>
 ```
 
 Gradle:
 
 ```groovy
-implementation 'org.evrete:evrete-core:4.0.1'
+implementation 'org.evrete:evrete-core:4.0.2'
 ```
 
 ### Support for annotated rules (optional)
@@ -70,14 +70,14 @@ Maven:
 <dependency>
     <groupId>org.evrete</groupId>
     <artifactId>evrete-dsl-java</artifactId>
-    <version>4.0.1</version>
+    <version>4.0.2</version>
 </dependency>
 ```
 
 Gradle:
 
 ```groovy
-implementation 'org.evrete:evrete-dsl-java:4.0.1'
+implementation 'org.evrete:evrete-dsl-java:4.0.2'
 ```
 
 ## Quick start

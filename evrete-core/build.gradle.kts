@@ -15,33 +15,31 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
-//    testLogging.showStandardStreams = true
-//    val loggingConfigFile = project.file("src/test/resources/logging.properties1").absolutePath
-//    jvmArgs = listOf("-Djava.util.logging.config.file=$loggingConfigFile")
 }
 
 java {
-    //withJavadocJar()
     withSourcesJar()
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
 }
 
-
 tasks.register("moduleJavadoc") {
-    //inputs.files(project.java.sourceSets.main.get().java.srcDirs)
+    dependsOn("classes")
+
+    val coreModuleName = "org.evrete.core"
+    val ajrModuleName = "org.evrete.dsl.java"
+
+    val javadocLauncher = javaToolchains.javadocToolFor {
+        languageVersion = JavaLanguageVersion.of(17)
+    }.get().executablePath.asFile.absolutePath
+
+    val buildRoot = project.layout.buildDirectory.get()
+    val coreModuleSource = project.java.sourceSets.main.get().java.srcDirs.iterator().next().absolutePath
+    val ajrModuleSource = project(":evrete-dsl-java").java.sourceSets.main.get().java.srcDirs.iterator().next().absolutePath
+    val docFolder = "${buildRoot.dir("docs").dir("javadoc")}"
+
+
     doLast {
-        val coreModuleName = "org.evrete.core"
-        val ajrModuleName = "org.evrete.dsl.java"
-
-        val javadocLauncher = javaToolchains.javadocToolFor {
-            languageVersion = JavaLanguageVersion.of(17)
-        }.get().executablePath.asFile.absolutePath
-
-        val buildRoot = project.layout.buildDirectory.get()
-        val coreModuleSource = project.java.sourceSets.main.get().java.srcDirs.iterator().next().absolutePath
-        val ajrModuleSource = project(":evrete-dsl-java").java.sourceSets.main.get().java.srcDirs.iterator().next().absolutePath
-        val docFolder = "${buildRoot.dir("docs").dir("javadoc")}"
 
         exec {
             @Suppress("SpellCheckingInspection")
@@ -62,9 +60,13 @@ tasks.register("moduleJavadoc") {
             )
         }
     }
+
+    outputs.dir(docFolder)
 }
 
 tasks.register<Jar>("moduleJavadocJar") {
+    dependsOn("moduleJavadoc")
+
     val buildRoot = project.layout.buildDirectory.get()
     val docFolder = "${buildRoot.dir("docs").dir("javadoc")}"
     val jarFolder = "${buildRoot.dir("libs")}"
@@ -75,12 +77,9 @@ tasks.register<Jar>("moduleJavadocJar") {
     destinationDirectory.set(file(jarFolder))
 }
 
-//TODO !!!
-/*
-tasks.named("moduleJavadoc") {
-    finalizedBy("moduleJavadocJar")
-}
-*/
+//tasks.named("moduleJavadoc") {
+//    finalizedBy("moduleJavadocJar")
+//}
 
 /*
 tasks.named("compileJava") {
