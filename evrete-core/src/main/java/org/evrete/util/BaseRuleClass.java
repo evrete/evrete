@@ -1,7 +1,13 @@
-package org.evrete.spi.minimal;
+package org.evrete.util;
 
 import java.util.Objects;
 
+/**
+ * Base class for all generated Java sources. Developers can override this behavior
+ * by setting the {@link org.evrete.Configuration#RULE_BASE_CLASS} property.
+ * This class contains several sample static methods that can be used directly in literal conditions.
+ * Use this class as a boilerplate for more advanced usage.
+ */
 public abstract class BaseRuleClass {
 
     @SuppressWarnings("unused")

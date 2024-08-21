@@ -4,7 +4,7 @@ import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.spi.SourceCompiler;
 import org.evrete.spi.minimal.AbstractLiteralRhs;
-import org.evrete.spi.minimal.BaseRuleClass;
+import org.evrete.util.BaseRuleClass;
 import org.evrete.util.CommonUtils;
 import org.evrete.util.CompilationException;
 

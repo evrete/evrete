@@ -74,7 +74,7 @@ class RulesClass extends WrappedClass {
 
     void applyTo(RuleSetBuilder<?> target, MetadataCollector collector) {
 
-        boolean extendClassFlag = Boolean.parseBoolean(target.get(PROP_EXTEND_RULE_CLASSES, "true"));
+        boolean extendClassFlag = Boolean.parseBoolean(target.getContext().getConfiguration().getProperty(PROP_EXTEND_RULE_CLASSES, "true"));
 
         // Read and define each rule
         for(RuleMethod ruleMethod : ruleMethods) {
