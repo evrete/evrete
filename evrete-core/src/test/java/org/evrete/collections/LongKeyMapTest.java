@@ -8,6 +8,7 @@ import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static org.evrete.helper.TestUtils.listOf;
 import static org.junit.jupiter.api.Assertions.*;
 
 class LongKeyMapTest {
@@ -131,7 +132,7 @@ class LongKeyMapTest {
 
         List<String> values = new LinkedList<>();
         map.forEach(values::add);
-        Assertions.assertEquals(List.of("one", "two", "new three", "four"), values);
+        Assertions.assertEquals(listOf("one", "two", "new three", "four"), values);
     }
 
     @Test
@@ -152,7 +153,7 @@ class LongKeyMapTest {
     void randomizedComparison() {
         Map<Long, String> reference = new HashMap<>();
         int count = 4096;
-        long range = 2048;
+        int range = 2048;
 
         for (int j = 0; j < 3; j++) {
             // Add random values (2 inserts + 1 delete)
@@ -187,7 +188,7 @@ class LongKeyMapTest {
     @Test
     void streamsAndIterators() {
         Map<Long, String> reference = new HashMap<>();
-        long range = 515;
+        int range = 515;
         for (int round = 0; round < 5; round++) {
             for (int i = 0; i < 100_000; i++) {
                 putRandom(range, map, reference);
@@ -234,8 +235,8 @@ class LongKeyMapTest {
         reference.forEach((k, v) -> Assertions.assertEquals(v, map.get(k)));
     }
 
-    private void putRandom(long range, LongKeyMap<String> map, Map<Long, String> reference) {
-        long insertKey = random.nextLong(range);
+    private void putRandom(int range, LongKeyMap<String> map, Map<Long, String> reference) {
+        long insertKey = random.nextInt(range);
         String value = "Value " + insertKey;
 
         String expected = reference.put(insertKey, value);
@@ -243,8 +244,8 @@ class LongKeyMapTest {
         Assertions.assertEquals(expected, actual, "State: " + map);
     }
 
-    private void deleteRandom(long range, LongKeyMap<String> map, Map<Long, String> reference) {
-        long deleteKey = random.nextLong(range);
+    private void deleteRandom(int range, LongKeyMap<String> map, Map<Long, String> reference) {
+        long deleteKey = random.nextInt(range);
         String expected = reference.remove(deleteKey);
         String actual = map.remove(deleteKey);
         Assertions.assertEquals(expected, actual);

@@ -2,9 +2,7 @@ package org.evrete.dsl;
 
 import org.evrete.api.RuntimeContext;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The DSLClassProvider class provides the implementation of the DSLKnowledgeProvider
@@ -42,7 +40,7 @@ public class DSLClassProvider extends AbstractDSLProvider {
 
     @Override
     protected Set<Class<?>> sourceTypes() {
-        return Set.of(SUPPORTED_TYPES);
+        return new HashSet<>(Arrays.asList(SUPPORTED_TYPES));
     }
 
     @Override

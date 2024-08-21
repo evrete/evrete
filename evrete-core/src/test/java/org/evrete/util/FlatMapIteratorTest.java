@@ -7,13 +7,14 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import static org.evrete.helper.TestUtils.listOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class FlatMapIteratorTest {
 
     @Test
     void test1() {
-        List<String> list = List.of("aa_", "bb_", "cc");
+        List<String> list = listOf("aa_", "bb_", "cc");
 
         Iterator<String> iterator = list.iterator();
         Iterator<Character> mapped = new FlatMapIterator<>(iterator, s -> toChars(s).iterator());
@@ -25,7 +26,7 @@ class FlatMapIteratorTest {
 
     @Test
     void test2() {
-        List<String> list = List.of("a");
+        List<String> list = listOf("a");
 
         Iterator<String> iterator = list.iterator();
         Iterator<Character> mapped = new FlatMapIterator<>(iterator, s -> toChars(s).iterator());
@@ -37,7 +38,7 @@ class FlatMapIteratorTest {
 
     @Test
     void test3() {
-        List<String> list = List.of("");
+        List<String> list = listOf("");
 
         Iterator<String> iterator = list.iterator();
         Iterator<Character> mapped = new FlatMapIterator<>(iterator, s -> toChars(s).iterator());
@@ -49,7 +50,7 @@ class FlatMapIteratorTest {
 
     @Test
     void test4() {
-        List<String> list = List.of("a", "b", "c");
+        List<String> list = listOf("a", "b", "c");
 
         Iterator<String> iterator = list.iterator();
         Iterator<Character> mapped = new FlatMapIterator<>(iterator, s -> Collections.emptyIterator());
@@ -61,7 +62,7 @@ class FlatMapIteratorTest {
 
     @Test
     void test5() {
-        List<String> list = List.of("aa_", "", "cc");
+        List<String> list = listOf("aa_", "", "cc");
 
         Iterator<String> iterator = list.iterator();
         Iterator<Character> mapped = new FlatMapIterator<>(iterator, s -> toChars(s).iterator());

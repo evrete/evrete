@@ -10,14 +10,35 @@ import org.evrete.classes.TypeB;
 import org.evrete.classes.TypeC;
 import org.evrete.classes.TypeD;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.Random;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.function.Predicate;
 
 @SuppressWarnings("unused")
 public final class TestUtils {
+
+    public static <T> List<T> listOf(T[] elements) {
+        return Arrays.asList(elements);
+    }
+
+    public static <T> List<T> listOf(T o1, T o2) {
+        return Arrays.asList(o1, o2);
+    }
+
+    public static <T> List<T> listOf() {
+        return Collections.emptyList();
+    }
+
+    public static <T> List<T> listOf(T o1) {
+        return Collections.singletonList(o1);
+    }
+
+    public static <T> List<T> listOf(T o1, T o2, T o3) {
+        return Arrays.asList(o1, o2, o3);
+    }
+
+    public static <T> List<T> listOf(T o1, T o2, T o3, T o4) {
+        return Arrays.asList(o1, o2, o3, o4);
+    }
 
     public static long nanoExecTime(Runnable r) {
         long t0 = System.nanoTime();

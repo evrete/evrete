@@ -6,8 +6,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+
+import static org.evrete.helper.TestUtils.listOf;
 
 class DefaultGroupingReteMemoryTest {
     DefaultGroupingReteMemory<String> memory;
@@ -185,9 +186,9 @@ class DefaultGroupingReteMemoryTest {
 
         // Testing main values after secondary commit
         assert stream(MemoryScope.MAIN, KEY_1).contains(VALUE_1_1);
-        assert stream(MemoryScope.MAIN, KEY_2).containsAll(List.of(VALUE_2_1, VALUE_2_2));
-        assert stream(MemoryScope.MAIN, PRE_KEY_1).containsAll(List.of(PRE_VALUE_1_1, PRE_VALUE_1_2));
-        assert stream(MemoryScope.MAIN, PRE_KEY_2).containsAll(List.of(PRE_VALUE_2_1, PRE_VALUE_2_2));
+        assert stream(MemoryScope.MAIN, KEY_2).containsAll(listOf(VALUE_2_1, VALUE_2_2));
+        assert stream(MemoryScope.MAIN, PRE_KEY_1).containsAll(listOf(PRE_VALUE_1_1, PRE_VALUE_1_2));
+        assert stream(MemoryScope.MAIN, PRE_KEY_2).containsAll(listOf(PRE_VALUE_2_1, PRE_VALUE_2_2));
 
         assert stream(MemoryScope.MAIN, KEY_1, KEY_2, PRE_KEY_1, PRE_KEY_2).size() == 7;
 

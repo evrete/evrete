@@ -14,9 +14,9 @@ import java.util.function.Function;
  * node's source nodes must be computed, and so on.
  * </p>
  *
- * @param <B> the base type of all nodes in the graph, extending from ReteNode<N>
- * @param <E> the type of the entry nodes in the graph, extending from <B>
- * @param <C> the type of the condition node in the graph, extending from <B>
+ * @param <B> the base type of all nodes in the graph
+ * @param <E> the type of the entry nodes in the graph
+ * @param <C> the type of the condition node in the graph
  * @see ReteNode
  */
 public final class ReteGraph<B extends ReteNode<B>, E extends B, C extends B> {
