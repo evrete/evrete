@@ -6,7 +6,6 @@ import java.io.File;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.evrete.dsl.TestUtils.listOf;
