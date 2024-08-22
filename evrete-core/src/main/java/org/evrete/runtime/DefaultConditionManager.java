@@ -59,9 +59,13 @@ class DefaultConditionManager extends RuntimeAware implements ConditionManager {
 
     @Override
     public CompletableFuture<EvaluatorHandle> addCondition(String expression, double complexity) {
-        Literal condition = new Literal(expression, complexity);
-        this.literals.add(condition);
-        return condition.getHandle().thenApply(handle -> handle);
+        if(expression == null || expression.isEmpty()) {
+            return CompletableFuture.completedFuture(null);
+        } else {
+            Literal condition = new Literal(expression, complexity);
+            this.literals.add(condition);
+            return condition.getHandle().thenApply(handle -> handle);
+        }
     }
 
     static class Literal implements LiteralPredicate {

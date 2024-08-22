@@ -1,5 +1,6 @@
 package org.evrete.runtime.compiler;
 
+import org.evrete.Configuration;
 import org.evrete.api.*;
 import org.evrete.api.annotations.NonNull;
 import org.evrete.api.spi.SourceCompiler;
@@ -11,18 +12,18 @@ import org.evrete.util.CompilationException;
 import java.lang.invoke.MethodHandle;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static org.evrete.Configuration.RULE_BASE_CLASS;
-import static org.evrete.Configuration.SPI_LHS_STRIP_WHITESPACES;
+import static org.evrete.Configuration.*;
 
 public class DefaultLiteralSourceCompiler  {
     private static final String TAB = "  ";
     private static final String RHS_CLASS_NAME = "Rhs";
     private static final String RHS_INSTANCE_VAR = "ACTION";
 
-    private static final AtomicInteger classCounter = new AtomicInteger(0);
+    private static final AtomicLong classCounter = new AtomicLong();
     static final String CLASS_PACKAGE = DefaultLiteralSourceCompiler.class.getPackage().getName() + ".compiled";
 
     public <S extends RuleLiteralData<R, C>, R extends Rule, C extends LiteralPredicate> Collection<RuleCompiledSources<S, R, C>> compile(RuntimeContext<?> context, ClassLoader classLoader, Collection<S> sources) throws CompilationException {
@@ -31,7 +32,15 @@ public class DefaultLiteralSourceCompiler  {
             return Collections.emptyList();
         }
 
-        String stripFlag = context.getConfiguration().getProperty(SPI_LHS_STRIP_WHITESPACES);
+        Configuration configuration = context.getConfiguration();
+        // Check if Java compilation isn't explicitly disabled
+        boolean compilationDisabled = configuration.getAsBoolean(DISABLE_LITERAL_DATA, false);
+        if (compilationDisabled) {
+            throw new IllegalStateException("Literal conditions and actions were explicitly disabled in the configuration");
+        }
+
+
+        String stripFlag = configuration.getProperty(SPI_LHS_STRIP_WHITESPACES);
 
         if (stripFlag == null) {
             try {

@@ -24,7 +24,7 @@ public @interface MethodPredicate {
      * Specifies which fact fields are to be passed to the method as its arguments.
      * The corresponding field types must match the method's signature.
      *
-     * @return array of field references which will be method arguments.
+     * @return non-empty array of field references which will be method arguments.
      */
-    String[] args() default {};
+    String[] args();
 }

@@ -35,6 +35,7 @@ public class Configuration extends Properties implements Copyable<Configuration>
     static final String PARALLELISM = "evrete.core.parallelism";
     public static final String RULE_BASE_CLASS = "evrete.impl.rule-base-class";
     public static final String SPI_LHS_STRIP_WHITESPACES = "evrete.spi.compiler.lhs-strip-whitespaces";
+    public static final String DISABLE_LITERAL_DATA = "evrete.core.disable-literal-data";
 
 
     private static final Set<String> OBSOLETE_PROPERTIES = new HashSet<>(Arrays.asList(
