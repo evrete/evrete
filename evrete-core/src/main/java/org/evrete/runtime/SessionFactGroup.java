@@ -59,7 +59,7 @@ abstract class SessionFactGroup extends KnowledgeFactGroup {
     public String toString() {
         return "{" +
                 "plain=" + isPlain() +
-                "facts= " + FactType.toSimpleDebugString(factTypes) +
+                ", facts=" + FactType.toSimpleDebugString(factTypes) +
                 '}';
     }
 }
