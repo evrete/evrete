@@ -2,6 +2,7 @@
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/evrete/evrete)
 ![GitHub stars](https://img.shields.io/github/stars/evrete/evrete?style=social)
+[![libs.tech recommends](https://libs.tech/project/285368988/badge.svg)](https://libs.tech/project/285368988/evrete)
 
 > **Important!**
 >
